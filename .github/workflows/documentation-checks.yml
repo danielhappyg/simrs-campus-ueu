@@ -1,0 +1,58 @@
+name: Documentation checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate local Markdown links and fenced blocks
+        shell: ruby {0}
+        run: |
+          failures = []
+          files = Dir.glob("**/*.md", File::FNM_DOTMATCH)
+
+          files.each do |file|
+            text = File.read(file)
+            failures << "#{file}: unbalanced fenced code blocks" if text.scan(/^```/).length.odd?
+
+            text.scan(/\[[^\]]*\]\(([^)]+)\)/).flatten.each do |raw|
+              target = raw.strip
+              next if target.match?(/\A(?:https?:|mailto:|#)/)
+
+              target = target.split("#", 2).first
+              resolved = File.expand_path(target, File.dirname(file))
+              failures << "#{file}: missing local link #{target}" unless File.exist?(resolved)
+            end
+          end
+
+          abort(failures.join("\n")) unless failures.empty?
+          puts "Validated #{files.length} Markdown files"
+
+      - name: Reject tracked credential files
+        shell: ruby {0}
+        run: |
+          tracked = `git ls-files`.lines.map(&:strip)
+          forbidden_names = [".env", "pkcs11.txt"]
+          forbidden_extensions = [".key", ".pem", ".p12", ".pfx"]
+
+          rejected = tracked.select do |path|
+            basename = File.basename(path)
+            forbidden_names.include?(basename) ||
+              basename.start_with?(".env.") && basename != ".env.example" ||
+              forbidden_extensions.include?(File.extname(path))
+          end
+
+          abort("Forbidden credential-like files are tracked:\n#{rejected.join("\n")}") unless rejected.empty?
+          puts "No forbidden credential files are tracked"
+
