@@ -2,7 +2,7 @@
 
 ## Before starting work
 
-1. Read the [master plan](docs/SIMRS_CAMPUS_MASTER_PLAN.md), [legacy assessment](docs/LEGACY_ASSESSMENT.md), and [architecture decision](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md).
+1. Read the [master plan](docs/SIMRS_CAMPUS_MASTER_PLAN.md), [legacy assessment](docs/LEGACY_ASSESSMENT.md), [ADR-001](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md), and [ADR-002](docs/adr/ADR-002-PLATFORM-FOUNDATION.md).
 2. Confirm that the requested work belongs to the currently approved increment.
 3. Use synthetic data and simulation/test credentials only.
 4. Define the user, patient journey, authorization rule, and acceptance evidence before implementation.
@@ -15,6 +15,23 @@
 - Include migrations, tests, documentation, and rollback implications where applicable.
 - Require review from the relevant domain owner for clinical-workflow changes.
 - Merge only after required checks and approvals pass.
+
+## Required local verification
+
+Run all checks that apply before opening a pull request:
+
+```bash
+composer lint:check
+composer types:check
+php artisan test
+npm run format:check
+npm run lint:check
+npm run types:check
+npm run test:unit
+npm run build
+```
+
+Do not regenerate demo fixtures on a database whose data should be preserved. The application must remain usable with `DEMO_SEED_ENABLED=false`.
 
 ## Pull-request evidence
 
@@ -31,4 +48,3 @@ Every implementation pull request should explain:
 ## Architecture rule
 
 Deliver complete vertical journeys through bounded modules. Do not add disconnected menu demonstrations, browser-local system-of-record data, fake “connected” integration states, or silent overwrite/delete behavior.
-

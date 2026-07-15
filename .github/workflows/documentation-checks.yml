@@ -14,13 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Validate local Markdown links and fenced blocks
         shell: ruby {0}
         run: |
           failures = []
-          files = Dir.glob("**/*.md", File::FNM_DOTMATCH)
+          files = Dir.glob("**/*.md", File::FNM_DOTMATCH).reject do |file|
+            file.start_with?("vendor/", "node_modules/", "deliverables/")
+          end
 
           files.each do |file|
             text = File.read(file)
@@ -55,4 +57,3 @@ jobs:
 
           abort("Forbidden credential-like files are tracked:\n#{rejected.join("\n")}") unless rejected.empty?
           puts "No forbidden credential files are tracked"
-

@@ -21,19 +21,28 @@ id_ed25519*
 vendor/
 node_modules/
 public/build/
+public/hot
+public/storage
+public/fonts-manifest.dev.json
+public/favicon.ico
+public/apple-touch-icon.png
 coverage/
+.phpunit.cache
+.phpunit.result.cache
+bootstrap/ssr/
 
 # Laravel runtime data
 storage/*.key
-storage/logs/*
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
-bootstrap/cache/*.php
+storage/pail/
+database/*.sqlite
+
+# Generated Laravel Wayfinder route bindings
+resources/js/actions/
+resources/js/routes/
+resources/js/wayfinder/
 
 # Generated presentation QA and local Python dependencies
 deliverables/**/rendered/
 deliverables/**/working/deps/
 **/__pycache__/
 *.py[cod]
-

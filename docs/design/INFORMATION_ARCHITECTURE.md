@@ -102,7 +102,7 @@ Routes use opaque internal IDs in URLs and never expose NIK-like identifiers.
 | `/admin/reference-data` | Data Referensi | reference-data administration | no |
 | `/admin/system` | Kesehatan Sistem | operations administration | no |
 
-Unauthorized access returns a safe denial state; it does not redirect to a vaguely empty dashboard. The API remains the authority.
+Unauthorized access returns a safe denial state; it does not redirect to a vaguely empty dashboard. The server remains the authority.
 
 ## 4. `Pekerjaan Saya` model
 
