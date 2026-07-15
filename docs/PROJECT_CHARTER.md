@@ -2,6 +2,7 @@
 
 - **Status:** Approved working baseline
 - **Approval date:** 2026-07-15
+- **Product owner:** Daniel Happy Putra
 - **Product stage:** Discovery and foundation planning
 - **Initial release type:** University teaching and simulation platform
 
@@ -123,16 +124,26 @@ The first pilot is successful when:
 
 ## 10. Next approval gate
 
-The next step is to establish a small multidisciplinary working group. Names are not required immediately; role holders can be identified first.
+The next step is to establish a small multidisciplinary working group. Daniel Happy Putra is the confirmed product owner and has final authority over product scope, priorities, and release decisions. Other names are not required immediately; role holders can be identified first.
 
 Required representation:
 
-- product owner;
 - technical lead;
 - privacy/security owner;
 - one workflow representative each from medicine, nursing, RMIK, and pharmacy;
 - one teaching/simulation representative;
 - later consultation contacts for nutrition, psychology, and physiotherapy.
+
+| Governance role | Assigned person | Status |
+|---|---|---|
+| Product owner | Daniel Happy Putra | Confirmed |
+| Technical lead | To be appointed | Next decision |
+| Privacy/security owner | To be appointed | Pending |
+| Teaching/simulation representative | To be appointed | Pending |
+| Medicine workflow representative | To be appointed | Pending |
+| Nursing workflow representative | To be appointed | Pending |
+| RMIK workflow representative | To be appointed | Pending |
+| Pharmacy workflow representative | To be appointed | Pending |
 
 The working group’s first deliverable will be one approved outpatient service blueprint and acceptance-scenario catalogue.
 
@@ -152,4 +163,3 @@ The working group’s first deliverable will be one approved outpatient service 
 - [Project start checklist](PROJECT_START_CHECKLIST.md)
 - [Legacy assessment](LEGACY_ASSESSMENT.md)
 - [ADR-001](adr/ADR-001-REBUILD-ARCHITECTURE.md)
-

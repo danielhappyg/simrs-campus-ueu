@@ -30,7 +30,7 @@ The steering group must record decisions on:
 
 ## Gate 2 — Establish multidisciplinary governance
 
-- [ ] Name one product owner with final scope authority.
+- [x] Name Daniel Happy Putra as product owner with final scope and priority authority.
 - [ ] Name a technical lead and privacy/security owner.
 - [ ] Nominate one workflow representative from medicine, nursing, RMIK, pharmacy, nutrition, psychology, and physiotherapy.
 - [ ] Define who approves clinical logic, teaching logic, terminology, visual design, privacy, and releases.
