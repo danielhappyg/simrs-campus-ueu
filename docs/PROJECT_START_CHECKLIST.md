@@ -4,33 +4,33 @@
 
 ## Gate 0 — Contain the legacy deployment
 
-This is the first operational priority because the existing public site has security and truthfulness issues.
+**Disposition:** closed as outside the new-project scope on 2026-07-15.
 
-- [ ] Rotate the database credential exposed in the legacy source and deployment history.
-- [ ] Remove public/default login credentials.
-- [ ] Restrict access to authorized faculty and students.
-- [ ] Add a persistent `SIMULATION — SYNTHETIC DATA ONLY` banner.
-- [ ] Require server-side authentication and authorization for every API operation.
-- [ ] Restrict CORS to the exact application origin.
-- [ ] Confirm that the legacy database contains no real patient data.
-- [ ] Preserve a backup and immutable snapshot before remediation.
+The product owner confirmed that the existing public application is only a mock-up. It will not be repaired, migrated, or used as the technical foundation.
+
+- [x] Classify the application as non-production reference material.
+- [x] Exclude its code, database, credentials, and local browser state from migration.
+- [x] Keep the new GitHub repository independent from the legacy folder.
+- [x] Record useful legacy screens only as requirements evidence.
+
+If the mock-up is ever proposed for real data or operational use, it must undergo a separate security and privacy review first.
 
 ## Gate 1 — Approve the product boundary
 
 The steering group must record decisions on:
 
-- [ ] simulation-only initial operation using synthetic patients;
-- [ ] outpatient care as the first complete learning journey;
-- [ ] student drafts with explicit instructor/supervisor review and preserved revisions;
-- [ ] Hostinger as a conditional initial host, with documented migration triggers;
-- [ ] Indonesian as the initial clinical UI language and the scope of English terminology;
-- [ ] programs participating in the first case and their named representatives.
+- [x] simulation-only initial operation using synthetic patients;
+- [x] outpatient care as the first complete learning journey;
+- [x] student drafts with explicit instructor/supervisor review and preserved revisions;
+- [x] Hostinger as a conditional initial host, with documented migration triggers;
+- [x] Indonesian as the initial clinical UI language, with recognized clinical/technical terminology where appropriate;
+- [x] medicine, nursing, RMIK, and pharmacy participating in the first pilot.
 
-**Exit evidence:** ADR-001 is accepted or replaced, and decision owners are named.
+**Exit evidence:** the [project charter](PROJECT_CHARTER.md) records the approved product boundary. ADR-001 remains proposed until the technical preflight and deciders are confirmed.
 
 ## Gate 2 — Establish multidisciplinary governance
 
-- [ ] Name one product owner with final scope authority.
+- [x] Name Daniel Happy Putra as product owner with final scope and priority authority.
 - [ ] Name a technical lead and privacy/security owner.
 - [ ] Nominate one workflow representative from medicine, nursing, RMIK, pharmacy, nutrition, psychology, and physiotherapy.
 - [ ] Define who approves clinical logic, teaching logic, terminology, visual design, privacy, and releases.
@@ -90,7 +90,7 @@ The first technical backlog should contain:
 
 ## Reference documents
 
+- [Project charter](PROJECT_CHARTER.md)
 - [Campus master plan](SIMRS_CAMPUS_MASTER_PLAN.md)
 - [Legacy assessment](LEGACY_ASSESSMENT.md)
 - [ADR-001](adr/ADR-001-REBUILD-ARCHITECTURE.md)
-

@@ -13,6 +13,7 @@ The legacy application was inspected as a product reference, not adopted as the 
 - [Legacy assessment](docs/LEGACY_ASSESSMENT.md)
 - [Campus SIMRS master plan](docs/SIMRS_CAMPUS_MASTER_PLAN.md)
 - [ADR-001: Rebuild architecture and delivery model](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md)
+- [Approved project charter](docs/PROJECT_CHARTER.md)
 - [Project start checklist](docs/PROJECT_START_CHECKLIST.md)
 
 ## Repository safety rules
