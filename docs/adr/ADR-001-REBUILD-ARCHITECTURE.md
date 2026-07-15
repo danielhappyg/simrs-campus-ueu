@@ -1,8 +1,8 @@
 # ADR-001: Rebuild as a Teaching-First Modular Monolith
 
-- **Status:** Proposed
+- **Status:** Accepted for the simulation reference build
 - **Date:** 2026-07-15
-- **Decision owners:** Product owner, Health Sciences faculty representatives, and technical lead
+- **Decision owner:** Daniel Happy Putra, project manager/PIC
 - **Scope:** Replacement of the legacy SIMRS RMIK application
 
 ## Context
@@ -27,7 +27,7 @@ Build a **greenfield, teaching-first modular monolith** in a new repository or c
 
 The initial technical baseline is:
 
-- **Backend:** Laravel 13 on PHP 8.3 or newer, with versioned REST APIs;
+- **Backend:** Laravel 13 on PHP 8.3 or newer, with versioned REST APIs when an approved external or integration consumer requires them;
 - **Frontend:** React with TypeScript, Vite, and a shared UEU clinical design system;
 - **Database:** MySQL with migrations, seeders, foreign keys, and immutable audit events;
 - **Authentication:** server-managed sessions or first-party token authentication with secure cookies, CSRF protection, throttling, and contextual authorization policies;
@@ -165,9 +165,9 @@ Reconsider this decision when any of the following becomes true:
 
 These triggers do not automatically imply microservices. They require a new architecture decision based on measured constraints.
 
-## Approval questions
+## Accepted foundation decisions
 
-This ADR becomes accepted only after stakeholders approve these four decisions:
+The project manager/PIC accepted these four decisions for the reference build. Discipline stakeholders will validate the concrete workflow at the defined checkpoints:
 
 1. The first program is simulation-only and uses synthetic data.
 2. The first end-to-end slice is outpatient care.

@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Modules\Teaching\Models;
+
+use App\Models\User;
+use App\Modules\Teaching\Enums\EnvironmentMode;
+use App\Modules\Teaching\Enums\SessionStatus;
+use App\Support\Models\HasPublicUlid;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * @property int $id
+ * @property string $public_id
+ * @property string $code
+ * @property EnvironmentMode $environment_mode
+ * @property SessionStatus $status
+ */
+class SimulationSession extends Model
+{
+    use HasPublicUlid;
+
+    protected $fillable = [
+        'scenario_id',
+        'code',
+        'course_code',
+        'cohort_code',
+        'environment_mode',
+        'status',
+        'starts_at',
+        'ends_at',
+        'facilitator_user_id',
+        'source_session_id',
+    ];
+
+    /**
+     * @return BelongsTo<SimulationScenario, $this>
+     */
+    public function scenario(): BelongsTo
+    {
+        return $this->belongsTo(SimulationScenario::class, 'scenario_id');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function facilitator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'facilitator_user_id');
+    }
+
+    /**
+     * @return HasMany<Assignment, $this>
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class, 'session_id');
+    }
+
+    /**
+     * @return HasMany<WorkTask, $this>
+     */
+    public function workTasks(): HasMany
+    {
+        return $this->hasMany(WorkTask::class, 'session_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'environment_mode' => EnvironmentMode::class,
+            'status' => SessionStatus::class,
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+        ];
+    }
+}
