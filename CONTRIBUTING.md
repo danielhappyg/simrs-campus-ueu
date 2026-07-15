@@ -24,6 +24,7 @@ Run all checks that apply before opening a pull request:
 composer lint:check
 composer types:check
 php artisan test
+php artisan wayfinder:generate --with-form
 npm run format:check
 npm run lint:check
 npm run types:check

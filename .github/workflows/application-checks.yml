@@ -59,6 +59,9 @@ jobs:
       - name: Run PHP tests
         run: php artisan test
 
+      - name: Generate frontend route bindings
+        run: php artisan wayfinder:generate --with-form
+
       - name: Check frontend formatting
         run: npm run format:check
 

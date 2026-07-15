@@ -59,6 +59,7 @@ The learner account is `mahasiswa.keperawatan@example.invalid`; its password is 
 composer lint:check
 composer types:check
 php artisan test
+php artisan wayfinder:generate --with-form
 npm run format:check
 npm run lint:check
 npm run types:check
