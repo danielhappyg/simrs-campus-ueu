@@ -1,0 +1,125 @@
+# Outpatient Evidence Register
+
+- **Baseline version:** 1.0
+- **Evidence checked:** 15 July 2026
+- **Scope:** SIMRS Campus UEU outpatient teaching-reference MVP
+- **Owner of final product decisions:** Daniel Happy Putra
+- **Clinical-use boundary:** simulation with synthetic patients; not a clinical protocol or legal certification
+
+## 1. How to read this register
+
+Every material workflow or data decision must carry one of these labels:
+
+| Label | Meaning |
+|---|---|
+| `REGULATORY REQUIREMENT` | An obligation stated in an applicable Indonesian law or health regulation. |
+| `OFFICIAL INTEROPERABILITY REQUIREMENT` | A current SATUSEHAT contract, resource, terminology, or workflow expectation. |
+| `RECOGNIZED REFERENCE PRACTICE` | A practice stated in an official professional-service standard and used as a design reference. |
+| `TEACHING-SYSTEM DESIGN DECISION` | A deliberate product choice for the UEU simulation platform. |
+| `ASSUMPTION REQUIRING VALIDATION` | A proposed clinical, teaching, or local operating detail that Daniel or a designated subject-matter reviewer must validate before pilot use. |
+
+The labels prevent a product decision from being presented as law and prevent an unvalidated clinical rule from being presented as medical truth.
+
+## 2. Authoritative source register
+
+| Source ID | Authority and source | Current relevance | Parts used |
+|---|---|---|---|
+| SRC-01 | Ministry of Health, [Permenkes 24/2022 on Medical Records](https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-24-tahun-2022) ([official PDF](https://jdih.kemkes.go.id/storage/documents/pdfs/2022permenkes024.pdf)) | JDIH status checked as `Berlaku` on 15 July 2026 | Articles 13–20, 23–24, and 29–31 |
+| SRC-02 | Ministry of Health, [Permenkes 6/2026](https://jdih.kemkes.go.id/documents/peraturan-menteri-kesehatan-nomor-6-tahun-2026) ([official PDF](https://jdih.kemkes.go.id/storage/documents/pdfs/2026permenkes006.pdf)) | Current hospital and teaching-hospital baseline; it repeals several earlier hospital regulations, including Permenkes 82/2013 | Articles 16 and 29–30 |
+| SRC-03 | Ministry of Health, [SATUSEHAT outpatient interoperability playbook](https://satusehat.kemkes.go.id/platform/docs/id/interoperability/rme-rawat-jalan/) | Living specification; page history showed v6.3 dated 30 October 2025 when checked | Patient/Encounter, anamnesis, observations, diagnosis, medication, discharge, and Composition flows |
+| SRC-04 | Ministry of Health, [SATUSEHAT terminology guide](https://satusehat.kemkes.go.id/platform/docs/id/terminology/) | Living specification | ICD-10, SNOMED CT, LOINC, UCUM, and other code-system boundaries |
+| SRC-05 | Ministry of Health, [Permenkes 72/2016 on Hospital Pharmaceutical Service Standards](https://peraturan.bpk.go.id/Details/114491/permenkes-no-72-tahun-2016) ([official PDF](https://peraturan.bpk.go.id/Download/105431/Permenkes%20Nomor%2072%20Tahun%202016.pdf)) | BPK status checked as `Berlaku` on 15 July 2026 | Clinical pharmacy and prescription-review requirements |
+| SRC-06 | Republic of Indonesia, [Law 27/2022 on Personal Data Protection](https://peraturan.bpk.go.id/Home/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf) | Health data is specific personal data; relevant to any future real-data phase | Data classification, security, accountability, rights, and impact-assessment principles |
+
+This register uses primary government sources. Current versions must be rechecked before any production clinical deployment or external-integration release.
+
+## 3. Requirements and design responses
+
+### 3.1 Medical-record lifecycle and integrity
+
+| ID | Classification | Evidence or decision | MVP response | Verification |
+|---|---|---|---|---|
+| EMR-001 | `REGULATORY REQUIREMENT` | Electronic medical-record activity includes registration, record distribution, clinical entry, processing, claim input, storage, quality assurance, and transfer. SRC-01, Article 13. | Model one encounter lifecycle spanning registration, clinical documentation, pharmacy, closure, coding, and completeness review. External claim/transfer remains simulated. | E2E-01, E2E-11 |
+| EMR-002 | `REGULATORY REQUIREMENT` | Registration captures identity and social data. At minimum, identity includes medical-record number, name, and NIK. SRC-01, Article 14. | Store a synthetic MRN, synthetic identity, and explicitly synthetic NIK-like identifier. Mark all fixtures as non-real and non-valid for external use. | REG-01, SAF-01 |
+| EMR-003 | `REGULATORY REQUIREMENT` | Clinical information includes examination, treatment, procedures, and other services and must be complete, clear, chronological, and attributable by name, time, and signature. SRC-01, Article 16. | Use versioned entries with author, acting role, recorded time, clinical time, status, and supervisor attestation. Render one chronological record. | DOC-01, AUD-01 |
+| EMR-004 | `REGULATORY REQUIREMENT` | Multi-professional clinical information is integrated into one chronological record. SRC-01, Article 17. | Medicine, nursing, pharmacy, and RMIK use the same patient and encounter identifiers; no discipline-specific duplicate chart. | E2E-01 |
+| EMR-005 | `REGULATORY REQUIREMENT` | Processing includes coding, reporting, and analysis; coding uses the applicable international classification. SRC-01, Article 18. | Provide an RMIK work queue, coding draft, source-diagnosis link, code-system/version metadata, review state, and completeness result. | RMIK-01, RMIK-02 |
+| EMR-006 | `REGULATORY REQUIREMENT` | Claim codes derive from diagnoses and procedures documented by care providers. SRC-01, Article 19. | The MVP never lets a coder invent a source diagnosis. Each code assignment references the authored clinical statement; claim submission is out of scope. | RMIK-03 |
+| EMR-007 | `REGULATORY REQUIREMENT` | Digital storage must protect confidentiality, integrity, availability, and security. SRC-01, Articles 20 and 29. | Enforce server-side access policies, transactional persistence, audit events, backup/restore checks, private files, and least-privilege access. | AUTH-01–04, AUD-01, OPS-01 |
+| EMR-008 | `REGULATORY REQUIREMENT` | Health facilities conduct periodic internal medical-record quality audits. SRC-01, Article 23. | Preserve a completeness checklist, findings, reviewer, time, disposition, and revision request for teaching quality review. | RMIK-02 |
+| EMR-009 | `REGULATORY REQUIREMENT` | Rights to enter, correct, and view records are differentiated. Corrections are performed by authorized staff within `2 x 24` hours; later administrative correction requires RMIK and/or leadership approval under facility policy. SRC-01, Article 30. | Separate create, review, approve, correction-request, amend, and view capabilities. Preserve timestamps and configure the teaching window/late-approval route without silently overwriting an approved entry. | AUTH-01–04, DOC-02, E2E-05 |
+| EMR-010 | `REGULATORY REQUIREMENT` | Electronic signatures may support verification and authentication. SRC-01, Article 31. | MVP attestation is an internal simulation sign-off with authenticated actor and timestamp; it is not represented as a certified legal electronic signature. | DOC-03, SAF-02 |
+
+### 3.2 Teaching-hospital behavior
+
+| ID | Classification | Evidence or decision | MVP response | Verification |
+|---|---|---|---|---|
+| EDU-001 | `REGULATORY REQUIREMENT` | A teaching-hospital functional unit uses an integrated information system for service, education, and research. SRC-02, Article 29. | Patient workflow, learner assignment, supervision, and debrief data share one platform and audit model. Research functionality is not in the MVP. | E2E-01, EDU-01 |
+| EDU-002 | `REGULATORY REQUIREMENT` | Integrated care involves interprofessional collaboration with students. SRC-02, Article 30. | One scenario assigns medicine, nursing, RMIK, and pharmacy learners to the same encounter with explicit handoffs. | EDU-01 |
+| EDU-003 | `REGULATORY REQUIREMENT` | Students act within competence and authority under clinical-educator supervision. SRC-02, Article 30. | Capability policies use role, program, course, session, assignment, encounter, competence flag, and supervision relationship. Student output begins as draft. | AUTH-01–04, EDU-02 |
+| EDU-004 | `REGULATORY REQUIREMENT` | Student service activity and supervisor activity are recorded digitally. SRC-02, Article 30. | Record assignment, draft, submission, feedback, correction, approval, and supervisor attestation as attributable events. | EDU-02, AUD-01 |
+| EDU-005 | `TEACHING-SYSTEM DESIGN DECISION` | The first release is a teaching/simulation platform, not a live-care EHR. | Use synthetic data only, permanent simulation labeling, simulation adapters, resettable sessions, and no production transmissions. | SAF-01–03 |
+| EDU-006 | `TEACHING-SYSTEM DESIGN DECISION` | Daniel Happy Putra is the sole project manager/PIC and final decision-maker during the reference-build phase. | Codex researches, designs, implements, tests, and prepares review evidence. Stakeholders validate at defined checkpoints; they do not block day-to-day construction unless Daniel delegates authority. | Governance review |
+
+### 3.3 Outpatient clinical and interoperability boundary
+
+| ID | Classification | Evidence or decision | MVP response | Verification |
+|---|---|---|---|---|
+| OPD-001 | `REGULATORY REQUIREMENT` | Outpatient service includes observation, diagnosis, treatment, rehabilitation, and other services without admission. SRC-02, Article 16. | The encounter type is outpatient and supports intake, assessment, diagnosis, orders/results, medication, follow-up/disposition, and closure. | E2E-01 |
+| OPD-002 | `OFFICIAL INTEROPERABILITY REQUIREMENT` | The SATUSEHAT outpatient playbook represents a visit with Patient and Encounter and sequences clinical resources around that encounter. SRC-03. | Maintain stable internal patient/encounter identifiers and explicit future mappings; do not store the entire domain as raw FHIR JSON. | INT-01 |
+| OPD-003 | `OFFICIAL INTEROPERABILITY REQUIREMENT` | Chief complaint/anamnesis, observations, diagnoses, orders/results, medication, discharge disposition, and outpatient summary are represented in the current playbook. SRC-03. | Keep first-class internal records for each concept and a versioned adapter boundary. Unsupported resources stay out of the MVP rather than being faked. | INT-01, E2E-01 |
+| OPD-004 | `OFFICIAL INTEROPERABILITY REQUIREMENT` | Vitals use coded observations and UCUM units; diagnoses use ICD-10 with relevant SNOMED CT mapping in the current playbook. SRC-03 and SRC-04. | Store code system, code, display, version, value, unit, and provenance separately. UI labels are not the code. | DATA-01, RMIK-01 |
+| OPD-005 | `TEACHING-SYSTEM DESIGN DECISION` | Routine outpatient intake is not modeled as emergency-department triage. | Name the stage **Nursing Intake and Safety Screen** (`Asesmen Awal dan Skrining Keselamatan`) and capture vitals, consciousness, allergies, chief complaint, alerts, and escalation decision. | NUR-01, UX-01 |
+| OPD-006 | `ASSUMPTION REQUIRING VALIDATION` | The exact red-flag questions, thresholds, escalation destination, and optional scoring instruments depend on UEU teaching objectives and local policy. | Configure these in a scenario/ruleset. Ship no diagnostic or treatment recommendation. Require validation at Checkpoint 1 before faculty pilot. | VAL-A01–A04 |
+| OPD-007 | `TEACHING-SYSTEM DESIGN DECISION` | The MVP uses a coherent reference flow before collecting program-specific wish lists. | Build and test the vertical slice first, then collect multidisciplinary corrections against the working model. | Checkpoints 1–3 |
+
+### 3.4 Pharmacy service
+
+| ID | Classification | Evidence or decision | MVP response | Verification |
+|---|---|---|---|---|
+| PHA-001 | `RECOGNIZED REFERENCE PRACTICE` | Hospital clinical pharmacy includes prescription review/service, medication history, reconciliation, information, counseling, and therapy monitoring. SRC-05. | The MVP covers prescription review, intervention, dispensing, and patient-use information; other services remain later increments. | PHA-01–03 |
+| PHA-002 | `RECOGNIZED REFERENCE PRACTICE` | Prescription review includes administrative, pharmaceutical, and clinical review. SRC-05. | Present three separate checklist domains and require an outcome for each before dispensing. | PHA-01 |
+| PHA-003 | `RECOGNIZED REFERENCE PRACTICE` | Administrative review includes patient, prescriber, date, and originating unit details. SRC-05. | Derive these from the patient, prescription, author, encounter, and location; flag missing source data. | PHA-01 |
+| PHA-004 | `RECOGNIZED REFERENCE PRACTICE` | Pharmaceutical review covers medicine/form/strength, stability, and directions; clinical review includes indication/dose/timing, duplication, allergy/adverse reaction, contraindication, and interaction. SRC-05. | Capture structured review results and pharmacist comments. The system may show data-quality warnings but makes no autonomous clinical determination. | PHA-01, PHA-02 |
+| PHA-005 | `RECOGNIZED REFERENCE PRACTICE` | Prescription service includes receipt, availability, preparation/compounding, checking, handoff, and information, with medication-error prevention at each stage. SRC-05. | Model receive → review → prepare → final check → dispense/cancel and retain actor/time/quantity/batch simulation data. | PHA-03 |
+
+### 3.5 Privacy, safety, and truthful representation
+
+| ID | Classification | Evidence or decision | MVP response | Verification |
+|---|---|---|---|---|
+| SAF-001 | `REGULATORY REQUIREMENT` | Health information is specific personal data. SRC-06. | The teaching environment rejects real-data imports and uses generated synthetic identities. A separate privacy impact and production-readiness program is required before real data. | SAF-01 |
+| SAF-002 | `TEACHING-SYSTEM DESIGN DECISION` | Simulated signatures and integrations must never look production-valid. | Every screen/export carries `SIMULASI — DATA SINTETIS`; integration cards state `Simulator` or `Sandbox`, never `Connected` without verified evidence. | SAF-02, SAF-03 |
+| SAF-003 | `TEACHING-SYSTEM DESIGN DECISION` | No autonomous clinical decision support is included in the reference MVP. | The product structures documentation, detects missing data, and routes review. It does not diagnose, prescribe, calculate treatment, or clear a medication automatically. | SAF-04 |
+
+## 4. Deliberately unresolved clinical content
+
+The following are not determined by the cited sources and must not be hard-coded as universal truth:
+
+- outpatient red-flag questions and numeric escalation thresholds;
+- which standardized nursing, medical, or medication-risk instruments match each learner level;
+- which diagnoses, medicines, laboratory results, and procedures appear in the first case;
+- local queue, registration, referral, consent, correction, and encounter-closure SOP details;
+- supervisor-to-student ratios and which entries require discipline-specific co-signature;
+- faculty scoring rubrics and pass/fail rules.
+
+They are controlled in the [Assumption and Validation Register](../product/ASSUMPTION_AND_VALIDATION_REGISTER.md).
+
+## 5. Evidence maintenance rule
+
+Before changing a regulated or interoperability-sensitive workflow:
+
+1. identify the requirement ID affected;
+2. re-open the primary source and record its version/date;
+3. distinguish the source obligation from the proposed product response;
+4. add or change acceptance scenarios;
+5. obtain Daniel's decision for scope changes; and
+6. obtain appropriate human clinical/legal validation before any real-care claim or deployment.
+
+## Related documents
+
+- [Outpatient Service Blueprint](../product/OUTPATIENT_SERVICE_BLUEPRINT.md)
+- [Outpatient Role and Permission Matrix](../product/OUTPATIENT_ROLE_MATRIX.md)
+- [Outpatient Data Dictionary](../product/OUTPATIENT_DATA_DICTIONARY.md)
+- [Assumption and Validation Register](../product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
+- [Outpatient Acceptance Scenarios](../product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
+- [Requirements Traceability Matrix](../product/OUTPATIENT_TRACEABILITY_MATRIX.md)
