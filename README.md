@@ -22,6 +22,10 @@ The legacy application was inspected as a product reference, not adopted as the 
 - [Assumption and validation register](docs/product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
 - [Outpatient acceptance scenarios](docs/product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
 - [Outpatient traceability matrix](docs/product/OUTPATIENT_TRACEABILITY_MATRIX.md)
+- [UEU Clinical design system](docs/design/UEU_CLINICAL_DESIGN_SYSTEM.md)
+- [Information architecture](docs/design/INFORMATION_ARCHITECTURE.md)
+- [Outpatient critical-path wireframes](docs/design/OUTPATIENT_WIREFRAMES.md)
+- [Outpatient interaction specifications](docs/design/OUTPATIENT_INTERACTION_SPECIFICATIONS.md)
 
 ## Repository safety rules
 
