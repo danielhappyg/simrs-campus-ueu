@@ -17,7 +17,7 @@ If the mock-up is ever proposed for real data or operational use, it must underg
 
 ## Gate 1 — Approve the product boundary
 
-The steering group must record decisions on:
+The product owner has recorded decisions on:
 
 - [x] simulation-only initial operation using synthetic patients;
 - [x] outpatient care as the first complete learning journey;
@@ -28,28 +28,30 @@ The steering group must record decisions on:
 
 **Exit evidence:** the [project charter](PROJECT_CHARTER.md) records the approved product boundary. ADR-001 remains proposed until the technical preflight and deciders are confirmed.
 
-## Gate 2 — Establish multidisciplinary governance
+## Gate 2 — Establish reference-build governance
 
 - [x] Name Daniel Happy Putra as product owner with final scope and priority authority.
-- [ ] Name a technical lead and privacy/security owner.
-- [ ] Nominate one workflow representative from medicine, nursing, RMIK, pharmacy, nutrition, psychology, and physiotherapy.
-- [ ] Define who approves clinical logic, teaching logic, terminology, visual design, privacy, and releases.
-- [ ] Agree meeting cadence, decision log format, and change-control process.
+- [x] Record Daniel as sole project manager/PIC and final acceptance/release authority.
+- [x] Delegate autonomous research, design, implementation, testing, documentation, and GitHub execution to Codex within the approved charter.
+- [x] Define a three-checkpoint validation model instead of requiring separate up-front program interviews.
+- [ ] Identify the combined medicine, nursing, RMIK, pharmacy, and teaching reviewers before Checkpoint 1.
+- [ ] Identify the institutional privacy/security/deployment reviewer before the faculty-pilot gate.
 
-**Exit evidence:** governance roster and decision-rights table are approved.
+**Exit evidence:** the [project charter](PROJECT_CHARTER.md) and [role matrix](product/OUTPATIENT_ROLE_MATRIX.md) record decision rights. Reviewer names may be added when each checkpoint is scheduled.
 
 ## Gate 3 — Design one shared outpatient scenario
 
-Run a facilitated workshop around one synthetic patient rather than asking each program for an independent menu wish list.
+Build a concrete reference journey around one synthetic patient, then validate it in a combined session rather than asking each program for an independent menu wish list.
 
-- [ ] Define learning outcomes and learner levels.
-- [ ] Map registration, triage, medical assessment, orders, results, prescription, dispensing, payment simulation, coding, completeness review, and encounter closure.
-- [ ] Identify each profession’s inputs, required information, handoffs, competence limits, and supervisor actions.
-- [ ] Record normal flow, exceptions, amendments, cancellations, late results, and access restrictions.
-- [ ] Agree the minimum data set and controlled terminology for the slice.
-- [ ] Turn the journey into acceptance scenarios and role-policy tests.
+- [ ] Validate learning outcomes and learner levels at Checkpoint 1.
+- [x] Map registration, nursing intake/safety screen, medical assessment, orders, results, prescription, dispensing, coding, completeness review, and encounter closure.
+- [x] Identify each profession’s inputs, required information, handoffs, competence limits, and supervisor actions.
+- [x] Record normal flow, exceptions, amendments, cancellations, late results, and access restrictions.
+- [x] Define the reference minimum data set and controlled-terminology boundaries.
+- [x] Turn the journey into acceptance scenarios and role-policy tests.
+- [ ] Record Daniel's acceptance of the baseline and the Checkpoint 1 corrections.
 
-**Exit evidence:** one signed-off service blueprint and acceptance-test catalogue.
+**Exit evidence:** the service blueprint, evidence register, role matrix, data dictionary, validation register, and acceptance-test catalogue form the build baseline; Checkpoint 1 records later clinical/teaching corrections.
 
 ## Gate 4 — Validate infrastructure and delivery
 
@@ -64,7 +66,7 @@ Run a facilitated workshop around one synthetic patient rather than asking each 
 
 ## Gate 5 — Prepare the foundation backlog
 
-Only after Gates 0–4 should implementation begin.
+Foundation implementation may begin once the reference artifacts in Gates 0–3 exist. Staging deployment remains blocked until Gate 4 infrastructure evidence is complete.
 
 The first technical backlog should contain:
 

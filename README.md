@@ -4,7 +4,7 @@ This workspace is the planning and future implementation home for the next-gener
 
 ## Current status
 
-Discovery and master planning are complete. Implementation has deliberately not started.
+Discovery and master planning are complete. The source-grounded outpatient reference baseline is now being prepared before application scaffolding begins.
 
 The legacy application was inspected as a product reference, not adopted as the new foundation. The recommended direction is a greenfield, teaching-first system that follows real hospital workflows, uses synthetic patient data by default, and makes learner supervision explicit.
 
@@ -15,6 +15,13 @@ The legacy application was inspected as a product reference, not adopted as the 
 - [ADR-001: Rebuild architecture and delivery model](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md)
 - [Approved project charter](docs/PROJECT_CHARTER.md)
 - [Project start checklist](docs/PROJECT_START_CHECKLIST.md)
+- [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
+- [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
+- [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)
+- [Outpatient data dictionary](docs/product/OUTPATIENT_DATA_DICTIONARY.md)
+- [Assumption and validation register](docs/product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
+- [Outpatient acceptance scenarios](docs/product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
+- [Outpatient traceability matrix](docs/product/OUTPATIENT_TRACEABILITY_MATRIX.md)
 
 ## Repository safety rules
 
@@ -24,13 +31,14 @@ The legacy application was inspected as a product reference, not adopted as the 
 - Changes reach `main` through reviewed pull requests and automated checks.
 - The legacy application is reference material and is not copied into this repository.
 
-## Decision gate before implementation
+## Delivery authority and validation gates
 
-The cross-program steering group should approve these four decisions first:
+Daniel Happy Putra is the sole project manager/PIC and final authority for scope, priority, acceptance, and releases during the reference-build phase. Codex is delegated to research, design, implement, test, and prepare GitHub changes autonomously within the approved charter.
 
-1. The initial product is a **teaching/simulation platform**, not a production electronic medical record for real patients.
-2. The first complete learning journey is **outpatient care**, from registration through coding and record-quality review.
-3. Students create drafts; authorized instructors or clinical supervisors approve/sign them.
-4. Hostinger is the initial deployment target, with a documented migration trigger to a VPS or managed platform if integration, concurrency, or availability requirements outgrow shared hosting.
+Stakeholder input is concentrated at three checkpoints after a concrete model exists:
 
-No real patient data should be loaded until a separate production-readiness and legal/compliance review is completed.
+1. workflow-baseline validation;
+2. end-to-end user acceptance using one shared synthetic case; and
+3. faculty-pilot readiness after security, accessibility, and deployment evidence is available.
+
+These checkpoints validate and improve the model; they do not transfer Daniel's final product authority. No real patient data should be loaded until a separate production-readiness and institutional legal/privacy/clinical review is completed.

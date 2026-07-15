@@ -144,8 +144,8 @@ These can be revisited after the core teaching journeys are validated.
 
 | Study program | First-class workflows | Shared handoffs |
 |---|---|---|
-| Medicine | History, examination, problem/diagnosis, order entry, procedures, plan, referral, discharge summary | Nursing triage, diagnostics, pharmacy, nutrition, psychology, physiotherapy, RMIK |
-| Nursing | Triage, structured assessment, nursing diagnosis, care plan, interventions, observations, medication administration, handover, discharge education | Physicians, pharmacy, nutrition, physiotherapy, inpatient/IGD |
+| Medicine | History, examination, problem/diagnosis, order entry, procedures, plan, referral, discharge summary | Nursing intake/safety screen, diagnostics, pharmacy, nutrition, psychology, physiotherapy, RMIK |
+| Nursing | Outpatient intake/safety screen, structured assessment, nursing diagnosis, care plan, interventions, observations, medication administration, handover, discharge education; emergency triage later | Physicians, pharmacy, nutrition, physiotherapy, inpatient/IGD |
 | RMIK | Master patient index, identity resolution, encounter assembly, coding, completeness, amendment control, disclosure, retention, statistics, claim preparation | Every clinical and financial unit |
 | Pharmacy | Medication verification, allergy/interaction review, dispensing, compounding simulation, inventory ledger, FEFO, reconciliation, medication administration support | Prescribers, nursing, billing, RMIK |
 | Nutrition | Screening, assessment, diagnosis, intervention, diet order, monitoring/outcome, food-service handoff | Medical, nursing, pharmacy, inpatient |
@@ -203,7 +203,7 @@ Replace the legacy launcher with:
 flowchart LR
   A[Scenario assignment] --> B[Find or create synthetic patient]
   B --> C[Appointment and queue]
-  C --> D[Nursing triage]
+  C --> D[Nursing intake and safety screen]
   D --> E[Medical assessment]
   E --> F[Orders and referrals]
   F --> G[Results and pharmacy]
@@ -375,10 +375,10 @@ Durations are indicative for a team of roughly 3–4 developers, one QA/product 
 
 | Increment | Indicative duration | Deliverable | Exit evidence |
 |---|---:|---|---|
-| 0. Charter and workflow discovery | 2–3 weeks | Approved product boundary, target users, course scenarios, glossary, workflow maps, data policy, and prioritized backlog | Steering group signs the four decision gates; each program validates at least one journey |
+| 0. Charter and workflow discovery | 2–3 weeks | Approved product boundary, target users, course scenarios, glossary, workflow maps, data policy, and prioritized backlog | Daniel approves the charter and reference baseline; program validation follows at the defined checkpoints |
 | 1. Platform foundation | 4–6 weeks | Repository, CI, staging deploy, UEU design tokens, secure auth, roles/context policies, organization/location, audit, course/cohort/session basics | Instructor creates a session; learner enters only an assigned role; every action is audited |
 | 2. Patient and encounter core | 4–6 weeks | Synthetic patient identity, search/duplicate checks, consent, appointment, queue, encounter, patient context, registration workflow | A registration learner creates/reuses a patient and starts a traceable encounter without duplicate re-entry |
-| 3. Outpatient clinical slice | 6–8 weeks | Nursing triage, medical assessment, problems, orders, results inbox, prescriptions, referral, supervisor draft/sign flow | One outpatient encounter reaches supervisor-signed closure with complete provenance |
+| 3. Outpatient clinical slice | 6–8 weeks | Nursing intake/safety screen, medical assessment, problems, orders, results inbox, prescriptions, referral, supervisor draft/sign flow | One outpatient encounter reaches supervisor-signed closure with complete provenance |
 | 4. Diagnostics, pharmacy, billing, and RMIK | 6–8 weeks | Lab/radiology lifecycle, medication verification/dispensing, charge capture, payment simulation, coding and completeness workbench | The same encounter completes clinical-to-coding handoff; missing/unsigned records are detected automatically |
 | 5. Emergency and inpatient | 8–10 weeks | Structured triage, emergency workspace, admission, bed/location history, nursing care plan, MAR, handoff, discharge | An emergency case transfers to inpatient without losing orders, medication, care-team, or audit context |
 | 6. Multidisciplinary care | 6–8 weeks | Nutrition, psychology, and physiotherapy workflows with privacy segmentation and shared care goals | Each program completes its part of one shared inpatient case; supervisor signs each discipline record |
@@ -494,42 +494,34 @@ Targets must be confirmed in Increment 0. Suggested teaching-production defaults
 
 ## 17. Governance
 
-### 17.1 Steering group
+### 17.1 Reference-build governance
 
-At minimum:
+Daniel Happy Putra is the sole project manager/PIC and final authority for scope, priority, acceptance, and releases during the reference-build phase. Codex may autonomously research, design, implement, test, document, and execute the GitHub workflow within the approved charter.
 
-- product owner/project sponsor;
-- one empowered representative from each participating study program;
-- RMIK/domain workflow lead;
-- clinical safety representative;
-- teaching/assessment lead;
-- engineering lead;
-- QA/accessibility lead;
-- infrastructure/security representative; and
-- privacy/legal/compliance representative when real-data or external integration is discussed.
+Rather than blocking construction on a permanent steering group, relevant medicine, nursing, RMIK, pharmacy, teaching, UX/accessibility, infrastructure/security, and privacy representatives are invited at concentrated checkpoints. Institutional authority remains mandatory before a faculty pilot where university policy requires it and before any real-data or clinical-use proposal.
 
 ### 17.2 Decision rights
 
-| Decision | Accountable group |
+| Decision | Accountable party |
 |---|---|
-| Product boundary and release priority | Product owner + steering group |
-| Clinical workflow correctness | Relevant profession lead + clinical safety lead |
-| Record/coding/retention semantics | RMIK lead |
-| Learning objectives and assessment | Program leads + teaching lead |
-| Architecture/security | Engineering + security, with ADR |
-| Brand/accessibility | UEU brand owner + UX/accessibility lead |
-| Production data/integration | Institutional privacy/legal/security authority |
+| Reference product boundary, scope, priority, and release | Daniel Happy Putra |
+| Research/design/implementation/test recommendation | Codex execution agent under Daniel's delegation |
+| Clinical workflow validity | Relevant profession reviewer; Daniel decides product response |
+| Record/coding/retention semantics | RMIK reviewer; Daniel decides product response |
+| Learning objectives and assessment | Program/teaching reviewer; Daniel decides product response |
+| Architecture and reference-MVP security | Codex proposes/implements with ADR; Daniel accepts material decisions |
+| Brand/accessibility | Daniel accepts reference design; institutional brand review when required |
+| Faculty-pilot institutional readiness | Applicable university privacy/security/IT authority |
+| Production data/integration | Institutional privacy/legal/security/clinical authority through a separate program |
 
-### 17.3 Required workshop sequence
+### 17.3 Staged validation sequence
 
-1. **Product boundary:** simulation-only, future production ambitions, and data policy
-2. **Shared patient journey:** agree one outpatient and one emergency-to-inpatient scenario
-3. **Profession breakouts:** tasks, data entered, data needed, handoffs, competence limits, and supervisor actions
-4. **RMIK/record workshop:** identity, encounter closure, coding, completeness, amendments, release, reporting
-5. **Education workshop:** cohorts, session orchestration, scoring, debrief, reset, instructor console
-6. **Security/privacy workshop:** access matrix, restricted notes, exports, audit, retention, incidents
-7. **Technical/hosting workshop:** account capabilities, load, backup, deployment, observability, and migration triggers
-8. **Roadmap sign-off:** score backlog by learning value, workflow dependency, risk reduction, and effort
+1. **Autonomous baseline:** primary-source research, shared outpatient journey, roles, data, assumptions, and acceptance tests.
+2. **Checkpoint 1 — combined workflow review:** inspect one concrete outpatient model across medicine, nursing, RMIK, pharmacy, and teaching; classify corrections.
+3. **Reference implementation:** build the tested vertical slice using safe configurable assumptions.
+4. **Checkpoint 2 — end-to-end UAT:** run one shared synthetic case and validate handoffs, terminology, supervision, correction, and learning usefulness.
+5. **Infrastructure validation:** verify Hostinger/staging, backup/restore, deployment/rollback, security, and accessibility.
+6. **Checkpoint 3 — pilot readiness:** Daniel makes the product release decision with applicable institutional review evidence.
 
 ### 17.4 Questions for every study program
 
@@ -584,53 +576,47 @@ Avoid invented “45% faster” marketing metrics. Establish a baseline first an
 | Visual polish outruns clinical logic | UX acceptance includes workflow and safety evidence, not screenshots alone |
 | Product claims compliance without certification | Maintain a traceability matrix and require formal compliance review before real-data use |
 
-## 20. Decisions required before Increment 1
+## 20. Remaining inputs collected progressively
 
-1. Confirm simulation-only initial scope.
-2. Confirm the modeled hospital context: general teaching hospital, and which service/class assumptions apply.
-3. Name the product; avoid “NextGen” unless retained intentionally.
-4. Confirm the initial study programs participating in the first outpatient scenario.
-5. Confirm learner identity source: local accounts, university SSO, or roster import.
-6. Confirm expected cohort and concurrency.
-7. Confirm Bahasa Indonesia as primary UI and whether an English terminology view is required.
-8. Identify official UEU brand assets and approve use of the uploaded logo.
-9. Confirm the Hostinger plan, SSH, PHP extensions, cron, database, backup, storage, and subdomain capabilities.
-10. Appoint product owner, clinical safety lead, RMIK lead, and one decision-capable representative per program.
+Simulation scope, outpatient priority, initial programs, Indonesian UI, supervised learner work, product ownership, and autonomous reference-build delivery are confirmed. Remaining inputs are resolved at the latest safe checkpoint rather than blocking all implementation:
 
-## 21. First 30-day action plan
+1. modeled teaching-hospital/service/class details and target learner level;
+2. learner identity source: local accounts initially, then university SSO/roster decision;
+3. expected cohort and concurrency;
+4. authoritative UEU brand asset/usage confirmation;
+5. actual Hostinger plan capabilities and deployment/rollback evidence;
+6. workflow/teaching validators for Checkpoints 1 and 2; and
+7. institutional privacy/security/IT reviewer for Checkpoint 3.
 
-### Week 1
+## 21. Current execution sequence
 
-- Ratify product boundary and governance.
-- Restrict/label the legacy site and rotate legacy secrets.
-- Capture two current patient journeys with faculty.
-- Approve product name and brand asset source.
+### Completed foundation
 
-### Week 2
+- Approve the product boundary, ownership, and autonomous reference-build operating model.
+- Initialize the private GitHub repository and documentation checks.
+- Assess the legacy mock-up as reference material only.
+- Research the official outpatient, medical-record, teaching-hospital, pharmacy, and interoperability baseline.
 
-- Run program breakout workshops.
-- Build role/capability and data-visibility matrices.
-- Define the first outpatient simulation scenario and learning outcomes.
-- Verify the Hostinger account capabilities.
+### Current product baseline
 
-### Week 3
+- Publish the service blueprint, role/capability model, minimum data dictionary, assumptions, acceptance scenarios, and traceability matrix.
+- Produce UEU clinical design tokens, information architecture, low-fidelity critical-path wireframes, and accessible interaction specifications.
+- Convert the verified contract into a dependency-ordered foundation and vertical-slice backlog.
 
-- Produce the target workflow map, domain glossary, low-fidelity patient/work-queue wireframes, and data-classification/threat-model draft.
-- Convert approved outcomes into a prioritized story map.
-- Finalize ADR-001 after hosting verification.
+### Implementation sequence
 
-### Week 4
-
-- Initialize the private GitHub repository.
-- Add branch protection, CI, staging environment, secret scanning, and deployment skeleton.
-- Scaffold only the platform foundation: design tokens, secure authentication shell, role/context policy tests, health check, audit event base, and synthetic fixture generator.
+- Scaffold the modular monolith, secure identity/session shell, contextual policies, audit foundation, synthetic fixture generator, and health/readiness checks.
+- Build patient/registration/encounter primitives and the persistent patient context.
+- Deliver nursing intake/safety screen, medical assessment, order/result, pharmacy, closure, and RMIK review as one end-to-end slice.
+- Run automated verification and combined stakeholder UAT against the working model.
+- Complete Hostinger preflight, staging deployment/rollback, and pilot-readiness evidence before release.
 
 Do not start by recreating all legacy menu tiles.
 
 ## 22. Source register
 
 - [Permenkes 6/2026 — Rumah Sakit](https://jdih.kemkes.go.id/storage/documents/pdfs/2026permenkes006.pdf)
-- [Permenkes 24/2022 — Rekam Medis](https://peraturan.bpk.go.id/Download/301563/Permenkes%20Nomor%2024%20Tahun%202022.pdf)
+- [Permenkes 24/2022 — Rekam Medis](https://jdih.kemkes.go.id/storage/documents/pdfs/2022permenkes024.pdf)
 - [Law 27/2022 — Pelindungan Data Pribadi](https://peraturan.bpk.go.id/Home/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf)
 - [SATUSEHAT FHIR](https://satusehat.kemkes.go.id/platform/docs/id/fhir/)
 - [SATUSEHAT Interoperability Guide](https://satusehat.kemkes.go.id/platform/docs/id/interoperability/)
@@ -644,4 +630,4 @@ Do not start by recreating all legacy menu tiles.
 
 ---
 
-This plan should be versioned after each steering-group decision. Changes to product boundary, architecture, clinical safety, data use, or deployment strategy should be recorded explicitly rather than silently edited into implementation tickets.
+This plan should be versioned after each material product-owner decision or validation checkpoint. Changes to product boundary, architecture, clinical safety, data use, or deployment strategy should be recorded explicitly rather than silently edited into implementation tickets.

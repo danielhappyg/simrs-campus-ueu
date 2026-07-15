@@ -50,7 +50,7 @@ The first synthetic patient should be able to move through this sequence:
 ```mermaid
 flowchart LR
     A["Teaching scenario assigned"] --> B["Patient registration"]
-    B --> C["Nursing triage"]
+    B --> C["Nursing intake and safety screen"]
     C --> D["Medical assessment"]
     D --> E["Diagnosis and orders"]
     E --> F["Results reviewed"]
@@ -61,7 +61,7 @@ flowchart LR
     J --> K["Supervisor approval and debrief"]
 ```
 
-The workshop may refine this order, but it must preserve one shared patient and encounter context across all participating roles.
+The combined validation checkpoint may refine this order, but it must preserve one shared patient and encounter context across all participating roles.
 
 ## 5. Intended users
 
@@ -122,39 +122,34 @@ The first pilot is successful when:
 | D-006 | The legacy system is reference material, not a migration source or remediation workstream. | Approved |
 | D-007 | Hostinger is conditional on infrastructure and rollback preflight. | Approved in principle; technical validation pending |
 
-## 10. Next approval gate
+## 10. Reference-build operating model
 
-The next step is to establish a small multidisciplinary working group. Daniel Happy Putra is the confirmed product owner and has final authority over product scope, priorities, and release decisions. Other names are not required immediately; role holders can be identified first.
+Daniel Happy Putra is the sole project manager/PIC and has final authority over product scope, priorities, acceptance, and release decisions. Codex is delegated to independently research, design, implement, test, document, and prepare GitHub changes within this charter. Codex does not hold institutional, clinical, privacy, or legal approval authority.
 
-Required representation:
+The project will not wait for separate blank-sheet requirements interviews with every program. It will build one evidence-grounded outpatient reference model and collect multidisciplinary corrections against that concrete model at three checkpoints:
 
-- technical lead;
-- privacy/security owner;
-- one workflow representative each from medicine, nursing, RMIK, and pharmacy;
-- one teaching/simulation representative;
-- later consultation contacts for nutrition, psychology, and physiotherapy.
+1. workflow-baseline review;
+2. end-to-end user acceptance;
+3. faculty-pilot readiness.
 
-| Governance role | Assigned person | Status |
+| Governance responsibility | Responsible party during reference build | Decision position |
 |---|---|---|
-| Product owner | Daniel Happy Putra | Confirmed |
-| Technical lead | To be appointed | Next decision |
-| Privacy/security owner | To be appointed | Pending |
-| Teaching/simulation representative | To be appointed | Pending |
-| Medicine workflow representative | To be appointed | Pending |
-| Nursing workflow representative | To be appointed | Pending |
-| RMIK workflow representative | To be appointed | Pending |
-| Pharmacy workflow representative | To be appointed | Pending |
+| Scope, priority, design acceptance, and release | Daniel Happy Putra | Final authority |
+| Research, product design, engineering, tests, documentation, and GitHub execution | Codex, delegated by Daniel | Recommends and executes; no institutional approval authority |
+| Clinical and professional-workflow validation | Relevant medicine, nursing, RMIK, and pharmacy reviewers when available | Advisory evidence; mandatory before claiming clinical validity |
+| Teaching usefulness and competency alignment | Designated course/program reviewers when available | Advisory evidence; required before a graded faculty pilot |
+| Institutional privacy, security, and deployment approval | Designated university authorities | Required at the applicable pilot/real-data gate |
 
-The working group’s first deliverable will be one approved outpatient service blueprint and acceptance-scenario catalogue.
+Stakeholder names are not required to begin the reference build. Daniel may appoint or invite reviewers when a checkpoint is ready.
 
 ## 11. Information still to collect
 
-- Names or roles of the first working-group representatives
+- Names or roles of checkpoint reviewers when Daniel is ready to invite them
 - Target student semester and competence level for each program
 - Expected number of simultaneous students and classes
 - Typical class/simulation duration
 - Existing forms, SOPs, rubrics, or course outcomes that should inform the outpatient case
-- Available workshop date and format
+- Available combined validation-session date and format
 - Hostinger plan and environment capabilities
 
 ## References
@@ -163,3 +158,6 @@ The working group’s first deliverable will be one approved outpatient service 
 - [Project start checklist](PROJECT_START_CHECKLIST.md)
 - [Legacy assessment](LEGACY_ASSESSMENT.md)
 - [ADR-001](adr/ADR-001-REBUILD-ARCHITECTURE.md)
+- [Outpatient evidence register](research/OUTPATIENT_EVIDENCE_REGISTER.md)
+- [Outpatient service blueprint](product/OUTPATIENT_SERVICE_BLUEPRINT.md)
+- [Outpatient assumption and validation register](product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
