@@ -64,6 +64,37 @@ class AssignmentContextResolver
         return $assignment;
     }
 
+    public function forRecordTimeline(User $user, Encounter $encounter): Assignment
+    {
+        $session = $encounter->session;
+
+        if ($session->environment_mode !== EnvironmentMode::Simulation
+            || ! in_array($session->status, [SessionStatus::Active, SessionStatus::Completed], true)) {
+            throw new AuthorizationException('The simulation session is not available for longitudinal record access.');
+        }
+
+        $assignment = $this->activeAssignments($user, $session)
+            ->first(function (Assignment $assignment) use ($encounter): bool {
+                if (! $assignment->hasCapability(Capability::SessionView)) {
+                    return false;
+                }
+
+                $matchesCase = $assignment->patient_id === $encounter->patient_id
+                    && $assignment->encounter_id === $encounter->getKey();
+                $sessionWideFacilitator = $assignment->patient_id === null
+                    && $assignment->encounter_id === null
+                    && $assignment->hasCapability(Capability::SessionFacilitate);
+
+                return $matchesCase || $sessionWideFacilitator;
+            });
+
+        if (! $assignment) {
+            throw new AuthorizationException('The active assignment does not permit access to this longitudinal record.');
+        }
+
+        return $assignment;
+    }
+
     public function forDebriefWrite(User $user, Encounter $encounter): Assignment
     {
         $session = $encounter->session;

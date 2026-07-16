@@ -204,7 +204,7 @@ class EncounterDebriefTest extends TestCase
         $encounter->session->update(['status' => SessionStatus::Completed]);
 
         $this->actingAs($facilitator)
-            ->get(route('encounters.timeline.show', $encounter))
+            ->get(route('encounters.debrief.show', $encounter))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('encounter/debrief')

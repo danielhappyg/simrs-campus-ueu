@@ -24,6 +24,7 @@ use App\Http\Controllers\Coding\StoreProcedureCodingSuggestionController;
 use App\Http\Controllers\Coding\SubmitCodingAssignmentController;
 use App\Http\Controllers\Encounter\EncounterDebriefController;
 use App\Http\Controllers\Encounter\EncounterOverviewController;
+use App\Http\Controllers\Encounter\EncounterRecordTimelineController;
 use App\Http\Controllers\Encounter\PublicQueueController;
 use App\Http\Controllers\Encounter\ReviseDebriefNoteController;
 use App\Http\Controllers\Encounter\StoreDebriefNoteController;
@@ -58,7 +59,7 @@ Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(f
         ->name('appointments.termination.store');
     Route::get('encounters/{encounter}', EncounterOverviewController::class)
         ->name('encounters.show');
-    Route::get('encounters/{encounter}/timeline', EncounterDebriefController::class)
+    Route::get('encounters/{encounter}/timeline', EncounterRecordTimelineController::class)
         ->name('encounters.timeline.show');
     Route::get('encounters/{encounter}/debrief', EncounterDebriefController::class)
         ->name('encounters.debrief.show');
