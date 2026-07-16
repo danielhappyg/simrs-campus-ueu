@@ -1,29 +1,41 @@
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
 import { CheckIcon } from "lucide-react"
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+type CheckboxProps = Omit<React.ComponentProps<"input">, "type"> & {
+  onCheckedChange?: (checked: boolean) => void
+}
+
 function Checkbox({
   className,
+  onChange,
+  onCheckedChange,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: CheckboxProps) {
   return (
-    <CheckboxPrimitive.Root
-      data-slot="checkbox"
-      className={cn(
-        "peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
-    >
-      <CheckboxPrimitive.Indicator
+    <span className="relative inline-flex size-11 shrink-0 items-center justify-center md:size-4">
+      <input
+        type="checkbox"
+        data-slot="checkbox"
+        className={cn(
+          "peer absolute inset-0 size-full cursor-pointer appearance-none rounded-md outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        onChange={(event) => {
+          onChange?.(event)
+          onCheckedChange?.(event.target.checked)
+        }}
+        {...props}
+      />
+      <span
         data-slot="checkbox-indicator"
-        className="flex items-center justify-center text-current transition-none"
+        aria-hidden="true"
+        className="pointer-events-none flex size-4 items-center justify-center rounded-[4px] border border-input bg-background text-primary-foreground shadow-xs transition-[border-color,background-color,box-shadow] peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:border-ring peer-focus-visible:ring-[3px] peer-focus-visible:ring-ring/50 peer-aria-invalid:border-destructive peer-aria-invalid:ring-[3px] peer-aria-invalid:ring-destructive/20 peer-disabled:opacity-50 peer-checked:[&>svg]:opacity-100"
       >
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
+        <CheckIcon className="size-3.5 opacity-0" />
+      </span>
+    </span>
   )
 }
 

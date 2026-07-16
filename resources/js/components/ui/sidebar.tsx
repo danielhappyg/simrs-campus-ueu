@@ -37,6 +37,7 @@ type SidebarContext = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
+  mobileTriggerRef: React.RefObject<HTMLButtonElement | null>
   toggleSidebar: () => void
 }
 
@@ -66,6 +67,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const mobileTriggerRef = React.useRef<HTMLButtonElement>(null)
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -117,6 +119,7 @@ function SidebarProvider({
       open,
       setOpen,
       isMobile,
+      mobileTriggerRef,
       openMobile,
       setOpenMobile,
       toggleSidebar,
@@ -159,7 +162,24 @@ function Sidebar({
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const {
+    isMobile,
+    state,
+    openMobile,
+    setOpenMobile,
+    mobileTriggerRef,
+  } = useSidebar()
+
+  const handleMobileOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpenMobile(nextOpen)
+
+      if (!nextOpen) {
+        window.setTimeout(() => mobileTriggerRef.current?.focus(), 0)
+      }
+    },
+    [mobileTriggerRef, setOpenMobile]
+  )
 
   if (collapsible === "none") {
     return (
@@ -178,16 +198,12 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetHeader className="sr-only">
-          <SheetTitle>Sidebar</SheetTitle>
-          <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-        </SheetHeader>
+      <Sheet open={openMobile} onOpenChange={handleMobileOpenChange} {...props}>
         <SheetContent
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -195,6 +211,10 @@ function Sidebar({
           }
           side={side}
         >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigasi utama</SheetTitle>
+            <SheetDescription>Menu utama SIMRS Campus UEU.</SheetDescription>
+          </SheetHeader>
           <div className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
       </Sheet>
@@ -251,10 +271,18 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar, isMobile, state } = useSidebar()
+  const {
+    toggleSidebar,
+    isMobile,
+    state,
+    openMobile,
+    mobileTriggerRef,
+  } = useSidebar()
+  const isOpen = isMobile ? openMobile : state === "expanded"
 
   return (
     <Button
+      ref={mobileTriggerRef}
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
@@ -267,7 +295,9 @@ function SidebarTrigger({
       {...props}
     >
       {isMobile || state === "collapsed" ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
-      <span className="sr-only">Toggle sidebar</span>
+      <span className="sr-only">
+        {isOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+      </span>
     </Button>
   )
 }

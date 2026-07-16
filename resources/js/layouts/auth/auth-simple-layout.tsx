@@ -39,9 +39,9 @@ export default function AuthSimpleLayout({
                         <p className="mb-3 text-xs font-bold tracking-[0.14em] text-orange-300 uppercase">
                             Reference teaching environment
                         </p>
-                        <h1 className="font-display text-4xl leading-tight font-semibold">
+                        <p className="font-display text-4xl leading-tight font-semibold">
                             Satu alur klinis. Banyak perspektif pembelajaran.
-                        </h1>
+                        </p>
                         <p className="mt-5 max-w-sm text-sm leading-6 text-sky-100">
                             Ruang simulasi terintegrasi untuk Kedokteran,
                             Keperawatan, RMIK, dan Farmasi. Seluruh identitas
@@ -71,9 +71,9 @@ export default function AuthSimpleLayout({
                             </div>
                         </div>
                         <div className="mb-8 space-y-2">
-                            <h2 className="font-display text-2xl font-semibold">
+                            <h1 className="font-display text-2xl font-semibold">
                                 {title}
-                            </h2>
+                            </h1>
                             <p className="text-sm leading-6 text-muted-foreground">
                                 {description}
                             </p>

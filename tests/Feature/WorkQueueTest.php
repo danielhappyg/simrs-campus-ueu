@@ -28,6 +28,7 @@ class WorkQueueTest extends TestCase
     public function test_guests_are_redirected_to_login(): void
     {
         $this->get(route('work'))->assertRedirect(route('login'));
+        $this->assertDatabaseMissing('audit_events', ['action' => 'authorization.denied']);
     }
 
     public function test_user_only_sees_tasks_from_their_active_assignment(): void
@@ -127,7 +128,18 @@ class WorkQueueTest extends TestCase
         $user = User::factory()->create(['status' => 'SUSPENDED']);
 
         $this->actingAs($user)->get(route('work'))->assertForbidden();
-        $this->assertSame(0, AuditEvent::query()->count());
+
+        $event = AuditEvent::query()->where('action', 'authorization.denied')->sole();
+
+        $this->assertSame($user->getKey(), $event->actor_user_id);
+        $this->assertSame('http_route', $event->resource_type);
+        $this->assertSame('work', $event->resource_id);
+        $this->assertSame('DENIED', $event->outcome);
+        $this->assertSame('authorization_check_failed', $event->reason);
+        $this->assertSame(['http_method' => 'GET', 'http_status' => 403], $event->metadata);
+        $this->assertNull($event->ip_hash);
+        $this->assertNull($event->user_agent);
+        $this->assertNotNull($event->request_correlation_id);
     }
 
     private function createTaskFor(User $user, string $title): WorkTask

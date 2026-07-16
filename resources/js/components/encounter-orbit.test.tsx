@@ -15,6 +15,7 @@ const task: WorkTaskItem = {
     context: { synthetic: true },
     assignmentPublicId: '01J00000000000000000000001',
     sessionCode: 'SIM-001',
+    actionUrl: null,
 };
 
 describe('EncounterOrbit', () => {

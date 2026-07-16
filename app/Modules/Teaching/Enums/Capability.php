@@ -15,8 +15,11 @@ enum Capability: string
     case Dispense = 'pharmacy.dispense';
     case RecordReview = 'record.review';
     case CodingWrite = 'coding.write';
+    case TerminologyManage = 'terminology.manage';
     case SupervisionReview = 'supervision.review';
     case DebriefView = 'debrief.view';
+    case DebriefWrite = 'debrief.write';
+    case ReportView = 'report.view';
     case SystemConfigure = 'system.configure';
 
     public function label(): string
@@ -33,8 +36,11 @@ enum Capability: string
             self::Dispense => 'Mencatat penyerahan obat simulasi',
             self::RecordReview => 'Menelaah kelengkapan rekam medis',
             self::CodingWrite => 'Mengisi kode klinis',
+            self::TerminologyManage => 'Mengelola release terminologi',
             self::SupervisionReview => 'Melakukan tinjauan supervisor',
             self::DebriefView => 'Melihat debrief',
+            self::DebriefWrite => 'Menulis catatan debrief bersama',
+            self::ReportView => 'Melihat laporan simulasi final',
             self::SystemConfigure => 'Mengelola konfigurasi sistem',
         };
     }

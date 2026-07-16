@@ -132,6 +132,27 @@
         color: #102e40;
     }
 
+    @media (max-width: 47.999rem), (pointer: coarse) {
+        button,
+        [data-slot='button'],
+        [data-sidebar='menu-button'],
+        input:not([type='hidden']):not([type='checkbox']):not([type='radio']),
+        select {
+            min-block-size: 2.75rem;
+        }
+
+        button,
+        [data-slot='button'] {
+            min-inline-size: 2.75rem;
+        }
+
+        [data-slot='breadcrumb-link'] {
+            display: inline-flex;
+            min-block-size: 2.75rem;
+            align-items: center;
+        }
+    }
+
     :focus-visible {
         outline: 3px solid color-mix(in srgb, var(--ring) 40%, transparent);
         outline-offset: 2px;

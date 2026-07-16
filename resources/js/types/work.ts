@@ -13,12 +13,22 @@ export type WorkTaskType =
     | 'REGISTRATION'
     | 'NURSING_INTAKE'
     | 'MEDICAL_ASSESSMENT'
+    | 'SYNTHETIC_RESULT_RELEASE'
     | 'RESULT_ACKNOWLEDGEMENT'
     | 'PHARMACY_REVIEW'
+    | 'PRESCRIPTION_INTERVENTION_RESPONSE'
     | 'DISPENSING'
     | 'ENCOUNTER_CLOSURE'
+    | 'ENCOUNTER_CLOSURE_REVIEW'
     | 'RECORD_REVIEW'
-    | 'SUPERVISOR_REVIEW';
+    | 'RECORD_CORRECTION'
+    | 'RECORD_QUALITY_REVIEW'
+    | 'CODING'
+    | 'CODING_SOURCE_CORRECTION'
+    | 'PROCEDURE_SOURCE_CORRECTION'
+    | 'CODING_REVIEW'
+    | 'SUPERVISOR_REVIEW'
+    | 'DEBRIEF';
 
 export type AssignmentContext = {
     publicId: string;
@@ -47,6 +57,7 @@ export type WorkTaskItem = {
     context: Record<string, unknown> | null;
     assignmentPublicId: string;
     sessionCode: string;
+    actionUrl: string | null;
 };
 
 export type WorkQueueSummary = {

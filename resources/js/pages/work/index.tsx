@@ -1,15 +1,18 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowRight,
     Ban,
+    BookOpenCheck,
     CheckCircle2,
     CircleDashed,
     ClipboardCheck,
     ClipboardList,
     Clock3,
     FileCheck2,
+    Fingerprint,
     IdCard,
+    MessageSquareWarning,
     Pill,
     RotateCcw,
     ShieldCheck,
@@ -19,6 +22,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { EncounterOrbit } from '@/components/encounter-orbit';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { work } from '@/routes';
 import type {
@@ -40,12 +44,22 @@ const taskIcons: Record<WorkTaskType, LucideIcon> = {
     REGISTRATION: IdCard,
     NURSING_INTAKE: UserRoundSearch,
     MEDICAL_ASSESSMENT: Stethoscope,
+    SYNTHETIC_RESULT_RELEASE: ClipboardCheck,
     RESULT_ACKNOWLEDGEMENT: CheckCircle2,
     PHARMACY_REVIEW: Pill,
+    PRESCRIPTION_INTERVENTION_RESPONSE: MessageSquareWarning,
     DISPENSING: Pill,
     ENCOUNTER_CLOSURE: FileCheck2,
+    ENCOUNTER_CLOSURE_REVIEW: ShieldCheck,
     RECORD_REVIEW: ClipboardList,
+    RECORD_CORRECTION: RotateCcw,
+    RECORD_QUALITY_REVIEW: ShieldCheck,
+    CODING: Fingerprint,
+    CODING_SOURCE_CORRECTION: RotateCcw,
+    PROCEDURE_SOURCE_CORRECTION: RotateCcw,
+    CODING_REVIEW: ShieldCheck,
     SUPERVISOR_REVIEW: ShieldCheck,
+    DEBRIEF: BookOpenCheck,
 };
 
 const statusStyles: Record<TaskStatusCode, string> = {
@@ -79,8 +93,8 @@ function formatAvailableAt(value: string | null): string | null {
     }).format(new Date(value));
 }
 
-function TaskRow({ task }: { task: WorkTaskItem }) {
-    const TaskIcon = taskIcons[task.type];
+export function TaskRow({ task }: { task: WorkTaskItem }) {
+    const TaskIcon = taskIcons[task.type] ?? ClipboardList;
     const StatusIcon = statusIcons[task.status.code];
     const caseLabel =
         typeof task.context?.caseLabel === 'string'
@@ -150,6 +164,14 @@ function TaskRow({ task }: { task: WorkTaskItem }) {
                     <span className="rounded border border-border bg-muted px-2 py-1 font-mono text-[0.68rem] text-muted-foreground">
                         {caseLabel}
                     </span>
+                )}
+                {task.actionUrl && (
+                    <Button asChild size="sm" className="gap-2">
+                        <Link href={task.actionUrl}>
+                            Buka tugas
+                            <ArrowRight className="size-4" aria-hidden="true" />
+                        </Link>
+                    </Button>
                 )}
             </div>
         </article>

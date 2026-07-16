@@ -3,6 +3,8 @@
 namespace App\Modules\Teaching\Models;
 
 use App\Models\User;
+use App\Modules\Encounter\Models\Encounter;
+use App\Modules\Patient\Models\SyntheticPatient;
 use App\Modules\Teaching\Enums\EnvironmentMode;
 use App\Modules\Teaching\Enums\SessionStatus;
 use App\Support\Models\HasPublicUlid;
@@ -64,6 +66,22 @@ class SimulationSession extends Model
     public function workTasks(): HasMany
     {
         return $this->hasMany(WorkTask::class, 'session_id');
+    }
+
+    /**
+     * @return HasMany<SyntheticPatient, $this>
+     */
+    public function patients(): HasMany
+    {
+        return $this->hasMany(SyntheticPatient::class, 'session_id');
+    }
+
+    /**
+     * @return HasMany<Encounter, $this>
+     */
+    public function encounters(): HasMany
+    {
+        return $this->hasMany(Encounter::class, 'session_id');
     }
 
     protected function casts(): array

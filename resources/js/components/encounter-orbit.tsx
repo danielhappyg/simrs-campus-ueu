@@ -9,12 +9,35 @@ const stages: Array<{ label: string; taskTypes: WorkTaskType[] }> = [
     { label: 'Asesmen awal', taskTypes: ['NURSING_INTAKE'] },
     {
         label: 'Asesmen medis',
-        taskTypes: ['MEDICAL_ASSESSMENT', 'RESULT_ACKNOWLEDGEMENT'],
+        taskTypes: [
+            'MEDICAL_ASSESSMENT',
+            'SYNTHETIC_RESULT_RELEASE',
+            'RESULT_ACKNOWLEDGEMENT',
+        ],
     },
-    { label: 'Farmasi', taskTypes: ['PHARMACY_REVIEW', 'DISPENSING'] },
+    {
+        label: 'Farmasi',
+        taskTypes: [
+            'PHARMACY_REVIEW',
+            'PRESCRIPTION_INTERVENTION_RESPONSE',
+            'DISPENSING',
+        ],
+    },
     {
         label: 'Penutupan & RMIK',
-        taskTypes: ['ENCOUNTER_CLOSURE', 'RECORD_REVIEW', 'SUPERVISOR_REVIEW'],
+        taskTypes: [
+            'ENCOUNTER_CLOSURE',
+            'ENCOUNTER_CLOSURE_REVIEW',
+            'RECORD_REVIEW',
+            'RECORD_CORRECTION',
+            'RECORD_QUALITY_REVIEW',
+            'CODING',
+            'CODING_SOURCE_CORRECTION',
+            'PROCEDURE_SOURCE_CORRECTION',
+            'CODING_REVIEW',
+            'SUPERVISOR_REVIEW',
+            'DEBRIEF',
+        ],
     },
 ];
 

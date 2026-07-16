@@ -36,6 +36,29 @@ class AuditTrailTest extends TestCase
         $this->assertSame(['synthetic' => true], $event->metadata);
     }
 
+    public function test_recorder_can_omit_request_fingerprints_for_minimized_security_events(): void
+    {
+        $request = Request::create('/protected-action', 'POST', server: [
+            'REMOTE_ADDR' => '192.0.2.99',
+            'HTTP_USER_AGENT' => 'Sensitive Test Browser Detail',
+        ]);
+        $request->attributes->set('request_id', '01J00000000000000000000001');
+
+        $event = app(AuditRecorder::class)->record(
+            action: 'authorization.denied',
+            resourceType: 'http_route',
+            resourceId: 'protected.action',
+            outcome: 'DENIED',
+            metadata: ['http_method' => 'POST', 'http_status' => 403],
+            request: $request,
+            includeRequestFingerprint: false,
+        );
+
+        $this->assertNull($event->ip_hash);
+        $this->assertNull($event->user_agent);
+        $this->assertSame('01J00000000000000000000001', $event->request_correlation_id);
+    }
+
     public function test_audit_event_cannot_be_updated_through_model(): void
     {
         $event = AuditEvent::query()->create([

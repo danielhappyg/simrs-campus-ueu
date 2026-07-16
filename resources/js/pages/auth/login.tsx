@@ -39,43 +39,44 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="email"
                                     placeholder="nama@contoh.invalid"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Kata sandi</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            Lupa kata sandi?
-                                        </TextLink>
-                                    )}
+                            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                                <Label
+                                    htmlFor="password"
+                                    className="col-start-1 row-start-1"
+                                >
+                                    Kata sandi
+                                </Label>
+                                <div className="col-span-2 row-start-2">
+                                    <PasswordInput
+                                        id="password"
+                                        name="password"
+                                        required
+                                        autoComplete="current-password"
+                                        placeholder="Kata sandi"
+                                    />
                                 </div>
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Kata sandi"
+                                {canResetPassword && (
+                                    <TextLink
+                                        href={request()}
+                                        className="col-start-2 row-start-1 text-sm"
+                                    >
+                                        Lupa kata sandi?
+                                    </TextLink>
+                                )}
+                                <InputError
+                                    message={errors.password}
+                                    className="col-span-2 row-start-3"
                                 />
-                                <InputError message={errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
+                                <Checkbox id="remember" name="remember" />
                                 <Label htmlFor="remember">
                                     Ingat sesi saya
                                 </Label>
@@ -84,7 +85,6 @@ export default function Login({ status, canResetPassword }: Props) {
                             <Button
                                 type="submit"
                                 className="mt-4 w-full"
-                                tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >

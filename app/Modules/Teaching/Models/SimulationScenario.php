@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $version
  * @property ScenarioStatus $status
  * @property array<int, string>|null $learning_outcomes
+ * @property array<int, array<string, mixed>>|null $rubric_references
  * @property array<string, mixed>|null $fixture_spec
  */
 class SimulationScenario extends Model
@@ -27,6 +28,7 @@ class SimulationScenario extends Model
         'version',
         'status',
         'learning_outcomes',
+        'rubric_references',
         'fixture_spec',
         'ruleset_version',
         'published_at',
@@ -45,6 +47,7 @@ class SimulationScenario extends Model
         return [
             'status' => ScenarioStatus::class,
             'learning_outcomes' => 'array',
+            'rubric_references' => 'array',
             'fixture_spec' => 'array',
             'published_at' => 'datetime',
         ];

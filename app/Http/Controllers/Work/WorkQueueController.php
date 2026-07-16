@@ -8,6 +8,7 @@ use App\Modules\Audit\Services\AuditRecorder;
 use App\Modules\Teaching\Enums\Capability;
 use App\Modules\Teaching\Enums\SessionStatus;
 use App\Modules\Teaching\Enums\WorkTaskStatus;
+use App\Modules\Teaching\Enums\WorkTaskType;
 use App\Modules\Teaching\Models\Assignment;
 use App\Modules\Teaching\Models\WorkTask;
 use Illuminate\Http\Request;
@@ -40,7 +41,7 @@ class WorkQueueController extends Controller
             ->where(function ($query): void {
                 $query->whereNull('available_at')->orWhere('available_at', '<=', now());
             })
-            ->with(['assignment', 'session'])
+            ->with(['assignment', 'session', 'encounter', 'clinicalEntryVersion'])
             ->orderBy('priority')
             ->orderBy('available_at')
             ->get();
@@ -104,6 +105,48 @@ class WorkQueueController extends Controller
                 'context' => $task->context,
                 'assignmentPublicId' => $task->assignment->public_id,
                 'sessionCode' => $task->session->code,
+                'actionUrl' => match ($task->task_type) {
+                    WorkTaskType::Registration => route('sessions.registration', $task->session),
+                    WorkTaskType::NursingIntake => $task->encounter
+                        ? route('encounters.nursing-intake.show', $task->encounter)
+                        : null,
+                    WorkTaskType::MedicalAssessment,
+                    WorkTaskType::CodingSourceCorrection => $task->encounter
+                        ? route('encounters.medical-assessment.show', $task->encounter)
+                        : null,
+                    WorkTaskType::SyntheticResultRelease,
+                    WorkTaskType::ResultAcknowledgement => $task->encounter
+                        ? route('encounters.order-results.show', $task->encounter)
+                        : null,
+                    WorkTaskType::PharmacyReview,
+                    WorkTaskType::PrescriptionInterventionResponse,
+                    WorkTaskType::Dispensing => $task->encounter
+                        ? route('encounters.pharmacy.show', $task->encounter)
+                        : null,
+                    WorkTaskType::EncounterClosure,
+                    WorkTaskType::ProcedureSourceCorrection,
+                    WorkTaskType::EncounterClosureReview => $task->encounter
+                        ? route('encounters.closure.show', $task->encounter)
+                        : null,
+                    WorkTaskType::RecordCorrection => $task->encounter
+                        ? route('encounters.closure.show', $task->encounter)
+                        : null,
+                    WorkTaskType::RecordReview,
+                    WorkTaskType::RecordQualityReview => $task->encounter
+                        ? route('encounters.record-quality.show', $task->encounter)
+                        : null,
+                    WorkTaskType::Coding,
+                    WorkTaskType::CodingReview => $task->encounter
+                        ? $this->codingActionUrl($task)
+                        : null,
+                    WorkTaskType::SupervisorReview => $task->clinicalEntryVersion
+                        ? route('clinical-versions.review.show', $task->clinicalEntryVersion)
+                        : null,
+                    WorkTaskType::Debrief => $task->encounter
+                        ? route('encounters.debrief.show', $task->encounter)
+                        : null,
+                    WorkTaskType::SessionOrientation => null,
+                },
             ];
         }
 
@@ -118,5 +161,18 @@ class WorkQueueController extends Controller
                 'changesRequested' => $tasks->where('status', WorkTaskStatus::ChangesRequested)->count(),
             ],
         ]);
+    }
+
+    private function codingActionUrl(WorkTask $task): string
+    {
+        $sourcePublicId = data_get($task->context, 'sourceConditionPublicId')
+            ?? data_get($task->context, 'sourceProcedurePublicId');
+        $parameters = ['encounter' => $task->encounter];
+
+        if (is_string($sourcePublicId) && $sourcePublicId !== '') {
+            $parameters['source'] = $sourcePublicId;
+        }
+
+        return route('encounters.coding.show', $parameters);
     }
 }

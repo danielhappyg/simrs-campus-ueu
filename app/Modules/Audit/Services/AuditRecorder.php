@@ -4,6 +4,8 @@ namespace App\Modules\Audit\Services;
 
 use App\Models\User;
 use App\Modules\Audit\Models\AuditEvent;
+use App\Modules\Encounter\Models\Encounter;
+use App\Modules\Patient\Models\SyntheticPatient;
 use App\Modules\Teaching\Models\Assignment;
 use App\Modules\Teaching\Models\SimulationSession;
 use Illuminate\Http\Request;
@@ -21,10 +23,13 @@ class AuditRecorder
         ?User $actor = null,
         ?Assignment $assignment = null,
         ?SimulationSession $session = null,
+        ?SyntheticPatient $patient = null,
+        ?Encounter $encounter = null,
         string $outcome = 'SUCCESS',
         ?string $reason = null,
         array $metadata = [],
         ?Request $request = null,
+        bool $includeRequestFingerprint = true,
     ): AuditEvent {
         $request ??= request();
 
@@ -32,14 +37,18 @@ class AuditRecorder
             'actor_user_id' => $actor?->getKey(),
             'assignment_id' => $assignment?->getKey(),
             'session_id' => $session?->getKey(),
+            'patient_id' => $patient?->getKey() ?? $encounter?->patient_id,
+            'encounter_id' => $encounter?->getKey(),
             'action' => $action,
             'resource_type' => $resourceType,
             'resource_id' => $resourceId,
             'outcome' => $outcome,
             'reason' => $reason,
             'request_correlation_id' => $request->attributes->get('request_id'),
-            'ip_hash' => $this->hashIp($request),
-            'user_agent' => Str::limit((string) $request->userAgent(), 255, ''),
+            'ip_hash' => $includeRequestFingerprint ? $this->hashIp($request) : null,
+            'user_agent' => $includeRequestFingerprint
+                ? Str::limit((string) $request->userAgent(), 255, '')
+                : null,
             'metadata' => $metadata === [] ? null : $metadata,
         ]);
     }
