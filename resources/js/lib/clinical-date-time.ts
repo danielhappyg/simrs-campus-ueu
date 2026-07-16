@@ -6,5 +6,7 @@ export function dateTimeFormValue(
     value: string,
     preserveExactInstant: boolean,
 ): string {
-    return preserveExactInstant ? value : dateTimeLocalDisplay(value);
+    return preserveExactInstant
+        ? value.slice(0, 19)
+        : dateTimeLocalDisplay(value);
 }

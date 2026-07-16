@@ -289,6 +289,8 @@ export default function EncounterClosureWorkspace({
     const prior = document.latestVersion?.content.authored;
     const priorProcedureDocumentation =
         document.latestVersion?.content.procedureDocumentation;
+    const preserveExactProcedureInstants =
+        codingCorrection !== null || procedureCodingCorrection !== null;
     const form = useForm<ClosureForm>({
         request_key: formOptions.requestKey,
         intent: 'SAVE_DRAFT',
@@ -311,12 +313,12 @@ export default function EncounterClosureWorkspace({
                 authored_text: procedure.authoredText,
                 performed_start_at: dateTimeFormValue(
                     procedure.performedStartAt,
-                    procedureCodingCorrection !== null,
+                    preserveExactProcedureInstants,
                 ),
                 performed_end_at: procedure.performedEndAt
                     ? dateTimeFormValue(
                           procedure.performedEndAt,
-                          procedureCodingCorrection !== null,
+                          preserveExactProcedureInstants,
                       )
                     : '',
                 performer_text: procedure.performerText,
@@ -1149,8 +1151,9 @@ export default function EncounterClosureWorkspace({
                                                                             id={`procedure_${index}_start`}
                                                                             type="datetime-local"
                                                                             className="mt-2"
-                                                                            value={dateTimeLocalDisplay(
+                                                                            value={dateTimeFormValue(
                                                                                 procedure.performed_start_at,
+                                                                                preserveExactProcedureInstants,
                                                                             )}
                                                                             onChange={(
                                                                                 event,
@@ -1188,8 +1191,9 @@ export default function EncounterClosureWorkspace({
                                                                             id={`procedure_${index}_end`}
                                                                             type="datetime-local"
                                                                             className="mt-2"
-                                                                            value={dateTimeLocalDisplay(
+                                                                            value={dateTimeFormValue(
                                                                                 procedure.performed_end_at,
+                                                                                preserveExactProcedureInstants,
                                                                             )}
                                                                             onChange={(
                                                                                 event,

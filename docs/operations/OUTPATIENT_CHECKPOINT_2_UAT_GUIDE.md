@@ -202,14 +202,15 @@ Run each correction in its own fresh disposable fixture. Never prepare diagnosis
 2. Coder confirms coding is blocked and the request names the exact condition/medical source and reason.
 3. Original medical author creates a successor medical version with a required attributed change reason while locked occurrence time, orders, and prescriptions remain unchanged.
 4. Linked medical supervisor reviews the successor.
-5. RMIK repeats completeness review; prior coding artifacts remain immutable/stale.
-6. Coder and RMIK supervisor review a new suggestion/decision/assignment chain.
+5. Original closure author creates a successor closure pointing to the approved medical successor without changing the locked performed-procedure times; linked medical supervisor reviews it.
+6. RMIK repeats completeness review; prior coding artifacts remain immutable/stale.
+7. Coder and RMIK supervisor review new ICD-10 and ICD-9-CM suggestion/decision/assignment chains and confirm finalization.
 
 ### UAT-C02 — coder-requested performed-procedure clarification
 
 1. Prepare the procedure correction state.
 2. Coder confirms coding is blocked and the request names the exact performed procedure, closure, hashes, and reason.
-3. Original closure author creates a successor closure changing only performed-procedure documentation; other closure fields and occurrence time remain locked.
+3. Original closure author creates a successor closure changing only performed-procedure documentation; other closure fields, occurrence time, and unchanged performed times retain their exact seconds.
 4. Linked medical supervisor reviews the successor closure.
 5. RMIK repeats completeness review; prior procedure/coding artifacts remain immutable/stale.
 6. Coder and RMIK supervisor review a new ICD-9-CM chain.
@@ -274,7 +275,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The case content, safety questionnaire, rubric, coding aliases, gold-set proposals, and candidate threshold are not faculty-approved.
 - Reports are browser-generated learning previews, not signed/immutable medical documents or SATUSEHAT submissions.
 - Native print/PDF pagination review remains pending.
-- Full native keyboard traversal remains pending. Internal browser rehearsal has covered the diagnosis/procedure author-response screens and successful successor submission without captured console errors, but the complete supervisor-to-RMIK correction sequence still requires one uninterrupted UAT run.
+- Full native keyboard traversal remains pending. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. Stakeholder UAT and one retained uninterrupted browser-console capture are still required.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
 - Emergency, inpatient, nutrition, psychology, physiotherapy, and other deferred programs/modules are not part of this checkpoint.
 - Draft PR #10 passed the application, documentation, and MySQL 8.4 checks. Hostinger staging deployment/rollback remains pending hosting authorization and a separate deployment decision.

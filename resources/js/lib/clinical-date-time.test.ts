@@ -7,8 +7,10 @@ import {
 describe('clinical date-time form values', () => {
     const exactInstant = '2026-07-16T14:52:37+07:00';
 
-    it('keeps the exact instant in locked correction form state', () => {
-        expect(dateTimeFormValue(exactInstant, true)).toBe(exactInstant);
+    it('keeps exact seconds in datetime-local compatible correction state', () => {
+        expect(dateTimeFormValue(exactInstant, true)).toBe(
+            '2026-07-16T14:52:37',
+        );
     });
 
     it('uses minute precision for editable datetime-local state', () => {
