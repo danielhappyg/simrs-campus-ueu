@@ -1,7 +1,7 @@
 # Outpatient Visit Termination Design
 
 - **Date:** 16 July 2026
-- **Status:** Approach approved; written specification pending Daniel's review
+- **Status:** Written specification approved by Daniel
 - **Acceptance target:** `E2E-06 — cancel without deleting history`
 - **Scope:** Synthetic outpatient reference MVP only
 
