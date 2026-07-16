@@ -58,7 +58,7 @@ type Props = {
     }>;
     urls: {
         debrief: string;
-        timeline: string;
+        timeline: string | null;
         outpatientSummaryReport: string;
         debriefEvidenceReport: string;
     };
@@ -123,15 +123,17 @@ export default function EncounterOverview({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="outline">
-                            <Link href={urls.timeline}>
-                                <History
-                                    className="size-4"
-                                    aria-hidden="true"
-                                />
-                                Buka linimasa rekam
-                            </Link>
-                        </Button>
+                        {urls.timeline && (
+                            <Button asChild variant="outline">
+                                <Link href={urls.timeline}>
+                                    <History
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Buka linimasa rekam
+                                </Link>
+                            </Button>
+                        )}
                         {assignment.canViewReports && (
                             <Button asChild variant="outline">
                                 <a href={urls.outpatientSummaryReport}>

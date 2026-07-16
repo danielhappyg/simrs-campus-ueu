@@ -281,5 +281,40 @@ describe('Encounter record timeline', () => {
             screen.getByRole('link', { name: 'Buka linimasa rekam' }),
         ).toHaveAttribute('href', '/encounters/example/timeline');
     });
-});
 
+    it('does not render record navigation when the server withholds authorization', () => {
+        render(
+            <EncounterOverview
+                encounter={encounter}
+                patient={patient}
+                assignment={{
+                    publicId: props.assignment.publicId,
+                    program: 'RMIK',
+                    role: 'Petugas Registrasi Simulasi',
+                    canViewDebrief: false,
+                    canViewReports: false,
+                }}
+                session={{
+                    publicId: props.session.publicId,
+                    code: props.session.code,
+                    scenarioTitle: props.session.scenarioTitle,
+                }}
+                queue={[]}
+                timeline={[]}
+                workflow={[
+                    { code: 'PLANNED', label: 'Direncanakan', current: true },
+                ]}
+                urls={{
+                    debrief: '/encounters/example/debrief',
+                    timeline: null,
+                    outpatientSummaryReport: '/encounters/example/reports/outpatient-summary',
+                    debriefEvidenceReport: '/encounters/example/reports/debrief-evidence',
+                }}
+            />,
+        );
+
+        expect(
+            screen.queryByRole('link', { name: 'Buka linimasa rekam' }),
+        ).not.toBeInTheDocument();
+    });
+});

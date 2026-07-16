@@ -80,6 +80,28 @@ class EncounterRecordTimelineTest extends TestCase
             );
     }
 
+    public function test_encounter_overview_exposes_timeline_navigation_only_when_the_same_policy_allows_it(): void
+    {
+        $this->seedReferenceOutpatient();
+        $encounter = Encounter::query()->firstOrFail();
+        $nurse = User::query()->where('email', 'mahasiswa.keperawatan@example.invalid')->firstOrFail();
+        $registrar = User::query()->where('email', 'mahasiswa.rmik@example.invalid')->firstOrFail();
+
+        $this->actingAs($nurse)
+            ->get(route('encounters.show', $encounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('urls.timeline', route('encounters.timeline.show', $encounter)),
+            );
+
+        $this->actingAs($registrar)
+            ->get(route('encounters.show', $encounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('urls.timeline', null),
+            );
+    }
+
     public function test_wrong_context_missing_capability_and_configuration_only_assignments_are_denied(): void
     {
         $this->seedReferenceOutpatient();

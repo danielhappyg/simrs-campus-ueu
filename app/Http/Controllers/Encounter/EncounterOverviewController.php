@@ -116,7 +116,9 @@ class EncounterOverviewController extends Controller
             ])->all(),
             'urls' => [
                 'debrief' => route('encounters.debrief.show', $encounter),
-                'timeline' => route('encounters.timeline.show', $encounter),
+                'timeline' => $this->assignmentResolver->canViewRecordTimeline($user, $encounter)
+                    ? route('encounters.timeline.show', $encounter)
+                    : null,
                 'outpatientSummaryReport' => route('encounters.reports.outpatient-summary', $encounter),
                 'debriefEvidenceReport' => route('encounters.reports.debrief-evidence', $encounter),
             ],

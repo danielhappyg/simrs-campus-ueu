@@ -66,33 +66,18 @@ class AssignmentContextResolver
 
     public function forRecordTimeline(User $user, Encounter $encounter): Assignment
     {
-        $session = $encounter->session;
-
-        if ($session->environment_mode !== EnvironmentMode::Simulation
-            || ! in_array($session->status, [SessionStatus::Active, SessionStatus::Completed], true)) {
-            throw new AuthorizationException('The simulation session is not available for longitudinal record access.');
-        }
-
-        $assignment = $this->activeAssignments($user, $session)
-            ->first(function (Assignment $assignment) use ($encounter): bool {
-                if (! $assignment->hasCapability(Capability::SessionView)) {
-                    return false;
-                }
-
-                $matchesCase = $assignment->patient_id === $encounter->patient_id
-                    && $assignment->encounter_id === $encounter->getKey();
-                $sessionWideFacilitator = $assignment->patient_id === null
-                    && $assignment->encounter_id === null
-                    && $assignment->hasCapability(Capability::SessionFacilitate);
-
-                return $matchesCase || $sessionWideFacilitator;
-            });
+        $assignment = $this->recordTimelineAssignment($user, $encounter);
 
         if (! $assignment) {
             throw new AuthorizationException('The active assignment does not permit access to this longitudinal record.');
         }
 
         return $assignment;
+    }
+
+    public function canViewRecordTimeline(User $user, Encounter $encounter): bool
+    {
+        return $this->recordTimelineAssignment($user, $encounter) instanceof Assignment;
     }
 
     public function forDebriefWrite(User $user, Encounter $encounter): Assignment
@@ -199,6 +184,31 @@ class AssignmentContextResolver
             && $assignment->encounter_id === null;
 
         return $matchesCase || $sessionWide;
+    }
+
+    private function recordTimelineAssignment(User $user, Encounter $encounter): ?Assignment
+    {
+        $session = $encounter->session;
+
+        if ($session->environment_mode !== EnvironmentMode::Simulation
+            || ! in_array($session->status, [SessionStatus::Active, SessionStatus::Completed], true)) {
+            return null;
+        }
+
+        return $this->activeAssignments($user, $session)
+            ->first(function (Assignment $assignment) use ($encounter): bool {
+                if (! $assignment->hasCapability(Capability::SessionView)) {
+                    return false;
+                }
+
+                $matchesCase = $assignment->patient_id === $encounter->patient_id
+                    && $assignment->encounter_id === $encounter->getKey();
+                $sessionWideFacilitator = $assignment->patient_id === null
+                    && $assignment->encounter_id === null
+                    && $assignment->hasCapability(Capability::SessionFacilitate);
+
+                return $matchesCase || $sessionWideFacilitator;
+            });
     }
 
     private function assertUsableSession(SimulationSession $session): void
