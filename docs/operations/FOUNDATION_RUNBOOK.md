@@ -45,6 +45,27 @@ Expected evidence:
 
 Never enable demo seeding simply to repair an existing database. Seeders are reference-data tools, not migrations.
 
+After both verified terminology releases are active, a fresh isolated fixture can be advanced through the full reference journey or prepared at one correction gate:
+
+```bash
+php artisan simulation:complete-reference-journey
+php artisan simulation:prepare-reference-correction diagnosis
+php artisan simulation:prepare-reference-correction procedure
+```
+
+Run only one of these paths per disposable fixture. Correction preparation uses the same guarded clinical, closure, RMIK, suggestion, and coding services as the browser workflow. It does not mutate finalized or partially progressed cases, and it never grants the coder permission to edit clinical documentation.
+
+## Optional terminology-release import
+
+The computer-assisted coding workspace requires an active ICD-10 release. ICD-9-CM remains a separate procedure reference. Raw workbooks stay outside Git and are imported only after an operator verifies the exact expected SHA-256:
+
+```bash
+php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=<64-character-approved-hash>
+php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=<64-character-approved-hash>
+```
+
+The synthetic facilitator assignment owns `terminology.manage` in the reference fixture. A hosted environment must assign this capability deliberately; a coder cannot import or activate catalogs. Re-importing an identical checksummed source is idempotent. Activating a different valid source supersedes the prior active release without rewriting historical records.
+
 ## Verification
 
 Run the repository quality gates from the README. Additional operational checks:
@@ -81,3 +102,7 @@ The SSH deployment workflow remains blocked until the project records evidence f
 5. queue/cron behavior and log retention;
 6. maintenance-mode and health-check behavior; and
 7. a tested code and database recovery exercise.
+
+The [Local MySQL and Recovery Validation](LOCAL_MYSQL_RECOVERY_VALIDATION.md) proves local migration portability plus a full finalized synthetic reference-journey backup/restore, relationship comparison, completed-state no-op check, and restored `/up` response. It does not satisfy hosted backup governance, Hostinger isolation, or release-artifact deployment/rollback requirements above.
+
+The [GitHub Publication Checklist](GITHUB_PUBLICATION_CHECKLIST.md) records the private-repository boundary, selective staging rule, untracked presentation-artifact exclusion, current plan's branch-protection limitation, manual PR-only fallback, and the evidence required before Daniel authorizes the first outpatient feature push.

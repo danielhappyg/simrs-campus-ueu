@@ -1,6 +1,6 @@
 # SIMRS Campus UEU Master Plan
 
-**Version:** 1.0  
+**Version:** 1.1
 **Date:** 15 July 2026  
 **Status:** Proposed for cross-program review  
 **Product horizon:** Multidisciplinary campus hospital simulation and learning platform
@@ -12,6 +12,8 @@ Build a new system alongside the legacy application.
 The target should be a **workflow-faithful campus hospital platform** where students from medicine, nursing, medical records and health information (RMIK), pharmacy, nutrition, psychology, and physiotherapy collaborate around the same synthetic patient journey. It should teach how a hospital works without pretending that simulated BPJS, SATUSEHAT, clinical decisions, signatures, or statistics are real.
 
 The first release is not a licensed production hospital EMR. It is a supervised education system designed with production-grade security, provenance, interoperability boundaries, and hospital logic so that future expansion remains possible.
+
+The reference MVP includes **computer-assisted coding**: versioned ICD-10 diagnosis and ICD-9-CM procedure candidates are generated from clinician-authored source statements, but an authorized human coder must review every suggestion and create the assignment. This is not autonomous diagnosis, final coding, or claim grouping.
 
 ### Core recommendation
 
@@ -131,7 +133,7 @@ Official references: [FHIR overview](https://satusehat.kemkes.go.id/platform/doc
 
 - Live treatment of real patients
 - Unsupervised clinical decision support
-- A certified INA-CBG grouper
+- Autonomous final coding or a certified INA-CBG/IDRG grouper
 - Production BPJS claim submission without a formal relationship and credentials
 - Full PACS/DICOM archive, LIS instrument integration, or device integration
 - Payroll, procurement, and complete ERP functionality
@@ -379,7 +381,7 @@ Durations are indicative for a team of roughly 3–4 developers, one QA/product 
 | 1. Platform foundation | 4–6 weeks | Repository, CI, staging deploy, UEU design tokens, secure auth, roles/context policies, organization/location, audit, course/cohort/session basics | Instructor creates a session; learner enters only an assigned role; every action is audited |
 | 2. Patient and encounter core | 4–6 weeks | Synthetic patient identity, search/duplicate checks, consent, appointment, queue, encounter, patient context, registration workflow | A registration learner creates/reuses a patient and starts a traceable encounter without duplicate re-entry |
 | 3. Outpatient clinical slice | 6–8 weeks | Nursing intake/safety screen, medical assessment, problems, orders, results inbox, prescriptions, referral, supervisor draft/sign flow | One outpatient encounter reaches supervisor-signed closure with complete provenance |
-| 4. Diagnostics, pharmacy, billing, and RMIK | 6–8 weeks | Lab/radiology lifecycle, medication verification/dispensing, charge capture, payment simulation, coding and completeness workbench | The same encounter completes clinical-to-coding handoff; missing/unsigned records are detected automatically |
+| 4. Diagnostics, pharmacy, billing, and RMIK | 6–8 weeks | Lab/radiology lifecycle, medication verification/dispensing, charge capture, payment simulation, completeness workbench, versioned terminology import/search, and human-reviewed computer-assisted coding | The same encounter completes clinical-to-coding handoff; missing/unsigned records are detected; suggestions remain attributable candidates until a coder decides |
 | 5. Emergency and inpatient | 8–10 weeks | Structured triage, emergency workspace, admission, bed/location history, nursing care plan, MAR, handoff, discharge | An emergency case transfers to inpatient without losing orders, medication, care-team, or audit context |
 | 6. Multidisciplinary care | 6–8 weeks | Nutrition, psychology, and physiotherapy workflows with privacy segmentation and shared care goals | Each program completes its part of one shared inpatient case; supervisor signs each discipline record |
 | 7. Integration and reporting laboratory | 6–8 weeks | SATUSEHAT sandbox adapter, BPJS simulation console, terminology validation, retry/reconciliation, RMIK/statutory reporting exercises | Learners can inspect successful and failed messages; no production credential or endpoint is required |

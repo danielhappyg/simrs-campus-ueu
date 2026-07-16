@@ -1,6 +1,6 @@
 # Outpatient Acceptance Scenarios
 
-- **Version:** 1.0 reference baseline
+- **Version:** 1.1 reference baseline
 - **Purpose:** executable contract for product, policy, provenance, simulation safety, and the first outpatient vertical slice
 - **Test data:** generated synthetic fixtures only
 
@@ -8,14 +8,14 @@
 
 Each scenario must eventually be represented at the lowest reliable automated level and, where human interpretation is required, in the UAT script.
 
-| Test type | Purpose |
-|---|---|
-| Domain/unit | State transitions, rules, terminology/value objects, versioning. |
+| Test type   | Purpose                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| Domain/unit | State transitions, rules, terminology/value objects, versioning.                                   |
 | Feature/API | Authentication, contextual authorization, validation, transactions, audit, and response contracts. |
-| Browser E2E | Critical multi-role journey, accessible interaction, persistent context, and handoffs. |
-| Security | Direct endpoint denial, session/CSRF controls, data exposure, import/export boundaries. |
-| Manual UAT | Clinical/teaching plausibility, terminology, handoff usability, and debrief usefulness. |
-| Operations | Build, migration, health/readiness, backup/restore, deploy, smoke test, rollback. |
+| Browser E2E | Critical multi-role journey, accessible interaction, persistent context, and handoffs.             |
+| Security    | Direct endpoint denial, session/CSRF controls, data exposure, import/export boundaries.            |
+| Manual UAT  | Clinical/teaching plausibility, terminology, handoff usability, and debrief usefulness.            |
+| Operations  | Build, migration, health/readiness, backup/restore, deploy, smoke test, rollback.                  |
 
 Critical automated tests must not depend on a public external service. SATUSEHAT/BPJS behavior uses deterministic local fakes until a separately approved sandbox increment.
 
@@ -190,6 +190,24 @@ The acceptance suite creates:
 **Then** assignment, submission, feedback, correction, approval, and attestation events are attributable and visible in debrief
 **And** deleting or ending the session does not silently erase those events.
 
+### EDU-03 — preserve a shared facilitator debrief note without changing the clinical record
+
+**Given** an encounter is `FINALIZED` and the simulation session remains active
+**When** an assignment with `debrief.write` creates a shared facilitator note
+**Then** the note is stored outside the clinical-source timeline with author, assignment, type, version, content hash, and authored time
+**And** every assignment authorized to view that case's debrief can read the latest version
+**And** a learner or wrong-session/wrong-case assignment cannot create or revise it
+**And** revising the note requires a reason and appends a successor version without overwriting the prior text
+**And** a completed session remains readable but rejects new note versions.
+
+### EDU-04 — show rubric provenance without inventing a score
+
+**Given** a scenario version contains one or more rubric references
+**When** an authorized participant opens the finalized debrief
+**Then** each reference shows its code, title, version, validation status, source label, and linked learning outcomes
+**And** a draft or pending reference is visibly labelled as not approved for grading
+**And** the application creates no criterion score, total, grade, pass/fail result, or competence verdict.
+
 ## 7. Pharmacy
 
 ### PHA-01 — complete three-domain prescription review
@@ -239,6 +257,81 @@ The acceptance suite creates:
 **When** a coder tries to submit an assignment
 **Then** the API rejects it
 **And** the coder cannot create a clinical diagnosis through the coding endpoint.
+
+### RMIK-04 — generate ranked candidates without automatic assignment
+
+**Given** an approved/current clinician-authored diagnosis or procedure version and the matching active terminology release
+**When** an authorized RMIK learner requests coding suggestions
+**Then** the system returns a bounded ranked list containing classification/version, code/display, source version, engine version, confidence band, and match evidence
+**And** no `code_assignment` exists until the coder explicitly accepts a candidate or selects an alternative through manual search
+**And** the interface provides no bulk or silent acceptance action.
+
+### RMIK-05 — report ambiguity or no candidate honestly
+
+**Given** the source statement is ambiguous, lacks required specificity, or has no reliable terminology match
+**When** the candidate engine completes
+**Then** it may return `no reliable candidate` or candidates marked `REVIEW_REQUIRED`
+**And** it does not infer undocumented clinical detail
+**And** the coder can search the source-matched classification manually
+**And** a diagnosis source may enter the attributed diagnosis-correction route
+**And** a procedure source may enter its separately attributed closure-correction route
+**But** a procedure source cannot be misrouted into diagnosis authoring.
+
+### RMIK-06 — invalidate stale suggestion context
+
+**Given** a suggestion run or code assignment references a specific clinical source version
+**When** that source is amended
+**Then** the historical suggestion and decision remain immutable
+**And** the linked assignment becomes `REVIEW_REQUIRED`
+**And** operational orders and prescriptions cannot be changed through the coding-correction route
+**And** the successor medical version and closure require their exact linked supervisor approvals
+**And** the old RMIK approval is treated as stale until a successor completeness review is approved
+**And** replacing a closure moves assignments linked to procedures in the old closure to `REVIEW_REQUIRED`
+**And** regeneration creates a new run linked only to the successor source version.
+
+### RMIK-07 — import terminology as an immutable validated release
+
+**Given** an administrator stages an ICD workbook with the expected schema and declared classification
+**When** validation succeeds
+**Then** completely blank trailing rows are ignored and the system records filename, SHA-256, logical version, row counts, import actor/time, and validation result before atomic activation
+**But when** a partial row, duplicate code, conflicting display/version, or invalid code format exists
+**Then** the entire staged import is rejected and the previously active release is unchanged.
+
+### RMIK-08 — enforce coding scope at the server
+
+**Given** a user lacks an active coding assignment, terminology-search capability, or exact patient/encounter/session scope
+**When** the user calls suggestion, search, decision, or assignment endpoints directly
+**Then** the server denies the request
+**And** does not expose the source statement or candidate list
+**And** records a safe audit event for the denied action.
+
+### RMIK-09 — distinguish a performed procedure from an order and its ICD-9-CM assignment
+
+**Given** the clinician is preparing the exact encounter-closure version
+**When** no procedure was performed
+**Then** the clinician must explicitly attest `NONE_PERFORMED`
+**But when** one or more procedures were performed
+**Then** each procedure records completed status, clinician-authored text, performed time, performer, optional diagnosis/order linkage, and an integrity hash
+**And** the closure supervisor reviews the procedure source as part of the exact closure hash
+**And** neither a ServiceRequest nor a procedure source contains an RMIK ICD-9-CM assignment
+**And** the procedure source cannot be updated or deleted after persistence
+**And** an authorized coder may generate bounded ICD-9-CM candidates only from that completed source
+**And** an ICD-10 concept cannot be assigned to the procedure source
+**And** accepting a candidate creates only a draft until the exact coder submits and linked RMIK supervisor approves it
+**And** the encounter cannot finalize until every current diagnosis and every current performed procedure has a separately approved assignment.
+
+### RMIK-10 — correct a performed-procedure source without overwriting history
+
+**Given** an authorized coder finds that the exact completed procedure source lacks or contradicts detail needed for ICD-9-CM selection
+**When** the coder requests correction with an attributed reason
+**Then** coding is blocked and the exact closure/procedure author receives a dedicated procedure-source task
+**And** the coder cannot edit the clinical source
+**And** the successor closure may change performed-procedure documentation only, while other authored closure fields and the original clinical occurrence time remain locked
+**And** the old closure, procedure, hashes, suggestion, decision, and assignment remain immutable history
+**And** the exact linked medical supervisor must approve the successor closure
+**And** assignments bound to the old procedure become `REVIEW_REQUIRED`
+**And** the prior RMIK approval remains stale until the exact prior reviewer and linked supervisor approve a replacement completeness review
+**And** coding resumes only against the successor procedure after that replacement approval.
 
 ## 9. Contextual authorization
 
@@ -323,6 +416,30 @@ The acceptance suite creates:
 **Then** startup/deployment validation fails safely
 **And** the secret is not logged.
 
+### REP-01 — project a source-derived outpatient summary after finalization
+
+**Given** an authorized assignment with `report.view` for a synthetic encounter in `FINALIZED`
+**When** the user opens the outpatient-summary report
+**Then** identity, encounter, history, allergy, examination, diagnoses, current results, performed procedures, medication outcomes, plan, disposition, education, follow-up, and approved human coding are projected from current approved sources
+**And** the response is private/no-store/no-index
+**And** the page and print output state `SIMULASI — DATA SINTETIS`
+**And** the output says that it is not a legal record, certified PDF, FHIR artifact, or SATUSEHAT submission.
+
+### REP-02 — project curated debrief evidence without raw audit internals
+
+**Given** the same authorized finalized case
+**When** the user opens the debrief-evidence report
+**Then** it contains the curated material-event timeline, shared note version lineage, scenario learning outcomes, and non-scoring rubric-reference status
+**And** it does not expose raw audit reasons, arbitrary metadata, request correlation IDs, IP hashes, user agents, or hidden scores.
+
+### REP-03 — enforce the report boundary directly at the server
+
+**Given** a pre-finalization case, missing `report.view`, or a mismatched assignment scope
+**When** a report URL is requested directly
+**Then** the server returns a safe conflict or denial without rendering report content
+**And** a successful render records only report type, section count, and source counts in `report.rendered` audit metadata
+**And** an assigned user may still read the finalized report after the simulation session is completed.
+
 ## 11. UX and accessibility
 
 ### UX-01 — identify routine outpatient intake correctly
@@ -387,7 +504,7 @@ The acceptance suite creates:
 
 - Daniel accepts the reference journey and known-assumption list;
 - all P0 assumptions needed for the UAT case have a safe configured position;
-- facilitator script and role accounts are available;
+- the [Checkpoint 2 UAT facilitator guide](../operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md) and role accounts are available;
 - participants can complete one shared case without developer database edits;
 - feedback is captured against scenario IDs, not as an unbounded menu wish list.
 

@@ -15,9 +15,14 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - a user-scoped work queue with the UEU encounter-orbit design;
 - public ULID identifiers and an application-level append-only audit trail;
 - deterministic opt-in demo fixtures using reserved `example.invalid` accounts;
+- one source-linked outpatient workflow covering registration/check-in, nursing intake, supervised medical assessment, orders/results, pharmacy review/dispense, supervised closure, reproducible RMIK completeness review, and attributed correction;
+- checksummed immutable ICD-10/ICD-9-CM release import and search, plus explainable ICD-10 diagnosis and ICD-9-CM performed-procedure candidates that always require separate coder and linked-supervisor actions;
+- a versioned synthetic coding retrieval evaluator with separate diagnosis/procedure top-1/top-5 reporting, negative controls, ambiguity controls, and unapproved Indonesian/stress proposals kept outside reference metrics;
+- coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and
+- guarded simulation commands that can either complete a fresh reference fixture or stop at an active diagnosis/procedure correction through the same domain services for demonstration and staged validation; and
 - automated PHP, JavaScript, static-analysis, formatting, build, and database-migration checks.
 
-Patient registration, encounters, clinical documentation, prescribing, pharmacy review, dispensing, coding, and record closure will be delivered as the next outpatient vertical slice. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
+The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete 147-test backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. The repository workflow is configured to repeat migrations and the backend suite on MySQL 8.4; its first remote run awaits Git publication. Stakeholder validation of the procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining keyboard/manual browser review, stakeholder UAT, and Hostinger preflight remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
 
 ## Local development
 
@@ -53,6 +58,43 @@ php artisan migrate:fresh --seed
 
 The learner account is `mahasiswa.keperawatan@example.invalid`; its password is the local value you selected. `migrate:fresh` deletes existing tables and must never be used against an environment containing data that should be preserved.
 
+### Optional verified ICD catalogs
+
+The raw ICD workbooks are intentionally not stored in Git. After enabling the synthetic demo fixture, import an explicitly verified local file with its complete expected SHA-256:
+
+```bash
+php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=<64-character-approved-hash>
+php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=<64-character-approved-hash>
+```
+
+The command validates the selected system, workbook schema, version, codes, duplicates, blank rows, formulas, and checksum before atomic activation. See the [coding reference register](docs/research/CODING_REFERENCE_REGISTER.md) for the approved development hashes and redistribution boundary.
+
+After both exact releases are active, reproduce the draft synthetic retrieval baseline without creating clinical records or aliases:
+
+```bash
+php artisan coding:evaluate-gold-set --fail-on-reference-miss
+```
+
+The command intentionally reports pending expert-review gaps without treating them as an approved accuracy threshold.
+
+On a fresh isolated demo fixture with both exact releases active, this command reproduces the completed reference journey for recovery or demonstration validation:
+
+```bash
+php artisan simulation:complete-reference-journey
+```
+
+It refuses production, non-synthetic, missing-terminology, and partially progressed contexts. The two fixture codes are attributed manual coder selections from the active releases; the command does not claim that free-text retrieval or autonomous coding is clinically accurate.
+
+For correction-state UI and accessibility validation, use a separate fresh isolated fixture and prepare exactly one attributed branch:
+
+```bash
+php artisan simulation:prepare-reference-correction diagnosis
+# or, on another fresh fixture
+php artisan simulation:prepare-reference-correction procedure
+```
+
+The command stops at `AMENDMENT_PENDING`, assigns the exact medical/closure author, and blocks the coder until the guarded successor workflow is completed. Repeating the same command is a no-op; requesting the other branch against that progressed fixture is rejected.
+
 ## Quality gates
 
 ```bash
@@ -76,6 +118,7 @@ The application workflow also validates dependency manifests, vulnerability advi
 - [Legacy assessment](docs/LEGACY_ASSESSMENT.md)
 - [ADR-001: Teaching-first modular monolith](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md)
 - [ADR-002: Same-origin platform foundation](docs/adr/ADR-002-PLATFORM-FOUNDATION.md)
+- [ADR-003: Outpatient domain spine](docs/adr/ADR-003-OUTPATIENT-DOMAIN-SPINE.md)
 - [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
 - [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
 - [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)
@@ -83,6 +126,13 @@ The application workflow also validates dependency manifests, vulnerability advi
 - [Assumption and validation register](docs/product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
 - [Outpatient acceptance scenarios](docs/product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
 - [Outpatient traceability matrix](docs/product/OUTPATIENT_TRACEABILITY_MATRIX.md)
+- [Computer-assisted coding specification](docs/product/COMPUTER_ASSISTED_CODING_SPEC.md)
+- [Coding reference register](docs/research/CODING_REFERENCE_REGISTER.md)
+- [Computer-assisted coding validation record](docs/operations/COMPUTER_ASSISTED_CODING_VALIDATION.md)
+- [Synthetic coding retrieval baseline](docs/operations/CODING_GOLD_SET_BASELINE.md)
+- [Local MySQL and recovery validation](docs/operations/LOCAL_MYSQL_RECOVERY_VALIDATION.md)
+- [Checkpoint 2 outpatient UAT facilitator guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
+- [GitHub publication checklist](docs/operations/GITHUB_PUBLICATION_CHECKLIST.md)
 - [UEU Clinical design system](docs/design/UEU_CLINICAL_DESIGN_SYSTEM.md)
 - [Information architecture](docs/design/INFORMATION_ARCHITECTURE.md)
 - [Outpatient critical-path wireframes](docs/design/OUTPATIENT_WIREFRAMES.md)

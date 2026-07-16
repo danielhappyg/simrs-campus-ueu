@@ -1,6 +1,6 @@
 # Outpatient Critical-Path Wireframes
 
-- **Version:** 1.0 low-fidelity reference
+- **Version:** 1.1 low-fidelity reference
 - **Viewport:** 1440 px desktop baseline; tablet/mobile adaptations described per pattern
 - **Content:** synthetic Indonesian UI examples only
 - **Purpose:** establish hierarchy and interaction before visual implementation
@@ -297,17 +297,22 @@ Approval requires an exact-version confirmation. If a new version exists, the ac
 │ ✓ Penyerahan obat        │ Kode bukan sumber klinis        │ [Minta koreksi] │
 │ ! Penutupan v1           │                                 │                 │
 │                          │ [Buka versi/linimasa]            │ Koding          │
-│ Checklist: OPD-COMP-v1   │                                 │ ICD-10 v____    │
-│ 6/7 lengkap              │                                 │ [Cari kode____] │
+│ Checklist: OPD-COMP-v1   │                                 │ ICD-10 2010     │
+│ 6/7 lengkap              │                                 │ [Buat saran]    │
+│                          │                                 │ Wajib ditinjau  │
+│                          │                                 │ A00.9  EXACT    │
+│                          │                                 │ alasan cocok…   │
+│                          │                                 │ [Gunakan draf]  │
+│                          │                                 │ [Cari kode lain]│
+│                          │                                 │ [Tolak saran]   │
 │                          │                                 │ Peran [Utama ▾] │
-│                          │                                 │ [+ Tambah]      │
 ├──────────────────────────┴─────────────────────────────────┴─────────────────┤
 │ 1 temuan pemblokir • Finalisasi tidak tersedia                              │
 │ [Simpan telaah]                          [Ajukan telaah RMIK →]              │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-The coder selects a source diagnosis/version before a code field becomes active. `Minta koreksi` routes to the author/supervisor and cannot edit the source document.
+The coder selects a source diagnosis/version before search or suggestion becomes active. A candidate is visibly labelled `Wajib ditinjau koder` and becomes only a draft after explicit acceptance. `Minta koreksi` routes to the author/supervisor and cannot edit the source document.
 
 ## 10. Longitudinal timeline and debrief
 

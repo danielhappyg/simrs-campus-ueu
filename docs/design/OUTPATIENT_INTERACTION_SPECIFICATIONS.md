@@ -1,21 +1,21 @@
 # Outpatient Interaction Specifications
 
-- **Version:** 1.0 reference specification
+- **Version:** 1.1 reference specification
 - **Scope:** Critical outpatient MVP interactions and failure recovery
 - **Rule:** UI state follows confirmed server/domain state; animation or local component state never invents completion
 
 ## 1. Interaction-state vocabulary
 
-| UI term | Domain meaning | User expectation |
-|---|---|---|
-| `Draf` | Editable current version owned by the assigned author. | May save/edit within active assignment. |
-| `Diajukan untuk ditinjau` | Exact version frozen and routed to reviewer. | Author cannot overwrite it. |
-| `Perlu perbaikan` | Reviewer created one or more attributable findings. | Author creates a successor version. |
-| `Disetujui untuk simulasi` | Authorized reviewer attested to exact version. | Ordinary edit is locked; not a legal e-signature. |
-| `Dikoreksi/Amendemen` | Approved successor linked to prior version. | Both versions remain inspectable. |
-| `Diblokir` | A named prerequisite prevents transition. | UI explains the prerequisite and authorized resolver. |
-| `Menunggu` | A real task/event is pending. | UI identifies what/whom it is waiting for. |
-| `Selesai` | Domain transaction confirmed by server. | Not inferred from closing a page. |
+| UI term                    | Domain meaning                                         | User expectation                                      |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------- |
+| `Draf`                     | Editable current version owned by the assigned author. | May save/edit within active assignment.               |
+| `Diajukan untuk ditinjau`  | Exact version frozen and routed to reviewer.           | Author cannot overwrite it.                           |
+| `Perlu perbaikan`          | Reviewer created one or more attributable findings.    | Author creates a successor version.                   |
+| `Disetujui untuk simulasi` | Authorized reviewer attested to exact version.         | Ordinary edit is locked; not a legal e-signature.     |
+| `Dikoreksi/Amendemen`      | Approved successor linked to prior version.            | Both versions remain inspectable.                     |
+| `Diblokir`                 | A named prerequisite prevents transition.              | UI explains the prerequisite and authorized resolver. |
+| `Menunggu`                 | A real task/event is pending.                          | UI identifies what/whom it is waiting for.            |
+| `Selesai`                  | Domain transaction confirmed by server.                | Not inferred from closing a page.                     |
 
 ## 2. Open an assigned task
 
@@ -37,12 +37,12 @@
 
 ### Failure
 
-| Failure | Response |
-|---|---|
-| Assignment expired/revoked | Stay/return to queue; explain role/session changed and refresh tasks. |
-| Encounter moved state | Open read-only current state or redirect to the legitimate next task with explanation. |
-| Access denied | Safe access-denied page; no sensitive payload. |
-| Network/server error | Keep queue state and filter; offer retry with correlation reference when available. |
+| Failure                    | Response                                                                               |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| Assignment expired/revoked | Stay/return to queue; explain role/session changed and refresh tasks.                  |
+| Encounter moved state      | Open read-only current state or redirect to the legitimate next task with explanation. |
+| Access denied              | Safe access-denied page; no sensitive payload.                                         |
+| Network/server error       | Keep queue state and filter; offer retry with correlation reference when available.    |
 
 ## 3. Draft creation and save
 
@@ -58,14 +58,14 @@
 
 ### Save state presentation
 
-| State | Label | Action |
-|---|---|---|
-| Clean | `Tersimpan 09.07` | none |
-| Dirty | `Perubahan belum disimpan` | save available |
-| Saving | `Menyimpan…` | prevent duplicate save; other safe editing may continue |
-| Retryable failure | `Gagal menyimpan` | persistent inline alert + `Coba lagi`; values retained |
-| Conflict | `Versi berubah di tempat lain` | stop autosave; open comparison/reload path |
-| Session expired | `Sesi masuk berakhir` | preserve local entered values in memory, reauthenticate, then revalidate context before retry |
+| State             | Label                          | Action                                                                                        |
+| ----------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
+| Clean             | `Tersimpan 09.07`              | none                                                                                          |
+| Dirty             | `Perubahan belum disimpan`     | save available                                                                                |
+| Saving            | `Menyimpan…`                   | prevent duplicate save; other safe editing may continue                                       |
+| Retryable failure | `Gagal menyimpan`              | persistent inline alert + `Coba lagi`; values retained                                        |
+| Conflict          | `Versi berubah di tempat lain` | stop autosave; open comparison/reload path                                                    |
+| Session expired   | `Sesi masuk berakhir`          | preserve local entered values in memory, reauthenticate, then revalidate context before retry |
 
 No browser local storage persists sensitive clinical drafts by default. If a future recovery cache is introduced, it requires a threat/privacy review, encryption posture, expiry, and session isolation.
 
@@ -290,12 +290,15 @@ Each blocker links to the authorized resolution route. A user without resolution
 ### Coding
 
 1. Coder selects clinician-authored diagnosis/procedure source and exact version.
-2. Code search is scoped to configured classification/version.
-3. Selected code stores system/version/code/display and source link.
-4. Coder submits; supervisor review follows configured policy.
-5. If source is amended, existing assignment becomes `REVIEW_REQUIRED` rather than silently following changed text.
+2. `Buat saran` runs only against the configured classification/version and shows a loading state tied to a real server request.
+3. Candidate cards show system/version/code/display, rank, confidence band, matched phrase/rule, engine version, and specificity warning where relevant.
+4. The coder accepts one candidate into a draft, searches for another code, rejects the suggestions, or requests source correction. There is no `Terima semua` action.
+5. An honest no-candidate state keeps manual search available and never fabricates a match.
+6. Selected code stores system/version/code/display, source link, and whether the decision came from a candidate or manual search.
+7. Coder submits; supervisor review follows configured policy.
+8. If source is amended, existing suggestions remain historical and the assignment becomes `REVIEW_REQUIRED` rather than silently following changed text.
 
-The coding endpoint cannot create/edit the source diagnosis.
+The coding endpoint cannot create/edit the source diagnosis. Candidate confidence describes retrieval strength, not clinical truth or permission to finalize.
 
 ### Correction request
 
@@ -303,12 +306,18 @@ RMIK records finding and route; the clinical author/supervisor creates the amend
 
 ## 14. Timeline and debrief
 
+- the reference-MVP release gate is the server-recorded `FINALIZED` encounter state; an assigned participant/instructor with `debrief.view` may read it while the session is active or completed;
 - default order uses clinical occurrence time with clear recorded-time annotations; deterministic tie-breaking uses server time/event ID;
 - filters update URL state and announce result count;
 - event expansion shows source/version/review relationship without displaying raw audit internals or secrets;
 - `Tampilkan perubahan` compares structured sections and never implies that unchanged hidden metadata was absent;
-- debrief annotations are teaching records separate from clinical source content;
+- debrief annotations are shared teaching records separate from clinical source content; creation/revision requires `debrief.write`, a finalized encounter, an active session, a simulation attestation, and a server-authorized matching assignment;
+- the latest shared note shows its type, author, assignment, version, authored time, and revision history; a revision requires a reason and never overwrites the prior version;
+- learners and read-only auditors can read shared notes but never receive authoring controls or write authority;
+- rubric references show scenario-bound code/version/status/source and linked learning outcomes; `PENDING_PROGRAM_REVIEW` is visibly non-scoring and creates no grade or competence verdict;
 - export generation is asynchronous only when necessary, shows real status, and remains watermarked simulation.
+
+The first reference projection is deliberately curated: material registration, workflow, clinical-version, result, pharmacy, closure, record-quality, correction, and human-coding decisions are included. Page views, searches, authorization denials, raw reasons/metadata, request IDs, IP hashes, user-agent strings, and content hashes are excluded from the learner-facing payload. Shared notes remain a separate versioned read model rather than becoming timeline events. See [ADR-004](../adr/ADR-004-FINALIZED-DEBRIEF-PROJECTION.md) and [ADR-005](../adr/ADR-005-DEBRIEF-NOTES-AND-RUBRIC-REFERENCES.md).
 
 ## 15. Session timeout and authentication recovery
 
@@ -328,31 +337,31 @@ Before authenticated session expiry, an accessible dialog warns the user and off
 
 Error messages answer: what happened, what was preserved, what the user can do, and when another role is required.
 
-| Avoid | Use |
-|---|---|
-| `Error 422` | `Asesmen belum dapat diajukan. Periksa 2 bidang yang ditandai; draf Anda tetap tersimpan.` |
-| `Unauthorized` | `Peran Mahasiswa Keperawatan tidak memiliki akses ke telaah farmasi pada sesi ini.` |
-| `Something went wrong` | `Draf gagal disimpan karena layanan tidak merespons. Data pada formulir masih tersedia. Coba lagi.` |
-| `Invalid vitals` | `Satuan tekanan darah belum dipilih.` |
-| `Patient not found` after denial | `Anda tidak dapat membuka rekam ini dari penugasan saat ini.` |
-| `Prescription approved` by software | `Telaah diterima oleh [aktor] untuk simulasi pada [waktu].` |
+| Avoid                               | Use                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `Error 422`                         | `Asesmen belum dapat diajukan. Periksa 2 bidang yang ditandai; draf Anda tetap tersimpan.`          |
+| `Unauthorized`                      | `Peran Mahasiswa Keperawatan tidak memiliki akses ke telaah farmasi pada sesi ini.`                 |
+| `Something went wrong`              | `Draf gagal disimpan karena layanan tidak merespons. Data pada formulir masih tersedia. Coba lagi.` |
+| `Invalid vitals`                    | `Satuan tekanan darah belum dipilih.`                                                               |
+| `Patient not found` after denial    | `Anda tidak dapat membuka rekam ini dari penugasan saat ini.`                                       |
+| `Prescription approved` by software | `Telaah diterima oleh [aktor] untuk simulasi pada [waktu].`                                         |
 
 Do not include database IDs, stack traces, tokens, or sensitive payloads in user-facing errors.
 
 ## 17. Keyboard contract
 
-| Interaction | Keyboard behavior |
-|---|---|
-| Global search/command | `Ctrl/Cmd + K`, Escape closes, focus returns to trigger. |
-| Sidebar | Normal Tab navigation; collapse button announces state. No custom arrow-key pattern unless true composite widget. |
-| Tabs | Arrow keys within tablist; Tab moves to active panel according to ARIA tabs pattern. |
-| Combobox/code search | Standard combobox pattern: arrows navigate, Enter selects, Escape closes, typed text retained appropriately. |
-| Dialog | Focus moves inside, is trapped, Escape closes when safe, return focus to trigger. |
-| Drawer | Focus moves to heading/first task; Escape closes when safe; return focus. |
-| Data table sort | Header button accessible by Tab/Enter; direction announced. |
-| Error summary | Receives focus after failed submit; links move to and identify the field. |
-| Workflow rail | Ordered links/buttons only for accessible steps; current uses `aria-current=step`. |
-| Form submit | Explicit button; no accidental whole-form submit from multiline/combobox interaction. |
+| Interaction           | Keyboard behavior                                                                                                 |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Global search/command | `Ctrl/Cmd + K`, Escape closes, focus returns to trigger.                                                          |
+| Sidebar               | Normal Tab navigation; collapse button announces state. No custom arrow-key pattern unless true composite widget. |
+| Tabs                  | Arrow keys within tablist; Tab moves to active panel according to ARIA tabs pattern.                              |
+| Combobox/code search  | Standard combobox pattern: arrows navigate, Enter selects, Escape closes, typed text retained appropriately.      |
+| Dialog                | Focus moves inside, is trapped, Escape closes when safe, return focus to trigger.                                 |
+| Drawer                | Focus moves to heading/first task; Escape closes when safe; return focus.                                         |
+| Data table sort       | Header button accessible by Tab/Enter; direction announced.                                                       |
+| Error summary         | Receives focus after failed submit; links move to and identify the field.                                         |
+| Workflow rail         | Ordered links/buttons only for accessible steps; current uses `aria-current=step`.                                |
+| Form submit           | Explicit button; no accidental whole-form submit from multiline/combobox interaction.                             |
 
 Avoid application-wide custom shortcuts that conflict with assistive technology. Every shortcut has a visible-menu equivalent.
 

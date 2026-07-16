@@ -421,6 +421,7 @@ Clinical code displays remain those of the governed terminology dataset; transla
 All production components must meet these minimums:
 
 - semantic native elements before ARIA;
+- exactly one application `main` landmark per rendered page;
 - visible `:focus-visible` ring with at least 2 px outline and sufficient contrast;
 - full critical-path keyboard operation with logical tab order;
 - skip link to main content and stable heading hierarchy;
@@ -429,6 +430,7 @@ All production components must meet these minimums:
 - live regions limited to meaningful save/status updates;
 - dialogs/drawers manage focus and return it to the trigger;
 - contrast at least 4.5:1 for normal text, 3:1 for large text and meaningful UI boundaries;
+- primary form controls, buttons, icon actions, and sidebar actions use a 44 CSS-pixel minimum target on narrow or coarse-pointer devices;
 - no information encoded by color, position, or animation alone;
 - zoom/reflow support at 200% for core tasks and robust browser text scaling;
 - reduced-motion support;
