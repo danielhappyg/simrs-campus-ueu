@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Services\AuditRecorder;
+use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Encounter\Models\ServiceLocation;
 use App\Modules\Patient\Enums\AdministrativeSex;
 use App\Modules\Patient\Enums\AppointmentStatus;
@@ -128,6 +129,10 @@ class RegistrationWorkspaceController extends Controller
         $patient = $appointment->patient;
         $encounter = $appointment->encounter;
         $mrn = $patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $planned = $appointment->status === AppointmentStatus::Booked
+            && $encounter?->status === EncounterStatus::Planned;
+        $arrived = $appointment->status === AppointmentStatus::CheckedIn
+            && $encounter?->status === EncounterStatus::Arrived;
 
         return [
             'publicId' => $appointment->public_id,
@@ -140,6 +145,11 @@ class RegistrationWorkspaceController extends Controller
             ],
             'canCheckIn' => $appointment->status === AppointmentStatus::Booked,
             'checkInUrl' => route('appointments.check-in', $appointment),
+            'termination' => [
+                'url' => route('appointments.termination.store', $appointment),
+                'canCancel' => $planned || $arrived,
+                'canMarkNoShow' => $planned && $appointment->scheduled_at->lessThanOrEqualTo(now()),
+            ],
             'patient' => [
                 'publicId' => $patient->public_id,
                 'fullName' => $patient->full_name,

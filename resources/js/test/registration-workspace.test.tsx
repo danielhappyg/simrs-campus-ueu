@@ -54,6 +54,11 @@ const props = {
             status: { code: 'BOOKED', label: 'Terjadwal' },
             canCheckIn: true,
             checkInUrl: '/appointments/example/check-in',
+            termination: {
+                url: '/appointments/example/termination',
+                canCancel: true,
+                canMarkNoShow: false,
+            },
             patient: {
                 publicId: '01J00000000000000000000004',
                 fullName: 'Pasien Sintetis Arunika',

@@ -17,6 +17,7 @@ use App\Modules\Teaching\Enums\WorkTaskType;
 use App\Modules\Teaching\Models\Assignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\SeedsReferenceOutpatient;
 use Tests\TestCase;
 
@@ -296,6 +297,45 @@ class AppointmentTerminationTest extends TestCase
         ])->assertRedirect(route('sessions.registration', $appointment->session));
 
         $this->assertSame(AppointmentStatus::Cancelled, $appointment->refresh()->status);
+    }
+
+    public function test_registration_payload_derives_only_allowed_termination_actions(): void
+    {
+        Carbon::setTestNow('2026-07-16 10:00:00');
+        $this->seedReferenceOutpatient();
+        $registrar = $this->registrar();
+        $appointment = AppointmentRegistration::query()->firstOrFail();
+        $appointment->forceFill(['scheduled_at' => now()->subHour()])->save();
+        $session = $appointment->session;
+
+        $this->actingAs($registrar)
+            ->get(route('sessions.registration', $session))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('appointments.0.termination.canCancel', true)
+                ->where('appointments.0.termination.canMarkNoShow', true)
+                ->where(
+                    'appointments.0.termination.url',
+                    route('appointments.termination.store', $appointment),
+                ));
+
+        $this->actingAs($registrar)->post(route('appointments.check-in', $appointment));
+
+        $this->actingAs($registrar)
+            ->get(route('sessions.registration', $session))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('appointments.0.termination.canCancel', true)
+                ->where('appointments.0.termination.canMarkNoShow', false));
+
+        $this->actingAs($registrar)->post(route('appointments.termination.store', $appointment), [
+            'outcome' => 'CANCELLED',
+            'reason' => 'Terminasi payload sintetis mempertahankan riwayat.',
+        ]);
+
+        $this->actingAs($registrar)
+            ->get(route('sessions.registration', $session))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('appointments.0.termination.canCancel', false)
+                ->where('appointments.0.termination.canMarkNoShow', false));
     }
 
     private function registrar(): User

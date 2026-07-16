@@ -21,6 +21,11 @@ export type RegistrationAppointment = {
     status: CodedStatus;
     canCheckIn: boolean;
     checkInUrl: string;
+    termination: {
+        url: string;
+        canCancel: boolean;
+        canMarkNoShow: boolean;
+    };
     patient: SyntheticPatientSummary;
     encounter: {
         publicId: string;
