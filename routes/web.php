@@ -30,6 +30,7 @@ use App\Http\Controllers\Encounter\StoreDebriefNoteController;
 use App\Http\Controllers\Patient\AppointmentCheckInController;
 use App\Http\Controllers\Patient\RegistrationWorkspaceController;
 use App\Http\Controllers\Patient\SyntheticRegistrationController;
+use App\Http\Controllers\Patient\TerminateAppointmentController;
 use App\Http\Controllers\RecordQuality\RecordQualityWorkspaceController;
 use App\Http\Controllers\RecordQuality\StoreRecordCorrectionController;
 use App\Http\Controllers\RecordQuality\StoreRecordQualityReviewController;
@@ -53,6 +54,8 @@ Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(f
         ->name('sessions.registrations.store');
     Route::post('appointments/{appointment}/check-in', AppointmentCheckInController::class)
         ->name('appointments.check-in');
+    Route::post('appointments/{appointment}/termination', TerminateAppointmentController::class)
+        ->name('appointments.termination.store');
     Route::get('encounters/{encounter}', EncounterOverviewController::class)
         ->name('encounters.show');
     Route::get('encounters/{encounter}/timeline', EncounterDebriefController::class)
