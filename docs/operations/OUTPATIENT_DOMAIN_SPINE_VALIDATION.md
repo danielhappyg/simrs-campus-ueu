@@ -11,7 +11,7 @@
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | PHP feature/unit suite                                                             | Passed: 169 tests, 1,935 assertions                                                   |
 | Read-only hosting-preflight contract                                               | Passed: 8 tests, 47 assertions; actual account evidence remains pending              |
-| Non-deploying release-candidate contract                                           | Passed: 14 tests, 63 assertions; first remote artifact run remains pending           |
+| Non-deploying release-candidate contract                                           | Passed: 14 tests, 63 assertions; first remote artifact downloaded and verified       |
 | PHPStan                                                                            | Passed: zero errors                                                                   |
 | Pint                                                                               | Passed                                                                                |
 | TypeScript                                                                         | Passed                                                                                |

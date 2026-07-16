@@ -2,7 +2,7 @@
 
 - **Boundary:** build and retain an identifiable runtime candidate; do not deploy it
 - **Environment:** GitHub Actions and optional local structural validation
-- **Current state:** manifest/assembly commands and CI job implemented; first remote artifact run pending publication
+- **Current state:** manifest/assembly commands implemented; first remote artifact verified in draft PR #10
 - **OPS-02 status:** partially advanced, not complete
 
 ## Purpose
@@ -88,13 +88,29 @@ On 16 July 2026, the commands assembled the then-current committed HEAD locally 
 | Tar creation | Passed: 129 MB local structural tar with SHA-256 sidecar calculation |
 | Forbidden content scan | No `.env`, local database, raw workbook, key file, tests, or `node_modules` found |
 
-This proves the local allowlist and archive structure, not production dependency composition, GitHub retention, Hostinger compatibility, deployment, health promotion, or rollback. The first successful remote job is required before calling the CI artifact path verified.
+This proves the local allowlist and archive structure, not production dependency composition, GitHub retention, Hostinger compatibility, deployment, health promotion, or rollback.
+
+## First remote artifact evidence
+
+Draft PR #10 run `29503655761` completed all four checks on 16 July 2026. The dependency-gated `Build release candidate (no deploy)` job passed after the application/security and MySQL 8.4 jobs, then uploaded:
+
+| Evidence | Result |
+| --- | --- |
+| GitHub artifact | ID `8377618284`; `simrs-campus-ueu-cbab0f67835e5499039d4541c403796ec99f977f` |
+| GitHub wrapper digest | `sha256:bac36ae362c3f020f3ee64fb6d02832994dfd2839a2fe759c4b555ef7a9a5e53` |
+| Retention | Created `2026-07-16T13:50:36Z`; expires `2026-07-30T13:50:34Z`; not expired when verified |
+| Downloaded tar | 41 MB; sidecar verified `aa24b754bcafa64a7398da671cafb164d810c0552eb11f2b45691ce63f11041b` |
+| Embedded provenance | Commit `cbab0f67835e5499039d4541c403796ec99f977f`; tree `d7ced026d108dc24d32ea24639ace47021f8e238`; 19 migration hashes |
+| Runtime composition | Production Composer tree excluded PHPUnit and Pint; `artisan` retained mode `0755` |
+| Safety/content scan | `SIMULATION`, synthetic-only, `NOT_DEPLOYED`; no `.env`, `.git`, local database, tests, `node_modules`, or `deliverables/` path |
+
+For a pull-request workflow, GitHub tests and packages the temporary merge revision. This artifact proves the PR candidate path, but it is not an authorized staging or production artifact and must not be deployed. A future approved merge would require a fresh artifact from the resulting `main` commit and all gates must pass again.
 
 ## Remaining `OPS-02` evidence
 
 After actual Hostinger preflight evidence and separate authorization, staging must still prove:
 
-1. the downloaded tar and sidecar match the workflow artifact and embedded manifest;
+1. a newly approved `main` artifact is selected, downloaded, and verified against its sidecar and embedded manifest;
 2. the exact commit and migration set are recorded before deployment;
 3. a backup exists and its restore procedure is available;
 4. shared environment/storage paths are connected safely;
