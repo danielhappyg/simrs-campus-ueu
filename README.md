@@ -21,9 +21,10 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and
 - guarded simulation commands that can either complete a fresh reference fixture or stop at an active diagnosis/procedure correction through the same domain services for demonstration and staged validation; and
 - a read-only, fail-closed Hostinger staging preflight that separates automated runtime checks from sanitized manual account evidence; and
+- a manifest-bound, runtime-only release-candidate build that produces a short-lived CI artifact without enabling deployment; and
 - automated PHP, JavaScript, static-analysis, formatting, build, and database-migration checks.
 
-The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. Draft PR #10 repeated the application, documentation, and MySQL 8.4 integration gates successfully without merging or deploying. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Automated accessibility coverage now guards the complete sign-in Tab order and programmatic error associations. The Hostinger preflight command and sanitized evidence contract are implemented, but actual account evidence and the separate staging deploy/rollback rehearsal remain pending. Stakeholder validation of the procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
+The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. Draft PR #10 repeated the application, documentation, and MySQL 8.4 integration gates successfully without merging or deploying. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Automated accessibility coverage now guards the complete sign-in Tab order and programmatic error associations. The Hostinger preflight and non-deploying release-candidate contracts are implemented, but actual account evidence and the separate staging deploy/rollback rehearsal remain pending. Stakeholder validation of the procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
 
 ## Local development
 
@@ -122,6 +123,17 @@ php artisan ops:hosting-preflight --json
 
 The command returns `INCOMPLETE` until every required Hostinger/GitHub item has sanitized evidence, and `BLOCKED` for unsafe runtime configuration, failed evidence, or malformed evidence. See the [Hostinger staging preflight guide](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md) before supplying an evidence file. A `READY` preflight permits consideration of a separately authorized staging rehearsal; it does not deploy or satisfy `OPS-02`.
 
+## Non-deploying release candidate
+
+After production dependencies and frontend assets are built in a clean checkout, generate and assemble an identifiable runtime candidate:
+
+```bash
+php artisan ops:release-manifest release-manifest.json --commit=<checked-out-sha>
+php artisan ops:assemble-release release-manifest.json storage/app/release-candidate
+```
+
+CI performs these steps only after the application and MySQL jobs pass, then uploads a short-lived immutable tar plus SHA-256 sidecar. It does not contact Hostinger, expose environment secrets, migrate a database, switch a release, merge, or deploy. See the [release candidate artifact guide](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md).
+
 ## Product and architecture references
 
 - [Approved project charter](docs/PROJECT_CHARTER.md)
@@ -143,6 +155,7 @@ The command returns `INCOMPLETE` until every required Hostinger/GitHub item has 
 - [Synthetic coding retrieval baseline](docs/operations/CODING_GOLD_SET_BASELINE.md)
 - [Local MySQL and recovery validation](docs/operations/LOCAL_MYSQL_RECOVERY_VALIDATION.md)
 - [Hostinger staging preflight](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md)
+- [Release candidate artifact](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md)
 - [Checkpoint 2 outpatient UAT facilitator guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
 - [GitHub publication checklist](docs/operations/GITHUB_PUBLICATION_CHECKLIST.md)
 - [UEU Clinical design system](docs/design/UEU_CLINICAL_DESIGN_SYSTEM.md)

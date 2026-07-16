@@ -118,7 +118,7 @@ This evidence does **not** mark the full linked scenarios verified. Performed-pr
 | No clinical overclaim    | Evidence SAF-003; Data Dictionary section 13                     | E2E-02, SAF-04         | Content/design review and feature tests                                                     |
 | Assisted-coding safety   | Evidence COD-001–004; Computer-Assisted Coding Specification     | RMIK-01, RMIK-03–10    | Import/search/suggestion/decision/correction tests, synthetic gold-set report, and RMIK UAT |
 | Accessibility            | Validation VAL-U04                                               | UX-01–04               | Automated axe checks plus keyboard/manual review                                            |
-| Recovery                 | ADR-001; Data Dictionary relationships                           | OPS-01, OPS-02         | Local backup/restore evidence, read-only hosting preflight, and hosted deploy/rollback rehearsal |
+| Recovery                 | ADR-001; Data Dictionary relationships                           | OPS-01, OPS-02         | Local backup/restore, read-only hosting preflight, CI release candidate, and hosted deploy/rollback rehearsal |
 | Interoperability honesty | Evidence OPD-002–004                                             | INT-01, INT-02, SAF-03 | Local mapping tests; no production network dependency                                       |
 
 ## 5. Change control

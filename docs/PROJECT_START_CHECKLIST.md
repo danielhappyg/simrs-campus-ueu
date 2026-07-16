@@ -56,6 +56,7 @@ Build a concrete reference journey around one synthetic patient, then validate i
 ## Gate 4 — Validate infrastructure and delivery
 
 - [x] Implement a read-only, fail-closed runtime and sanitized-evidence preflight command.
+- [x] Implement an identifiable, runtime-only CI release candidate without enabling deployment.
 - [ ] Confirm the Hostinger plan supports the required PHP version and extensions.
 - [ ] Verify SSH restrictions, Composer strategy, cron/queue behavior, private storage, database backups, logs, TLS, staging subdomain, symlinks/release directories, and recovery.
 - [ ] Create separate staging and teaching-production databases, keys, storage, and hostnames.

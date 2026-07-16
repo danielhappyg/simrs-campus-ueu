@@ -107,4 +107,6 @@ The [Local MySQL and Recovery Validation](LOCAL_MYSQL_RECOVERY_VALIDATION.md) pr
 
 The [Hostinger Staging Preflight](HOSTINGER_STAGING_PREFLIGHT.md) provides the read-only `ops:hosting-preflight` command, a sanitized evidence schema, and fail-closed `READY`/`INCOMPLETE`/`BLOCKED` results. It advances the capability-assessment gate but does not satisfy `OPS-02`; the harmless staging deployment, failed-health behavior, and rollback rehearsal remain separately blocked pending authorization and actual account evidence.
 
+The [Release Candidate Artifact](RELEASE_CANDIDATE_ARTIFACT.md) defines the manifest-bound runtime allowlist and the CI job that builds an immutable short-lived tar plus SHA-256 sidecar after application and MySQL checks. It advances the tested-artifact prerequisite without enabling a deployment environment, SSH transfer, migration, release switch, or rollback claim.
+
 The [GitHub Publication Checklist](GITHUB_PUBLICATION_CHECKLIST.md) records the private-repository boundary, selective staging rule, untracked presentation-artifact exclusion, current plan's branch-protection limitation, manual PR-only fallback, and the evidence required before Daniel authorizes the first outpatient feature push.

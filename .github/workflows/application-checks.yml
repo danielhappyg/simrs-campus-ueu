@@ -134,3 +134,69 @@ jobs:
 
       - name: Run backend suite on MySQL
         run: php artisan test
+
+  release-candidate:
+    name: Build release candidate (no deploy)
+    needs:
+      - quality
+      - mysql-integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out tested revision
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install production PHP dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Install and build frontend assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Verify the build did not modify tracked source
+        run: git diff --exit-code
+
+      - name: Generate and assemble the release candidate
+        id: release
+        shell: bash
+        run: |
+          RELEASE_COMMIT="$(git rev-parse HEAD)"
+          RELEASE_NAME="simrs-campus-ueu-${RELEASE_COMMIT}"
+          php artisan ops:release-manifest release-manifest.json --commit="${RELEASE_COMMIT}"
+          php artisan ops:assemble-release release-manifest.json storage/app/release-candidate
+          test -f storage/app/release-candidate/vendor/autoload.php
+          test -f storage/app/release-candidate/public/build/manifest.json
+          test -f storage/app/release-candidate/release-manifest.json
+          test ! -e storage/app/release-candidate/.env
+          test ! -e storage/app/release-candidate/database/database.sqlite
+          test ! -d storage/app/release-candidate/tests
+          test ! -d storage/app/release-candidate/node_modules
+          COMMIT_TIME="$(git show -s --format=%ct HEAD)"
+          tar --sort=name --mtime="@${COMMIT_TIME}" --owner=0 --group=0 --numeric-owner --format=gnu \
+            --create --file="${RELEASE_NAME}.tar" --directory=storage/app release-candidate
+          sha256sum "${RELEASE_NAME}.tar" > "${RELEASE_NAME}.tar.sha256"
+          echo "name=${RELEASE_NAME}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload immutable short-lived release candidate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.release.outputs.name }}
+          path: |
+            ${{ steps.release.outputs.name }}.tar
+            ${{ steps.release.outputs.name }}.tar.sha256
+          if-no-files-found: error
+          retention-days: 14
