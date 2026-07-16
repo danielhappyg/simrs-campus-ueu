@@ -129,7 +129,7 @@ The draft description must summarize:
 - schema/migration range through `001400`;
 - authorization, audit, correction, debrief, and report behavior;
 - automated SQLite/MySQL/frontend/security evidence;
-- browser/manual evidence and the remaining native keyboard, correction-console, and print-preview gaps;
+- browser/manual evidence, the completed retained correction-console pass, and the remaining native keyboard and print-preview gaps;
 - recovery/deployment boundaries; and
 - Daniel's remaining Checkpoint 2 and release decisions.
 
