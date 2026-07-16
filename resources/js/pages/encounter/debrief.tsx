@@ -5,6 +5,7 @@ import {
     BookOpenCheck,
     CheckCircle2,
     Clock3,
+    FileClock,
     FileText,
     Filter,
     History,
@@ -141,6 +142,7 @@ type Props = {
     };
     urls: {
         encounter: string;
+        timeline: string;
         self: string;
         workQueue: string;
         outpatientSummaryReport: string;
@@ -276,6 +278,15 @@ export default function EncounterDebrief({
                                 </Button>
                             </>
                         )}
+                        <Button asChild variant="outline">
+                            <Link href={urls.timeline}>
+                                <FileClock
+                                    className="size-4"
+                                    aria-hidden="true"
+                                />
+                                Linimasa rekam
+                            </Link>
+                        </Button>
                         <Button asChild variant="outline">
                             <Link href={urls.encounter}>
                                 <History

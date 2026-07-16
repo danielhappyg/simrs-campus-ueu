@@ -266,6 +266,7 @@ const props = {
     },
     urls: {
         encounter: '/encounters/example',
+        timeline: '/encounters/example/timeline',
         self: '/encounters/example/debrief',
         workQueue: '/work',
         outpatientSummaryReport:
@@ -293,6 +294,9 @@ describe('Encounter debrief', () => {
             'href',
             '/encounters/example/reports/debrief-evidence',
         );
+        expect(
+            screen.getByRole('link', { name: 'Linimasa rekam' }),
+        ).toHaveAttribute('href', '/encounters/example/timeline');
         expect(
             screen.getByText('SIMULASI — DATA SINTETIS'),
         ).toBeInTheDocument();

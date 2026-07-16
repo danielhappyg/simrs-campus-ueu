@@ -116,6 +116,7 @@ class EncounterOverviewController extends Controller
             ])->all(),
             'urls' => [
                 'debrief' => route('encounters.debrief.show', $encounter),
+                'timeline' => route('encounters.timeline.show', $encounter),
                 'outpatientSummaryReport' => route('encounters.reports.outpatient-summary', $encounter),
                 'debriefEvidenceReport' => route('encounters.reports.debrief-evidence', $encounter),
             ],

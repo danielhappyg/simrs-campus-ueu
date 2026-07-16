@@ -210,6 +210,7 @@ class EncounterDebriefController extends Controller
             ...$timeline,
             'urls' => [
                 'encounter' => route('encounters.show', $encounter),
+                'timeline' => route('encounters.timeline.show', $encounter),
                 'self' => route('encounters.debrief.show', $encounter),
                 'workQueue' => route('work'),
                 'outpatientSummaryReport' => route('encounters.reports.outpatient-summary', $encounter),
