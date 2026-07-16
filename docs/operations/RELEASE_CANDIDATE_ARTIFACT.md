@@ -119,6 +119,23 @@ Draft PR #10 run `29503655761` completed all four checks on 16 July 2026. The de
 
 For a pull-request workflow, GitHub tests and packages the temporary merge revision. This artifact proves the PR candidate path, but it is not an authorized staging or production artifact and must not be deployed. A future approved merge would require a fresh artifact from the resulting `main` commit and all gates must pass again.
 
+## First automated verifier evidence
+
+Draft PR #10 run `29510305221` proved the fail-closed upload gate on 16 July 2026. Application/security and MySQL 8.4 passed, but PHP's archive reader could not read a long migration path represented through the GNU tar long-name extension. `ops:verify-release` returned failure inside the generation step, the upload step was skipped, and no artifact was retained. The packaging format was changed to standardized `ustar`, which represents the current runtime paths directly and fails packaging if a future path exceeds its standard limits.
+
+Corrected run `29511088806` then passed application/security, MySQL 8.4, final archive verification, and upload:
+
+| Evidence | Result |
+| --- | --- |
+| CI verifier | `VERIFIED`; 8,301 runtime files; 19 migration hashes; tar SHA-256 `1dfe2572424d443e4d93385b4c33e1c13809a44b2583c7bee92a83fde017b794`; `NOT_DEPLOYED` |
+| Embedded pull-request merge revision | `6aa689b093ba05cd131e97949b282876678cf031`; this is validation-only and not an approved deployable revision |
+| GitHub artifact | ID `8380746796`; `simrs-campus-ueu-6aa689b093ba05cd131e97949b282876678cf031` |
+| GitHub wrapper digest | `sha256:d193f400d3f7f0d804f9f04ec8730f24fe4af99f2a2db1ca8ff200c370b3e87a` |
+| Retention | Created `2026-07-16T15:29:28Z`; expires `2026-07-30T15:29:25Z` |
+| Independent download | 40 MB tar and sidecar downloaded into ignored test storage; `ops:verify-release` reproduced the same release ID, counts, tar digest, and `NOT_DEPLOYED` status |
+
+This closes the reusable artifact-verification development control. It does not close Hostinger preflight, real staging health/smoke checks, active-release promotion, rollback, or OPS-02.
+
 ## Remaining `OPS-02` evidence
 
 After actual Hostinger preflight evidence and separate authorization, staging must still prove:
