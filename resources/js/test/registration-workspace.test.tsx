@@ -122,10 +122,59 @@ describe('registration workspace', () => {
 
         const checkIn = screen.getByRole('button', { name: 'Check-in' });
         expect(checkIn).toBeEnabled();
+        expect(
+            screen.getByRole('button', { name: 'Akhiri kunjungan' }),
+        ).toBeEnabled();
         await user.click(checkIn);
 
         expect(inertia.post).toHaveBeenCalledWith(
             '/appointments/example/check-in',
         );
+    });
+
+    it('does not expose termination controls for terminal or later clinical states', () => {
+        const terminal = {
+            ...props.appointments[0],
+            publicId: '01J00000000000000000000008',
+            status: { code: 'CANCELLED', label: 'Dibatalkan' },
+            canCheckIn: false,
+            termination: {
+                url: '/appointments/terminal/termination',
+                canCancel: false,
+                canMarkNoShow: false,
+            },
+            encounter: {
+                ...props.appointments[0].encounter,
+                publicId: '01J00000000000000000000009',
+                status: { code: 'CANCELLED', label: 'Dibatalkan' },
+            },
+        };
+        const laterClinical = {
+            ...props.appointments[0],
+            publicId: '01J00000000000000000000010',
+            status: { code: 'CHECKED_IN', label: 'Sudah check-in' },
+            canCheckIn: false,
+            termination: {
+                url: '/appointments/later/termination',
+                canCancel: false,
+                canMarkNoShow: false,
+            },
+            encounter: {
+                ...props.appointments[0].encounter,
+                publicId: '01J00000000000000000000011',
+                status: { code: 'IN_INTAKE', label: 'Asesmen awal' },
+            },
+        };
+
+        render(
+            <RegistrationWorkspace
+                {...props}
+                appointments={[terminal, laterClinical]}
+            />,
+        );
+
+        expect(
+            screen.queryByRole('button', { name: 'Akhiri kunjungan' }),
+        ).not.toBeInTheDocument();
     });
 });

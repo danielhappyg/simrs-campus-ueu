@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import VisitTerminationDialog from '@/components/visit-termination-dialog';
 import type { RegistrationAppointment, SyntheticPatientSummary } from '@/types';
 
 type Option = { value: string; label: string };
@@ -96,14 +97,17 @@ function StatusBadge({
     appointment: RegistrationAppointment;
 }) {
     const checkedIn = appointment.status.code === 'CHECKED_IN';
+    const terminal = ['CANCELLED', 'NO_SHOW'].includes(appointment.status.code);
 
     return (
         <Badge
             variant="outline"
             className={
-                checkedIn
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                    : 'border-sky-200 bg-sky-50 text-primary'
+                terminal
+                    ? 'border-slate-200 bg-slate-100 text-slate-700'
+                    : checkedIn
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                      : 'border-sky-200 bg-sky-50 text-primary'
             }
         >
             {appointment.status.label}
@@ -457,6 +461,9 @@ export default function RegistrationWorkspace({
                                                         Check-in
                                                     </Button>
                                                 )}
+                                                <VisitTerminationDialog
+                                                    appointment={appointment}
+                                                />
                                                 {appointment.encounter && (
                                                     <Button
                                                         asChild
