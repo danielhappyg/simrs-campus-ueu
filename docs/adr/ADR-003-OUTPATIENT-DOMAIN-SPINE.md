@@ -60,7 +60,8 @@ Implement the first outpatient increment as a shared domain spine with these bou
 - Multi-case sessions are not supported by this assignment shape. Supporting them later requires a deliberate assignment-case relation and migration rather than relaxing authorization.
 - Registration currently captures the minimum identity slice; configured social/demographic extensions remain incomplete.
 - Allergy content is deliberately shown as not yet assessed until the nursing increment supplies versioned source data.
-- Queue calling, service start, queue completion, cancellation/no-show UI, and later encounter stages are not implemented in this increment.
+- Registrar cancellation is implemented only from coherent `PLANNED` or `ARRIVED` registration states, and overdue no-show is implemented only from `PLANNED`; both preserve completed history and append attributed terminal provenance.
+- Queue calling, service start, queue completion, later clinical-stage termination, and later encounter stages remain outside this bounded increment.
 - Application model guards do not replace least-privilege database credentials or future tamper-evident audit storage.
 - No current code or screen is approved for real-patient care.
 

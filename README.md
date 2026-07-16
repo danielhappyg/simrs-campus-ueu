@@ -15,7 +15,7 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - a user-scoped work queue with the UEU encounter-orbit design;
 - public ULID identifiers and an application-level append-only audit trail;
 - deterministic opt-in demo fixtures using reserved `example.invalid` accounts;
-- one source-linked outpatient workflow covering registration/check-in, nursing intake, supervised medical assessment, orders/results, pharmacy review/dispense, supervised closure, reproducible RMIK completeness review, and attributed correction;
+- one source-linked outpatient workflow covering registration/check-in, bounded registrar cancellation and overdue no-show without history deletion, nursing intake, supervised medical assessment, orders/results, pharmacy review/dispense, supervised closure, reproducible RMIK completeness review, and attributed correction;
 - checksummed immutable ICD-10/ICD-9-CM release import and search, plus explainable ICD-10 diagnosis and ICD-9-CM performed-procedure candidates that always require separate coder and linked-supervisor actions;
 - a versioned synthetic coding retrieval evaluator with separate diagnosis/procedure top-1/top-5 reporting, negative controls, ambiguity controls, and unapproved Indonesian/stress proposals kept outside reference metrics;
 - coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and

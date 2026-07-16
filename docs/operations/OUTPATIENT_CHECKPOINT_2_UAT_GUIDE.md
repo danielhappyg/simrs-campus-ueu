@@ -98,6 +98,32 @@ Actor: registration learner.
 
 Observe `REG-01`, `REG-02`, `SAF-01`, `UX-02`, and `VAL-T07`.
 
+### UAT-01A — cancellation after check-in without deleting history
+
+Actor: registration learner. Run this branch in its own fresh disposable fixture; do not continue the main finalized journey from the cancelled case.
+
+1. Complete UAT-01 through Check-in and confirm the appointment is `Sudah check-in` and the encounter is `ARRIVED`.
+2. Return to registration, open **Akhiri kunjungan**, choose **Batalkan kunjungan**, and enter a specific synthetic reason of 10–500 characters.
+3. Confirm the appointment and encounter become `CANCELLED`/`Dibatalkan` and no termination action remains available.
+4. Open the encounter and confirm the original `PLANNED → ARRIVED` check-in event, timestamp, actor, and completed registration work remain visible before the attributed `ARRIVED → CANCELLED` event.
+5. Confirm unfinished downstream work is cancelled and the historical clinic-queue record is cancelled rather than deleted.
+6. On the public queue display, confirm the active entry disappears and the free-text termination reason is not disclosed.
+
+Observe `E2E-06`, `AUD-01`, `AUTH-01`, and preservation of completed provenance. Stop if any completed event/task is rewritten or deleted.
+
+### UAT-01B — overdue no-show without queue creation
+
+Actor: registration learner. Use a separate fresh disposable fixture whose persisted booked schedule is already due.
+
+1. Before Check-in, open **Akhiri kunjungan** and confirm **Tandai tidak hadir** is available only because the persisted schedule is due.
+2. Select **Tandai tidak hadir**, enter a specific synthetic reason of 10–500 characters, and confirm.
+3. Confirm the appointment and encounter become `NO_SHOW`/`Tidak hadir` and no termination action remains available.
+4. Open the encounter and confirm the attributed `PLANNED → NO_SHOW` transition appears after the original planned fixture event.
+5. Confirm no clinic-queue row was created, check-in remains absent, completed orientation evidence remains, and unfinished encounter work is cancelled.
+6. In a future-scheduled control fixture, confirm no-show is unavailable or rejected without mutation.
+
+Observe `E2E-06`, `AUD-01`, server-clock eligibility, and terminal-state immutability. Later clinical-stage termination is outside this exercise.
+
 ### UAT-02 — nursing assessment and safety decision
 
 Actors: nursing learner, then nursing supervisor.
