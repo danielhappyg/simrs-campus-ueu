@@ -9,6 +9,13 @@ use Tests\TestCase;
 
 class HostingPreflightCommandTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        File::deleteDirectory(storage_path('framework/testing/hosting-preflight-public'));
+
+        parent::tearDown();
+    }
+
     public function test_read_only_hosting_preflight_command_is_registered(): void
     {
         $exitCode = Artisan::call('list', ['--raw' => true]);
@@ -190,6 +197,12 @@ class HostingPreflightCommandTest extends TestCase
     private function configureSafeHostedRuntime(): void
     {
         $sqlite = config('database.connections.sqlite');
+        $sqlite['url'] = null;
+        $sqlite['database'] = ':memory:';
+        $publicPath = storage_path('framework/testing/hosting-preflight-public');
+        File::ensureDirectoryExists($publicPath.'/build');
+        File::put($publicPath.'/build/manifest.json', '{}');
+        app()->usePublicPath($publicPath);
 
         config()->set([
             'app.env' => 'staging',
