@@ -144,4 +144,12 @@ After the branch is pushed and the draft PR exists:
 5. keep the PR draft until the outstanding manual-evidence record is understood; and
 6. report the PR URL and exact remaining decisions to Daniel.
 
+## 10. Publication outcome — 16 July 2026
+
+- Branch `agent/outpatient-domain-spine` was pushed to the private repository.
+- Draft PR #10 targets `main`; no merge or deployment was performed.
+- Application, documentation, and MySQL 8.4 integration jobs passed on the initial remote run.
+- The remote branch contained no local `deliverables/`, raw ICD workbook, database, credential, or key file.
+- A subsequent isolated Checkpoint 2 browser rehearsal found and fixed locked clinical timestamp truncation in both diagnosis- and procedure-correction forms. That follow-up must repeat the full local and remote gates before the PR can be considered ready for stakeholder review.
+
 Publishing a draft PR is not merge approval, UAT acceptance, pilot approval, or deployment authorization.

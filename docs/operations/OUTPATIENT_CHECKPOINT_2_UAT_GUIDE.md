@@ -274,10 +274,10 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The case content, safety questionnaire, rubric, coding aliases, gold-set proposals, and candidate threshold are not faculty-approved.
 - Reports are browser-generated learning previews, not signed/immutable medical documents or SATUSEHAT submissions.
 - Native print/PDF pagination review remains pending.
-- Full native keyboard traversal and uninterrupted browser-console review of all correction routes remain pending.
+- Full native keyboard traversal remains pending. Internal browser rehearsal has covered the diagnosis/procedure author-response screens and successful successor submission without captured console errors, but the complete supervisor-to-RMIK correction sequence still requires one uninterrupted UAT run.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
 - Emergency, inpatient, nutrition, psychology, physiotherapy, and other deferred programs/modules are not part of this checkpoint.
-- Hostinger staging deployment/rollback and the configured MySQL 8.4 workflow's first remote run remain pending until Git publication and hosting authorization.
+- Draft PR #10 passed the application, documentation, and MySQL 8.4 checks. Hostinger staging deployment/rollback remains pending hosting authorization and a separate deployment decision.
 
 ## 12. Related contracts
 

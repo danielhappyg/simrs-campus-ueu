@@ -20,6 +20,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    dateTimeFormValue,
+    dateTimeLocalDisplay,
+} from '@/lib/clinical-date-time';
 import { cn } from '@/lib/utils';
 import type { MedicalAssessmentWorkspaceProps } from '@/types';
 
@@ -91,10 +95,6 @@ function Textarea({
     );
 }
 
-function localDateTime(value: string): string {
-    return value.slice(0, 16);
-}
-
 function formatDateTime(value: string): string {
     return new Intl.DateTimeFormat('id-ID', {
         dateStyle: 'medium',
@@ -118,7 +118,10 @@ function initialForm(props: MedicalAssessmentWorkspaceProps): MedicalForm {
         request_key: props.formOptions.requestKey,
         intent: 'SAVE_DRAFT',
         clinical_occurrence_at: latest
-            ? localDateTime(latest.clinicalOccurrenceAt)
+            ? dateTimeFormValue(
+                  latest.clinicalOccurrenceAt,
+                  props.document.amendmentMode,
+              )
             : props.formOptions.defaultOccurrenceAt,
         history_source: content?.history.source ?? 'Pasien sintetis',
         present_illness: content?.history.presentIllness ?? '',
@@ -678,9 +681,10 @@ export default function MedicalAssessmentWorkspace(
                                         <Input
                                             id="medical-occurrence"
                                             type="datetime-local"
-                                            value={
-                                                form.data.clinical_occurrence_at
-                                            }
+                                            value={dateTimeLocalDisplay(
+                                                form.data
+                                                    .clinical_occurrence_at,
+                                            )}
                                             onChange={(event) =>
                                                 form.setData(
                                                     'clinical_occurrence_at',

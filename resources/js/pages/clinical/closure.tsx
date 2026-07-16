@@ -24,6 +24,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    dateTimeFormValue,
+    dateTimeLocalDisplay,
+} from '@/lib/clinical-date-time';
 import { cn } from '@/lib/utils';
 import type {
     ClinicalFinding,
@@ -290,7 +294,10 @@ export default function EncounterClosureWorkspace({
         intent: 'SAVE_DRAFT',
         clinical_occurrence_at:
             procedureCodingCorrection && document.latestVersion
-                ? document.latestVersion.clinicalOccurrenceAt.slice(0, 16)
+                ? dateTimeFormValue(
+                      document.latestVersion.clinicalOccurrenceAt,
+                      true,
+                  )
                 : formOptions.defaultOccurrenceAt,
         leaving_condition: prior?.leavingCondition ?? '',
         disposition: prior?.disposition ?? '',
@@ -302,8 +309,16 @@ export default function EncounterClosureWorkspace({
         procedures:
             priorProcedureDocumentation?.procedures.map((procedure) => ({
                 authored_text: procedure.authoredText,
-                performed_start_at: procedure.performedStartAt.slice(0, 16),
-                performed_end_at: procedure.performedEndAt?.slice(0, 16) ?? '',
+                performed_start_at: dateTimeFormValue(
+                    procedure.performedStartAt,
+                    procedureCodingCorrection !== null,
+                ),
+                performed_end_at: procedure.performedEndAt
+                    ? dateTimeFormValue(
+                          procedure.performedEndAt,
+                          procedureCodingCorrection !== null,
+                      )
+                    : '',
                 performer_text: procedure.performerText,
                 body_site_text: procedure.bodySiteText ?? '',
                 outcome_text: procedure.outcomeText ?? '',
@@ -1134,9 +1149,9 @@ export default function EncounterClosureWorkspace({
                                                                             id={`procedure_${index}_start`}
                                                                             type="datetime-local"
                                                                             className="mt-2"
-                                                                            value={
-                                                                                procedure.performed_start_at
-                                                                            }
+                                                                            value={dateTimeLocalDisplay(
+                                                                                procedure.performed_start_at,
+                                                                            )}
                                                                             onChange={(
                                                                                 event,
                                                                             ) =>
@@ -1173,9 +1188,9 @@ export default function EncounterClosureWorkspace({
                                                                             id={`procedure_${index}_end`}
                                                                             type="datetime-local"
                                                                             className="mt-2"
-                                                                            value={
-                                                                                procedure.performed_end_at
-                                                                            }
+                                                                            value={dateTimeLocalDisplay(
+                                                                                procedure.performed_end_at,
+                                                                            )}
                                                                             onChange={(
                                                                                 event,
                                                                             ) =>
@@ -1512,10 +1527,10 @@ export default function EncounterClosureWorkspace({
                                                 id="clinical_occurrence_at"
                                                 type="datetime-local"
                                                 className="mt-2"
-                                                value={
+                                                value={dateTimeLocalDisplay(
                                                     form.data
-                                                        .clinical_occurrence_at
-                                                }
+                                                        .clinical_occurrence_at,
+                                                )}
                                                 onChange={(event) =>
                                                     form.setData(
                                                         'clinical_occurrence_at',
