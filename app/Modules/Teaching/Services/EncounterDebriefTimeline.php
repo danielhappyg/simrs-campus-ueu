@@ -12,6 +12,7 @@ use App\Modules\Clinical\Models\MedicationDispense;
 use App\Modules\Coding\Enums\CodingSourceType;
 use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Encounter\Models\Encounter;
+use App\Modules\Patient\Enums\AppointmentStatus;
 use App\Modules\Teaching\Models\Assignment;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -24,6 +25,7 @@ final class EncounterDebriefTimeline
     private const MATERIAL_ACTIONS = [
         'synthetic_registration.created',
         'appointment.checked_in',
+        'appointment.terminated',
         'encounter.transitioned',
         'clinical.nursing_intake_version_created',
         'clinical.medical_assessment_version_created',
@@ -184,6 +186,7 @@ final class EncounterDebriefTimeline
         return match ($action) {
             'synthetic_registration.created' => $this->card('REGISTRATION', 'Registrasi', 'Registrasi pasien sintetis dibuat', 'Identitas, appointment, dan encounter ditautkan dalam satu konteks simulasi.'),
             'appointment.checked_in' => $this->card('REGISTRATION', 'Registrasi', 'Check-in poliklinik dicatat', $this->ticketDetail($metadata)),
+            'appointment.terminated' => $this->terminationCard($metadata),
             'encounter.transitioned' => $this->card('WORKFLOW', 'Alur encounter', 'Status encounter berubah', $this->transitionDetail($metadata)),
             'clinical.nursing_intake_version_created' => $this->card('NURSING', 'Keperawatan', 'Versi asesmen awal dibuat', $version ? "Sumber {$version} direkam tanpa menimpa versi sebelumnya." : null),
             'clinical.medical_assessment_version_created' => $this->card('MEDICINE', 'Kedokteran', 'Versi asesmen medis dibuat', $version ? "Sumber {$version} direkam tanpa menimpa versi sebelumnya." : null),
@@ -246,6 +249,36 @@ final class EncounterDebriefTimeline
         $ticket = $metadata['ticket_number'] ?? null;
 
         return is_string($ticket) && $ticket !== '' ? "Nomor antrean {$ticket}." : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array{category: array{code: string, label: string}, title: string, detail: string|null}
+     */
+    private function terminationCard(array $metadata): array
+    {
+        $status = AppointmentStatus::tryFrom((string) ($metadata['appointment_status'] ?? ''));
+
+        return match ($status) {
+            AppointmentStatus::Cancelled => $this->card(
+                'REGISTRATION',
+                'Registrasi',
+                'Kunjungan dibatalkan',
+                'Outcome kunjungan: Dibatalkan.',
+            ),
+            AppointmentStatus::NoShow => $this->card(
+                'REGISTRATION',
+                'Registrasi',
+                'Pasien tidak hadir',
+                'Outcome kunjungan: Tidak hadir.',
+            ),
+            default => $this->card(
+                'REGISTRATION',
+                'Registrasi',
+                'Outcome kunjungan dicatat',
+                'Outcome terminal tersimpan pada sumber registrasi.',
+            ),
+        };
     }
 
     /** @param array<string, mixed> $metadata */
