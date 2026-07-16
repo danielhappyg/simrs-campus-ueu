@@ -186,7 +186,7 @@ jobs:
           test ! -d storage/app/release-candidate/tests
           test ! -d storage/app/release-candidate/node_modules
           COMMIT_TIME="$(git show -s --format=%ct HEAD)"
-          tar --sort=name --mtime="@${COMMIT_TIME}" --owner=0 --group=0 --numeric-owner --format=gnu \
+          tar --sort=name --mtime="@${COMMIT_TIME}" --owner=0 --group=0 --numeric-owner --format=ustar \
             --create --file="${RELEASE_NAME}.tar" --directory=storage/app release-candidate
           sha256sum "${RELEASE_NAME}.tar" > "${RELEASE_NAME}.tar.sha256"
           php artisan ops:verify-release "${RELEASE_NAME}.tar" "${RELEASE_NAME}.tar.sha256"

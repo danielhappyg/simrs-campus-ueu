@@ -78,12 +78,14 @@ The non-deploying `release-candidate` job:
 4. builds assets and fails if tracked source changes;
 5. generates and assembles the manifest-bound runtime tree;
 6. asserts the required files and high-risk exclusions;
-7. creates a name-sorted tar with commit-time timestamps and normalized numeric ownership;
+7. creates a name-sorted POSIX `ustar` archive with commit-time timestamps and normalized numeric ownership;
 8. writes a SHA-256 sidecar;
 9. runs `ops:verify-release` against the finished tar and sidecar; and
 10. uploads an immutable artifact named with the complete checked-out commit for 14 days.
 
 GitHub's artifact action reports its own artifact ID, URL, and SHA-256 digest. The tar wrapper is retained because GitHub notes that direct artifact upload does not preserve original file permissions; the tar retains the executable mode needed by `artisan`.
+
+`ustar` is intentionally used instead of GNU long-name extensions so PHP's archive reader sees each runtime file directly. Its standardized path/name limits are also fail-closed: if a future dependency exceeds them, packaging stops before verification or upload rather than silently changing the archive representation.
 
 ## Local structural validation
 
