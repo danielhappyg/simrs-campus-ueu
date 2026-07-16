@@ -208,15 +208,18 @@ Discuss `VAL-A12`, `VAL-A16`, candidate explanations, Indonesian aliases, ambigu
 
 Actors: facilitator and all authorized participants.
 
-1. Confirm the debrief is unavailable before `FINALIZED` and released afterward.
-2. Trace one handoff, one supervisor decision, and both human coding decisions to exact actors/sources/times.
-3. Facilitator creates and revises one shared debrief note; participant confirms read-only visibility and version history.
-4. Confirm the rubric reference is visibly pending/non-scoring.
-5. Open the outpatient summary and debrief-evidence report.
-6. Confirm the permanent watermark, non-legal/non-FHIR statement, source-derived content, and human-reviewed ICD-10/ICD-9-CM presentation.
-7. Daniel records the Checkpoint 2 decision to retain, revise, or remove each report (`VAL-U05`).
+1. During the active journey, an exact-case participant opens the longitudinal record and traces at least one registration event, one clinical source version, and one supervisor decision to exact actors/sources/times.
+2. Confirm an unrelated/session-wide non-facilitator assignment neither sees the record link nor opens the route; confirm a session-wide facilitator can open it.
+3. Exercise the stage and actor-program filters and confirm their counts/URL state remain presentation-only.
+4. Confirm the debrief remains a distinct workspace, is unavailable before `FINALIZED`, and is released afterward.
+5. In the finalized encounter, trace both human coding decisions and compare record provenance with the teaching-oriented debrief projection.
+6. Facilitator creates and revises one shared debrief note; participant confirms read-only visibility and version history.
+7. Confirm the rubric reference is visibly pending/non-scoring.
+8. Open the outpatient summary and debrief-evidence report.
+9. Confirm the permanent watermark, non-legal/non-FHIR statement, source-derived content, and human-reviewed ICD-10/ICD-9-CM presentation.
+10. Daniel records the Checkpoint 2 decision to retain, revise, or remove the longitudinal record and each report (`VAL-U05`).
 
-Discuss `VAL-T03`, `VAL-T06`, and whether the curated timeline is useful without exposing raw security/audit metadata.
+Discuss `VAL-T03`, `VAL-T06`, whether the longitudinal record is useful during care-flow learning, and whether its curated provenance is sufficient without exposing raw security/audit metadata.
 
 ## 7. Separate correction exercises
 
@@ -286,10 +289,10 @@ At the end, record:
 - each `UAT-*` result as `PASS`, `FAIL`, `NOT RUN`, or `DECISION REQUIRED`;
 - issue IDs and Daniel's classifications;
 - unresolved P0/P1 assumptions and owner;
-- decision on both report views;
+- decision on the longitudinal record and both report views;
 - decision on correction responsibility/timing;
 - decision on assisted-coding aliases/gold-set/threshold next work;
-- decision on debrief usefulness and rubric status;
+- decision on longitudinal-record/debrief usefulness and rubric status;
 - whether Checkpoint 2 is accepted, conditionally accepted, or requires another run; and
 - explicit confirmation that no real data or production integration was used.
 
@@ -300,6 +303,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The application is a reference teaching MVP, not a licensed production hospital EMR.
 - The case content, safety questionnaire, rubric, coding aliases, gold-set proposals, and candidate threshold are not faculty-approved.
 - Reports are browser-generated learning previews, not signed/immutable medical documents or SATUSEHAT submissions.
+- The longitudinal record is a curated, read-only teaching projection with a 300-event display cap; it is not a legal record, clinical decision engine, or external interoperability transmission.
 - Native print/PDF pagination review remains pending.
 - Full native keyboard traversal remains pending. Automated regression now guards the complete sign-in Tab order, focusable password control, and programmatic validation-error associations. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. A later single retained browser tab/session repeated both complete branches across fresh isolated fixtures and ended with an empty retained warning/error console log. Stakeholder UAT is still required.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.

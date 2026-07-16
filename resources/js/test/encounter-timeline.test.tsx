@@ -110,9 +110,7 @@ const props = {
             clinicalOccurrenceAt: null,
             primaryAt: '2026-07-17T09:20:00+07:00',
             showsRecordedTimeDifference: false,
-            tags: [
-                { code: 'HUMAN_CODING', label: 'Keputusan koding manusia' },
-            ],
+            tags: [{ code: 'HUMAN_CODING', label: 'Keputusan koding manusia' }],
         },
         {
             ...baseEvent,
@@ -180,9 +178,15 @@ describe('Encounter record timeline', () => {
         expect(
             screen.getByText(/Indeks provenance sumber/),
         ).toBeInTheDocument();
-        expect(screen.getByText('Versi asesmen awal dibuat')).toBeInTheDocument();
-        expect(screen.getByText('Versi dokumen klinis · v1')).toBeInTheDocument();
-        expect(screen.getByText(/Mahasiswa Keperawatan Demo/)).toBeInTheDocument();
+        expect(
+            screen.getByText('Versi asesmen awal dibuat'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText('Versi dokumen klinis · v1'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(/Mahasiswa Keperawatan Demo/),
+        ).toBeInTheDocument();
         expect(screen.getByText(/Dicatat/)).toBeInTheDocument();
         expect(container.textContent).not.toContain('request_correlation_id');
         expect(container.textContent).not.toContain('ip_hash');
@@ -213,7 +217,9 @@ describe('Encounter record timeline', () => {
             'RMIK',
         );
 
-        expect(screen.getByText('Koding diagnosis diajukan')).toBeInTheDocument();
+        expect(
+            screen.getByText('Koding diagnosis diajukan'),
+        ).toBeInTheDocument();
         expect(
             screen.queryByText('Versi asesmen awal dibuat'),
         ).not.toBeInTheDocument();
@@ -225,7 +231,11 @@ describe('Encounter record timeline', () => {
         render(
             <EncounterRecordTimeline
                 {...props}
-                summary={{ ...props.summary, truncated: true, totalAvailableEventCount: 301 }}
+                summary={{
+                    ...props.summary,
+                    truncated: true,
+                    totalAvailableEventCount: 301,
+                }}
             />,
         );
 
@@ -266,13 +276,19 @@ describe('Encounter record timeline', () => {
                 timeline={[]}
                 workflow={[
                     { code: 'PLANNED', label: 'Direncanakan', current: false },
-                    { code: 'IN_INTAKE', label: 'Dalam asesmen awal', current: true },
+                    {
+                        code: 'IN_INTAKE',
+                        label: 'Dalam asesmen awal',
+                        current: true,
+                    },
                 ]}
                 urls={{
                     debrief: '/encounters/example/debrief',
                     timeline: '/encounters/example/timeline',
-                    outpatientSummaryReport: '/encounters/example/reports/outpatient-summary',
-                    debriefEvidenceReport: '/encounters/example/reports/debrief-evidence',
+                    outpatientSummaryReport:
+                        '/encounters/example/reports/outpatient-summary',
+                    debriefEvidenceReport:
+                        '/encounters/example/reports/debrief-evidence',
                 }}
             />,
         );
@@ -307,8 +323,10 @@ describe('Encounter record timeline', () => {
                 urls={{
                     debrief: '/encounters/example/debrief',
                     timeline: null,
-                    outpatientSummaryReport: '/encounters/example/reports/outpatient-summary',
-                    debriefEvidenceReport: '/encounters/example/reports/debrief-evidence',
+                    outpatientSummaryReport:
+                        '/encounters/example/reports/outpatient-summary',
+                    debriefEvidenceReport:
+                        '/encounters/example/reports/debrief-evidence',
                 }}
             />,
         );

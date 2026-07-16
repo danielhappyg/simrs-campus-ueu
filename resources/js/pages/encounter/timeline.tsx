@@ -473,7 +473,9 @@ export default function EncounterRecordTimeline({
                                         {event.showsRecordedTimeDifference && (
                                             <p className="mt-2 text-xs leading-5">
                                                 Dicatat{' '}
-                                                <time dateTime={event.recordedAt}>
+                                                <time
+                                                    dateTime={event.recordedAt}
+                                                >
                                                     {formatDateTime(
                                                         event.recordedAt,
                                                     )}{' '}
