@@ -13,7 +13,7 @@ The current full-journey rehearsal imported the two verified local ICD workbooks
 
 A preceding logical backup/restore rehearsal through migration `001200` restored the foundation fixture into a second empty database. Its hashes remain recorded as historical migration evidence. The newer `001300` rehearsal below supersedes it for OPS-01 local full-journey evidence. All disposable databases and temporary dump files were deleted after both validations.
 
-After migration `001400` added shared debrief teaching evidence, the complete backend suite was also run against a fresh disposable real-MySQL database. All 147 tests and 1,825 assertions passed across 57 base tables. This verifies the current application test contract on MySQL 9.7.1; it does not substitute for the configured MySQL 8.4 GitHub job's first remote run.
+After migration `001400` added shared debrief teaching evidence, the then-current complete backend suite was also run against a fresh disposable real-MySQL database. All 147 tests and 1,825 assertions passed across 57 base tables. This is retained as the local MySQL 9.7.1 snapshot; later application increments run through the configured MySQL 8.4 GitHub job.
 
 The first cross-database run exposed one test-only portability defect: a diagnostic-result assertion treated decoded JSON object-key order as significant. MySQL normalizes JSON object keys while SQLite preserves insertion order. The assertion now checks semantic array equality while the source integrity hash remains derived from `CanonicalJson`, preserving deterministic provenance.
 
@@ -110,8 +110,7 @@ The local full-journey rehearsal completes the current OPS-01 development eviden
 
 The following remain required:
 
-1. the configured repository workflow's exact MySQL 8.4 migration and 147-test backend run after Git publication;
-2. read-only Hostinger capability, backup-retention, and isolation preflight;
-3. staging artifact deployment, smoke test, failed-promotion behavior, and application rollback;
-4. hosted restore rehearsal with approved recovery-time and access-control evidence; and
-5. stakeholder approval before any teaching pilot.
+1. actual Hostinger capability, backup-retention, and isolation evidence through the implemented read-only preflight;
+2. staging artifact deployment, smoke test, failed-promotion behavior, and application rollback;
+3. hosted restore rehearsal with approved recovery-time and access-control evidence; and
+4. stakeholder approval before any teaching pilot.

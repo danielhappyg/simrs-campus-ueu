@@ -1,0 +1,63 @@
+{
+    "schemaVersion": 1,
+    "target": "hostinger-staging",
+    "checkedAt": "2026-07-16T12:00:00+07:00",
+    "checks": {
+        "account.plan_version": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "ssh.access_restrictions": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "build.composer_strategy": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "build.node_strategy": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "cron.scheduler": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "queue.execution": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "storage.private_isolation": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "backup.retention_restore": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "release.atomic_switch": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "tls.dns_staging": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "logs.retention": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "resources.limits": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "github.environment_gate": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        },
+        "ssh.host_key_pin": {
+            "status": "PENDING",
+            "evidence": "Not yet verified."
+        }
+    }
+}

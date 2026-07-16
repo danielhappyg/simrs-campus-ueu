@@ -20,9 +20,10 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - a versioned synthetic coding retrieval evaluator with separate diagnosis/procedure top-1/top-5 reporting, negative controls, ambiguity controls, and unapproved Indonesian/stress proposals kept outside reference metrics;
 - coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and
 - guarded simulation commands that can either complete a fresh reference fixture or stop at an active diagnosis/procedure correction through the same domain services for demonstration and staged validation; and
+- a read-only, fail-closed Hostinger staging preflight that separates automated runtime checks from sanitized manual account evidence; and
 - automated PHP, JavaScript, static-analysis, formatting, build, and database-migration checks.
 
-The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete 147-test backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. Draft PR #10 repeated the application, documentation, and MySQL 8.4 integration gates successfully without merging or deploying. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Automated accessibility coverage now guards the complete sign-in Tab order and programmatic error associations. Stakeholder validation of the procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, stakeholder UAT, and Hostinger preflight remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
+The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. Draft PR #10 repeated the application, documentation, and MySQL 8.4 integration gates successfully without merging or deploying. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Automated accessibility coverage now guards the complete sign-in Tab order and programmatic error associations. The Hostinger preflight command and sanitized evidence contract are implemented, but actual account evidence and the separate staging deploy/rollback rehearsal remain pending. Stakeholder validation of the procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
 
 ## Local development
 
@@ -111,6 +112,16 @@ npm run build
 
 The application workflow also validates dependency manifests, vulnerability advisories, and MySQL migrations. See the [foundation runbook](docs/operations/FOUNDATION_RUNBOOK.md) for environment checks and recovery boundaries.
 
+## Read-only hosting preflight
+
+On the exact built staging runtime, collect a machine-readable result without changing the host:
+
+```bash
+php artisan ops:hosting-preflight --json
+```
+
+The command returns `INCOMPLETE` until every required Hostinger/GitHub item has sanitized evidence, and `BLOCKED` for unsafe runtime configuration, failed evidence, or malformed evidence. See the [Hostinger staging preflight guide](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md) before supplying an evidence file. A `READY` preflight permits consideration of a separately authorized staging rehearsal; it does not deploy or satisfy `OPS-02`.
+
 ## Product and architecture references
 
 - [Approved project charter](docs/PROJECT_CHARTER.md)
@@ -131,6 +142,7 @@ The application workflow also validates dependency manifests, vulnerability advi
 - [Computer-assisted coding validation record](docs/operations/COMPUTER_ASSISTED_CODING_VALIDATION.md)
 - [Synthetic coding retrieval baseline](docs/operations/CODING_GOLD_SET_BASELINE.md)
 - [Local MySQL and recovery validation](docs/operations/LOCAL_MYSQL_RECOVERY_VALIDATION.md)
+- [Hostinger staging preflight](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md)
 - [Checkpoint 2 outpatient UAT facilitator guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
 - [GitHub publication checklist](docs/operations/GITHUB_PUBLICATION_CHECKLIST.md)
 - [UEU Clinical design system](docs/design/UEU_CLINICAL_DESIGN_SYSTEM.md)

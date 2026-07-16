@@ -105,4 +105,6 @@ The SSH deployment workflow remains blocked until the project records evidence f
 
 The [Local MySQL and Recovery Validation](LOCAL_MYSQL_RECOVERY_VALIDATION.md) proves local migration portability plus a full finalized synthetic reference-journey backup/restore, relationship comparison, completed-state no-op check, and restored `/up` response. It does not satisfy hosted backup governance, Hostinger isolation, or release-artifact deployment/rollback requirements above.
 
+The [Hostinger Staging Preflight](HOSTINGER_STAGING_PREFLIGHT.md) provides the read-only `ops:hosting-preflight` command, a sanitized evidence schema, and fail-closed `READY`/`INCOMPLETE`/`BLOCKED` results. It advances the capability-assessment gate but does not satisfy `OPS-02`; the harmless staging deployment, failed-health behavior, and rollback rehearsal remain separately blocked pending authorization and actual account evidence.
+
 The [GitHub Publication Checklist](GITHUB_PUBLICATION_CHECKLIST.md) records the private-repository boundary, selective staging rule, untracked presentation-artifact exclusion, current plan's branch-protection limitation, manual PR-only fallback, and the evidence required before Daniel authorizes the first outpatient feature push.
