@@ -2,12 +2,12 @@
 
 - **Boundary:** build and retain an identifiable runtime candidate; do not deploy it
 - **Environment:** GitHub Actions and optional local structural validation
-- **Current state:** manifest/assembly commands implemented; first remote artifact verified in draft PR #10
+- **Current state:** manifest/assembly/verification commands and local fail-closed release-switch contract implemented; first remote artifact manually verified in draft PR #10
 - **OPS-02 status:** partially advanced, not complete
 
 ## Purpose
 
-The release-candidate job implements pipeline steps 1–5 from the master plan without enabling steps 6–12. It runs only after the application/security and MySQL 8.4 jobs pass, installs production PHP dependencies from `composer.lock`, builds the frontend once from `package-lock.json`, assembles an allowlisted runtime tree, creates a permission-preserving tar file and SHA-256 sidecar, and uploads both as a short-lived GitHub workflow artifact.
+The release-candidate job implements pipeline steps 1–5 from the master plan without enabling steps 6–12. It runs only after the application/security and MySQL 8.4 jobs pass, installs production PHP dependencies from `composer.lock`, builds the frontend once from `package-lock.json`, assembles an allowlisted runtime tree, creates a permission-preserving tar file and SHA-256 sidecar, verifies both fail-closed, and uploads them as a short-lived GitHub workflow artifact.
 
 It has no GitHub environment, SSH key, Hostinger hostname, deployment secret, transfer step, database migration step, active-release switch, or production approval. Its embedded manifest permanently states `NOT_DEPLOYED`.
 
@@ -45,6 +45,14 @@ The assembler copies only:
 
 It refuses tracked paths outside its runtime allowlist and refuses to merge into a non-empty output directory. Because the tracked list comes from Git, untracked `deliverables/`, runtime logs, local databases, and developer files cannot enter through a broad workspace copy.
 
+Verify the finished tar and its standard SHA-256 sidecar before upload or any later staging consideration:
+
+```bash
+php artisan ops:verify-release <release>.tar <release>.tar.sha256
+```
+
+The verifier refuses a missing, unreadable, or symlinked input; a malformed sidecar; a filename or digest mismatch; an unsafe archive root, path, or link; forbidden runtime content; a missing required runtime file; an invalid or non-simulation manifest; a manifest/commit identifier mismatch; and a mismatch in the archived Composer lock, asset manifest, or any migration hash. Success reports `VERIFIED` while retaining the embedded `NOT_DEPLOYED` status.
+
 ## Explicit exclusions
 
 The assembled candidate must not contain:
@@ -71,8 +79,9 @@ The non-deploying `release-candidate` job:
 5. generates and assembles the manifest-bound runtime tree;
 6. asserts the required files and high-risk exclusions;
 7. creates a name-sorted tar with commit-time timestamps and normalized numeric ownership;
-8. writes a SHA-256 sidecar; and
-9. uploads an immutable artifact named with the complete checked-out commit for 14 days.
+8. writes a SHA-256 sidecar;
+9. runs `ops:verify-release` against the finished tar and sidecar; and
+10. uploads an immutable artifact named with the complete checked-out commit for 14 days.
 
 GitHub's artifact action reports its own artifact ID, URL, and SHA-256 digest. The tar wrapper is retained because GitHub notes that direct artifact upload does not preserve original file permissions; the tar retains the executable mode needed by `artisan`.
 
@@ -89,6 +98,8 @@ On 16 July 2026, the commands assembled the then-current committed HEAD locally 
 | Forbidden content scan | No `.env`, local database, raw workbook, key file, tests, or `node_modules` found |
 
 This proves the local allowlist and archive structure, not production dependency composition, GitHub retention, Hostinger compatibility, deployment, health promotion, or rollback.
+
+The [Local Release Control Validation](LOCAL_RELEASE_CONTROL_VALIDATION.md) separately records automated tamper/forbidden-content rejection plus a filesystem-only promotion/rollback contract. Its health probe is injected and its release tree is disposable; it does not constitute an HTTP smoke test, staging switch, or hosted rollback.
 
 ## First remote artifact evidence
 
@@ -110,7 +121,7 @@ For a pull-request workflow, GitHub tests and packages the temporary merge revis
 
 After actual Hostinger preflight evidence and separate authorization, staging must still prove:
 
-1. a newly approved `main` artifact is selected, downloaded, and verified against its sidecar and embedded manifest;
+1. a newly approved `main` artifact is selected, downloaded, and passes `ops:verify-release` against its sidecar and embedded manifest;
 2. the exact commit and migration set are recorded before deployment;
 3. a backup exists and its restore procedure is available;
 4. shared environment/storage paths are connected safely;

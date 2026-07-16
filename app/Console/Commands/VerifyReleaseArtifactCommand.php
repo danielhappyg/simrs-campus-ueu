@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Support\ReleaseArtifactVerifier;
+use Illuminate\Console\Command;
+use RuntimeException;
+use Throwable;
+
+class VerifyReleaseArtifactCommand extends Command
+{
+    protected $signature = 'ops:verify-release
+        {archive : Repository-relative release tar path}
+        {checksum : Repository-relative SHA-256 sidecar path}';
+
+    protected $description = 'Verify a simulation-only release artifact without deploying it';
+
+    public function __construct(private readonly ReleaseArtifactVerifier $verifier)
+    {
+        parent::__construct();
+    }
+
+    public function handle(): int
+    {
+        try {
+            $result = $this->verifier->verify(
+                $this->resolvePath((string) $this->argument('archive')),
+                $this->resolvePath((string) $this->argument('checksum')),
+            );
+
+            $this->info(sprintf(
+                'VERIFIED %s (%d files, %d migrations, sha256:%s); deployment status remains NOT_DEPLOYED.',
+                $result['releaseId'],
+                $result['fileCount'],
+                $result['migrationCount'],
+                $result['archiveSha256'],
+            ));
+
+            return self::SUCCESS;
+        } catch (RuntimeException $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        } catch (Throwable $exception) {
+            $this->error('The release artifact could not be verified: '.$exception::class.'.');
+
+            return self::FAILURE;
+        }
+    }
+
+    private function resolvePath(string $path): string
+    {
+        $normalized = str_replace('\\', '/', trim($path));
+        $segments = explode('/', $normalized);
+
+        if ($normalized === ''
+            || str_starts_with($normalized, '/')
+            || in_array('..', $segments, true)
+            || str_starts_with($normalized, 'public/')
+        ) {
+            throw new RuntimeException('Release artifact paths must be non-public and repository-relative.');
+        }
+
+        return base_path($normalized);
+    }
+}

@@ -189,6 +189,7 @@ jobs:
           tar --sort=name --mtime="@${COMMIT_TIME}" --owner=0 --group=0 --numeric-owner --format=gnu \
             --create --file="${RELEASE_NAME}.tar" --directory=storage/app release-candidate
           sha256sum "${RELEASE_NAME}.tar" > "${RELEASE_NAME}.tar.sha256"
+          php artisan ops:verify-release "${RELEASE_NAME}.tar" "${RELEASE_NAME}.tar.sha256"
           echo "name=${RELEASE_NAME}" >> "${GITHUB_OUTPUT}"
 
       - name: Upload immutable short-lived release candidate
