@@ -38,11 +38,17 @@ export default function Login({ status, canResetPassword }: Props) {
                                     type="email"
                                     name="email"
                                     required
-                                    autoFocus
                                     autoComplete="email"
                                     placeholder="nama@contoh.invalid"
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={
+                                        errors.email ? 'email-error' : undefined
+                                    }
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id="email-error"
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid grid-cols-[1fr_auto] items-center gap-2">
@@ -59,6 +65,12 @@ export default function Login({ status, canResetPassword }: Props) {
                                         required
                                         autoComplete="current-password"
                                         placeholder="Kata sandi"
+                                        aria-invalid={Boolean(errors.password)}
+                                        aria-describedby={
+                                            errors.password
+                                                ? 'password-error'
+                                                : undefined
+                                        }
                                     />
                                 </div>
                                 {canResetPassword && (
@@ -70,6 +82,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     </TextLink>
                                 )}
                                 <InputError
+                                    id="password-error"
                                     message={errors.password}
                                     className="col-span-2 row-start-3"
                                 />

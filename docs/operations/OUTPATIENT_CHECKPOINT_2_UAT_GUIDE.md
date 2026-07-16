@@ -275,7 +275,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The case content, safety questionnaire, rubric, coding aliases, gold-set proposals, and candidate threshold are not faculty-approved.
 - Reports are browser-generated learning previews, not signed/immutable medical documents or SATUSEHAT submissions.
 - Native print/PDF pagination review remains pending.
-- Full native keyboard traversal remains pending. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. Stakeholder UAT and one retained uninterrupted browser-console capture are still required.
+- Full native keyboard traversal remains pending. Automated regression now guards the complete sign-in Tab order, focusable password control, and programmatic validation-error associations. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. Stakeholder UAT and one retained uninterrupted browser-console capture are still required.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
 - Emergency, inpatient, nutrition, psychology, physiotherapy, and other deferred programs/modules are not part of this checkpoint.
 - Draft PR #10 passed the application, documentation, and MySQL 8.4 checks. Hostinger staging deployment/rollback remains pending hosting authorization and a separate deployment decision.
