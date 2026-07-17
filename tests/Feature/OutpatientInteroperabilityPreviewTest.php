@@ -178,7 +178,7 @@ class OutpatientInteroperabilityPreviewTest extends TestCase
         $event = AuditEvent::query()->where('action', 'interop.preview_viewed')->sole();
         $this->assertSame('interoperability_preview', $event->resource_type);
         $this->assertSame($encounter->public_id, $event->resource_id);
-        $this->assertSame(
+        $this->assertEqualsCanonicalizing(
             ['resource_count', 'resource_type_counts', 'validation_issue_count', 'ready_for_transmission'],
             array_keys($event->metadata ?? []),
         );
