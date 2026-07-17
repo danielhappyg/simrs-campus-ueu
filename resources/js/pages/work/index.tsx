@@ -59,6 +59,7 @@ const taskIcons: Record<WorkTaskType, LucideIcon> = {
     PROCEDURE_SOURCE_CORRECTION: RotateCcw,
     CODING_REVIEW: ShieldCheck,
     SUPERVISOR_REVIEW: ShieldCheck,
+    SAFETY_DISPOSITION: AlertTriangle,
     DEBRIEF: BookOpenCheck,
 };
 

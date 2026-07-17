@@ -809,3 +809,64 @@ export type EncounterClosureWorkspaceProps = ClinicalWorkspaceBase & {
         review: string | null;
     };
 };
+
+export type OutpatientSafetyDispositionOutcomeCode =
+    'RESUME_ROUTINE_FLOW' | 'SIMULATED_TRANSFER';
+
+export type OutpatientSafetyDispositionWorkspaceProps = {
+    boundary: {
+        classification: string;
+        emergencyTriageClaim: false;
+        clinicalRecommendation: false;
+    };
+    encounter: EncounterContext;
+    patient: PatientContext;
+    session: {
+        code: string;
+        scenarioTitle: string;
+    };
+    source: {
+        versionPublicId: string;
+        versionNumber: number;
+        contentHash: string;
+        author: string;
+        authorRole: string;
+        approvedAt: string | null;
+        safetyDecision: string;
+        safetyResponses: Array<{
+            questionCode: string;
+            response: string;
+            note: string | null;
+        }>;
+        handoffSummary: string | null;
+    };
+    authorization: {
+        assignmentPublicId: string;
+        role: string;
+        canRecord: boolean;
+    };
+    disposition: {
+        publicId: string;
+        outcome: CodedStatus & {
+            code: OutpatientSafetyDispositionOutcomeCode;
+        };
+        rationale: string;
+        actor: string;
+        role: string;
+        occurredAt: string;
+    } | null;
+    formOptions: {
+        requestKey: string | null;
+        selectedOutcome: null;
+        outcomes: Array<{
+            code: OutpatientSafetyDispositionOutcomeCode;
+            label: string;
+            consequence: string;
+        }>;
+    };
+    urls: {
+        store: string;
+        encounter: string;
+        workQueue: string;
+    };
+};

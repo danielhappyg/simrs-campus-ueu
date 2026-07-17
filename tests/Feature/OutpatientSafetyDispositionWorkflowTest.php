@@ -339,7 +339,7 @@ class OutpatientSafetyDispositionWorkflowTest extends TestCase
                 ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
                 ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
                 ->assertInertia(fn (Assert $page) => $page
-                    ->component('clinical/safety-disposition', false)
+                    ->component('clinical/safety-disposition')
                     ->where('boundary.classification', 'SIMULASI — DATA SINTETIS')
                     ->where('boundary.emergencyTriageClaim', false)
                     ->where('boundary.clinicalRecommendation', false)

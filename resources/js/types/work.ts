@@ -28,6 +28,7 @@ export type WorkTaskType =
     | 'PROCEDURE_SOURCE_CORRECTION'
     | 'CODING_REVIEW'
     | 'SUPERVISOR_REVIEW'
+    | 'SAFETY_DISPOSITION'
     | 'DEBRIEF';
 
 export type AssignmentContext = {
