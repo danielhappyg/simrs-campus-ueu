@@ -185,10 +185,10 @@ At desktop and 390×844, verify supervisor/facilitator access, permanent boundar
 
 Run complete PHP/React suites, MySQL-equivalent coverage where configured, Pint, PHPStan, ESLint, Prettier, TypeScript, Wayfinder, production build, migration/seed, Composer/npm audits, Markdown/link validation, credential guard, and `git diff --check`. Move the ignored release-control artifact reversibly only during recursive lint/link checks.
 
-- [ ] **Step 4: Commit documentation and push**
+- [x] **Step 4: Commit documentation and push**
 
 Commit only intended files, keep `deliverables/` untracked, push `agent/outpatient-domain-spine`, and update draft PR #10 with explicit no-merge/no-deploy language.
 
-- [ ] **Step 5: Monitor final remote checks**
+- [x] **Step 5: Monitor final remote checks**
 
 Wait for documentation, application/security, MySQL, React, and non-deploying release-candidate jobs. Record exact evidence only after success; if an evidence-only commit creates a new head, wait for that head too.
