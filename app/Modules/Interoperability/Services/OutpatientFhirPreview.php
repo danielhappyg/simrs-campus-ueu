@@ -9,7 +9,10 @@ use DomainException;
 
 final class OutpatientFhirPreview
 {
-    public function __construct(private readonly FhirPreviewValidator $validator) {}
+    public function __construct(
+        private readonly FhirPreviewValidator $validator,
+        private readonly OutpatientClinicalResourceMapper $clinicalMapper,
+    ) {}
 
     /** @return array<string, mixed> */
     public function build(Encounter $encounter): array
@@ -19,11 +22,13 @@ final class OutpatientFhirPreview
         }
 
         $encounter->loadMissing(['patient', 'location']);
+        $clinical = $this->clinicalMapper->map($encounter);
         $entries = [
-            $this->entry('Composition', $encounter->public_id, $this->composition($encounter)),
+            $this->entry('Composition', $encounter->public_id, $this->composition($encounter, $clinical['entries'])),
             $this->entry('Patient', $encounter->patient->public_id, $this->patient($encounter)),
             $this->entry('Organization', 'simrs-campus-ueu', $this->organization()),
             $this->entry('Encounter', $encounter->public_id, $this->encounter($encounter)),
+            ...$clinical['entries'],
         ];
         $bundle = [
             'resourceType' => 'Bundle',
@@ -57,7 +62,13 @@ final class OutpatientFhirPreview
                     ->all(),
             ],
             'bundle' => $bundle,
-            'sourceIndex' => [],
+            'sourceIndex' => [
+                $this->source($entries[0], 'encounter', $encounter->public_id, 'composition'),
+                $this->source($entries[1], 'synthetic_patient', $encounter->patient->public_id, 'patient'),
+                $this->source($entries[2], 'simulation_configuration', $encounter->session->public_id, 'organization'),
+                $this->source($entries[3], 'encounter', $encounter->public_id, 'encounter'),
+                ...$clinical['sourceIndex'],
+            ],
             'validation' => $validation,
             'urls' => [
                 'externalEndpoint' => null,
@@ -65,7 +76,10 @@ final class OutpatientFhirPreview
         ];
     }
 
-    /** @return array{fullUrl: string, resource: array<string, mixed>} */
+    /**
+     * @param  array<string, mixed>  $resource
+     * @return array{fullUrl: string, resource: array<string, mixed>}
+     */
     private function entry(string $type, string $id, array $resource): array
     {
         return [
@@ -74,9 +88,21 @@ final class OutpatientFhirPreview
         ];
     }
 
-    /** @return array<string, mixed> */
-    private function composition(Encounter $encounter): array
+    /**
+     * @param  list<array{fullUrl: string, resource: array<string, mixed>}>  $clinicalEntries
+     * @return array<string, mixed>
+     */
+    private function composition(Encounter $encounter, array $clinicalEntries): array
     {
+        $sections = collect($clinicalEntries)
+            ->groupBy(fn (array $entry): string => $entry['resource']['resourceType'])
+            ->map(fn ($entries, string $type): array => [
+                'title' => $type,
+                'entry' => $entries->map(fn (array $entry): array => ['reference' => $entry['fullUrl']])->values()->all(),
+            ])
+            ->values()
+            ->all();
+
         return [
             'status' => 'preliminary',
             'type' => ['text' => 'Local outpatient interoperability preview'],
@@ -86,6 +112,23 @@ final class OutpatientFhirPreview
             'author' => [['reference' => OutpatientPreviewUrl::resource('Organization', 'simrs-campus-ueu')]],
             'title' => 'SIMRS Campus UEU outpatient mapping preview — not sent',
             'custodian' => ['reference' => OutpatientPreviewUrl::resource('Organization', 'simrs-campus-ueu')],
+            'section' => $sections,
+        ];
+    }
+
+    /**
+     * @param  array{fullUrl: string, resource: array<string, mixed>}  $entry
+     * @return array<string, string>
+     */
+    private function source(array $entry, string $sourceType, string $sourcePublicId, string $sourcePath): array
+    {
+        return [
+            'fullUrl' => $entry['fullUrl'],
+            'resourceType' => (string) $entry['resource']['resourceType'],
+            'resourceId' => (string) $entry['resource']['id'],
+            'sourceType' => $sourceType,
+            'sourcePublicId' => $sourcePublicId,
+            'sourcePath' => $sourcePath,
         ];
     }
 

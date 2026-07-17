@@ -73,6 +73,57 @@ class OutpatientInteroperabilityPreviewTest extends TestCase
         $this->assertStringNotContainsString('access_token', $serialized);
     }
 
+    public function test_finalized_reference_journey_maps_each_supported_clinical_source_and_human_approved_code(): void
+    {
+        $preview = app(OutpatientFhirPreview::class)->build($this->completeReferenceJourney());
+        $entries = collect(data_get($preview, 'bundle.entry', []));
+        $resources = $entries->pluck('resource');
+
+        $this->assertSame([
+            'Composition' => 1,
+            'Condition' => 1,
+            'DiagnosticReport' => 1,
+            'Encounter' => 1,
+            'MedicationDispense' => 1,
+            'MedicationRequest' => 1,
+            'Observation' => 7,
+            'Organization' => 1,
+            'Patient' => 1,
+            'Procedure' => 1,
+            'QuestionnaireResponse' => 1,
+            'ServiceRequest' => 1,
+        ], data_get($preview, 'summary.resourceTypeCounts'));
+        $this->assertCount(18, $entries);
+        $this->assertCount(18, data_get($preview, 'sourceIndex', []));
+        $this->assertSame([], data_get($preview, 'validation.structuralErrors'));
+
+        $condition = $resources->firstWhere('resourceType', 'Condition');
+        $this->assertSame('R42', data_get($condition, 'code.coding.0.code'));
+        $this->assertSame('http://hl7.org/fhir/sid/icd-10', data_get($condition, 'code.coding.0.system'));
+        $this->assertTrue(data_get($condition, 'code.coding.0.extension.0.valueBoolean'));
+
+        $procedure = $resources->firstWhere('resourceType', 'Procedure');
+        $this->assertSame('38.99', data_get($procedure, 'code.coding.0.code'));
+        $this->assertSame('http://hl7.org/fhir/sid/icd-9-cm', data_get($procedure, 'code.coding.0.system'));
+        $this->assertTrue(data_get($procedure, 'code.coding.0.extension.0.valueBoolean'));
+
+        $vitals = $resources
+            ->where('resourceType', 'Observation')
+            ->filter(fn (array $resource): bool => data_get($resource, 'category.0.coding.0.code') === 'vital-signs');
+        $this->assertCount(6, $vitals);
+        $this->assertSame(
+            ['2708-6', '8310-5', '8462-4', '8480-6', '8867-4', '9279-1'],
+            $vitals->pluck('code.coding.0.code')->sort()->values()->all(),
+        );
+
+        $serialized = json_encode($resources, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('Pemeriksaan darah sintetis skenario', $serialized);
+        $this->assertStringContainsString('Obat Simulasi A', $serialized);
+        $this->assertStringContainsString('Pengambilan sampel darah vena', $serialized);
+        $this->assertStringNotContainsString('http://snomed.info/sct', $serialized);
+        $this->assertStringNotContainsString('http://sys-ids.kemkes.go.id', $serialized);
+    }
+
     private function completeReferenceJourney(): Encounter
     {
         $this->seedReferenceOutpatient();
