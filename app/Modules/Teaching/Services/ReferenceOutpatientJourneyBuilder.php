@@ -440,6 +440,8 @@ final class ReferenceOutpatientJourneyBuilder
         $this->assertCapabilities($assignments['medicalLearner'], [Capability::MedicalAssessmentWrite, Capability::PrescriptionWrite]);
         $this->assertCapabilities($assignments['pharmacyLearner'], [Capability::PharmacyReview, Capability::Dispense]);
         $this->assertCapabilities($assignments['rmikCoder'], [Capability::RecordReview, Capability::CodingWrite]);
+        $this->assertCapabilities($assignments['facilitator'], [Capability::SessionFacilitate, Capability::SafetyDispositionRecord]);
+        $this->assertCapabilities($assignments['nursingSupervisor'], [Capability::SupervisionReview, Capability::SafetyDispositionRecord]);
 
         return $assignments;
     }

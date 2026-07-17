@@ -1146,7 +1146,60 @@ class ClinicalDocumentationService
             ])->save();
         }
 
+        if ($target === EncounterStatus::Escalated) {
+            $this->createSafetyDispositionTasks($version, $reviewer, $encounter);
+        }
+
         return $medicalAssignments->count();
+    }
+
+    private function createSafetyDispositionTasks(
+        ClinicalEntryVersion $version,
+        Assignment $reviewer,
+        Encounter $encounter,
+    ): void {
+        $facilitator = Assignment::query()
+            ->active()
+            ->where('session_id', $encounter->session_id)
+            ->whereHas('user', fn ($query) => $query->whereKey($encounter->session->facilitator_user_id))
+            ->get()
+            ->first(fn (Assignment $assignment): bool => $assignment->hasCapability(Capability::SafetyDispositionRecord));
+
+        $actors = collect([$reviewer, $facilitator])
+            ->filter()
+            ->unique(fn (Assignment $assignment): int => $assignment->getKey());
+
+        if ($actors->isEmpty()
+            || ! $actors->contains(fn (Assignment $assignment): bool => $assignment->getKey() === $reviewer->getKey())
+            || ! $reviewer->hasCapability(Capability::SafetyDispositionRecord)) {
+            throw new DomainException('The approved escalation requires an authorized linked supervisor disposition task.');
+        }
+
+        foreach ($actors as $actor) {
+            WorkTask::query()->updateOrCreate(
+                [
+                    'assignment_id' => $actor->getKey(),
+                    'encounter_id' => $encounter->getKey(),
+                    'task_type' => WorkTaskType::SafetyDisposition,
+                ],
+                [
+                    'session_id' => $encounter->session_id,
+                    'title' => 'Putuskan Eskalasi Alur Simulasi',
+                    'description' => 'Alur rutin dihentikan. Tinjau keputusan manusia dan catat satu disposisi simulasi; sistem tidak memberi rekomendasi klinis.',
+                    'status' => WorkTaskStatus::Ready,
+                    'priority' => 1,
+                    'source_program' => Program::Nursing,
+                    'context' => [
+                        'caseLabel' => $encounter->encounter_number,
+                        'synthetic' => true,
+                        'sourceNursingVersionPublicId' => $version->public_id,
+                        'sourceNursingContentHash' => $version->content_hash,
+                    ],
+                    'available_at' => now(),
+                    'completed_at' => null,
+                ],
+            );
+        }
     }
 
     private function advanceAfterMedicalApproval(

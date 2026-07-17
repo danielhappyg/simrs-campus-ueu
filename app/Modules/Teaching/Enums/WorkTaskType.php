@@ -23,6 +23,7 @@ enum WorkTaskType: string
     case ProcedureSourceCorrection = 'PROCEDURE_SOURCE_CORRECTION';
     case CodingReview = 'CODING_REVIEW';
     case SupervisorReview = 'SUPERVISOR_REVIEW';
+    case SafetyDisposition = 'SAFETY_DISPOSITION';
     case Debrief = 'DEBRIEF';
 
     public function requiredCapability(): Capability
@@ -47,6 +48,7 @@ enum WorkTaskType: string
             self::ProcedureSourceCorrection => Capability::MedicalAssessmentWrite,
             self::CodingReview => Capability::SupervisionReview,
             self::SupervisorReview => Capability::SupervisionReview,
+            self::SafetyDisposition => Capability::SafetyDispositionRecord,
             self::Debrief => Capability::DebriefView,
         };
     }

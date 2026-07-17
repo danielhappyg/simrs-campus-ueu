@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\Audit\Models\AuditEvent;
+use App\Modules\Audit\Services\AuditRecorder;
 use App\Modules\Clinical\Enums\AllergyAssessmentState;
 use App\Modules\Clinical\Enums\ClinicalReviewAction;
 use App\Modules\Clinical\Enums\ClinicalSaveIntent;
@@ -11,9 +13,14 @@ use App\Modules\Clinical\Enums\IntakeSafetyDecision;
 use App\Modules\Clinical\Enums\OutpatientSafetyDispositionOutcome;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
 use App\Modules\Clinical\Models\OutpatientSafetyDisposition;
+use App\Modules\Clinical\Services\OutpatientSafetyDispositionService;
 use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Encounter\Models\Encounter;
+use App\Modules\Encounter\Services\EncounterTransitionService;
+use App\Modules\Teaching\Enums\WorkTaskStatus;
+use App\Modules\Teaching\Enums\WorkTaskType;
 use App\Modules\Teaching\Models\Assignment;
+use App\Modules\Teaching\Models\WorkTask;
 use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -105,6 +112,221 @@ class OutpatientSafetyDispositionWorkflowTest extends TestCase
         }
     }
 
+    public function test_approved_escalation_creates_disposition_tasks_and_keeps_medical_work_blocked(): void
+    {
+        [$encounter, $source, $supervisorAssignment] = $this->prepareApprovedEscalation();
+        $facilitatorAssignment = $this->facilitatorAssignment();
+
+        foreach ([$supervisorAssignment, $facilitatorAssignment] as $assignment) {
+            $task = WorkTask::query()
+                ->where('assignment_id', $assignment->getKey())
+                ->where('encounter_id', $encounter->getKey())
+                ->where('task_type', WorkTaskType::SafetyDisposition)
+                ->sole();
+
+            $this->assertSame(WorkTaskStatus::Ready, $task->status);
+            $this->assertSame($source->public_id, data_get($task->context, 'sourceNursingVersionPublicId'));
+            $this->assertSame($source->content_hash, data_get($task->context, 'sourceNursingContentHash'));
+            $this->assertStringNotContainsString('Mahasiswa memilih', json_encode($task->context, JSON_THROW_ON_ERROR));
+        }
+
+        $this->assertSame(
+            WorkTaskStatus::Blocked,
+            WorkTask::query()->where('task_type', WorkTaskType::MedicalAssessment)->sole()->status,
+        );
+    }
+
+    public function test_linked_supervisor_can_resume_routine_flow_idempotently_with_minimized_audit(): void
+    {
+        [$encounter, $source, $supervisorAssignment] = $this->prepareApprovedEscalation();
+        $requestKey = (string) Str::ulid();
+        $rationale = 'Supervisor meninjau eskalasi dan memutuskan alur rutin simulasi dapat dilanjutkan.';
+        $service = app(OutpatientSafetyDispositionService::class);
+
+        $first = $service->record(
+            encounter: $encounter,
+            actorAssignment: $supervisorAssignment,
+            outcome: OutpatientSafetyDispositionOutcome::ResumeRoutineFlow,
+            requestKey: $requestKey,
+            rationale: $rationale,
+        );
+        $second = $service->record(
+            encounter: $encounter,
+            actorAssignment: $supervisorAssignment,
+            outcome: OutpatientSafetyDispositionOutcome::ResumeRoutineFlow,
+            requestKey: $requestKey,
+            rationale: $rationale,
+        );
+
+        $this->assertSame($first->getKey(), $second->getKey());
+        $this->assertSame(EncounterStatus::WaitingClinician, $encounter->refresh()->status);
+        $this->assertDatabaseCount('outpatient_safety_dispositions', 1);
+        $this->assertSame(
+            WorkTaskStatus::Ready,
+            WorkTask::query()->where('task_type', WorkTaskType::MedicalAssessment)->sole()->status,
+        );
+        $this->assertSame(
+            WorkTaskStatus::Complete,
+            WorkTask::query()
+                ->where('task_type', WorkTaskType::SafetyDisposition)
+                ->where('assignment_id', $supervisorAssignment->getKey())
+                ->sole()
+                ->status,
+        );
+        $this->assertSame(
+            WorkTaskStatus::Cancelled,
+            WorkTask::query()
+                ->where('task_type', WorkTaskType::SafetyDisposition)
+                ->where('assignment_id', $this->facilitatorAssignment()->getKey())
+                ->sole()
+                ->status,
+        );
+
+        $audit = AuditEvent::query()
+            ->where('action', 'clinical.outpatient_safety_disposition_recorded')
+            ->sole();
+        $this->assertSame($rationale, $audit->reason);
+        $this->assertSame([
+            'disposition_tasks_cancelled',
+            'disposition_tasks_completed',
+            'medical_tasks_cancelled',
+            'medical_tasks_readied',
+            'outcome',
+            'source_nursing_content_hash',
+            'source_nursing_version_public_id',
+        ], array_keys(collect($audit->metadata)->sortKeys()->all()));
+        $this->assertStringNotContainsString($rationale, json_encode($audit->metadata, JSON_THROW_ON_ERROR));
+        $this->assertSame($source->public_id, $audit->metadata['source_nursing_version_public_id']);
+    }
+
+    public function test_session_facilitator_can_record_a_simulated_transfer_and_cancel_routine_medical_work(): void
+    {
+        [$encounter] = $this->prepareApprovedEscalation();
+        $facilitatorAssignment = $this->facilitatorAssignment();
+
+        $disposition = app(OutpatientSafetyDispositionService::class)->record(
+            encounter: $encounter,
+            actorAssignment: $facilitatorAssignment,
+            outcome: OutpatientSafetyDispositionOutcome::SimulatedTransfer,
+            requestKey: (string) Str::ulid(),
+            rationale: 'Fasilitator mencatat pengalihan hanya sebagai hasil skenario simulasi yang ditinjau manusia.',
+        );
+
+        $this->assertSame(OutpatientSafetyDispositionOutcome::SimulatedTransfer, $disposition->outcome);
+        $this->assertSame(EncounterStatus::TransferredSimulation, $encounter->refresh()->status);
+        $this->assertSame(
+            WorkTaskStatus::Cancelled,
+            WorkTask::query()->where('task_type', WorkTaskType::MedicalAssessment)->sole()->status,
+        );
+    }
+
+    public function test_conflicting_or_late_disposition_is_rejected_without_overwriting_the_first_decision(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+        $requestKey = (string) Str::ulid();
+        $service = app(OutpatientSafetyDispositionService::class);
+
+        $service->record(
+            encounter: $encounter,
+            actorAssignment: $supervisorAssignment,
+            outcome: OutpatientSafetyDispositionOutcome::ResumeRoutineFlow,
+            requestKey: $requestKey,
+            rationale: 'Supervisor meninjau eskalasi dan memutuskan alur rutin simulasi dapat dilanjutkan.',
+        );
+
+        foreach ([
+            [$requestKey, OutpatientSafetyDispositionOutcome::SimulatedTransfer],
+            [(string) Str::ulid(), OutpatientSafetyDispositionOutcome::SimulatedTransfer],
+        ] as [$attemptKey, $attemptOutcome]) {
+            try {
+                $service->record(
+                    encounter: $encounter,
+                    actorAssignment: $supervisorAssignment,
+                    outcome: $attemptOutcome,
+                    requestKey: $attemptKey,
+                    rationale: 'Keputusan kedua ini harus ditolak agar keputusan pertama tidak tertimpa.',
+                );
+                $this->fail('A conflicting or late disposition must be rejected.');
+            } catch (DomainException) {
+                $this->assertDatabaseCount('outpatient_safety_dispositions', 1);
+            }
+        }
+
+        $this->assertSame(EncounterStatus::WaitingClinician, $encounter->refresh()->status);
+        $this->assertSame(
+            OutpatientSafetyDispositionOutcome::ResumeRoutineFlow,
+            OutpatientSafetyDisposition::query()->sole()->outcome,
+        );
+    }
+
+    public function test_revoked_assignment_cannot_record_a_disposition(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+        $supervisorAssignment->update([
+            'revoked_at' => now(),
+            'revocation_reason' => 'Test revocation',
+        ]);
+
+        $this->expectException(DomainException::class);
+
+        app(OutpatientSafetyDispositionService::class)->record(
+            encounter: $encounter,
+            actorAssignment: $supervisorAssignment,
+            outcome: OutpatientSafetyDispositionOutcome::ResumeRoutineFlow,
+            requestKey: (string) Str::ulid(),
+            rationale: 'A revoked assignment must not be able to release the blocked simulation flow.',
+        );
+    }
+
+    public function test_downstream_failure_rolls_back_disposition_transition_tasks_and_audit(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+
+        $this->app->instance(
+            EncounterTransitionService::class,
+            new class(app(AuditRecorder::class)) extends EncounterTransitionService
+            {
+                public function transition(
+                    Encounter $encounter,
+                    EncounterStatus $target,
+                    Assignment $actorAssignment,
+                    ?string $reason = null,
+                ): Encounter {
+                    throw new DomainException('Forced downstream transition failure.');
+                }
+            },
+        );
+
+        try {
+            app(OutpatientSafetyDispositionService::class)->record(
+                encounter: $encounter,
+                actorAssignment: $supervisorAssignment,
+                outcome: OutpatientSafetyDispositionOutcome::ResumeRoutineFlow,
+                requestKey: (string) Str::ulid(),
+                rationale: 'This decision must roll back because a downstream transition failure is forced.',
+            );
+            $this->fail('The forced downstream failure must escape the service transaction.');
+        } catch (DomainException $exception) {
+            $this->assertSame('Forced downstream transition failure.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseCount('outpatient_safety_dispositions', 0);
+        $this->assertSame(EncounterStatus::Escalated, $encounter->refresh()->status);
+        $this->assertTrue(
+            WorkTask::query()
+                ->where('task_type', WorkTaskType::SafetyDisposition)
+                ->get()
+                ->every(fn (WorkTask $task): bool => $task->status === WorkTaskStatus::Ready),
+        );
+        $this->assertSame(
+            WorkTaskStatus::Blocked,
+            WorkTask::query()->where('task_type', WorkTaskType::MedicalAssessment)->sole()->status,
+        );
+        $this->assertDatabaseMissing('audit_events', [
+            'action' => 'clinical.outpatient_safety_disposition_recorded',
+        ]);
+    }
+
     /** @return array{Encounter, ClinicalEntryVersion, Assignment} */
     private function prepareApprovedEscalation(): array
     {
@@ -141,6 +363,13 @@ class OutpatientSafetyDispositionWorkflowTest extends TestCase
             $source->refresh(),
             Assignment::query()->where('user_id', $supervisor->getKey())->sole(),
         ];
+    }
+
+    private function facilitatorAssignment(): Assignment
+    {
+        return Assignment::query()
+            ->whereHas('user', fn ($query) => $query->where('email', 'fasilitator.simulasi@example.invalid'))
+            ->sole();
     }
 
     /** @return array<string, mixed> */
