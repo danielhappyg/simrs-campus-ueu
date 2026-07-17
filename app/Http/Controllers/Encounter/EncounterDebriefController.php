@@ -215,6 +215,9 @@ class EncounterDebriefController extends Controller
                 'workQueue' => route('work'),
                 'outpatientSummaryReport' => route('encounters.reports.outpatient-summary', $encounter),
                 'debriefEvidenceReport' => route('encounters.reports.debrief-evidence', $encounter),
+                'interoperabilityPreview' => $assignment->hasCapability(Capability::ReportView)
+                    ? route('encounters.interoperability-preview.show', $encounter)
+                    : null,
             ],
         ]);
     }

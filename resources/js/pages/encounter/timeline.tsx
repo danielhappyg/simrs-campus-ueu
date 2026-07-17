@@ -7,6 +7,7 @@ import {
     Filter,
     GitBranch,
     History,
+    Network,
     ShieldCheck,
     UserRoundCheck,
 } from 'lucide-react';
@@ -86,6 +87,7 @@ type Props = {
         encounter: string;
         self: string;
         debrief: string | null;
+        interoperabilityPreview?: string | null;
         workQueue: string;
     };
 };
@@ -186,6 +188,17 @@ export default function EncounterRecordTimeline({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        {urls.interoperabilityPreview && (
+                            <Button asChild variant="outline">
+                                <Link href={urls.interoperabilityPreview}>
+                                    <Network
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Pratinjau FHIR
+                                </Link>
+                            </Button>
+                        )}
                         {urls.debrief && (
                             <Button asChild>
                                 <Link href={urls.debrief}>

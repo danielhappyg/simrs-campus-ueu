@@ -121,6 +121,10 @@ class EncounterOverviewController extends Controller
                     : null,
                 'outpatientSummaryReport' => route('encounters.reports.outpatient-summary', $encounter),
                 'debriefEvidenceReport' => route('encounters.reports.debrief-evidence', $encounter),
+                'interoperabilityPreview' => $encounter->status === EncounterStatus::Finalized
+                    && $assignment->hasCapability(Capability::ReportView)
+                    ? route('encounters.interoperability-preview.show', $encounter)
+                    : null,
             ],
         ]);
     }

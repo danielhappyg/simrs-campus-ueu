@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\Audit\Models\AuditEvent;
 use App\Modules\Coding\Enums\TerminologyProvenanceStatus;
 use App\Modules\Coding\Enums\TerminologyReleaseStatus;
 use App\Modules\Coding\Enums\TerminologySystem;
@@ -12,10 +13,12 @@ use App\Modules\Coding\Support\TerminologyNormalizer;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Interoperability\Services\OutpatientFhirPreview;
 use App\Modules\Teaching\Enums\ApplicationRole;
+use App\Modules\Teaching\Enums\Capability;
 use App\Modules\Teaching\Models\Assignment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\PendingCommand;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\SeedsReferenceOutpatient;
 use Tests\TestCase;
 
@@ -122,6 +125,87 @@ class OutpatientInteroperabilityPreviewTest extends TestCase
         $this->assertStringContainsString('Pengambilan sampel darah vena', $serialized);
         $this->assertStringNotContainsString('http://snomed.info/sct', $serialized);
         $this->assertStringNotContainsString('http://sys-ids.kemkes.go.id', $serialized);
+    }
+
+    public function test_authorized_participant_can_open_the_minimized_never_sent_preview_with_audit(): void
+    {
+        $encounter = $this->completeReferenceJourney();
+        $participant = User::query()->where('email', 'mahasiswa.keperawatan@example.invalid')->sole();
+
+        $this->actingAs($participant)
+            ->get(route('encounters.interoperability-preview.show', $encounter))
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('encounter/interoperability-preview')
+                ->where('boundary.transportState', 'NOT_SENT')
+                ->where('boundary.readyForTransmission', false)
+                ->where('summary.resourceCount', 18)
+                ->where('bundle.type', 'collection')
+                ->where('urls.back', route('encounters.debrief.show', $encounter)),
+            );
+
+        foreach ([
+            route('encounters.show', $encounter),
+            route('encounters.timeline.show', $encounter),
+            route('encounters.debrief.show', $encounter),
+        ] as $navigationPage) {
+            $this->actingAs($participant)
+                ->get($navigationPage)
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page->where(
+                    'urls.interoperabilityPreview',
+                    route('encounters.interoperability-preview.show', $encounter),
+                ));
+        }
+
+        $event = AuditEvent::query()->where('action', 'interop.preview_viewed')->sole();
+        $this->assertSame('interoperability_preview', $event->resource_type);
+        $this->assertSame($encounter->public_id, $event->resource_id);
+        $this->assertSame(
+            ['resource_count', 'resource_type_counts', 'validation_issue_count', 'ready_for_transmission'],
+            array_keys($event->metadata ?? []),
+        );
+        $this->assertSame(18, data_get($event->metadata, 'resource_count'));
+        $this->assertFalse(data_get($event->metadata, 'ready_for_transmission'));
+        $auditJson = json_encode($event->metadata, JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString('Pasien Sintetis Arunika', $auditJson);
+        $this->assertStringNotContainsString('Sindrom pusing', $auditJson);
+    }
+
+    public function test_preview_requires_finalization_report_capability_and_exact_case_context(): void
+    {
+        $this->seedReferenceOutpatient();
+        $encounter = Encounter::query()->sole();
+        $participant = User::query()->where('email', 'mahasiswa.keperawatan@example.invalid')->sole();
+        $assignment = Assignment::query()->where('user_id', $participant->getKey())->sole();
+
+        $this->actingAs($participant)
+            ->get(route('encounters.interoperability-preview.show', $encounter))
+            ->assertStatus(409);
+
+        $capabilities = $assignment->capabilities;
+        $assignment->update([
+            'capabilities' => collect($capabilities)
+                ->reject(fn (string $capability): bool => $capability === Capability::ReportView->value)
+                ->values()
+                ->all(),
+        ]);
+        $this->actingAs($participant)
+            ->get(route('encounters.interoperability-preview.show', $encounter))
+            ->assertForbidden();
+
+        $assignment->update([
+            'capabilities' => $capabilities,
+            'encounter_id' => null,
+            'supervisor_assignment_id' => null,
+        ]);
+        $this->actingAs($participant)
+            ->get(route('encounters.interoperability-preview.show', $encounter))
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('audit_events', ['action' => 'interop.preview_viewed']);
     }
 
     private function completeReferenceJourney(): Encounter

@@ -10,6 +10,7 @@ import {
     History,
     ListChecks,
     MapPin,
+    Network,
     ShieldCheck,
 } from 'lucide-react';
 import { PatientContextBanner } from '@/components/patient-context-banner';
@@ -61,6 +62,7 @@ type Props = {
         timeline: string | null;
         outpatientSummaryReport: string;
         debriefEvidenceReport: string;
+        interoperabilityPreview?: string | null;
     };
 };
 
@@ -135,15 +137,30 @@ export default function EncounterOverview({
                             </Button>
                         )}
                         {assignment.canViewReports && (
-                            <Button asChild variant="outline">
-                                <a href={urls.outpatientSummaryReport}>
-                                    <FileText
-                                        className="size-4"
-                                        aria-hidden="true"
-                                    />
-                                    Ringkasan cetak
-                                </a>
-                            </Button>
+                            <>
+                                {urls.interoperabilityPreview && (
+                                    <Button asChild variant="outline">
+                                        <Link
+                                            href={urls.interoperabilityPreview}
+                                        >
+                                            <Network
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                            Pratinjau FHIR
+                                        </Link>
+                                    </Button>
+                                )}
+                                <Button asChild variant="outline">
+                                    <a href={urls.outpatientSummaryReport}>
+                                        <FileText
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                        Ringkasan cetak
+                                    </a>
+                                </Button>
+                            </>
                         )}
                         {assignment.canViewDebrief && (
                             <Button asChild>

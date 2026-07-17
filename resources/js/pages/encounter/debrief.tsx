@@ -11,6 +11,7 @@ import {
     History,
     LockKeyhole,
     MessageSquareText,
+    Network,
     PencilLine,
     Route,
     ShieldCheck,
@@ -147,6 +148,7 @@ type Props = {
         workQueue: string;
         outpatientSummaryReport: string;
         debriefEvidenceReport: string;
+        interoperabilityPreview?: string | null;
     };
 };
 
@@ -258,6 +260,19 @@ export default function EncounterDebrief({
                     <div className="flex flex-wrap gap-2">
                         {assignment.canViewReports && (
                             <>
+                                {urls.interoperabilityPreview && (
+                                    <Button asChild variant="outline">
+                                        <Link
+                                            href={urls.interoperabilityPreview}
+                                        >
+                                            <Network
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                            Pratinjau FHIR
+                                        </Link>
+                                    </Button>
+                                )}
                                 <Button asChild>
                                     <a href={urls.outpatientSummaryReport}>
                                         <FileText

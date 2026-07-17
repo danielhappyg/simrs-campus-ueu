@@ -37,6 +37,8 @@ class EncounterRecordTimelineController extends Controller
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
         $canViewDebrief = $encounter->status === EncounterStatus::Finalized
             && $assignment->hasCapability(Capability::DebriefView);
+        $canViewInteroperabilityPreview = $encounter->status === EncounterStatus::Finalized
+            && $assignment->hasCapability(Capability::ReportView);
         $timeline = $this->timeline->build($encounter);
 
         $this->auditRecorder->record(
@@ -101,6 +103,9 @@ class EncounterRecordTimelineController extends Controller
                 'encounter' => route('encounters.show', $encounter),
                 'self' => route('encounters.timeline.show', $encounter),
                 'debrief' => $canViewDebrief ? route('encounters.debrief.show', $encounter) : null,
+                'interoperabilityPreview' => $canViewInteroperabilityPreview
+                    ? route('encounters.interoperability-preview.show', $encounter)
+                    : null,
                 'workQueue' => route('work'),
             ],
         ]);

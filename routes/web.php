@@ -28,6 +28,7 @@ use App\Http\Controllers\Encounter\EncounterRecordTimelineController;
 use App\Http\Controllers\Encounter\PublicQueueController;
 use App\Http\Controllers\Encounter\ReviseDebriefNoteController;
 use App\Http\Controllers\Encounter\StoreDebriefNoteController;
+use App\Http\Controllers\Interoperability\OutpatientInteroperabilityPreviewController;
 use App\Http\Controllers\Patient\AppointmentCheckInController;
 use App\Http\Controllers\Patient\RegistrationWorkspaceController;
 use App\Http\Controllers\Patient\SyntheticRegistrationController;
@@ -67,6 +68,8 @@ Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(f
         ->name('encounters.reports.outpatient-summary');
     Route::get('encounters/{encounter}/reports/debrief-evidence', DebriefEvidenceReportController::class)
         ->name('encounters.reports.debrief-evidence');
+    Route::get('encounters/{encounter}/interoperability-preview', OutpatientInteroperabilityPreviewController::class)
+        ->name('encounters.interoperability-preview.show');
     Route::post('encounters/{encounter}/debrief/notes', StoreDebriefNoteController::class)
         ->name('encounters.debrief.notes.store');
     Route::post('debrief-notes/{note}/versions', ReviseDebriefNoteController::class)
