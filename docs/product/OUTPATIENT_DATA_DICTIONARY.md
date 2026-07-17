@@ -164,6 +164,23 @@ Minimum fields:
 
 Store queue ticket, clinic, state (`WAITING`, `CALLED`, `IN_SERVICE`, `HELD`, `COMPLETED`, `CANCELLED`), actor, reason, and start/end time. Public displays use ticket/limited identity only and never expose a diagnosis.
 
+### 4.4 `outpatient_safety_disposition`
+
+Store one append-only human workflow decision for an escalated synthetic encounter:
+
+| Field                                      | Type        | Required | Definition                                                                                 |
+| ------------------------------------------ | ----------- | -------: | ------------------------------------------------------------------------------------------ |
+| `public_id`, `request_key`                  | opaque ULID |      yes | Public evidence identity and idempotency key.                                               |
+| `encounter_id`                              | ID          |      yes | Unique encounter; only one disposition is allowed in the current reference cycle.          |
+| `source_clinical_entry_version_id`          | ID          |      yes | Exact approved nursing-intake version that produced the escalation.                         |
+| `source_content_hash`                       | SHA-256     |      yes | Immutable source-binding check.                                                             |
+| `actor_user_id`, `actor_assignment_id`      | ID          |      yes | Attributable authorized human and acting context.                                           |
+| `outcome`                                   | enum        |      yes | `RESUME_ROUTINE_FLOW` or `SIMULATED_TRANSFER`; neither is a clinical recommendation.        |
+| `rationale`                                 | text        |      yes | Human-authored protected reason, 10–2000 characters, excluded from task and audit metadata. |
+| `occurred_at`                               | instant     |      yes | Server-recorded decision time.                                                              |
+
+The record cannot be updated or deleted. The source, actor, outcome, rationale, and time remain separate from the encounter state transition and are shown read-only after recording.
+
 ## 5. Clinical documentation and provenance
 
 ### 5.1 `clinical_entry`

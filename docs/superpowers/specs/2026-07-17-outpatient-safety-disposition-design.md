@@ -1,7 +1,7 @@
 # Outpatient Safety Disposition Design
 
 - **Date:** 17 July 2026
-- **Status:** Approved written specification; implementation and stakeholder validation pending
+- **Status:** Implemented and browser-rehearsed; stakeholder validation pending
 - **Scope:** `E2E-02`, `OPD-005`, `OPD-006`, `SAF-04`, and `VAL-A01`–`VAL-A04`
 - **Environment:** synthetic campus simulation only
 

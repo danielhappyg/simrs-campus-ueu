@@ -131,9 +131,22 @@ Actors: nursing learner, then nursing supervisor.
 1. Record observed history source, complaint/onset, allergy state, current-medication state, vital signs with units, scenario-question responses, and a human safety decision.
 2. Save/submit the immutable nursing version.
 3. Supervisor opens the exact version/hash and approves or requests correction.
-4. Confirm the next medical task uses the approved nursing source without re-entry.
+4. For the routine branch, confirm the next medical task uses the approved nursing source without re-entry. For an escalation branch, confirm the encounter is `ESCALATED`, the medical task remains blocked, and continue to UAT-02B.
 
 Discuss whether the wording and scenario questions are appropriate (`VAL-A01`–`VAL-A05`). Do not approve universal thresholds; core code intentionally makes no clinical threshold decision (`VAL-A03`).
+
+### UAT-02B — human disposition after a safety escalation
+
+Actor: linked nursing supervisor; the explicitly assigned session facilitator is the documented fallback.
+
+1. Open the safety-disposition task and confirm the exact approved nursing version, source hash, human-authored escalation context, and permanent non-emergency/non-recommendation boundary.
+2. Confirm neither outcome is selected and the system offers no severity score, threshold, diagnosis, treatment, or recommended answer.
+3. To continue the shared case, the actor independently selects **Lanjutkan alur rutin simulasi**, writes a specific synthetic rationale, and records the decision. Use **Alihkan dalam simulasi** only in a separate disposable branch because it ends the routine case path.
+4. Confirm the result becomes read-only with actor, role, time, rationale, source version/hash, and outcome.
+5. Confirm resume changes the encounter to `WAITING_CLINICIAN`, readies the existing medical task, completes the actor task, and cancels the duplicate facilitator/supervisor task. In the separate transfer branch, confirm `TRANSFERRED_SIMULATION` and cancellation of routine medical work.
+6. Attempt a late or competing disposition and confirm rejection without overwriting the first decision or partially changing tasks/state.
+
+Discuss `VAL-A01`–`VAL-A04`: appropriateness of the question set, wording, authorized decision-maker, and allowed teaching dispositions. Passing this exercise does not approve an emergency workflow or clinical protocol.
 
 ### UAT-03 — medical assessment, order, and prescription
 

@@ -65,6 +65,7 @@ Legend: `D` create/edit own draft, `S` submit, `R` read when context allows, `A`
 | Create synthetic patient/registration       |   — |   D/S |     — |     — |     — |   D/S¹ |                   R/C |   — |   — |
 | Check in and manage clinic queue            |   O |     O |     R |     R |     R |      R |                     R |   R |   — |
 | Record nursing intake/safety screen         |   — |     R |   D/S |     R |     R |      R |                  A/C² |   R |   — |
+| Record human safety disposition             |  O⁸ |     — |     — |     — |     — |      — |                    O⁸ |   R |   — |
 | Record medical assessment/diagnosis/plan    |   — |     R |     R |   D/S |     R |      R |                  A/C² |   R |   — |
 | Create order/prescription draft             |   — |     — |     R |   D/S |     R |      R |                  A/C² |   R |   — |
 | Release synthetic result                    |  O³ |     — |     R |     R |     R |      R |                  A/C³ |   R |   — |
@@ -93,6 +94,7 @@ Notes:
 5. Audit access is purpose-scoped; configuration privilege does not automatically expose clinical content.
 6. The reference profile grants `debrief.write` only to the facilitator. A supervisor can author only when a separate assignment explicitly grants the capability; viewing the note does not imply write authority.
 7. Report access requires the separate `report.view` capability, a finalized synthetic encounter, and an exact case assignment or deliberate session-wide facilitator assignment. Print access is not legal-document or disclosure authority.
+8. `safety-disposition.record` is limited to the linked exact-case nursing supervisor or an explicitly session-wide facilitator. It records workflow state only; it grants no emergency-triage, diagnosis, treatment, or real-transfer authority.
 
 ## 5. Record-level rules
 

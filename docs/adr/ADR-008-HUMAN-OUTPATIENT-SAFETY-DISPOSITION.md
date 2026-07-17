@@ -1,6 +1,6 @@
 # ADR-008: Human Outpatient Safety Disposition
 
-- **Status:** Accepted for implementation; stakeholder validation pending
+- **Status:** Implemented in the reference branch; stakeholder validation pending
 - **Date:** 2026-07-17
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008
@@ -91,6 +91,14 @@ Required human choice + rationale + request key
 - Competing human decisions are rejected transactionally rather than silently overwriting one another.
 - Faculty still must validate the question set, wording, and allowed teaching dispositions before a pilot.
 - A future configuration layer may replace the two reference outcomes, but it must preserve human authorship, source binding, auditability, and non-recommendation boundaries.
+
+## Implementation evidence
+
+- Backend workflow, HTTP authorization, task routing, idempotency, append-only, rollback, and minimized-audit tests pass for both outcomes.
+- React and axe coverage proves the permanent safety boundary, no preselected outcome, associated errors, and the read-only recorded state.
+- A fresh synthetic browser rehearsal at 1280×720 and 390×844 recorded `RESUME_ROUTINE_FLOW` as the linked nursing supervisor. It preserved the exact approved nursing version/hash, changed the encounter from `ESCALATED` to `WAITING_CLINICIAN`, completed/cancelled competing disposition tasks, and made the medical task `READY`.
+- Both viewport checks retained one `main`, one `h1`, unique IDs, no page-level overflow, 44-pixel enabled main targets, and an empty warning/error console.
+- `VAL-A01`–`VAL-A04`, faculty acceptance, native full-page keyboard review, merge, and deployment remain open.
 
 ## Revisit triggers
 

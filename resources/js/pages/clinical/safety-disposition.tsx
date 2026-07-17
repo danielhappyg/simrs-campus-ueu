@@ -108,7 +108,7 @@ export default function SafetyDispositionWorkspace({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" className="min-h-11">
                             <Link href={urls.workQueue}>
                                 <ListTodo
                                     className="size-4"
@@ -117,7 +117,7 @@ export default function SafetyDispositionWorkspace({
                                 Antrean tugas
                             </Link>
                         </Button>
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" className="min-h-11">
                             <Link href={urls.encounter}>
                                 <ArrowLeft
                                     className="size-4"
