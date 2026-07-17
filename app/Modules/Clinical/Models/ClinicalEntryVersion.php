@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property ClinicalEntryStatus $status
  * @property CarbonImmutable $clinical_occurrence_at
  * @property CarbonImmutable $recorded_at
+ * @property CarbonImmutable|null $submitted_at
+ * @property CarbonImmutable|null $last_reviewed_at
  * @property-read ClinicalEntry $clinicalEntry
  * @property-read Assignment $authorAssignment
  */

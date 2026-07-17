@@ -142,6 +142,9 @@ class WorkQueueController extends Controller
                     WorkTaskType::SupervisorReview => $task->clinicalEntryVersion
                         ? route('clinical-versions.review.show', $task->clinicalEntryVersion)
                         : null,
+                    WorkTaskType::SafetyDisposition => $task->encounter
+                        ? route('encounters.safety-disposition.show', $task->encounter)
+                        : null,
                     WorkTaskType::Debrief => $task->encounter
                         ? route('encounters.debrief.show', $task->encounter)
                         : null,

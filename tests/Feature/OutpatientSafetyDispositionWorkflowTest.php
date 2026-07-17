@@ -24,6 +24,7 @@ use App\Modules\Teaching\Models\WorkTask;
 use DomainException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Concerns\SeedsReferenceOutpatient;
 use Tests\TestCase;
 
@@ -325,6 +326,105 @@ class OutpatientSafetyDispositionWorkflowTest extends TestCase
         $this->assertDatabaseMissing('audit_events', [
             'action' => 'clinical.outpatient_safety_disposition_recorded',
         ]);
+    }
+
+    public function test_linked_supervisor_and_session_facilitator_can_open_the_private_disposition_workspace(): void
+    {
+        [$encounter, $source, $supervisorAssignment] = $this->prepareApprovedEscalation();
+
+        foreach ([$supervisorAssignment, $this->facilitatorAssignment()] as $assignment) {
+            $this->actingAs($assignment->user)
+                ->get(route('encounters.safety-disposition.show', $encounter))
+                ->assertOk()
+                ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
+                ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('clinical/safety-disposition', false)
+                    ->where('boundary.classification', 'SIMULASI — DATA SINTETIS')
+                    ->where('boundary.emergencyTriageClaim', false)
+                    ->where('boundary.clinicalRecommendation', false)
+                    ->where('encounter.status.code', EncounterStatus::Escalated->value)
+                    ->where('patient.synthetic', true)
+                    ->where('source.versionPublicId', $source->public_id)
+                    ->where('source.contentHash', $source->content_hash)
+                    ->where('source.safetyDecision', IntakeSafetyDecision::EscalateToSupervisor->value)
+                    ->where('authorization.assignmentPublicId', $assignment->public_id)
+                    ->where('authorization.canRecord', true)
+                    ->where('disposition', null)
+                    ->has('formOptions.outcomes', 2)
+                    ->where('formOptions.selectedOutcome', null));
+        }
+    }
+
+    public function test_unrelated_or_revoked_assignment_cannot_open_the_disposition_workspace(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+        $unrelatedSupervisor = User::query()->where('email', 'supervisor.kedokteran@example.invalid')->firstOrFail();
+
+        $this->actingAs($unrelatedSupervisor)
+            ->get(route('encounters.safety-disposition.show', $encounter))
+            ->assertForbidden();
+
+        $supervisorAssignment->update([
+            'revoked_at' => now(),
+            'revocation_reason' => 'Test revocation',
+        ]);
+
+        $this->actingAs($supervisorAssignment->user)
+            ->get(route('encounters.safety-disposition.show', $encounter))
+            ->assertForbidden();
+    }
+
+    public function test_disposition_submission_requires_an_explicit_outcome_and_rationale(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+
+        $this->actingAs($supervisorAssignment->user)
+            ->post(route('encounters.safety-disposition.store', $encounter), [
+                'request_key' => (string) Str::ulid(),
+            ])
+            ->assertSessionHasErrors(['outcome', 'rationale']);
+
+        $this->assertDatabaseCount('outpatient_safety_dispositions', 0);
+        $this->assertSame(EncounterStatus::Escalated, $encounter->refresh()->status);
+    }
+
+    public function test_http_disposition_recording_redirects_to_a_read_only_attributable_workspace(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+        $rationale = 'Supervisor meninjau eskalasi dan memutuskan alur rutin simulasi dapat dilanjutkan.';
+
+        $this->actingAs($supervisorAssignment->user)
+            ->post(route('encounters.safety-disposition.store', $encounter), [
+                'request_key' => (string) Str::ulid(),
+                'outcome' => OutpatientSafetyDispositionOutcome::ResumeRoutineFlow->value,
+                'rationale' => $rationale,
+            ])
+            ->assertRedirect(route('encounters.safety-disposition.show', $encounter));
+
+        $disposition = OutpatientSafetyDisposition::query()->sole();
+
+        $this->actingAs($supervisorAssignment->user)
+            ->get(route('encounters.safety-disposition.show', $encounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('authorization.canRecord', false)
+                ->where('disposition.publicId', $disposition->public_id)
+                ->where('disposition.outcome.code', OutpatientSafetyDispositionOutcome::ResumeRoutineFlow->value)
+                ->where('disposition.rationale', $rationale)
+                ->where('disposition.actor', $supervisorAssignment->user->name));
+    }
+
+    public function test_safety_disposition_work_task_routes_to_the_authorized_workspace(): void
+    {
+        [$encounter, , $supervisorAssignment] = $this->prepareApprovedEscalation();
+
+        $this->actingAs($supervisorAssignment->user)
+            ->get(route('work'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('tasks.0.type', WorkTaskType::SafetyDisposition->value)
+                ->where('tasks.0.actionUrl', route('encounters.safety-disposition.show', $encounter)));
     }
 
     /** @return array{Encounter, ClinicalEntryVersion, Assignment} */

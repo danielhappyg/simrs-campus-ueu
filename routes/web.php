@@ -5,6 +5,7 @@ use App\Http\Controllers\Clinical\EncounterClosureWorkspaceController;
 use App\Http\Controllers\Clinical\MedicalAssessmentWorkspaceController;
 use App\Http\Controllers\Clinical\NursingIntakeWorkspaceController;
 use App\Http\Controllers\Clinical\OrderResultWorkspaceController;
+use App\Http\Controllers\Clinical\OutpatientSafetyDispositionWorkspaceController;
 use App\Http\Controllers\Clinical\PharmacyWorkspaceController;
 use App\Http\Controllers\Clinical\StoreClinicalReviewDecisionController;
 use App\Http\Controllers\Clinical\StoreDiagnosticResultController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Clinical\StoreEncounterClosureVersionController;
 use App\Http\Controllers\Clinical\StoreMedicalAssessmentVersionController;
 use App\Http\Controllers\Clinical\StoreMedicationDispenseController;
 use App\Http\Controllers\Clinical\StoreNursingIntakeVersionController;
+use App\Http\Controllers\Clinical\StoreOutpatientSafetyDispositionController;
 use App\Http\Controllers\Clinical\StorePharmacyInterventionResponseController;
 use App\Http\Controllers\Clinical\StorePharmacyReviewController;
 use App\Http\Controllers\Clinical\StoreResultAcknowledgementController;
@@ -78,6 +80,10 @@ Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(f
         ->name('encounters.nursing-intake.show');
     Route::post('encounters/{encounter}/nursing-intake/versions', StoreNursingIntakeVersionController::class)
         ->name('encounters.nursing-intake.versions.store');
+    Route::get('encounters/{encounter}/safety-disposition', OutpatientSafetyDispositionWorkspaceController::class)
+        ->name('encounters.safety-disposition.show');
+    Route::post('encounters/{encounter}/safety-disposition', StoreOutpatientSafetyDispositionController::class)
+        ->name('encounters.safety-disposition.store');
     Route::get('encounters/{encounter}/medical-assessment', MedicalAssessmentWorkspaceController::class)
         ->name('encounters.medical-assessment.show');
     Route::post('encounters/{encounter}/medical-assessment/versions', StoreMedicalAssessmentVersionController::class)

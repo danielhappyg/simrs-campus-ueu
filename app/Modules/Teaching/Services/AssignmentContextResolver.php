@@ -34,6 +34,33 @@ class AssignmentContextResolver
         return $this->forEncounterAny($user, $encounter, [$capability]);
     }
 
+    public function forSafetyDisposition(User $user, Encounter $encounter): Assignment
+    {
+        $this->assertUsableSession($encounter->session);
+
+        $assignment = $this->activeAssignments($user, $encounter->session)
+            ->first(function (Assignment $assignment) use ($encounter): bool {
+                if (! $assignment->hasCapability(Capability::SafetyDispositionRecord)) {
+                    return false;
+                }
+
+                $matchesCaseSupervisor = $assignment->patient_id === $encounter->patient_id
+                    && $assignment->encounter_id === $encounter->getKey()
+                    && $assignment->hasCapability(Capability::SupervisionReview);
+                $sessionWideFacilitator = $assignment->patient_id === null
+                    && $assignment->encounter_id === null
+                    && $assignment->hasCapability(Capability::SessionFacilitate);
+
+                return $matchesCaseSupervisor || $sessionWideFacilitator;
+            });
+
+        if (! $assignment) {
+            throw new AuthorizationException('The active assignment does not permit a safety disposition for this encounter.');
+        }
+
+        return $assignment;
+    }
+
     public function forDebrief(User $user, Encounter $encounter): Assignment
     {
         $session = $encounter->session;
