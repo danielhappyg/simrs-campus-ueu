@@ -221,6 +221,21 @@ Actors: facilitator and all authorized participants.
 
 Discuss `VAL-T03`, `VAL-T06`, whether the longitudinal record is useful during care-flow learning, and whether its curated provenance is sufficient without exposing raw security/audit metadata.
 
+### UAT-10 — local interoperability mapping preview
+
+Actors: RMIK learner, facilitator, and one clinical/pharmacy representative.
+
+1. From the finalized encounter, open **Pratinjau FHIR** and confirm `SIMULASI — DATA SINTETIS`, `BELUM DIKIRIM`, `Bundle · collection`, and the absent external endpoint remain visible.
+2. Confirm the inventory contains Patient, Organization, Encounter, six vital Observations, Condition, ServiceRequest, result Observation, DiagnosticReport, MedicationRequest, pharmacy QuestionnaireResponse, MedicationDispense, Procedure, and preliminary Composition.
+3. Trace one vital, diagnosis, result, medication, and procedure resource through the provenance ledger to its exact public source and source path.
+4. Confirm `R42` and `38.99` are labelled as human-reviewed decisions and no invented SNOMED, KFA, IHS, practitioner, organization, or location identifier appears.
+5. Inspect the validation findings for missing national identifiers, unrun SATUSEHAT profile validation, and each concept retained as local text.
+6. Open and close the contained JSON inspector; confirm there is no send, connect, retry, credential, endpoint-edit, upload, or submit action.
+7. With a role lacking `report.view` or the exact case context, confirm the route and navigation are unavailable/denied. Confirm the preview returns a conflict before finalization.
+8. Daniel records whether the mapping is retained, revised, or deferred and which missing identifiers/terminologies require institutional owners.
+
+This exercise validates an inspectable local teaching model only. It does not approve a SATUSEHAT profile, credential, sandbox transmission, legal Composition, or production connection.
+
 ## 7. Separate correction exercises
 
 Run each correction in its own fresh disposable fixture. Never prepare diagnosis and procedure branches in the same reference fixture.
@@ -304,6 +319,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The case content, safety questionnaire, rubric, coding aliases, gold-set proposals, and candidate threshold are not faculty-approved.
 - Reports are browser-generated learning previews, not signed/immutable medical documents or SATUSEHAT submissions.
 - The longitudinal record is a curated, read-only teaching projection with a 300-event display cap; it is not a legal record, clinical decision engine, or external interoperability transmission.
+- The interoperability page is a deterministic local FHIR R4-aligned `collection` preview. It has no national identities, external-profile validator, endpoint, credential, transmission queue, legal-document status, or SATUSEHAT conformance evidence.
 - Native print/PDF pagination review remains pending.
 - Full native keyboard traversal remains pending. Automated regression now guards the complete sign-in Tab order, focusable password control, and programmatic validation-error associations. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. A later single retained browser tab/session repeated both complete branches across fresh isolated fixtures and ended with an empty retained warning/error console log. Stakeholder UAT is still required.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
@@ -322,3 +338,4 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - [ADR-004: Finalized Debrief Projection](../adr/ADR-004-FINALIZED-DEBRIEF-PROJECTION.md)
 - [ADR-005: Debrief Notes and Rubric References](../adr/ADR-005-DEBRIEF-NOTES-AND-RUBRIC-REFERENCES.md)
 - [ADR-006: Finalized Simulation Reporting](../adr/ADR-006-FINALIZED-SIMULATION-REPORTING.md)
+- [ADR-007: Deterministic Local Interoperability Preview](../adr/ADR-007-LOCAL-INTEROPERABILITY-PREVIEW.md)

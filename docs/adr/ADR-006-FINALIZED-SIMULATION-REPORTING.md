@@ -31,7 +31,7 @@ Permenkes 24/2022 requires electronic medical-record activity to preserve securi
 8. Responses use private no-store caching and no-index headers. The application does not persist the rendered HTML as a new clinical document.
 9. Browser print/save-as-PDF is a convenience preview only. The MVP does not yet create a server-side PDF, digital signature, authenticator/custodian record, immutable exported-document hash, retention event, disclosure log, or external transmission artifact.
 10. The outpatient summary follows the official section structure where the MVP has an approved source. Unsupported sections are omitted or honestly shown as not documented; no clinical content is invented to fill a standard.
-11. `Composition`, `DocumentReference`, and security-label mapping remain future adapter work. No FHIR conformance claim is attached to these views.
+11. These report views remain HTML projections and carry no FHIR conformance claim. ADR-007 separately implements a local `Bundle.type=collection` mapping preview; `DocumentReference`, security labels, conformant document bundles, and transmission remain future adapter work.
 12. This implementation is a working reference under `VAL-U05`, not Daniel's final export-scope approval. Checkpoint 2 can retain, revise, or remove either output.
 
 ## Component and trust boundary

@@ -41,7 +41,14 @@ final class OutpatientFhirPreview
             'timestamp' => $encounter->finalized_at->utc()->toIso8601String(),
             'entry' => $entries,
         ];
-        $validation = $this->validator->validate($bundle);
+        $sourceIndex = [
+            $this->source($entries[0], 'encounter', $encounter->public_id, 'composition'),
+            $this->source($entries[1], 'synthetic_patient', $encounter->patient->public_id, 'patient'),
+            $this->source($entries[2], 'simulation_configuration', $encounter->session->public_id, 'organization'),
+            $this->source($entries[3], 'encounter', $encounter->public_id, 'encounter'),
+            ...$clinical['sourceIndex'],
+        ];
+        $validation = $this->validator->validate($bundle, $sourceIndex);
 
         return [
             'boundary' => [
@@ -62,13 +69,7 @@ final class OutpatientFhirPreview
                     ->all(),
             ],
             'bundle' => $bundle,
-            'sourceIndex' => [
-                $this->source($entries[0], 'encounter', $encounter->public_id, 'composition'),
-                $this->source($entries[1], 'synthetic_patient', $encounter->patient->public_id, 'patient'),
-                $this->source($entries[2], 'simulation_configuration', $encounter->session->public_id, 'organization'),
-                $this->source($entries[3], 'encounter', $encounter->public_id, 'encounter'),
-                ...$clinical['sourceIndex'],
-            ],
+            'sourceIndex' => $sourceIndex,
             'validation' => $validation,
             'urls' => [
                 'externalEndpoint' => null,

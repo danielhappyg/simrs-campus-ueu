@@ -98,6 +98,7 @@ Routes use opaque internal IDs in URLs and never expose NIK-like identifiers.
 | `/encounters/:encounterId/record-review` | Kelengkapan & Koding | RMIK review | yes |
 | `/encounters/:encounterId/timeline` | Linimasa Rekam | authorized timeline read | yes |
 | `/encounters/:encounterId/debrief` | Debrief Kasus | session/debrief read | yes |
+| `/encounters/:encounterId/interoperability-preview` | Pratinjau Interoperabilitas Lokal | finalized report-context read | yes |
 | `/admin/users` | Pengguna & Peran | system administration | no |
 | `/admin/reference-data` | Data Referensi | reference-data administration | no |
 | `/admin/system` | Kesehatan Sistem | operations administration | no |

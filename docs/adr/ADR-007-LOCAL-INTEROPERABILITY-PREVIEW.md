@@ -1,6 +1,6 @@
 # ADR-007: Deterministic Local Interoperability Preview
 
-- **Status:** Accepted for autonomous reference implementation; stakeholder and external-profile validation pending
+- **Status:** Implemented with automated and narrow browser coverage; stakeholder and external-profile validation pending
 - **Date:** 2026-07-17
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008
@@ -96,6 +96,18 @@ Deterministic local FHIR-aligned collection + source index + warnings
 - The adapter boundary becomes testable before any external integration is authorized.
 - Missing national identifiers and incomplete terminology mappings remain visible instead of being replaced by fabricated values.
 - A later conformant adapter may reuse source selection and stable identity rules, but must add approved profiles, master-data resolution, validator evidence, security, consent/disclosure policy, idempotent transmission, and external response provenance.
+
+## Implementation evidence
+
+- `OutpatientFhirPreview` constructs a deterministic `Bundle.type=collection` from finalized sources with a preliminary Composition, stable non-resolving full URLs, source indexing, and no network client or endpoint configuration.
+- `OutpatientClinicalResourceMapper` covers Patient, Organization, Encounter, six nursing vital Observations, Condition, ServiceRequest, result Observation, DiagnosticReport, MedicationRequest, pharmacy QuestionnaireResponse, MedicationDispense, Procedure, and human-approved ICD-10/ICD-9-CM coding in the reference fixture.
+- `FhirPreviewValidator` checks the local bundle boundary, FHIR ID shape, unique full URLs, contained-reference resolution, and exact source paths for concepts that remain local text.
+- The authorized route enforces `report.view`, finalized encounter, exact-case/session-wide facilitator scope, private/no-store/no-index response headers, and a minimized `interop.preview_viewed` audit event.
+- The UEU interface permanently displays `SIMULASI — DATA SINTETIS`, `BELUM DIKIRIM`, missing national identifiers, unrun profile validation, resource inventory, source provenance, and contained JSON without any send/connect/retry action.
+- Focused PHP and React/axe tests cover deterministic equality, 18-resource reference mapping, human coding, non-transmission, authorization, finalization, minimized audit, navigation, JSON containment, and accessible boundary presentation.
+- A fresh finalized synthetic browser fixture rendered all 18 resources at 1280×720 and 390×844 with one `main`, one `h1`, no duplicate IDs, no page-level horizontal overflow, no transport action, a working contained-JSON disclosure, and no captured warning/error console entry.
+
+This evidence does not convert the preview into a SATUSEHAT-conformant payload, a legal document, or an approved integration.
 
 ## Revisit triggers
 

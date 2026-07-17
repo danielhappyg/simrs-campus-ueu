@@ -92,6 +92,13 @@ Finalized-report coverage is held in:
 - `FinalizedEncounterReportTest` for the separate `report.view` capability, exact case scope, pre-finalization conflict, completed-session reads, no-store/no-index headers, source-derived outpatient content, human-reviewed ICD-10/ICD-9-CM presentation, shared-note version history, non-scoring rubric status, raw-audit exclusion, and minimized `report.rendered` metadata; and
 - report-view and debrief/encounter navigation contracts for permanent simulation/legal-boundary language and browser print entry points.
 
+Local-interoperability coverage is held in:
+
+- `OutpatientInteroperabilityPreviewTest` for deterministic repeated mapping, FHIR ID/full-URL/reference structure, the 18-resource finalized reference set, six source-defined vital Observations, human-approved ICD-10/ICD-9-CM provenance, exact source paths for text-only mapping gaps, the permanent no-endpoint/no-transmission boundary, `report.view` plus finalized/exact-case gates, private/no-store/no-index headers, minimized `interop.preview_viewed` metadata, and conditional navigation; and
+- `OutpatientInteroperabilityPreview` React/axe coverage for the UEU mapping ledger, permanent simulation/`BELUM DIKIRIM` boundary, validation warnings, resource inventory, source index, JSON containment, absence of transmission actions, and accessible semantics.
+
+This bounded evidence advances `INT-01`, `INT-02`, `OPD-002`, `OPD-003`, `OPD-004`, and `SAF-03` but leaves them `IN PROGRESS`: national identities, an approved external validator/profile contract, institutional transmission policy, and SATUSEHAT sandbox evidence remain absent by design. See [ADR-007](../adr/ADR-007-LOCAL-INTEROPERABILITY-PREVIEW.md).
+
 Full-journey/recovery evidence is held in:
 
 - `CompleteReferenceOutpatientJourneyCommandTest` for the synthetic-only/non-production gate, missing-release preflight, partially progressed refusal, complete cross-domain finalization, manual human coding, debrief-task release, and zero-change finalized rerun; and

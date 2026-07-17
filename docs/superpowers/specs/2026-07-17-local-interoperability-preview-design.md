@@ -1,7 +1,7 @@
 # Local Outpatient Interoperability Preview Design
 
 - **Date:** 17 July 2026
-- **Status:** Approved autonomous reference-build increment
+- **Status:** Implemented reference-build increment with narrow browser coverage; stakeholder and external-profile validation pending
 - **Scope:** `INT-01`, `INT-02`, `OPD-002`, `OPD-003`, `OPD-004`, and `SAF-03`
 - **Environment:** synthetic campus simulation only
 
@@ -119,7 +119,7 @@ Backend tests prove authorization/finalization/privacy headers, deterministic re
 
 Frontend tests prove permanent boundary language, counts/inventory/issues/source index/JSON presentation, no send/connect action, mobile containment classes, and no serious/critical axe violations.
 
-Browser validation uses a fresh finalized synthetic fixture built with the supplied checksummed ICD-10 and ICD-9-CM workbooks. It verifies the rendered resource inventory, validation warnings, one main/h1, no duplicate IDs, 390×844 containment, control sizes, absence of transmission actions, and clean fresh warning/error logs.
+Browser validation used a fresh finalized synthetic fixture built with the supplied checksummed ICD-10 and ICD-9-CM workbooks. At 1280×720 and 390×844 it verified all 18 rendered resources, validation warnings, one main/h1, no duplicate IDs, page containment, absence of transmission actions, a working contained-JSON disclosure, and clean fresh warning/error logs. The mobile view exposed no enabled main-content control below 44 CSS pixels.
 
 ## 10. Non-goals
 

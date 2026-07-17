@@ -125,6 +125,21 @@ class OutpatientInteroperabilityPreviewTest extends TestCase
         $this->assertStringContainsString('Pengambilan sampel darah vena', $serialized);
         $this->assertStringNotContainsString('http://snomed.info/sct', $serialized);
         $this->assertStringNotContainsString('http://sys-ids.kemkes.go.id', $serialized);
+
+        $textOnlyIssues = collect(data_get($preview, 'validation.issues', []))
+            ->where('code', 'LOCAL_TEXT_ONLY_TERMINOLOGY')
+            ->values();
+        $this->assertCount(5, $textOnlyIssues);
+        $this->assertSame(
+            [
+                'serviceRequest',
+                'content.components.0',
+                'diagnosticReport',
+                'medicationRequest',
+                'medicationDispense',
+            ],
+            $textOnlyIssues->pluck('sourcePath')->all(),
+        );
     }
 
     public function test_authorized_participant_can_open_the_minimized_never_sent_preview_with_audit(): void

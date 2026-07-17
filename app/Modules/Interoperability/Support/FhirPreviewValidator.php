@@ -6,12 +6,13 @@ final class FhirPreviewValidator
 {
     /**
      * @param  array<string, mixed>  $bundle
-     * @return array{status: string, readyForTransmission: false, structuralErrors: list<array{code: string, path: string, message: string}>, issues: list<array{code: string, severity: string, message: string}>}
+     * @param  list<array<string, string>>  $sourceIndex
+     * @return array{status: string, readyForTransmission: false, structuralErrors: list<array{code: string, path: string, message: string}>, issues: list<array<string, mixed>>}
      */
-    public function validate(array $bundle): array
+    public function validate(array $bundle, array $sourceIndex = []): array
     {
         $errors = [];
-        $entries = is_array($bundle['entry'] ?? null) ? $bundle['entry'] : [];
+        $entries = is_array($bundle['entry'] ?? null) ? array_values($bundle['entry']) : [];
         $fullUrls = [];
 
         if (($bundle['resourceType'] ?? null) !== 'Bundle') {
@@ -64,8 +65,59 @@ final class FhirPreviewValidator
                     'severity' => 'warning',
                     'message' => 'Required national identifiers are intentionally absent from this synthetic local preview.',
                 ],
+                ...$this->textOnlyTerminologyIssues($entries, $sourceIndex),
             ],
         ];
+    }
+
+    /**
+     * @param  list<mixed>  $entries
+     * @param  list<array<string, string>>  $sourceIndex
+     * @return list<array<string, mixed>>
+     */
+    private function textOnlyTerminologyIssues(array $entries, array $sourceIndex): array
+    {
+        $issues = [];
+
+        foreach ($entries as $index => $entry) {
+            if (! is_array($entry) || ! is_array($entry['resource'] ?? null)) {
+                continue;
+            }
+
+            $resource = $entry['resource'];
+            $field = match ($resource['resourceType'] ?? null) {
+                'Condition', 'ServiceRequest', 'Observation', 'DiagnosticReport', 'Procedure' => 'code',
+                'MedicationRequest', 'MedicationDispense' => 'medicationCodeableConcept',
+                default => null,
+            };
+
+            if ($field === null) {
+                continue;
+            }
+
+            $concept = $resource[$field] ?? null;
+            $coding = is_array($concept) ? ($concept['coding'] ?? []) : [];
+
+            if (! is_array($concept)
+                || ! filled($concept['text'] ?? null)
+                || ! is_array($coding)
+                || $coding !== []) {
+                continue;
+            }
+
+            $fullUrl = is_string($entry['fullUrl'] ?? null) ? $entry['fullUrl'] : '';
+            $source = collect($sourceIndex)->firstWhere('fullUrl', $fullUrl);
+            $issues[] = [
+                'code' => 'LOCAL_TEXT_ONLY_TERMINOLOGY',
+                'severity' => 'warning',
+                'message' => 'The source concept remains local text because no approved external terminology mapping is available.',
+                'sourcePath' => is_array($source) ? ($source['sourcePath'] ?? null) : null,
+                'sourcePublicId' => is_array($source) ? ($source['sourcePublicId'] ?? null) : null,
+                'bundlePath' => "bundle.entry.{$index}.resource.{$field}",
+            ];
+        }
+
+        return $issues;
     }
 
     /** @return array{code: string, path: string, message: string} */
