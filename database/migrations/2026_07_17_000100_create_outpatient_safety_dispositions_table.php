@@ -14,7 +14,10 @@ return new class extends Migration
             $table->ulid('request_key')->unique();
             $table->foreignId('encounter_id')->unique()->constrained('encounters')->restrictOnDelete();
             $table->foreignId('source_clinical_entry_version_id')
-                ->constrained('clinical_entry_versions')
+                ->constrained(
+                    'clinical_entry_versions',
+                    indexName: 'safety_disposition_source_version_fk',
+                )
                 ->restrictOnDelete();
             $table->char('source_content_hash', 64);
             $table->foreignId('actor_user_id')->constrained('users')->restrictOnDelete();
