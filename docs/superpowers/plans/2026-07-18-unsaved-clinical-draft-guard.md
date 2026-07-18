@@ -11,7 +11,7 @@
 
 ## Tasks
 
-1. Implement one accessible shared guard with a persistent dirty-state marker and three explicit choices.
+1. Implement one accessible shared guard with a persistent dirty-state marker, three explicit choices, and a generic same-encounter failure/retry state.
 2. Defer ordinary Inertia navigation and replay it only after successful save or explicit local discard.
 3. Add native unload protection while dirty and remove listeners on unmount.
 4. Integrate the guard with the existing typed Inertia forms and draft intents.

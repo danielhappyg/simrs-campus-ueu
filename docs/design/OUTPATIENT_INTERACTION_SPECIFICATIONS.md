@@ -160,7 +160,7 @@ The versioned nursing-intake, medical-assessment, and encounter-closure authorin
 - uses the browser's native unload boundary for refresh, tab close, or external navigation; and
 - persists no clinical draft in local/session storage.
 
-A failed draft save leaves the user on the same encounter form with server validation errors and does not continue navigation. Browser-history traversal and stale-session recovery remain manual-validation items before faculty pilot; no cross-encounter draft recovery is claimed.
+A draft save keeps the guard open in a disabled `Menyimpan draf…` state until the request resolves. Validation, HTTP, network, or cancelled-request failure leaves the user on the same encounter form, announces `Draf belum tersimpan` without copying field content, restores `Simpan draf lalu keluar` for retry, and does not continue navigation. Browser-history traversal and stale-session recovery remain manual-validation items before faculty pilot; no cross-encounter draft recovery is claimed.
 
 ### Acting-role change
 

@@ -203,11 +203,18 @@ export default function MedicalAssessmentWorkspace(
         form.post(urls.store, { preserveScroll: true });
     }
 
-    function saveDraftAndContinue(continueNavigation: () => void) {
+    function saveDraftAndContinue(
+        continueNavigation: () => void,
+        reportFailure: () => void,
+    ) {
         form.transform((data) => ({ ...data, intent: 'SAVE_DRAFT' }));
         form.post(urls.store, {
             preserveScroll: true,
             onSuccess: continueNavigation,
+            onError: reportFailure,
+            onCancel: reportFailure,
+            onHttpException: reportFailure,
+            onNetworkError: reportFailure,
         });
     }
 

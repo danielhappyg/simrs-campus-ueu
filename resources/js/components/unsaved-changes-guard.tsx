@@ -15,7 +15,10 @@ import {
 type UnsavedChangesGuardProps = {
     formLabel: string;
     processing: boolean;
-    onSaveDraft: (continueNavigation: () => void) => void;
+    onSaveDraft: (
+        continueNavigation: () => void,
+        reportFailure: () => void,
+    ) => void;
 };
 
 export function UnsavedChangesGuard({
@@ -25,7 +28,10 @@ export function UnsavedChangesGuard({
 }: UnsavedChangesGuardProps) {
     const [pendingVisit, setPendingVisit] = useState<PendingVisit | null>(null);
     const [open, setOpen] = useState(false);
+    const [savingDraft, setSavingDraft] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const bypassNextVisit = useRef(false);
+    const busy = processing || savingDraft;
 
     const continueNavigation = useCallback(() => {
         if (!pendingVisit) {
@@ -34,6 +40,8 @@ export function UnsavedChangesGuard({
 
         const visit = pendingVisit;
         bypassNextVisit.current = true;
+        setSavingDraft(false);
+        setSaveError(null);
         setPendingVisit(null);
         setOpen(false);
         router.visit(visit.url, {
@@ -60,8 +68,17 @@ export function UnsavedChangesGuard({
     }, [pendingVisit]);
 
     const stayOnPage = useCallback(() => {
+        setSavingDraft(false);
+        setSaveError(null);
         setPendingVisit(null);
         setOpen(false);
+    }, []);
+
+    const reportSaveFailure = useCallback(() => {
+        setSavingDraft(false);
+        setSaveError(
+            'Periksa isian yang ditandai atau koneksi, lalu pilih Simpan draf lalu keluar lagi. Anda tetap berada di encounter ini.',
+        );
     }, []);
 
     useEffect(() => {
@@ -78,6 +95,8 @@ export function UnsavedChangesGuard({
                 return;
             }
 
+            setSavingDraft(false);
+            setSaveError(null);
             setPendingVisit(visit);
             setOpen(true);
 
@@ -125,7 +144,7 @@ export function UnsavedChangesGuard({
             <Dialog
                 open={open}
                 onOpenChange={(nextOpen) => {
-                    if (!nextOpen && !processing) {
+                    if (!nextOpen && !busy) {
                         stayOnPage();
                     }
                 }}
@@ -183,11 +202,23 @@ export function UnsavedChangesGuard({
                         </div>
                     </div>
 
+                    {saveError && (
+                        <div
+                            role="alert"
+                            className="mx-6 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-950"
+                        >
+                            <p className="font-bold">Draf belum tersimpan</p>
+                            <p className="mt-1 text-xs leading-5">
+                                {saveError}
+                            </p>
+                        </div>
+                    )}
+
                     <DialogFooter className="border-t border-border bg-slate-50 px-6 py-4 sm:justify-between">
                         <Button
                             type="button"
                             onClick={stayOnPage}
-                            disabled={processing}
+                            disabled={busy}
                         >
                             Tetap di halaman
                         </Button>
@@ -196,7 +227,7 @@ export function UnsavedChangesGuard({
                                 type="button"
                                 variant="destructive"
                                 onClick={continueNavigation}
-                                disabled={processing}
+                                disabled={busy}
                             >
                                 <LogOut className="size-4" aria-hidden="true" />
                                 Keluar tanpa perubahan lokal
@@ -205,16 +236,27 @@ export function UnsavedChangesGuard({
                                 type="button"
                                 variant="outline"
                                 onClick={() => {
-                                    setOpen(false);
-                                    onSaveDraft(continueNavigation);
+                                    setSaveError(null);
+                                    setSavingDraft(true);
+
+                                    try {
+                                        onSaveDraft(
+                                            continueNavigation,
+                                            reportSaveFailure,
+                                        );
+                                    } catch {
+                                        reportSaveFailure();
+                                    }
                                 }}
-                                disabled={processing}
+                                disabled={busy}
                             >
                                 <FileCheck2
                                     className="size-4"
                                     aria-hidden="true"
                                 />
-                                Simpan draf lalu keluar
+                                {busy
+                                    ? 'Menyimpan draf…'
+                                    : 'Simpan draf lalu keluar'}
                             </Button>
                         </div>
                     </DialogFooter>

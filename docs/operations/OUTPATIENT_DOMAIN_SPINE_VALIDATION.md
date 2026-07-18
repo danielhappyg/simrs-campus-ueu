@@ -21,8 +21,8 @@
 | TypeScript                                                                         | Passed                                                                                |
 | ESLint                                                                             | Passed                                                                                |
 | Prettier                                                                           | Passed                                                                                |
-| React unit/accessibility suite                                                     | Passed: 22 files, 51 tests                                                            |
-| Focused unsaved-clinical-draft guard suite                                         | Passed: 1 file, 4 tests, including axe, save-before-navigation, discard, and unload  |
+| React unit/accessibility suite                                                     | Passed: 22 files, 52 tests                                                            |
+| Focused unsaved-clinical-draft guard suite                                         | Passed: 1 file, 5 tests, including axe, failure/retry, save ordering, discard, unload |
 | Focused longitudinal-record interface suite                                        | Passed: 1 file, 5 tests, including axe and filter/navigation coverage                 |
 | Focused local-interoperability interface suite                                     | Passed: 1 file, 2 tests, including axe and contained-JSON coverage                    |
 | Focused visit-termination interface suite                                          | Passed: 2 files, 5 tests, including open-dialog axe review                            |

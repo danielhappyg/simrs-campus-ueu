@@ -22,7 +22,7 @@ Persisting the draft automatically in browser storage would create a different r
    - `Simpan draf lalu keluar`; or
    - `Keluar tanpa perubahan lokal`.
 5. Do not intercept the form's own non-GET submission or link prefetch.
-6. On save-and-leave, submit the existing `SAVE_DRAFT` contract and replay the deferred destination only from the successful response callback. Validation or server failure keeps the user on the form.
+6. On save-and-leave, keep the dialog open in a disabled `Menyimpan draf…` state, submit the existing `SAVE_DRAFT` contract, and replay the deferred destination only from the successful response callback. Validation, HTTP, network, or cancelled-request failure keeps the user on the form, announces `Draf belum tersimpan`, and restores the same retry action without exposing field content.
 7. On explicit discard, abandon only the local unsaved delta. Never delete or overwrite the last server-saved immutable version.
 8. Register the native `beforeunload` boundary only while dirty, covering refresh, tab close, and external navigation. Remove both browser and Inertia listeners on clean-state unmount.
 9. Store no clinical draft in local storage, session storage, URL state, or warning-dialog state. The dialog holds only the deferred visit metadata and a generic form label.
@@ -32,13 +32,14 @@ Persisting the draft automatically in browser storage would create a different r
 
 - Users receive an early visible dirty-state signal and must make a deliberate choice before ordinary in-app navigation.
 - The existing versioned server remains the only durable draft store.
+- A failed draft request remains visibly recoverable in the same encounter and cannot accidentally trigger discard or navigation while it is in flight.
 - Save-and-leave may create an additional immutable draft version, which is truthful and attributable.
 - Forms without a safe server-side draft contract do not receive a fake save option; they require a separate workflow decision if later classified as long-form authoring.
 - Native browser unload text is controlled by the browser and cannot use the custom Indonesian copy.
 
 ## Verification
 
-The focused React/axe suite passes 4 tests covering the visible status, accessible modal, all three choices, save-before-navigation ordering, explicit discard, ignored `POST`/prefetch visits, native unload prevention, and listener cleanup. The complete React suite passes 22 files and 51 tests. TypeScript, ESLint, Prettier, and the production build verify all three form integrations. Bounded browser validation remains required before the reference gate is marked complete.
+The focused React/axe suite passes 5 tests covering the visible status, accessible modal, all three choices, save-before-navigation ordering, in-flight action locking, generic failure announcement, retry, explicit discard, ignored `POST`/prefetch visits, native unload prevention, and listener cleanup. The complete React suite passes 22 files and 52 tests. TypeScript, ESLint, Prettier, and the production build verify all three form integrations and validation/HTTP/network/cancellation callbacks. Bounded browser validation remains required before the reference gate is marked complete.
 
 ## Related records
 

@@ -171,11 +171,84 @@ describe('UnsavedChangesGuard', () => {
 
         expect(onSaveDraft).toHaveBeenCalledOnce();
         expect(inertia.visit).not.toHaveBeenCalled();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Menyimpan draf…' }),
+        ).toBeDisabled();
         act(() => continueAfterSave?.());
         expect(inertia.visit).toHaveBeenCalledWith(
             new URL('http://localhost/work'),
             expect.objectContaining({ method: 'get', data: {} }),
         );
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('keeps the encounter open, explains a failed save, and permits retry', async () => {
+        const listener = installBeforeListener();
+        const user = userEvent.setup();
+        let continueAfterSave: (() => void) | undefined;
+        let reportFailure: (() => void) | undefined;
+        const onSaveDraft = vi.fn(
+            (continueNavigation: () => void, handleFailure: () => void) => {
+                continueAfterSave = continueNavigation;
+                reportFailure = handleFailure;
+            },
+        );
+        const { container } = render(
+            <UnsavedChangesGuard
+                formLabel="asesmen medis"
+                processing={false}
+                onSaveDraft={onSaveDraft}
+            />,
+        );
+
+        act(() => {
+            listener.handler({ detail: { visit: pendingVisit() } });
+        });
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Simpan draf lalu keluar',
+            }),
+        );
+
+        expect(
+            screen.getByRole('button', { name: 'Menyimpan draf…' }),
+        ).toBeDisabled();
+        expect(
+            screen.getByRole('button', { name: 'Tetap di halaman' }),
+        ).toBeDisabled();
+        expect(
+            screen.getByRole('button', {
+                name: 'Keluar tanpa perubahan lokal',
+            }),
+        ).toBeDisabled();
+
+        act(() => reportFailure?.());
+
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Draf belum tersimpan',
+        );
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Anda tetap berada di encounter ini',
+        );
+        expect(inertia.visit).not.toHaveBeenCalled();
+        expect(
+            screen.getByRole('button', {
+                name: 'Simpan draf lalu keluar',
+            }),
+        ).toBeEnabled();
+
+        const result = await axe.run(container);
+        expect(result.violations).toHaveLength(0);
+
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Simpan draf lalu keluar',
+            }),
+        );
+        expect(onSaveDraft).toHaveBeenCalledTimes(2);
+        act(() => continueAfterSave?.());
+        expect(inertia.visit).toHaveBeenCalledOnce();
     });
 
     it('requires an explicit discard and ignores submissions or prefetches', async () => {
