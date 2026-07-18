@@ -12,8 +12,8 @@
 ## Tasks
 
 1. Implement one accessible shared guard with a persistent dirty-state marker, three explicit choices, and a generic same-encounter failure/retry state.
-2. Defer ordinary Inertia navigation and replay it only after successful save or explicit local discard.
-3. Add native unload protection while dirty and remove listeners on unmount.
+2. Defer ordinary Inertia navigation and marked in-session Back/Forward traversal, then replay the exact destination only after successful save or explicit local discard.
+3. Add position-only history metadata plus native unload protection while dirty, and remove dirty listeners on unmount without storing clinical content in browser state.
 4. Integrate the guard with the existing typed Inertia forms and draft intents.
 5. Add React/axe coverage for interaction, ordering, unload, and cleanup.
 6. Update ADR, interaction, traceability, UAT, validation, and README evidence.

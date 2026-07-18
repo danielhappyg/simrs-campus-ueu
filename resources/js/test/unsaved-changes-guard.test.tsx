@@ -9,10 +9,16 @@ const inertia = vi.hoisted(() => ({
     on: vi.fn(),
     visit: vi.fn(),
 }));
+const guardedHistory = vi.hoisted(() => ({
+    cancelHistoryTraversal: vi.fn(),
+    continueHistoryTraversal: vi.fn(),
+    registerDirtyHistoryGuard: vi.fn(),
+}));
 
 vi.mock('@inertiajs/react', () => ({
     router: inertia,
 }));
+vi.mock('@/lib/guarded-history', () => guardedHistory);
 
 type BeforeHandler = (event: {
     detail: { visit: PendingVisit };
@@ -79,10 +85,38 @@ function installBeforeListener() {
     };
 }
 
+function installHistoryGuard() {
+    let historyHandler:
+        | ((traversal: { fromPosition: number; toPosition: number }) => void)
+        | undefined;
+    const removeHistoryGuard = vi.fn();
+
+    guardedHistory.registerDirtyHistoryGuard.mockImplementation((handler) => {
+        historyHandler = handler;
+
+        return removeHistoryGuard;
+    });
+
+    return {
+        get handler() {
+            if (!historyHandler) {
+                throw new Error('The browser-history guard was not installed.');
+            }
+
+            return historyHandler;
+        },
+        removeHistoryGuard,
+    };
+}
+
 describe('UnsavedChangesGuard', () => {
     beforeEach(() => {
         inertia.on.mockReset();
         inertia.visit.mockReset();
+        guardedHistory.cancelHistoryTraversal.mockReset();
+        guardedHistory.continueHistoryTraversal.mockReset();
+        guardedHistory.registerDirtyHistoryGuard.mockReset();
+        guardedHistory.registerDirtyHistoryGuard.mockReturnValue(vi.fn());
     });
 
     it('announces dirty state and presents three accessible, explicit choices', async () => {
@@ -290,8 +324,81 @@ describe('UnsavedChangesGuard', () => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
+    it('uses the same explicit boundary for browser Back and Forward', async () => {
+        installBeforeListener();
+        const history = installHistoryGuard();
+        const user = userEvent.setup();
+        const traversal = { fromPosition: 4, toPosition: 2 };
+
+        render(
+            <UnsavedChangesGuard
+                formLabel="asesmen medis"
+                processing={false}
+                onSaveDraft={vi.fn()}
+            />,
+        );
+
+        act(() => history.handler(traversal));
+        expect(
+            screen.getByRole('dialog', {
+                name: 'Perubahan belum disimpan',
+            }),
+        ).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Tetap di halaman' }),
+        );
+        expect(guardedHistory.cancelHistoryTraversal).toHaveBeenCalledWith(
+            traversal,
+        );
+        expect(guardedHistory.continueHistoryTraversal).not.toHaveBeenCalled();
+
+        act(() => history.handler(traversal));
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Keluar tanpa perubahan lokal',
+            }),
+        );
+        expect(guardedHistory.continueHistoryTraversal).toHaveBeenCalledWith(
+            traversal,
+        );
+        expect(inertia.visit).not.toHaveBeenCalled();
+    });
+
+    it('saves a draft before replaying browser history traversal', async () => {
+        installBeforeListener();
+        const history = installHistoryGuard();
+        const user = userEvent.setup();
+        const traversal = { fromPosition: 3, toPosition: 4 };
+        let continueAfterSave: (() => void) | undefined;
+
+        render(
+            <UnsavedChangesGuard
+                formLabel="penutupan encounter"
+                processing={false}
+                onSaveDraft={(continueNavigation) => {
+                    continueAfterSave = continueNavigation;
+                }}
+            />,
+        );
+
+        act(() => history.handler(traversal));
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Simpan draf lalu keluar',
+            }),
+        );
+        expect(guardedHistory.continueHistoryTraversal).not.toHaveBeenCalled();
+
+        act(() => continueAfterSave?.());
+        expect(guardedHistory.continueHistoryTraversal).toHaveBeenCalledWith(
+            traversal,
+        );
+    });
+
     it('uses the native unload boundary only while the dirty guard is mounted', () => {
         const listener = installBeforeListener();
+        const history = installHistoryGuard();
         const { unmount } = render(
             <UnsavedChangesGuard
                 formLabel="asesmen medis"
@@ -314,5 +421,6 @@ describe('UnsavedChangesGuard', () => {
         expect(cleanUnload.defaultPrevented).toBe(false);
 
         expect(listener.removeListener).toHaveBeenCalled();
+        expect(history.removeHistoryGuard).toHaveBeenCalled();
     });
 });

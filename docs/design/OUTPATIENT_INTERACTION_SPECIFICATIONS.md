@@ -154,13 +154,14 @@ The versioned nursing-intake, medical-assessment, and encounter-closure authorin
 
 - shows `Perubahan belum disimpan` without copying the clinical content into the warning;
 - intercepts ordinary Inertia `GET` navigation but never the form's own `POST` submission or a link prefetch;
+- intercepts marked in-session browser Back/Forward before Inertia replaces the page, restores the current history entry, and holds only the target history position until the user decides;
 - exposes the three named choices above in an accessible modal;
 - replays the deferred destination only after the draft save succeeds, or after the user explicitly discards only the local unsaved delta;
 - keeps the last server-saved version unchanged when the user discards local changes;
 - uses the browser's native unload boundary for refresh, tab close, or external navigation; and
 - persists no clinical draft in local/session storage.
 
-A draft save keeps the guard open in a disabled `Menyimpan draf…` state until the request resolves. Validation, HTTP, network, or cancelled-request failure leaves the user on the same encounter form, announces `Draf belum tersimpan` without copying field content, restores `Simpan draf lalu keluar` for retry, and does not continue navigation. Browser-history traversal and stale-session recovery remain manual-validation items before faculty pilot; no cross-encounter draft recovery is claimed.
+A draft save keeps the guard open in a disabled `Menyimpan draf…` state until the request resolves. Validation, HTTP, network, or cancelled-request failure leaves the user on the same encounter form, announces `Draf belum tersimpan` without copying field content, restores `Simpan draf lalu keluar` for retry, and does not continue navigation. In-session history entries carry only an integer position—never form content—and Back/Forward replays the exact held target after successful save or explicit discard. Stale-session reauthentication/revalidation and live browser rehearsal remain open before faculty pilot; no cross-encounter draft recovery is claimed.
 
 ### Acting-role change
 

@@ -11,6 +11,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    cancelHistoryTraversal,
+    continueHistoryTraversal,
+    registerDirtyHistoryGuard,
+} from '@/lib/guarded-history';
+import type { PendingHistoryTraversal } from '@/lib/guarded-history';
 
 type UnsavedChangesGuardProps = {
     formLabel: string;
@@ -27,6 +33,8 @@ export function UnsavedChangesGuard({
     onSaveDraft,
 }: UnsavedChangesGuardProps) {
     const [pendingVisit, setPendingVisit] = useState<PendingVisit | null>(null);
+    const [pendingHistoryTraversal, setPendingHistoryTraversal] =
+        useState<PendingHistoryTraversal | null>(null);
     const [open, setOpen] = useState(false);
     const [savingDraft, setSavingDraft] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -34,45 +42,59 @@ export function UnsavedChangesGuard({
     const busy = processing || savingDraft;
 
     const continueNavigation = useCallback(() => {
-        if (!pendingVisit) {
+        if (!pendingVisit && !pendingHistoryTraversal) {
             return;
         }
 
-        const visit = pendingVisit;
-        bypassNextVisit.current = true;
         setSavingDraft(false);
         setSaveError(null);
         setPendingVisit(null);
+        setPendingHistoryTraversal(null);
         setOpen(false);
-        router.visit(visit.url, {
-            method: visit.method,
-            data: visit.data,
-            replace: visit.replace,
-            preserveScroll: visit.preserveScroll,
-            preserveState: visit.preserveState,
-            only: visit.only,
-            except: visit.except,
-            headers: visit.headers,
-            errorBag: visit.errorBag,
-            forceFormData: visit.forceFormData,
-            queryStringArrayFormat: visit.queryStringArrayFormat,
-            async: visit.async,
-            showProgress: visit.showProgress,
-            fresh: visit.fresh,
-            reset: visit.reset,
-            preserveUrl: visit.preserveUrl,
-            preserveErrors: visit.preserveErrors,
-            invalidateCacheTags: visit.invalidateCacheTags,
-            viewTransition: visit.viewTransition,
-        });
-    }, [pendingVisit]);
+
+        if (pendingHistoryTraversal) {
+            continueHistoryTraversal(pendingHistoryTraversal);
+
+            return;
+        }
+
+        if (pendingVisit) {
+            bypassNextVisit.current = true;
+            router.visit(pendingVisit.url, {
+                method: pendingVisit.method,
+                data: pendingVisit.data,
+                replace: pendingVisit.replace,
+                preserveScroll: pendingVisit.preserveScroll,
+                preserveState: pendingVisit.preserveState,
+                only: pendingVisit.only,
+                except: pendingVisit.except,
+                headers: pendingVisit.headers,
+                errorBag: pendingVisit.errorBag,
+                forceFormData: pendingVisit.forceFormData,
+                queryStringArrayFormat: pendingVisit.queryStringArrayFormat,
+                async: pendingVisit.async,
+                showProgress: pendingVisit.showProgress,
+                fresh: pendingVisit.fresh,
+                reset: pendingVisit.reset,
+                preserveUrl: pendingVisit.preserveUrl,
+                preserveErrors: pendingVisit.preserveErrors,
+                invalidateCacheTags: pendingVisit.invalidateCacheTags,
+                viewTransition: pendingVisit.viewTransition,
+            });
+        }
+    }, [pendingHistoryTraversal, pendingVisit]);
 
     const stayOnPage = useCallback(() => {
+        if (pendingHistoryTraversal) {
+            cancelHistoryTraversal(pendingHistoryTraversal);
+        }
+
         setSavingDraft(false);
         setSaveError(null);
         setPendingVisit(null);
+        setPendingHistoryTraversal(null);
         setOpen(false);
-    }, []);
+    }, [pendingHistoryTraversal]);
 
     const reportSaveFailure = useCallback(() => {
         setSavingDraft(false);
@@ -102,6 +124,13 @@ export function UnsavedChangesGuard({
 
             return false;
         });
+        const removeHistoryGuard = registerDirtyHistoryGuard((traversal) => {
+            setSavingDraft(false);
+            setSaveError(null);
+            setPendingVisit(null);
+            setPendingHistoryTraversal(traversal);
+            setOpen(true);
+        });
         const handleBeforeUnload = (event: BeforeUnloadEvent) => {
             event.preventDefault();
             event.returnValue = '';
@@ -111,6 +140,7 @@ export function UnsavedChangesGuard({
 
         return () => {
             removeBeforeListener();
+            removeHistoryGuard();
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, []);

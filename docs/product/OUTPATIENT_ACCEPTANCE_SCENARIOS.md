@@ -478,6 +478,7 @@ The acceptance suite creates:
 **Given** a long clinical form with unsaved changes
 **When** the user navigates, changes patient, loses a validation round, or the session becomes stale
 **Then** the system warns/preserves the draft as designed
+**And** in-session browser Back/Forward restores the dirty form and requires the same explicit stay, save-draft-then-leave, or discard-local-delta decision before replaying the exact target
 **And** never attaches it to a different encounter
 **And** server errors do not erase already acknowledged saved sections.
 

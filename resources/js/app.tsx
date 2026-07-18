@@ -9,8 +9,11 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { installGuardedHistory } from '@/lib/guarded-history';
 
 const appName = import.meta.env.VITE_APP_NAME || 'SIMRS Campus UEU';
+
+installGuardedHistory();
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
