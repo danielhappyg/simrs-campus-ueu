@@ -165,6 +165,7 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [Hostinger staging preflight](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md)
 - [Release candidate artifact](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md)
 - [Checkpoint 2 outpatient UAT facilitator guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
+- [Checkpoint 2 outpatient UAT record template](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md)
 - [GitHub publication checklist](docs/operations/GITHUB_PUBLICATION_CHECKLIST.md)
 - [UEU Clinical design system](docs/design/UEU_CLINICAL_DESIGN_SYSTEM.md)
 - [Information architecture](docs/design/INFORMATION_ARCHITECTURE.md)

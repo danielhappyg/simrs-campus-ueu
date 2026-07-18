@@ -36,7 +36,7 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 | Accounts             | Ten administrator-provisioned demo accounts available; password distributed separately        |
 | Browser              | Supported current desktop browser at 1280×720 or wider; 100% zoom                             |
 | Recovery             | Snapshot/backup or disposable reset procedure confirmed before starting                       |
-| Evidence capture     | This guide plus an issue log identified by scenario and step                                  |
+| Evidence capture     | This guide plus a dated copy of the [UAT record template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md) |
 | Limitations          | Participants briefed on all items in section 11                                               |
 
 Do not use `migrate:fresh` against shared or retained data. Do not enable the demo seeder to repair an existing environment.
@@ -293,6 +293,8 @@ For both exercises, record the local decision on responsibility and timing (`VAL
 
 ## 8. Structured issue record
 
+Use a dated copy of the [Outpatient Checkpoint 2 UAT Record Template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md). The blank template defaults every scenario to `NOT RUN`, every issue to `NOT CLASSIFIED`, and every Daniel decision to `NOT DECIDED`; the template itself is never evidence or acceptance.
+
 Capture one record per observed issue:
 
 | Field                   | Required content                                                                                   |
@@ -326,6 +328,8 @@ Daniel records the final classification. A stakeholder suggestion does not autom
 
 ## 10. Exit record
 
+Complete the exit section in the same dated [UAT record](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md); do not create a disconnected meeting summary that cannot be traced to scenario and issue IDs.
+
 At the end, record:
 
 - build/commit candidate and environment;
@@ -358,6 +362,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 
 ## 12. Related contracts
 
+- [Checkpoint 2 UAT Record Template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md)
 - [Outpatient Acceptance Scenarios](../product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
 - [Assumption and Validation Register](../product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
 - [Outpatient Role Matrix](../product/OUTPATIENT_ROLE_MATRIX.md)

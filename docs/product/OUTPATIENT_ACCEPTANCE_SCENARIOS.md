@@ -513,7 +513,7 @@ The acceptance suite creates:
 
 - Daniel accepts the reference journey and known-assumption list;
 - all P0 assumptions needed for the UAT case have a safe configured position;
-- the [Checkpoint 2 UAT facilitator guide](../operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md) and role accounts are available;
+- the [Checkpoint 2 UAT facilitator guide](../operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md), [blank UAT record template](../operations/OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md), and role accounts are available;
 - participants can complete one shared case without developer database edits;
 - feedback is captured against scenario IDs, not as an unbounded menu wish list.
 

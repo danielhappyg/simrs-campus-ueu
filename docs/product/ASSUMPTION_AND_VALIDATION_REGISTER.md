@@ -126,7 +126,7 @@ Output: corrections classified as must-change-before-build, must-change-before-p
 
 Participants complete the same synthetic case in assigned roles. Collect only evidence tied to failed scenarios, unsafe ambiguity, missing data, role violations, or learning-outcome gaps. Daniel decides the corrective scope.
 
-Use the [Outpatient Checkpoint 2 UAT Facilitator Guide](../operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md) to preserve the synthetic-data boundary, role sequence, separate correction fixtures, structured issue record, and Daniel's decision classifications.
+Use the [Outpatient Checkpoint 2 UAT Facilitator Guide](../operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md) and a dated copy of its [UAT Record Template](../operations/OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md) to preserve the synthetic-data boundary, role sequence, separate correction fixtures, structured issue record, unresolved-risk ownership, and Daniel's decision classifications. The blank template is not evidence or acceptance.
 
 ### Checkpoint 3 — pilot readiness
 
