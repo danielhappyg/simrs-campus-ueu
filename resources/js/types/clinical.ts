@@ -870,3 +870,64 @@ export type OutpatientSafetyDispositionWorkspaceProps = {
         workQueue: string;
     };
 };
+
+export type OutpatientEarlyDepartureSource = {
+    documentType: 'NURSING_INTAKE' | 'MEDICAL_ASSESSMENT';
+    entryPublicId: string;
+    versionPublicId: string;
+    versionNumber: number;
+    status: string;
+    contentHash: string;
+};
+
+export type OutpatientEarlyDepartureWorkspaceProps = {
+    boundary: {
+        classification: string;
+        clinicalRecommendation: false;
+        automaticFinalization: false;
+    };
+    encounter: EncounterContext & {
+        periodEnd: string | null;
+    };
+    patient: PatientContext;
+    session: {
+        code: string;
+        scenarioTitle: string;
+    };
+    source: {
+        encounterStatus: CodedStatus;
+        clinicalSources: OutpatientEarlyDepartureSource[];
+        snapshotHash: string | null;
+    };
+    authorization: {
+        assignmentPublicId: string;
+        role: string;
+        canRecord: boolean;
+    };
+    departure: {
+        publicId: string;
+        outcome: CodedStatus & {
+            code: 'PATIENT_REQUESTED_DEPARTURE';
+            interoperabilityCode: 'aadvice';
+        };
+        statedReason: string;
+        communicationSummary: string;
+        actor: string;
+        role: string;
+        occurredAt: string;
+        sourceSnapshotHash: string;
+    } | null;
+    form: {
+        requestKey: string | null;
+        outcome: CodedStatus & {
+            code: 'PATIENT_REQUESTED_DEPARTURE';
+            interoperabilityCode: 'aadvice';
+        };
+    };
+    urls: {
+        store: string;
+        encounter: string;
+        timeline: string;
+        workQueue: string;
+    };
+};

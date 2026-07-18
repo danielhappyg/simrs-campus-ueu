@@ -266,6 +266,7 @@ describe('Encounter record timeline', () => {
                     role: props.assignment.role,
                     canViewDebrief: false,
                     canViewReports: false,
+                    canRecordEarlyDeparture: false,
                 }}
                 session={{
                     publicId: props.session.publicId,
@@ -309,6 +310,7 @@ describe('Encounter record timeline', () => {
                     role: 'Petugas Registrasi Simulasi',
                     canViewDebrief: false,
                     canViewReports: false,
+                    canRecordEarlyDeparture: false,
                 }}
                 session={{
                     publicId: props.session.publicId,

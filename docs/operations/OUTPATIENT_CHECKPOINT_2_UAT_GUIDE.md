@@ -122,7 +122,7 @@ Actor: registration learner. Use a separate fresh disposable fixture whose persi
 5. Confirm no clinic-queue row was created, check-in remains absent, completed orientation evidence remains, and unfinished encounter work is cancelled.
 6. In a future-scheduled control fixture, confirm no-show is unavailable or rejected without mutation.
 
-Observe `E2E-06`, `AUD-01`, server-clock eligibility, and terminal-state immutability. Later clinical-stage termination is outside this exercise.
+Observe `E2E-06`, `AUD-01`, server-clock eligibility, and terminal-state immutability. Do not use cancellation/no-show after clinical service begins; that distinct case is exercised in UAT-02C.
 
 ### UAT-02 — nursing assessment and safety decision
 
@@ -147,6 +147,20 @@ Actor: linked nursing supervisor; the explicitly assigned session facilitator is
 6. Attempt a late or competing disposition and confirm rejection without overwriting the first decision or partially changing tasks/state.
 
 Discuss `VAL-A01`–`VAL-A04`: appropriateness of the question set, wording, authorized decision-maker, and allowed teaching dispositions. Passing this exercise does not approve an emergency workflow or clinical protocol.
+
+### UAT-02C — patient-requested departure after clinical service begins
+
+Actor: exact-case medical supervisor; the explicitly assigned session facilitator is the documented fallback. Use a separate disposable fixture because this action ends the routine case path.
+
+1. Check in the appointment and begin nursing or medical service so the encounter is in an eligible active clinical state. Preserve at least one current clinical source version.
+2. From the encounter overview, open **Catat pulang atas permintaan sendiri** and confirm the exact source encounter state plus current source IDs, versions, statuses, and hashes.
+3. Confirm the page permanently says simulation only, distinguishes this event from cancellation/no-show, provides no clinical verdict or “safe to leave” statement, leaves confirmation unchecked, and explains that closure/coding/finalization are not automatic.
+4. Explicitly confirm the event, enter the patient/representative-stated synthetic reason and a factual communication summary, then submit once.
+5. Confirm the result becomes read-only with actor, role, time, reason, communication summary, source status, and hashes. Confirm the longitudinal event excludes both protected text fields.
+6. Confirm encounter and appointment become `DEPARTED_ON_REQUEST`, check-in/prior completed work remain, active queue work ends, unfinished tasks cancel, and no closure, RMIK approval, coding assignment, final report, debrief release, or transmission is created.
+7. Attempt a competing request and direct access as registrar, learner, unrelated supervisor, or revoked assignment; confirm rejection without overwriting the first record or partially changing state.
+
+Discuss `VAL-A17`: whether the Indonesian vocabulary, authorized actors, form content, and future incomplete-record RMIK handling are pedagogically correct. Passing this exercise records feedback; it does not approve a clinical discharge protocol.
 
 ### UAT-03 — medical assessment, order, and prescription
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Encounter;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Services\AuditRecorder;
+use App\Modules\Clinical\Services\OutpatientEarlyDepartureService;
 use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Encounter\Models\EncounterTransition;
@@ -36,11 +37,15 @@ class EncounterOverviewController extends Controller
             'patient.identifiers',
             'location',
             'appointment',
+            'earlyDeparture',
             'queueEvents' => fn ($query) => $query->orderBy('started_at'),
             'transitions.actorAssignment.user',
         ]);
         $assignment = $this->assignmentResolver->forEncounter($user, $encounter, Capability::SessionView);
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $canRecordEarlyDeparture = $this->assignmentResolver->canRecordEarlyDeparture($user, $encounter)
+            && $encounter->earlyDeparture === null
+            && in_array($encounter->status, OutpatientEarlyDepartureService::ALLOWED_SOURCE_STATES, true);
 
         $this->auditRecorder->record(
             action: 'encounter.overview_viewed',
@@ -83,6 +88,7 @@ class EncounterOverviewController extends Controller
                     && $assignment->hasCapability(Capability::DebriefView),
                 'canViewReports' => $encounter->status === EncounterStatus::Finalized
                     && $assignment->hasCapability(Capability::ReportView),
+                'canRecordEarlyDeparture' => $canRecordEarlyDeparture,
             ],
             'session' => [
                 'publicId' => $encounter->session->public_id,
@@ -124,6 +130,9 @@ class EncounterOverviewController extends Controller
                 'interoperabilityPreview' => $encounter->status === EncounterStatus::Finalized
                     && $assignment->hasCapability(Capability::ReportView)
                     ? route('encounters.interoperability-preview.show', $encounter)
+                    : null,
+                'earlyDeparture' => $canRecordEarlyDeparture
+                    ? route('encounters.early-departure.show', $encounter)
                     : null,
             ],
         ]);

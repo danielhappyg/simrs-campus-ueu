@@ -8,6 +8,7 @@ enum AppointmentStatus: string
     case CheckedIn = 'CHECKED_IN';
     case Cancelled = 'CANCELLED';
     case NoShow = 'NO_SHOW';
+    case DepartedOnRequest = 'DEPARTED_ON_REQUEST';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum AppointmentStatus: string
             self::CheckedIn => 'Sudah check-in',
             self::Cancelled => 'Dibatalkan',
             self::NoShow => 'Tidak hadir',
+            self::DepartedOnRequest => 'Pulang atas permintaan sendiri',
         };
     }
 }

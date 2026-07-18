@@ -1,6 +1,6 @@
 # Outpatient Role and Permission Matrix
 
-- **Version:** 1.0 reference baseline
+- **Version:** 1.1 reference baseline
 - **Authorization posture:** server-enforced, contextual, least privilege
 - **Final product authority:** Daniel Happy Putra
 
@@ -38,14 +38,14 @@ A route hidden from navigation remains protected by the same back-end policy.
 | Role ID | Indonesian label       | Purpose                                                                                             | Default scope                                                         |
 | ------- | ---------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | PO      | Pemilik Produk / PIC   | Final scope, priority, acceptance, and release decisions.                                           | Project and release metadata; no automatic clinical-record privilege. |
-| FAC     | Fasilitator Simulasi   | Creates/starts sessions, assigns roles, injects case events, pauses/resets runs, and opens debrief. | Sessions explicitly facilitated.                                      |
+| FAC     | Fasilitator Simulasi   | Creates/starts sessions, assigns roles, injects case events, records bounded session-wide workflow events, pauses/resets runs, and opens debrief. | Sessions explicitly facilitated.                                      |
 | REG-L   | Peserta Registrasi     | Performs patient search, synthetic registration, appointment check-in, and queue placement.         | Assigned session, clinic, patient/encounter.                          |
 | NUR-L   | Mahasiswa Keperawatan  | Performs nursing intake and safety screen and submits a draft.                                      | Assigned encounter and enabled nursing task.                          |
 | MED-L   | Mahasiswa Kedokteran   | Performs medical assessment, diagnosis/plan, orders, prescription, and closure draft.               | Assigned encounter and enabled medical task.                          |
 | PHA-L   | Mahasiswa Farmasi      | Reviews prescription, records interventions, and performs simulated dispensing.                     | Assigned encounter/pharmacy queue and enabled task.                   |
 | RMIK-L  | Mahasiswa RMIK         | Reviews identity quality, completeness, assembly, and coding.                                       | Assigned record-review queue.                                         |
 | NUR-S   | Supervisor Keperawatan | Reviews, requests correction, and approves nursing learner work.                                    | Learners/sessions under supervision.                                  |
-| MED-S   | Supervisor Kedokteran  | Reviews medical work, responds to pharmacy intervention, and approves closure.                      | Learners/sessions under supervision.                                  |
+| MED-S   | Supervisor Kedokteran  | Reviews medical work, records bounded exact-case workflow events, responds to pharmacy intervention, and approves closure. | Learners/sessions under supervision.                                  |
 | PHA-S   | Supervisor Farmasi     | Reviews and approves pharmacy work according to scenario policy.                                    | Learners/sessions under supervision.                                  |
 | RMIK-S  | Supervisor RMIK        | Reviews identity/completeness/coding work and approves final record-quality outcome.                | Learners/sessions under supervision.                                  |
 | AUD     | Auditor Pembelajaran   | Reads assigned finalized event history and debrief evidence without editing it.                     | Explicitly granted sessions and minimum necessary content.            |
@@ -66,6 +66,7 @@ Legend: `D` create/edit own draft, `S` submit, `R` read when context allows, `A`
 | Check in and manage clinic queue            |   O |     O |     R |     R |     R |      R |                     R |   R |   — |
 | Record nursing intake/safety screen         |   — |     R |   D/S |     R |     R |      R |                  A/C² |   R |   — |
 | Record human safety disposition             |  O⁸ |     — |     — |     — |     — |      — |                    O⁸ |   R |   — |
+| Record patient-requested early departure     |  O⁹ |     — |     — |     — |     — |      — |                    O⁹ |   R |   — |
 | Record medical assessment/diagnosis/plan    |   — |     R |     R |   D/S |     R |      R |                  A/C² |   R |   — |
 | Create order/prescription draft             |   — |     — |     R |   D/S |     R |      R |                  A/C² |   R |   — |
 | Release synthetic result                    |  O³ |     — |     R |     R |     R |      R |                  A/C³ |   R |   — |
@@ -95,6 +96,7 @@ Notes:
 6. The reference profile grants `debrief.write` only to the facilitator. A supervisor can author only when a separate assignment explicitly grants the capability; viewing the note does not imply write authority.
 7. Report access requires the separate `report.view` capability, a finalized synthetic encounter, and an exact case assignment or deliberate session-wide facilitator assignment. Print access is not legal-document or disclosure authority.
 8. `safety-disposition.record` is limited to the linked exact-case nursing supervisor or an explicitly session-wide facilitator. It records workflow state only; it grants no emergency-triage, diagnosis, treatment, or real-transfer authority.
+9. `early-departure.record` is limited to the exact-case medical supervisor or explicitly session-wide facilitator. It records an attended patient-requested departure and source provenance only; it grants no safety verdict and cannot create closure, RMIK approval, coding, finalization, report, debrief release, or transmission.
 
 ## 5. Record-level rules
 
@@ -114,6 +116,7 @@ Notes:
 | POL-012 | No role can transmit to a production external endpoint in the MVP.                                                                                                                                        |
 | POL-013 | Debrief notes are shared, versioned teaching evidence. They cannot mutate clinical sources, create a hidden learner score, or become private surveillance notes in the reference profile.                 |
 | POL-014 | A finalized report is an on-demand projection from approved/current sources. It cannot create a divergent clinical source, expose raw audit internals, or imply a signed document or external submission. |
+| POL-015 | A patient-requested early departure is a distinct append-only terminal event after clinical service begins. It cannot be represented as cancellation/no-show or used to manufacture an approved or finalized chart. |
 
 ## 6. Separation of duties
 

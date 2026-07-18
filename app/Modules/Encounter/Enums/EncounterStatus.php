@@ -20,6 +20,7 @@ enum EncounterStatus: string
     case Cancelled = 'CANCELLED';
     case NoShow = 'NO_SHOW';
     case TransferredSimulation = 'TRANSFERRED_SIMULATION';
+    case DepartedOnRequest = 'DEPARTED_ON_REQUEST';
 
     /**
      * @return list<self>
@@ -29,19 +30,19 @@ enum EncounterStatus: string
         return match ($this) {
             self::Planned => [self::Arrived, self::Cancelled, self::NoShow],
             self::Arrived => [self::InIntake, self::Cancelled],
-            self::InIntake => [self::WaitingClinician, self::Escalated, self::Cancelled],
+            self::InIntake => [self::WaitingClinician, self::Escalated, self::Cancelled, self::DepartedOnRequest],
             self::Escalated => [self::WaitingClinician, self::TransferredSimulation, self::Cancelled],
-            self::WaitingClinician => [self::InConsultation, self::Cancelled],
-            self::InConsultation => [self::AwaitingResult, self::AwaitingPharmacy, self::ClosurePending],
-            self::AwaitingResult => [self::InConsultation, self::Cancelled],
-            self::AwaitingPharmacy => [self::InConsultation, self::ClosurePending, self::Cancelled],
-            self::ClosurePending => [self::ClinicallyClosed, self::InConsultation],
+            self::WaitingClinician => [self::InConsultation, self::Cancelled, self::DepartedOnRequest],
+            self::InConsultation => [self::AwaitingResult, self::AwaitingPharmacy, self::ClosurePending, self::DepartedOnRequest],
+            self::AwaitingResult => [self::InConsultation, self::Cancelled, self::DepartedOnRequest],
+            self::AwaitingPharmacy => [self::InConsultation, self::ClosurePending, self::Cancelled, self::DepartedOnRequest],
+            self::ClosurePending => [self::ClinicallyClosed, self::InConsultation, self::DepartedOnRequest],
             self::ClinicallyClosed => [self::RecordReview, self::AmendmentPending],
             self::RecordReview => [self::AmendmentPending, self::Finalized],
             self::AmendmentPending => [self::RecordReview],
             self::Finalized => [self::AmendmentPending],
             self::TransferredSimulation => [self::RecordReview],
-            self::Cancelled, self::NoShow => [],
+            self::Cancelled, self::NoShow, self::DepartedOnRequest => [],
         };
     }
 
@@ -69,6 +70,7 @@ enum EncounterStatus: string
             self::Cancelled => 'Dibatalkan',
             self::NoShow => 'Tidak hadir',
             self::TransferredSimulation => 'Dialihkan dalam simulasi',
+            self::DepartedOnRequest => 'Pulang atas permintaan sendiri',
         };
     }
 }

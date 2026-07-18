@@ -130,6 +130,7 @@ class DemoSimulationSeeder extends Seeder
                 Capability::SessionView,
                 Capability::SessionFacilitate,
                 Capability::SafetyDispositionRecord,
+                Capability::EarlyDepartureRecord,
                 Capability::TerminologyManage,
                 Capability::DebriefView,
                 Capability::DebriefWrite,
@@ -209,6 +210,7 @@ class DemoSimulationSeeder extends Seeder
             capabilities: [
                 Capability::SessionView,
                 Capability::SupervisionReview,
+                Capability::EarlyDepartureRecord,
                 Capability::DebriefView,
                 Capability::ReportView,
             ],

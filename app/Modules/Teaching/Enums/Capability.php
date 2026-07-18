@@ -18,6 +18,7 @@ enum Capability: string
     case TerminologyManage = 'terminology.manage';
     case SupervisionReview = 'supervision.review';
     case SafetyDispositionRecord = 'safety-disposition.record';
+    case EarlyDepartureRecord = 'early-departure.record';
     case DebriefView = 'debrief.view';
     case DebriefWrite = 'debrief.write';
     case ReportView = 'report.view';
@@ -40,6 +41,7 @@ enum Capability: string
             self::TerminologyManage => 'Mengelola release terminologi',
             self::SupervisionReview => 'Melakukan tinjauan supervisor',
             self::SafetyDispositionRecord => 'Mencatat keputusan eskalasi simulasi',
+            self::EarlyDepartureRecord => 'Mencatat pulang atas permintaan sendiri',
             self::DebriefView => 'Melihat debrief',
             self::DebriefWrite => 'Menulis catatan debrief bersama',
             self::ReportView => 'Melihat laporan simulasi final',

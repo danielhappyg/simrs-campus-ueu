@@ -88,6 +88,15 @@ The acceptance suite creates:
 **And** completed records and queue events remain attributable
 **And** no ordinary user can hard-delete the encounter.
 
+### E2E-07 — record patient-requested departure after clinical service begins
+
+**Given** a checked-in encounter in an eligible active clinical state with current source versions
+**When** the exact medical supervisor or session facilitator explicitly confirms `Pulang atas permintaan sendiri`, records the stated reason and factual communication summary, and submits one idempotent request
+**Then** an append-only departure binds the actor, assignment, source encounter state, current source public IDs, versions, statuses, hashes, and server time
+**And** the encounter and appointment reach `DEPARTED_ON_REQUEST`, active queue work ends, and unfinished tasks are cancelled without erasing completed work
+**And** a competing request, stale or invented source, wrong role/context, revoked assignment, or ineligible source state is rejected transactionally
+**And** the interface provides no safety verdict, treatment recommendation, routine closure, RMIK approval, coding assignment, finalization, report, debrief release, or transmission.
+
 ### E2E-11 — assemble the longitudinal record from source entries
 
 **Given** multiple nursing, medical, pharmacy, result, review, and RMIK events with differing clinical and recorded times

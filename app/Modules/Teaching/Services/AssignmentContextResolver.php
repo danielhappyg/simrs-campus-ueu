@@ -61,6 +61,30 @@ class AssignmentContextResolver
         return $assignment;
     }
 
+    public function forEarlyDeparture(User $user, Encounter $encounter): Assignment
+    {
+        $this->assertUsableSession($encounter->session);
+
+        $assignment = $this->earlyDepartureAssignment($user, $encounter);
+
+        if (! $assignment) {
+            throw new AuthorizationException('The active assignment does not permit early-departure recording for this encounter.');
+        }
+
+        return $assignment;
+    }
+
+    public function canRecordEarlyDeparture(User $user, Encounter $encounter): bool
+    {
+        try {
+            $this->assertUsableSession($encounter->session);
+        } catch (AuthorizationException) {
+            return false;
+        }
+
+        return $this->earlyDepartureAssignment($user, $encounter) instanceof Assignment;
+    }
+
     public function forDebrief(User $user, Encounter $encounter): Assignment
     {
         $session = $encounter->session;
@@ -235,6 +259,25 @@ class AssignmentContextResolver
                     && $assignment->hasCapability(Capability::SessionFacilitate);
 
                 return $matchesCase || $sessionWideFacilitator;
+            });
+    }
+
+    private function earlyDepartureAssignment(User $user, Encounter $encounter): ?Assignment
+    {
+        return $this->activeAssignments($user, $encounter->session)
+            ->first(function (Assignment $assignment) use ($encounter): bool {
+                if (! $assignment->hasCapability(Capability::EarlyDepartureRecord)) {
+                    return false;
+                }
+
+                $matchesCaseSupervisor = $assignment->patient_id === $encounter->patient_id
+                    && $assignment->encounter_id === $encounter->getKey()
+                    && $assignment->hasCapability(Capability::SupervisionReview);
+                $sessionWideFacilitator = $assignment->patient_id === null
+                    && $assignment->encounter_id === null
+                    && $assignment->hasCapability(Capability::SessionFacilitate);
+
+                return $matchesCaseSupervisor || $sessionWideFacilitator;
             });
     }
 

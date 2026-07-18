@@ -9,6 +9,7 @@ import {
     FileText,
     History,
     ListChecks,
+    LogOut,
     MapPin,
     Network,
     ShieldCheck,
@@ -29,6 +30,7 @@ type Props = {
         role: string;
         canViewDebrief: boolean;
         canViewReports: boolean;
+        canRecordEarlyDeparture: boolean;
     };
     session: {
         publicId: string;
@@ -63,6 +65,7 @@ type Props = {
         outpatientSummaryReport: string;
         debriefEvidenceReport: string;
         interoperabilityPreview?: string | null;
+        earlyDeparture?: string | null;
     };
 };
 
@@ -125,6 +128,22 @@ export default function EncounterOverview({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        {assignment.canRecordEarlyDeparture &&
+                            urls.earlyDeparture && (
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="min-h-11 border-orange-300 text-[#8a3b0f] hover:bg-orange-50 hover:text-[#733315]"
+                                >
+                                    <Link href={urls.earlyDeparture}>
+                                        <LogOut
+                                            className="size-4"
+                                            aria-hidden="true"
+                                        />
+                                        Catat pulang atas permintaan sendiri
+                                    </Link>
+                                </Button>
+                            )}
                         {urls.timeline && (
                             <Button asChild variant="outline">
                                 <Link href={urls.timeline}>

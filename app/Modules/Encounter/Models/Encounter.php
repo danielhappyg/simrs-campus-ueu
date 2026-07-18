@@ -3,6 +3,7 @@
 namespace App\Modules\Encounter\Models;
 
 use App\Modules\Clinical\Models\ClinicalEntry;
+use App\Modules\Clinical\Models\OutpatientEarlyDeparture;
 use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Patient\Models\AppointmentRegistration;
 use App\Modules\Patient\Models\SyntheticPatient;
@@ -16,6 +17,7 @@ use DomainException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -174,6 +176,12 @@ class Encounter extends Model
     public function clinicalEntries(): HasMany
     {
         return $this->hasMany(ClinicalEntry::class, 'encounter_id');
+    }
+
+    /** @return HasOne<OutpatientEarlyDeparture, $this> */
+    public function earlyDeparture(): HasOne
+    {
+        return $this->hasOne(OutpatientEarlyDeparture::class, 'encounter_id');
     }
 
     protected function casts(): array

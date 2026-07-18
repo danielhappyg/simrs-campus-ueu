@@ -93,7 +93,12 @@ class EncounterTransitionService
                 $locked->finalized_at = now();
             }
 
-            if (in_array($target, [EncounterStatus::Cancelled, EncounterStatus::NoShow, EncounterStatus::Finalized], true)) {
+            if (in_array($target, [
+                EncounterStatus::Cancelled,
+                EncounterStatus::NoShow,
+                EncounterStatus::Finalized,
+                EncounterStatus::DepartedOnRequest,
+            ], true)) {
                 $locked->period_end ??= now();
             }
 
@@ -150,6 +155,7 @@ class EncounterTransitionService
             EncounterStatus::Cancelled,
             EncounterStatus::NoShow => [Capability::PatientRegister, Capability::SessionFacilitate],
             EncounterStatus::TransferredSimulation => [Capability::SupervisionReview, Capability::SessionFacilitate],
+            EncounterStatus::DepartedOnRequest => [Capability::EarlyDepartureRecord],
             EncounterStatus::Planned => [Capability::SessionFacilitate],
         };
     }

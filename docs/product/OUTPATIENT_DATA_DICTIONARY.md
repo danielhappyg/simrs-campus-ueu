@@ -1,6 +1,6 @@
 # Outpatient Data Dictionary
 
-- **Version:** 1.2 reference baseline
+- **Version:** 1.3 reference baseline
 - **Scope:** Minimum canonical data for the outpatient teaching-reference MVP
 - **Data mode:** generated synthetic data only
 - **Modeling rule:** purposeful relational domain model with versioned FHIR-aligned mappings at the integration boundary
@@ -30,6 +30,7 @@ erDiagram
     SYNTHETIC_PATIENT ||--o{ PATIENT_IDENTIFIER : has
     SYNTHETIC_PATIENT ||--o{ ENCOUNTER : attends
     ENCOUNTER ||--o{ QUEUE_EVENT : progresses
+    ENCOUNTER ||--o| OUTPATIENT_EARLY_DEPARTURE : records
     ENCOUNTER ||--o{ CLINICAL_ENTRY : contains
     CLINICAL_ENTRY ||--o{ CLINICAL_ENTRY_VERSION : versions
     CLINICAL_ENTRY_VERSION ||--o{ REVIEW_ACTION : reviewed_by
@@ -139,7 +140,7 @@ Minimum fields:
 - registration author and time;
 - identity-verification method used in the exercise;
 - consent/teaching acknowledgement version and time;
-- status: `BOOKED`, `CHECKED_IN`, `CANCELLED`, `NO_SHOW`;
+- status: `BOOKED`, `CHECKED_IN`, `CANCELLED`, `NO_SHOW`, `DEPARTED_ON_REQUEST`;
 - duplicate-search decision and reason when a candidate was presented.
 
 ### 4.2 `encounter`
@@ -153,7 +154,7 @@ Minimum fields:
 | `class`                                                        | coded enum  |         yes | `AMBULATORY` for this slice.                                 |
 | `service_type`                                                 | coded value |         yes | Outpatient service/clinic.                                   |
 | `location_id`                                                  | ID          |         yes | Current/primary location. Location history is separate.      |
-| `status`                                                       | enum        |         yes | State model from the service blueprint.                      |
+| `status`                                                       | enum        |         yes | State model from the service blueprint, including terminal `DEPARTED_ON_REQUEST` after an attended early departure. |
 | `period_start`, `period_end`                                   | instant     | conditional | Actual visit period.                                         |
 | `care_team`                                                    | relations   |         yes | Assigned learners/supervisors and configured teaching roles. |
 | `disposition`                                                  | coded value | conditional | Scenario-configured leaving/transfer/follow-up disposition.  |
@@ -180,6 +181,25 @@ Store one append-only human workflow decision for an escalated synthetic encount
 | `occurred_at`                               | instant     |      yes | Server-recorded decision time.                                                              |
 
 The record cannot be updated or deleted. The source, actor, outcome, rationale, and time remain separate from the encounter state transition and are shown read-only after recording.
+
+### 4.5 `outpatient_early_departure`
+
+Store one append-only human record when a checked-in synthetic patient requests to leave after clinical service begins but before routine clinical closure:
+
+| Field                                 | Type                  | Required | Definition                                                                                                      |
+| ------------------------------------- | --------------------- | -------: | --------------------------------------------------------------------------------------------------------------- |
+| `public_id`, `request_key`             | opaque ULID           |      yes | Public evidence identity and idempotency key.                                                                  |
+| `session_id`, `patient_id`, `encounter_id` | ID               |      yes | Exact simulation and case context; encounter is unique in this table.                                          |
+| `actor_user_id`, `actor_assignment_id` | ID                   |      yes | Exact medical supervisor or session facilitator and acting context.                                            |
+| `outcome`                              | enum                  |      yes | `PATIENT_REQUESTED_DEPARTURE`; interoperability mapping is `aadvice`, with no transmission claim.              |
+| `source_encounter_status`              | encounter-state enum  |      yes | Eligible pre-departure clinical state captured before transition.                                              |
+| `source_snapshot`                      | minimized JSON        |      yes | Current nursing/medical public IDs, version numbers, statuses, and hashes; clinical text is not copied.         |
+| `source_snapshot_hash`                 | SHA-256               |      yes | Canonical integrity hash of the exact minimized snapshot.                                                      |
+| `stated_reason`                        | protected text        |      yes | Patient/representative-stated reason, 10–1000 characters, excluded from generalized audit/timeline metadata.   |
+| `communication_summary`                | protected text        |      yes | Factual human-authored summary, 10–2000 characters, with no system-generated clinical verdict.                 |
+| `occurred_at`                          | instant               |      yes | Server-recorded event time.                                                                                    |
+
+Recording is transactional: encounter and appointment become terminal `DEPARTED_ON_REQUEST`, active queue work completes, and unfinished tasks are cancelled while completed history remains. This state is deliberately not `CANCELLED`, `NO_SHOW`, routine clinical closure, transfer, or `FINALIZED`; it creates no RMIK approval, coding assignment, report, debrief release, or transmission.
 
 ## 5. Clinical documentation and provenance
 

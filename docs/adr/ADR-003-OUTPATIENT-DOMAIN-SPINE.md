@@ -61,7 +61,7 @@ Implement the first outpatient increment as a shared domain spine with these bou
 - Registration currently captures the minimum identity slice; configured social/demographic extensions remain incomplete.
 - Allergy content is deliberately shown as not yet assessed until the nursing increment supplies versioned source data.
 - Registrar cancellation is implemented only from coherent `PLANNED` or `ARRIVED` registration states, and overdue no-show is implemented only from `PLANNED`; both preserve completed history and append attributed terminal provenance.
-- Queue calling, service start, queue completion, later clinical-stage termination, and later encounter stages remain outside this bounded increment.
+- Queue calling, service start, and later encounter stages remain outside this bounded registration increment. ADR-009 separately defines the implemented patient-requested early-departure branch after clinical service begins; it is terminal but does not create routine closure or finalization, and its wider vocabulary/incomplete-record policy remains pending.
 - Application model guards do not replace least-privilege database credentials or future tamper-evident audit storage.
 - No current code or screen is approved for real-patient care.
 

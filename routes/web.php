@@ -5,6 +5,7 @@ use App\Http\Controllers\Clinical\EncounterClosureWorkspaceController;
 use App\Http\Controllers\Clinical\MedicalAssessmentWorkspaceController;
 use App\Http\Controllers\Clinical\NursingIntakeWorkspaceController;
 use App\Http\Controllers\Clinical\OrderResultWorkspaceController;
+use App\Http\Controllers\Clinical\OutpatientEarlyDepartureWorkspaceController;
 use App\Http\Controllers\Clinical\OutpatientSafetyDispositionWorkspaceController;
 use App\Http\Controllers\Clinical\PharmacyWorkspaceController;
 use App\Http\Controllers\Clinical\StoreClinicalReviewDecisionController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Clinical\StoreEncounterClosureVersionController;
 use App\Http\Controllers\Clinical\StoreMedicalAssessmentVersionController;
 use App\Http\Controllers\Clinical\StoreMedicationDispenseController;
 use App\Http\Controllers\Clinical\StoreNursingIntakeVersionController;
+use App\Http\Controllers\Clinical\StoreOutpatientEarlyDepartureController;
 use App\Http\Controllers\Clinical\StoreOutpatientSafetyDispositionController;
 use App\Http\Controllers\Clinical\StorePharmacyInterventionResponseController;
 use App\Http\Controllers\Clinical\StorePharmacyReviewController;
@@ -84,6 +86,10 @@ Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(f
         ->name('encounters.safety-disposition.show');
     Route::post('encounters/{encounter}/safety-disposition', StoreOutpatientSafetyDispositionController::class)
         ->name('encounters.safety-disposition.store');
+    Route::get('encounters/{encounter}/early-departure', OutpatientEarlyDepartureWorkspaceController::class)
+        ->name('encounters.early-departure.show');
+    Route::post('encounters/{encounter}/early-departure', StoreOutpatientEarlyDepartureController::class)
+        ->name('encounters.early-departure.store');
     Route::get('encounters/{encounter}/medical-assessment', MedicalAssessmentWorkspaceController::class)
         ->name('encounters.medical-assessment.show');
     Route::post('encounters/{encounter}/medical-assessment/versions', StoreMedicalAssessmentVersionController::class)
