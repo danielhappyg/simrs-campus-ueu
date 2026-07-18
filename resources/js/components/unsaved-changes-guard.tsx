@@ -2,6 +2,7 @@ import type { PendingVisit } from '@inertiajs/core';
 import { router } from '@inertiajs/react';
 import { AlertTriangle, FileCheck2, LogOut, ShieldCheck } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ClinicalDraftFailureAlert } from '@/components/clinical-draft-failure-alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -11,6 +12,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import type { DraftSaveFailure } from '@/lib/clinical-draft-recovery';
 import {
     cancelHistoryTraversal,
     continueHistoryTraversal,
@@ -23,7 +25,7 @@ type UnsavedChangesGuardProps = {
     processing: boolean;
     onSaveDraft: (
         continueNavigation: () => void,
-        reportFailure: () => void,
+        reportFailure: (failure?: DraftSaveFailure) => void,
     ) => void;
 };
 
@@ -37,7 +39,9 @@ export function UnsavedChangesGuard({
         useState<PendingHistoryTraversal | null>(null);
     const [open, setOpen] = useState(false);
     const [savingDraft, setSavingDraft] = useState(false);
-    const [saveError, setSaveError] = useState<string | null>(null);
+    const [saveFailure, setSaveFailure] = useState<DraftSaveFailure | null>(
+        null,
+    );
     const bypassNextVisit = useRef(false);
     const busy = processing || savingDraft;
 
@@ -47,7 +51,7 @@ export function UnsavedChangesGuard({
         }
 
         setSavingDraft(false);
-        setSaveError(null);
+        setSaveFailure(null);
         setPendingVisit(null);
         setPendingHistoryTraversal(null);
         setOpen(false);
@@ -90,18 +94,19 @@ export function UnsavedChangesGuard({
         }
 
         setSavingDraft(false);
-        setSaveError(null);
+        setSaveFailure(null);
         setPendingVisit(null);
         setPendingHistoryTraversal(null);
         setOpen(false);
     }, [pendingHistoryTraversal]);
 
-    const reportSaveFailure = useCallback(() => {
-        setSavingDraft(false);
-        setSaveError(
-            'Periksa isian yang ditandai atau koneksi, lalu pilih Simpan draf lalu keluar lagi. Anda tetap berada di encounter ini.',
-        );
-    }, []);
+    const reportSaveFailure = useCallback(
+        (failure: DraftSaveFailure = 'GENERIC') => {
+            setSavingDraft(false);
+            setSaveFailure(failure);
+        },
+        [],
+    );
 
     useEffect(() => {
         const removeBeforeListener = router.on('before', (event) => {
@@ -118,7 +123,7 @@ export function UnsavedChangesGuard({
             }
 
             setSavingDraft(false);
-            setSaveError(null);
+            setSaveFailure(null);
             setPendingVisit(visit);
             setOpen(true);
 
@@ -126,7 +131,7 @@ export function UnsavedChangesGuard({
         });
         const removeHistoryGuard = registerDirtyHistoryGuard((traversal) => {
             setSavingDraft(false);
-            setSaveError(null);
+            setSaveFailure(null);
             setPendingVisit(null);
             setPendingHistoryTraversal(traversal);
             setOpen(true);
@@ -232,16 +237,11 @@ export function UnsavedChangesGuard({
                         </div>
                     </div>
 
-                    {saveError && (
-                        <div
-                            role="alert"
-                            className="mx-6 border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-950"
-                        >
-                            <p className="font-bold">Draf belum tersimpan</p>
-                            <p className="mt-1 text-xs leading-5">
-                                {saveError}
-                            </p>
-                        </div>
+                    {saveFailure && (
+                        <ClinicalDraftFailureAlert
+                            failure={saveFailure}
+                            className="mx-6"
+                        />
                     )}
 
                     <DialogFooter className="border-t border-border bg-slate-50 px-6 py-4 sm:justify-between">
@@ -266,7 +266,7 @@ export function UnsavedChangesGuard({
                                 type="button"
                                 variant="outline"
                                 onClick={() => {
-                                    setSaveError(null);
+                                    setSaveFailure(null);
                                     setSavingDraft(true);
 
                                     try {

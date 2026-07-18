@@ -1,6 +1,6 @@
 # ADR-010: Unsaved Clinical Draft Guard
 
-- **Status:** Implemented working reference with in-session history protection; manual browser validation pending
+- **Status:** Implemented working reference with in-session history and reauthentication protection; manual browser validation pending
 - **Date:** 2026-07-18
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008
@@ -27,7 +27,9 @@ Persisting the draft automatically in browser storage would create a different r
 8. Mark each in-session history entry with a non-clinical integer position. On dirty Back/Forward, stop the event before Inertia swaps the page, restore the current entry, and replay the exact target only after successful draft save or explicit discard. Staying clears the held traversal without changing pages.
 9. Register the native `beforeunload` boundary only while dirty, covering refresh, tab close, and external navigation. Remove the dirty history guard, browser listener, and Inertia listener on clean-state unmount.
 10. Store no clinical draft in local storage, session storage, URL state, history state, or warning-dialog state. History state receives only the integer navigation position; the dialog holds only deferred navigation metadata and a generic form label.
-11. Keep stale-session reauthentication/revalidation as an explicit manual-validation item; do not claim cross-encounter recovery until a separately threat-modeled design exists.
+11. Mark only the versioned nursing, medical-assessment, and encounter-closure form submissions—including save-and-leave—with `X-SIMRS-Draft-Recovery: same-tab`. Recognize that contract only for those exact named routes. If authentication or the CSRF session has expired, return a generic no-store `401` or `419` response instead of following the standard login redirect. Unmarked and unrelated requests retain Laravel's normal authentication behavior.
+12. Suppress Inertia's HTTP exception overlay for that bounded response, keep the dirty clinical delta in the original tab's memory, and expose `Buka halaman masuk di tab baru`. After the user authenticates with the same account and returns, the existing `Simpan draf lalu keluar` action retries the original server draft contract. Authentication, active-account, assignment, session, encounter, workflow, request-key, and version rules are all re-evaluated by the server before navigation can continue.
+13. Do not claim automatic reauthentication, cross-tab content transfer, browser-persisted recovery, or cross-encounter restoration. A failed retry remains on the form and never treats authentication as authorization.
 
 ## Consequences
 
@@ -35,13 +37,15 @@ Persisting the draft automatically in browser storage would create a different r
 - The existing versioned server remains the only durable draft store.
 - A failed draft request remains visibly recoverable in the same encounter and cannot accidentally trigger discard or navigation while it is in flight.
 - Browser Back and Forward now use the same deliberate choice boundary as visible Inertia links instead of bypassing it through Inertia's non-cancellable `popstate` path.
+- An expired session can no longer turn a save-and-leave attempt into a successful Inertia login-page replacement. The user receives a specific recovery path while the local delta remains in the original tab.
+- Reauthentication does not bypass changed context: a revoked assignment, ended session, changed encounter state, stale version, or invalid payload still fails through the original authoritative endpoint.
 - Save-and-leave may create an additional immutable draft version, which is truthful and attributable.
 - Forms without a safe server-side draft contract do not receive a fake save option; they require a separate workflow decision if later classified as long-form authoring.
 - Native browser unload text is controlled by the browser and cannot use the custom Indonesian copy.
 
 ## Verification
 
-The focused history/React/axe suite passes 11 tests covering position-only history metadata, intercepted Back and Forward restoration, explicit stay/replay, the visible status, accessible modal, all three choices, save-before-navigation ordering, in-flight action locking, generic failure announcement, retry, explicit discard, ignored `POST`/prefetch visits, native unload prevention, and listener cleanup. The complete frontend suite passes 23 files and 58 tests; TypeScript, ESLint, Prettier, and the production build verify the boot-time integration before Inertia initializes. The unchanged backend also passes 231 tests and 2,731 assertions plus Pint and PHPStan. Bounded live browser validation remains required before this follow-up evidence is closed.
+The focused history/React/axe suite covers position-only history metadata, intercepted Back and Forward restoration, explicit stay/replay, the visible status, accessible modal, all three choices, save-before-navigation ordering, in-flight action locking, generic failure announcement, retry, explicit discard, ignored `POST`/prefetch visits, native unload prevention, and listener cleanup. The focused recovery suite adds generic no-store `401/419` contracts, normal unmarked-login behavior, response-content minimization, HTTP classification/overlay suppression, a separate-tab login link, retained same-tab state, and shared validation/cancellation/network failure handling. Complete frontend/backend/static/build evidence is recorded on the implementing commit. Bounded live browser validation remains required before this follow-up evidence is closed.
 
 ## Related records
 

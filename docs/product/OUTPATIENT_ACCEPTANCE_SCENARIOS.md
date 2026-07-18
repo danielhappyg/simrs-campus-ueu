@@ -479,6 +479,7 @@ The acceptance suite creates:
 **When** the user navigates, changes patient, loses a validation round, or the session becomes stale
 **Then** the system warns/preserves the draft as designed
 **And** in-session browser Back/Forward restores the dirty form and requires the same explicit stay, save-draft-then-leave, or discard-local-delta decision before replaying the exact target
+**And** an expired authentication/CSRF session cannot replace the dirty form with the login page; reauthentication opens separately and retry revalidates the current server context
 **And** never attaches it to a different encounter
 **And** server errors do not erase already acknowledged saved sections.
 

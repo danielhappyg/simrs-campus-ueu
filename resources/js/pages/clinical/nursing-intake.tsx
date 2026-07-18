@@ -11,7 +11,9 @@ import {
     ShieldAlert,
     ShieldCheck,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { FormEvent, TextareaHTMLAttributes } from 'react';
+import { ClinicalDraftFailureAlert } from '@/components/clinical-draft-failure-alert';
 import { ClinicalVersionStamp } from '@/components/clinical-version-stamp';
 import InputError from '@/components/input-error';
 import { PatientContextBanner } from '@/components/patient-context-banner';
@@ -20,6 +22,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UnsavedChangesGuard } from '@/components/unsaved-changes-guard';
+import { clinicalDraftRecoveryOptions } from '@/lib/clinical-draft-recovery';
+import type { DraftSaveFailure } from '@/lib/clinical-draft-recovery';
 import { cn } from '@/lib/utils';
 import type { NursingIntakeWorkspaceProps, NursingVitalKey } from '@/types';
 
@@ -135,6 +139,8 @@ export default function NursingIntakeWorkspace(
     } = props;
     const form = useForm<NursingForm>(initialForm(props));
     const errors = form.errors as Record<string, string | undefined>;
+    const [manualSaveFailure, setManualSaveFailure] =
+        useState<DraftSaveFailure | null>(null);
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -142,22 +148,24 @@ export default function NursingIntakeWorkspace(
             .submitter as HTMLButtonElement | null;
         const intent = submitter?.value === 'SUBMIT' ? 'SUBMIT' : 'SAVE_DRAFT';
 
+        setManualSaveFailure(null);
         form.transform((data) => ({ ...data, intent }));
-        form.post(urls.store, { preserveScroll: true });
+        form.post(urls.store, {
+            preserveScroll: true,
+            ...clinicalDraftRecoveryOptions(setManualSaveFailure),
+            onSuccess: () => setManualSaveFailure(null),
+        });
     }
 
     function saveDraftAndContinue(
         continueNavigation: () => void,
-        reportFailure: () => void,
+        reportFailure: (failure?: DraftSaveFailure) => void,
     ) {
         form.transform((data) => ({ ...data, intent: 'SAVE_DRAFT' }));
         form.post(urls.store, {
             preserveScroll: true,
             onSuccess: continueNavigation,
-            onError: reportFailure,
-            onCancel: reportFailure,
-            onHttpException: reportFailure,
-            onNetworkError: reportFailure,
+            ...clinicalDraftRecoveryOptions(reportFailure),
         });
     }
 
@@ -227,6 +235,13 @@ export default function NursingIntakeWorkspace(
                         formLabel="asesmen awal keperawatan"
                         processing={form.processing}
                         onSaveDraft={saveDraftAndContinue}
+                    />
+                )}
+
+                {document.canEdit && form.isDirty && manualSaveFailure && (
+                    <ClinicalDraftFailureAlert
+                        failure={manualSaveFailure}
+                        className="clinical-shadow"
                     />
                 )}
 

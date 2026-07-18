@@ -285,6 +285,57 @@ describe('UnsavedChangesGuard', () => {
         expect(inertia.visit).toHaveBeenCalledOnce();
     });
 
+    it('keeps clinical edits in memory while reauthentication opens in a separate tab', async () => {
+        const listener = installBeforeListener();
+        const user = userEvent.setup();
+        let reportFailure:
+            | ((failure?: 'GENERIC' | 'REAUTHENTICATION_REQUIRED') => void)
+            | undefined;
+
+        render(
+            <UnsavedChangesGuard
+                formLabel="asesmen medis"
+                processing={false}
+                onSaveDraft={(_continueNavigation, handleFailure) => {
+                    reportFailure = handleFailure;
+                }}
+            />,
+        );
+
+        act(() => {
+            listener.handler({ detail: { visit: pendingVisit() } });
+        });
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Simpan draf lalu keluar',
+            }),
+        );
+        act(() => reportFailure?.('REAUTHENTICATION_REQUIRED'));
+
+        const alert = screen.getByRole('alert');
+        expect(alert).toHaveTextContent('Sesi masuk perlu dipulihkan');
+        expect(alert).toHaveTextContent(
+            'Perubahan tetap berada di memori tab ini',
+        );
+        expect(alert).toHaveTextContent(
+            'Server akan memeriksa kembali peran, sesi, encounter, dan versi saat ini',
+        );
+        expect(alert).not.toHaveTextContent('isi asesmen rahasia');
+
+        const loginLink = screen.getByRole('link', {
+            name: 'Buka halaman masuk di tab baru',
+        });
+        expect(loginLink).toHaveAttribute('href', '/login');
+        expect(loginLink).toHaveAttribute('target', '_blank');
+        expect(loginLink).toHaveAttribute('rel', 'noopener noreferrer');
+        expect(
+            screen.getByRole('button', {
+                name: 'Simpan draf lalu keluar',
+            }),
+        ).toBeEnabled();
+        expect(inertia.visit).not.toHaveBeenCalled();
+    });
+
     it('requires an explicit discard and ignores submissions or prefetches', async () => {
         const listener = installBeforeListener();
         const user = userEvent.setup();

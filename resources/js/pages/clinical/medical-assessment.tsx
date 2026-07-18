@@ -12,7 +12,9 @@ import {
     Stethoscope,
     Trash2,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { FormEvent, TextareaHTMLAttributes } from 'react';
+import { ClinicalDraftFailureAlert } from '@/components/clinical-draft-failure-alert';
 import { ClinicalVersionStamp } from '@/components/clinical-version-stamp';
 import InputError from '@/components/input-error';
 import { PatientContextBanner } from '@/components/patient-context-banner';
@@ -25,6 +27,8 @@ import {
     dateTimeFormValue,
     dateTimeLocalDisplay,
 } from '@/lib/clinical-date-time';
+import { clinicalDraftRecoveryOptions } from '@/lib/clinical-draft-recovery';
+import type { DraftSaveFailure } from '@/lib/clinical-draft-recovery';
 import { cn } from '@/lib/utils';
 import type { MedicalAssessmentWorkspaceProps } from '@/types';
 
@@ -192,6 +196,8 @@ export default function MedicalAssessmentWorkspace(
     } = props;
     const form = useForm<MedicalForm>(initialForm(props));
     const errors = form.errors as Record<string, string | undefined>;
+    const [manualSaveFailure, setManualSaveFailure] =
+        useState<DraftSaveFailure | null>(null);
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -199,22 +205,24 @@ export default function MedicalAssessmentWorkspace(
             .submitter as HTMLButtonElement | null;
         const intent = submitter?.value === 'SUBMIT' ? 'SUBMIT' : 'SAVE_DRAFT';
 
+        setManualSaveFailure(null);
         form.transform((data) => ({ ...data, intent }));
-        form.post(urls.store, { preserveScroll: true });
+        form.post(urls.store, {
+            preserveScroll: true,
+            ...clinicalDraftRecoveryOptions(setManualSaveFailure),
+            onSuccess: () => setManualSaveFailure(null),
+        });
     }
 
     function saveDraftAndContinue(
         continueNavigation: () => void,
-        reportFailure: () => void,
+        reportFailure: (failure?: DraftSaveFailure) => void,
     ) {
         form.transform((data) => ({ ...data, intent: 'SAVE_DRAFT' }));
         form.post(urls.store, {
             preserveScroll: true,
             onSuccess: continueNavigation,
-            onError: reportFailure,
-            onCancel: reportFailure,
-            onHttpException: reportFailure,
-            onNetworkError: reportFailure,
+            ...clinicalDraftRecoveryOptions(reportFailure),
         });
     }
 
@@ -375,6 +383,13 @@ export default function MedicalAssessmentWorkspace(
                         formLabel="asesmen medis"
                         processing={form.processing}
                         onSaveDraft={saveDraftAndContinue}
+                    />
+                )}
+
+                {document.canEdit && form.isDirty && manualSaveFailure && (
+                    <ClinicalDraftFailureAlert
+                        failure={manualSaveFailure}
+                        className="clinical-shadow"
                     />
                 )}
 

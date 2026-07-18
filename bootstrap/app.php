@@ -5,11 +5,14 @@ use App\Http\Middleware\AuditAuthorizationDenial;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -36,6 +39,40 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $isClinicalDraftRecoveryRequest = static fn (Request $request): bool => $request->isMethod('post')
+            && $request->header('X-Inertia') === 'true'
+            && $request->header('X-SIMRS-Draft-Recovery') === 'same-tab'
+            && $request->routeIs(
+                'encounters.nursing-intake.versions.store',
+                'encounters.medical-assessment.versions.store',
+                'encounters.closure.versions.store',
+            );
+        $reauthenticationResponse = static fn (int $status) => response()->json([
+            'code' => 'REAUTHENTICATION_REQUIRED',
+            'message' => 'Authentication must be restored before this draft can be saved.',
+        ], $status, [
+            'Cache-Control' => 'no-store, private',
+            'X-SIMRS-Draft-Recovery' => 'reauthentication-required',
+        ]);
+
+        $exceptions->render(function (AuthenticationException $exception, Request $request) use ($isClinicalDraftRecoveryRequest, $reauthenticationResponse) {
+            if (! $isClinicalDraftRecoveryRequest($request)) {
+                return null;
+            }
+
+            return $reauthenticationResponse(401);
+        });
+
+        $exceptions->render(function (HttpException $exception, Request $request) use ($isClinicalDraftRecoveryRequest, $reauthenticationResponse) {
+            if ($exception->getStatusCode() !== 419
+                || ! $exception->getPrevious() instanceof TokenMismatchException
+                || ! $isClinicalDraftRecoveryRequest($request)) {
+                return null;
+            }
+
+            return $reauthenticationResponse(419);
+        });
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
