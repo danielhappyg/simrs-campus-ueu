@@ -1,6 +1,6 @@
 # ADR-011: Disposable Reference Session Cloning
 
-- **Status:** Accepted and implemented; full local gates passed, CI evidence pending
+- **Status:** Accepted and implemented at `3cf3d4d`; full local and CI gates passed, PR remains draft/unmerged
 - **Date:** 2026-07-18
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008

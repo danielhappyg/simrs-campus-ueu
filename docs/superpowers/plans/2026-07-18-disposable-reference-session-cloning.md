@@ -16,7 +16,7 @@
 4. [x] Add an Artisan command with bounded arguments, safe failure messages, and patient-identity-free JSON output.
 5. [x] Add success, denial, source-immutability, remapping, rollback, output-minimization, and overdue no-show preparation tests.
 6. [x] Update the UAT entry gate/run preparation, data dictionary, traceability/validation evidence, runbook, ADR, and README.
-7. [ ] Run complete local/CI-equivalent gates, push only to the existing private draft PR, and verify the release artifact remains `NOT_DEPLOYED`.
+7. [x] Run complete local/CI-equivalent gates for implementation head `3cf3d4d`, push only to the existing private draft PR, and verify artifact `8428547776` remains `NOT_DEPLOYED`.
 
 ## Acceptance evidence
 
