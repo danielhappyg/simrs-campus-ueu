@@ -76,9 +76,9 @@ This diagram is conceptual. Migration design may split structured sections furth
 | `status`                           | enum       |          yes | `SCHEDULED`, `ACTIVE`, `PAUSED`, `COMPLETED`, `CANCELLED`. |
 | `starts_at`, `ends_at`             | instant    | yes/optional | Authorized learner-work window.                            |
 | `facilitator_id`                   | account ID |          yes | Responsible facilitator.                                   |
-| `source_session_id`                | ID         |     optional | Prior session when cloned for a rerun.                     |
+| `source_session_id`                | ID         |     optional | Immediate pristine source when transactionally cloned for an isolated synthetic rerun; never evidence that progressed clinical state was copied. |
 
-ADR-003 implements one shared encounter per isolated scenario run while VAL-T07 remains open. Another case uses a cloned/new session so clinical assignments remain exact. A session may retain additional synthetic identity candidates for duplicate-resolution teaching, but they do not create additional encounters in the reference MVP.
+ADR-003 implements one shared encounter per isolated scenario run while VAL-T07 remains open. Another case uses a cloned/new session so clinical assignments remain exact. ADR-011 permits a clone only from the published pristine `OPD-REF-001` v1 graph in an opted-in synthetic non-production environment. It generates new session/patient/identifier/appointment/encounter/task/stock identities, remaps every assignment and supervisor link, records the immediate source, and copies no progressed state. A session may retain additional synthetic identity candidates for duplicate-resolution teaching, but they do not create additional encounters in the reference MVP.
 
 ### 3.3 `assignment`
 

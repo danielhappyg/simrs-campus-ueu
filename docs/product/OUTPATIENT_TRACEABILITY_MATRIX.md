@@ -103,6 +103,7 @@ This bounded evidence advances `INT-01`, `INT-02`, `OPD-002`, `OPD-003`, `OPD-00
 Full-journey/recovery evidence is held in:
 
 - `CompleteReferenceOutpatientJourneyCommandTest` for the synthetic-only/non-production gate, missing-release preflight, partially progressed refusal, complete cross-domain finalization, manual human coding, debrief-task release, and zero-change finalized rerun; and
+- `CloneReferenceSessionCommandTest` for fail-closed pristine-source validation, new/remapped session-case-assignment-task-stock identities, immediate-source provenance, absence of progressed-state copy, source immutability, bounded overdue no-show preparation, minimized output, unsafe/invalid/duplicate/progressed refusal, and late-failure transaction rollback; and
 - the `001300` local MySQL rehearsal for exact official-workbook imports, finalized source data, byte-identical schema/data restoration, critical relationship checks, restored no-op behavior, and HTTP 200 from `/up`.
 
 Checkpoint preparation is held in the [Outpatient Checkpoint 2 UAT Facilitator Guide](../operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md) and its [blank UAT Record Template](../operations/OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md). Together they bind the ten demo roles to the shared-case sequence, separate diagnosis/procedure correction fixtures, default-`NOT RUN` results, one issue per observation, unresolved-risk ownership, stop rules, known limitations, and Daniel's final decision classifications. Their existence does not constitute stakeholder evidence or acceptance.

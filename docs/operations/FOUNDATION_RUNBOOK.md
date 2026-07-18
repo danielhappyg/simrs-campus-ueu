@@ -55,6 +55,15 @@ php artisan simulation:prepare-reference-correction procedure
 
 Run only one of these paths per disposable fixture. Correction preparation uses the same guarded clinical, closure, RMIK, suggestion, and coding services as the browser workflow. It does not mutate finalized or partially progressed cases, and it never grants the coder permission to edit clinical documentation.
 
+To retain prior evidence while preparing another isolated branch, clone only the still-pristine reference graph:
+
+```bash
+php artisan simulation:clone-reference-session UAT-MAIN-001 --duration=480
+php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --appointment-offset=-5
+```
+
+The command requires the same explicit demo-fixture and synthetic-only opt-in, refuses production and progressed/malformed sources, generates new public/case/identifier/stock-lot values, remaps all assignment and task references, records `source_session_id` plus minimized audit provenance, and copies no clinical state. Every failure rolls back the full target graph. A negative appointment offset exists only to make the isolated no-show branch immediately executable; it is not a policy decision about session duration or scheduling. Use a unique uppercase code per run and never use this command as a substitute for retention governance.
+
 ## Optional terminology-release import
 
 The computer-assisted coding workspace requires an active ICD-10 release. ICD-9-CM remains a separate procedure reference. Raw workbooks stay outside Git and are imported only after an operator verifies the exact expected SHA-256:

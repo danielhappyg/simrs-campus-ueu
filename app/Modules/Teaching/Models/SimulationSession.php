@@ -8,6 +8,7 @@ use App\Modules\Patient\Models\SyntheticPatient;
 use App\Modules\Teaching\Enums\EnvironmentMode;
 use App\Modules\Teaching\Enums\SessionStatus;
 use App\Support\Models\HasPublicUlid;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,9 +16,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property string $public_id
+ * @property int $scenario_id
  * @property string $code
+ * @property string $course_code
+ * @property string $cohort_code
+ * @property CarbonImmutable $starts_at
+ * @property CarbonImmutable|null $ends_at
+ * @property int $facilitator_user_id
+ * @property int|null $source_session_id
  * @property EnvironmentMode $environment_mode
  * @property SessionStatus $status
+ * @property-read SimulationScenario $scenario
+ * @property-read User $facilitator
+ * @property-read SimulationSession|null $sourceSession
  */
 class SimulationSession extends Model
 {
@@ -50,6 +61,22 @@ class SimulationSession extends Model
     public function facilitator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'facilitator_user_id');
+    }
+
+    /**
+     * @return BelongsTo<SimulationSession, $this>
+     */
+    public function sourceSession(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'source_session_id');
+    }
+
+    /**
+     * @return HasMany<SimulationSession, $this>
+     */
+    public function clones(): HasMany
+    {
+        return $this->hasMany(self::class, 'source_session_id');
     }
 
     /**

@@ -32,7 +32,7 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 | Tested build         | Identifiable commit/release candidate with passing required checks                            |
 | Database             | Fresh migrations plus opt-in demo fixture                                                     |
 | Terminology          | Exact approved development ICD-10 and ICD-9-CM releases active; version and checksums visible |
-| Case state           | One new `PLANNED` encounter in `SIM-RJ-UEU-001`; no partially progressed prior case           |
+| Case state           | One new `PLANNED` encounter in the exact recorded disposable session code; no prior progress  |
 | Accounts             | Ten administrator-provisioned demo accounts available; password distributed separately        |
 | Browser              | Supported current desktop browser at 1280×720 or wider; 100% zoom                             |
 | Recovery             | Snapshot/backup or disposable reset procedure confirmed before starting                       |
@@ -40,6 +40,33 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 | Limitations          | Participants briefed on all items in section 11                                               |
 
 Do not use `migrate:fresh` against shared or retained data. Do not enable the demo seeder to repair an existing environment.
+
+### 3.1 Prepare one isolated run
+
+With the opt-in pristine `SIM-RJ-UEU-001` source retained unchanged, prepare a uniquely named session immediately before each branch:
+
+```bash
+php artisan simulation:clone-reference-session UAT-MAIN-001 --duration=480
+```
+
+For the overdue no-show branch only, make the synthetic appointment explicitly due without editing the database:
+
+```bash
+php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --appointment-offset=-5
+```
+
+Record the generated session and encounter codes in the dated UAT record and verify that participants select that exact case. Use a new uppercase code for every branch; never reuse or reset a progressed session. The command copies only the pristine one-patient/one-appointment/one-encounter graph, remaps all ten assignments and four initial tasks, creates new synthetic identifiers and stock-lot provenance, and copies no clinical/progressed state. It runs only in an opted-in synthetic non-production environment and rolls back the full target graph on failure.
+
+Prepare diagnosis/procedure correction states against their own freshly cloned session only after both exact terminology releases are active:
+
+```bash
+php artisan simulation:clone-reference-session UAT-CORR-DX-001 --duration=480
+php artisan simulation:prepare-reference-correction diagnosis --session=UAT-CORR-DX-001
+php artisan simulation:clone-reference-session UAT-CORR-PX-001 --duration=480
+php artisan simulation:prepare-reference-correction procedure --session=UAT-CORR-PX-001
+```
+
+Passwords remain out-of-band. Command success is preparation evidence only; it is not UAT acceptance, a reset authorization, or permission to use real data.
 
 ## 4. Participants and demo accounts
 

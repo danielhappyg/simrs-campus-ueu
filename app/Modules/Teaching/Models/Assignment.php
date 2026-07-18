@@ -10,6 +10,7 @@ use App\Modules\Teaching\Enums\ApplicationRole;
 use App\Modules\Teaching\Enums\Capability;
 use App\Modules\Teaching\Enums\Program;
 use App\Support\Models\HasPublicUlid;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use DomainException;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,9 +23,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $patient_id
  * @property int|null $encounter_id
  * @property string $public_id
+ * @property int $session_id
+ * @property int $user_id
+ * @property int|null $supervisor_assignment_id
  * @property Program $program
  * @property ApplicationRole $application_role
  * @property array<int, string> $capabilities
+ * @property CarbonImmutable $active_from
+ * @property CarbonImmutable|null $active_until
+ * @property CarbonImmutable|null $revoked_at
+ * @property-read User $user
  */
 class Assignment extends Model
 {

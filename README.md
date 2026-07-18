@@ -15,6 +15,7 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - a user-scoped work queue with the UEU encounter-orbit design;
 - public ULID identifiers and an application-level append-only audit trail;
 - deterministic opt-in demo fixtures using reserved `example.invalid` accounts;
+- a fail-closed, transaction-bound command that deep-clones only a pristine synthetic reference graph into a separately attributable session, remaps every case/assignment/task/supervision reference, and supports an explicitly overdue appointment for an isolated no-show rehearsal without resetting retained data;
 - one source-linked outpatient workflow covering registration/check-in, bounded registrar cancellation and overdue no-show without history deletion, nursing intake, supervised medical assessment, orders/results, pharmacy review/dispense, supervised closure, reproducible RMIK completeness review, and attributed correction;
 - an append-only human safety-disposition workflow that keeps an escalated encounter and medical task paused until the linked nursing supervisor or session facilitator explicitly resumes the synthetic routine flow or records a simulated transfer, with no default or clinical recommendation;
 - a distinct append-only `Pulang atas permintaan sendiri` branch after clinical service begins, recorded only by the exact medical supervisor or session facilitator with explicit confirmation, exact source hashes, preserved prior work, no clinical verdict, and no automatic closure, coding, finalization, or transmission;
@@ -64,6 +65,20 @@ php artisan migrate:fresh --seed
 ```
 
 The learner account is `mahasiswa.keperawatan@example.invalid`; its password is the local value you selected. `migrate:fresh` deletes existing tables and must never be used against an environment containing data that should be preserved.
+
+Prepare a disposable branch from the still-pristine reference session without deleting prior evidence:
+
+```bash
+php artisan simulation:clone-reference-session UAT-MAIN-001 --duration=480
+```
+
+Use a unique uppercase code for every run. The command is restricted to an explicitly opted-in, synthetic-only, non-production environment; it refuses a progressed or malformed source and rolls back every target record if any write fails. It prints no patient name, MRN, or NIK-like value. To prepare an immediately due no-show branch through the same contract:
+
+```bash
+php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --appointment-offset=-5
+```
+
+The default appointment offset is 15 minutes after session start. The negative offset is a bounded fixture-preparation input, not a schedule policy or acceptance of class duration. See [ADR-011](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md) and the [Checkpoint 2 UAT guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md).
 
 ### Optional verified ICD catalogs
 
@@ -150,6 +165,7 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [ADR-007: Deterministic local interoperability preview](docs/adr/ADR-007-LOCAL-INTEROPERABILITY-PREVIEW.md)
 - [ADR-008: Human outpatient safety disposition](docs/adr/ADR-008-HUMAN-OUTPATIENT-SAFETY-DISPOSITION.md)
 - [ADR-010: Unsaved clinical draft guard](docs/adr/ADR-010-UNSAVED-CLINICAL-DRAFT-GUARD.md)
+- [ADR-011: Disposable reference-session cloning](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md)
 - [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
 - [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
 - [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)
