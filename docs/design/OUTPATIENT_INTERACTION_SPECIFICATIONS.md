@@ -142,11 +142,25 @@ If the check finds a newer version, approval fails safely, review notes remain, 
 ### Patient switch
 
 1. User activates `Ganti pasien` from patient context.
-2. If the current page has dirty state, dialog offers `Tetap di halaman`, `Simpan draf lalu keluar`, and `Keluar tanpa perubahan yang belum disimpan` only when policy permits abandoning the local unsaved delta.
+2. If the current page has dirty state, dialog offers `Tetap di halaman`, `Simpan draf lalu keluar`, and `Keluar tanpa perubahan lokal` only when policy permits abandoning the local unsaved delta.
 3. On confirmed exit, patient-specific query caches, source data, draft keys, and review drawers clear before the next context renders.
 4. New patient banner and content load together; focus moves to new page heading.
 
 The prior patient's name/alerts must not flash in the new patient context.
+
+### Implemented unsaved-change boundary
+
+The versioned nursing-intake, medical-assessment, and encounter-closure authoring forms mount one shared guard only after editable form data differs from its last successful server baseline. The guard:
+
+- shows `Perubahan belum disimpan` without copying the clinical content into the warning;
+- intercepts ordinary Inertia `GET` navigation but never the form's own `POST` submission or a link prefetch;
+- exposes the three named choices above in an accessible modal;
+- replays the deferred destination only after the draft save succeeds, or after the user explicitly discards only the local unsaved delta;
+- keeps the last server-saved version unchanged when the user discards local changes;
+- uses the browser's native unload boundary for refresh, tab close, or external navigation; and
+- persists no clinical draft in local/session storage.
+
+A failed draft save leaves the user on the same encounter form with server validation errors and does not continue navigation. Browser-history traversal and stale-session recovery remain manual-validation items before faculty pilot; no cross-encounter draft recovery is claimed.
 
 ### Acting-role change
 

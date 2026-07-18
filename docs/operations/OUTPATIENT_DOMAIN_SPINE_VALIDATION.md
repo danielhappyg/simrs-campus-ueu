@@ -1,8 +1,8 @@
 # Outpatient Domain-Spine Validation Record
 
 - **Date:** 2026-07-18
-- **Increment:** complete synthetic outpatient reference journey plus bounded registrar cancellation/overdue no-show, human safety disposition, patient-requested early departure after clinical service begins, distinct active/completed longitudinal record, finalized debrief, shared teaching-note evidence, finalized report working references, and a deterministic local interoperability preview
-- **Decision records:** ADR-003, ADR-004, ADR-005, ADR-006, ADR-007, ADR-008, and ADR-009
+- **Increment:** complete synthetic outpatient reference journey plus bounded registrar cancellation/overdue no-show, human safety disposition, patient-requested early departure after clinical service begins, distinct active/completed longitudinal record, finalized debrief, shared teaching-note evidence, finalized report working references, a deterministic local interoperability preview, and guarded unsaved clinical drafts
+- **Decision records:** ADR-003, ADR-004, ADR-005, ADR-006, ADR-007, ADR-008, ADR-009, and ADR-010
 - **Release status:** pull-request candidate; not a clinical or faculty-pilot release
 
 ## Automated evidence
@@ -21,7 +21,8 @@
 | TypeScript                                                                         | Passed                                                                                |
 | ESLint                                                                             | Passed                                                                                |
 | Prettier                                                                           | Passed                                                                                |
-| React unit/accessibility suite                                                     | Passed: 21 files, 47 tests                                                            |
+| React unit/accessibility suite                                                     | Passed: 22 files, 51 tests                                                            |
+| Focused unsaved-clinical-draft guard suite                                         | Passed: 1 file, 4 tests, including axe, save-before-navigation, discard, and unload  |
 | Focused longitudinal-record interface suite                                        | Passed: 1 file, 5 tests, including axe and filter/navigation coverage                 |
 | Focused local-interoperability interface suite                                     | Passed: 1 file, 2 tests, including axe and contained-JSON coverage                    |
 | Focused visit-termination interface suite                                          | Passed: 2 files, 5 tests, including open-dialog axe review                            |

@@ -127,6 +127,8 @@ Human safety-disposition evidence is held in:
 
 This makes the reference `E2E-02` branch executable, but `OPD-005`, `OPD-006`, and `SAF-003` remain `IN PROGRESS` because `VAL-A01`–`VAL-A04` and faculty acceptance of the teaching content/disposition vocabulary are still pending.
 
+Dense-form protection evidence is held in `UnsavedChangesGuard` React/axe coverage and its nursing, medical-assessment, and encounter-closure integrations. It proves a visible dirty state, cancellable Inertia navigation, ignored `POST` submissions/prefetches, explicit discard, save-before-replay sequencing, native unload blocking while mounted, listener cleanup, and no browser draft storage. This advances `UX-04`; browser-history traversal, stale-session recovery, and full manual keyboard validation remain open before faculty pilot.
+
 Patient-requested early-departure evidence is held in:
 
 - `OutpatientEarlyDepartureWorkflowTest` for distinct terminal states, append-only provenance, exact current-source completeness/hash binding, supervisor/facilitator authorization, confirmation/text validation, idempotency, competing-request rejection, queue/task effects, minimized audit, safe longitudinal projection, and full transactional rollback;

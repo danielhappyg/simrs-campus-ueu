@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UnsavedChangesGuard } from '@/components/unsaved-changes-guard';
 import {
     dateTimeFormValue,
     dateTimeLocalDisplay,
@@ -202,6 +203,14 @@ export default function MedicalAssessmentWorkspace(
         form.post(urls.store, { preserveScroll: true });
     }
 
+    function saveDraftAndContinue(continueNavigation: () => void) {
+        form.transform((data) => ({ ...data, intent: 'SAVE_DRAFT' }));
+        form.post(urls.store, {
+            preserveScroll: true,
+            onSuccess: continueNavigation,
+        });
+    }
+
     function updateDiagnosis(
         index: number,
         field: keyof DiagnosisForm,
@@ -353,6 +362,14 @@ export default function MedicalAssessmentWorkspace(
                     encounter={encounter}
                     actingAs={`${assignment.program} · ${assignment.role}`}
                 />
+
+                {document.canEdit && form.isDirty && (
+                    <UnsavedChangesGuard
+                        formLabel="asesmen medis"
+                        processing={form.processing}
+                        onSaveDraft={saveDraftAndContinue}
+                    />
+                )}
 
                 <section
                     aria-labelledby="diagnosis-boundary-title"

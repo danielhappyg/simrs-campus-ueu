@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UnsavedChangesGuard } from '@/components/unsaved-changes-guard';
 import { cn } from '@/lib/utils';
 import type { NursingIntakeWorkspaceProps, NursingVitalKey } from '@/types';
 
@@ -145,6 +146,14 @@ export default function NursingIntakeWorkspace(
         form.post(urls.store, { preserveScroll: true });
     }
 
+    function saveDraftAndContinue(continueNavigation: () => void) {
+        form.transform((data) => ({ ...data, intent: 'SAVE_DRAFT' }));
+        form.post(urls.store, {
+            preserveScroll: true,
+            onSuccess: continueNavigation,
+        });
+    }
+
     function setVital(key: NursingVitalKey, value: string) {
         form.setData('vitals', { ...form.data.vitals, [key]: value });
     }
@@ -205,6 +214,14 @@ export default function NursingIntakeWorkspace(
                     encounter={encounter}
                     actingAs={`${assignment.program} · ${assignment.role}`}
                 />
+
+                {document.canEdit && form.isDirty && (
+                    <UnsavedChangesGuard
+                        formLabel="asesmen awal keperawatan"
+                        processing={form.processing}
+                        onSaveDraft={saveDraftAndContinue}
+                    />
+                )}
 
                 <section
                     aria-labelledby="safety-boundary-title"

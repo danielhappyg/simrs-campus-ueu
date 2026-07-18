@@ -129,9 +129,10 @@ Observe `E2E-06`, `AUD-01`, server-clock eligibility, and terminal-state immutab
 Actors: nursing learner, then nursing supervisor.
 
 1. Record observed history source, complaint/onset, allergy state, current-medication state, vital signs with units, scenario-question responses, and a human safety decision.
-2. Save/submit the immutable nursing version.
-3. Supervisor opens the exact version/hash and approves or requests correction.
-4. For the routine branch, confirm the next medical task uses the approved nursing source without re-entry. For an escalation branch, confirm the encounter is `ESCALATED`, the medical task remains blocked, and continue to UAT-02B.
+2. Before saving, select **Antrean kerja**. Confirm `Perubahan belum disimpan` appears with **Tetap di halaman**, **Simpan draf lalu keluar**, and **Keluar tanpa perubahan lokal**. Choose **Tetap di halaman**, then repeat and choose **Simpan draf lalu keluar**; confirm navigation continues only after a draft version is saved. Return to the same task.
+3. Save/submit the immutable nursing version.
+4. Supervisor opens the exact version/hash and approves or requests correction.
+5. For the routine branch, confirm the next medical task uses the approved nursing source without re-entry. For an escalation branch, confirm the encounter is `ESCALATED`, the medical task remains blocked, and continue to UAT-02B.
 
 Discuss whether the wording and scenario questions are appropriate (`VAL-A01`–`VAL-A05`). Do not approve universal thresholds; core code intentionally makes no clinical threshold decision (`VAL-A03`).
 
@@ -168,9 +169,10 @@ Actors: medical learner, then medical supervisor.
 
 1. Read the nursing handoff without editing it.
 2. Record history, examination, clinician-authored diagnosis statement, plan, one synthetic service request, and one synthetic medication request.
-3. Submit the immutable medical version.
-4. Supervisor reviews the exact source/version/hash and approves or requests correction.
-5. Confirm result and pharmacy tasks remain tied to that approved medical source.
+3. Confirm a local edit exposes the same unsaved-change guard and that **Keluar tanpa perubahan lokal** requires an explicit destructive choice; remain on the form and retain the authored work for this run.
+4. Submit the immutable medical version.
+5. Supervisor reviews the exact source/version/hash and approves or requests correction.
+6. Confirm result and pharmacy tasks remain tied to that approved medical source.
 
 Observe `DOC-01`–`DOC-03`, `E2E-03`, `E2E-04`, `VAL-A06`, `VAL-A08`, and `VAL-A09`.
 
@@ -201,9 +203,10 @@ Discuss `VAL-A09` and `VAL-A10`. Do not infer clinical clearance from an empty d
 Actors: medical learner, then medical supervisor.
 
 1. Record condition at closure, disposition, follow-up, education, summary, and performed-procedure source.
-2. Submit the closure version.
-3. Supervisor reviews the exact closure/procedure source and approves or requests correction.
-4. Confirm ordinary clinical editing is locked after approval.
+2. Confirm the unsaved-change guard is active before the first successful save and disappears after the server accepts the version baseline.
+3. Submit the closure version.
+4. Supervisor reviews the exact closure/procedure source and approves or requests correction.
+5. Confirm ordinary clinical editing is locked after approval.
 
 Observe `E2E-05`, `E2E-11`, `DOC-01`, and `VAL-A13`.
 

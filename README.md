@@ -18,6 +18,7 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - one source-linked outpatient workflow covering registration/check-in, bounded registrar cancellation and overdue no-show without history deletion, nursing intake, supervised medical assessment, orders/results, pharmacy review/dispense, supervised closure, reproducible RMIK completeness review, and attributed correction;
 - an append-only human safety-disposition workflow that keeps an escalated encounter and medical task paused until the linked nursing supervisor or session facilitator explicitly resumes the synthetic routine flow or records a simulated transfer, with no default or clinical recommendation;
 - a distinct append-only `Pulang atas permintaan sendiri` branch after clinical service begins, recorded only by the exact medical supervisor or session facilitator with explicit confirmation, exact source hashes, preserved prior work, no clinical verdict, and no automatic closure, coding, finalization, or transmission;
+- a reusable unsaved-change guard on the versioned nursing, medical, and closure authoring forms, with a visible local-change state and explicit stay, save-draft-then-leave, or discard-local-change choices;
 - checksummed immutable ICD-10/ICD-9-CM release import and search, plus explainable ICD-10 diagnosis and ICD-9-CM performed-procedure candidates that always require separate coder and linked-supervisor actions;
 - a versioned synthetic coding retrieval evaluator with separate diagnosis/procedure top-1/top-5 reporting, negative controls, ambiguity controls, and unapproved Indonesian/stress proposals kept outside reference metrics;
 - coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and
@@ -148,6 +149,7 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [ADR-003: Outpatient domain spine](docs/adr/ADR-003-OUTPATIENT-DOMAIN-SPINE.md)
 - [ADR-007: Deterministic local interoperability preview](docs/adr/ADR-007-LOCAL-INTEROPERABILITY-PREVIEW.md)
 - [ADR-008: Human outpatient safety disposition](docs/adr/ADR-008-HUMAN-OUTPATIENT-SAFETY-DISPOSITION.md)
+- [ADR-010: Unsaved clinical draft guard](docs/adr/ADR-010-UNSAVED-CLINICAL-DRAFT-GUARD.md)
 - [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
 - [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
 - [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)

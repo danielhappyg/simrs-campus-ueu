@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UnsavedChangesGuard } from '@/components/unsaved-changes-guard';
 import {
     dateTimeFormValue,
     dateTimeLocalDisplay,
@@ -360,6 +361,14 @@ export default function EncounterClosureWorkspace({
         form.post(urls.store, { preserveScroll: true });
     }
 
+    function saveDraftAndContinue(continueNavigation: () => void) {
+        form.transform((data) => ({ ...data, intent: 'SAVE_DRAFT' }));
+        form.post(urls.store, {
+            preserveScroll: true,
+            onSuccess: continueNavigation,
+        });
+    }
+
     function submitReview(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -458,6 +467,14 @@ export default function EncounterClosureWorkspace({
                     encounter={encounter}
                     actingAs={`${assignment.program} · ${assignment.role}`}
                 />
+
+                {!authoredFieldsDisabled && form.isDirty && (
+                    <UnsavedChangesGuard
+                        formLabel="penutupan encounter"
+                        processing={form.processing}
+                        onSaveDraft={saveDraftAndContinue}
+                    />
+                )}
 
                 <section
                     className="rounded-lg border border-violet-200 bg-violet-50 px-5 py-4"
