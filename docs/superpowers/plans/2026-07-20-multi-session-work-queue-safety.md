@@ -16,7 +16,7 @@
 4. [x] Add an accessible native session selector, explicit selection-required state, selected assignment aggregation, and task-level session provenance.
 5. [x] Add focused backend, frontend interaction, and axe coverage.
 6. [x] Update the interaction, acceptance, traceability, UAT, validation, and architecture records.
-7. [ ] Run complete local and CI-equivalent gates, push only to the existing private draft PR, and verify it remains draft, unmerged, and `NOT_DEPLOYED`.
+7. [x] Run complete local and CI-equivalent gates for implementation head `0b8ba4a`, push only to the existing private draft PR, and verify artifact `8464205479` remains `NOT_DEPLOYED`.
 
 ## Acceptance evidence
 

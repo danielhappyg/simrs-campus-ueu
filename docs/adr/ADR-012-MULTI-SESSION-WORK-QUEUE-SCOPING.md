@@ -1,6 +1,6 @@
 # ADR-012: Fail-Closed Multi-Session Work-Queue Scoping
 
-- **Status:** Accepted and implemented; automated and CI validation required before the draft PR evidence is current
+- **Status:** Accepted and implemented at `0b8ba4a`; complete local and feature-head CI gates passed, PR remains draft/unmerged
 - **Date:** 2026-07-20
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008
