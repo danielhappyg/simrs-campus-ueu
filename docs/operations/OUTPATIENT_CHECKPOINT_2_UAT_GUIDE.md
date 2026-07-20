@@ -55,7 +55,9 @@ For the overdue no-show branch only, make the synthetic appointment explicitly d
 php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --appointment-offset=-5
 ```
 
-Record the generated session and encounter codes in the dated UAT record and verify that participants select that exact case. Use a new uppercase code for every branch; never reuse or reset a progressed session. The command copies only the pristine one-patient/one-appointment/one-encounter graph, remaps all ten assignments and four initial tasks, creates new synthetic identifiers and stock-lot provenance, and copies no clinical/progressed state. It runs only in an opted-in synthetic non-production environment and rolls back the full target graph on failure.
+Record the generated session and encounter codes in the dated UAT record and verify that participants select that exact case. Give each participant the exact work-queue entry path, for example `/work?session=UAT-MAIN-001`, or require them to choose `UAT-MAIN-001` from **Sesi simulasi aktif**. When more than one session is active for an account, the queue must show no task until one session is chosen. Before every task, confirm the page context and the task-row **Sesi** value both match the recorded disposable session code. A malformed, inactive, or unassigned selector must fail rather than fall back to another session.
+
+Use a new uppercase code for every branch; never reuse or reset a progressed session. The command copies only the pristine one-patient/one-appointment/one-encounter graph, remaps all ten assignments and four initial tasks, creates new synthetic identifiers and stock-lot provenance, and copies no clinical/progressed state. It runs only in an opted-in synthetic non-production environment and rolls back the full target graph on failure.
 
 Prepare diagnosis/procedure correction states against their own freshly cloned session only after both exact terminology releases are active:
 
@@ -383,6 +385,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The interoperability page is a deterministic local FHIR R4-aligned `collection` preview. It has no national identities, external-profile validator, endpoint, credential, transmission queue, legal-document status, or SATUSEHAT conformance evidence.
 - Native print/PDF pagination review remains pending.
 - Full native keyboard traversal remains pending. Automated regression now guards the complete sign-in Tab order, focusable password control, and programmatic validation-error associations. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. A later single retained browser tab/session repeated both complete branches across fresh isolated fixtures and ended with an empty retained warning/error console log. Stakeholder UAT is still required.
+- The multi-session work-queue selector has backend, React interaction, and automated accessibility evidence. Native-browser rehearsal with two simultaneous disposable sessions remains pending.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
 - Emergency, inpatient, nutrition, psychology, physiotherapy, and other deferred programs/modules are not part of this checkpoint.
 - Draft PR #10 passed the application, documentation, and MySQL 8.4 checks. Hostinger staging deployment/rollback remains pending hosting authorization and a separate deployment decision.
@@ -401,3 +404,4 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - [ADR-005: Debrief Notes and Rubric References](../adr/ADR-005-DEBRIEF-NOTES-AND-RUBRIC-REFERENCES.md)
 - [ADR-006: Finalized Simulation Reporting](../adr/ADR-006-FINALIZED-SIMULATION-REPORTING.md)
 - [ADR-007: Deterministic Local Interoperability Preview](../adr/ADR-007-LOCAL-INTEROPERABILITY-PREVIEW.md)
+- [ADR-012: Fail-Closed Multi-Session Work-Queue Scoping](../adr/ADR-012-MULTI-SESSION-WORK-QUEUE-SCOPING.md)

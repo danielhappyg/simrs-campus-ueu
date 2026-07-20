@@ -370,6 +370,16 @@ The acceptance suite creates:
 **Then** access is denied
 **And** configuration access remains available.
 
+### AUTH-05 — select exactly one active work-queue session
+
+**Given** one synthetic demo identity has active assignments in two disposable simulation sessions
+**When** the user opens the work queue without a session selector
+**Then** both non-clinical session choices are visible but no task is returned or actionable
+**And** the user must select one exact active session before its tasks, summaries, scenario, roles, programs, and capabilities appear
+**And** every returned task repeats that selected session code
+**And** an invalid, inactive, unknown, or unassigned selector fails without disclosing another session's existence or task payload
+**And** the successful view or denied selection creates minimized audit evidence without recording a rejected selector value.
+
 ## 10. Audit, safety, and integration truth
 
 ### AUD-01 — create an immutable material-action trail

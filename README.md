@@ -12,7 +12,7 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - administrator-provisioned accounts with inactive-account rejection, password throttling, email verification, passkeys, and two-factor support;
 - fail-closed `SIMULATION` and synthetic-only middleware;
 - versioned scenarios, simulation sessions, contextual assignments, capabilities, and work tasks;
-- a user-scoped work queue with the UEU encounter-orbit design;
+- a user-scoped work queue with the UEU encounter-orbit design and fail-closed exact-session selection when one demo identity has several active disposable sessions;
 - public ULID identifiers and an application-level append-only audit trail;
 - deterministic opt-in demo fixtures using reserved `example.invalid` accounts;
 - a fail-closed, transaction-bound command that deep-clones only a pristine synthetic reference graph into a separately attributable session, remaps every case/assignment/task/supervision reference, and supports an explicitly overdue appointment for an isolated no-show rehearsal without resetting retained data;
@@ -78,7 +78,7 @@ Use a unique uppercase code for every run. The command is restricted to an expli
 php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --appointment-offset=-5
 ```
 
-The default appointment offset is 15 minutes after session start. The negative offset is a bounded fixture-preparation input, not a schedule policy or acceptance of class duration. See [ADR-011](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md) and the [Checkpoint 2 UAT guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md).
+The default appointment offset is 15 minutes after session start. The negative offset is a bounded fixture-preparation input, not a schedule policy or acceptance of class duration. When more than one disposable session is active for an account, open the exact work queue (for example, `/work?session=UAT-MAIN-001`) or choose one session before tasks become available. See [ADR-011](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md), [ADR-012](docs/adr/ADR-012-MULTI-SESSION-WORK-QUEUE-SCOPING.md), and the [Checkpoint 2 UAT guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md).
 
 ### Optional verified ICD catalogs
 
@@ -166,6 +166,7 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [ADR-008: Human outpatient safety disposition](docs/adr/ADR-008-HUMAN-OUTPATIENT-SAFETY-DISPOSITION.md)
 - [ADR-010: Unsaved clinical draft guard](docs/adr/ADR-010-UNSAVED-CLINICAL-DRAFT-GUARD.md)
 - [ADR-011: Disposable reference-session cloning](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md)
+- [ADR-012: Fail-closed multi-session work-queue scoping](docs/adr/ADR-012-MULTI-SESSION-WORK-QUEUE-SCOPING.md)
 - [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
 - [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
 - [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)

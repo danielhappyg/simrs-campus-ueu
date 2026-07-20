@@ -47,6 +47,8 @@ class WorkQueueTest extends TestCase
             ->has('tasks', 1)
             ->where('tasks.0.publicId', $ownTask->public_id)
             ->where('tasks.0.title', 'Tugas milik pengguna')
+            ->where('selectedSessionCode', $ownTask->session->code)
+            ->where('selectionRequired', false)
             ->where('summary.ready', 1),
         );
 
@@ -55,6 +57,119 @@ class WorkQueueTest extends TestCase
             'action' => 'work_queue.viewed',
             'resource_type' => 'work_queue',
         ]);
+    }
+
+    public function test_multiple_active_sessions_require_an_explicit_selection_before_tasks_are_disclosed(): void
+    {
+        $user = User::factory()->create();
+        $firstTask = $this->createTaskFor($user, 'Tugas sesi pertama');
+        $this->createTaskFor($user, 'Tugas sesi kedua');
+
+        $this->actingAs($user)
+            ->get(route('work'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('work/index')
+                ->has('assignments', 2)
+                ->has('tasks', 0)
+                ->where('selectedSessionCode', null)
+                ->where('selectionRequired', true)
+                ->where('summary.ready', 0),
+            );
+
+        $event = AuditEvent::query()->where('action', 'work_queue.viewed')->sole();
+
+        $this->assertSame(2, $event->metadata['available_session_count']);
+        $this->assertSame(0, $event->metadata['selected_assignment_count']);
+        $this->assertTrue($event->metadata['selection_required']);
+        $this->assertNull($event->metadata['selected_session_public_id']);
+        $this->assertNotSame($firstTask->session->public_id, $event->metadata['selected_session_public_id']);
+    }
+
+    public function test_authorized_session_selection_scopes_tasks_summary_and_context_to_that_session(): void
+    {
+        $user = User::factory()->create();
+        $firstTask = $this->createTaskFor($user, 'Tugas sesi pertama');
+        $secondTask = $this->createTaskFor($user, 'Tugas sesi kedua');
+
+        $this->actingAs($user)
+            ->get(route('work', ['session' => $secondTask->session->code]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('work/index')
+                ->has('assignments', 2)
+                ->has('tasks', 1)
+                ->where('tasks.0.publicId', $secondTask->public_id)
+                ->where('tasks.0.sessionCode', $secondTask->session->code)
+                ->where('selectedSessionCode', $secondTask->session->code)
+                ->where('selectionRequired', false)
+                ->where('summary.ready', 1),
+            );
+
+        $event = AuditEvent::query()->where('action', 'work_queue.viewed')->sole();
+
+        $this->assertSame($secondTask->session->public_id, $event->metadata['selected_session_public_id']);
+        $this->assertSame(1, $event->metadata['selected_assignment_count']);
+        $this->assertNotSame($firstTask->session->public_id, $event->metadata['selected_session_public_id']);
+    }
+
+    public function test_unavailable_session_selection_fails_closed_without_echoing_the_selector_to_audit_metadata(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $this->createTaskFor($user, 'Tugas pengguna');
+        $otherTask = $this->createTaskFor($otherUser, 'Tugas sesi tidak berwenang');
+
+        $this->actingAs($user)
+            ->get(route('work', ['session' => $otherTask->session->code]))
+            ->assertNotFound();
+
+        $event = AuditEvent::query()->where('action', 'work_queue.selection_denied')->sole();
+
+        $this->assertSame($user->getKey(), $event->actor_user_id);
+        $this->assertSame('DENIED', $event->outcome);
+        $this->assertSame('unavailable_session_selector', $event->reason);
+        $this->assertSame([
+            'available_session_count' => 1,
+            'session_selector_present' => true,
+        ], $event->metadata);
+        $this->assertNull($event->ip_hash);
+        $this->assertNull($event->user_agent);
+        $this->assertDatabaseMissing('audit_events', ['action' => 'work_queue.viewed']);
+    }
+
+    public function test_invalid_session_selection_shape_fails_closed(): void
+    {
+        $user = User::factory()->create();
+        $this->createTaskFor($user, 'Tugas pengguna');
+
+        $this->actingAs($user)
+            ->get(route('work', ['session' => ['not-a-string']]))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('audit_events', [
+            'actor_user_id' => $user->getKey(),
+            'action' => 'work_queue.selection_denied',
+            'outcome' => 'DENIED',
+            'reason' => 'invalid_session_selector',
+        ]);
+    }
+
+    public function test_assignment_from_an_inactive_session_is_not_presented_as_available_work(): void
+    {
+        $user = User::factory()->create();
+        $task = $this->createTaskFor($user, 'Tugas sesi selesai');
+        $task->session()->update(['status' => SessionStatus::Completed]);
+
+        $this->actingAs($user)
+            ->get(route('work'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('assignments', 0)
+                ->has('tasks', 0)
+                ->where('selectedSessionCode', null)
+                ->where('selectionRequired', false),
+            );
     }
 
     public function test_completed_future_and_other_users_tasks_are_not_disclosed(): void

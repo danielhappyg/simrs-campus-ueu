@@ -1,6 +1,6 @@
 # Outpatient Interaction Specifications
 
-- **Version:** 1.1 reference specification
+- **Version:** 1.2 reference specification
 - **Scope:** Critical outpatient MVP interactions and failure recovery
 - **Rule:** UI state follows confirmed server/domain state; animation or local component state never invents completion
 
@@ -18,6 +18,16 @@
 | `Selesai`                  | Domain transaction confirmed by server.                | Not inferred from closing a page.                     |
 
 ## 2. Open an assigned task
+
+### Select an active session context
+
+- If the account has one active assigned session, the queue selects it automatically.
+- If the account has more than one active assigned session, the queue shows the available session codes and returns no task actions until the user explicitly selects one.
+- Selection is represented by `?session={code}` so a facilitator can provide an exact UAT entry path and browser refresh preserves the chosen context.
+- A selected code must belong to an active assignment for the current user. Invalid, inactive, unknown, and other-user codes fail without existence-sensitive detail.
+- The page-level scenario, program, role, capabilities, summary, encounter orbit, and task list all derive from the same selected session.
+- Each task repeats the selected session code so users can verify provenance before opening it.
+- Changing session is an explicit Inertia `GET` navigation; destination policies still re-evaluate task, patient, encounter, version, and capability scope.
 
 ### Preconditions
 

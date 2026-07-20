@@ -30,12 +30,45 @@ class WorkQueueController extends Controller
         $assignments = Assignment::query()
             ->active()
             ->where('user_id', $user->getKey())
+            ->whereRelation('session', 'status', SessionStatus::Active->value)
             ->with(['session.scenario'])
             ->orderBy('active_from')
             ->get();
 
+        $requestedSessionCode = $request->query('session');
+        $hasSessionSelection = $request->query->has('session');
+        $availableSessionCount = $assignments->unique('session_id')->count();
+        $selectedAssignments = $assignments->filter(fn (): bool => false);
+
+        if ($hasSessionSelection) {
+            if (! is_string($requestedSessionCode)
+                || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._-]{0,99}\z/', $requestedSessionCode) !== 1) {
+                $this->recordSelectionDenial($request, $user, $availableSessionCount, 'invalid_session_selector');
+                abort(404);
+            }
+
+            $selectedAssignments = $assignments
+                ->filter(fn (Assignment $assignment): bool => $assignment->session->code === $requestedSessionCode);
+
+            if ($selectedAssignments->isEmpty()) {
+                $this->recordSelectionDenial($request, $user, $availableSessionCount, 'unavailable_session_selector');
+                abort(404);
+            }
+        } elseif ($availableSessionCount === 1) {
+            $onlySessionId = $assignments->first()?->session_id;
+            $selectedAssignments = $assignments
+                ->filter(fn (Assignment $assignment): bool => $assignment->session_id === $onlySessionId);
+        }
+
+        $selectedSession = $selectedAssignments->first()?->session;
+        $selectionRequired = $availableSessionCount > 1 && $selectedSession === null;
+
         $tasks = WorkTask::query()
-            ->whereIn('assignment_id', $assignments->modelKeys())
+            ->whereIn('assignment_id', $selectedAssignments->modelKeys())
+            ->when(
+                $selectedSession,
+                fn ($query) => $query->where('session_id', $selectedSession->getKey()),
+            )
             ->whereNotIn('status', [WorkTaskStatus::Complete->value, WorkTaskStatus::Cancelled->value])
             ->whereRelation('session', 'status', SessionStatus::Active->value)
             ->where(function ($query): void {
@@ -52,6 +85,10 @@ class WorkQueueController extends Controller
             actor: $user,
             metadata: [
                 'assignment_count' => $assignments->count(),
+                'available_session_count' => $availableSessionCount,
+                'selected_assignment_count' => $selectedAssignments->count(),
+                'selected_session_public_id' => $selectedSession?->public_id,
+                'selection_required' => $selectionRequired,
                 'task_count' => $tasks->count(),
             ],
             request: $request,
@@ -156,6 +193,8 @@ class WorkQueueController extends Controller
         return Inertia::render('work/index', [
             'assignments' => $assignmentPayloads,
             'tasks' => $taskPayloads,
+            'selectedSessionCode' => $selectedSession?->code,
+            'selectionRequired' => $selectionRequired,
             'summary' => [
                 'ready' => $tasks->where('status', WorkTaskStatus::Ready)->count(),
                 'inProgress' => $tasks->where('status', WorkTaskStatus::InProgress)->count(),
@@ -164,6 +203,27 @@ class WorkQueueController extends Controller
                 'changesRequested' => $tasks->where('status', WorkTaskStatus::ChangesRequested)->count(),
             ],
         ]);
+    }
+
+    private function recordSelectionDenial(
+        Request $request,
+        User $user,
+        int $availableSessionCount,
+        string $reason,
+    ): void {
+        $this->auditRecorder->record(
+            action: 'work_queue.selection_denied',
+            resourceType: 'work_queue',
+            actor: $user,
+            outcome: 'DENIED',
+            reason: $reason,
+            metadata: [
+                'available_session_count' => $availableSessionCount,
+                'session_selector_present' => true,
+            ],
+            request: $request,
+            includeRequestFingerprint: false,
+        );
     }
 
     private function codingActionUrl(WorkTask $task): string

@@ -70,6 +70,7 @@ Rejected because a deny-list reset is not a reliable proof that no progressed st
 - The source must remain pristine until all desired clones are prepared; a pristine clone may itself serve as a later source.
 - Session duration is an operational command input, not an accepted class-length policy; `VAL-T05` remains open.
 - Demo accounts remain shared development identities. Password distribution, rotation, and combined-role acceptance remain external UAT responsibilities.
+- When those identities hold assignments in several active clones, the work queue requires one exact authorized session selection before returning tasks; see ADR-012.
 - This advances staged-validation readiness but does not constitute Checkpoint 2 acceptance, a hosted deployment, or OPS-02 evidence.
 
 ## Verification required

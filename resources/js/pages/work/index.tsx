@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowRight,
@@ -37,6 +37,8 @@ type Props = {
     assignments: AssignmentContext[];
     tasks: WorkTaskItem[];
     summary: WorkQueueSummary;
+    selectedSessionCode: string | null;
+    selectionRequired: boolean;
 };
 
 const taskIcons: Record<WorkTaskType, LucideIcon> = {
@@ -136,6 +138,12 @@ export function TaskRow({ task }: { task: WorkTaskItem }) {
 
                 <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
                     <div className="flex gap-1.5">
+                        <dt>Sesi</dt>
+                        <dd className="font-mono font-medium text-foreground">
+                            {task.sessionCode}
+                        </dd>
+                    </div>
+                    <div className="flex gap-1.5">
                         <dt>Prioritas</dt>
                         <dd className="font-mono font-medium text-foreground">
                             P{task.priority}
@@ -198,9 +206,58 @@ function EmptyAssignment() {
     );
 }
 
-export default function WorkQueue({ assignments, tasks, summary }: Props) {
+function SessionSelectionRequired() {
+    return (
+        <section className="clinical-shadow rounded-lg border border-sky-200 bg-sky-50 px-6 py-12 text-center">
+            <BookOpenCheck
+                className="mx-auto size-9 text-primary"
+                aria-hidden="true"
+            />
+            <h2 className="mt-4 text-xl font-semibold">
+                Pilih satu sesi simulasi
+            </h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+                Anda memiliki lebih dari satu sesi aktif. Pilih sesi sebelum
+                membuka tugas agar konteks latihan dan data sintetis tidak
+                tercampur.
+            </p>
+        </section>
+    );
+}
+
+export default function WorkQueue({
+    assignments,
+    tasks,
+    summary,
+    selectedSessionCode,
+    selectionRequired,
+}: Props) {
     const { auth, requestId } = usePage().props;
-    const assignment = assignments[0];
+    const sessions = Array.from(
+        new Map(
+            assignments.map((assignment) => [
+                assignment.session.publicId,
+                assignment.session,
+            ]),
+        ).values(),
+    );
+    const selectedAssignments = assignments.filter(
+        (assignment) => assignment.session.code === selectedSessionCode,
+    );
+    const assignment = selectedAssignments[0];
+    const selectedCapabilities = Array.from(
+        new Map(
+            selectedAssignments
+                .flatMap((item) => item.capabilities)
+                .map((capability) => [capability.code, capability]),
+        ).values(),
+    );
+    const selectedPrograms = Array.from(
+        new Set(selectedAssignments.map((item) => item.program.label)),
+    ).join(', ');
+    const selectedRoles = Array.from(
+        new Set(selectedAssignments.map((item) => item.role.label)),
+    ).join(', ');
     const summaryItems = [
         { label: 'Siap', value: summary.ready, color: 'bg-primary' },
         { label: 'Dikerjakan', value: summary.inProgress, color: 'bg-signal' },
@@ -257,8 +314,67 @@ export default function WorkQueue({ assignments, tasks, summary }: Props) {
                     </dl>
                 </header>
 
-                {!assignment ? (
+                {sessions.length > 1 && (
+                    <section
+                        aria-labelledby="session-selector-title"
+                        className="flex flex-col gap-3 rounded-lg border border-sky-200 bg-[#eaf4f8] px-4 py-4 sm:flex-row sm:items-end sm:justify-between"
+                    >
+                        <div>
+                            <h2
+                                id="session-selector-title"
+                                className="text-sm font-semibold"
+                            >
+                                Sesi simulasi aktif
+                            </h2>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                Antrean hanya memuat tugas dari sesi yang Anda
+                                pilih.
+                            </p>
+                        </div>
+                        <div className="w-full sm:max-w-sm">
+                            <label
+                                htmlFor="work-session"
+                                className="mb-1.5 block text-xs font-semibold text-foreground"
+                            >
+                                Pilih sesi
+                            </label>
+                            <select
+                                id="work-session"
+                                value={selectedSessionCode ?? ''}
+                                onChange={(event) =>
+                                    router.get(
+                                        work().url,
+                                        { session: event.target.value },
+                                        {
+                                            preserveScroll: true,
+                                            preserveState: true,
+                                            replace: true,
+                                        },
+                                    )
+                                }
+                                className="h-10 w-full rounded-md border border-input bg-white px-3 text-sm font-medium text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                            >
+                                <option value="" disabled>
+                                    Pilih sesi aktif
+                                </option>
+                                {sessions.map((session) => (
+                                    <option
+                                        key={session.publicId}
+                                        value={session.code}
+                                    >
+                                        {session.code} · {session.courseCode} ·{' '}
+                                        {session.cohortCode}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </section>
+                )}
+
+                {assignments.length === 0 ? (
                     <EmptyAssignment />
+                ) : selectionRequired || !assignment ? (
+                    <SessionSelectionRequired />
                 ) : (
                     <>
                         <section
@@ -268,8 +384,8 @@ export default function WorkQueue({ assignments, tasks, summary }: Props) {
                             {[
                                 ['Sesi', assignment.session.code],
                                 ['Skenario', assignment.session.scenarioTitle],
-                                ['Program', assignment.program.label],
-                                ['Peran', assignment.role.label],
+                                ['Program', selectedPrograms],
+                                ['Peran', selectedRoles],
                             ].map(([label, value]) => (
                                 <div key={label} className="bg-white px-4 py-3">
                                     <p className="text-[0.68rem] font-bold tracking-wider text-muted-foreground uppercase">
@@ -369,7 +485,7 @@ export default function WorkQueue({ assignments, tasks, summary }: Props) {
                                         Batas kapabilitas
                                     </h3>
                                     <ul className="mt-3 space-y-2">
-                                        {assignment.capabilities.map(
+                                        {selectedCapabilities.map(
                                             (capability) => (
                                                 <li
                                                     key={capability.code}
