@@ -1,6 +1,6 @@
 # ADR-012: Fail-Closed Multi-Session Work-Queue Scoping
 
-- **Status:** Accepted and implemented at `0b8ba4a`; complete local and feature-head CI gates passed, PR remains draft/unmerged
+- **Status:** Accepted, implemented at `0b8ba4a`, and browser-rehearsed on 2026-07-21; complete local and exact-head CI gates passed, PR remains draft/unmerged
 - **Date:** 2026-07-20
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008
@@ -44,7 +44,7 @@ Selected because it fails closed, supports exact UAT links, and preserves the ex
 - Participants receive one additional selection step only when their account has assignments in several active sessions.
 - Facilitators must record and distribute the exact session code for each UAT branch.
 - This does not decide future multi-case-within-one-session behavior, account lifecycle, retention, class size, or combined-role policy.
-- Browser rehearsal and stakeholder validation remain required; automated coverage is not Checkpoint 2 acceptance.
+- A bounded native-browser rehearsal now covers two simultaneous disposable sessions, exact URL persistence, fail-closed denial, desktop/mobile containment, and minimized audit evidence. Stakeholder validation remains required; this development rehearsal is not Checkpoint 2 acceptance.
 
 ## Verification required
 
@@ -53,7 +53,7 @@ Selected because it fails closed, supports exact UAT links, and preserves the ex
 - authorized selection scopes tasks, summaries, and visible context;
 - invalid and unassigned selectors fail closed with minimized audit evidence;
 - inactive sessions are unavailable;
-- native keyboard-operable selector, explicit empty state, repeated task provenance, and automated accessibility check;
+- programmatically labelled native selector, explicit empty state, repeated task provenance, automated accessibility check, and bounded browser operation; full native sequential keyboard traversal remains a separate manual gate;
 - complete SQLite/MySQL, static, frontend, documentation, build, and non-deploying release gates.
 
 ## Related records
