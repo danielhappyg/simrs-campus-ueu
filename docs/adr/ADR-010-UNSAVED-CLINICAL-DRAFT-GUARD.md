@@ -1,6 +1,6 @@
 # ADR-010: Unsaved Clinical Draft Guard
 
-- **Status:** Implemented working reference with in-session history and reauthentication protection; manual browser validation pending
+- **Status:** Implemented and browser-rehearsed with in-session history and reauthentication protection; stakeholder and full manual keyboard validation pending
 - **Date:** 2026-07-18
 - **Final decision authority:** Daniel Happy Putra, project manager/PIC
 - **Implementation authority:** delegated autonomous product and engineering work under DEC-008
@@ -45,7 +45,9 @@ Persisting the draft automatically in browser storage would create a different r
 
 ## Verification
 
-The focused history/React/axe suite covers position-only history metadata, intercepted Back and Forward restoration, explicit stay/replay, the visible status, accessible modal, all three choices, save-before-navigation ordering, in-flight action locking, generic failure announcement, retry, explicit discard, ignored `POST`/prefetch visits, native unload prevention, and listener cleanup. The focused recovery suite adds generic no-store `401/419` contracts, normal unmarked-login behavior, response-content minimization, HTTP classification/overlay suppression, a separate-tab login link, retained same-tab state, and shared validation/cancellation/network failure handling. Complete frontend/backend/static/build evidence is recorded on the implementing commit. Bounded live browser validation remains required before this follow-up evidence is closed.
+The focused history/React/axe suite covers position-only history metadata, intercepted Back and Forward restoration, explicit stay/replay, the visible status, accessible modal, all three choices, save-before-navigation ordering, in-flight action locking, generic failure announcement, retry, explicit discard, ignored `POST`/prefetch visits, native unload prevention, and listener cleanup. The focused recovery suite adds generic no-store `401/419` contracts, normal unmarked-login behavior, response-content minimization, HTTP classification/overlay suppression, a separate-tab login link, retained same-tab state, and shared validation/cancellation/network failure handling.
+
+On 2026-07-21, a bounded in-app-browser rehearsal used the disposable `UAT-MULTI-001` synthetic session. It completed registrar check-in, opened the nursing form, and verified the visible dirty state; guarded Inertia navigation; marked in-session Back and Forward interception; exact-target replay; stay, save-draft-then-leave, and local-discard outcomes; two append-only draft versions with distinct hashes; logout in a separate tab; a generic recovery alert with no clinical-text echo; same-account reauthentication; and an authorized retry that persisted version 2 before navigation. Local discard created no version 3. At 390×844 the dialog retained one `main`, one `h1`, unique IDs, no page-level horizontal overflow, contained 44 CSS-pixel actions, and focus inside the dialog; retained warning/error logs were empty. The browser rehearsal did not manually inspect native unload wording, network/validation failure, every long form, or complete sequential keyboard traversal; those remain separate gates.
 
 ## Related records
 
