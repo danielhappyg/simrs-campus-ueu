@@ -535,8 +535,6 @@ export default function EncounterClosureWorkspace({
     const prior = document.latestVersion?.content.authored;
     const priorProcedureDocumentation =
         document.latestVersion?.content.procedureDocumentation;
-    const preserveExactProcedureInstants =
-        codingCorrection !== null || procedureCodingCorrection !== null;
     const form = useForm<ClosureForm>({
         request_key: formOptions.requestKey,
         intent: 'SAVE_DRAFT',
@@ -559,13 +557,10 @@ export default function EncounterClosureWorkspace({
                 authored_text: procedure.authoredText,
                 performed_start_at: dateTimeFormValue(
                     procedure.performedStartAt,
-                    preserveExactProcedureInstants,
+                    true,
                 ),
                 performed_end_at: procedure.performedEndAt
-                    ? dateTimeFormValue(
-                          procedure.performedEndAt,
-                          preserveExactProcedureInstants,
-                      )
+                    ? dateTimeFormValue(procedure.performedEndAt, true)
                     : '',
                 performer_text: procedure.performerText,
                 body_site_text: procedure.bodySiteText ?? '',
@@ -659,14 +654,15 @@ export default function EncounterClosureWorkspace({
         field: keyof ProcedureForm,
         value: string,
     ) {
-        form.setData(
-            'procedures',
-            form.data.procedures.map((procedure, procedureIndex) =>
-                procedureIndex === index
-                    ? { ...procedure, [field]: value }
-                    : procedure,
+        form.setData((previousData) => ({
+            ...previousData,
+            procedures: previousData.procedures.map(
+                (procedure, procedureIndex) =>
+                    procedureIndex === index
+                        ? { ...procedure, [field]: value }
+                        : procedure,
             ),
-        );
+        }));
     }
 
     function removeProcedure(index: number) {
@@ -1433,12 +1429,26 @@ export default function EncounterClosureWorkspace({
                                                                         <Input
                                                                             id={`procedure_${index}_start`}
                                                                             type="datetime-local"
+                                                                            step={
+                                                                                1
+                                                                            }
                                                                             className="mt-2"
                                                                             value={dateTimeFormValue(
                                                                                 procedure.performed_start_at,
-                                                                                preserveExactProcedureInstants,
+                                                                                true,
                                                                             )}
                                                                             onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                updateProcedure(
+                                                                                    index,
+                                                                                    'performed_start_at',
+                                                                                    event
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
+                                                                            onBlur={(
                                                                                 event,
                                                                             ) =>
                                                                                 updateProcedure(
@@ -1473,12 +1483,26 @@ export default function EncounterClosureWorkspace({
                                                                         <Input
                                                                             id={`procedure_${index}_end`}
                                                                             type="datetime-local"
+                                                                            step={
+                                                                                1
+                                                                            }
                                                                             className="mt-2"
                                                                             value={dateTimeFormValue(
                                                                                 procedure.performed_end_at,
-                                                                                preserveExactProcedureInstants,
+                                                                                true,
                                                                             )}
                                                                             onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                updateProcedure(
+                                                                                    index,
+                                                                                    'performed_end_at',
+                                                                                    event
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
+                                                                            onBlur={(
                                                                                 event,
                                                                             ) =>
                                                                                 updateProcedure(
