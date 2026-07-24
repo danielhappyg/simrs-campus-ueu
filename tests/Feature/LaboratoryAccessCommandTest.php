@@ -142,14 +142,18 @@ class LaboratoryAccessCommandTest extends TestCase
         $this->assertNull($event->encounter_id);
         $this->assertNull($event->ip_hash);
         $this->assertNull($event->user_agent);
-        $this->assertSame([
+        $expectedMetadata = [
             'account_count' => 10,
             'sessions_revoked' => 1,
             'passkeys_removed' => 1,
             'reset_tokens_removed' => 1,
             'password_rotated' => false,
             'authentication_factors_cleared' => true,
-        ], $event->metadata);
+        ];
+        $actualMetadata = $event->metadata;
+        ksort($expectedMetadata);
+        ksort($actualMetadata);
+        $this->assertSame($expectedMetadata, $actualMetadata);
 
         foreach ([
             ...app(ReservedDemoAccountRoster::class)->emails(),
