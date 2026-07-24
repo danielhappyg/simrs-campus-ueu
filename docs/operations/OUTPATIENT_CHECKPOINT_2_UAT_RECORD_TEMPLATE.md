@@ -26,82 +26,87 @@ Allowed Daniel decision states: `NOT DECIDED`, `RETAIN`, `REVISE`, `REMOVE`, `DE
 
 ## 2. Run identity
 
-| Field | Entry |
-| --- | --- |
-| Record ID | `<UAT-RUN-YYYYMMDD-NN>` |
-| Local date/time and timezone | `<YYYY-MM-DD HH:MM Asia/Jakarta>` |
-| Facilitator role | `<role; no password or personal contact>` |
-| Candidate commit | `<40-character commit>` |
-| Release-candidate/artifact reference | `<artifact ID or NOT USED>` |
-| Environment identifier | `<isolated simulation environment>` |
-| Application mode | `<must be SIMULATION>` |
-| Synthetic-only configuration | `<must be true>` |
-| Database/reset reference | `<fresh fixture or approved snapshot ID>` |
-| Scenario/session identifier | `<synthetic public identifier>` |
-| Encounter identifier | `<synthetic public identifier>` |
-| ICD-10 release/checksum suffix | `<visible release and safe hash suffix>` |
-| ICD-9-CM release/checksum suffix | `<visible release and safe hash suffix>` |
-| Browser/viewport | `<supported browser, version, viewport, zoom>` |
-| Recovery evidence | `<snapshot/reset reference>` |
-| Evidence location | `<restricted location identifier; never credentials or URL tokens>` |
+| Field                                | Entry                                                               |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| Record ID                            | `<UAT-RUN-YYYYMMDD-NN>`                                             |
+| Local date/time and timezone         | `<YYYY-MM-DD HH:MM Asia/Jakarta>`                                   |
+| Facilitator role                     | `<role; no password or personal contact>`                           |
+| Candidate commit                     | `<40-character commit>`                                             |
+| Release-candidate/artifact reference | `<artifact ID or NOT USED>`                                         |
+| Environment identifier               | `<isolated simulation environment>`                                 |
+| Application mode                     | `<must be SIMULATION>`                                              |
+| Synthetic-only configuration         | `<must be true>`                                                    |
+| Database/reset reference             | `<fresh fixture or approved snapshot ID>`                           |
+| Scenario/session identifier          | `<synthetic public identifier>`                                     |
+| Encounter identifier                 | `<synthetic public identifier>`                                     |
+| Initial session-monitor phase        | `<must be OK / READY_TO_START>`                                     |
+| Closeout session-monitor phase       | `<FINALIZED, ENDED, or exact observed phase>`                       |
+| ICD-10 release/checksum suffix       | `<visible release and safe hash suffix>`                            |
+| ICD-9-CM release/checksum suffix     | `<visible release and safe hash suffix>`                            |
+| Browser/viewport                     | `<supported browser, version, viewport, zoom>`                      |
+| Recovery evidence                    | `<snapshot/reset reference>`                                        |
+| Evidence location                    | `<restricted location identifier; never credentials or URL tokens>` |
 
 ## 3. Entry and safety attestations
 
 Record `NOT CONFIRMED`, `CONFIRMED`, or `FAILED`. Any `FAILED` safety item stops the session and requires an issue record.
 
-| Gate | Initial status | Evidence/reference |
-| --- | --- | --- |
-| `simulation:lab-preflight` reports `READY` with zero failures | `NOT CONFIRMED` | `<sanitized result reference>` |
-| Isolated simulation environment | `NOT CONFIRMED` | `<reference>` |
-| Permanent `SIMULASI — DATA SINTETIS` boundary visible | `NOT CONFIRMED` | `<reference>` |
-| Fresh/snapshotted synthetic fixture | `NOT CONFIRMED` | `<reference>` |
-| Exact tested commit identified | `NOT CONFIRMED` | `<reference>` |
-| Required demo assignments available | `NOT CONFIRMED` | `<reference>` |
-| No real patient or participant-sensitive data entered | `NOT CONFIRMED` | `<reference>` |
-| No production endpoint, credential, or transmission enabled | `NOT CONFIRMED` | `<reference>` |
-| Limitations in facilitator-guide section 11 disclosed | `NOT CONFIRMED` | `<reference>` |
-| Stop-session rule understood | `NOT CONFIRMED` | `<reference>` |
+| Gate                                                                                             | Initial status  | Evidence/reference             |
+| ------------------------------------------------------------------------------------------------ | --------------- | ------------------------------ |
+| `simulation:lab-preflight` reports `READY` with zero failures                                    | `NOT CONFIRMED` | `<sanitized result reference>` |
+| `simulation:lab-session-status` reports `OK` / `READY_TO_START` for the exact disposable session | `NOT CONFIRMED` | `<sanitized result reference>` |
+| Isolated simulation environment                                                                  | `NOT CONFIRMED` | `<reference>`                  |
+| Permanent `SIMULASI — DATA SINTETIS` boundary visible                                            | `NOT CONFIRMED` | `<reference>`                  |
+| Fresh/snapshotted synthetic fixture                                                              | `NOT CONFIRMED` | `<reference>`                  |
+| Exact tested commit identified                                                                   | `NOT CONFIRMED` | `<reference>`                  |
+| Required demo assignments available                                                              | `NOT CONFIRMED` | `<reference>`                  |
+| No real patient or participant-sensitive data entered                                            | `NOT CONFIRMED` | `<reference>`                  |
+| No production endpoint, credential, or transmission enabled                                      | `NOT CONFIRMED` | `<reference>`                  |
+| Limitations in facilitator-guide section 11 disclosed                                            | `NOT CONFIRMED` | `<reference>`                  |
+| Stop-session rule understood                                                                     | `NOT CONFIRMED` | `<reference>`                  |
+
+Session-monitor task counts are operational evidence only. Do not convert them into a percentage, score, grade, pass/fail result, or acceptance decision.
 
 ## 4. Participant-role coverage
 
 Do not enter personal names in the repository copy. If one person operates multiple roles during a development rehearsal, mark every combined role explicitly; this does not approve combined staffing for a faculty pilot.
 
-| Sequence | Demo role | Present status | Combined-role note | Assignment/capability observed |
-| ---: | --- | --- | --- | --- |
-| 1 | Registration learner | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 2 | Nursing learner | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 3 | Nursing supervisor | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 4 | Medical learner | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 5 | Medical supervisor | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 6 | Facilitator/result operator | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 7 | Pharmacy learner | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 8 | Pharmacy supervisor | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 9 | RMIK coder | `NOT RECORDED` | `<none or role>` | `<reference>` |
-| 10 | RMIK supervisor | `NOT RECORDED` | `<none or role>` | `<reference>` |
+| Sequence | Demo role                   | Present status | Combined-role note | Assignment/capability observed |
+| -------: | --------------------------- | -------------- | ------------------ | ------------------------------ |
+|        1 | Registration learner        | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        2 | Nursing learner             | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        3 | Nursing supervisor          | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        4 | Medical learner             | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        5 | Medical supervisor          | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        6 | Facilitator/result operator | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        7 | Pharmacy learner            | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        8 | Pharmacy supervisor         | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|        9 | RMIK coder                  | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
+|       10 | RMIK supervisor             | `NOT RECORDED` | `<none or role>`   | `<reference>`                  |
 
 ## 5. Scenario results
 
 `PASS` requires the complete named scenario, not a nearby screen or a subset of steps. Use separate disposable fixtures where the guide requires them.
 
-| Scenario | Initial status | Evidence IDs | Issue IDs | Concise observable result |
-| --- | --- | --- | --- | --- |
-| UAT-00 — safety and assignment check | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-01 — registration and check-in | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-01A — cancellation after check-in | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-01B — overdue no-show | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-02 — nursing assessment and draft guard | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-02B — human safety disposition | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-02C — patient-requested departure | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-03 — medical assessment/order/prescription | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-04 — synthetic result release | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-05 — pharmacy review and dispensing | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-06 — clinical closure | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-07 — RMIK completeness review | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-08 — human-reviewed coding/finalization | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-09 — longitudinal record/debrief/reports | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-10 — local interoperability preview | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-C01 — diagnosis-source correction | `NOT RUN` | `<none>` | `<none>` | `<result>` |
-| UAT-C02 — performed-procedure correction | `NOT RUN` | `<none>` | `<none>` | `<result>` |
+| Scenario                                       | Initial status | Evidence IDs | Issue IDs | Concise observable result |
+| ---------------------------------------------- | -------------- | ------------ | --------- | ------------------------- |
+| UAT-00 — safety and assignment check           | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-01 — registration and check-in             | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-01A — cancellation after check-in          | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-01B — overdue no-show                      | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-02 — nursing assessment and draft guard    | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-02B — human safety disposition             | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-02C — patient-requested departure          | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-03 — medical assessment/order/prescription | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-04 — synthetic result release              | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-05 — pharmacy review and dispensing        | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-06 — clinical closure                      | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-07 — RMIK completeness review              | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-08 — human-reviewed coding/finalization    | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-09 — longitudinal record/debrief/reports   | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-10 — local interoperability preview        | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-C01 — diagnosis-source correction          | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
+| UAT-C02 — performed-procedure correction       | `NOT RUN`      | `<none>`     | `<none>`  | `<result>`                |
 
 ## 6. Issue records
 
@@ -109,69 +114,69 @@ Copy this block once per issue. Do not combine unrelated observations merely bec
 
 ### `<UAT-YYYYMMDD-NNN>`
 
-| Field | Entry |
-| --- | --- |
-| Scenario/step | `<exact UAT-* step and action>` |
-| Acting role | `<demo role>` |
-| Encounter/source | `<synthetic encounter and source/version/hash suffix>` |
-| Expected | `<linked acceptance condition>` |
-| Actual | `<observable result without speculation>` |
-| Impact domain | `<safety, authorization, data integrity, workflow, terminology, teaching, accessibility, cosmetic>` |
-| Reproducibility | `<always, intermittent, once; concise steps>` |
-| Evidence IDs | `<synthetic-only screenshot/request/log references>` |
-| Reporter proposal | `<suggested classification; not final>` |
-| Daniel classification | `NOT CLASSIFIED` |
-| Owner | `<role/team or UNASSIGNED>` |
-| Target checkpoint | `<UAT resume, faculty pilot, later, none>` |
-| Resolution evidence | `<commit/test/rerun reference or NOT RESOLVED>` |
+| Field                 | Entry                                                                                               |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| Scenario/step         | `<exact UAT-* step and action>`                                                                     |
+| Acting role           | `<demo role>`                                                                                       |
+| Encounter/source      | `<synthetic encounter and source/version/hash suffix>`                                              |
+| Expected              | `<linked acceptance condition>`                                                                     |
+| Actual                | `<observable result without speculation>`                                                           |
+| Impact domain         | `<safety, authorization, data integrity, workflow, terminology, teaching, accessibility, cosmetic>` |
+| Reproducibility       | `<always, intermittent, once; concise steps>`                                                       |
+| Evidence IDs          | `<synthetic-only screenshot/request/log references>`                                                |
+| Reporter proposal     | `<suggested classification; not final>`                                                             |
+| Daniel classification | `NOT CLASSIFIED`                                                                                    |
+| Owner                 | `<role/team or UNASSIGNED>`                                                                         |
+| Target checkpoint     | `<UAT resume, faculty pilot, later, none>`                                                          |
+| Resolution evidence   | `<commit/test/rerun reference or NOT RESOLVED>`                                                     |
 
 ## 7. Validation and product decisions
 
 Only Daniel may change `NOT DECIDED` to a final decision state. Link the issue/evidence and state the affected scope; do not silently rewrite the source assumption register from meeting notes.
 
-| Decision item | Initial state | Evidence/issue IDs | Daniel rationale and affected scope |
-| --- | --- | --- | --- |
-| VAL-A01–A04 — intake/safety/disposition | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-A05–A10 — nursing/medical/result/pharmacy content | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-A11–A12 — completeness and coding curriculum | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-A13–A14 — correction responsibility/timing | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-A15 — public queue identity | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-A16 — coding aliases/gold set/threshold | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-A17 — early-departure vocabulary/actor/incomplete record | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-T02/T07 — staffing and one-case session model | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-T03/T06 — rubric and debrief usefulness | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-T05 — class size/session duration target | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-U02/U04 — terminology and accessibility | `NOT DECIDED` | `<none>` | `<decision>` |
-| VAL-U05 — outpatient summary | `NOT DECIDED` | `<none>` | `<retain, revise, remove, or defer>` |
-| VAL-U05 — debrief-evidence report | `NOT DECIDED` | `<none>` | `<retain, revise, remove, or defer>` |
-| Longitudinal teaching record | `NOT DECIDED` | `<none>` | `<retain, revise, remove, or defer>` |
-| Local FHIR-aligned preview | `NOT DECIDED` | `<none>` | `<retain, revise, remove, or defer>` |
+| Decision item                                                | Initial state | Evidence/issue IDs | Daniel rationale and affected scope  |
+| ------------------------------------------------------------ | ------------- | ------------------ | ------------------------------------ |
+| VAL-A01–A04 — intake/safety/disposition                      | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-A05–A10 — nursing/medical/result/pharmacy content        | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-A11–A12 — completeness and coding curriculum             | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-A13–A14 — correction responsibility/timing               | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-A15 — public queue identity                              | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-A16 — coding aliases/gold set/threshold                  | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-A17 — early-departure vocabulary/actor/incomplete record | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-T02/T07 — staffing and one-case session model            | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-T03/T06 — rubric and debrief usefulness                  | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-T05 — class size/session duration target                 | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-U02/U04 — terminology and accessibility                  | `NOT DECIDED` | `<none>`           | `<decision>`                         |
+| VAL-U05 — outpatient summary                                 | `NOT DECIDED` | `<none>`           | `<retain, revise, remove, or defer>` |
+| VAL-U05 — debrief-evidence report                            | `NOT DECIDED` | `<none>`           | `<retain, revise, remove, or defer>` |
+| Longitudinal teaching record                                 | `NOT DECIDED` | `<none>`           | `<retain, revise, remove, or defer>` |
+| Local FHIR-aligned preview                                   | `NOT DECIDED` | `<none>`           | `<retain, revise, remove, or defer>` |
 
 ## 8. Unresolved P0/P1 risks
 
 Every unresolved P0/P1 item needs an owner and next evidence step. `NONE IDENTIFIED` is allowed only after the issue and validation-decision sections are reviewed.
 
-| Risk/validation ID | Level | Current evidence | Owner | Required action and target date/checkpoint |
-| --- | --- | --- | --- | --- |
-| `<ID or NONE IDENTIFIED>` | `<P0/P1>` | `<reference>` | `<owner>` | `<action>` |
+| Risk/validation ID        | Level     | Current evidence | Owner     | Required action and target date/checkpoint |
+| ------------------------- | --------- | ---------------- | --------- | ------------------------------------------ |
+| `<ID or NONE IDENTIFIED>` | `<P0/P1>` | `<reference>`    | `<owner>` | `<action>`                                 |
 
 ## 9. Exit record and Daniel decision
 
-| Field | Entry |
-| --- | --- |
-| All planned scenarios accounted for | `NOT CONFIRMED` |
-| All issue records classified | `NOT CONFIRMED` |
-| Real-data/production-integration boundary preserved | `NOT CONFIRMED` |
-| Unresolved P0 count | `<number>` |
-| Unresolved P1 count | `<number>` |
-| Checkpoint 2 outcome | `NOT DECIDED` |
-| Allowed outcomes | `ACCEPTED`, `CONDITIONALLY ACCEPTED`, `REQUIRES ANOTHER RUN` |
-| Conditions/required reruns | `<issue and scenario IDs>` |
-| Merge authorization | `NOT AUTHORIZED BY THIS RECORD` |
-| Deployment authorization | `NOT AUTHORIZED BY THIS RECORD` |
-| Faculty-pilot authorization | `NOT AUTHORIZED BY THIS RECORD` |
-| Daniel decision date/timezone | `<NOT RECORDED>` |
-| Daniel decision note | `<NOT RECORDED>` |
+| Field                                               | Entry                                                        |
+| --------------------------------------------------- | ------------------------------------------------------------ |
+| All planned scenarios accounted for                 | `NOT CONFIRMED`                                              |
+| All issue records classified                        | `NOT CONFIRMED`                                              |
+| Real-data/production-integration boundary preserved | `NOT CONFIRMED`                                              |
+| Unresolved P0 count                                 | `<number>`                                                   |
+| Unresolved P1 count                                 | `<number>`                                                   |
+| Checkpoint 2 outcome                                | `NOT DECIDED`                                                |
+| Allowed outcomes                                    | `ACCEPTED`, `CONDITIONALLY ACCEPTED`, `REQUIRES ANOTHER RUN` |
+| Conditions/required reruns                          | `<issue and scenario IDs>`                                   |
+| Merge authorization                                 | `NOT AUTHORIZED BY THIS RECORD`                              |
+| Deployment authorization                            | `NOT AUTHORIZED BY THIS RECORD`                              |
+| Faculty-pilot authorization                         | `NOT AUTHORIZED BY THIS RECORD`                              |
+| Daniel decision date/timezone                       | `<NOT RECORDED>`                                             |
+| Daniel decision note                                | `<NOT RECORDED>`                                             |
 
 ## 10. Change-control follow-through
 

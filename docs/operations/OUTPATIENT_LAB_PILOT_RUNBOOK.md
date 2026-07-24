@@ -67,14 +67,19 @@ Run this stage before a multi-person session.
 1. Record the candidate commit, environment identifier, browser/version, and preflight result in a dated UAT record.
 2. Create a disposable session with a unique uppercase code:
 
-   ```bash
-   php artisan simulation:clone-reference-session LAB-REHEARSAL-001 --duration=480
-   ```
+    ```bash
+    php artisan simulation:clone-reference-session LAB-REHEARSAL-001 --duration=480
+    php artisan simulation:lab-session-status LAB-REHEARSAL-001
+    ```
 
-3. Record the generated session and encounter identifiers. Do not record passwords, cookies, keys, raw audit payloads, or participant contact details.
-4. Starting at `/work?session=LAB-REHEARSAL-001`, complete the main journey in the exact role order in the facilitator guide.
-5. Confirm that each role sees only the selected session and permitted task, source/version handoffs remain visible, and the encounter reaches the expected finalized/debrief state.
-6. Record observable defects and decisions using issue IDs. Do not redesign unrelated modules during the run.
+3. Require the session monitor to report `OK` / `READY_TO_START`, ten active assignments, four total tasks, and one ready registration task. A `BLOCKED` result stops preparation.
+4. Record the generated session and encounter identifiers. Do not record passwords, cookies, keys, raw audit payloads, or participant contact details.
+5. Starting at `/work?session=LAB-REHEARSAL-001`, complete the main journey in the exact role order in the facilitator guide.
+6. At disputed or unexpected handoffs, run `php artisan simulation:lab-session-status LAB-REHEARSAL-001 --json` and retain only the sanitized evidence reference.
+7. Confirm that each role sees only the selected session and permitted task, source/version handoffs remain visible, and the encounter reaches the expected finalized/debrief state.
+8. Record observable defects and decisions using issue IDs. Do not redesign unrelated modules during the run.
+
+The session monitor is read-only and identity-minimized. Its task totals are not a completion percentage, learner score, grade, or acceptance decision. Ready-task rows identify only task type, program, role, and priority.
 
 Recommended reservation: **150–180 minutes** for the main journey plus **30 minutes** for setup and evidence review. Run cancellation, no-show, safety escalation, early departure, and source-correction branches in separate disposable sessions; do not compress every branch into the first participant pilot.
 
@@ -85,16 +90,19 @@ Stage A may advance only when the planned main journey is reproducible without d
 1. Rerun `php artisan simulation:lab-preflight` immediately before preparing participant sessions.
 2. Create a new disposable session; never reuse the facilitator-rehearsal session:
 
-   ```bash
-   php artisan simulation:clone-reference-session LAB-PILOT-001 --duration=480
-   ```
+    ```bash
+    php artisan simulation:clone-reference-session LAB-PILOT-001 --duration=480
+    php artisan simulation:lab-session-status LAB-PILOT-001
+    ```
 
-3. Brief participants on the permanent synthetic-data boundary, assigned roles, stop rules, evidence capture, and known limitations.
-4. Provide the temporary password separately from the repository and UAT record.
-5. Require every participant to confirm the page context and task-row session code before acting.
-6. Facilitate UAT-00 through UAT-10 in the detailed guide, recording expected versus actual behavior after each step.
-7. Use fresh separately named sessions for any negative or correction branch selected for this run.
-8. Stop introducing new branches when insufficient time would weaken evidence quality. Mark unrun scenarios `NOT RUN`; never infer a pass.
+3. Continue only when the session monitor reports `OK` / `READY_TO_START`; record its sanitized output reference in the dated UAT record.
+4. Brief participants on the permanent synthetic-data boundary, assigned roles, stop rules, evidence capture, and known limitations.
+5. Provide the temporary password separately from the repository and UAT record.
+6. Require every participant to confirm the page context and task-row session code before acting.
+7. Facilitate UAT-00 through UAT-10 in the detailed guide, recording expected versus actual behavior after each step.
+8. Use the session monitor when a handoff or task state is disputed; treat its attention flags as prompts for investigation, not automatic pass/fail decisions.
+9. Use fresh separately named sessions for any negative or correction branch selected for this run.
+10. Stop introducing new branches when insufficient time would weaken evidence quality. Mark unrun scenarios `NOT RUN`; never infer a pass.
 
 The initial guided pilot should use a small controlled group. It is intended to expose workflow, wording, authorization, accessibility, and teaching-design problems before broader program consultation.
 
@@ -110,6 +118,7 @@ Stop the current session immediately if any of these occur:
 - a production hospital, SATUSEHAT, BPJS, email, messaging, or other clinical endpoint/credential is discovered;
 - the application requires direct database editing to continue; or
 - the evidence needed to explain the failure cannot be preserved safely.
+- `simulation:lab-session-status` reports a structural or synthetic-boundary `BLOCKED` result for the active disposable session.
 
 For recoverable user-interface or workflow failures:
 
@@ -125,13 +134,14 @@ Never reset or delete a progressed session to make a rerun appear clean. A new c
 
 After the session:
 
-1. confirm every planned scenario is `PASS`, `FAIL`, `DECISION REQUIRED`, or honestly `NOT RUN`;
-2. classify every issue and identify any unresolved stop-session or must-fix item;
-3. link accepted findings to requirements, tests, and a target checkpoint;
-4. rotate or disable the temporary demo password and restrict environment access;
-5. retain the dated UAT record and synthetic-only evidence under the approved retention location;
-6. stop a local development server when it is no longer supervised; and
-7. leave all rehearsal sessions immutable—do not delete them as cleanup.
+1. capture a final read-only session-monitor report for the exact disposable code;
+2. confirm every planned scenario is `PASS`, `FAIL`, `DECISION REQUIRED`, or honestly `NOT RUN`;
+3. classify every issue and identify any unresolved stop-session or must-fix item;
+4. link accepted findings to requirements, tests, and a target checkpoint;
+5. rotate or disable the temporary demo password and restrict environment access;
+6. retain the dated UAT record and synthetic-only evidence under the approved retention location;
+7. stop a local development server when it is no longer supervised; and
+8. leave all rehearsal sessions immutable—do not delete them as cleanup.
 
 Daniel then records one Checkpoint 2 outcome: `ACCEPTED`, `CONDITIONALLY ACCEPTED`, or `REQUIRES ANOTHER RUN`. That decision may authorize the next development increment, but it does not by itself authorize merge, deployment, real-data use, or a faculty pilot.
 

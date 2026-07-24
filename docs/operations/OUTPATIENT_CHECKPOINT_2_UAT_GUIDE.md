@@ -26,19 +26,19 @@ The session is not a blank-sheet menu workshop. Suggestions are evaluated agains
 
 The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` before inviting participants.
 
-| Entry item           | Required evidence                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------------- |
-| Automated gate       | `php artisan simulation:lab-preflight` exits successfully with `READY` and zero failed checks |
-| Isolated environment | Separate URL, key, database, storage, and synthetic-only configuration                        |
-| Tested build         | Identifiable commit/release candidate with passing required checks                            |
-| Database             | Fresh migrations plus opt-in demo fixture                                                     |
-| Terminology          | Exact approved development ICD-10 and ICD-9-CM releases active; version and checksums visible |
-| Case state           | One new `PLANNED` encounter in the exact recorded disposable session code; no prior progress  |
-| Accounts             | Ten administrator-provisioned demo accounts available; password distributed separately        |
-| Browser              | Supported current desktop browser at 1280×720 or wider; 100% zoom                             |
-| Recovery             | Snapshot/backup or disposable reset procedure confirmed before starting                       |
+| Entry item           | Required evidence                                                                                         |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| Automated gate       | `php artisan simulation:lab-preflight` exits successfully with `READY` and zero failed checks             |
+| Isolated environment | Separate URL, key, database, storage, and synthetic-only configuration                                    |
+| Tested build         | Identifiable commit/release candidate with passing required checks                                        |
+| Database             | Fresh migrations plus opt-in demo fixture                                                                 |
+| Terminology          | Exact approved development ICD-10 and ICD-9-CM releases active; version and checksums visible             |
+| Case state           | `simulation:lab-session-status` reports `OK` / `READY_TO_START` for the exact disposable code             |
+| Accounts             | Ten administrator-provisioned demo accounts available; password distributed separately                    |
+| Browser              | Supported current desktop browser at 1280×720 or wider; 100% zoom                                         |
+| Recovery             | Snapshot/backup or disposable reset procedure confirmed before starting                                   |
 | Evidence capture     | This guide plus a dated copy of the [UAT record template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md) |
-| Limitations          | Participants briefed on all items in section 11                                               |
+| Limitations          | Participants briefed on all items in section 11                                                           |
 
 Do not use `migrate:fresh` against shared or retained data. Do not enable the demo seeder to repair an existing environment.
 
@@ -56,6 +56,7 @@ With the opt-in pristine `SIM-RJ-UEU-001` source retained unchanged, prepare a u
 
 ```bash
 php artisan simulation:clone-reference-session UAT-MAIN-001 --duration=480
+php artisan simulation:lab-session-status UAT-MAIN-001
 ```
 
 For the overdue no-show branch only, make the synthetic appointment explicitly due without editing the database:
@@ -65,6 +66,16 @@ php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --
 ```
 
 Record the generated session and encounter codes in the dated UAT record and verify that participants select that exact case. Give each participant the exact work-queue entry path, for example `/work?session=UAT-MAIN-001`, or require them to choose `UAT-MAIN-001` from **Sesi simulasi aktif**. When more than one session is active for an account, the queue must show no task until one session is chosen. Before every task, confirm the page context and the task-row **Sesi** value both match the recorded disposable session code. A malformed, inactive, or unassigned selector must fail rather than fall back to another session.
+
+Before inviting participants, require the session monitor to report `status: OK`, `phase: READY_TO_START`, ten active assignments, four total tasks, and one ready `REGISTRATION` task. The monitor is read-only and excludes patient names, identifiers, account emails, passwords, and internal IDs. If it reports `BLOCKED`, do not continue or repair data directly.
+
+Run the monitor again after a disputed handoff, unexpected task state, stop-session event, and closeout:
+
+```bash
+php artisan simulation:lab-session-status UAT-MAIN-001 --json
+```
+
+Record only the sanitized evidence reference and relevant phase/task counts. Task totals can grow as the workflow creates attributable work. They are operational counts, not a completion percentage, performance score, grade, or acceptance decision.
 
 Use a new uppercase code for every branch; never reuse or reset a progressed session. The command copies only the pristine one-patient/one-appointment/one-encounter graph, remaps all ten assignments and four initial tasks, creates new synthetic identifiers and stock-lot provenance, and copies no clinical/progressed state. It runs only in an opted-in synthetic non-production environment and rolls back the full target graph on failure.
 
@@ -110,6 +121,8 @@ For every step:
 6. participants do not redesign unrelated modules during the task.
 
 Evidence should identify visible state, source/version, acting role, expected result, actual result, and impact. Screenshots must contain synthetic data only.
+
+The facilitator may use `simulation:lab-session-status <SESSION>` between role handoffs to confirm the exact encounter state and next ready program/role without querying the database. `TASKS_BLOCKED`, `CHANGES_REQUESTED`, and `SUPERVISOR_REVIEW_PENDING` are attention flags for investigation; they do not diagnose the cause or decide whether a scenario passes.
 
 ## 6. Reference journey script
 
