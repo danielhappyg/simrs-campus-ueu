@@ -352,4 +352,80 @@ describe('work queue', () => {
         ).toBeInTheDocument();
         expect(screen.queryByText('Internal sanitized detail')).toBeNull();
     });
+
+    it('keeps session selection before the personal task action in sequential keyboard order', async () => {
+        const user = userEvent.setup();
+        const facilitatorAssignment = {
+            publicId: '01J00000000000000000000072',
+            program: {
+                code: 'FACILITATION',
+                label: 'Fasilitasi',
+            },
+            role: {
+                code: 'FACILITATOR',
+                label: 'Fasilitator',
+            },
+            capabilities: [
+                {
+                    code: 'session.facilitate',
+                    label: 'Memfasilitasi sesi',
+                },
+            ],
+            session: {
+                publicId: '01J00000000000000000000073',
+                code: 'LAB-WEB-MONITOR-001',
+                status: { code: 'ACTIVE', label: 'Aktif' },
+                courseCode: 'SIMRS-RJ',
+                cohortCode: 'PILOT-2026',
+                scenarioTitle: 'Rawat jalan interprofesional',
+            },
+        };
+        const otherAssignment = {
+            ...facilitatorAssignment,
+            publicId: '01J00000000000000000000074',
+            session: {
+                ...facilitatorAssignment.session,
+                publicId: '01J00000000000000000000075',
+                code: 'LAB-WEB-MONITOR-OTHER',
+            },
+        };
+
+        render(
+            <WorkQueue
+                assignments={[facilitatorAssignment, otherAssignment]}
+                tasks={[
+                    {
+                        ...debriefTask,
+                        sessionCode: 'LAB-WEB-MONITOR-001',
+                    },
+                ]}
+                summary={{
+                    ready: 1,
+                    inProgress: 0,
+                    waiting: 0,
+                    blocked: 0,
+                    changesRequested: 0,
+                }}
+                selectedSessionCode="LAB-WEB-MONITOR-001"
+                selectionRequired={false}
+                sessionMonitor={readySessionMonitor}
+            />,
+        );
+
+        const sessionSelector = screen.getByRole('combobox', {
+            name: 'Pilih sesi',
+        });
+        const taskAction = screen.getByRole('link', { name: 'Buka tugas' });
+
+        expect(document.body).toHaveFocus();
+
+        await user.tab();
+        expect(sessionSelector).toHaveFocus();
+
+        await user.tab();
+        expect(taskAction).toHaveFocus();
+
+        await user.tab({ shift: true });
+        expect(sessionSelector).toHaveFocus();
+    });
 });

@@ -63,6 +63,17 @@ The clean local candidate was exercised through the real sign-in and work-queue 
 6. headings, region labels, terms/definitions, session selection, and stop-state semantics remained exposed to assistive technology; and
 7. the retained browser warning/error log was empty.
 
+## Keyboard review addendum
+
+The facilitator page now has deterministic sequential-keyboard regression coverage. With two active sessions, a selected disposable session, the read-only monitor, and an actionable personal task:
+
+1. the first control within the work-queue content is **Pilih sesi**;
+2. the next work-queue control is the personal **Buka tugas** action;
+3. reverse `Shift+Tab` returns to **Pilih sesi**; and
+4. the monitor inserts no hidden or unnecessary focus stop between session context and actionable work.
+
+The in-app browser separately confirmed that the page's primary navigation link accepts focus and exposes a visible high-contrast focus ring. Its background automation surface did not advance native `Tab` focus between controls, so this addendum does **not** claim a full native/manual traversal. A human-operated browser or compatible assistive-technology setup must still complete the broader Checkpoint 3 keyboard review.
+
 ## Safety and interpretation
 
 - The web monitor is read-only.
@@ -70,6 +81,7 @@ The clean local candidate was exercised through the real sign-in and work-queue 
 - A blocked projection instructs the facilitator to stop and use the documented setup path; it does not offer direct database repair.
 - Counts describe attributable workflow state only. They are not a completion percentage, learner performance measure, grade, clinical decision, or pilot authorization.
 - The monitor is for synthetic supervised teaching sessions only and is prohibited as evidence of suitability for real-patient care.
+- Deterministic component focus order reduces regression risk but does not replace native keyboard or screen-reader review.
 
 ## Remaining gate
 
