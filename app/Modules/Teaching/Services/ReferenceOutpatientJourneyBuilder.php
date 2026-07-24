@@ -339,10 +339,15 @@ final class ReferenceOutpatientJourneyBuilder
             ->where('authored_medication', 'Obat Simulasi A')
             ->where('synthetic_flag', true)
             ->sole();
-        $this->pharmacyWorkflowService->dispense(
+        $preparation = $this->pharmacyWorkflowService->prepareDispense(
             $medicationRequest,
             $assignments['pharmacyLearner'],
             $this->dispensePayload($stock),
+        );
+        $this->pharmacyWorkflowService->reviewDispensePreparation(
+            $preparation,
+            $assignments['pharmacySupervisor'],
+            $this->dispenseFinalCheckPayload(),
         );
 
         $closure = $this->closureService->save(
@@ -420,6 +425,7 @@ final class ReferenceOutpatientJourneyBuilder
      *   medicalLearner: Assignment,
      *   medicalSupervisor: Assignment,
      *   pharmacyLearner: Assignment,
+     *   pharmacySupervisor: Assignment,
      *   rmikCoder: Assignment,
      *   rmikSupervisor: Assignment
      * }
@@ -434,12 +440,14 @@ final class ReferenceOutpatientJourneyBuilder
             'medicalLearner' => $this->assignment($session, $encounter, 'mahasiswa.kedokteran@example.invalid', Capability::MedicalAssessmentWrite),
             'medicalSupervisor' => $this->assignment($session, $encounter, 'supervisor.kedokteran@example.invalid', Capability::SupervisionReview),
             'pharmacyLearner' => $this->assignment($session, $encounter, 'mahasiswa.farmasi@example.invalid', Capability::PharmacyReview),
+            'pharmacySupervisor' => $this->assignment($session, $encounter, 'supervisor.farmasi@example.invalid', Capability::SupervisionReview),
             'rmikCoder' => $this->assignment($session, $encounter, 'koder.rmik@example.invalid', Capability::CodingWrite),
             'rmikSupervisor' => $this->assignment($session, $encounter, 'supervisor.rmik@example.invalid', Capability::SupervisionReview),
         ];
 
         $this->assertCapabilities($assignments['medicalLearner'], [Capability::MedicalAssessmentWrite, Capability::PrescriptionWrite]);
         $this->assertCapabilities($assignments['pharmacyLearner'], [Capability::PharmacyReview, Capability::Dispense]);
+        $this->assertCapabilities($assignments['pharmacySupervisor'], [Capability::SupervisionReview]);
         $this->assertCapabilities($assignments['rmikCoder'], [Capability::RecordReview, Capability::CodingWrite]);
         $this->assertCapabilities($assignments['facilitator'], [Capability::SessionFacilitate, Capability::SafetyDispositionRecord]);
         $this->assertCapabilities($assignments['nursingSupervisor'], [Capability::SupervisionReview, Capability::SafetyDispositionRecord]);
@@ -736,16 +744,28 @@ final class ReferenceOutpatientJourneyBuilder
     {
         return [
             'request_key' => (string) Str::ulid(),
+            'action' => 'PREPARE',
             'outcome' => MedicationDispenseOutcome::Complete->value,
             'quantity' => 6,
             'medication_stock_id' => $stock->getKey(),
             'outcome_reason' => null,
             'preparation_notes' => 'Obat sintetis disiapkan.',
-            'final_check_confirmed' => true,
-            'final_check_notes' => 'Pemeriksaan akhir fixture dicatat.',
             'handoff_recipient' => 'Pasien sintetis',
             'counseling_topics' => ['Cara penggunaan'],
             'counseling_acknowledged' => true,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function dispenseFinalCheckPayload(): array
+    {
+        return [
+            'request_key' => (string) Str::ulid(),
+            'action' => 'FINAL_CHECK',
+            'review_action' => 'APPROVE_SIMULATION',
+            'final_check_confirmed' => true,
+            'final_check_notes' => 'Identitas, obat, jumlah, etiket, dan lot sintetis diperiksa supervisor.',
+            'comment' => 'Penyiapan referensi disetujui terhadap versi dan hash yang tepat.',
         ];
     }
 

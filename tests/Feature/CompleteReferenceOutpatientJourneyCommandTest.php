@@ -14,6 +14,8 @@ use App\Modules\Clinical\Models\ClinicalProcedure;
 use App\Modules\Clinical\Models\DiagnosticResult;
 use App\Modules\Clinical\Models\EncounterClosure;
 use App\Modules\Clinical\Models\MedicationDispense;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
+use App\Modules\Clinical\Models\MedicationDispensePreparationReview;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\MedicationStockMovement;
@@ -77,6 +79,8 @@ class CompleteReferenceOutpatientJourneyCommandTest extends TestCase
         $this->assertDatabaseCount('diagnostic_results', 1);
         $this->assertSame(MedicationRequestStatus::Completed, MedicationRequest::query()->sole()->status);
         $this->assertDatabaseCount('pharmacy_reviews', 1);
+        $this->assertDatabaseCount('medication_dispense_preparations', 1);
+        $this->assertDatabaseCount('medication_dispense_preparation_reviews', 1);
         $this->assertDatabaseCount('medication_dispenses', 1);
         $this->assertDatabaseCount('medication_stock_movements', 1);
         $this->assertSame(EncounterClosureStatus::Approved, EncounterClosure::query()->sole()->status);
@@ -386,6 +390,8 @@ class CompleteReferenceOutpatientJourneyCommandTest extends TestCase
             'clinicalVersions' => ClinicalEntryVersion::query()->count(),
             'results' => DiagnosticResult::query()->count(),
             'pharmacyReviews' => PharmacyReview::query()->count(),
+            'dispensePreparations' => MedicationDispensePreparation::query()->count(),
+            'dispensePreparationReviews' => MedicationDispensePreparationReview::query()->count(),
             'dispenses' => MedicationDispense::query()->count(),
             'stockMovements' => MedicationStockMovement::query()->count(),
             'closures' => EncounterClosure::query()->count(),

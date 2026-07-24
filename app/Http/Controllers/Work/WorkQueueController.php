@@ -187,9 +187,7 @@ class WorkQueueController extends Controller
                     WorkTaskType::CodingReview => $task->encounter
                         ? $this->codingActionUrl($task)
                         : null,
-                    WorkTaskType::SupervisorReview => $task->clinicalEntryVersion
-                        ? route('clinical-versions.review.show', $task->clinicalEntryVersion)
-                        : null,
+                    WorkTaskType::SupervisorReview => $this->supervisorReviewActionUrl($task),
                     WorkTaskType::SafetyDisposition => $task->encounter
                         ? route('encounters.safety-disposition.show', $task->encounter)
                         : null,
@@ -249,5 +247,20 @@ class WorkQueueController extends Controller
         }
 
         return route('encounters.coding.show', $parameters);
+    }
+
+    private function supervisorReviewActionUrl(WorkTask $task): ?string
+    {
+        if ($task->clinicalEntryVersion) {
+            return route('clinical-versions.review.show', $task->clinicalEntryVersion);
+        }
+
+        $preparationPublicId = data_get($task->context, 'dispensePreparationPublicId');
+
+        if ($task->encounter && is_string($preparationPublicId) && $preparationPublicId !== '') {
+            return route('encounters.pharmacy.show', $task->encounter);
+        }
+
+        return null;
     }
 }

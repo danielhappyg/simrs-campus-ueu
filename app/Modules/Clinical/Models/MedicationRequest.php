@@ -284,6 +284,12 @@ class MedicationRequest extends Model
         return $this->hasMany(PharmacyIntervention::class);
     }
 
+    /** @return HasMany<MedicationDispensePreparation, $this> */
+    public function dispensePreparations(): HasMany
+    {
+        return $this->hasMany(MedicationDispensePreparation::class);
+    }
+
     /** @return HasMany<MedicationDispense, $this> */
     public function dispenses(): HasMany
     {

@@ -423,6 +423,8 @@ export type PharmacyReviewOutcomeCode =
 export type PharmacyResponseActionCode = 'EXPLANATION' | 'REPLACE' | 'CANCEL';
 export type MedicationDispenseOutcomeCode =
     'COMPLETE' | 'PARTIAL' | 'NOT_DISPENSED';
+export type DispensePreparationReviewActionCode =
+    'APPROVE_SIMULATION' | 'REQUEST_CHANGES';
 
 export type PharmacyReviewRecord = {
     publicId: string;
@@ -509,6 +511,42 @@ export type PharmacyMedicationRequestRecord = {
         requestKey: string;
         url: string;
     };
+    dispensePreparations: Array<{
+        publicId: string;
+        versionNumber: number;
+        outcome: CodedStatus & { code: MedicationDispenseOutcomeCode };
+        quantity: string;
+        unit: string;
+        outcomeReason: string | null;
+        content: {
+            synthetic: boolean;
+            preparationNotes: string | null;
+            handoffRecipient: string | null;
+            counselingTopics: string[];
+            counselingAcknowledged: boolean;
+            lotNumber: string | null;
+            expiresOn: string | null;
+        };
+        contentHash: string;
+        changeReason: string | null;
+        preparer: string;
+        preparedAt: string;
+        review: {
+            action: CodedStatus & {
+                code: DispensePreparationReviewActionCode;
+            };
+            comment: string | null;
+            checker: string;
+            sourceContentHash: string;
+            reviewedAt: string;
+        } | null;
+    }>;
+    finalCheckAction: {
+        allowed: boolean;
+        requestKey: string;
+        preparationPublicId: string | null;
+        url: string;
+    };
     dispense: {
         publicId: string;
         outcome: CodedStatus & { code: MedicationDispenseOutcomeCode };
@@ -526,12 +564,17 @@ export type PharmacyMedicationRequestRecord = {
             counselingAcknowledged: boolean;
             lotNumber: string | null;
             expiresOn: string | null;
+            preparationPublicId: string;
+            preparationVersion: number;
+            preparationContentHash: string;
+            reviewActionPublicId: string;
         };
         contentHash: string;
         preparer: string;
         checker: string;
         preparedAt: string;
         checkedAt: string;
+        preparationPublicId: string | null;
         stockMovement: {
             publicId: string;
             quantity: string;
@@ -549,6 +592,7 @@ export type PharmacyWorkspaceProps = ClinicalWorkspaceBase & {
         canReview: boolean;
         canRespond: boolean;
         canDispense: boolean;
+        canFinalCheck: boolean;
     };
     allergySource: {
         state: string;

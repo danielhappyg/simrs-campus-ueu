@@ -103,7 +103,7 @@ class LaboratorySessionStatusCommandTest extends TestCase
         $this->assertSame(0, $exitCode);
         $this->assertSame('FINALIZED', $report['phase']);
         $this->assertSame('FINALIZED', $report['encounter']['status']);
-        $this->assertSame(27, $report['summary']['totalTasks']);
+        $this->assertSame(28, $report['summary']['totalTasks']);
         $this->assertSame(10, $report['summary']['openTasks']);
         $this->assertCount(10, $report['readyTasks']);
         $this->assertContains([

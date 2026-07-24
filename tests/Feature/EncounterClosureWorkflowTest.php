@@ -22,6 +22,7 @@ use App\Modules\Clinical\Models\ClinicalProcedure;
 use App\Modules\Clinical\Models\DiagnosticResult;
 use App\Modules\Clinical\Models\EncounterClosure;
 use App\Modules\Clinical\Models\EncounterClosureReviewActionModel;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\ServiceRequest;
@@ -422,6 +423,7 @@ class EncounterClosureWorkflowTest extends TestCase
             $this->acknowledgementPayload(),
         );
         $medicationRequest = MedicationRequest::query()->sole();
+        $pharmacySupervisor = User::query()->where('email', 'supervisor.farmasi@example.invalid')->firstOrFail();
         $this->actingAs($case['pharmacyLearner'])->post(
             route('medication-requests.pharmacy-reviews.store', $medicationRequest),
             $this->pharmacyReviewPayload(),
@@ -430,6 +432,11 @@ class EncounterClosureWorkflowTest extends TestCase
         $this->actingAs($case['pharmacyLearner'])->post(
             route('medication-requests.dispenses.store', $medicationRequest),
             $this->dispensePayload($stock),
+        );
+        $preparation = MedicationDispensePreparation::query()->sole();
+        $this->actingAs($pharmacySupervisor)->post(
+            route('medication-requests.dispenses.store', $medicationRequest),
+            $this->dispenseFinalCheckPayload($preparation),
         );
 
         $case['encounter'] = $case['encounter']->refresh();
@@ -453,6 +460,7 @@ class EncounterClosureWorkflowTest extends TestCase
     {
         return [
             'request_key' => (string) Str::ulid(),
+            'action' => 'PREPARE',
             'intent' => $intent->value,
             'clinical_occurrence_at' => now()->toIso8601String(),
             'leaving_condition' => 'Kondisi stabil untuk menyelesaikan encounter rawat jalan simulasi.',
@@ -629,16 +637,29 @@ class EncounterClosureWorkflowTest extends TestCase
     {
         return [
             'request_key' => (string) Str::ulid(),
+            'action' => 'PREPARE',
             'outcome' => MedicationDispenseOutcome::Complete->value,
             'quantity' => 6,
             'medication_stock_id' => $stock->getKey(),
             'outcome_reason' => null,
             'preparation_notes' => 'Obat sintetis disiapkan sesuai permintaan yang telah ditelaah.',
-            'final_check_confirmed' => true,
-            'final_check_notes' => 'Identitas, obat, jumlah, etiket, dan lot sintetis diperiksa.',
             'handoff_recipient' => 'Pasien sintetis',
             'counseling_topics' => ['Cara penggunaan', 'Penyimpanan', 'Kapan kembali dalam skenario'],
             'counseling_acknowledged' => true,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function dispenseFinalCheckPayload(MedicationDispensePreparation $preparation): array
+    {
+        return [
+            'request_key' => (string) Str::ulid(),
+            'action' => 'FINAL_CHECK',
+            'preparation_public_id' => $preparation->public_id,
+            'review_action' => 'APPROVE_SIMULATION',
+            'comment' => 'Penyiapan disetujui terhadap versi dan hash yang tepat.',
+            'final_check_confirmed' => true,
+            'final_check_notes' => 'Identitas, obat, jumlah, etiket, lot, dan versi penyiapan diperiksa.',
         ];
     }
 

@@ -22,6 +22,7 @@ use App\Modules\Clinical\Models\ClinicalEntryVersion;
 use App\Modules\Clinical\Models\ClinicalProcedure;
 use App\Modules\Clinical\Models\DiagnosticResult;
 use App\Modules\Clinical\Models\EncounterClosure;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\ResultAcknowledgement;
@@ -1337,6 +1338,7 @@ class RecordQualityWorkflowTest extends TestCase
         $medicalLearner = User::query()->where('email', 'mahasiswa.kedokteran@example.invalid')->firstOrFail();
         $medicalSupervisor = User::query()->where('email', 'supervisor.kedokteran@example.invalid')->firstOrFail();
         $pharmacyLearner = User::query()->where('email', 'mahasiswa.farmasi@example.invalid')->firstOrFail();
+        $pharmacySupervisor = User::query()->where('email', 'supervisor.farmasi@example.invalid')->firstOrFail();
         $rmikCoder = User::query()->where('email', 'koder.rmik@example.invalid')->firstOrFail();
         $rmikSupervisor = User::query()->where('email', 'supervisor.rmik@example.invalid')->firstOrFail();
         $facilitator = User::query()->where('email', 'fasilitator.simulasi@example.invalid')->firstOrFail();
@@ -1363,6 +1365,11 @@ class RecordQualityWorkflowTest extends TestCase
         $this->actingAs($pharmacyLearner)->post(route('medication-requests.pharmacy-reviews.store', $medicationRequest), $this->pharmacyReviewPayload());
         $stock = MedicationStock::query()->where('lot_number', 'LOT-SIM-A-001')->sole();
         $this->actingAs($pharmacyLearner)->post(route('medication-requests.dispenses.store', $medicationRequest), $this->dispensePayload($stock));
+        $preparation = MedicationDispensePreparation::query()->sole();
+        $this->actingAs($pharmacySupervisor)->post(
+            route('medication-requests.dispenses.store', $medicationRequest),
+            $this->dispenseFinalCheckPayload($preparation),
+        );
         $closurePayload = $this->closurePayload(ClinicalSaveIntent::Submit);
 
         if ($withPerformedProcedure) {
@@ -1539,7 +1546,13 @@ class RecordQualityWorkflowTest extends TestCase
     /** @return array<string, mixed> */
     private function dispensePayload(MedicationStock $stock): array
     {
-        return ['request_key' => (string) Str::ulid(), 'outcome' => MedicationDispenseOutcome::Complete->value, 'quantity' => 6, 'medication_stock_id' => $stock->getKey(), 'outcome_reason' => null, 'preparation_notes' => 'Obat sintetis disiapkan.', 'final_check_confirmed' => true, 'final_check_notes' => 'Pemeriksaan akhir dicatat.', 'handoff_recipient' => 'Pasien sintetis', 'counseling_topics' => ['Cara penggunaan'], 'counseling_acknowledged' => true];
+        return ['request_key' => (string) Str::ulid(), 'action' => 'PREPARE', 'outcome' => MedicationDispenseOutcome::Complete->value, 'quantity' => 6, 'medication_stock_id' => $stock->getKey(), 'outcome_reason' => null, 'preparation_notes' => 'Obat sintetis disiapkan.', 'handoff_recipient' => 'Pasien sintetis', 'counseling_topics' => ['Cara penggunaan'], 'counseling_acknowledged' => true];
+    }
+
+    /** @return array<string, mixed> */
+    private function dispenseFinalCheckPayload(MedicationDispensePreparation $preparation): array
+    {
+        return ['request_key' => (string) Str::ulid(), 'action' => 'FINAL_CHECK', 'preparation_public_id' => $preparation->public_id, 'review_action' => 'APPROVE_SIMULATION', 'comment' => 'Penyiapan disetujui terhadap versi dan hash yang tepat.', 'final_check_confirmed' => true, 'final_check_notes' => 'Identitas, obat, jumlah, etiket, lot, dan versi penyiapan diperiksa.'];
     }
 
     /** @return array<string, mixed> */

@@ -3,6 +3,7 @@
 namespace App\Modules\Clinical\Models;
 
 use App\Models\User;
+use App\Modules\Clinical\Enums\DispensePreparationReviewAction;
 use App\Modules\Clinical\Enums\MedicationDispenseOutcome;
 use App\Modules\Clinical\Enums\PharmacyReviewOutcome;
 use App\Modules\Teaching\Enums\Capability;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $patient_id
  * @property int $encounter_id
  * @property int $medication_request_id
+ * @property int|null $medication_dispense_preparation_id
  * @property int $pharmacy_review_id
  * @property int|null $medication_stock_id
  * @property MedicationDispenseOutcome $outcome
@@ -47,6 +49,7 @@ class MedicationDispense extends Model
         'patient_id',
         'encounter_id',
         'medication_request_id',
+        'medication_dispense_preparation_id',
         'pharmacy_review_id',
         'medication_stock_id',
         'outcome',
@@ -68,6 +71,11 @@ class MedicationDispense extends Model
     {
         static::creating(function (self $dispense): void {
             $request = MedicationRequest::query()->find($dispense->medication_request_id);
+            $preparation = $dispense->medication_dispense_preparation_id === null
+                ? null
+                : MedicationDispensePreparation::query()
+                    ->with('reviewAction')
+                    ->find($dispense->medication_dispense_preparation_id);
             $review = PharmacyReview::query()->find($dispense->pharmacy_review_id);
             $preparer = Assignment::query()->active()->find($dispense->preparer_assignment_id);
             $checker = Assignment::query()->active()->find($dispense->checker_assignment_id);
@@ -76,11 +84,21 @@ class MedicationDispense extends Model
                 : MedicationStock::query()->find($dispense->medication_stock_id);
 
             if (! $request
+                || ! $preparation
                 || ! $review
                 || ! $preparer
                 || ! $checker
                 || $review->medication_request_id !== $request->getKey()
                 || $review->overall_outcome !== PharmacyReviewOutcome::Accept
+                || ($preparation->medication_request_id !== $request->getKey()
+                    || $preparation->pharmacy_review_id !== $review->getKey()
+                    || $preparation->preparer_assignment_id !== $preparer->getKey()
+                    || $preparation->reviewAction?->checker_assignment_id !== $checker->getKey()
+                    || $preparation->reviewAction?->action !== DispensePreparationReviewAction::ApproveSimulation
+                    || ! hash_equals(
+                        $preparation->content_hash,
+                        (string) data_get($dispense->content, 'preparationContentHash'),
+                    ))
                 || $dispense->preparer_user_id !== $preparer->user_id
                 || $dispense->checker_user_id !== $checker->user_id
                 || $dispense->session_id !== $request->session_id
@@ -89,7 +107,7 @@ class MedicationDispense extends Model
                 || ! self::actorMatches($preparer, $request)
                 || ! self::actorMatches($checker, $request)
                 || ! $preparer->hasCapability(Capability::Dispense)
-                || ! $checker->hasCapability(Capability::Dispense)
+                || ! $checker->hasCapability(Capability::SupervisionReview)
                 || ($stock && ($stock->session_id !== $request->session_id || ! $stock->synthetic_flag))
                 || ($dispense->medication_stock_id !== null && ! $stock)) {
                 throw new DomainException('A dispense record must match an accepted review, authorized actors, synthetic stock, and exact case context.');
@@ -120,6 +138,12 @@ class MedicationDispense extends Model
     public function medicationRequest(): BelongsTo
     {
         return $this->belongsTo(MedicationRequest::class);
+    }
+
+    /** @return BelongsTo<MedicationDispensePreparation, $this> */
+    public function preparation(): BelongsTo
+    {
+        return $this->belongsTo(MedicationDispensePreparation::class, 'medication_dispense_preparation_id');
     }
 
     /** @return BelongsTo<PharmacyReview, $this> */

@@ -335,6 +335,7 @@ class CloneReferenceSessionCommandTest extends TestCase
             'service_requests',
             'medication_requests',
             'pharmacy_reviews',
+            'medication_dispense_preparations',
             'medication_dispenses',
             'encounter_closures',
             'record_quality_reviews',

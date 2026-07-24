@@ -50,16 +50,25 @@ type ReviewFormData = {
 };
 type DispenseFormData = {
     request_key: string;
+    action: 'PREPARE';
     outcome: MedicationDispenseOutcomeCode;
     quantity: string;
     medication_stock_id: number | null;
     outcome_reason: string;
     preparation_notes: string;
-    final_check_confirmed: boolean;
-    final_check_notes: string;
+    change_reason: string;
     handoff_recipient: string;
     counseling_topics_text: string;
     counseling_acknowledged: boolean;
+};
+type FinalCheckFormData = {
+    request_key: string;
+    action: 'FINAL_CHECK';
+    preparation_public_id: string;
+    review_action: 'APPROVE_SIMULATION' | 'REQUEST_CHANGES';
+    comment: string;
+    final_check_confirmed: boolean;
+    final_check_notes: string;
 };
 type InterventionResponseFormData = {
     request_key: string;
@@ -597,6 +606,7 @@ export function DispenseForm({
     const hasMatchingStock = matchingStocks.length > 0;
     const form = useForm<DispenseFormData>({
         request_key: medicationRequest.dispenseAction.requestKey,
+        action: 'PREPARE',
         outcome: (hasMatchingStock
             ? 'COMPLETE'
             : 'NOT_DISPENSED') as MedicationDispenseOutcomeCode,
@@ -604,8 +614,7 @@ export function DispenseForm({
         medication_stock_id: matchingStocks[0]?.id ?? null,
         outcome_reason: '',
         preparation_notes: '',
-        final_check_confirmed: false,
-        final_check_notes: '',
+        change_reason: '',
         handoff_recipient: 'Pasien sintetis',
         counseling_topics_text: '',
         counseling_acknowledged: false,
@@ -637,12 +646,12 @@ export function DispenseForm({
         >
             <h3 className="flex items-center gap-2 font-semibold text-emerald-950">
                 <PackageCheck className="size-5" aria-hidden="true" />
-                Penyiapan, pemeriksaan akhir &amp; penyerahan
+                Penyiapan obat
             </h3>
             <p className="mt-1 text-xs leading-5 text-emerald-900">
-                Skenario referensi mengizinkan aktor farmasi yang sama mencatat
-                penyiapan dan pemeriksaan akhir; keduanya tetap tersimpan
-                sebagai tindakan eksplisit.
+                Simpan versi penyiapan tanpa mengubah stok. Supervisor farmasi
+                yang terhubung harus memeriksa versi dan hash ini sebelum stok,
+                penyerahan, serta closure dapat dilanjutkan.
             </p>
             {!hasMatchingStock && (
                 <div
@@ -756,7 +765,7 @@ export function DispenseForm({
                         className="mt-1 min-h-20 bg-white"
                     />
                 </div>
-                <div>
+                <div className="md:col-span-2">
                     <Label
                         htmlFor={`preparation-notes-${medicationRequest.publicId}`}
                     >
@@ -774,42 +783,26 @@ export function DispenseForm({
                         className="mt-1 bg-white"
                     />
                 </div>
-                <div>
-                    <Label
-                        htmlFor={`final-check-notes-${medicationRequest.publicId}`}
-                    >
-                        Catatan pemeriksaan akhir
-                    </Label>
-                    <Textarea
-                        id={`final-check-notes-${medicationRequest.publicId}`}
-                        value={form.data.final_check_notes}
-                        onChange={(event) =>
-                            form.setData(
-                                'final_check_notes',
-                                event.target.value,
-                            )
-                        }
-                        className="mt-1 bg-white"
-                    />
-                </div>
-                <label className="flex items-start gap-2 rounded border border-emerald-200 bg-white p-3 text-sm md:col-span-2">
-                    <input
-                        type="checkbox"
-                        checked={form.data.final_check_confirmed}
-                        onChange={(event) =>
-                            form.setData(
-                                'final_check_confirmed',
-                                event.target.checked,
-                            )
-                        }
-                        className="mt-0.5"
-                    />
-                    <span>
-                        {form.data.outcome === 'NOT_DISPENSED'
-                            ? 'Saya mencatat pemeriksaan akhir identitas, resep, jumlah nol, dan alasan tidak diserahkan.'
-                            : 'Saya mencatat pemeriksaan akhir identitas, obat, jumlah, etiket, dan lot sintetis.'}
-                    </span>
-                </label>
+                {medicationRequest.dispensePreparations.length > 0 && (
+                    <div className="md:col-span-2">
+                        <Label
+                            htmlFor={`preparation-change-reason-${medicationRequest.publicId}`}
+                        >
+                            Ringkasan perubahan dari versi sebelumnya
+                        </Label>
+                        <Textarea
+                            id={`preparation-change-reason-${medicationRequest.publicId}`}
+                            value={form.data.change_reason}
+                            onChange={(event) =>
+                                form.setData(
+                                    'change_reason',
+                                    event.target.value,
+                                )
+                            }
+                            className="mt-1 min-h-20 bg-white"
+                        />
+                    </div>
+                )}
                 <div>
                     <Label
                         htmlFor={`handoff-recipient-${medicationRequest.publicId}`}
@@ -863,11 +856,189 @@ export function DispenseForm({
                 <div className="flex justify-end md:col-span-2">
                     <Button type="submit">
                         <PackageCheck className="size-4" aria-hidden="true" />
-                        Simpan outcome atomik
+                        Ajukan penyiapan ke supervisor
                     </Button>
                 </div>
             </fieldset>
         </form>
+    );
+}
+
+export function FinalCheckForm({
+    medicationRequest,
+}: {
+    medicationRequest: PharmacyMedicationRequestRecord;
+}) {
+    const preparationPublicId =
+        medicationRequest.finalCheckAction.preparationPublicId ?? '';
+    const form = useForm<FinalCheckFormData>({
+        request_key: medicationRequest.finalCheckAction.requestKey,
+        action: 'FINAL_CHECK',
+        preparation_public_id: preparationPublicId,
+        review_action: 'APPROVE_SIMULATION',
+        comment: '',
+        final_check_confirmed: false,
+        final_check_notes: '',
+    });
+    const errors = form.errors as Record<string, string | undefined>;
+
+    function submit(action: FinalCheckFormData['review_action']) {
+        form.transform((data) => ({ ...data, review_action: action }));
+        form.post(medicationRequest.finalCheckAction.url, {
+            preserveScroll: true,
+        });
+    }
+
+    return (
+        <form
+            onSubmit={(event) => event.preventDefault()}
+            className="mt-5 rounded-md border border-sky-200 bg-sky-50 p-4"
+        >
+            <h3 className="flex items-center gap-2 font-semibold text-sky-950">
+                <ShieldCheck className="size-5" aria-hidden="true" />
+                Pemeriksaan akhir supervisor
+            </h3>
+            <p className="mt-1 text-xs leading-5 text-sky-900">
+                Keputusan ini ditautkan ke versi dan hash penyiapan terakhir.
+                Persetujuan akan menyelesaikan outcome dan mutasi stok sintetis
+                secara atomik.
+            </p>
+            <InputError message={errors.workflow} className="mt-2" />
+            <fieldset
+                disabled={form.processing}
+                className="mt-4 grid gap-3 border-0 p-0"
+            >
+                <div>
+                    <Label
+                        htmlFor={`final-check-comment-${medicationRequest.publicId}`}
+                    >
+                        Komentar keputusan
+                    </Label>
+                    <Textarea
+                        id={`final-check-comment-${medicationRequest.publicId}`}
+                        value={form.data.comment}
+                        onChange={(event) =>
+                            form.setData('comment', event.target.value)
+                        }
+                        className="mt-1 min-h-20 bg-white"
+                    />
+                    <InputError message={errors.comment} className="mt-1" />
+                </div>
+                <div>
+                    <Label
+                        htmlFor={`final-check-notes-${medicationRequest.publicId}`}
+                    >
+                        Catatan pemeriksaan akhir
+                    </Label>
+                    <Textarea
+                        id={`final-check-notes-${medicationRequest.publicId}`}
+                        value={form.data.final_check_notes}
+                        onChange={(event) =>
+                            form.setData(
+                                'final_check_notes',
+                                event.target.value,
+                            )
+                        }
+                        className="mt-1 min-h-20 bg-white"
+                    />
+                </div>
+                <label className="flex items-start gap-2 rounded border border-sky-200 bg-white p-3 text-sm">
+                    <input
+                        type="checkbox"
+                        checked={form.data.final_check_confirmed}
+                        onChange={(event) =>
+                            form.setData(
+                                'final_check_confirmed',
+                                event.target.checked,
+                            )
+                        }
+                        className="mt-0.5"
+                    />
+                    <span>
+                        Saya telah memeriksa identitas, obat, jumlah, etiket,
+                        lot sintetis, dan versi penyiapan.
+                    </span>
+                </label>
+                <InputError
+                    message={errors.final_check_confirmed}
+                    className="mt-1"
+                />
+                <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => submit('REQUEST_CHANGES')}
+                    >
+                        <RefreshCw className="size-4" aria-hidden="true" />
+                        Minta perbaikan
+                    </Button>
+                    <Button
+                        type="button"
+                        onClick={() => submit('APPROVE_SIMULATION')}
+                    >
+                        <ShieldCheck className="size-4" aria-hidden="true" />
+                        Setujui pemeriksaan akhir
+                    </Button>
+                </div>
+            </fieldset>
+        </form>
+    );
+}
+
+function PreparationHistory({
+    medicationRequest,
+}: {
+    medicationRequest: PharmacyMedicationRequestRecord;
+}) {
+    if (medicationRequest.dispensePreparations.length === 0) {
+        return null;
+    }
+
+    return (
+        <section className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4">
+            <h3 className="font-semibold text-slate-950">
+                Riwayat versi penyiapan
+            </h3>
+            <ol className="mt-3 space-y-3">
+                {medicationRequest.dispensePreparations.map((preparation) => (
+                    <li
+                        key={preparation.publicId}
+                        className="rounded border border-slate-200 bg-white p-3 text-xs leading-5"
+                    >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="font-semibold">
+                                Versi {preparation.versionNumber} ·{' '}
+                                {preparation.outcome.label}
+                            </p>
+                            <Badge variant="outline">
+                                {preparation.review
+                                    ? preparation.review.action.label
+                                    : 'Menunggu supervisor'}
+                            </Badge>
+                        </div>
+                        <p className="mt-1">
+                            Penyiap: {preparation.preparer} ·{' '}
+                            {preparation.quantity} {preparation.unit} ·{' '}
+                            {formatDateTime(preparation.preparedAt)}
+                        </p>
+                        {preparation.changeReason && (
+                            <p className="mt-1">
+                                Perubahan: {preparation.changeReason}
+                            </p>
+                        )}
+                        {preparation.review && (
+                            <p className="mt-1">
+                                Pemeriksa: {preparation.review.checker} ·{' '}
+                                {preparation.review.comment ?? 'Tanpa komentar'}
+                            </p>
+                        )}
+                        <code className="mt-2 block font-mono text-[0.65rem] break-all">
+                            SHA-256 {preparation.contentHash}
+                        </code>
+                    </li>
+                ))}
+            </ol>
+        </section>
     );
 }
 
@@ -1348,6 +1519,21 @@ export default function PharmacyWorkspace({
                                                 stocks={stocks}
                                                 outcomes={
                                                     formOptions.dispenseOutcomes
+                                                }
+                                            />
+                                        )}
+
+                                        <PreparationHistory
+                                            medicationRequest={
+                                                medicationRequest
+                                            }
+                                        />
+
+                                        {medicationRequest.finalCheckAction
+                                            .allowed && (
+                                            <FinalCheckForm
+                                                medicationRequest={
+                                                    medicationRequest
                                                 }
                                             />
                                         )}

@@ -9,6 +9,7 @@ use App\Modules\Clinical\Enums\ClinicalSaveIntent;
 use App\Modules\Clinical\Enums\CurrentMedicationState;
 use App\Modules\Clinical\Enums\DiagnosisCertainty;
 use App\Modules\Clinical\Enums\DiagnosisRole;
+use App\Modules\Clinical\Enums\DispensePreparationReviewAction;
 use App\Modules\Clinical\Enums\IntakeSafetyDecision;
 use App\Modules\Clinical\Enums\MedicationDispenseOutcome;
 use App\Modules\Clinical\Enums\MedicationRequestStatus;
@@ -19,6 +20,8 @@ use App\Modules\Clinical\Enums\PharmacyReviewOutcome;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
 use App\Modules\Clinical\Models\DiagnosticResult;
 use App\Modules\Clinical\Models\MedicationDispense;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
+use App\Modules\Clinical\Models\MedicationDispensePreparationReview;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\MedicationStockMovement;
@@ -244,27 +247,67 @@ class PharmacyWorkflowTest extends TestCase
         $this->assertDatabaseCount('pharmacy_reviews', 2);
     }
 
-    public function test_dispense_and_stock_movement_commit_atomically_and_release_closure_work(): void
+    public function test_linked_supervisor_final_check_is_required_before_stock_and_closure_release(): void
     {
         $case = $this->preparePharmacyCase();
         $medicationRequest = MedicationRequest::query()->sole();
         $this->acceptCurrentRequest($case, $medicationRequest);
         $stock = MedicationStock::query()->where('lot_number', 'LOT-SIM-A-001')->sole();
-        $payload = $this->dispensePayload($stock);
+        $preparationPayload = $this->dispensePayload($stock);
 
         $this->actingAs($case['nurse'])
-            ->post(route('medication-requests.dispenses.store', $medicationRequest), $payload)
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $preparationPayload)
             ->assertForbidden();
         $this->actingAs($case['pharmacyLearner'])
-            ->post(route('medication-requests.dispenses.store', $medicationRequest), $payload)
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $preparationPayload)
             ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
         $this->actingAs($case['pharmacyLearner'])
-            ->post(route('medication-requests.dispenses.store', $medicationRequest), $payload)
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $preparationPayload)
+            ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
+
+        $preparation = MedicationDispensePreparation::query()->sole();
+        $finalCheckPayload = $this->finalCheckPayload($preparation);
+
+        $this->assertDatabaseCount('medication_dispenses', 0);
+        $this->assertDatabaseCount('medication_stock_movements', 0);
+        $this->assertSame('100.000', $stock->refresh()->quantity_on_hand);
+        $this->assertSame(MedicationRequestStatus::Accepted, $medicationRequest->refresh()->status);
+        $this->assertSame(EncounterStatus::AwaitingPharmacy, $case['encounter']->refresh()->status);
+        $this->assertDatabaseHas('work_tasks', [
+            'assignment_id' => $case['pharmacyAssignment']->getKey(),
+            'task_type' => WorkTaskType::Dispensing->value,
+            'status' => WorkTaskStatus::Submitted->value,
+        ]);
+        $this->assertDatabaseHas('work_tasks', [
+            'assignment_id' => $case['pharmacySupervisorAssignment']->getKey(),
+            'task_type' => WorkTaskType::SupervisorReview->value,
+            'status' => WorkTaskStatus::Ready->value,
+        ]);
+        $this->actingAs($case['pharmacySupervisor'])
+            ->get(route('work'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('tasks.0.type', WorkTaskType::SupervisorReview->value)
+                ->where('tasks.0.actionUrl', route('encounters.pharmacy.show', $case['encounter'])));
+
+        $this->actingAs($case['pharmacyLearner'])
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $finalCheckPayload)
+            ->assertSessionHasErrors('workflow');
+        $this->actingAs($case['pharmacySupervisor'])
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $finalCheckPayload)
+            ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
+        $this->actingAs($case['pharmacySupervisor'])
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $finalCheckPayload)
             ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
 
         $dispense = MedicationDispense::query()->sole();
+        $reviewAction = MedicationDispensePreparationReview::query()->sole();
         $movement = MedicationStockMovement::query()->sole();
 
+        $this->assertSame(DispensePreparationReviewAction::ApproveSimulation, $reviewAction->action);
+        $this->assertSame($preparation->content_hash, $reviewAction->source_content_hash);
+        $this->assertSame($preparation->getKey(), $dispense->medication_dispense_preparation_id);
+        $this->assertNotSame($dispense->preparer_user_id, $dispense->checker_user_id);
         $this->assertSame(MedicationDispenseOutcome::Complete, $dispense->outcome);
         $this->assertSame('6.000', $dispense->quantity);
         $this->assertSame($dispense->getKey(), $movement->medication_dispense_id);
@@ -276,6 +319,11 @@ class PharmacyWorkflowTest extends TestCase
         $this->assertDatabaseHas('work_tasks', [
             'assignment_id' => $case['pharmacyAssignment']->getKey(),
             'task_type' => WorkTaskType::Dispensing->value,
+            'status' => WorkTaskStatus::Complete->value,
+        ]);
+        $this->assertDatabaseHas('work_tasks', [
+            'assignment_id' => $case['pharmacySupervisorAssignment']->getKey(),
+            'task_type' => WorkTaskType::SupervisorReview->value,
             'status' => WorkTaskStatus::Complete->value,
         ]);
         $this->assertDatabaseHas('work_tasks', [
@@ -311,8 +359,17 @@ class PharmacyWorkflowTest extends TestCase
                 route('medication-requests.dispenses.store', $medicationRequest),
                 $this->dispensePayload($limitedStock),
             )
+            ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
+        $preparation = MedicationDispensePreparation::query()->sole();
+
+        $this->actingAs($case['pharmacySupervisor'])
+            ->post(
+                route('medication-requests.dispenses.store', $medicationRequest),
+                $this->finalCheckPayload($preparation),
+            )
             ->assertSessionHasErrors('workflow');
 
+        $this->assertDatabaseCount('medication_dispense_preparation_reviews', 0);
         $this->assertDatabaseCount('medication_dispenses', 0);
         $this->assertDatabaseCount('medication_stock_movements', 0);
         $this->assertSame('5.000', $limitedStock->refresh()->quantity_on_hand);
@@ -321,8 +378,67 @@ class PharmacyWorkflowTest extends TestCase
         $this->assertDatabaseHas('work_tasks', [
             'assignment_id' => $case['pharmacyAssignment']->getKey(),
             'task_type' => WorkTaskType::Dispensing->value,
-            'status' => WorkTaskStatus::Ready->value,
+            'status' => WorkTaskStatus::Submitted->value,
         ]);
+    }
+
+    public function test_change_request_preserves_old_preparation_and_requires_an_attributed_successor(): void
+    {
+        $case = $this->preparePharmacyCase();
+        $medicationRequest = MedicationRequest::query()->sole();
+        $this->acceptCurrentRequest($case, $medicationRequest);
+        $stock = MedicationStock::query()->where('lot_number', 'LOT-SIM-A-001')->sole();
+
+        $this->actingAs($case['pharmacyLearner'])->post(
+            route('medication-requests.dispenses.store', $medicationRequest),
+            $this->dispensePayload($stock),
+        );
+        $first = MedicationDispensePreparation::query()->sole();
+
+        $this->actingAs($case['pharmacySupervisor'])
+            ->post(
+                route('medication-requests.dispenses.store', $medicationRequest),
+                $this->finalCheckPayload($first, DispensePreparationReviewAction::RequestChanges),
+            )
+            ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
+
+        $this->assertDatabaseCount('medication_dispenses', 0);
+        $this->assertSame('100.000', $stock->refresh()->quantity_on_hand);
+        $this->assertDatabaseHas('work_tasks', [
+            'assignment_id' => $case['pharmacyAssignment']->getKey(),
+            'task_type' => WorkTaskType::Dispensing->value,
+            'status' => WorkTaskStatus::ChangesRequested->value,
+        ]);
+
+        $successorPayload = $this->dispensePayload($stock);
+        $successorPayload['change_reason'] = 'Catatan etiket dan konseling diperjelas sesuai komentar supervisor.';
+        $this->actingAs($case['pharmacyLearner'])
+            ->post(route('medication-requests.dispenses.store', $medicationRequest), $successorPayload)
+            ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
+
+        $second = MedicationDispensePreparation::query()->orderByDesc('version_number')->firstOrFail();
+        $this->assertSame(2, $second->version_number);
+        $this->assertSame($first->getKey(), $second->supersedes_preparation_id);
+        $this->assertSame(
+            'Catatan etiket dan konseling diperjelas sesuai komentar supervisor.',
+            $second->change_reason,
+        );
+        $this->assertSame(
+            DispensePreparationReviewAction::RequestChanges,
+            $first->reviewAction()->sole()->action,
+        );
+
+        $this->actingAs($case['pharmacySupervisor'])
+            ->post(
+                route('medication-requests.dispenses.store', $medicationRequest),
+                $this->finalCheckPayload($second),
+            )
+            ->assertRedirect(route('encounters.pharmacy.show', $case['encounter']));
+
+        $this->assertDatabaseCount('medication_dispense_preparations', 2);
+        $this->assertDatabaseCount('medication_dispense_preparation_reviews', 2);
+        $this->assertDatabaseCount('medication_dispenses', 1);
+        $this->assertSame('94.000', $stock->refresh()->quantity_on_hand);
     }
 
     public function test_pharmacy_records_and_stock_ledger_reject_direct_mutation_and_deletion(): void
@@ -360,9 +476,21 @@ class PharmacyWorkflowTest extends TestCase
             route('medication-requests.dispenses.store', $medicationRequest),
             $this->dispensePayload($stock),
         );
+        $preparation = MedicationDispensePreparation::query()->sole();
+        $this->actingAs($case['pharmacySupervisor'])->post(
+            route('medication-requests.dispenses.store', $medicationRequest),
+            $this->finalCheckPayload($preparation),
+        );
+        $preparationReview = MedicationDispensePreparationReview::query()->sole();
         $dispense = MedicationDispense::query()->sole();
         $movement = MedicationStockMovement::query()->sole();
 
+        $this->assertDomainFailure(fn () => $preparation->update(['outcome_reason' => 'Mutasi tidak sah']), 'preparation update');
+        $preparation->refresh();
+        $this->assertDomainFailure(fn () => $preparation->delete(), 'preparation delete');
+        $this->assertDomainFailure(fn () => $preparationReview->update(['comment' => 'Mutasi tidak sah']), 'preparation review update');
+        $preparationReview->refresh();
+        $this->assertDomainFailure(fn () => $preparationReview->delete(), 'preparation review delete');
         $this->assertDomainFailure(fn () => $dispense->update(['outcome_reason' => 'Mutasi tidak sah']), 'dispense update');
         $dispense->refresh();
         $this->assertDomainFailure(fn () => $dispense->delete(), 'dispense delete');
@@ -381,8 +509,10 @@ class PharmacyWorkflowTest extends TestCase
      *   nurse: User,
      *   medicalLearner: User,
      *   pharmacyLearner: User,
+     *   pharmacySupervisor: User,
      *   medicalAssignment: Assignment,
-     *   pharmacyAssignment: Assignment
+     *   pharmacyAssignment: Assignment,
+     *   pharmacySupervisorAssignment: Assignment
      * }
      */
     private function preparePharmacyCase(): array
@@ -394,6 +524,7 @@ class PharmacyWorkflowTest extends TestCase
         $medicalLearner = User::query()->where('email', 'mahasiswa.kedokteran@example.invalid')->firstOrFail();
         $medicalSupervisor = User::query()->where('email', 'supervisor.kedokteran@example.invalid')->firstOrFail();
         $pharmacyLearner = User::query()->where('email', 'mahasiswa.farmasi@example.invalid')->firstOrFail();
+        $pharmacySupervisor = User::query()->where('email', 'supervisor.farmasi@example.invalid')->firstOrFail();
         $facilitator = User::query()->where('email', 'fasilitator.simulasi@example.invalid')->firstOrFail();
         $encounter = Encounter::query()->firstOrFail();
 
@@ -432,8 +563,10 @@ class PharmacyWorkflowTest extends TestCase
             'nurse' => $nurse,
             'medicalLearner' => $medicalLearner,
             'pharmacyLearner' => $pharmacyLearner,
+            'pharmacySupervisor' => $pharmacySupervisor,
             'medicalAssignment' => Assignment::query()->where('user_id', $medicalLearner->getKey())->sole(),
             'pharmacyAssignment' => Assignment::query()->where('user_id', $pharmacyLearner->getKey())->sole(),
+            'pharmacySupervisorAssignment' => Assignment::query()->where('user_id', $pharmacySupervisor->getKey())->sole(),
         ];
     }
 
@@ -507,16 +640,33 @@ class PharmacyWorkflowTest extends TestCase
     {
         return [
             'request_key' => (string) Str::ulid(),
+            'action' => 'PREPARE',
             'outcome' => MedicationDispenseOutcome::Complete->value,
             'quantity' => 6,
             'medication_stock_id' => $stock->getKey(),
             'outcome_reason' => null,
             'preparation_notes' => 'Obat sintetis disiapkan sesuai permintaan yang telah ditelaah.',
-            'final_check_confirmed' => true,
-            'final_check_notes' => 'Identitas, obat, jumlah, etiket, dan lot sintetis diperiksa.',
             'handoff_recipient' => 'Pasien sintetis',
             'counseling_topics' => ['Cara penggunaan', 'Penyimpanan', 'Kapan kembali dalam skenario'],
             'counseling_acknowledged' => true,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function finalCheckPayload(
+        MedicationDispensePreparation $preparation,
+        DispensePreparationReviewAction $action = DispensePreparationReviewAction::ApproveSimulation,
+    ): array {
+        return [
+            'request_key' => (string) Str::ulid(),
+            'action' => 'FINAL_CHECK',
+            'preparation_public_id' => $preparation->public_id,
+            'review_action' => $action->value,
+            'comment' => $action === DispensePreparationReviewAction::RequestChanges
+                ? 'Perjelas catatan etiket dan konseling sebelum pemeriksaan ulang.'
+                : 'Penyiapan disetujui terhadap versi dan hash yang tepat.',
+            'final_check_confirmed' => $action === DispensePreparationReviewAction::ApproveSimulation,
+            'final_check_notes' => 'Identitas, obat, jumlah, etiket, lot, dan versi penyiapan diperiksa.',
         ];
     }
 

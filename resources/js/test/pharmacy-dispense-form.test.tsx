@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import axe from 'axe-core';
 import { describe, expect, it } from 'vitest';
-import { DispenseForm } from '@/pages/clinical/pharmacy';
+import { DispenseForm, FinalCheckForm } from '@/pages/clinical/pharmacy';
 import type {
     PharmacyMedicationRequestRecord,
     PharmacyWorkspaceProps,
@@ -17,7 +17,8 @@ const medicationRequest = {
         requestKey: '01TESTDISPENSEREQUEST00001',
         url: '/dispenses',
     },
-} as PharmacyMedicationRequestRecord;
+    dispensePreparations: [],
+} as unknown as PharmacyMedicationRequestRecord;
 
 const outcomes: PharmacyWorkspaceProps['formOptions']['dispenseOutcomes'] = [
     { code: 'COMPLETE', label: 'Diserahkan lengkap' },
@@ -50,8 +51,43 @@ describe('DispenseForm', () => {
             }),
         ).not.toBeInTheDocument();
         expect(
-            screen.getByRole('checkbox', {
-                name: 'Saya mencatat pemeriksaan akhir identitas, resep, jumlah nol, dan alasan tidak diserahkan.',
+            screen.queryByText('Pemeriksaan akhir supervisor'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByRole('button', {
+                name: 'Ajukan penyiapan ke supervisor',
+            }),
+        ).toBeInTheDocument();
+
+        const result = await axe.run(container);
+        expect(result.violations).toHaveLength(0);
+    });
+
+    it('gives the linked supervisor separate approve and change controls', async () => {
+        const supervisorRequest = {
+            ...medicationRequest,
+            finalCheckAction: {
+                allowed: true,
+                requestKey: '01TESTFINALCHECKREQUEST01',
+                preparationPublicId: '01TESTPREPARATION0000001',
+                url: '/dispenses',
+            },
+        } as PharmacyMedicationRequestRecord;
+        const { container } = render(
+            <FinalCheckForm medicationRequest={supervisorRequest} />,
+        );
+
+        expect(
+            screen.getByRole('heading', {
+                name: 'Pemeriksaan akhir supervisor',
+            }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Minta perbaikan' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', {
+                name: 'Setujui pemeriksaan akhir',
             }),
         ).toBeInTheDocument();
 

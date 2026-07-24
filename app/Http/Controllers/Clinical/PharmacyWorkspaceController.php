@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Clinical;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Modules\Audit\Services\AuditRecorder;
+use App\Modules\Clinical\Enums\DispensePreparationReviewAction;
 use App\Modules\Clinical\Enums\MedicationDispenseOutcome;
 use App\Modules\Clinical\Enums\PharmacyResponseAction;
 use App\Modules\Clinical\Enums\PharmacyReviewItemOutcome;
 use App\Modules\Clinical\Enums\PharmacyReviewOutcome;
 use App\Modules\Clinical\Models\MedicationDispense;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\PharmacyIntervention;
@@ -68,8 +70,11 @@ class PharmacyWorkspaceController extends Controller
                             ->orderBy('authored_at'),
                     ])
                     ->orderBy('opened_at'),
+                'dispensePreparations' => fn ($query) => $query
+                    ->with(['preparer', 'preparerAssignment', 'reviewAction.checker'])
+                    ->orderByDesc('version_number'),
                 'dispenses' => fn ($query) => $query
-                    ->with(['preparer', 'checker', 'medicationStock', 'stockMovement'])
+                    ->with(['preparation', 'preparer', 'checker', 'medicationStock', 'stockMovement'])
                     ->orderByDesc('created_at'),
             ])
             ->orderBy('revision_number')
@@ -86,6 +91,7 @@ class PharmacyWorkspaceController extends Controller
         $canReview = $assignment->hasCapability(Capability::PharmacyReview);
         $canRespond = $assignment->hasCapability(Capability::PrescriptionWrite);
         $canDispense = $assignment->hasCapability(Capability::Dispense);
+        $canFinalCheck = $assignment->hasCapability(Capability::SupervisionReview);
 
         $this->auditRecorder->record(
             action: 'clinical.pharmacy_workspace_viewed',
@@ -134,6 +140,7 @@ class PharmacyWorkspaceController extends Controller
                 'canReview' => $canReview,
                 'canRespond' => $canRespond,
                 'canDispense' => $canDispense,
+                'canFinalCheck' => $canFinalCheck,
             ],
             'allergySource' => $allergy ? [
                 'state' => $allergy->assessment_state->value,
@@ -156,11 +163,14 @@ class PharmacyWorkspaceController extends Controller
                     'label' => $outcome->label(),
                 ], PharmacyReviewOutcome::cases()),
             ],
-            'medicationRequests' => $medicationRequests->map(function (MedicationRequest $medicationRequest) use ($assignment, $canReview, $canRespond, $canDispense): array {
+            'medicationRequests' => $medicationRequests->map(function (MedicationRequest $medicationRequest) use ($assignment, $canReview, $canRespond, $canDispense, $canFinalCheck): array {
                 /** @var PharmacyReview|null $latestReview */
                 $latestReview = $medicationRequest->pharmacyReviews->first();
+                /** @var MedicationDispensePreparation|null $latestPreparation */
+                $latestPreparation = $medicationRequest->dispensePreparations->first();
                 /** @var MedicationDispense|null $dispense */
                 $dispense = $medicationRequest->dispenses->first();
+                $latestPreparationDecision = $latestPreparation?->reviewAction?->action;
 
                 return [
                     'publicId' => $medicationRequest->public_id,
@@ -239,8 +249,49 @@ class PharmacyWorkspaceController extends Controller
                         'allowed' => $canDispense
                             && $medicationRequest->status->value === 'ACCEPTED'
                             && $latestReview?->overall_outcome === PharmacyReviewOutcome::Accept
-                            && $dispense === null,
+                            && $dispense === null
+                            && ($latestPreparation === null
+                                || $latestPreparationDecision === DispensePreparationReviewAction::RequestChanges),
                         'requestKey' => (string) Str::ulid(),
+                        'url' => route('medication-requests.dispenses.store', $medicationRequest),
+                    ],
+                    'dispensePreparations' => $medicationRequest->dispensePreparations
+                        ->map(fn (MedicationDispensePreparation $preparation): array => [
+                            'publicId' => $preparation->public_id,
+                            'versionNumber' => $preparation->version_number,
+                            'outcome' => [
+                                'code' => $preparation->outcome->value,
+                                'label' => $preparation->outcome->label(),
+                            ],
+                            'quantity' => $preparation->quantity,
+                            'unit' => $preparation->unit,
+                            'outcomeReason' => $preparation->outcome_reason,
+                            'content' => $preparation->content,
+                            'contentHash' => $preparation->content_hash,
+                            'changeReason' => $preparation->change_reason,
+                            'preparer' => $preparation->preparer->name,
+                            'preparedAt' => $preparation->prepared_at->toIso8601String(),
+                            'review' => $preparation->reviewAction ? [
+                                'action' => [
+                                    'code' => $preparation->reviewAction->action->value,
+                                    'label' => $preparation->reviewAction->action->label(),
+                                ],
+                                'comment' => $preparation->reviewAction->comment,
+                                'checker' => $preparation->reviewAction->checker->name,
+                                'sourceContentHash' => $preparation->reviewAction->source_content_hash,
+                                'reviewedAt' => $preparation->reviewAction->reviewed_at->toIso8601String(),
+                            ] : null,
+                        ])
+                        ->values()
+                        ->all(),
+                    'finalCheckAction' => [
+                        'allowed' => $canFinalCheck
+                            && $latestPreparation !== null
+                            && $latestPreparation->reviewAction === null
+                            && $latestPreparation->preparerAssignment?->supervisor_assignment_id === $assignment->getKey()
+                            && $latestPreparation->preparer_user_id !== $assignment->user_id,
+                        'requestKey' => (string) Str::ulid(),
+                        'preparationPublicId' => $latestPreparation?->public_id,
                         'url' => route('medication-requests.dispenses.store', $medicationRequest),
                     ],
                     'dispense' => $dispense ? [
@@ -258,6 +309,7 @@ class PharmacyWorkspaceController extends Controller
                         'checker' => $dispense->checker->name,
                         'preparedAt' => $dispense->prepared_at->toIso8601String(),
                         'checkedAt' => $dispense->checked_at->toIso8601String(),
+                        'preparationPublicId' => $dispense->preparation?->public_id,
                         'stockMovement' => $dispense->stockMovement ? [
                             'publicId' => $dispense->stockMovement->public_id,
                             'quantity' => $dispense->stockMovement->quantity,

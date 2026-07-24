@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Clinical;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Clinical\StoreMedicationDispenseRequest;
 use App\Models\User;
+use App\Modules\Clinical\Models\MedicationDispense;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
+use App\Modules\Clinical\Models\MedicationDispensePreparationReview;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Services\PharmacyWorkflowService;
 use App\Modules\Teaching\Enums\Capability;
@@ -31,22 +34,40 @@ class StoreMedicationDispenseController extends Controller
         }
 
         $medicationRequest->load('encounter');
-        $assignment = $this->assignmentResolver->forEncounter(
+        $assignment = $this->assignmentResolver->forEncounterAny(
             $user,
             $medicationRequest->encounter,
-            Capability::Dispense,
+            [Capability::Dispense, Capability::SupervisionReview],
         );
         /** @var array<string, mixed> $payload */
         $payload = $request->validated();
 
         try {
-            $dispense = $this->pharmacyWorkflow->dispense($medicationRequest, $assignment, $payload);
+            if ($payload['action'] === 'PREPARE') {
+                $result = $this->pharmacyWorkflow->prepareDispense($medicationRequest, $assignment, $payload);
+            } else {
+                $preparation = MedicationDispensePreparation::query()
+                    ->where('public_id', $payload['preparation_public_id'])
+                    ->where('medication_request_id', $medicationRequest->getKey())
+                    ->firstOrFail();
+                $result = $this->pharmacyWorkflow->reviewDispensePreparation(
+                    $preparation,
+                    $assignment,
+                    $payload,
+                );
+            }
         } catch (DomainException $exception) {
             throw ValidationException::withMessages(['workflow' => $exception->getMessage()]);
         }
 
+        $message = match (true) {
+            $result instanceof MedicationDispense => "Outcome dispensing {$result->outcome->label()} tersimpan setelah pemeriksaan akhir supervisor.",
+            $result instanceof MedicationDispensePreparationReview => $result->action->label().' tersimpan terhadap versi dan hash penyiapan.',
+            default => "Penyiapan obat v{$result->version_number} diajukan kepada supervisor farmasi.",
+        };
+
         return redirect()
             ->route('encounters.pharmacy.show', $medicationRequest->encounter)
-            ->with('success', "Outcome dispensing {$dispense->outcome->label()} tersimpan atomik dengan stok sintetis.");
+            ->with('success', $message);
     }
 }

@@ -3,12 +3,15 @@
 namespace App\Modules\Clinical\Services;
 
 use App\Modules\Audit\Services\AuditRecorder;
+use App\Modules\Clinical\Enums\DispensePreparationReviewAction;
 use App\Modules\Clinical\Enums\MedicationDispenseOutcome;
 use App\Modules\Clinical\Enums\MedicationRequestStatus;
 use App\Modules\Clinical\Enums\PharmacyInterventionStatus;
 use App\Modules\Clinical\Enums\PharmacyResponseAction;
 use App\Modules\Clinical\Enums\PharmacyReviewOutcome;
 use App\Modules\Clinical\Models\MedicationDispense;
+use App\Modules\Clinical\Models\MedicationDispensePreparation;
+use App\Modules\Clinical\Models\MedicationDispensePreparationReview;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\MedicationStockMovement;
@@ -350,22 +353,22 @@ class PharmacyWorkflowService
     }
 
     /** @param array<string, mixed> $payload */
-    public function dispense(
+    public function prepareDispense(
         MedicationRequest $medicationRequest,
-        Assignment $pharmacyAssignment,
+        Assignment $preparerAssignment,
         array $payload,
-    ): MedicationDispense {
-        return DB::transaction(function () use ($medicationRequest, $pharmacyAssignment, $payload): MedicationDispense {
+    ): MedicationDispensePreparation {
+        return DB::transaction(function () use ($medicationRequest, $preparerAssignment, $payload): MedicationDispensePreparation {
             $requestKey = (string) $payload['request_key'];
-            $existing = MedicationDispense::query()
+            $existing = MedicationDispensePreparation::query()
                 ->where('request_key', $requestKey)
                 ->lockForUpdate()
                 ->first();
 
             if ($existing) {
                 if ($existing->medication_request_id !== $medicationRequest->getKey()
-                    || $existing->preparer_assignment_id !== $pharmacyAssignment->getKey()) {
-                    throw new DomainException('The dispense request key was already used in another context.');
+                    || $existing->preparer_assignment_id !== $preparerAssignment->getKey()) {
+                    throw new DomainException('The preparation request key was already used in another context.');
                 }
 
                 return $existing;
@@ -378,13 +381,14 @@ class PharmacyWorkflowService
                 ->firstOrFail();
             $encounter = Encounter::query()->whereKey($request->encounter_id)->lockForUpdate()->firstOrFail();
             $session = SimulationSession::query()->whereKey($request->session_id)->lockForUpdate()->firstOrFail();
-            $actor = Assignment::query()->active()->whereKey($pharmacyAssignment->getKey())->lockForUpdate()->first();
+            $preparer = Assignment::query()->active()->whereKey($preparerAssignment->getKey())->lockForUpdate()->first();
 
-            $this->assertExactAssignment($actor, $request, $session, Capability::Dispense);
+            $this->assertExactAssignment($preparer, $request, $session, Capability::Dispense);
 
             if ($encounter->status !== EncounterStatus::AwaitingPharmacy
-                || $request->status !== MedicationRequestStatus::Accepted) {
-                throw new DomainException('Only a currently accepted medication request can be dispensed.');
+                || $request->status !== MedicationRequestStatus::Accepted
+                || MedicationDispense::query()->where('medication_request_id', $request->getKey())->exists()) {
+                throw new DomainException('Only a current accepted and not-yet-dispensed request can be prepared.');
             }
 
             $review = PharmacyReview::query()
@@ -394,77 +398,47 @@ class PharmacyWorkflowService
                 ->first();
 
             if (! $review || $review->overall_outcome !== PharmacyReviewOutcome::Accept) {
-                throw new DomainException('Dispensing requires the current human-authored pharmacy review to be accepted.');
+                throw new DomainException('Preparation requires the current human-authored pharmacy review to be accepted.');
             }
 
             if ($this->unresolvedInterventions($request)->isNotEmpty()) {
-                throw new DomainException('Dispensing is blocked while a pharmacy intervention remains unresolved.');
+                throw new DomainException('Preparation is blocked while a pharmacy intervention remains unresolved.');
             }
 
-            $outcome = MedicationDispenseOutcome::from((string) $payload['outcome']);
-            $quantity = number_format((float) $payload['quantity'], 3, '.', '');
-            $requestedQuantity = (int) round(((float) $request->quantity_value) * 1000);
-            $dispensedQuantity = (int) round(((float) $quantity) * 1000);
-            $reason = $this->nullableText($payload['outcome_reason'] ?? null);
-            $stock = null;
+            $latest = MedicationDispensePreparation::query()
+                ->where('medication_request_id', $request->getKey())
+                ->orderByDesc('version_number')
+                ->lockForUpdate()
+                ->first();
 
-            if ($outcome === MedicationDispenseOutcome::Complete
-                && ($dispensedQuantity <= 0 || $dispensedQuantity !== $requestedQuantity)) {
-                throw new DomainException('A complete dispense must equal the current requested quantity.');
+            if ($latest?->reviewAction?->action === DispensePreparationReviewAction::ApproveSimulation) {
+                throw new DomainException('An approved preparation cannot be superseded.');
             }
 
-            if ($outcome === MedicationDispenseOutcome::Partial
-                && ($dispensedQuantity <= 0 || $dispensedQuantity >= $requestedQuantity || $reason === null)) {
-                throw new DomainException('A partial dispense requires a positive smaller quantity and a reason.');
+            if ($latest && $latest->reviewAction === null) {
+                throw new DomainException('Wait for the linked pharmacy supervisor to decide the current preparation.');
             }
 
-            if ($outcome === MedicationDispenseOutcome::NotDispensed
-                && ($dispensedQuantity !== 0 || $reason === null)) {
-                throw new DomainException('A not-dispensed outcome requires zero quantity and a reason.');
+            $changeReason = $this->nullableText($payload['change_reason'] ?? null);
+
+            if ($latest && $changeReason === null) {
+                throw new DomainException('A successor preparation requires an attributed change reason.');
             }
 
-            if ($outcome !== MedicationDispenseOutcome::NotDispensed) {
-                $stockId = $payload['medication_stock_id'] ?? null;
-                $stock = MedicationStock::query()
-                    ->whereKey($stockId)
-                    ->lockForUpdate()
-                    ->first();
-
-                if (! $stock
-                    || $stock->session_id !== $request->session_id
-                    || $stock->authored_medication !== $request->authored_medication
-                    || $stock->unit !== $request->quantity_unit
-                    || $stock->expires_on->isPast()) {
-                    throw new DomainException('A matching, unexpired synthetic stock lot is required for this dispense.');
-                }
-            }
-
-            $counselingTopics = $this->normalizeTextList($payload['counseling_topics'] ?? []);
-
-            if ($outcome !== MedicationDispenseOutcome::NotDispensed
-                && ($counselingTopics === [] || ! (bool) ($payload['counseling_acknowledged'] ?? false))) {
-                throw new DomainException('A completed or partial handoff requires counseling topics and acknowledgement.');
-            }
-
-            $now = CarbonImmutable::now();
+            [$outcome, $quantity, $reason, $stock, $counselingTopics] =
+                $this->validatePreparationPayload($request, $payload);
+            $preparedAt = CarbonImmutable::now();
             $content = [
                 'synthetic' => true,
                 'preparationNotes' => $this->nullableText($payload['preparation_notes'] ?? null),
-                'finalCheckConfirmed' => (bool) ($payload['final_check_confirmed'] ?? false),
-                'finalCheckNotes' => $this->nullableText($payload['final_check_notes'] ?? null),
-                'sameActorCheckPermittedByScenario' => true,
                 'handoffRecipient' => $this->nullableText($payload['handoff_recipient'] ?? null),
                 'counselingTopics' => $counselingTopics,
                 'counselingAcknowledged' => (bool) ($payload['counseling_acknowledged'] ?? false),
                 'lotNumber' => $stock?->lot_number,
                 'expiresOn' => $stock?->expires_on->toDateString(),
+                'stockQuantityObserved' => $stock?->quantity_on_hand,
             ];
-
-            if (! $content['finalCheckConfirmed']) {
-                throw new DomainException('The pharmacy actor must record an explicit final check before saving the outcome.');
-            }
-
-            $dispense = MedicationDispense::query()->create([
+            $preparation = MedicationDispensePreparation::query()->create([
                 'request_key' => $requestKey,
                 'session_id' => $request->session_id,
                 'patient_id' => $request->patient_id,
@@ -472,71 +446,399 @@ class PharmacyWorkflowService
                 'medication_request_id' => $request->getKey(),
                 'pharmacy_review_id' => $review->getKey(),
                 'medication_stock_id' => $stock?->getKey(),
+                'version_number' => $latest === null ? 1 : $latest->version_number + 1,
                 'outcome' => $outcome,
                 'quantity' => $quantity,
                 'unit' => $request->quantity_unit,
                 'outcome_reason' => $reason,
                 'content' => $content,
                 'content_hash' => hash('sha256', CanonicalJson::encode($content)),
-                'preparer_user_id' => $actor->user_id,
-                'preparer_assignment_id' => $actor->getKey(),
-                'checker_user_id' => $actor->user_id,
-                'checker_assignment_id' => $actor->getKey(),
-                'prepared_at' => $now,
-                'checked_at' => $now,
-                'handed_over_at' => $outcome === MedicationDispenseOutcome::NotDispensed ? null : $now,
+                'change_reason' => $changeReason,
+                'supersedes_preparation_id' => $latest?->getKey(),
+                'preparer_user_id' => $preparer->user_id,
+                'preparer_assignment_id' => $preparer->getKey(),
+                'prepared_at' => $preparedAt,
             ]);
 
-            if ($stock) {
-                $balances = $stock->decrementForDispense($quantity);
-                MedicationStockMovement::query()->create([
-                    'session_id' => $session->getKey(),
-                    'medication_stock_id' => $stock->getKey(),
-                    'medication_dispense_id' => $dispense->getKey(),
-                    'direction' => 'OUT',
-                    'quantity' => $quantity,
-                    'balance_before' => $balances['before'],
-                    'balance_after' => $balances['after'],
-                    'actor_user_id' => $actor->user_id,
-                    'actor_assignment_id' => $actor->getKey(),
-                    'occurred_at' => $now,
-                ]);
-            }
-
-            $request->persistStatus(match ($outcome) {
-                MedicationDispenseOutcome::Complete => MedicationRequestStatus::Completed,
-                MedicationDispenseOutcome::Partial => MedicationRequestStatus::Partial,
-                MedicationDispenseOutcome::NotDispensed => MedicationRequestStatus::NotDispensed,
-            });
             $this->setTaskStatus(
-                assignment: $actor,
+                assignment: $preparer,
                 encounter: $encounter,
                 taskType: WorkTaskType::Dispensing,
-                status: WorkTaskStatus::Complete,
-                description: 'Outcome dispensing dan pergerakan stok sintetis tersimpan dalam satu transaksi.',
+                status: WorkTaskStatus::Submitted,
+                description: "Penyiapan v{$preparation->version_number} diajukan kepada supervisor farmasi terhubung.",
             );
-            $this->advanceWhenMedicationWorkComplete($encounter, $request, $actor);
+            $this->releasePreparationReviewTask($preparation, $preparer, $encounter, $session);
 
             $this->auditRecorder->record(
-                action: 'clinical.medication_dispense_recorded',
-                resourceType: 'medication_dispense',
-                resourceId: $dispense->public_id,
-                actor: $actor->user,
-                assignment: $actor,
+                action: 'clinical.medication_dispense_preparation_submitted',
+                resourceType: 'medication_dispense_preparation',
+                resourceId: $preparation->public_id,
+                actor: $preparer->user,
+                assignment: $preparer,
                 session: $session,
                 encounter: $encounter,
                 metadata: [
                     'medication_request_public_id' => $request->public_id,
+                    'preparation_version' => $preparation->version_number,
+                    'content_hash' => $preparation->content_hash,
                     'outcome' => $outcome->value,
-                    'quantity' => $quantity,
-                    'unit' => $request->quantity_unit,
-                    'stock_movement_recorded' => $stock !== null,
-                    'content_hash' => $dispense->content_hash,
                 ],
             );
 
-            return $dispense->load(['medicationRequest', 'pharmacyReview', 'medicationStock', 'stockMovement']);
+            return $preparation->load(['preparer', 'reviewAction']);
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function reviewDispensePreparation(
+        MedicationDispensePreparation $preparation,
+        Assignment $checkerAssignment,
+        array $payload,
+    ): MedicationDispensePreparationReview|MedicationDispense {
+        return DB::transaction(function () use ($preparation, $checkerAssignment, $payload): MedicationDispensePreparationReview|MedicationDispense {
+            $requestKey = (string) $payload['request_key'];
+            $existingReview = MedicationDispensePreparationReview::query()
+                ->where('request_key', $requestKey)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingReview) {
+                if ($existingReview->medication_dispense_preparation_id !== $preparation->getKey()
+                    || $existingReview->checker_assignment_id !== $checkerAssignment->getKey()) {
+                    throw new DomainException('The final-check request key was already used in another context.');
+                }
+
+                return $existingReview->action === DispensePreparationReviewAction::ApproveSimulation
+                    ? MedicationDispense::query()
+                        ->where('medication_dispense_preparation_id', $preparation->getKey())
+                        ->firstOrFail()
+                    : $existingReview;
+            }
+
+            $lockedPreparation = MedicationDispensePreparation::query()
+                ->with(['medicationRequest.encounter.session', 'pharmacyReview', 'preparerAssignment', 'reviewAction'])
+                ->whereKey($preparation->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+            $request = MedicationRequest::query()->whereKey($lockedPreparation->medication_request_id)->lockForUpdate()->firstOrFail();
+            $encounter = Encounter::query()->whereKey($request->encounter_id)->lockForUpdate()->firstOrFail();
+            $session = SimulationSession::query()->whereKey($request->session_id)->lockForUpdate()->firstOrFail();
+            $checker = Assignment::query()->active()->whereKey($checkerAssignment->getKey())->lockForUpdate()->first();
+            $preparer = Assignment::query()->active()->whereKey($lockedPreparation->preparer_assignment_id)->lockForUpdate()->first();
+
+            $this->assertExactAssignment($checker, $request, $session, Capability::SupervisionReview);
+
+            if (! $preparer
+                || $preparer->supervisor_assignment_id !== $checker->getKey()
+                || $preparer->user_id === $checker->user_id
+                || $lockedPreparation->reviewAction !== null
+                || $request->status !== MedicationRequestStatus::Accepted
+                || $encounter->status !== EncounterStatus::AwaitingPharmacy
+                || MedicationDispensePreparation::query()
+                    ->where('medication_request_id', $request->getKey())
+                    ->where('version_number', '>', $lockedPreparation->version_number)
+                    ->exists()) {
+                throw new DomainException('Only the distinct linked pharmacy supervisor can decide the latest pending preparation.');
+            }
+
+            $action = DispensePreparationReviewAction::from((string) $payload['review_action']);
+            $comment = $this->nullableText($payload['comment'] ?? null);
+            $reviewAction = MedicationDispensePreparationReview::query()->create([
+                'request_key' => $requestKey,
+                'medication_dispense_preparation_id' => $lockedPreparation->getKey(),
+                'action' => $action,
+                'source_content_hash' => $lockedPreparation->content_hash,
+                'comment' => $comment,
+                'checker_user_id' => $checker->user_id,
+                'checker_assignment_id' => $checker->getKey(),
+                'reviewed_at' => CarbonImmutable::now(),
+            ]);
+
+            if ($action === DispensePreparationReviewAction::RequestChanges) {
+                $this->setTaskStatus(
+                    assignment: $preparer,
+                    encounter: $encounter,
+                    taskType: WorkTaskType::Dispensing,
+                    status: WorkTaskStatus::ChangesRequested,
+                    description: 'Supervisor farmasi meminta versi penyiapan penerus; versi lama tetap utuh.',
+                );
+                $this->setTaskStatus(
+                    assignment: $checker,
+                    encounter: $encounter,
+                    taskType: WorkTaskType::SupervisorReview,
+                    status: WorkTaskStatus::Complete,
+                    description: 'Keputusan perbaikan tersimpan terhadap versi dan hash penyiapan yang tepat.',
+                );
+                $this->recordPreparationDecisionAudit($reviewAction, $lockedPreparation, $checker, $session, $encounter);
+
+                return $reviewAction;
+            }
+
+            if (! (bool) ($payload['final_check_confirmed'] ?? false)) {
+                throw new DomainException('The linked pharmacy supervisor must explicitly confirm the final check.');
+            }
+
+            $dispense = $this->finalizeApprovedPreparation(
+                $lockedPreparation,
+                $reviewAction,
+                $preparer,
+                $checker,
+                $request,
+                $encounter,
+                $session,
+                $payload,
+            );
+            $this->recordPreparationDecisionAudit($reviewAction, $lockedPreparation, $checker, $session, $encounter);
+
+            return $dispense;
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{MedicationDispenseOutcome, string, ?string, ?MedicationStock, list<string>}
+     */
+    private function validatePreparationPayload(MedicationRequest $request, array $payload): array
+    {
+        $outcome = MedicationDispenseOutcome::from((string) $payload['outcome']);
+        $quantity = number_format((float) $payload['quantity'], 3, '.', '');
+        $requestedQuantity = (int) round(((float) $request->quantity_value) * 1000);
+        $preparedQuantity = (int) round(((float) $quantity) * 1000);
+        $reason = $this->nullableText($payload['outcome_reason'] ?? null);
+        $stock = null;
+
+        if ($outcome === MedicationDispenseOutcome::Complete
+            && ($preparedQuantity <= 0 || $preparedQuantity !== $requestedQuantity)) {
+            throw new DomainException('A complete preparation must equal the current requested quantity.');
+        }
+
+        if ($outcome === MedicationDispenseOutcome::Partial
+            && ($preparedQuantity <= 0 || $preparedQuantity >= $requestedQuantity || $reason === null)) {
+            throw new DomainException('A partial preparation requires a positive smaller quantity and a reason.');
+        }
+
+        if ($outcome === MedicationDispenseOutcome::NotDispensed
+            && ($preparedQuantity !== 0 || $reason === null)) {
+            throw new DomainException('A not-dispensed preparation requires zero quantity and a reason.');
+        }
+
+        if ($outcome !== MedicationDispenseOutcome::NotDispensed) {
+            $stock = MedicationStock::query()
+                ->whereKey($payload['medication_stock_id'] ?? null)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $stock
+                || $stock->session_id !== $request->session_id
+                || $stock->authored_medication !== $request->authored_medication
+                || $stock->unit !== $request->quantity_unit
+                || $stock->expires_on->isPast()) {
+                throw new DomainException('A matching, unexpired synthetic stock lot is required for this preparation.');
+            }
+        }
+
+        $counselingTopics = $this->normalizeTextList($payload['counseling_topics'] ?? []);
+
+        if ($outcome !== MedicationDispenseOutcome::NotDispensed
+            && ($counselingTopics === [] || ! (bool) ($payload['counseling_acknowledged'] ?? false))) {
+            throw new DomainException('A completed or partial preparation requires counseling topics and acknowledgement.');
+        }
+
+        return [$outcome, $quantity, $reason, $stock, $counselingTopics];
+    }
+
+    private function releasePreparationReviewTask(
+        MedicationDispensePreparation $preparation,
+        Assignment $preparer,
+        Encounter $encounter,
+        SimulationSession $session,
+    ): void {
+        $supervisor = $preparer->supervisor_assignment_id === null
+            ? null
+            : Assignment::query()->active()->whereKey($preparer->supervisor_assignment_id)->lockForUpdate()->first();
+
+        $this->assertExactAssignment(
+            $supervisor,
+            $preparation->medicationRequest,
+            $session,
+            Capability::SupervisionReview,
+        );
+
+        if (! $supervisor || $supervisor->user_id === $preparer->user_id) {
+            throw new DomainException('A distinct linked pharmacy supervisor is required for the final check.');
+        }
+
+        WorkTask::query()->updateOrCreate(
+            [
+                'assignment_id' => $supervisor->getKey(),
+                'encounter_id' => $encounter->getKey(),
+                'task_type' => WorkTaskType::SupervisorReview,
+            ],
+            [
+                'session_id' => $session->getKey(),
+                'title' => "Tinjau Penyiapan Obat v{$preparation->version_number}",
+                'description' => 'Periksa outcome, jumlah, lot, konseling, versi, dan hash sebelum stok serta penyerahan diselesaikan.',
+                'status' => WorkTaskStatus::Ready,
+                'priority' => 1,
+                'source_program' => Program::Pharmacy,
+                'context' => [
+                    'caseLabel' => $encounter->encounter_number,
+                    'synthetic' => true,
+                    'medicationRequestPublicId' => $preparation->medicationRequest->public_id,
+                    'dispensePreparationPublicId' => $preparation->public_id,
+                    'dispensePreparationVersion' => $preparation->version_number,
+                    'dispensePreparationContentHash' => $preparation->content_hash,
+                ],
+                'available_at' => now(),
+                'completed_at' => null,
+            ],
+        );
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function finalizeApprovedPreparation(
+        MedicationDispensePreparation $preparation,
+        MedicationDispensePreparationReview $reviewAction,
+        Assignment $preparer,
+        Assignment $checker,
+        MedicationRequest $request,
+        Encounter $encounter,
+        SimulationSession $session,
+        array $payload,
+    ): MedicationDispense {
+        $stock = $preparation->medication_stock_id === null
+            ? null
+            : MedicationStock::query()->whereKey($preparation->medication_stock_id)->lockForUpdate()->first();
+
+        if ($preparation->outcome !== MedicationDispenseOutcome::NotDispensed
+            && (! $stock
+                || $stock->session_id !== $request->session_id
+                || $stock->authored_medication !== $request->authored_medication
+                || $stock->unit !== $request->quantity_unit
+                || $stock->expires_on->isPast())) {
+            throw new DomainException('The exact prepared synthetic stock lot is no longer eligible for final checking.');
+        }
+
+        $now = CarbonImmutable::now();
+        $content = [
+            ...$preparation->content,
+            'finalCheckConfirmed' => true,
+            'finalCheckNotes' => $this->nullableText($payload['final_check_notes'] ?? null),
+            'sameActorCheckPermittedByScenario' => false,
+            'preparationPublicId' => $preparation->public_id,
+            'preparationVersion' => $preparation->version_number,
+            'preparationContentHash' => $preparation->content_hash,
+            'reviewActionPublicId' => $reviewAction->public_id,
+        ];
+        $dispense = MedicationDispense::query()->create([
+            'request_key' => $reviewAction->request_key,
+            'session_id' => $request->session_id,
+            'patient_id' => $request->patient_id,
+            'encounter_id' => $request->encounter_id,
+            'medication_request_id' => $request->getKey(),
+            'medication_dispense_preparation_id' => $preparation->getKey(),
+            'pharmacy_review_id' => $preparation->pharmacy_review_id,
+            'medication_stock_id' => $stock?->getKey(),
+            'outcome' => $preparation->outcome,
+            'quantity' => $preparation->quantity,
+            'unit' => $preparation->unit,
+            'outcome_reason' => $preparation->outcome_reason,
+            'content' => $content,
+            'content_hash' => hash('sha256', CanonicalJson::encode($content)),
+            'preparer_user_id' => $preparer->user_id,
+            'preparer_assignment_id' => $preparer->getKey(),
+            'checker_user_id' => $checker->user_id,
+            'checker_assignment_id' => $checker->getKey(),
+            'prepared_at' => $preparation->prepared_at,
+            'checked_at' => $now,
+            'handed_over_at' => $preparation->outcome === MedicationDispenseOutcome::NotDispensed ? null : $now,
+        ]);
+
+        if ($stock) {
+            $balances = $stock->decrementForDispense($preparation->quantity);
+            MedicationStockMovement::query()->create([
+                'session_id' => $session->getKey(),
+                'medication_stock_id' => $stock->getKey(),
+                'medication_dispense_id' => $dispense->getKey(),
+                'direction' => 'OUT',
+                'quantity' => $preparation->quantity,
+                'balance_before' => $balances['before'],
+                'balance_after' => $balances['after'],
+                'actor_user_id' => $preparer->user_id,
+                'actor_assignment_id' => $preparer->getKey(),
+                'occurred_at' => $now,
+            ]);
+        }
+
+        $request->persistStatus(match ($preparation->outcome) {
+            MedicationDispenseOutcome::Complete => MedicationRequestStatus::Completed,
+            MedicationDispenseOutcome::Partial => MedicationRequestStatus::Partial,
+            MedicationDispenseOutcome::NotDispensed => MedicationRequestStatus::NotDispensed,
+        });
+        $this->setTaskStatus(
+            assignment: $preparer,
+            encounter: $encounter,
+            taskType: WorkTaskType::Dispensing,
+            status: WorkTaskStatus::Complete,
+            description: 'Penyiapan selesai setelah pemeriksaan akhir supervisor terhadap versi dan hash yang tepat.',
+        );
+        $this->setTaskStatus(
+            assignment: $checker,
+            encounter: $encounter,
+            taskType: WorkTaskType::SupervisorReview,
+            status: WorkTaskStatus::Complete,
+            description: 'Pemeriksaan akhir supervisor tersimpan; outcome dan stok sintetis diselesaikan atomik.',
+        );
+        $this->advanceWhenMedicationWorkComplete($encounter, $request, $checker);
+
+        $this->auditRecorder->record(
+            action: 'clinical.medication_dispense_recorded',
+            resourceType: 'medication_dispense',
+            resourceId: $dispense->public_id,
+            actor: $checker->user,
+            assignment: $checker,
+            session: $session,
+            encounter: $encounter,
+            metadata: [
+                'medication_request_public_id' => $request->public_id,
+                'dispense_preparation_public_id' => $preparation->public_id,
+                'dispense_preparation_content_hash' => $preparation->content_hash,
+                'outcome' => $preparation->outcome->value,
+                'quantity' => $preparation->quantity,
+                'unit' => $preparation->unit,
+                'stock_movement_recorded' => $stock !== null,
+                'content_hash' => $dispense->content_hash,
+                'independent_final_check' => true,
+            ],
+        );
+
+        return $dispense->load(['preparation', 'medicationRequest', 'pharmacyReview', 'medicationStock', 'stockMovement']);
+    }
+
+    private function recordPreparationDecisionAudit(
+        MedicationDispensePreparationReview $reviewAction,
+        MedicationDispensePreparation $preparation,
+        Assignment $checker,
+        SimulationSession $session,
+        Encounter $encounter,
+    ): void {
+        $this->auditRecorder->record(
+            action: 'clinical.medication_dispense_preparation_reviewed',
+            resourceType: 'medication_dispense_preparation',
+            resourceId: $preparation->public_id,
+            actor: $checker->user,
+            assignment: $checker,
+            session: $session,
+            encounter: $encounter,
+            metadata: [
+                'review_action' => $reviewAction->action->value,
+                'preparation_version' => $preparation->version_number,
+                'source_content_hash' => $preparation->content_hash,
+                'review_action_public_id' => $reviewAction->public_id,
+            ],
+        );
     }
 
     /** @param array<string, mixed> $payload */
