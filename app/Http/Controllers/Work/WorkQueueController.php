@@ -11,13 +11,17 @@ use App\Modules\Teaching\Enums\WorkTaskStatus;
 use App\Modules\Teaching\Enums\WorkTaskType;
 use App\Modules\Teaching\Models\Assignment;
 use App\Modules\Teaching\Models\WorkTask;
+use App\Modules\Teaching\Services\LaboratorySessionMonitor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class WorkQueueController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(
+        private readonly AuditRecorder $auditRecorder,
+        private readonly LaboratorySessionMonitor $sessionMonitor,
+    ) {}
 
     public function __invoke(Request $request): Response
     {
@@ -62,6 +66,11 @@ class WorkQueueController extends Controller
 
         $selectedSession = $selectedAssignments->first()?->session;
         $selectionRequired = $availableSessionCount > 1 && $selectedSession === null;
+        $canMonitorSession = $selectedAssignments
+            ->contains(fn (Assignment $assignment): bool => $assignment->hasCapability(Capability::SessionFacilitate));
+        $sessionMonitor = $selectedSession && $canMonitorSession
+            ? $this->sessionMonitor->report($selectedSession)
+            : null;
 
         $tasks = WorkTask::query()
             ->whereIn('assignment_id', $selectedAssignments->modelKeys())
@@ -90,6 +99,8 @@ class WorkQueueController extends Controller
                 'selected_session_public_id' => $selectedSession?->public_id,
                 'selection_required' => $selectionRequired,
                 'task_count' => $tasks->count(),
+                'session_monitor_visible' => $sessionMonitor !== null,
+                'session_monitor_status' => $sessionMonitor['status'] ?? null,
             ],
             request: $request,
         );
@@ -195,6 +206,7 @@ class WorkQueueController extends Controller
             'tasks' => $taskPayloads,
             'selectedSessionCode' => $selectedSession?->code,
             'selectionRequired' => $selectionRequired,
+            'sessionMonitor' => $sessionMonitor,
             'summary' => [
                 'ready' => $tasks->where('status', WorkTaskStatus::Ready)->count(),
                 'inProgress' => $tasks->where('status', WorkTaskStatus::InProgress)->count(),

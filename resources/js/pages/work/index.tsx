@@ -27,6 +27,8 @@ import { cn } from '@/lib/utils';
 import { work } from '@/routes';
 import type {
     AssignmentContext,
+    LaboratorySessionMonitor,
+    LaboratorySessionMonitorPhase,
     TaskStatusCode,
     WorkQueueSummary,
     WorkTaskItem,
@@ -39,6 +41,7 @@ type Props = {
     summary: WorkQueueSummary;
     selectedSessionCode: string | null;
     selectionRequired: boolean;
+    sessionMonitor?: LaboratorySessionMonitor | null;
 };
 
 const taskIcons: Record<WorkTaskType, LucideIcon> = {
@@ -82,6 +85,84 @@ const statusIcons: Partial<Record<TaskStatusCode, LucideIcon>> = {
     WAITING: Clock3,
     BLOCKED: Ban,
     CHANGES_REQUESTED: RotateCcw,
+};
+
+const phaseLabels: Record<LaboratorySessionMonitorPhase, string> = {
+    SCHEDULED: 'Terjadwal',
+    READY_TO_START: 'Siap dimulai',
+    IN_PROGRESS: 'Sedang berjalan',
+    PAUSED: 'Dijeda',
+    FINALIZED: 'Difinalisasi',
+    ENDED: 'Berakhir',
+};
+
+const phaseStyles: Record<LaboratorySessionMonitorPhase, string> = {
+    SCHEDULED: 'border-slate-300 bg-slate-50 text-slate-700',
+    READY_TO_START: 'border-emerald-300 bg-emerald-50 text-emerald-800',
+    IN_PROGRESS: 'border-orange-300 bg-orange-50 text-[#87401d]',
+    PAUSED: 'border-amber-300 bg-amber-50 text-amber-900',
+    FINALIZED: 'border-sky-300 bg-sky-50 text-[#00598f]',
+    ENDED: 'border-slate-300 bg-slate-100 text-slate-700',
+};
+
+const taskTypeLabels: Record<string, string> = {
+    REGISTRATION: 'Registrasi',
+    NURSING_INTAKE: 'Asesmen keperawatan',
+    MEDICAL_ASSESSMENT: 'Asesmen medis',
+    SYNTHETIC_RESULT_RELEASE: 'Rilis hasil sintetis',
+    RESULT_ACKNOWLEDGEMENT: 'Tinjau hasil',
+    PHARMACY_REVIEW: 'Telaah farmasi',
+    PRESCRIPTION_INTERVENTION_RESPONSE: 'Tanggapan intervensi resep',
+    DISPENSING: 'Penyerahan obat',
+    ENCOUNTER_CLOSURE: 'Penutupan encounter',
+    ENCOUNTER_CLOSURE_REVIEW: 'Review penutupan',
+    RECORD_REVIEW: 'Review rekam medis',
+    RECORD_CORRECTION: 'Koreksi rekam medis',
+    RECORD_QUALITY_REVIEW: 'Review mutu rekam medis',
+    CODING: 'Koding',
+    CODING_SOURCE_CORRECTION: 'Koreksi sumber diagnosis',
+    PROCEDURE_SOURCE_CORRECTION: 'Koreksi sumber tindakan',
+    CODING_REVIEW: 'Review koding',
+    SUPERVISOR_REVIEW: 'Review supervisor',
+    SAFETY_DISPOSITION: 'Disposisi keselamatan',
+    DEBRIEF: 'Debrief',
+};
+
+const roleLabels: Record<string, string> = {
+    FACILITATOR: 'Fasilitator',
+    REGISTRAR: 'Petugas registrasi',
+    LEARNER: 'Mahasiswa',
+    SUPERVISOR: 'Supervisor',
+    CODER: 'Koder',
+    PHARMACIST: 'Farmasis',
+    SYSTEM_ADMINISTRATOR: 'Administrator sistem',
+};
+
+const programLabels: Record<string, string> = {
+    MEDICINE: 'Kedokteran',
+    NURSING: 'Keperawatan',
+    RMIK: 'RMIK',
+    PHARMACY: 'Farmasi',
+    FACILITATION: 'Fasilitasi',
+    SYSTEM: 'Sistem',
+};
+
+const attentionLabels: Record<string, string> = {
+    SESSION_NOT_ACTIVE: 'Sesi tidak aktif',
+    TASKS_BLOCKED: 'Ada tugas yang diblokir',
+    CHANGES_REQUESTED: 'Ada perbaikan yang diminta',
+    SUPERVISOR_REVIEW_PENDING: 'Ada review supervisor yang menunggu',
+};
+
+const blockerLabels: Record<string, string> = {
+    'session.disposable_clone':
+        'Gunakan sesi sekali pakai yang dibuat dari sumber sintetis.',
+    'session.environment_mode': 'Sesi harus tetap berada dalam mode simulasi.',
+    'session.one_synthetic_case':
+        'Sesi harus memuat tepat satu kasus sintetis yang lengkap.',
+    'session.assignment_roster':
+        'Daftar sepuluh penugasan aktif belum lengkap.',
+    'session.task_graph': 'Jejak tugas referensi belum lengkap.',
 };
 
 function formatAvailableAt(value: string | null): string | null {
@@ -225,12 +306,204 @@ function SessionSelectionRequired() {
     );
 }
 
+export function FacilitatorSessionMonitor({
+    monitor,
+}: {
+    monitor: LaboratorySessionMonitor;
+}) {
+    if (monitor.status === 'BLOCKED') {
+        return (
+            <section
+                role="alert"
+                aria-labelledby="facilitator-monitor-title"
+                className="clinical-shadow overflow-hidden rounded-lg border border-l-4 border-red-300 border-l-red-700 bg-white"
+            >
+                <div className="flex gap-4 px-5 py-5">
+                    <AlertTriangle
+                        className="mt-0.5 size-6 shrink-0 text-red-700"
+                        aria-hidden="true"
+                    />
+                    <div>
+                        <p className="text-[0.68rem] font-bold tracking-[0.14em] text-red-800 uppercase">
+                            Kontrol fasilitator · baca saja
+                        </p>
+                        <h2
+                            id="facilitator-monitor-title"
+                            className="mt-1 text-xl font-semibold"
+                        >
+                            Pemantauan sesi dihentikan
+                        </h2>
+                        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                            Struktur sesi tidak memenuhi batas latihan yang
+                            aman. Jangan lanjutkan peserta atau memperbaiki data
+                            langsung di basis data.
+                        </p>
+                        <ul className="mt-3 space-y-1.5 text-sm text-red-900">
+                            {monitor.blockers.map((blocker) => (
+                                <li
+                                    key={blocker.id}
+                                    className="flex items-start gap-2"
+                                >
+                                    <Ban
+                                        className="mt-0.5 size-4 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                    {blockerLabels[blocker.id] ??
+                                        'Pemeriksaan kesiapan sesi belum terpenuhi.'}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    const counts = [
+        {
+            label: 'Penugasan aktif',
+            value: monitor.summary.activeAssignments,
+        },
+        { label: 'Seluruh tugas', value: monitor.summary.totalTasks },
+        { label: 'Tugas terbuka', value: monitor.summary.openTasks },
+        { label: 'Siap diserahkan', value: monitor.readyTasks.length },
+    ];
+
+    return (
+        <section
+            aria-labelledby="facilitator-monitor-title"
+            className="clinical-shadow overflow-hidden rounded-lg border border-l-4 border-sky-200 border-l-[#e87326] bg-white"
+        >
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
+                <div className="px-5 py-5 md:px-6">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <p className="text-[0.68rem] font-bold tracking-[0.14em] text-primary uppercase">
+                                Kontrol fasilitator · seluruh sesi · baca saja
+                            </p>
+                            <h2
+                                id="facilitator-monitor-title"
+                                className="mt-1 text-xl font-semibold"
+                            >
+                                Jalur serah terima laboratorium
+                            </h2>
+                            <p className="mt-1 font-mono text-xs text-muted-foreground">
+                                {monitor.session.code} ·{' '}
+                                {monitor.encounter.number}
+                            </p>
+                        </div>
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                'border px-3 py-1 text-xs',
+                                phaseStyles[monitor.phase],
+                            )}
+                        >
+                            {phaseLabels[monitor.phase]}
+                        </Badge>
+                    </div>
+
+                    <dl className="mt-5 grid overflow-hidden rounded-md border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+                        {counts.map((count) => (
+                            <div
+                                key={count.label}
+                                className="border-b border-border bg-[#f8fbfc] px-4 py-3 last:border-b-0 sm:border-r xl:border-b-0 xl:last:border-r-0 sm:[&:nth-child(2)]:border-r-0 xl:[&:nth-child(2)]:border-r sm:[&:nth-child(n+3)]:border-b-0"
+                            >
+                                <dt className="text-[0.68rem] font-semibold tracking-wide text-muted-foreground uppercase">
+                                    {count.label}
+                                </dt>
+                                <dd className="mt-1 font-mono text-xl font-semibold text-foreground">
+                                    {count.value}
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
+
+                    {monitor.attention.length > 0 && (
+                        <div className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3">
+                            <p className="flex items-center gap-2 text-sm font-semibold text-amber-950">
+                                <AlertTriangle
+                                    className="size-4"
+                                    aria-hidden="true"
+                                />
+                                Perlu perhatian fasilitator
+                            </p>
+                            <ul className="mt-1.5 space-y-1 text-xs leading-5 text-amber-950">
+                                {monitor.attention.map((attention) => (
+                                    <li key={attention}>
+                                        {attentionLabels[attention] ??
+                                            'Ada kondisi sesi yang perlu ditinjau.'}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                        Jumlah tugas adalah bukti operasional, bukan persentase,
+                        nilai, atau keputusan penerimaan pilot.
+                    </p>
+                </div>
+
+                <div className="border-t border-sky-200 bg-[#eaf4f8] px-5 py-5 lg:border-t-0 lg:border-l">
+                    <p className="text-[0.68rem] font-bold tracking-[0.14em] text-primary uppercase">
+                        Serah terima berikutnya
+                    </p>
+                    {monitor.readyTasks.length > 0 ? (
+                        <ol className="mt-3 space-y-2">
+                            {monitor.readyTasks.map((task, index) => (
+                                <li
+                                    key={`${task.type}-${task.program}-${task.role}-${task.priority}-${index}`}
+                                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-md border border-sky-200 bg-white px-3 py-3"
+                                >
+                                    <span
+                                        className="flex size-7 items-center justify-center rounded-full bg-primary font-mono text-xs font-semibold text-white"
+                                        aria-hidden="true"
+                                    >
+                                        {index + 1}
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold">
+                                            {taskTypeLabels[task.type] ??
+                                                task.type.replaceAll('_', ' ')}
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            {programLabels[task.program] ??
+                                                task.program}{' '}
+                                            ·{' '}
+                                            {roleLabels[task.role] ?? task.role}
+                                        </p>
+                                    </div>
+                                    <span className="font-mono text-[0.68rem] font-semibold text-primary">
+                                        P{task.priority}
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : (
+                        <div className="mt-3 rounded-md border border-sky-200 bg-white px-4 py-4">
+                            <p className="text-sm font-semibold">
+                                Belum ada tugas siap
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                Tinjau fase dan tanda perhatian sebelum membuka
+                                tahap berikutnya.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+}
+
 export default function WorkQueue({
     assignments,
     tasks,
     summary,
     selectedSessionCode,
     selectionRequired,
+    sessionMonitor = null,
 }: Props) {
     const { auth, requestId } = usePage().props;
     const sessions = Array.from(
@@ -397,6 +670,12 @@ export default function WorkQueue({
                                 </div>
                             ))}
                         </section>
+
+                        {sessionMonitor && (
+                            <FacilitatorSessionMonitor
+                                monitor={sessionMonitor}
+                            />
+                        )}
 
                         <EncounterOrbit tasks={tasks} />
 

@@ -17,13 +17,16 @@ use App\Modules\Teaching\Models\SimulationScenario;
 use App\Modules\Teaching\Models\SimulationSession;
 use App\Modules\Teaching\Models\WorkTask;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Concerns\SeedsReferenceOutpatient;
 use Tests\TestCase;
 
 class WorkQueueTest extends TestCase
 {
     use RefreshDatabase;
+    use SeedsReferenceOutpatient;
 
     public function test_guests_are_redirected_to_login(): void
     {
@@ -255,6 +258,74 @@ class WorkQueueTest extends TestCase
         $this->assertNull($event->ip_hash);
         $this->assertNull($event->user_agent);
         $this->assertNotNull($event->request_correlation_id);
+    }
+
+    public function test_facilitator_sees_the_identity_minimized_monitor_for_an_authorized_disposable_session(): void
+    {
+        $this->seedReferenceOutpatient();
+        $this->assertSame(0, Artisan::call('simulation:clone-reference-session', [
+            'code' => 'LAB-WEB-MONITOR-001',
+        ]));
+        $facilitator = User::query()
+            ->where('email', 'fasilitator.simulasi@example.invalid')
+            ->sole();
+
+        $response = $this->actingAs($facilitator)
+            ->get(route('work', ['session' => 'LAB-WEB-MONITOR-001']));
+
+        $response->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('work/index')
+            ->where('selectedSessionCode', 'LAB-WEB-MONITOR-001')
+            ->where('sessionMonitor.status', 'OK')
+            ->where('sessionMonitor.readOnly', true)
+            ->where('sessionMonitor.phase', 'READY_TO_START')
+            ->where('sessionMonitor.session.code', 'LAB-WEB-MONITOR-001')
+            ->where('sessionMonitor.summary.activeAssignments', 10)
+            ->where('sessionMonitor.summary.totalTasks', 4)
+            ->where('sessionMonitor.summary.openTasks', 3)
+            ->has('sessionMonitor.readyTasks', 1)
+            ->where('sessionMonitor.readyTasks.0.type', 'REGISTRATION')
+            ->where('sessionMonitor.readyTasks.0.program', 'RMIK')
+            ->where('sessionMonitor.readyTasks.0.role', 'REGISTRAR')
+            ->where('sessionMonitor.attention', []),
+        );
+
+        foreach ([
+            'Pasien Sintetis Arunika',
+            'MR-SIM-000001',
+            'SYN-NIK-000001',
+            'mahasiswa.rmik@example.invalid',
+            'local-demo-password-only',
+        ] as $protectedValue) {
+            $this->assertStringNotContainsString($protectedValue, $response->getContent());
+        }
+
+        $event = AuditEvent::query()->where('action', 'work_queue.viewed')->sole();
+        $this->assertTrue($event->metadata['session_monitor_visible']);
+        $this->assertSame('OK', $event->metadata['session_monitor_status']);
+    }
+
+    public function test_non_facilitator_does_not_receive_the_session_monitor_projection(): void
+    {
+        $this->seedReferenceOutpatient();
+        $this->assertSame(0, Artisan::call('simulation:clone-reference-session', [
+            'code' => 'LAB-WEB-MONITOR-002',
+        ]));
+        $registrar = User::query()
+            ->where('email', 'mahasiswa.rmik@example.invalid')
+            ->sole();
+
+        $this->actingAs($registrar)
+            ->get(route('work', ['session' => 'LAB-WEB-MONITOR-002']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('selectedSessionCode', 'LAB-WEB-MONITOR-002')
+                ->where('sessionMonitor', null),
+            );
+
+        $event = AuditEvent::query()->where('action', 'work_queue.viewed')->sole();
+        $this->assertFalse($event->metadata['session_monitor_visible']);
+        $this->assertNull($event->metadata['session_monitor_status']);
     }
 
     private function createTaskFor(User $user, string $title): WorkTask

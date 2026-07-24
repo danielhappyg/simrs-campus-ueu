@@ -68,3 +68,50 @@ export type WorkQueueSummary = {
     blocked: number;
     changesRequested: number;
 };
+
+export type LaboratorySessionMonitorPhase =
+    | 'SCHEDULED'
+    | 'READY_TO_START'
+    | 'IN_PROGRESS'
+    | 'PAUSED'
+    | 'FINALIZED'
+    | 'ENDED';
+
+export type LaboratorySessionMonitor =
+    | {
+          schemaVersion: 1;
+          readOnly: true;
+          status: 'BLOCKED';
+          session: 'UNAVAILABLE';
+          blockers: Array<{ id: string; detail: string }>;
+      }
+    | {
+          schemaVersion: 1;
+          readOnly: true;
+          status: 'OK';
+          phase: LaboratorySessionMonitorPhase;
+          session: {
+              code: string;
+              status: string;
+              source: string | null;
+          };
+          encounter: {
+              number: string;
+              status: string;
+              synthetic: boolean;
+          };
+          summary: {
+              activeAssignments: number;
+              totalTasks: number;
+              openTasks: number;
+              byStatus: Record<TaskStatusCode, number>;
+          };
+          readyTasks: Array<{
+              type: string;
+              program: string;
+              role: string;
+              priority: number;
+          }>;
+          attention: string[];
+          workQueuePath: string;
+      };
