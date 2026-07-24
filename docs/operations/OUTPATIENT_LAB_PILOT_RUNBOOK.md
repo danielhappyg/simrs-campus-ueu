@@ -26,6 +26,7 @@ Required technical conditions:
 - an identifiable tested commit or release candidate;
 - a separate application key, database, private storage, and access boundary;
 - `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, and `DEMO_SEED_ENABLED=true`;
+- `SESSION_DRIVER=database` and `SESSION_TABLE=sessions`, so reserved browser sessions can be revoked centrally;
 - the pristine `SIM-RJ-UEU-001` reference fixture;
 - exactly one validated active development release each for ICD-10 `ICD10_2010` and ICD-9-CM `ICD9CM_2010`;
 - compiled frontend assets;
@@ -36,9 +37,12 @@ Follow the [Foundation Runbook](FOUNDATION_RUNBOOK.md) for first installation. N
 
 ## 3. Mandatory entry gate
 
-From the exact candidate checkout and environment that will be used for the rehearsal, run:
+Set `DEMO_ACCOUNT_PASSWORD` to a new temporary value of at least 12 characters in the isolated environment. Never write it in the repository, terminal command, UAT record, screenshot, or audit evidence. Distribute it later through an approved out-of-band channel.
+
+From the exact candidate checkout and environment that will be used for the rehearsal, enable the exact reserved roster and then run the read-only gate:
 
 ```bash
+php artisan simulation:lab-access enable --confirm=ENABLE-RESERVED-DEMO-ACCESS
 php artisan simulation:lab-preflight
 ```
 
@@ -48,7 +52,9 @@ Machine-readable output is available when needed:
 php artisan simulation:lab-preflight --json
 ```
 
-Proceed only when the command exits successfully and reports `READY` with zero failed checks. The report is read-only and identity-minimized; it checks the synthetic runtime boundary, database access, compiled assets, absence of known production clinical integration configuration, reference fixture, pristine case graph, ten-account roster, assignments, initial work queue, and active terminology releases.
+The access command is permitted only in an opted-in, synthetic, non-production environment with the centrally revocable database session backend. It resolves the exact ten configured `@example.invalid` accounts through the retained source assignments, rotates all ten passwords from `DEMO_ACCOUNT_PASSWORD`, clears remembered login and two-factor state, deletes their browser sessions, passkeys, and password-reset tokens, and writes only aggregate audit metadata. It fails closed for a missing/duplicate roster, unsafe runtime, wrong confirmation phrase, short/missing password, or transaction/audit failure. `UNCHANGED` is a successful idempotent result when the exact target state already exists.
+
+Proceed only when access enablement exits successfully and preflight reports `READY` with zero failed checks. The preflight report is read-only and identity-minimized; it checks the synthetic runtime boundary, revocable session backend, database access, compiled assets, absence of known production clinical integration configuration, reference fixture, pristine case graph, ten-account roster, assignments, initial work queue, and active terminology releases.
 
 `READY` proves only that the source environment can be cloned for a rehearsal. It does not approve real data, clinical use, a release merge, a deployment, or a faculty pilot.
 
@@ -87,7 +93,7 @@ Stage A may advance only when the planned main journey is reproducible without d
 
 ## 5. Stage B — guided participant pilot
 
-1. Rerun `php artisan simulation:lab-preflight` immediately before preparing participant sessions.
+1. Rerun the idempotent access-enable command and `php artisan simulation:lab-preflight` immediately before preparing participant sessions.
 2. Create a new disposable session; never reuse the facilitator-rehearsal session:
 
     ```bash
@@ -138,7 +144,13 @@ After the session:
 2. confirm every planned scenario is `PASS`, `FAIL`, `DECISION REQUIRED`, or honestly `NOT RUN`;
 3. classify every issue and identify any unresolved stop-session or must-fix item;
 4. link accepted findings to requirements, tests, and a target checkpoint;
-5. rotate or disable the temporary demo password and restrict environment access;
+5. revoke the exact reserved roster immediately:
+
+    ```bash
+    php artisan simulation:lab-access disable --confirm=DISABLE-RESERVED-DEMO-ACCESS
+    ```
+
+   Require a successful `DISABLED` or `UNCHANGED` result. This changes the ten accounts to `SUSPENDED`, clears remembered login and two-factor state, and deletes their database sessions, passkeys, and password-reset tokens without deleting simulation records. If it reports `BLOCKED`, retain the sanitized output, restrict the environment at the infrastructure boundary, and do not claim closeout until revocation succeeds.
 6. retain the dated UAT record and synthetic-only evidence under the approved retention location;
 7. stop a local development server when it is no longer supervised; and
 8. leave all rehearsal sessions immutable—do not delete them as cleanup.
@@ -154,7 +166,7 @@ The outpatient MVP is ready for Daniel to consider a controlled faculty pilot on
 - no unresolved stop-session or must-fix-before-pilot issue remains;
 - all known limitations have been disclosed;
 - role staffing, terminology sources, teaching forms, and scenario wording have an explicit Daniel decision;
-- recovery and access-removal steps have been rehearsed; and
+- recovery and exact-roster access enablement/revocation have been rehearsed with sanitized audit evidence; and
 - Daniel provides a separate written faculty-pilot authorization.
 
 Until then, describe the system as a **synthetic outpatient reference MVP under guided laboratory validation**.

@@ -34,7 +34,7 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 | Database             | Fresh migrations plus opt-in demo fixture                                                                 |
 | Terminology          | Exact approved development ICD-10 and ICD-9-CM releases active; version and checksums visible             |
 | Case state           | `simulation:lab-session-status` reports `OK` / `READY_TO_START` for the exact disposable code             |
-| Accounts             | Ten administrator-provisioned demo accounts available; password distributed separately                    |
+| Accounts             | Exact-roster enable command succeeds; ten demo accounts available; password distributed separately        |
 | Browser              | Supported current desktop browser at 1280×720 or wider; 100% zoom                                         |
 | Recovery             | Snapshot/backup or disposable reset procedure confirmed before starting                                   |
 | Evidence capture     | This guide plus a dated copy of the [UAT record template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md) |
@@ -44,13 +44,14 @@ Do not use `migrate:fresh` against shared or retained data. Do not enable the de
 
 ### 3.1 Prepare one isolated run
 
-Run the read-only gate from the exact candidate checkout and environment first:
+Set a new temporary `DEMO_ACCOUNT_PASSWORD` of at least 12 characters in the isolated environment and distribute it only through an approved out-of-band channel. Then enable the exact reserved roster and run the read-only gate from the exact candidate checkout and environment:
 
 ```bash
+php artisan simulation:lab-access enable --confirm=ENABLE-RESERVED-DEMO-ACCESS
 php artisan simulation:lab-preflight
 ```
 
-Do not invite participants or clone a session if any check is `FAIL`. Follow the short [Outpatient Laboratory Pilot Runbook](OUTPATIENT_LAB_PILOT_RUNBOOK.md) for rehearsal stages, stop rules, recovery, and closeout.
+The access command must report `ENABLED` or the idempotent `UNCHANGED` state, and preflight must report `READY`. Do not invite participants or clone a session if either command fails. Follow the short [Outpatient Laboratory Pilot Runbook](OUTPATIENT_LAB_PILOT_RUNBOOK.md) for rehearsal stages, stop rules, recovery, and closeout.
 
 With the opt-in pristine `SIM-RJ-UEU-001` source retained unchanged, prepare a uniquely named session immediately before each branch:
 
@@ -88,11 +89,17 @@ php artisan simulation:clone-reference-session UAT-CORR-PX-001 --duration=480
 php artisan simulation:prepare-reference-correction procedure --session=UAT-CORR-PX-001
 ```
 
-Passwords remain out-of-band. Command success is preparation evidence only; it is not UAT acceptance, a reset authorization, or permission to use real data.
+Passwords remain out-of-band. The access command never displays the password or account identities and writes only aggregate audit metadata. Command success is preparation evidence only; it is not UAT acceptance, a reset authorization, or permission to use real data.
 
 ## 4. Participants and demo accounts
 
-Passwords are never written in this guide or repository. Provide the temporary UAT password through an approved out-of-band channel and rotate/remove it after the session.
+Passwords are never written in this guide or repository. Provide the temporary UAT password through an approved out-of-band channel. Immediately after the session, run:
+
+```bash
+php artisan simulation:lab-access disable --confirm=DISABLE-RESERVED-DEMO-ACCESS
+```
+
+Require `DISABLED` or `UNCHANGED` before recording access closeout. The command suspends the exact ten-account roster and revokes their database sessions, passkeys, password-reset tokens, remembered login, and two-factor state without deleting rehearsal records.
 
 | Sequence | Participant role            | Demo account                             | Responsibility in the case                                                     |
 | -------: | --------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
@@ -394,6 +401,7 @@ At the end, record:
 - decision on assisted-coding aliases/gold-set/threshold next work;
 - decision on longitudinal-record/debrief usefulness and rubric status;
 - whether Checkpoint 2 is accepted, conditionally accepted, or requires another run; and
+- access-closeout result (`DISABLED` or `UNCHANGED`) plus its sanitized evidence reference; and
 - explicit confirmation that no real data or production integration was used.
 
 Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still requires accessibility, security, hosted deployment/rollback, recovery, unresolved-risk, and institutional review evidence.

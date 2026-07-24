@@ -23,6 +23,16 @@ class LaboratoryPreflightCommandTest extends TestCase
     use RefreshDatabase;
     use SeedsReferenceOutpatient;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'session.driver' => 'database',
+            'session.table' => 'sessions',
+        ]);
+    }
+
     protected function tearDown(): void
     {
         File::deleteDirectory(storage_path('framework/testing/laboratory-preflight-public'));
@@ -47,6 +57,7 @@ class LaboratoryPreflightCommandTest extends TestCase
             'simulation.synthetic_only' => false,
             'simulation.demo_seed_enabled' => false,
             'services.satusehat.client_secret' => 'DO-NOT-ECHO-INTEGRATION-SECRET',
+            'session.driver' => 'file',
         ]);
 
         $exitCode = Artisan::call('simulation:lab-preflight', ['--json' => true]);
@@ -60,6 +71,7 @@ class LaboratoryPreflightCommandTest extends TestCase
             'simulation.mode',
             'simulation.synthetic_only',
             'simulation.demo_seed_enabled',
+            'session.revocable_backend',
             'app.key_present',
             'public.build_manifest',
             'integrations.production_endpoints_absent',

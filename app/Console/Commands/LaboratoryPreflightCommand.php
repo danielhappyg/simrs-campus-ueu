@@ -26,6 +26,7 @@ use App\Modules\Teaching\Enums\WorkTaskType;
 use App\Modules\Teaching\Models\Assignment;
 use App\Modules\Teaching\Models\SimulationSession;
 use App\Modules\Teaching\Models\WorkTask;
+use App\Modules\Teaching\Services\ReservedDemoAccountRoster;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use JsonException;
@@ -33,20 +34,6 @@ use Throwable;
 
 class LaboratoryPreflightCommand extends Command
 {
-    /** @var list<string> */
-    private const DEMO_ACCOUNT_EMAILS = [
-        'fasilitator.simulasi@example.invalid',
-        'mahasiswa.rmik@example.invalid',
-        'koder.rmik@example.invalid',
-        'supervisor.rmik@example.invalid',
-        'mahasiswa.keperawatan@example.invalid',
-        'supervisor.keperawatan@example.invalid',
-        'mahasiswa.kedokteran@example.invalid',
-        'supervisor.kedokteran@example.invalid',
-        'mahasiswa.farmasi@example.invalid',
-        'supervisor.farmasi@example.invalid',
-    ];
-
     /** @var array<string, string> */
     private const EXPECTED_TASK_STATES = [
         WorkTaskType::Registration->value => WorkTaskStatus::Ready->value,
@@ -235,6 +222,13 @@ class LaboratoryPreflightCommand extends Command
                 config('simulation.demo_seed_enabled') === true
                     ? 'The explicit demo-fixture opt-in is enabled.'
                     : 'DEMO_SEED_ENABLED must be true for this isolated reference environment.',
+            ),
+            $this->check(
+                'session.revocable_backend',
+                config('session.driver') === 'database' && config('session.table') === 'sessions',
+                config('session.driver') === 'database' && config('session.table') === 'sessions'
+                    ? 'Reserved-account browser sessions use the revocable database session table.'
+                    : 'SESSION_DRIVER must be database and SESSION_TABLE must be sessions.',
             ),
             $this->check(
                 'app.key_present',
@@ -432,9 +426,10 @@ class LaboratoryPreflightCommand extends Command
     /** @return array{id: string, status: 'PASS'|'FAIL', detail: string} */
     private function accountsCheck(): array
     {
-        $users = User::query()->whereIn('email', self::DEMO_ACCOUNT_EMAILS)->get();
-        $ready = $users->count() === count(self::DEMO_ACCOUNT_EMAILS)
-            && $users->pluck('email')->unique()->count() === count(self::DEMO_ACCOUNT_EMAILS)
+        $emails = app(ReservedDemoAccountRoster::class)->emails();
+        $users = User::query()->whereIn('email', $emails)->get();
+        $ready = $users->count() === ReservedDemoAccountRoster::EXPECTED_ACCOUNT_COUNT
+            && $users->pluck('email')->unique()->count() === ReservedDemoAccountRoster::EXPECTED_ACCOUNT_COUNT
             && $users->every(
                 fn (User $user): bool => $user->status === 'ACTIVE' && $user->email_verified_at !== null,
             );
@@ -451,8 +446,9 @@ class LaboratoryPreflightCommand extends Command
     /** @return array{id: string, status: 'PASS'|'FAIL', detail: string} */
     private function assignmentsCheck(SimulationSession $source): array
     {
+        $emails = app(ReservedDemoAccountRoster::class)->emails();
         $expectedUserIds = User::query()
-            ->whereIn('email', self::DEMO_ACCOUNT_EMAILS)
+            ->whereIn('email', $emails)
             ->pluck('id')
             ->sort()
             ->values();
@@ -472,7 +468,7 @@ class LaboratoryPreflightCommand extends Command
         $now = now();
         $ready = $patient !== null
             && $encounter !== null
-            && $assignments->count() === count(self::DEMO_ACCOUNT_EMAILS)
+            && $assignments->count() === ReservedDemoAccountRoster::EXPECTED_ACCOUNT_COUNT
             && $assignments->pluck('user_id')->unique()->sort()->values()->all() === $expectedUserIds->all()
             && $facilitators->count() === 1
             && $facilitators->sole()->user_id === $source->facilitator_user_id
