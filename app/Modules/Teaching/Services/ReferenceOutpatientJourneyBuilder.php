@@ -336,7 +336,8 @@ final class ReferenceOutpatientJourneyBuilder
         );
         $stock = MedicationStock::query()
             ->where('session_id', $session->getKey())
-            ->where('lot_number', 'LOT-SIM-A-001')
+            ->where('authored_medication', 'Obat Simulasi A')
+            ->where('synthetic_flag', true)
             ->sole();
         $this->pharmacyWorkflowService->dispense(
             $medicationRequest,

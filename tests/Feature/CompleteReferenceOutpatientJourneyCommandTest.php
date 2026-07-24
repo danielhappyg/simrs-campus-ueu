@@ -15,6 +15,7 @@ use App\Modules\Clinical\Models\DiagnosticResult;
 use App\Modules\Clinical\Models\EncounterClosure;
 use App\Modules\Clinical\Models\MedicationDispense;
 use App\Modules\Clinical\Models\MedicationRequest;
+use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\MedicationStockMovement;
 use App\Modules\Clinical\Models\PharmacyReview;
 use App\Modules\Clinical\Models\ServiceRequest;
@@ -43,6 +44,7 @@ use App\Modules\Teaching\Enums\Capability;
 use App\Modules\Teaching\Enums\WorkTaskStatus;
 use App\Modules\Teaching\Enums\WorkTaskType;
 use App\Modules\Teaching\Models\Assignment;
+use App\Modules\Teaching\Models\SimulationSession;
 use App\Modules\Teaching\Models\WorkTask;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -102,6 +104,48 @@ class CompleteReferenceOutpatientJourneyCommandTest extends TestCase
             ->assertSuccessful();
 
         $this->assertSame($before, $this->materialCounts());
+    }
+
+    public function test_command_completes_a_disposable_clone_without_progressing_the_pristine_source(): void
+    {
+        $this->seedReferenceOutpatient();
+        $this->activateReferenceTerminology();
+        $source = SimulationSession::query()->where('code', 'SIM-RJ-UEU-001')->sole();
+        $sourceEncounter = Encounter::query()->where('session_id', $source->getKey())->sole();
+        $sourceStock = MedicationStock::query()->where('session_id', $source->getKey())->sole();
+
+        $cloneCommand = $this->artisan('simulation:clone-reference-session', [
+            'code' => 'LAB-REHEARSAL-001',
+            '--duration' => '480',
+        ]);
+
+        if (! $cloneCommand instanceof PendingCommand) {
+            $this->fail('Console output mocking must remain enabled for the reference-clone command test.');
+        }
+
+        $cloneCommand->assertSuccessful()->run();
+
+        $target = SimulationSession::query()->where('code', 'LAB-REHEARSAL-001')->sole();
+        $targetEncounter = Encounter::query()->where('session_id', $target->getKey())->sole();
+        $targetStock = MedicationStock::query()->where('session_id', $target->getKey())->sole();
+
+        $this->assertNotSame($sourceStock->lot_number, $targetStock->lot_number);
+
+        $this->referenceJourneyCommand('LAB-REHEARSAL-001')
+            ->expectsOutputToContain('reached FINALIZED')
+            ->assertSuccessful();
+
+        $this->assertSame(EncounterStatus::Finalized, $targetEncounter->fresh()->status);
+        $this->assertSame(EncounterStatus::Planned, $sourceEncounter->fresh()->status);
+        $this->assertSame($sourceStock->quantity_on_hand, $sourceStock->fresh()->quantity_on_hand);
+        $this->assertSame('94.000', $targetStock->fresh()->quantity_on_hand);
+        $this->assertDatabaseHas('medication_stock_movements', [
+            'session_id' => $target->getKey(),
+            'medication_stock_id' => $targetStock->getKey(),
+        ]);
+        $this->assertDatabaseMissing('medication_stock_movements', [
+            'session_id' => $source->getKey(),
+        ]);
     }
 
     public function test_command_refuses_missing_terminology_before_any_workflow_mutation(): void
@@ -266,9 +310,12 @@ class CompleteReferenceOutpatientJourneyCommandTest extends TestCase
         $this->activateRelease(TerminologySystem::Icd9Cm, '38.99', 'Other puncture of vein');
     }
 
-    private function referenceJourneyCommand(): PendingCommand
+    private function referenceJourneyCommand(?string $sessionCode = null): PendingCommand
     {
-        $command = $this->artisan('simulation:complete-reference-journey');
+        $command = $this->artisan(
+            'simulation:complete-reference-journey',
+            $sessionCode === null ? [] : ['--session' => $sessionCode],
+        );
 
         if (! $command instanceof PendingCommand) {
             $this->fail('Console output mocking must remain enabled for the reference-journey command tests.');
