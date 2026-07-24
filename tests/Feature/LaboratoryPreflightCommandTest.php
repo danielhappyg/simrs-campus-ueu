@@ -225,11 +225,11 @@ class LaboratoryPreflightCommandTest extends TestCase
     /** @return array<string, int> */
     private function applicationTableCounts(): array
     {
-        return collect(DB::select(
-            "select name from sqlite_master where type = 'table' and name not like 'sqlite_%'",
-        ))->mapWithKeys(
-            fn (object $table): array => [
-                $table->name => DB::table($table->name)->count(),
+        return collect(
+            DB::connection()->getSchemaBuilder()->getTableListing(schemaQualified: false),
+        )->mapWithKeys(
+            fn (string $table): array => [
+                $table => DB::table($table)->count(),
             ],
         )->sortKeys()->all();
     }
