@@ -72,14 +72,14 @@ Run this stage before a multi-person session.
     php artisan simulation:lab-session-status LAB-REHEARSAL-001
     ```
 
-3. Require the session monitor to report `OK` / `READY_TO_START`, ten active assignments, four total tasks, and one ready registration task. A `BLOCKED` result stops preparation.
+3. Sign in as the assigned facilitator and open `/work?session=LAB-REHEARSAL-001`. Require **Jalur serah terima laboratorium** to show **Siap dimulai**, ten active assignments, four total tasks, three open tasks, and one ready registration handoff. A stopped/blocked monitor stops preparation. The command output remains the independent setup check when the browser is unavailable.
 4. Record the generated session and encounter identifiers. Do not record passwords, cookies, keys, raw audit payloads, or participant contact details.
 5. Starting at `/work?session=LAB-REHEARSAL-001`, complete the main journey in the exact role order in the facilitator guide.
-6. At disputed or unexpected handoffs, run `php artisan simulation:lab-session-status LAB-REHEARSAL-001 --json` and retain only the sanitized evidence reference.
+6. Use the facilitator work-queue monitor between normal handoffs. At disputed or unexpected handoffs, also run `php artisan simulation:lab-session-status LAB-REHEARSAL-001 --json` and retain only the sanitized evidence reference.
 7. Confirm that each role sees only the selected session and permitted task, source/version handoffs remain visible, and the encounter reaches the expected finalized/debrief state.
 8. Record observable defects and decisions using issue IDs. Do not redesign unrelated modules during the run.
 
-The session monitor is read-only and identity-minimized. Its task totals are not a completion percentage, learner score, grade, or acceptance decision. Ready-task rows identify only task type, program, role, and priority.
+The web and command-line session monitors share the same read-only, identity-minimized projection. The web monitor is sent only to an active selected assignment with `session.facilitate`; other roles do not receive its session-wide projection. Its task totals are not a completion percentage, learner score, grade, or acceptance decision. Ready-task rows identify only task type, program, role, and priority.
 
 Recommended reservation: **150–180 minutes** for the main journey plus **30 minutes** for setup and evidence review. Run cancellation, no-show, safety escalation, early departure, and source-correction branches in separate disposable sessions; do not compress every branch into the first participant pilot.
 

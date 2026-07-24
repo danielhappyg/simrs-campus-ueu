@@ -67,9 +67,9 @@ php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --
 
 Record the generated session and encounter codes in the dated UAT record and verify that participants select that exact case. Give each participant the exact work-queue entry path, for example `/work?session=UAT-MAIN-001`, or require them to choose `UAT-MAIN-001` from **Sesi simulasi aktif**. When more than one session is active for an account, the queue must show no task until one session is chosen. Before every task, confirm the page context and the task-row **Sesi** value both match the recorded disposable session code. A malformed, inactive, or unassigned selector must fail rather than fall back to another session.
 
-Before inviting participants, require the session monitor to report `status: OK`, `phase: READY_TO_START`, ten active assignments, four total tasks, and one ready `REGISTRATION` task. The monitor is read-only and excludes patient names, identifiers, account emails, passwords, and internal IDs. If it reports `BLOCKED`, do not continue or repair data directly.
+Before inviting participants, sign in as the assigned facilitator and open the exact selected work queue. Require **Jalur serah terima laboratorium** to show **Siap dimulai**, ten active assignments, four total tasks, three open tasks, and one ready **Registrasi** handoff. This web projection is read-only, excludes patient names, identifiers, account emails, passwords, and internal IDs, and is not sent to non-facilitator roles. If the page shows **Pemantauan sesi dihentikan**, do not continue or repair data directly. The command-line monitor must independently report `status: OK` and `phase: READY_TO_START` during setup.
 
-Run the monitor again after a disputed handoff, unexpected task state, stop-session event, and closeout:
+Use the web monitor for routine handoff observation. Run the command-line monitor again after a disputed handoff, unexpected task state, stop-session event, and closeout:
 
 ```bash
 php artisan simulation:lab-session-status UAT-MAIN-001 --json
