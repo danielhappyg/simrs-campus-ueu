@@ -28,6 +28,7 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 
 | Entry item           | Required evidence                                                                             |
 | -------------------- | --------------------------------------------------------------------------------------------- |
+| Automated gate       | `php artisan simulation:lab-preflight` exits successfully with `READY` and zero failed checks |
 | Isolated environment | Separate URL, key, database, storage, and synthetic-only configuration                        |
 | Tested build         | Identifiable commit/release candidate with passing required checks                            |
 | Database             | Fresh migrations plus opt-in demo fixture                                                     |
@@ -42,6 +43,14 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 Do not use `migrate:fresh` against shared or retained data. Do not enable the demo seeder to repair an existing environment.
 
 ### 3.1 Prepare one isolated run
+
+Run the read-only gate from the exact candidate checkout and environment first:
+
+```bash
+php artisan simulation:lab-preflight
+```
+
+Do not invite participants or clone a session if any check is `FAIL`. Follow the short [Outpatient Laboratory Pilot Runbook](OUTPATIENT_LAB_PILOT_RUNBOOK.md) for rehearsal stages, stop rules, recovery, and closeout.
 
 With the opt-in pristine `SIM-RJ-UEU-001` source retained unchanged, prepare a uniquely named session immediately before each branch:
 

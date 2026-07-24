@@ -51,6 +51,7 @@ Record `NOT CONFIRMED`, `CONFIRMED`, or `FAILED`. Any `FAILED` safety item stops
 
 | Gate | Initial status | Evidence/reference |
 | --- | --- | --- |
+| `simulation:lab-preflight` reports `READY` with zero failures | `NOT CONFIRMED` | `<sanitized result reference>` |
 | Isolated simulation environment | `NOT CONFIRMED` | `<reference>` |
 | Permanent `SIMULASI — DATA SINTETIS` boundary visible | `NOT CONFIRMED` | `<reference>` |
 | Fresh/snapshotted synthetic fixture | `NOT CONFIRMED` | `<reference>` |
