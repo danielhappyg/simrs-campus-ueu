@@ -580,7 +580,7 @@ function InterventionResponseForm({
     );
 }
 
-function DispenseForm({
+export function DispenseForm({
     medicationRequest,
     stocks,
     outcomes,
@@ -594,10 +594,13 @@ function DispenseForm({
             stock.authoredMedication === medicationRequest.authoredMedication &&
             stock.unit === medicationRequest.quantityUnit,
     );
+    const hasMatchingStock = matchingStocks.length > 0;
     const form = useForm<DispenseFormData>({
         request_key: medicationRequest.dispenseAction.requestKey,
-        outcome: 'COMPLETE' as MedicationDispenseOutcomeCode,
-        quantity: medicationRequest.quantityValue,
+        outcome: (hasMatchingStock
+            ? 'COMPLETE'
+            : 'NOT_DISPENSED') as MedicationDispenseOutcomeCode,
+        quantity: hasMatchingStock ? medicationRequest.quantityValue : '0',
         medication_stock_id: matchingStocks[0]?.id ?? null,
         outcome_reason: '',
         preparation_notes: '',
@@ -641,6 +644,16 @@ function DispenseForm({
                 penyiapan dan pemeriksaan akhir; keduanya tetap tersimpan
                 sebagai tindakan eksplisit.
             </p>
+            {!hasMatchingStock && (
+                <div
+                    role="alert"
+                    className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950"
+                >
+                    Tidak ada lot stok sintetis dengan nama obat dan unit yang
+                    sama. Catat outcome “Tidak diserahkan” beserta alasannya;
+                    sistem tidak melakukan substitusi otomatis.
+                </div>
+            )}
             <InputError message={errors.workflow} className="mt-2" />
             <fieldset
                 disabled={form.processing}
@@ -655,13 +668,21 @@ function DispenseForm({
                     <select
                         id={`dispense-outcome-${medicationRequest.publicId}`}
                         value={form.data.outcome}
-                        onChange={(event) =>
-                            form.setData(
-                                'outcome',
-                                event.target
-                                    .value as MedicationDispenseOutcomeCode,
-                            )
-                        }
+                        onChange={(event) => {
+                            const outcome = event.target
+                                .value as MedicationDispenseOutcomeCode;
+
+                            form.setData('outcome', outcome);
+
+                            if (outcome === 'NOT_DISPENSED') {
+                                form.setData('quantity', '0');
+                            } else if (form.data.quantity === '0') {
+                                form.setData(
+                                    'quantity',
+                                    medicationRequest.quantityValue,
+                                );
+                            }
+                        }}
                         className="mt-1 h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
                     >
                         {outcomes.map((outcome) => (
@@ -784,8 +805,9 @@ function DispenseForm({
                         className="mt-0.5"
                     />
                     <span>
-                        Saya mencatat pemeriksaan akhir identitas, obat, jumlah,
-                        etiket, dan lot sintetis.
+                        {form.data.outcome === 'NOT_DISPENSED'
+                            ? 'Saya mencatat pemeriksaan akhir identitas, resep, jumlah nol, dan alasan tidak diserahkan.'
+                            : 'Saya mencatat pemeriksaan akhir identitas, obat, jumlah, etiket, dan lot sintetis.'}
                     </span>
                 </label>
                 <div>
@@ -1368,6 +1390,19 @@ export default function PharmacyWorkspace({
                                                             .dispense.checker
                                                     }
                                                 </p>
+                                                {medicationRequest.dispense
+                                                    .outcomeReason && (
+                                                    <p className="mt-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950">
+                                                        <span className="font-semibold">
+                                                            Alasan outcome:
+                                                        </span>{' '}
+                                                        {
+                                                            medicationRequest
+                                                                .dispense
+                                                                .outcomeReason
+                                                        }
+                                                    </p>
+                                                )}
                                                 {medicationRequest.dispense
                                                     .stockMovement && (
                                                     <p className="mt-2 text-xs">

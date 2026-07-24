@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Audit\Services\AuditRecorder;
 use App\Modules\Clinical\Enums\ClinicalSaveIntent;
 use App\Modules\Clinical\Models\EncounterClosure;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Coding\Enums\CodingDocumentationCorrectionStatus;
 use App\Modules\Coding\Enums\CodingSourceType;
 use App\Modules\Coding\Enums\ProcedureDocumentationCorrectionStatus;
@@ -36,6 +37,7 @@ class RecordQualityWorkspaceController extends Controller
     public function __construct(
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly RecordCompletenessService $completenessService,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
         private readonly AuditRecorder $auditRecorder,
     ) {}
 
@@ -99,6 +101,7 @@ class RecordQualityWorkspaceController extends Controller
             ->orderByDesc('id')
             ->first();
         $completeness = $this->completenessService->evaluate($encounter);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
         $canAuthor = $assignment->hasCapability(Capability::RecordReview)
             && in_array($encounter->status, [EncounterStatus::ClinicallyClosed, EncounterStatus::RecordReview], true)
@@ -153,7 +156,7 @@ class RecordQualityWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => 'Lihat asesmen awal yang disetujui',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

@@ -531,6 +531,7 @@ class OutpatientEarlyDepartureWorkflowTest extends TestCase
                 ->component('clinical/early-departure')
                 ->where('boundary.classification', 'SIMULASI — DATA SINTETIS')
                 ->where('boundary.clinicalRecommendation', false)
+                ->where('patient.allergyStatus', 'Belum dinilai')
                 ->where('authorization.canRecord', true)
                 ->where('source.encounterStatus.code', EncounterStatus::InIntake->value)
                 ->where('departure', null)

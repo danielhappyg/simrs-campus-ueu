@@ -91,6 +91,7 @@ class OrderResultWorkflowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('clinical/order-results')
+                ->where('patient.allergyStatus', AllergyAssessmentState::NoKnownAllergyReported->label())
                 ->where('assignment.canRelease', true)
                 ->where('assignment.canAcknowledge', false)
                 ->has('serviceRequests', 1)

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\Audit\Models\AuditEvent;
 use App\Modules\Clinical\Enums\AllergyAssessmentState;
 use App\Modules\Clinical\Enums\ClinicalEntryStatus;
 use App\Modules\Clinical\Enums\ClinicalReviewAction;
@@ -160,6 +161,7 @@ class MedicalAssessmentWorkflowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('clinical/review')
                 ->where('document.type', 'MEDICAL_ASSESSMENT')
+                ->where('patient.allergyStatus', AllergyAssessmentState::NoKnownAllergyReported->label())
                 ->where('document.contentHash', $version->content_hash)
                 ->has('document.conditions', 1)
                 ->where('document.conditions.0.code', null)
@@ -198,6 +200,13 @@ class MedicalAssessmentWorkflowTest extends TestCase
         $this->assertDatabaseMissing('work_tasks', [
             'task_type' => WorkTaskType::PharmacyReview->value,
         ]);
+        $approvalAudit = AuditEvent::query()
+            ->where('action', 'clinical.version_approved_for_simulation')
+            ->where('resource_id', $version->public_id)
+            ->sole();
+
+        $this->assertSame(1, $approvalAudit->metadata['downstream_tasks_released']);
+        $this->assertArrayNotHasKey('medical_tasks_released', $approvalAudit->metadata);
     }
 
     public function test_clinician_authored_condition_is_immutable_and_cannot_be_backfilled_with_a_code(): void

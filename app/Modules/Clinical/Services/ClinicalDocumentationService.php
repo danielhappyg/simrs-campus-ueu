@@ -590,7 +590,7 @@ class ClinicalDocumentationService
                 );
             }
 
-            $releasedMedicalTasks = 0;
+            $releasedDownstreamTasks = 0;
             $invalidatedCodingAssignments = 0;
 
             if ($decision === ClinicalReviewAction::ApproveSimulation) {
@@ -598,14 +598,14 @@ class ClinicalDocumentationService
                     $invalidatedCodingAssignments = $this->codingInvalidationService
                         ->invalidateForMedicalAmendment($encounter, $lockedVersion);
                     $codingCorrection->persistMedicalApproved($lockedVersion);
-                    $releasedMedicalTasks = $this->advanceAfterCodingDocumentationApproval(
+                    $releasedDownstreamTasks = $this->advanceAfterCodingDocumentationApproval(
                         correction: $codingCorrection,
                         version: $lockedVersion,
                         encounter: $encounter,
                         session: $session,
                     );
                 } else {
-                    $releasedMedicalTasks = match ($entry->document_type) {
+                    $releasedDownstreamTasks = match ($entry->document_type) {
                         ClinicalDocumentType::NursingIntake => $this->advanceAfterNursingApproval(
                             version: $lockedVersion,
                             reviewer: $activeReviewer,
@@ -636,7 +636,7 @@ class ClinicalDocumentationService
                     'version_number' => $lockedVersion->version_number,
                     'content_hash' => $lockedVersion->content_hash,
                     'finding_count' => count($findings),
-                    'medical_tasks_released' => $releasedMedicalTasks,
+                    'downstream_tasks_released' => $releasedDownstreamTasks,
                     'coding_documentation_correction_public_id' => $codingCorrection?->public_id,
                     'stale_coding_assignments_invalidated' => $invalidatedCodingAssignments,
                 ],

@@ -10,6 +10,7 @@ use App\Modules\Clinical\Enums\ClinicalEntryStatus;
 use App\Modules\Clinical\Enums\OutpatientSafetyDispositionOutcome;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
 use App\Modules\Clinical\Models\OutpatientSafetyDisposition;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Patient\Enums\IdentifierType;
@@ -24,6 +25,7 @@ class OutpatientSafetyDispositionWorkspaceController extends Controller
     public function __construct(
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, Encounter $encounter): Response
@@ -55,6 +57,7 @@ class OutpatientSafetyDispositionWorkspaceController extends Controller
             ->first();
         $canRecord = $encounter->status === EncounterStatus::Escalated && ! $disposition;
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
 
         $this->auditRecorder->record(
             action: 'clinical.outpatient_safety_disposition_workspace_viewed',
@@ -96,7 +99,7 @@ class OutpatientSafetyDispositionWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => 'Lihat asesmen awal yang disetujui',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

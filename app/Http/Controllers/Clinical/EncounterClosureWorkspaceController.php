@@ -10,6 +10,7 @@ use App\Modules\Clinical\Enums\EncounterClosureReviewAction;
 use App\Modules\Clinical\Enums\EncounterClosureStatus;
 use App\Modules\Clinical\Enums\ProcedureDocumentationState;
 use App\Modules\Clinical\Models\EncounterClosure;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Clinical\Services\ClosureReadinessService;
 use App\Modules\Coding\Enums\CodingDocumentationCorrectionStatus;
 use App\Modules\Coding\Enums\ProcedureDocumentationCorrectionStatus;
@@ -34,6 +35,7 @@ class EncounterClosureWorkspaceController extends Controller
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly ClosureReadinessService $readinessService,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, Encounter $encounter): Response
@@ -99,6 +101,7 @@ class EncounterClosureWorkspaceController extends Controller
             ->first();
         $readiness = $this->readinessService->evaluate($encounter);
         $sourceSnapshot = $this->readinessService->sourceSnapshot($encounter);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
         $diagnosisOptions = [];
 
         foreach ($sourceSnapshot['diagnoses'] as $diagnosis) {
@@ -172,7 +175,7 @@ class EncounterClosureWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => 'Lihat asesmen awal yang disetujui',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

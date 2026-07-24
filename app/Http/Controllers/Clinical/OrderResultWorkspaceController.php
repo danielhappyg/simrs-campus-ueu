@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Audit\Services\AuditRecorder;
 use App\Modules\Clinical\Models\DiagnosticResult;
 use App\Modules\Clinical\Models\ServiceRequest;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Patient\Enums\IdentifierType;
 use App\Modules\Teaching\Enums\Capability;
@@ -21,6 +22,7 @@ class OrderResultWorkspaceController extends Controller
     public function __construct(
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, Encounter $encounter): Response
@@ -50,6 +52,7 @@ class OrderResultWorkspaceController extends Controller
             ->orderBy('sequence_number')
             ->get();
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
         $canRelease = $assignment->hasCapability(Capability::SessionFacilitate)
             || $assignment->hasCapability(Capability::SupervisionReview);
         $canAcknowledge = $assignment->hasCapability(Capability::MedicalAssessmentWrite);
@@ -84,7 +87,7 @@ class OrderResultWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => 'Lihat asesmen awal yang disetujui',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

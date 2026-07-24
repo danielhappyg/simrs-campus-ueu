@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Modules\Audit\Services\AuditRecorder;
 use App\Modules\Clinical\Enums\OutpatientEarlyDepartureOutcome;
 use App\Modules\Clinical\Models\OutpatientEarlyDeparture;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Clinical\Services\OutpatientEarlyDepartureService;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Patient\Enums\IdentifierType;
@@ -22,6 +23,7 @@ class OutpatientEarlyDepartureWorkspaceController extends Controller
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly OutpatientEarlyDepartureService $departureService,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, Encounter $encounter): Response
@@ -55,6 +57,7 @@ class OutpatientEarlyDepartureWorkspaceController extends Controller
         }
 
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
 
         $this->auditRecorder->record(
             action: 'clinical.outpatient_early_departure_workspace_viewed',
@@ -98,7 +101,7 @@ class OutpatientEarlyDepartureWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => 'Lihat sumber klinis yang tersedia',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

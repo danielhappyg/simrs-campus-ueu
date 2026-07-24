@@ -86,6 +86,7 @@ class RecordQualityWorkflowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('record-quality/workspace')
+                ->where('patient.allergyStatus', AllergyAssessmentState::NoKnownAllergyReported->label())
                 ->where('completeness.checklistVersion', RecordCompletenessService::CHECKLIST_VERSION)
                 ->where('completeness.ready', true)
                 ->where('assignment.canAuthor', true)
@@ -106,6 +107,36 @@ class RecordQualityWorkflowTest extends TestCase
         $this->assertTrue((bool) data_get($review->content, 'completeness.ready'));
         $this->assertSame(EncounterStatus::RecordReview, $case['encounter']->refresh()->status);
         $this->assertDatabaseCount('record_quality_reviews', 1);
+    }
+
+    public function test_linked_supervisor_receives_the_exact_submitted_record_quality_snapshot(): void
+    {
+        $case = $this->prepareClinicallyClosedCase();
+        $closure = EncounterClosure::query()->sole();
+
+        $this->actingAs($case['rmikCoder'])
+            ->post(
+                route('encounters.record-quality.reviews.store', $case['encounter']),
+                $this->recordReviewPayload(ClinicalSaveIntent::Submit),
+            )
+            ->assertRedirect(route('encounters.record-quality.show', $case['encounter']));
+
+        $review = RecordQualityReview::query()->sole();
+
+        $this->actingAs($case['rmikSupervisor'])
+            ->get(route('encounters.record-quality.show', $case['encounter']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('record-quality/workspace')
+                ->where('document.canReview', true)
+                ->where('document.latestVersion.publicId', $review->public_id)
+                ->where('document.latestVersion.contentHash', $review->content_hash)
+                ->where('document.latestVersion.content.checklistVersion', RecordCompletenessService::CHECKLIST_VERSION)
+                ->where('document.latestVersion.content.completeness.ready', true)
+                ->has('document.latestVersion.content.completeness.checks', 9)
+                ->where('document.latestVersion.content.assemblySnapshot.closure.publicId', $closure->public_id)
+                ->where('document.latestVersion.content.assemblySnapshot.closure.contentHash', $closure->content_hash)
+                ->has('document.latestVersion.findings', 0));
     }
 
     public function test_blocking_finding_routes_an_immutable_correction_to_the_exact_clinical_author(): void
@@ -288,6 +319,7 @@ class RecordQualityWorkflowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('coding/workspace')
+                ->where('patient.allergyStatus', AllergyAssessmentState::NoKnownAllergyReported->label())
                 ->where('assignment.canCode', true)
                 ->where('assignment.canReview', false)
                 ->where('prerequisites.qualityApproved', true)

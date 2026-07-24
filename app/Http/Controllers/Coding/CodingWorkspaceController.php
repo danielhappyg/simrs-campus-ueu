@@ -13,6 +13,7 @@ use App\Modules\Clinical\Models\ClinicalEntry;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
 use App\Modules\Clinical\Models\ClinicalProcedure;
 use App\Modules\Clinical\Models\EncounterClosure;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Coding\Enums\CodingAssignmentStatus;
 use App\Modules\Coding\Enums\CodingDecisionType;
 use App\Modules\Coding\Enums\CodingDocumentationCorrectionStatus;
@@ -51,6 +52,7 @@ class CodingWorkspaceController extends Controller
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly TerminologySearchService $searchService,
         private readonly RecordCompletenessService $recordCompletenessService,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
         private readonly AuditRecorder $auditRecorder,
     ) {}
 
@@ -186,6 +188,7 @@ class CodingWorkspaceController extends Controller
         }
 
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
         $task = $encounter->workTasks()
             ->where('assignment_id', $assignment->getKey())
             ->whereIn('task_type', [WorkTaskType::Coding, WorkTaskType::CodingReview])
@@ -229,7 +232,7 @@ class CodingWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => 'Lihat asesmen awal yang disetujui',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

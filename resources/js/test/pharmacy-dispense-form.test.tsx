@@ -1,0 +1,61 @@
+import { render, screen } from '@testing-library/react';
+import axe from 'axe-core';
+import { describe, expect, it } from 'vitest';
+import { DispenseForm } from '@/pages/clinical/pharmacy';
+import type {
+    PharmacyMedicationRequestRecord,
+    PharmacyWorkspaceProps,
+} from '@/types';
+
+const medicationRequest = {
+    publicId: '01TESTMEDICATIONREQUEST0001',
+    authoredMedication: 'Parasetamol',
+    quantityValue: '9.000',
+    quantityUnit: 'tablet',
+    dispenseAction: {
+        allowed: true,
+        requestKey: '01TESTDISPENSEREQUEST00001',
+        url: '/dispenses',
+    },
+} as PharmacyMedicationRequestRecord;
+
+const outcomes: PharmacyWorkspaceProps['formOptions']['dispenseOutcomes'] = [
+    { code: 'COMPLETE', label: 'Diserahkan lengkap' },
+    { code: 'PARTIAL', label: 'Diserahkan sebagian' },
+    { code: 'NOT_DISPENSED', label: 'Tidak diserahkan' },
+];
+
+describe('DispenseForm', () => {
+    it('defaults safely when no matching synthetic stock exists', async () => {
+        const { container } = render(
+            <DispenseForm
+                medicationRequest={medicationRequest}
+                stocks={[]}
+                outcomes={outcomes}
+            />,
+        );
+
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'sistem tidak melakukan substitusi otomatis',
+        );
+        expect(screen.getByRole('combobox', { name: 'Outcome' })).toHaveValue(
+            'NOT_DISPENSED',
+        );
+        expect(
+            screen.getByRole('spinbutton', { name: 'Jumlah (tablet)' }),
+        ).toHaveValue(0);
+        expect(
+            screen.queryByRole('combobox', {
+                name: 'Lot stok sintetis · FEFO',
+            }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByRole('checkbox', {
+                name: 'Saya mencatat pemeriksaan akhir identitas, resep, jumlah nol, dan alasan tidak diserahkan.',
+            }),
+        ).toBeInTheDocument();
+
+        const result = await axe.run(container);
+        expect(result.violations).toHaveLength(0);
+    });
+});

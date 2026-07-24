@@ -241,6 +241,80 @@ describe('Coding workspace', () => {
         expect(screen.getByText(/Perjelas sifat pusing/)).toBeInTheDocument();
     });
 
+    it('shows the coder rationale and source provenance before supervisor approval', () => {
+        render(
+            <CodingWorkspace
+                {...props}
+                assignment={{
+                    ...props.assignment,
+                    role: 'Supervisor',
+                    canCode: false,
+                    canReview: true,
+                }}
+                task={{
+                    publicId: '01J00000000000000000000020',
+                    type: 'CODING_REVIEW',
+                    status: { code: 'READY', label: 'Siap' },
+                }}
+                sources={[
+                    {
+                        ...props.sources[0],
+                        canGenerate: false,
+                        assignmentHistory: [
+                            {
+                                publicId: '01J00000000000000000000021',
+                                sourceType: {
+                                    code: 'DIAGNOSIS',
+                                    label: 'Diagnosis klinisi',
+                                },
+                                status: {
+                                    code: 'SUBMITTED',
+                                    label: 'Diajukan',
+                                },
+                                selectionMethod: {
+                                    code: 'MANUAL',
+                                    label: 'Dipilih manual',
+                                },
+                                concept: {
+                                    publicId: '01J00000000000000000000022',
+                                    code: 'G44.2',
+                                    display: 'Tension-type headache',
+                                },
+                                sourceClinicalContentHash: 'a'.repeat(64),
+                                sourceStatementHash: 's'.repeat(64),
+                                terminologySourceHash: '3'.repeat(64),
+                                contentHash: 'c'.repeat(64),
+                                rationale:
+                                    'G44.2 dipilih setelah meninjau pernyataan diagnosis dan indeks ICD10_2010.',
+                                changeReason: null,
+                                coder: 'Koder RMIK Demo',
+                                recordedAt: '2026-07-15T10:15:00+07:00',
+                                submittedAt: '2026-07-15T10:16:00+07:00',
+                                reviewedAt: null,
+                                canSubmit: false,
+                                canReview: true,
+                                submitUrl: '/coding-assignments/example/submit',
+                                reviewUrl: '/coding-assignments/example/review',
+                                reviews: [],
+                            },
+                        ],
+                    },
+                ]}
+            />,
+        );
+
+        expect(screen.getByText('Rasional koder')).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                'G44.2 dipilih setelah meninjau pernyataan diagnosis dan indeks ICD10_2010.',
+            ),
+        ).toBeVisible();
+        expect(screen.getByText(/Pernyataan sumber:/)).toBeVisible();
+        expect(
+            screen.getByRole('button', { name: 'Setujui kode' }),
+        ).toBeInTheDocument();
+    });
+
     it('shows an immutable performed procedure with ICD-9-CM actions and a dedicated procedure-correction route', () => {
         const procedurePublicId = '01J00000000000000000000016';
 

@@ -12,6 +12,7 @@ use App\Modules\Clinical\Enums\DiagnosisCertainty;
 use App\Modules\Clinical\Enums\DiagnosisRole;
 use App\Modules\Clinical\Models\ClinicalEntry;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Coding\Enums\CodingDocumentationCorrectionStatus;
 use App\Modules\Coding\Models\CodingDocumentationCorrection;
 use App\Modules\Encounter\Enums\EncounterStatus;
@@ -30,6 +31,7 @@ class MedicalAssessmentWorkspaceController extends Controller
     public function __construct(
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, Encounter $encounter): Response
@@ -74,6 +76,7 @@ class MedicalAssessmentWorkspaceController extends Controller
             ->orderByRaw('case when task_type = ? then 0 else 1 end', [WorkTaskType::CodingSourceCorrection->value])
             ->first();
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $allergyAssessment = $this->allergyResolver->forEncounter($encounter);
         $amendmentMode = $encounter->status === EncounterStatus::AmendmentPending && $codingCorrection !== null;
         $workflowEnabled = in_array($encounter->status, [EncounterStatus::WaitingClinician, EncounterStatus::InConsultation], true)
             || ($amendmentMode && in_array($codingCorrection->status, [
@@ -111,7 +114,7 @@ class MedicalAssessmentWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => $nursingVersion?->allergyAssessment?->assessment_state->label() ?? 'Belum dinilai',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

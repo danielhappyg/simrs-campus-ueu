@@ -345,6 +345,7 @@ class OutpatientSafetyDispositionWorkflowTest extends TestCase
                     ->where('boundary.clinicalRecommendation', false)
                     ->where('encounter.status.code', EncounterStatus::Escalated->value)
                     ->where('patient.synthetic', true)
+                    ->where('patient.allergyStatus', AllergyAssessmentState::NoKnownAllergyReported->label())
                     ->where('source.versionPublicId', $source->public_id)
                     ->where('source.contentHash', $source->content_hash)
                     ->where('source.safetyDecision', IntakeSafetyDecision::EscalateToSupervisor->value)

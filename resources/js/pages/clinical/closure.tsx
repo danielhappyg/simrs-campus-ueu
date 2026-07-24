@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import type {
     ClinicalFinding,
     EncounterClosureSourceSnapshot,
+    EncounterClosureVersion,
     EncounterClosureWorkspaceProps,
 } from '@/types';
 
@@ -270,6 +271,247 @@ function ProvenancePanel({
                         )}
                     </div>
                 </div>
+            </div>
+        </section>
+    );
+}
+
+function ReadOnlyClosureField({
+    label,
+    value,
+}: {
+    label: string;
+    value: string | null;
+}) {
+    return (
+        <div className="rounded-md border border-border bg-white p-3">
+            <dt className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {label}
+            </dt>
+            <dd className="mt-2 text-sm leading-6 font-medium whitespace-pre-wrap">
+                {value?.trim() || 'Tidak dicatat'}
+            </dd>
+        </div>
+    );
+}
+
+export function SubmittedClosureContent({
+    version,
+}: {
+    version: EncounterClosureVersion;
+}) {
+    const content = version.content;
+    const procedureDocumentation = content.procedureDocumentation;
+
+    return (
+        <section
+            aria-labelledby="submitted-closure-content-title"
+            className="overflow-hidden rounded-lg border border-sky-200 bg-sky-50/40"
+        >
+            <div className="border-b border-sky-200 bg-sky-50 px-4 py-3">
+                <p className="text-xs font-bold tracking-wider text-primary uppercase">
+                    Konten tidak dapat diedit
+                </p>
+                <h3
+                    id="submitted-closure-content-title"
+                    className="mt-1 text-lg font-semibold"
+                >
+                    Isi versi penutupan yang diajukan
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Putuskan hanya setelah isi klinis, waktu kejadian, dan
+                    dokumentasi tindakan di bawah ini sesuai dengan versi dan
+                    hash yang ditampilkan.
+                </p>
+            </div>
+
+            <div className="space-y-5 p-4">
+                <dl className="grid gap-3 text-sm sm:grid-cols-3">
+                    <div className="rounded-md border border-border bg-white p-3">
+                        <dt className="text-xs text-muted-foreground">
+                            Penulis
+                        </dt>
+                        <dd className="mt-1 font-semibold">{version.author}</dd>
+                        <dd className="text-xs text-muted-foreground">
+                            {version.authorRole}
+                        </dd>
+                    </div>
+                    <div className="rounded-md border border-border bg-white p-3">
+                        <dt className="text-xs text-muted-foreground">
+                            Kejadian klinis
+                        </dt>
+                        <dd className="mt-1 font-semibold">
+                            {formatDateTime(version.clinicalOccurrenceAt)} WIB
+                        </dd>
+                    </div>
+                    <div className="rounded-md border border-border bg-white p-3">
+                        <dt className="text-xs text-muted-foreground">
+                            Direkam sistem
+                        </dt>
+                        <dd className="mt-1 font-semibold">
+                            {formatDateTime(version.recordedAt)} WIB
+                        </dd>
+                    </div>
+                </dl>
+
+                <dl className="grid gap-3 md:grid-cols-2">
+                    <ReadOnlyClosureField
+                        label="Kondisi saat meninggalkan layanan"
+                        value={content.authored.leavingCondition}
+                    />
+                    <ReadOnlyClosureField
+                        label="Disposisi"
+                        value={content.authored.disposition}
+                    />
+                    <ReadOnlyClosureField
+                        label="Rencana tindak lanjut"
+                        value={content.authored.followUpPlan}
+                    />
+                    <ReadOnlyClosureField
+                        label="Rencana rujukan"
+                        value={content.authored.referralPlan}
+                    />
+                    <ReadOnlyClosureField
+                        label="Edukasi dan instruksi"
+                        value={content.authored.educationInstructions}
+                    />
+                    <ReadOnlyClosureField
+                        label="Ringkasan rawat jalan"
+                        value={content.authored.outpatientSummary}
+                    />
+                </dl>
+
+                <section
+                    aria-labelledby="submitted-procedure-title"
+                    className="rounded-md border border-border bg-white p-4"
+                >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <p className="text-xs font-bold tracking-wider text-primary uppercase">
+                                Attestasi eksplisit
+                            </p>
+                            <h4
+                                id="submitted-procedure-title"
+                                className="mt-1 font-semibold"
+                            >
+                                Tindakan atau prosedur
+                            </h4>
+                        </div>
+                        <Badge variant="outline">
+                            {procedureDocumentation.state === 'NONE_PERFORMED'
+                                ? 'Tidak ada tindakan dilakukan'
+                                : procedureDocumentation.state ===
+                                    'PROCEDURES_RECORDED'
+                                  ? 'Tindakan tercatat'
+                                  : 'Belum dinyatakan'}
+                        </Badge>
+                    </div>
+
+                    {procedureDocumentation.state === 'NONE_PERFORMED' && (
+                        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                            Penulis menyatakan tidak ada tindakan atau prosedur
+                            yang dilakukan pada encounter simulasi ini.
+                        </p>
+                    )}
+
+                    {procedureDocumentation.state === 'PROCEDURES_RECORDED' &&
+                        procedureDocumentation.procedures.length === 0 && (
+                            <p
+                                role="alert"
+                                className="mt-3 text-sm text-red-700"
+                            >
+                                Attestasi menyatakan tindakan tercatat, tetapi
+                                tidak ada rincian tindakan pada versi ini.
+                            </p>
+                        )}
+
+                    {procedureDocumentation.procedures.length > 0 && (
+                        <ol className="mt-4 space-y-3">
+                            {procedureDocumentation.procedures.map(
+                                (procedure) => (
+                                    <li
+                                        key={procedure.publicId}
+                                        className="rounded-md border border-border p-3"
+                                    >
+                                        <p className="font-semibold">
+                                            {procedure.sequenceNumber}.{' '}
+                                            {procedure.authoredText}
+                                        </p>
+                                        <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                                            <div>
+                                                <dt className="text-xs text-muted-foreground">
+                                                    Waktu dilakukan
+                                                </dt>
+                                                <dd className="mt-1">
+                                                    {formatDateTime(
+                                                        procedure.performedStartAt,
+                                                    )}{' '}
+                                                    WIB
+                                                    {procedure.performedEndAt
+                                                        ? ` – ${formatDateTime(procedure.performedEndAt)} WIB`
+                                                        : ''}
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-xs text-muted-foreground">
+                                                    Pelaksana
+                                                </dt>
+                                                <dd className="mt-1">
+                                                    {procedure.performerText}
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-xs text-muted-foreground">
+                                                    Lokasi tubuh
+                                                </dt>
+                                                <dd className="mt-1">
+                                                    {procedure.bodySiteText ||
+                                                        'Tidak dicatat'}
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-xs text-muted-foreground">
+                                                    Outcome
+                                                </dt>
+                                                <dd className="mt-1">
+                                                    {procedure.outcomeText ||
+                                                        'Tidak dicatat'}
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-xs text-muted-foreground">
+                                                    Diagnosis alasan
+                                                </dt>
+                                                <dd className="mt-1 break-all">
+                                                    {procedure.reasonConditionPublicId ||
+                                                        'Tidak ditautkan'}
+                                                </dd>
+                                            </div>
+                                            <div>
+                                                <dt className="text-xs text-muted-foreground">
+                                                    Order sumber
+                                                </dt>
+                                                <dd className="mt-1 break-all">
+                                                    {procedure.basedOnServiceRequestPublicId ||
+                                                        'Tidak ditautkan'}
+                                                </dd>
+                                            </div>
+                                        </dl>
+                                        {procedure.note && (
+                                            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                                                Catatan: {procedure.note}
+                                            </p>
+                                        )}
+                                        <p className="mt-3 font-mono text-[0.68rem] break-all text-muted-foreground">
+                                            Hash tindakan:{' '}
+                                            {procedure.contentHash}
+                                        </p>
+                                    </li>
+                                ),
+                            )}
+                        </ol>
+                    )}
+                </section>
             </div>
         </section>
     );
@@ -1688,6 +1930,10 @@ export default function EncounterClosureWorkspace({
                                             status={
                                                 document.latestVersion.status
                                             }
+                                        />
+
+                                        <SubmittedClosureContent
+                                            version={document.latestVersion}
                                         />
 
                                         <div>

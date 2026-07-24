@@ -1207,7 +1207,6 @@ export default function CodingWorkspace({
                                                                     {
                                                                         coding.coder
                                                                     }{' '}
-                                                                    ·{' '}
                                                                     {formatDateTime(
                                                                         coding.recordedAt,
                                                                     )}{' '}
@@ -1241,6 +1240,13 @@ export default function CodingWorkspace({
                                                                 )}
                                                             </p>
                                                             <p>
+                                                                Pernyataan
+                                                                sumber:{' '}
+                                                                {shortHash(
+                                                                    coding.sourceStatementHash,
+                                                                )}
+                                                            </p>
+                                                            <p>
                                                                 Release:{' '}
                                                                 {shortHash(
                                                                     coding.terminologySourceHash,
@@ -1253,6 +1259,19 @@ export default function CodingWorkspace({
                                                                 )}
                                                             </p>
                                                         </div>
+                                                        {coding.rationale && (
+                                                            <div className="mt-4 rounded-md border border-sky-200 bg-sky-50 p-3">
+                                                                <p className="text-xs font-bold tracking-wider text-primary uppercase">
+                                                                    Rasional
+                                                                    koder
+                                                                </p>
+                                                                <p className="mt-1 text-sm leading-6 text-sky-950">
+                                                                    {
+                                                                        coding.rationale
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                        )}
 
                                                         {coding.canReview && (
                                                             <div className="mt-5 space-y-4 border-t border-border pt-5">

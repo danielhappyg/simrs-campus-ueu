@@ -8,6 +8,7 @@ use App\Modules\Audit\Services\AuditRecorder;
 use App\Modules\Clinical\Enums\ClinicalReviewAction;
 use App\Modules\Clinical\Models\ClinicalCondition;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Patient\Enums\IdentifierType;
 use App\Modules\Teaching\Enums\Capability;
 use App\Modules\Teaching\Services\AssignmentContextResolver;
@@ -21,6 +22,7 @@ class ClinicalReviewWorkspaceController extends Controller
     public function __construct(
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, ClinicalEntryVersion $version): Response
@@ -52,6 +54,8 @@ class ClinicalReviewWorkspaceController extends Controller
         }
 
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $allergyAssessment = $version->allergyAssessment
+            ?? $this->allergyResolver->forEncounter($encounter);
 
         $this->auditRecorder->record(
             action: 'clinical.review_workspace_viewed',
@@ -84,7 +88,7 @@ class ClinicalReviewWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => $version->allergyAssessment?->assessment_state->label() ?? 'Belum dinilai',
+                'allergyStatus' => $this->allergyResolver->label($allergyAssessment),
                 'synthetic' => true,
             ],
             'session' => [

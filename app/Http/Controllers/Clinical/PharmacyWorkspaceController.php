@@ -9,13 +9,13 @@ use App\Modules\Clinical\Enums\MedicationDispenseOutcome;
 use App\Modules\Clinical\Enums\PharmacyResponseAction;
 use App\Modules\Clinical\Enums\PharmacyReviewItemOutcome;
 use App\Modules\Clinical\Enums\PharmacyReviewOutcome;
-use App\Modules\Clinical\Models\AllergyAssessment;
 use App\Modules\Clinical\Models\MedicationDispense;
 use App\Modules\Clinical\Models\MedicationRequest;
 use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Models\PharmacyIntervention;
 use App\Modules\Clinical\Models\PharmacyInterventionMessage;
 use App\Modules\Clinical\Models\PharmacyReview;
+use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Clinical\Support\PharmacyReviewDefinition;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Patient\Enums\IdentifierType;
@@ -31,6 +31,7 @@ class PharmacyWorkspaceController extends Controller
     public function __construct(
         private readonly AssignmentContextResolver $assignmentResolver,
         private readonly AuditRecorder $auditRecorder,
+        private readonly ApprovedAllergyAssessmentResolver $allergyResolver,
     ) {}
 
     public function __invoke(Request $request, Encounter $encounter): Response
@@ -80,11 +81,7 @@ class PharmacyWorkspaceController extends Controller
             ->where('quantity_on_hand', '>', 0)
             ->orderBy('expires_on')
             ->get();
-        $allergy = AllergyAssessment::query()
-            ->where('encounter_id', $encounter->getKey())
-            ->with('sourceEntryVersion')
-            ->orderByDesc('assessed_at')
-            ->first();
+        $allergy = $this->allergyResolver->forEncounter($encounter);
         $mrn = $encounter->patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
         $canReview = $assignment->hasCapability(Capability::PharmacyReview);
         $canRespond = $assignment->hasCapability(Capability::PrescriptionWrite);
@@ -120,9 +117,10 @@ class PharmacyWorkspaceController extends Controller
                 'mrn' => $mrn?->value,
                 'birthDate' => $encounter->patient->birth_date->toDateString(),
                 'administrativeSex' => $encounter->patient->administrative_sex->label(),
-                'allergyStatus' => $allergy
-                    ? $allergy->assessment_state->label().($allergy->details ? ": {$allergy->details}" : '')
-                    : 'Belum ada asesmen alergi yang disetujui',
+                'allergyStatus' => $this->allergyResolver->label(
+                    $allergy,
+                    'Belum ada asesmen alergi yang disetujui',
+                ),
                 'synthetic' => true,
             ],
             'session' => [

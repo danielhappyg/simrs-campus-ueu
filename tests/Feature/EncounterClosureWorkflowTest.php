@@ -56,6 +56,7 @@ class EncounterClosureWorkflowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('clinical/closure')
+                ->where('patient.allergyStatus', AllergyAssessmentState::NoKnownAllergyReported->label())
                 ->where('readiness.ready', false)
                 ->where('assignment.canAuthor', false)
                 ->has('readiness.checks', 6)
@@ -187,6 +188,21 @@ class EncounterClosureWorkflowTest extends TestCase
             'task_type' => WorkTaskType::EncounterClosureReview->value,
             'status' => WorkTaskStatus::Ready->value,
         ]);
+
+        $this->actingAs($case['medicalSupervisor'])
+            ->get(route('encounters.closure.show', $case['encounter']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('clinical/closure')
+                ->where('document.canReview', true)
+                ->where('document.latestVersion.publicId', $closure->public_id)
+                ->where('document.latestVersion.contentHash', $closure->content_hash)
+                ->where('document.latestVersion.content.authored.leavingCondition', 'Kondisi stabil untuk menyelesaikan encounter rawat jalan simulasi.')
+                ->where('document.latestVersion.content.authored.disposition', 'Pulang dari poliklinik simulasi.')
+                ->where('document.latestVersion.content.authored.followUpPlan', 'Kontrol simulasi sesuai jadwal skenario dan kembali bila alarm skenario muncul.')
+                ->where('document.latestVersion.content.authored.educationInstructions', 'Instruksi penggunaan obat sintetis dan tanda kembali telah dijelaskan.')
+                ->where('document.latestVersion.content.authored.outpatientSummary', 'Asesmen, hasil sintetis, telaah farmasi manusia, dan rencana tindak lanjut telah ditinjau.')
+                ->where('document.latestVersion.content.procedureDocumentation.state', ProcedureDocumentationState::NonePerformed->value));
 
         $this->actingAs($case['nursingSupervisor'])
             ->post(
