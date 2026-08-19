@@ -136,7 +136,11 @@ class EncounterDebriefTest extends TestCase
             ->assertForbidden();
         $this->actingAs($nurse)
             ->get(route('encounters.debrief.show', $encounter))
-            ->assertStatus(409);
+            ->assertStatus(409)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('errors/workflow-conflict')
+                ->where('reason', 'Debrief tersedia setelah encounter difinalisasi untuk simulasi.')
+                ->where('workQueueUrl', route('work')));
     }
 
     public function test_same_role_in_another_session_and_wrong_case_assignment_are_denied(): void

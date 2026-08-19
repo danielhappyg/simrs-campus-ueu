@@ -198,7 +198,11 @@ class OutpatientInteroperabilityPreviewTest extends TestCase
 
         $this->actingAs($participant)
             ->get(route('encounters.interoperability-preview.show', $encounter))
-            ->assertStatus(409);
+            ->assertStatus(409)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('errors/workflow-conflict')
+                ->where('reason', 'Pratinjau interoperabilitas tersedia setelah encounter difinalisasi untuk simulasi.')
+                ->where('workQueueUrl', route('work')));
 
         $capabilities = $assignment->capabilities;
         $assignment->update([

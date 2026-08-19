@@ -13,6 +13,7 @@ import {
     MessageSquareText,
     Network,
     PencilLine,
+    ReceiptText,
     Route,
     ShieldCheck,
     Sparkles,
@@ -149,6 +150,7 @@ type Props = {
         outpatientSummaryReport: string;
         debriefEvidenceReport: string;
         interoperabilityPreview?: string | null;
+        eClaimSimulation?: string | null;
     };
 };
 
@@ -270,6 +272,17 @@ export default function EncounterDebrief({
                                                 aria-hidden="true"
                                             />
                                             Pratinjau FHIR
+                                        </Link>
+                                    </Button>
+                                )}
+                                {urls.eClaimSimulation && (
+                                    <Button asChild variant="outline">
+                                        <Link href={urls.eClaimSimulation}>
+                                            <ReceiptText
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                            Simulasi E-Klaim
                                         </Link>
                                     </Button>
                                 )}

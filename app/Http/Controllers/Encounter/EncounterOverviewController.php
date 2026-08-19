@@ -131,6 +131,12 @@ class EncounterOverviewController extends Controller
                     && $assignment->hasCapability(Capability::ReportView)
                     ? route('encounters.interoperability-preview.show', $encounter)
                     : null,
+                'eClaimSimulation' => $encounter->status === EncounterStatus::Finalized
+                    && ($assignment->hasCapability(Capability::ReportView)
+                        || $assignment->hasCapability(Capability::ClaimManage)
+                        || $assignment->hasCapability(Capability::ClaimReview))
+                    ? route('encounters.eclaim-simulation.show', $encounter)
+                    : null,
                 'earlyDeparture' => $canRecordEarlyDeparture
                     ? route('encounters.early-departure.show', $encounter)
                     : null,

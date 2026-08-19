@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Inertia\Inertia;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -22,6 +23,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render terminates TLS at its edge and forwards requests to Apache.
+        // Trust only the immediate proxy so URL generation retains HTTPS
+        // without accepting spoofed forwarding headers from arbitrary hops.
+        $middleware->trustProxies(at: 'REMOTE_ADDR');
+
         $middleware->alias([
             'active.account' => EnsureAccountIsActive::class,
             'simulation' => EnsureSimulationSafetyMode::class,
@@ -71,6 +77,23 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return $reauthenticationResponse(419);
+        });
+
+        $exceptions->render(function (HttpException $exception, Request $request) {
+            if ($exception->getStatusCode() !== 409
+                || ! $request->isMethod('get')
+                || $request->expectsJson()) {
+                return null;
+            }
+
+            $reason = trim($exception->getMessage());
+
+            return Inertia::render('errors/workflow-conflict', [
+                'reason' => $reason !== ''
+                    ? $reason
+                    : 'Tahap ini belum tersedia pada status encounter saat ini.',
+                'workQueueUrl' => route('work'),
+            ])->toResponse($request)->setStatusCode(409);
         });
 
         $exceptions->shouldRenderJsonWhen(

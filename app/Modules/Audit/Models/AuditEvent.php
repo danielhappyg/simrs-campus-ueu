@@ -33,6 +33,7 @@ class AuditEvent extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'recorded_at',
         'actor_user_id',
         'assignment_id',

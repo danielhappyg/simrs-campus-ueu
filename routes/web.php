@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Claims\AdvanceEClaimSimulationController;
+use App\Http\Controllers\Claims\EClaimSimulationWorkspaceController;
 use App\Http\Controllers\Clinical\ClinicalReviewWorkspaceController;
 use App\Http\Controllers\Clinical\EncounterClosureWorkspaceController;
 use App\Http\Controllers\Clinical\MedicalAssessmentWorkspaceController;
@@ -74,6 +76,10 @@ Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(f
         ->name('encounters.reports.debrief-evidence');
     Route::get('encounters/{encounter}/interoperability-preview', OutpatientInteroperabilityPreviewController::class)
         ->name('encounters.interoperability-preview.show');
+    Route::get('encounters/{encounter}/eclaim-simulation', EClaimSimulationWorkspaceController::class)
+        ->name('encounters.eclaim-simulation.show');
+    Route::post('encounters/{encounter}/eclaim-simulation/advance', AdvanceEClaimSimulationController::class)
+        ->name('encounters.eclaim-simulation.advance');
     Route::post('encounters/{encounter}/debrief/notes', StoreDebriefNoteController::class)
         ->name('encounters.debrief.notes.store');
     Route::post('debrief-notes/{note}/versions', ReviseDebriefNoteController::class)

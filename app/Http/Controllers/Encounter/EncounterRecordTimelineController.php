@@ -106,6 +106,12 @@ class EncounterRecordTimelineController extends Controller
                 'interoperabilityPreview' => $canViewInteroperabilityPreview
                     ? route('encounters.interoperability-preview.show', $encounter)
                     : null,
+                'eClaimSimulation' => $encounter->status === EncounterStatus::Finalized
+                    && ($assignment->hasCapability(Capability::ReportView)
+                        || $assignment->hasCapability(Capability::ClaimManage)
+                        || $assignment->hasCapability(Capability::ClaimReview))
+                    ? route('encounters.eclaim-simulation.show', $encounter)
+                    : null,
                 'workQueue' => route('work'),
             ],
         ]);

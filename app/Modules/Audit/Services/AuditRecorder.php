@@ -34,6 +34,10 @@ class AuditRecorder
         $request ??= request();
 
         return AuditEvent::query()->create([
+            // Set required append-only fields explicitly. Model lifecycle
+            // listeners may be intentionally faked by feature tests.
+            'id' => (string) Str::ulid(),
+            'recorded_at' => now(),
             'actor_user_id' => $actor?->getKey(),
             'assignment_id' => $assignment?->getKey(),
             'session_id' => $session?->getKey(),

@@ -12,6 +12,7 @@ import {
     LogOut,
     MapPin,
     Network,
+    ReceiptText,
     ShieldCheck,
 } from 'lucide-react';
 import { PatientContextBanner } from '@/components/patient-context-banner';
@@ -65,6 +66,7 @@ type Props = {
         outpatientSummaryReport: string;
         debriefEvidenceReport: string;
         interoperabilityPreview?: string | null;
+        eClaimSimulation?: string | null;
         earlyDeparture?: string | null;
     };
 };
@@ -167,6 +169,17 @@ export default function EncounterOverview({
                                                 aria-hidden="true"
                                             />
                                             Pratinjau FHIR
+                                        </Link>
+                                    </Button>
+                                )}
+                                {urls.eClaimSimulation && (
+                                    <Button asChild variant="outline">
+                                        <Link href={urls.eClaimSimulation}>
+                                            <ReceiptText
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                            Simulasi E-Klaim
                                         </Link>
                                     </Button>
                                 )}

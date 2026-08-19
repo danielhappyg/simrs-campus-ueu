@@ -8,6 +8,7 @@ import {
     GitBranch,
     History,
     Network,
+    ReceiptText,
     ShieldCheck,
     UserRoundCheck,
 } from 'lucide-react';
@@ -88,6 +89,7 @@ type Props = {
         self: string;
         debrief: string | null;
         interoperabilityPreview?: string | null;
+        eClaimSimulation?: string | null;
         workQueue: string;
     };
 };
@@ -196,6 +198,17 @@ export default function EncounterRecordTimeline({
                                         aria-hidden="true"
                                     />
                                     Pratinjau FHIR
+                                </Link>
+                            </Button>
+                        )}
+                        {urls.eClaimSimulation && (
+                            <Button asChild variant="outline">
+                                <Link href={urls.eClaimSimulation}>
+                                    <ReceiptText
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Simulasi E-Klaim
                                 </Link>
                             </Button>
                         )}

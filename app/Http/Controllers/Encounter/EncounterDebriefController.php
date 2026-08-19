@@ -218,6 +218,11 @@ class EncounterDebriefController extends Controller
                 'interoperabilityPreview' => $assignment->hasCapability(Capability::ReportView)
                     ? route('encounters.interoperability-preview.show', $encounter)
                     : null,
+                'eClaimSimulation' => $assignment->hasCapability(Capability::ReportView)
+                    || $assignment->hasCapability(Capability::ClaimManage)
+                    || $assignment->hasCapability(Capability::ClaimReview)
+                    ? route('encounters.eclaim-simulation.show', $encounter)
+                    : null,
             ],
         ]);
     }

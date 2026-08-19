@@ -15,6 +15,8 @@ enum Capability: string
     case Dispense = 'pharmacy.dispense';
     case RecordReview = 'record.review';
     case CodingWrite = 'coding.write';
+    case ClaimManage = 'claim.manage';
+    case ClaimReview = 'claim.review';
     case TerminologyManage = 'terminology.manage';
     case SupervisionReview = 'supervision.review';
     case SafetyDispositionRecord = 'safety-disposition.record';
@@ -38,6 +40,8 @@ enum Capability: string
             self::Dispense => 'Mencatat penyerahan obat simulasi',
             self::RecordReview => 'Menelaah kelengkapan rekam medis',
             self::CodingWrite => 'Mengisi kode klinis',
+            self::ClaimManage => 'Menjalankan alur klaim simulasi',
+            self::ClaimReview => 'Menelaah alur klaim simulasi',
             self::TerminologyManage => 'Mengelola release terminologi',
             self::SupervisionReview => 'Melakukan tinjauan supervisor',
             self::SafetyDispositionRecord => 'Mencatat keputusan eskalasi simulasi',

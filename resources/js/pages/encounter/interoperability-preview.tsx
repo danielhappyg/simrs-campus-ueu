@@ -159,6 +159,41 @@ function resourceDescription(resource: FhirResource): string {
     );
 }
 
+function hasHumanReviewedCoding(resource: FhirResource): boolean {
+    const code = resource.code;
+
+    if (typeof code !== 'object' || code === null) {
+        return false;
+    }
+
+    const coding = (code as Record<string, unknown>).coding;
+
+    if (!Array.isArray(coding)) {
+        return false;
+    }
+
+    return coding.some((codingItem) => {
+        if (typeof codingItem !== 'object' || codingItem === null) {
+            return false;
+        }
+
+        const extensions = (codingItem as Record<string, unknown>).extension;
+
+        return (
+            Array.isArray(extensions) &&
+            extensions.some(
+                (extension) =>
+                    typeof extension === 'object' &&
+                    extension !== null &&
+                    (extension as Record<string, unknown>).url ===
+                        'https://simrs-campus-ueu.example.invalid/fhir/StructureDefinition/human-reviewed' &&
+                    (extension as Record<string, unknown>).valueBoolean ===
+                        true,
+            )
+        );
+    });
+}
+
 function formatTimestamp(value: string): string {
     return new Intl.DateTimeFormat('id-ID', {
         dateStyle: 'long',
@@ -370,6 +405,16 @@ export default function OutpatientInteroperabilityPreview({
                                                     entry.resource,
                                                 )}
                                             </p>
+                                            {hasHumanReviewedCoding(
+                                                entry.resource,
+                                            ) && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="mt-2 border-[#9bc6da] bg-[#eaf4f8] text-[#174c68]"
+                                                >
+                                                    Ditinjau manusia
+                                                </Badge>
+                                            )}
                                         </div>
                                         <span className="font-mono text-xs text-[#6c8794]">
                                             {String(index + 1).padStart(2, '0')}

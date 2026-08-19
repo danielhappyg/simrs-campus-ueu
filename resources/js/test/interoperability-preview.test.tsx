@@ -36,11 +36,12 @@ const props = {
         externalEndpoint: null,
     },
     summary: {
-        resourceCount: 3,
+        resourceCount: 4,
         resourceTypeCounts: {
             Composition: 1,
             Condition: 1,
             Patient: 1,
+            Procedure: 1,
         },
     },
     bundle: {
@@ -74,9 +75,41 @@ const props = {
                     id: '01J00000000000000000000003',
                     code: {
                         coding: [
-                            { code: 'R42', display: 'Dizziness and giddiness' },
+                            {
+                                code: 'R42',
+                                display: 'Dizziness and giddiness',
+                                extension: [
+                                    {
+                                        url: 'https://simrs-campus-ueu.example.invalid/fhir/StructureDefinition/human-reviewed',
+                                        valueBoolean: true,
+                                    },
+                                ],
+                            },
                         ],
                         text: 'Sindrom pusing dalam evaluasi',
+                    },
+                },
+            },
+            {
+                fullUrl:
+                    'https://simrs-campus-ueu.example.invalid/fhir/Procedure/01J00000000000000000000004',
+                resource: {
+                    resourceType: 'Procedure',
+                    id: '01J00000000000000000000004',
+                    code: {
+                        coding: [
+                            {
+                                code: '38.99',
+                                display: 'Other puncture of vein',
+                                extension: [
+                                    {
+                                        url: 'https://simrs-campus-ueu.example.invalid/fhir/StructureDefinition/human-reviewed',
+                                        valueBoolean: true,
+                                    },
+                                ],
+                            },
+                        ],
+                        text: 'Pengambilan sampel darah vena',
                     },
                 },
             },
@@ -139,6 +172,10 @@ describe('Outpatient interoperability preview', () => {
         expect(
             screen.getByText('R42 · Dizziness and giddiness'),
         ).toBeInTheDocument();
+        expect(
+            screen.getByText('38.99 · Other puncture of vein'),
+        ).toBeInTheDocument();
+        expect(screen.getAllByText('Ditinjau manusia')).toHaveLength(2);
         expect(
             screen.getByText('PROFILE_VALIDATION_NOT_RUN'),
         ).toBeInTheDocument();

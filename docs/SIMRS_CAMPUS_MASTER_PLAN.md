@@ -120,14 +120,14 @@ Official references: [FHIR overview](https://satusehat.kemkes.go.id/platform/doc
 
 ### 5.1 Product layers
 
-| Layer | Purpose |
-|---|---|
-| Hospital workflow | Registration, encounters, orders/results, medication, billing, coding, admission, discharge, and operations |
-| Professional documentation | Discipline-specific assessments, plans, interventions, outcomes, and handoffs |
-| Health information management | Identity quality, record assembly, coding, completeness, amendments, release, retention, reporting, and audit |
-| Teaching and simulation | Scenarios, cohorts, role assignment, controlled time, case events, supervision, rubrics, reset/clone, debrief, and analytics |
-| Integration laboratory | SATUSEHAT sandbox, BPJS simulation, terminology validation, message traces, failure/retry exercises |
-| Administration | Organizations, locations, services, schedules, reference data, permissions, course configuration, and system health |
+| Layer                         | Purpose                                                                                                                      |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Hospital workflow             | Registration, encounters, orders/results, medication, billing, coding, admission, discharge, and operations                  |
+| Professional documentation    | Discipline-specific assessments, plans, interventions, outcomes, and handoffs                                                |
+| Health information management | Identity quality, record assembly, coding, completeness, amendments, release, retention, reporting, and audit                |
+| Teaching and simulation       | Scenarios, cohorts, role assignment, controlled time, case events, supervision, rubrics, reset/clone, debrief, and analytics |
+| Integration laboratory        | SATUSEHAT sandbox, BPJS simulation, terminology validation, message traces, failure/retry exercises                          |
+| Administration                | Organizations, locations, services, schedules, reference data, permissions, course configuration, and system health          |
 
 ### 5.2 Initial non-goals
 
@@ -144,16 +144,16 @@ These can be revisited after the core teaching journeys are validated.
 
 ## 6. Multidisciplinary capability map
 
-| Study program | First-class workflows | Shared handoffs |
-|---|---|---|
-| Medicine | History, examination, problem/diagnosis, order entry, procedures, plan, referral, discharge summary | Nursing intake/safety screen, diagnostics, pharmacy, nutrition, psychology, physiotherapy, RMIK |
-| Nursing | Outpatient intake/safety screen, structured assessment, nursing diagnosis, care plan, interventions, observations, medication administration, handover, discharge education; emergency triage later | Physicians, pharmacy, nutrition, physiotherapy, inpatient/IGD |
-| RMIK | Master patient index, identity resolution, encounter assembly, coding, completeness, amendment control, disclosure, retention, statistics, claim preparation | Every clinical and financial unit |
-| Pharmacy | Medication verification, allergy/interaction review, dispensing, compounding simulation, inventory ledger, FEFO, reconciliation, medication administration support | Prescribers, nursing, billing, RMIK |
-| Nutrition | Screening, assessment, diagnosis, intervention, diet order, monitoring/outcome, food-service handoff | Medical, nursing, pharmacy, inpatient |
-| Psychology | Referral, consent, assessment, restricted note, plan, outcome measure, multidisciplinary summary | Medical, nursing, rehabilitation; restricted visibility by policy |
-| Physiotherapy | Referral, functional assessment, goals, treatment plan, session documentation, outcome measures, discharge | Medical, nursing, inpatient, billing |
-| Instructors/supervisors | Scenario authoring, role assignment, live facilitation, review/sign-off, intervention injection, rubric scoring, debrief | All programs |
+| Study program           | First-class workflows                                                                                                                                                                               | Shared handoffs                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Medicine                | History, examination, problem/diagnosis, order entry, procedures, plan, referral, discharge summary                                                                                                 | Nursing intake/safety screen, diagnostics, pharmacy, nutrition, psychology, physiotherapy, RMIK |
+| Nursing                 | Outpatient intake/safety screen, structured assessment, nursing diagnosis, care plan, interventions, observations, medication administration, handover, discharge education; emergency triage later | Physicians, pharmacy, nutrition, physiotherapy, inpatient/IGD                                   |
+| RMIK                    | Master patient index, identity resolution, encounter assembly, coding, completeness, amendment control, disclosure, retention, statistics, claim preparation                                        | Every clinical and financial unit                                                               |
+| Pharmacy                | Medication verification, allergy/interaction review, dispensing, compounding simulation, inventory ledger, FEFO, reconciliation, medication administration support                                  | Prescribers, nursing, billing, RMIK                                                             |
+| Nutrition               | Screening, assessment, diagnosis, intervention, diet order, monitoring/outcome, food-service handoff                                                                                                | Medical, nursing, pharmacy, inpatient                                                           |
+| Psychology              | Referral, consent, assessment, restricted note, plan, outcome measure, multidisciplinary summary                                                                                                    | Medical, nursing, rehabilitation; restricted visibility by policy                               |
+| Physiotherapy           | Referral, functional assessment, goals, treatment plan, session documentation, outcome measures, discharge                                                                                          | Medical, nursing, inpatient, billing                                                            |
+| Instructors/supervisors | Scenario authoring, role assignment, live facilitation, review/sign-off, intervention injection, rubric scoring, debrief                                                                            | All programs                                                                                    |
 
 Additional hospital services—laboratory, radiology, blood, surgery, intensive care, CSSD, mortuary, engineering/maintenance, and quality management—enter by staged increments and may initially use instructor/operator roles.
 
@@ -276,22 +276,22 @@ flowchart TB
 
 ### 10.3 Proposed modules
 
-| Module | Owns |
-|---|---|
-| Identity & Access | accounts, sessions, roles, capabilities, contextual assignments, MFA, access decisions |
-| Education & Simulation | courses, cohorts, scenarios, sessions, learners, supervisors, events, rubrics, reset/clone |
-| Organization & Location | campus/hospital organization, departments, clinics, wards, beds, service points |
-| Patient Identity | patient, identifiers, contacts, related persons, consent, merge/link history |
-| Scheduling & Encounter | appointment, queue, visit, admission, location history, care team, referral, discharge |
-| Clinical Record | notes, observations, conditions, allergies, procedures, care plans, forms, signatures, amendments |
-| Orders & Results | service requests, specimens, lab/radiology results, verification, critical acknowledgements |
-| Medication | formulary, medication requests, verification, dispensing, stock ledger, administration, reconciliation |
-| Multidisciplinary Care | nursing, nutrition, psychology, physiotherapy templates and structured outcomes |
-| RMIK | record assembly, coding, completeness, disclosure, retention, quality, reporting |
-| Finance & Claims | charge items, invoices, payments, coverage, claim workbench, simulation |
-| Operations | beds, queues, schedules, service capacity, facility/equipment events |
-| Integration | FHIR maps, external identifiers, outbox, retries, reconciliation, sandbox traces |
-| Audit & Observability | immutable events, access logs, security alerts, application health |
+| Module                  | Owns                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| Identity & Access       | accounts, sessions, roles, capabilities, contextual assignments, MFA, access decisions                 |
+| Education & Simulation  | courses, cohorts, scenarios, sessions, learners, supervisors, events, rubrics, reset/clone             |
+| Organization & Location | campus/hospital organization, departments, clinics, wards, beds, service points                        |
+| Patient Identity        | patient, identifiers, contacts, related persons, consent, merge/link history                           |
+| Scheduling & Encounter  | appointment, queue, visit, admission, location history, care team, referral, discharge                 |
+| Clinical Record         | notes, observations, conditions, allergies, procedures, care plans, forms, signatures, amendments      |
+| Orders & Results        | service requests, specimens, lab/radiology results, verification, critical acknowledgements            |
+| Medication              | formulary, medication requests, verification, dispensing, stock ledger, administration, reconciliation |
+| Multidisciplinary Care  | nursing, nutrition, psychology, physiotherapy templates and structured outcomes                        |
+| RMIK                    | record assembly, coding, completeness, disclosure, retention, quality, reporting                       |
+| Finance & Claims        | charge items, invoices, payments, coverage, claim workbench, simulation                                |
+| Operations              | beds, queues, schedules, service capacity, facility/equipment events                                   |
+| Integration             | FHIR maps, external identifiers, outbox, retries, reconciliation, sandbox traces                       |
+| Audit & Observability   | immutable events, access logs, security alerts, application health                                     |
 
 ### 10.4 Data-design principles
 
@@ -335,14 +335,14 @@ The detailed trade-off record is in [ADR-001](adr/ADR-001-REBUILD-ARCHITECTURE.m
 
 Use the supplied logo as the brand reference, with a calm clinical surface and clear operational hierarchy.
 
-| Token role | Direction |
-|---|---|
-| Primary | UEU blue `#0F75BC` |
-| Accent | UEU orange `#F05A28`, limited to brand/action emphasis |
-| Background | neutral slate/white, not decorative gradients |
-| Critical | independent red scale |
-| Warning | amber scale |
-| Success | green scale |
+| Token role  | Direction                                               |
+| ----------- | ------------------------------------------------------- |
+| Primary     | UEU blue `#0F75BC`                                      |
+| Accent      | UEU orange `#F05A28`, limited to brand/action emphasis  |
+| Background  | neutral slate/white, not decorative gradients           |
+| Critical    | independent red scale                                   |
+| Warning     | amber scale                                             |
+| Success     | green scale                                             |
 | Information | cyan/blue scale distinct from primary interaction state |
 
 ### 12.2 Component priorities
@@ -375,17 +375,19 @@ Use the supplied logo as the brand reference, with a calm clinical surface and c
 
 Durations are indicative for a team of roughly 3–4 developers, one QA/product analyst, and part-time faculty representatives working in two-week sprints. A smaller team should keep the sequence but extend the calendar.
 
-| Increment | Indicative duration | Deliverable | Exit evidence |
-|---|---:|---|---|
-| 0. Charter and workflow discovery | 2–3 weeks | Approved product boundary, target users, course scenarios, glossary, workflow maps, data policy, and prioritized backlog | Daniel approves the charter and reference baseline; program validation follows at the defined checkpoints |
-| 1. Platform foundation | 4–6 weeks | Repository, CI, staging deploy, UEU design tokens, secure auth, roles/context policies, organization/location, audit, course/cohort/session basics | Instructor creates a session; learner enters only an assigned role; every action is audited |
-| 2. Patient and encounter core | 4–6 weeks | Synthetic patient identity, search/duplicate checks, consent, appointment, queue, encounter, patient context, registration workflow | A registration learner creates/reuses a patient and starts a traceable encounter without duplicate re-entry |
-| 3. Outpatient clinical slice | 6–8 weeks | Nursing intake/safety screen, medical assessment, problems, orders, results inbox, prescriptions, referral, supervisor draft/sign flow | One outpatient encounter reaches supervisor-signed closure with complete provenance |
-| 4. Diagnostics, pharmacy, billing, and RMIK | 6–8 weeks | Lab/radiology lifecycle, medication verification/dispensing, charge capture, payment simulation, completeness workbench, versioned terminology import/search, and human-reviewed computer-assisted coding | The same encounter completes clinical-to-coding handoff; missing/unsigned records are detected; suggestions remain attributable candidates until a coder decides |
-| 5. Emergency and inpatient | 8–10 weeks | Structured triage, emergency workspace, admission, bed/location history, nursing care plan, MAR, handoff, discharge | An emergency case transfers to inpatient without losing orders, medication, care-team, or audit context |
-| 6. Multidisciplinary care | 6–8 weeks | Nutrition, psychology, and physiotherapy workflows with privacy segmentation and shared care goals | Each program completes its part of one shared inpatient case; supervisor signs each discipline record |
-| 7. Integration and reporting laboratory | 6–8 weeks | SATUSEHAT sandbox adapter, BPJS simulation console, terminology validation, retry/reconciliation, RMIK/statutory reporting exercises | Learners can inspect successful and failed messages; no production credential or endpoint is required |
-| 8. Advanced education and operations | Ongoing | Scenario authoring, facilitator event injection, grading/debrief analytics, surgery/intensive/blood/CSSD/maintenance simulations | Faculty can author and run a reusable interprofessional scenario without developer intervention |
+| Increment                                   | Indicative duration | Deliverable                                                                                                                                                                                               | Exit evidence                                                                                                                                                    |
+| ------------------------------------------- | ------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0. Charter and workflow discovery           |           2–3 weeks | Approved product boundary, target users, course scenarios, glossary, workflow maps, data policy, and prioritized backlog                                                                                  | Daniel approves the charter and reference baseline; program validation follows at the defined checkpoints                                                        |
+| 1. Platform foundation                      |           4–6 weeks | Repository, CI, staging deploy, UEU design tokens, secure auth, roles/context policies, organization/location, audit, course/cohort/session basics                                                        | Instructor creates a session; learner enters only an assigned role; every action is audited                                                                      |
+| 2. Patient and encounter core               |           4–6 weeks | Synthetic patient identity, search/duplicate checks, consent, appointment, queue, encounter, patient context, registration workflow                                                                       | A registration learner creates/reuses a patient and starts a traceable encounter without duplicate re-entry                                                      |
+| 3. Outpatient clinical slice                |           6–8 weeks | Nursing intake/safety screen, medical assessment, problems, orders, results inbox, prescriptions, referral, supervisor draft/sign flow                                                                    | One outpatient encounter reaches supervisor-signed closure with complete provenance                                                                              |
+| 4. Diagnostics, pharmacy, billing, and RMIK |           6–8 weeks | Lab/radiology lifecycle, medication verification/dispensing, charge capture, payment simulation, completeness workbench, versioned terminology import/search, and human-reviewed computer-assisted coding | The same encounter completes clinical-to-coding handoff; missing/unsigned records are detected; suggestions remain attributable candidates until a coder decides |
+| 5. Emergency and inpatient                  |          8–10 weeks | Structured triage, emergency workspace, admission, bed/location history, nursing care plan, MAR, handoff, discharge                                                                                       | An emergency case transfers to inpatient without losing orders, medication, care-team, or audit context                                                          |
+| 6. Multidisciplinary care                   |           6–8 weeks | Nutrition, psychology, and physiotherapy workflows with privacy segmentation and shared care goals                                                                                                        | Each program completes its part of one shared inpatient case; supervisor signs each discipline record                                                            |
+| 7. Integration and reporting laboratory     |           6–8 weeks | SATUSEHAT sandbox adapter, BPJS simulation console, terminology validation, retry/reconciliation, RMIK/statutory reporting exercises                                                                      | Learners can inspect successful and failed messages; no production credential or endpoint is required                                                            |
+| 8. Advanced education and operations        |             Ongoing | Scenario authoring, facilitator event injection, grading/debrief analytics, surgery/intensive/blood/CSSD/maintenance simulations                                                                         | Faculty can author and run a reusable interprofessional scenario without developer intervention                                                                  |
+
+The first bounded claim-laboratory increment is now implemented as a never-sent E-Klaim compatibility simulation. It maps only finalized synthetic encounters with approved human ICD coding, exposes the ordered `new_claim` → `set_claim_data` → `grouper` → `claim_final` teaching sequence, replaces the real send operation with `SIMULATE_SEND_CLAIM`, and stores immutable hashed exchanges. See [ADR-013](adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md), the [E-Klaim/BPJS simulation specification](product/ECLAIM_BPJS_SIMULATION_SPEC.md), and the [runbook](operations/ECLAIM_SIMULATION_RUNBOOK.md). SATUSEHAT claim-resource mapping, authorized sandbox transport, retries, and reconciliation remain later increments.
 
 ### Roadmap rule
 
@@ -421,13 +423,13 @@ Every user story must satisfy applicable items:
 
 ### 15.2 Environments
 
-| Environment | Data | Deployment |
-|---|---|---|
-| Local | generated synthetic fixtures | developer controlled |
-| CI | ephemeral generated fixtures | every pull request |
-| Staging | synthetic teaching data | automatic from approved `main` |
-| Production teaching | synthetic course data | manual approval from a versioned release |
-| Future clinical | separate infrastructure and governance | out of initial scope |
+| Environment         | Data                                   | Deployment                               |
+| ------------------- | -------------------------------------- | ---------------------------------------- |
+| Local               | generated synthetic fixtures           | developer controlled                     |
+| CI                  | ephemeral generated fixtures           | every pull request                       |
+| Staging             | synthetic teaching data                | automatic from approved `main`           |
+| Production teaching | synthetic course data                  | manual approval from a versioned release |
+| Future clinical     | separate infrastructure and governance | out of initial scope                     |
 
 ### 15.3 Deployment pipeline
 
@@ -472,16 +474,16 @@ Shared hosting is acceptable for early synthetic classroom use if verified load 
 
 Targets must be confirmed in Increment 0. Suggested teaching-production defaults:
 
-| Area | Initial target |
-|---|---|
-| Availability | 99.5% during published teaching windows |
-| Performance | p95 server response under 500 ms for normal CRUD; primary pages interactive under 3 s on campus network |
-| Cohort | Verify at least 100 concurrent learners before broad rollout |
-| Recovery | RPO ≤ 24 hours and RTO ≤ 4 hours initially, with a tested restore exercise |
-| Audit | 100% of record view, create, update, sign, amend, export, integration, and permission changes recorded |
-| Accessibility | WCAG 2.2 AA for supported workflows |
-| Security | No critical/high findings at release; MFA for privileged roles; secure sessions; rate limiting; CSRF; dependency and secret scanning |
-| Data | Synthetic-only checks and unmistakable environment marking |
+| Area          | Initial target                                                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Availability  | 99.5% during published teaching windows                                                                                              |
+| Performance   | p95 server response under 500 ms for normal CRUD; primary pages interactive under 3 s on campus network                              |
+| Cohort        | Verify at least 100 concurrent learners before broad rollout                                                                         |
+| Recovery      | RPO ≤ 24 hours and RTO ≤ 4 hours initially, with a tested restore exercise                                                           |
+| Audit         | 100% of record view, create, update, sign, amend, export, integration, and permission changes recorded                               |
+| Accessibility | WCAG 2.2 AA for supported workflows                                                                                                  |
+| Security      | No critical/high findings at release; MFA for privileged roles; secure sessions; rate limiting; CSRF; dependency and secret scanning |
+| Data          | Synthetic-only checks and unmistakable environment marking                                                                           |
 
 ### Security verification priorities
 
@@ -504,17 +506,17 @@ Rather than blocking construction on a permanent steering group, relevant medici
 
 ### 17.2 Decision rights
 
-| Decision | Accountable party |
-|---|---|
-| Reference product boundary, scope, priority, and release | Daniel Happy Putra |
-| Research/design/implementation/test recommendation | Codex execution agent under Daniel's delegation |
-| Clinical workflow validity | Relevant profession reviewer; Daniel decides product response |
-| Record/coding/retention semantics | RMIK reviewer; Daniel decides product response |
-| Learning objectives and assessment | Program/teaching reviewer; Daniel decides product response |
-| Architecture and reference-MVP security | Codex proposes/implements with ADR; Daniel accepts material decisions |
-| Brand/accessibility | Daniel accepts reference design; institutional brand review when required |
-| Faculty-pilot institutional readiness | Applicable university privacy/security/IT authority |
-| Production data/integration | Institutional privacy/legal/security/clinical authority through a separate program |
+| Decision                                                 | Accountable party                                                                  |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Reference product boundary, scope, priority, and release | Daniel Happy Putra                                                                 |
+| Research/design/implementation/test recommendation       | Codex execution agent under Daniel's delegation                                    |
+| Clinical workflow validity                               | Relevant profession reviewer; Daniel decides product response                      |
+| Record/coding/retention semantics                        | RMIK reviewer; Daniel decides product response                                     |
+| Learning objectives and assessment                       | Program/teaching reviewer; Daniel decides product response                         |
+| Architecture and reference-MVP security                  | Codex proposes/implements with ADR; Daniel accepts material decisions              |
+| Brand/accessibility                                      | Daniel accepts reference design; institutional brand review when required          |
+| Faculty-pilot institutional readiness                    | Applicable university privacy/security/IT authority                                |
+| Production data/integration                              | Institutional privacy/legal/security/clinical authority through a separate program |
 
 ### 17.3 Staged validation sequence
 
@@ -565,18 +567,18 @@ Avoid invented “45% faster” marketing metrics. Establish a baseline first an
 
 ## 19. Principal risks and mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Scope expands into every hospital department at once | Fund vertical journeys; require exit evidence before the next increment |
-| Faculty disagree after implementation | Use workflow maps and clickable prototypes before coding each increment |
-| Teaching system is mistaken for real clinical care | Permanent simulation state, synthetic-data guardrails, separated domains and credentials |
-| Students receive excessive permissions | Contextual policies, deny tests, supervisor relationships, audit, session isolation |
-| Flexible form builder creates ungoverned clinical data | Versioned approved templates, ownership, effective dates, validation, migration policy |
-| SATUSEHAT/BPJS changes break workflows | Adapter boundary, sandbox contract tests, versioned terminology, reconciliation queue |
-| Shared hosting becomes a bottleneck | Load test early and apply explicit VPS migration triggers |
-| Legacy credentials or data leak into new repo | New secrets, new database, import scripts with review, secret scanning, no copy-paste deployment |
-| Visual polish outruns clinical logic | UX acceptance includes workflow and safety evidence, not screenshots alone |
-| Product claims compliance without certification | Maintain a traceability matrix and require formal compliance review before real-data use |
+| Risk                                                   | Mitigation                                                                                       |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Scope expands into every hospital department at once   | Fund vertical journeys; require exit evidence before the next increment                          |
+| Faculty disagree after implementation                  | Use workflow maps and clickable prototypes before coding each increment                          |
+| Teaching system is mistaken for real clinical care     | Permanent simulation state, synthetic-data guardrails, separated domains and credentials         |
+| Students receive excessive permissions                 | Contextual policies, deny tests, supervisor relationships, audit, session isolation              |
+| Flexible form builder creates ungoverned clinical data | Versioned approved templates, ownership, effective dates, validation, migration policy           |
+| SATUSEHAT/BPJS changes break workflows                 | Adapter boundary, sandbox contract tests, versioned terminology, reconciliation queue            |
+| Shared hosting becomes a bottleneck                    | Load test early and apply explicit VPS migration triggers                                        |
+| Legacy credentials or data leak into new repo          | New secrets, new database, import scripts with review, secret scanning, no copy-paste deployment |
+| Visual polish outruns clinical logic                   | UX acceptance includes workflow and safety evidence, not screenshots alone                       |
+| Product claims compliance without certification        | Maintain a traceability matrix and require formal compliance review before real-data use         |
 
 ## 20. Remaining inputs collected progressively
 

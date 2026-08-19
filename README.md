@@ -28,6 +28,7 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - a manifest-bound, runtime-only release-candidate build that produces a short-lived CI artifact without enabling deployment; and
 - a distinct, read-only longitudinal outpatient record that exposes a curated, source/version/actor/time-attributed event projection during active or completed simulation sessions, while keeping finalized debrief evidence on its own route; and
 - a deterministic, read-only FHIR R4-aligned local interoperability preview for finalized synthetic encounters, with stable source provenance, human-approved ICD-10/ICD-9-CM coding, explicit mapping gaps, and no endpoint or transmission capability; and
+- a capability-gated E-Klaim/BPJS claim simulation that maps only finalized synthetic encounters with approved coding through local `new_claim`, `set_claim_data`, `grouper`, `claim_final`, and deliberately never-sent submission checkpoints, with immutable request/response hashes and no external endpoint; and
 - automated PHP, JavaScript, static-analysis, formatting, build, and database-migration checks.
 
 The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. Draft PR #10 repeated the application, documentation, MySQL 8.4, and non-deploying release-candidate gates successfully without merging or deploying; the first remote artifact was downloaded and verified against both GitHub and embedded integrity metadata. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Later browser passes exercised the distinct longitudinal-record route, human safety-disposition route, patient-requested early-departure route, multi-session work-queue scoping, and unsaved-clinical-draft recovery. The draft-guard passes verified visible navigation plus marked Back/Forward interception, all three explicit choices, append-only save-before-leave, no-version discard, generic expired-session recovery without clinical-text echo, separate-tab same-account reauthentication, authorized retry, 390×844 containment/focus, and a deliberate local-server outage that retained the unsaved nursing delta and recovered through the same authoritative save after restart. The outage produced only its expected network-error diagnostic; the successful retry created exactly one additional immutable version with a distinct hash and minimized audit metadata. Automated accessibility coverage guards the complete sign-in Tab order and programmatic error associations. The Hostinger preflight and non-deploying release-candidate contracts are implemented, but actual account evidence and the separate staging deploy/rollback rehearsal remain pending. Stakeholder validation of the safety questions/dispositions, early-departure vocabulary/roles/incomplete-record policy, longitudinal record, procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
@@ -107,6 +108,8 @@ php artisan simulation:complete-reference-journey
 
 It refuses production, non-synthetic, missing-terminology, and partially progressed contexts. The two fixture codes are attributed manual coder selections from the active releases; the command does not claim that free-text retrieval or autonomous coding is clinically accurate.
 
+After the encounter is finalized, the reference RMIK coder can open **Simulasi E-Klaim** from the encounter, timeline, or debrief. The exercise records five ordered local exchanges and remains permanently `NOT_SENT`; its group and tariff are educational placeholders. See [ADR-013](docs/adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md), the [E-Klaim/BPJS simulation specification](docs/product/ECLAIM_BPJS_SIMULATION_SPEC.md), and the [runbook](docs/operations/ECLAIM_SIMULATION_RUNBOOK.md).
+
 For correction-state UI and accessibility validation, use a separate fresh isolated fixture and prepare exactly one attributed branch:
 
 ```bash
@@ -143,6 +146,10 @@ php artisan ops:hosting-preflight --json
 
 The command returns `INCOMPLETE` until every required Hostinger/GitHub item has sanitized evidence, and `BLOCKED` for unsafe runtime configuration, failed evidence, or malformed evidence. See the [Hostinger staging preflight guide](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md) before supplying an evidence file. A `READY` preflight permits consideration of a separately authorized staging rehearsal; it does not deploy or satisfy `OPS-02`.
 
+## Free synthetic demo hosting
+
+The temporary testing topology runs the complete same-origin Laravel application on Render Free and uses Supabase Free PostgreSQL in a private `laravel` schema. It is a disposable synthetic demonstration environment, not the Hostinger staging/production topology and not a real-care system. See the [Render + Supabase demo runbook](docs/operations/RENDER_SUPABASE_DEMO.md).
+
 ## Non-deploying release candidate
 
 After production dependencies and frontend assets are built in a clean checkout, generate and assemble an identifiable runtime candidate:
@@ -167,6 +174,7 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [ADR-010: Unsaved clinical draft guard](docs/adr/ADR-010-UNSAVED-CLINICAL-DRAFT-GUARD.md)
 - [ADR-011: Disposable reference-session cloning](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md)
 - [ADR-012: Fail-closed multi-session work-queue scoping](docs/adr/ADR-012-MULTI-SESSION-WORK-QUEUE-SCOPING.md)
+- [ADR-013: E-Klaim educational adapter and never-sent simulation](docs/adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md)
 - [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
 - [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
 - [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)
@@ -175,6 +183,8 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [Outpatient acceptance scenarios](docs/product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
 - [Outpatient traceability matrix](docs/product/OUTPATIENT_TRACEABILITY_MATRIX.md)
 - [Computer-assisted coding specification](docs/product/COMPUTER_ASSISTED_CODING_SPEC.md)
+- [E-Klaim and BPJS claim simulation specification](docs/product/ECLAIM_BPJS_SIMULATION_SPEC.md)
+- [E-Klaim simulation runbook](docs/operations/ECLAIM_SIMULATION_RUNBOOK.md)
 - [Coding reference register](docs/research/CODING_REFERENCE_REGISTER.md)
 - [Computer-assisted coding validation record](docs/operations/COMPUTER_ASSISTED_CODING_VALIDATION.md)
 - [Synthetic coding retrieval baseline](docs/operations/CODING_GOLD_SET_BASELINE.md)
