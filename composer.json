@@ -55,6 +55,11 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
         ],
+        "vercel": [
+            "npm ci --include=dev --no-audit --no-fund",
+            "@php artisan wayfinder:generate --with-form",
+            "npm run build"
+        ],
         "lint": [
             "pint --parallel"
         ],

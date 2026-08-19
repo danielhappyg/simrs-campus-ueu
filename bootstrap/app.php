@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
-        // Render terminates TLS at its edge and forwards requests to Apache.
+        // The deployment edge terminates TLS before forwarding requests.
         // Trust only the immediate proxy so URL generation retains HTTPS
         // without accepting spoofed forwarding headers from arbitrary hops.
         $middleware->trustProxies(at: 'REMOTE_ADDR');
