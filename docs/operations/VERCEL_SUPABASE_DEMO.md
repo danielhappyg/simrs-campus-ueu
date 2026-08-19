@@ -14,6 +14,9 @@ reference session.
   application filesystem is read-only and ephemeral.
 - The function region is Singapore (`sin1`) to stay close to the Supabase
   project in `ap-southeast-1`.
+- `public/build` is committed on the Vercel deployment branch. Vercel's generic
+  build container does not provide PHP, so it cannot run Laravel Wayfinder
+  before Vite; the assets must be rebuilt and verified locally before release.
 
 ## Required Vercel environment variables
 
@@ -35,13 +38,16 @@ Set these for Production and Preview without committing their values:
 - `SESSION_ENCRYPT=true`
 - `SESSION_SECURE_COOKIE=true`
 - `CACHE_STORE=database`
-- `QUEUE_CONNECTION=database`
+- `QUEUE_CONNECTION=sync`
 - `LOG_CHANNEL=stderr`
 - `LOG_LEVEL=warning`
 - `DEMO_SEED_ENABLED=false`
 - `DEMO_ACCOUNT_PASSWORD`
 
 ## Deployment boundary
+
+Before publishing a new deployment commit, run `composer run vercel` and commit
+the resulting `public/build` changes together with the application changes.
 
 The PHP runtime is community-supported rather than an official Vercel runtime.
 This is acceptable for the explicitly synthetic demo phase, but it is not the

@@ -1,5 +1,6 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
+    "buildCommand": "echo 'Using verified prebuilt Vite assets for the PHP runtime'",
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.4",
