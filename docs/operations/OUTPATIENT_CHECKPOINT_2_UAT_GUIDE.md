@@ -45,9 +45,11 @@ Do not use `migrate:fresh` against shared or retained data. Do not enable the de
 
 ### 3.1 Prepare one isolated run
 
-Set a new temporary `DEMO_ACCOUNT_PASSWORD` of at least 12 characters in the isolated environment and distribute it only through an approved out-of-band channel. Then enable the exact reserved roster and run the read-only gate from the exact candidate checkout and environment:
+Set a new temporary `DEMO_ACCOUNT_PASSWORD` of at least 12 characters in the isolated environment and distribute it only through an approved out-of-band channel. Then import the exact approved ICD-10 and ICD-9-CM development releases (raw workbooks stay outside Git; hashes are in the [Coding Reference Register](../research/CODING_REFERENCE_REGISTER.md)), enable the reserved roster, and run the read-only gate from the exact candidate checkout and environment:
 
 ```bash
+php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e
+php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78
 php artisan simulation:lab-access enable --confirm=ENABLE-RESERVED-DEMO-ACCESS
 php artisan simulation:lab-preflight
 ```

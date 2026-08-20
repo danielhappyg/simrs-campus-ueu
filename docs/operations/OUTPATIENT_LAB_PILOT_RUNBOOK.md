@@ -39,9 +39,11 @@ Follow the [Foundation Runbook](FOUNDATION_RUNBOOK.md) for first installation. N
 
 Set `DEMO_ACCOUNT_PASSWORD` to a new temporary value of at least 12 characters in the isolated environment. Never write it in the repository, terminal command, UAT record, screenshot, or audit evidence. Distribute it later through an approved out-of-band channel.
 
-From the exact candidate checkout and environment that will be used for the rehearsal, enable the exact reserved roster and then run the read-only gate:
+From the exact candidate checkout and environment that will be used for the rehearsal, import the checksum-locked development terminology releases, enable the exact reserved roster, and then run the read-only gate. Raw ICD workbooks stay outside Git. Use only files whose SHA-256 matches the [Coding Reference Register](../research/CODING_REFERENCE_REGISTER.md). Live SATUSEHAT-linked spreadsheet exports can change; a hash mismatch is `BLOCKED`, not a reason to import a newer file.
 
 ```bash
+php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e
+php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78
 php artisan simulation:lab-access enable --confirm=ENABLE-RESERVED-DEMO-ACCESS
 php artisan simulation:lab-preflight
 ```
