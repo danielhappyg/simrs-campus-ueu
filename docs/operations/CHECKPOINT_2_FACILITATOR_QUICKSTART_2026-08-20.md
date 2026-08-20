@@ -76,3 +76,7 @@ php artisan simulation:lab-access disable --confirm=DISABLE-RESERVED-DEMO-ACCESS
 
 4. Record `DISABLED` or `UNCHANGED` as access-closeout evidence.
 5. Do not interpret this run as merge approval, deployment approval, or faculty-pilot approval.
+
+## Related Daniel packet
+
+Before inviting faculty participants, Daniel should review [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) for merge order, proposed issue classifications, and non-authorizations.

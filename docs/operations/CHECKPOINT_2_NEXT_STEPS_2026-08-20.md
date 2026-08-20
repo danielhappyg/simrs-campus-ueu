@@ -16,6 +16,7 @@ The following artifacts now exist and are aligned:
 - [Outpatient Checkpoint 2 UAT Record — 20 August 2026 Draft](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_2026-08-20_DRAFT.md)
 - [Outpatient Facilitator Rehearsal — 20 August 2026](OUTPATIENT_FACILITATOR_REHEARSAL_2026-08-20.md)
 - [Checkpoint 2 Facilitator Quickstart — 20 August 2026](CHECKPOINT_2_FACILITATOR_QUICKSTART_2026-08-20.md)
+- [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md)
 - [Dependency Hygiene Baseline — 20 August 2026](DEPENDENCY_HYGIENE_BASELINE_2026-08-20.md)
 - [Dependency Update Candidates — 20 August 2026](DEPENDENCY_UPDATE_CANDIDATES_2026-08-20.md)
 - [GitHub Publication Checklist](GITHUB_PUBLICATION_CHECKLIST.md)
@@ -68,5 +69,5 @@ The following artifacts now exist and are aligned:
 
 Highest-value next actions after this docs PR:
 
-1. Daniel classifies `UAT-20260820-001`–`004` and marks scenario outcomes in the dated draft; or
+1. Use the [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) to review/merge PRs #26–#29 and classify `UAT-20260820-001`–`004`; or
 2. run the remaining draft-guard / deny-case / branch scenarios against a fresh disposable session and append evidence to a new dated UAT copy.
