@@ -1,7 +1,7 @@
 # Coding Reference Register
 
-- **Version:** 1.4
-- **Evidence checked:** 16 July 2026
+- **Version:** 1.5
+- **Evidence checked:** 20 August 2026
 - **Scope:** diagnosis and procedure terminology for the SIMRS Campus UEU outpatient reference MVP
 - **Product decision:** include computer-assisted coding with mandatory human confirmation
 - **Clinical-use boundary:** synthetic teaching cases only; not a production coding authority, grouper, or claim engine
@@ -29,6 +29,16 @@ Observed workbook metadata identifies the creator as `Adiet` and does not itself
 - the local ICD-9-CM workbook is byte-for-byte identical to a fresh export from the [public sheet linked by SATUSEHAT](https://docs.google.com/spreadsheets/d/1uw9aEzM61rsp7PVt7dRHt2eATg64qQB_/edit?gid=0); both have SHA-256 `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78` and the same 4,626 populated rows in the same order.
 
 This proves the supplied files match the current official-linked reference exports. It does not by itself grant permission to republish the raw workbooks in this repository.
+
+Rechecked 20 August 2026:
+
+- the approved SHA-256 values above remain the Checkpoint 2 development-release contract;
+- a live Excel export from the same SATUSEHAT-linked ICD-10 sheet no longer matched `3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e`;
+- a live Excel export from the same SATUSEHAT-linked ICD-9-CM sheet no longer matched `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78`;
+- a local copy named `[PUBLIC] ICD-10 e-klaim.xlsx` still matched REF-COD-002 and was imported into the isolated local SQLite fixture;
+- a local copy named `[PUBLIC] ICD-9CM e-klaim.xlsx` (without the original `(1)` suffix) did **not** match REF-COD-001 and was not imported.
+
+A hash mismatch is a blocked laboratory gate. It is not permission to activate a newer live-sheet export. Restore the exact REF-COD-001 bytes before `simulation:lab-preflight` can report `READY`.
 
 ## 3. Official cross-check
 

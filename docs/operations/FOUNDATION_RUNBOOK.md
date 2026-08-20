@@ -64,13 +64,13 @@ php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --
 
 The command requires the same explicit demo-fixture and synthetic-only opt-in, refuses production and progressed/malformed sources, generates new public/case/identifier/stock-lot values, remaps all assignment and task references, records `source_session_id` plus minimized audit provenance, and copies no clinical state. Every failure rolls back the full target graph. A negative appointment offset exists only to make the isolated no-show branch immediately executable; it is not a policy decision about session duration or scheduling. Use a unique uppercase code per run and never use this command as a substitute for retention governance.
 
-## Optional terminology-release import
+## Terminology-release import
 
-The computer-assisted coding workspace requires an active ICD-10 release. ICD-9-CM remains a separate procedure reference. Raw workbooks stay outside Git and are imported only after an operator verifies the exact expected SHA-256:
+The computer-assisted coding workspace requires an active ICD-10 release. ICD-9-CM remains a separate procedure reference. Checkpoint 2 `simulation:lab-preflight` reports `READY` only when both exact checksummed development releases are active. Raw workbooks stay outside Git and are imported only after an operator verifies the SHA-256 values in the [Coding Reference Register](../research/CODING_REFERENCE_REGISTER.md):
 
 ```bash
-php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=<64-character-approved-hash>
-php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=<64-character-approved-hash>
+php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e
+php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78
 ```
 
 The synthetic facilitator assignment owns `terminology.manage` in the reference fixture. A hosted environment must assign this capability deliberately; a coder cannot import or activate catalogs. Re-importing an identical checksummed source is idempotent. Activating a different valid source supersedes the prior active release without rewriting historical records.
