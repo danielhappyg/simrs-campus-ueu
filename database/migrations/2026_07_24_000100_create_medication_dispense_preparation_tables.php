@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('change_reason')->nullable();
             $table->foreignId('supersedes_preparation_id')
                 ->nullable()
-                ->constrained('medication_dispense_preparations')
+                ->constrained('medication_dispense_preparations', 'id', 'mdp_supersedes_fk')
                 ->restrictOnDelete();
             $table->foreignId('preparer_user_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('preparer_assignment_id')->constrained('assignments')->restrictOnDelete();
@@ -44,13 +44,13 @@ return new class extends Migration
             $table->ulid('public_id')->unique();
             $table->ulid('request_key')->unique();
             $table->foreignId('medication_dispense_preparation_id')
-                ->constrained('medication_dispense_preparations')
+                ->constrained('medication_dispense_preparations', 'id', 'mdpr_preparation_fk')
                 ->restrictOnDelete();
             $table->string('action');
             $table->char('source_content_hash', 64);
             $table->text('comment')->nullable();
             $table->foreignId('checker_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('checker_assignment_id')->constrained('assignments')->restrictOnDelete();
+            $table->foreignId('checker_assignment_id')->constrained('assignments', 'id', 'mdpr_checker_assignment_fk')->restrictOnDelete();
             $table->timestamp('reviewed_at');
             $table->timestamps();
 

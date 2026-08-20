@@ -4,6 +4,7 @@
 - **Scope:** one shared synthetic outpatient case in SIMRS Campus UEU
 - **Decision authority:** Daniel Happy Putra, project manager/PIC
 - **Evidence boundary:** teaching workflow acceptance only; never clinical-use approval
+- **Hosted environment:** isolated synthetic run (local or the current Vercel + Supabase demo). Campus production hosting is TBD. See [Current hosting posture](CURRENT_HOSTING_POSTURE.md).
 
 ## 1. Purpose
 
@@ -419,10 +420,12 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The multi-session work-queue selector has backend, React interaction, automated accessibility, and bounded native-browser evidence with two simultaneous disposable sessions. The development rehearsal verified fail-closed no-selection and invalid-selection behavior, exact URL/session/task provenance, desktop/mobile containment, and empty retained warning/error logs. Full native sequential keyboard traversal and stakeholder UAT remain pending.
 - No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
 - Emergency, inpatient, nutrition, psychology, physiotherapy, and other deferred programs/modules are not part of this checkpoint.
-- Draft PR #10 passed the application, documentation, and MySQL 8.4 checks. Hostinger staging deployment/rollback remains pending hosting authorization and a separate deployment decision.
+- The outpatient reference journey is on `main`. Checkpoint 2 may use a local isolated fixture or the current Vercel + Supabase synthetic demo. Campus staging deployment/rollback remains pending IT inventory and a separate hosting decision.
 
 ## 12. Related contracts
 
+- [Current hosting posture](CURRENT_HOSTING_POSTURE.md)
+- [Vercel + Supabase synthetic demo](VERCEL_SUPABASE_DEMO.md)
 - [Checkpoint 2 UAT Record Template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md)
 - [Outpatient Acceptance Scenarios](../product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
 - [Assumption and Validation Register](../product/ASSUMPTION_AND_VALIDATION_REGISTER.md)

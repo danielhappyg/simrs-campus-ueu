@@ -24,14 +24,14 @@ The research, product contract, UEU Clinical design package, and secure applicat
 - a versioned synthetic coding retrieval evaluator with separate diagnosis/procedure top-1/top-5 reporting, negative controls, ambiguity controls, and unapproved Indonesian/stress proposals kept outside reference metrics;
 - coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and
 - guarded simulation commands that can either complete a fresh reference fixture or stop at an active diagnosis/procedure correction through the same domain services for demonstration and staged validation; and
-- a read-only, fail-closed Hostinger staging preflight that separates automated runtime checks from sanitized manual account evidence; and
+- a read-only, fail-closed hosting capability preflight for a future shared PHP host (optional; not required for the current Vercel + Supabase demo); and
 - a manifest-bound, runtime-only release-candidate build that produces a short-lived CI artifact without enabling deployment; and
 - a distinct, read-only longitudinal outpatient record that exposes a curated, source/version/actor/time-attributed event projection during active or completed simulation sessions, while keeping finalized debrief evidence on its own route; and
 - a deterministic, read-only FHIR R4-aligned local interoperability preview for finalized synthetic encounters, with stable source provenance, human-approved ICD-10/ICD-9-CM coding, explicit mapping gaps, and no endpoint or transmission capability; and
 - a capability-gated E-Klaim/BPJS claim simulation that maps only finalized synthetic encounters with approved coding through local `new_claim`, `set_claim_data`, `grouper`, `claim_final`, and deliberately never-sent submission checkpoints, with immutable request/response hashes and no external endpoint; and
 - automated PHP, JavaScript, static-analysis, formatting, build, and database-migration checks.
 
-The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. Draft PR #10 repeated the application, documentation, MySQL 8.4, and non-deploying release-candidate gates successfully without merging or deploying; the first remote artifact was downloaded and verified against both GitHub and embedded integrity metadata. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Later browser passes exercised the distinct longitudinal-record route, human safety-disposition route, patient-requested early-departure route, multi-session work-queue scoping, and unsaved-clinical-draft recovery. The draft-guard passes verified visible navigation plus marked Back/Forward interception, all three explicit choices, append-only save-before-leave, no-version discard, generic expired-session recovery without clinical-text echo, separate-tab same-account reauthentication, authorized retry, 390×844 containment/focus, and a deliberate local-server outage that retained the unsaved nursing delta and recovered through the same authoritative save after restart. The outage produced only its expected network-error diagnostic; the successful retry created exactly one additional immutable version with a distinct hash and minimized audit metadata. Automated accessibility coverage guards the complete sign-in Tab order and programmatic error associations. The Hostinger preflight and non-deploying release-candidate contracts are implemented, but actual account evidence and the separate staging deploy/rollback rehearsal remain pending. Stakeholder validation of the safety questions/dispositions, early-departure vocabulary/roles/incomplete-record policy, longitudinal record, procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until the Hostinger preflight and rollback design are verified.
+The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. The outpatient reference journey is merged on `main`. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Later browser passes exercised the distinct longitudinal-record route, human safety-disposition route, patient-requested early-departure route, multi-session work-queue scoping, and unsaved-clinical-draft recovery. The draft-guard passes verified visible navigation plus marked Back/Forward interception, all three explicit choices, append-only save-before-leave, no-version discard, generic expired-session recovery without clinical-text echo, separate-tab same-account reauthentication, authorized retry, 390×844 containment/focus, and a deliberate local-server outage that retained the unsaved nursing delta and recovered through the same authoritative save after restart. Automated accessibility coverage guards the complete sign-in Tab order and programmatic error associations. The current hosted demo uses Vercel + Supabase; campus production hosting remains TBD. Shared-hosting preflight and campus deploy/rollback rehearsal remain pending until IT inventory is known. Stakeholder validation of the safety questions/dispositions, early-departure vocabulary/roles/incomplete-record policy, longitudinal record, procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until campus hosting evidence and rollback design are verified.
 
 ## Local development
 
@@ -136,19 +136,25 @@ npm run build
 
 The application workflow also validates dependency manifests, vulnerability advisories, and MySQL migrations. See the [foundation runbook](docs/operations/FOUNDATION_RUNBOOK.md) for environment checks and recovery boundaries.
 
-## Read-only hosting preflight
+## Current hosting posture
 
-On the exact built staging runtime, collect a machine-readable result without changing the host:
+The active hosted demo uses **Vercel + Supabase Free** for synthetic teaching data only. Campus production hosting is **TBD** when IT availability is known. See [Current hosting posture](docs/operations/CURRENT_HOSTING_POSTURE.md).
+
+## Free synthetic demo hosting (active)
+
+The current testing topology runs the complete same-origin Laravel application on **Vercel** and uses **Supabase Free PostgreSQL** in a private `laravel` schema. It is a disposable synthetic demonstration environment, not a campus production host and not a real-care system. See the [Vercel + Supabase demo runbook](docs/operations/VERCEL_SUPABASE_DEMO.md).
+
+An alternate disposable path using Render Free + Supabase remains documented in the [Render + Supabase demo runbook](docs/operations/RENDER_SUPABASE_DEMO.md).
+
+## Optional shared-hosting preflight
+
+For a future campus or shared PHP host, collect a machine-readable capability assessment without changing the runtime:
 
 ```bash
 php artisan ops:hosting-preflight --json
 ```
 
-The command returns `INCOMPLETE` until every required Hostinger/GitHub item has sanitized evidence, and `BLOCKED` for unsafe runtime configuration, failed evidence, or malformed evidence. See the [Hostinger staging preflight guide](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md) before supplying an evidence file. A `READY` preflight permits consideration of a separately authorized staging rehearsal; it does not deploy or satisfy `OPS-02`.
-
-## Free synthetic demo hosting
-
-The temporary testing topology runs the complete same-origin Laravel application on Render Free and uses Supabase Free PostgreSQL in a private `laravel` schema. It is a disposable synthetic demonstration environment, not the Hostinger staging/production topology and not a real-care system. See the [Render + Supabase demo runbook](docs/operations/RENDER_SUPABASE_DEMO.md).
+The command returns `INCOMPLETE` until every required manual item has sanitized evidence, and `BLOCKED` for unsafe runtime configuration, failed evidence, or malformed evidence. See the [Hostinger staging preflight guide](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md) for the optional shared-hosting reference schema. This is **not required** for the current Vercel + Supabase demo. A `READY` preflight permits consideration of a separately authorized staging rehearsal on a future host; it does not deploy or satisfy `OPS-02`.
 
 ## Non-deploying release candidate
 
@@ -159,7 +165,7 @@ php artisan ops:release-manifest release-manifest.json --commit=<checked-out-sha
 php artisan ops:assemble-release release-manifest.json storage/app/release-candidate
 ```
 
-CI performs these steps only after the application and MySQL jobs pass, then uploads a short-lived immutable tar plus SHA-256 sidecar. It does not contact Hostinger, expose environment secrets, migrate a database, switch a release, merge, or deploy. See the [release candidate artifact guide](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md).
+CI performs these steps only after the application and MySQL jobs pass, then uploads a short-lived immutable tar plus SHA-256 sidecar. It does not contact a deployment host, expose environment secrets, migrate a database, switch a release, merge, or deploy. See the [release candidate artifact guide](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md).
 
 ## Product and architecture references
 
@@ -189,7 +195,10 @@ CI performs these steps only after the application and MySQL jobs pass, then upl
 - [Computer-assisted coding validation record](docs/operations/COMPUTER_ASSISTED_CODING_VALIDATION.md)
 - [Synthetic coding retrieval baseline](docs/operations/CODING_GOLD_SET_BASELINE.md)
 - [Local MySQL and recovery validation](docs/operations/LOCAL_MYSQL_RECOVERY_VALIDATION.md)
-- [Hostinger staging preflight](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md)
+- [Current hosting posture](docs/operations/CURRENT_HOSTING_POSTURE.md)
+- [Vercel + Supabase synthetic demo](docs/operations/VERCEL_SUPABASE_DEMO.md)
+- [Render + Supabase demo](docs/operations/RENDER_SUPABASE_DEMO.md)
+- [Shared-hosting preflight reference (optional)](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md)
 - [Release candidate artifact](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md)
 - [Checkpoint 2 outpatient UAT facilitator guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
 - [Checkpoint 2 outpatient UAT record template](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md)

@@ -1,9 +1,11 @@
 # Hostinger Staging Preflight
 
+> **Status note (August 2026):** Hostinger is no longer the active deployment target. The project currently uses the free [Vercel + Supabase synthetic demo](VERCEL_SUPABASE_DEMO.md). See [Current hosting posture](CURRENT_HOSTING_POSTURE.md). This document is retained as an optional shared-hosting preflight reference if campus IT later provides a similar PHP hosting arrangement.
+
 - **Boundary:** read-only capability and safety assessment
-- **Target:** a separate Hostinger staging environment for synthetic simulation data
+- **Target:** a separate shared PHP staging environment for synthetic simulation data (Hostinger was the original reference target)
 - **Authorization:** this procedure does not deploy, merge, create infrastructure, or authorize a faculty pilot
-- **Current state:** command implemented; actual account evidence and `OPS-02` deployment/rollback rehearsal pending
+- **Current state:** command implemented; not required for the active Vercel + Supabase demo; `OPS-02` deployment/rollback rehearsal remains pending for any future campus host
 
 ## Purpose
 

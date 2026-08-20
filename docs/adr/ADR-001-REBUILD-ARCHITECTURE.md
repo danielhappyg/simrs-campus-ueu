@@ -2,6 +2,7 @@
 
 - **Status:** Accepted for the simulation reference build
 - **Date:** 2026-07-15
+- **Hosting note (August 2026):** The modular-monolith decision stands. The original Hostinger-first delivery path is demoted: the current synthetic demo uses Vercel + Supabase; campus production hosting is TBD. See [Current hosting posture](../operations/CURRENT_HOSTING_POSTURE.md).
 - **Decision owner:** Daniel Happy Putra, project manager/PIC
 - **Scope:** Replacement of the legacy SIMRS RMIK application
 

@@ -29,7 +29,7 @@ The first product is a **teaching and simulation system**, not a live clinical-c
 | Primary interface language | Indonesian, with recognized clinical/technical terminology where appropriate |
 | Student work | Drafted by students and reviewed or approved by an authorized lecturer/supervisor |
 | External systems | BPJS and SATUSEHAT simulation or approved sandbox connections only |
-| Initial hosting | Hostinger, conditional on technical preflight and a documented migration trigger |
+| Initial hosting | **Vercel + Supabase Free** for the current synthetic demo; **campus hosting TBD** when IT availability is known |
 | Legacy application | Reference mock-up only; no code or database migration requirement |
 
 ## 3. First pilot
@@ -120,7 +120,7 @@ The first pilot is successful when:
 | D-004 | Medicine, nursing, RMIK, and pharmacy participate in the first pilot. | Approved |
 | D-005 | Nutrition, psychology, and physiotherapy enter after the common foundation is proven. | Approved |
 | D-006 | The legacy system is reference material, not a migration source or remediation workstream. | Approved |
-| D-007 | Hostinger is conditional on infrastructure and rollback preflight. | Approved in principle; technical validation pending |
+| D-007 | Campus production hosting is TBD; Vercel + Supabase is the current free synthetic demo; shared PHP hosting such as Hostinger remains one possible future option pending IT decision and preflight. | Approved in principle; campus target pending |
 
 ## 10. Reference-build operating model
 
@@ -150,10 +150,11 @@ Stakeholder names are not required to begin the reference build. Daniel may appo
 - Typical class/simulation duration
 - Existing forms, SOPs, rubrics, or course outcomes that should inform the outpatient case
 - Available combined validation-session date and format
-- Hostinger plan and environment capabilities
+- Campus IT hosting inventory and environment capabilities when available
 
 ## References
 
+- [Current hosting posture](operations/CURRENT_HOSTING_POSTURE.md)
 - [Campus master plan](SIMRS_CAMPUS_MASTER_PLAN.md)
 - [Project start checklist](PROJECT_START_CHECKLIST.md)
 - [Legacy assessment](LEGACY_ASSESSMENT.md)

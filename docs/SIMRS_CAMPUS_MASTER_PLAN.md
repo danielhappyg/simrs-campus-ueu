@@ -21,7 +21,7 @@ The reference MVP includes **computer-assisted coding**: versioned ICD-10 diagno
 - **Build strategy:** Greenfield rebuild; legacy retained as a requirements reference
 - **Architecture:** Laravel 13 modular monolith + React/TypeScript, same-origin, MySQL
 - **Delivery:** Vertical patient-journey increments, not isolated menu modules
-- **Hosting:** Hostinger initially, with explicit capacity/security migration triggers
+- **Hosting:** Vercel + Supabase for the current synthetic demo; campus production hosting TBD, with shared PHP hosting as one possible future option
 - **Data posture:** Synthetic data by default; no real patient data in the teaching environment
 - **Integration posture:** SATUSEHAT sandbox and BPJS simulation adapters until formal access and governance exist
 - **Interaction model:** Student drafts + supervisor review/sign-off + immutable activity trail
@@ -410,7 +410,9 @@ Every user story must satisfy applicable items:
 - performance budget at representative cohort size; and
 - deployment to staging with a passing health check.
 
-## 15. GitHub and Hostinger delivery model
+## 15. GitHub and delivery model
+
+> **Hosting note (August 2026):** The active hosted demo uses [Vercel + Supabase](operations/VERCEL_SUPABASE_DEMO.md). See [Current hosting posture](operations/CURRENT_HOSTING_POSTURE.md). The SSH/shared-hosting pipeline below describes one possible future campus deployment path (including Hostinger-style shared PHP hosting), not the current working environment.
 
 ### 15.1 Repository workflow
 
@@ -427,7 +429,7 @@ Every user story must satisfy applicable items:
 | ------------------- | -------------------------------------- | ---------------------------------------- |
 | Local               | generated synthetic fixtures           | developer controlled                     |
 | CI                  | ephemeral generated fixtures           | every pull request                       |
-| Staging             | synthetic teaching data                | automatic from approved `main`           |
+| Staging             | synthetic teaching data                | Vercel + Supabase demo today; campus staging TBD |
 | Production teaching | synthetic course data                  | manual approval from a versioned release |
 | Future clinical     | separate infrastructure and governance | out of initial scope                     |
 
@@ -524,7 +526,7 @@ Rather than blocking construction on a permanent steering group, relevant medici
 2. **Checkpoint 1 — combined workflow review:** inspect one concrete outpatient model across medicine, nursing, RMIK, pharmacy, and teaching; classify corrections.
 3. **Reference implementation:** build the tested vertical slice using safe configurable assumptions.
 4. **Checkpoint 2 — end-to-end UAT:** run one shared synthetic case and validate handoffs, terminology, supervision, correction, and learning usefulness.
-5. **Infrastructure validation:** verify Hostinger/staging, backup/restore, deployment/rollback, security, and accessibility.
+5. **Infrastructure validation:** verify the current demo (Vercel + Supabase) plus eventual campus staging, backup/restore, deployment/rollback, security, and accessibility when IT inventory is known.
 6. **Checkpoint 3 — pilot readiness:** Daniel makes the product release decision with applicable institutional review evidence.
 
 ### 17.4 Questions for every study program
@@ -588,7 +590,7 @@ Simulation scope, outpatient priority, initial programs, Indonesian UI, supervis
 2. learner identity source: local accounts initially, then university SSO/roster decision;
 3. expected cohort and concurrency;
 4. authoritative UEU brand asset/usage confirmation;
-5. actual Hostinger plan capabilities and deployment/rollback evidence;
+5. campus hosting inventory and deployment/rollback evidence when IT availability is known;
 6. workflow/teaching validators for Checkpoints 1 and 2; and
 7. institutional privacy/security/IT reviewer for Checkpoint 3.
 
@@ -613,7 +615,7 @@ Simulation scope, outpatient priority, initial programs, Indonesian UI, supervis
 - Build patient/registration/encounter primitives and the persistent patient context.
 - Deliver nursing intake/safety screen, medical assessment, order/result, pharmacy, closure, and RMIK review as one end-to-end slice.
 - Run automated verification and combined stakeholder UAT against the working model.
-- Complete Hostinger preflight, staging deployment/rollback, and pilot-readiness evidence before release.
+- Complete campus-host preflight, staging deployment/rollback, and pilot-readiness evidence before a faculty-pilot release. The current Vercel + Supabase demo is not that campus host.
 
 Do not start by recreating all legacy menu tiles.
 

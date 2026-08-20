@@ -22,7 +22,7 @@ Required roles:
 
 Required technical conditions:
 
-- a non-production environment dedicated to the rehearsal;
+- a non-production environment dedicated to the rehearsal (local isolated database or the current Vercel + Supabase synthetic demo; campus production hosting is TBD — see [Current hosting posture](CURRENT_HOSTING_POSTURE.md));
 - an identifiable tested commit or release candidate;
 - a separate application key, database, private storage, and access boundary;
 - `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, and `DEMO_SEED_ENABLED=true`;
@@ -169,4 +169,4 @@ The outpatient MVP is ready for Daniel to consider a controlled faculty pilot on
 - recovery and exact-roster access enablement/revocation have been rehearsed with sanitized audit evidence; and
 - Daniel provides a separate written faculty-pilot authorization.
 
-Until then, describe the system as a **synthetic outpatient reference MVP under guided laboratory validation**.
+Until then, describe the system as a **synthetic outpatient reference MVP under guided laboratory validation**. The current Vercel + Supabase URL is a disposable demo, not faculty-pilot hosting.
