@@ -38,9 +38,10 @@ The following artifacts now exist and are aligned:
      - `tests/Feature/WorkTaskInvariantTest.php` covers cross-assignment session boundary and capability deny cases
      - Faculty UAT still needs observed browser evidence on a disposable session for UAT-02/03/09 residual notes
 
-4. **Review fix PR for orphan draft orders**
+4. **Review faculty-correction fix PRs**
    - [PR #27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) cancels superseded DRAFT service/medication requests when a successor medical version is created (addresses `UAT-20260820-002` / `003`).
-   - Merge/test decision remains Daniel's; do not treat the PR alone as faculty PASS.
+   - [PR #28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) surfaces session synthetic stock on medical prescribing and names mismatched lots in pharmacy FEFO alerts (addresses `UAT-20260820-001`).
+   - Merge/test decision remains Daniel's; do not treat the PRs alone as faculty PASS.
 
 5. **Daniel classification of the dated UAT draft**
    - Scenarios UAT-01–UAT-10 are largely `DECISION REQUIRED` with live evidence notes.
