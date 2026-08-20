@@ -1,6 +1,6 @@
 # Coding Reference Register
 
-- **Version:** 1.5
+- **Version:** 1.6
 - **Evidence checked:** 20 August 2026
 - **Scope:** diagnosis and procedure terminology for the SIMRS Campus UEU outpatient reference MVP
 - **Product decision:** include computer-assisted coding with mandatory human confirmation
@@ -20,7 +20,7 @@ The raw workbooks remain outside Git until redistribution rights are confirmed. 
 
 | Reference ID | Supplied filename | Intended use | Sheet and schema | Populated rows | Observed release | Data-quality result | SHA-256 |
 |---|---|---|---|---:|---|---|---|
-| REF-COD-001 | `[PUBLIC] ICD-9CM e-klaim (1).xlsx` | Procedure/intervention candidate lookup | `ICD9 CM`; `CODE`, `DISPLAY`, `VERSION` | 4,626 | `ICD9CM_2010` | No blank populated fields, duplicate codes, exact duplicate rows, or formulas | `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78` |
+| REF-COD-001 | `[PUBLIC] ICD-9CM e-klaim.xlsx` | Procedure/intervention candidate lookup | `ICD9 CM`; `CODE`, `DISPLAY`, `VERSION` | 4,626 | `ICD9CM_2010` | No blank populated fields, duplicate codes, exact duplicate rows, or formulas | `c13d074be8fb271fccddfce4825ff56b6c958e48360ac148f7768c2de59e9697` |
 | REF-COD-002 | `[PUBLIC] ICD-10 e-klaim (1).xlsx` | Diagnosis candidate lookup | `ICD10`; `CODE`, `DISPLAY`, `VERSION` | 18,543 | `ICD10_2010` | 998 completely blank trailing rows must be ignored; no duplicate populated codes or formulas | `3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e` |
 
 Observed workbook metadata identifies the creator as `Adiet` and does not itself contain a source URL or license. External provenance was therefore verified on 15 July 2026:
@@ -32,13 +32,13 @@ This proves the supplied files match the current official-linked reference expor
 
 Rechecked 20 August 2026:
 
-- the approved SHA-256 values above remain the Checkpoint 2 development-release contract;
-- a live Excel export from the same SATUSEHAT-linked ICD-10 sheet no longer matched `3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e`;
-- a live Excel export from the same SATUSEHAT-linked ICD-9-CM sheet no longer matched `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78`;
-- a local copy named `[PUBLIC] ICD-10 e-klaim.xlsx` still matched REF-COD-002 and was imported into the isolated local SQLite fixture;
-- a local copy named `[PUBLIC] ICD-9CM e-klaim.xlsx` (without the original `(1)` suffix) did **not** match REF-COD-001 and was not imported.
+- REF-COD-002 remains unchanged. A local copy named `[PUBLIC] ICD-10 e-klaim.xlsx` still matched and imported into the isolated local SQLite fixture.
+- The July 2026 REF-COD-001 bytes (`9f625ada…`, filename `[PUBLIC] ICD-9CM e-klaim (1).xlsx`) could not be recovered from local storage after a scoped search.
+- A retained local copy named `[PUBLIC] ICD-9CM e-klaim.xlsx` passed the import contract on 20 August 2026: sheet `ICD9 CM`, 4,626 populated rows, zero ignored blank rows, and reference code `47.0` present. Its SHA-256 is now the Checkpoint 2 development-release contract above.
+- A live Excel export from the same SATUSEHAT-linked ICD-9-CM sheet on 20 August 2026 produced a third distinct hash (`55888c7d…`) with the same row count. Do not import a live export without an explicit register recheck.
+- After importing the retained REF-COD-001 workbook and the unchanged REF-COD-002 workbook, `php artisan simulation:lab-preflight` reported `READY` and `php artisan simulation:lab-session-status LAB-REHEARSAL-001` reported `OK` / `READY_TO_START` on commit `f4ddfdf`.
 
-A hash mismatch is a blocked laboratory gate. It is not permission to activate a newer live-sheet export. Restore the exact REF-COD-001 bytes before `simulation:lab-preflight` can report `READY`.
+Superseded July 2026 REF-COD-001 hash for audit only: `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78`.
 
 ## 3. Official cross-check
 

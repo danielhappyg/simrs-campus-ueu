@@ -111,7 +111,7 @@ const props: CodingWorkspaceProps = {
                 publicId: '01J00000000000000000000008',
                 logicalVersion: 'ICD9CM_2010',
                 status: { code: 'ACTIVE', label: 'Aktif' },
-                sourceFilename: '[PUBLIC] ICD-9CM e-klaim (1).xlsx',
+                sourceFilename: '[PUBLIC] ICD-9CM e-klaim.xlsx',
                 sourceSha256: '9'.repeat(64),
                 rowCount: 4626,
                 ignoredBlankRows: 0,

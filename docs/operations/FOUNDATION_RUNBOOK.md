@@ -70,7 +70,7 @@ The computer-assisted coding workspace requires an active ICD-10 release. ICD-9-
 
 ```bash
 php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e
-php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78
+php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=c13d074be8fb271fccddfce4825ff56b6c958e48360ac148f7768c2de59e9697
 ```
 
 The synthetic facilitator assignment owns `terminology.manage` in the reference fixture. A hosted environment must assign this capability deliberately; a coder cannot import or activate catalogs. Re-importing an identical checksummed source is idempotent. Activating a different valid source supersedes the prior active release without rewriting historical records.

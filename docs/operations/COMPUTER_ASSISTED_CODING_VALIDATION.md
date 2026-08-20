@@ -27,7 +27,7 @@ The raw workbooks remain outside Git. They were imported locally with an explici
 | System   | Logical version | Active rows | Ignored blank rows | SHA-256                                                            | Spot check                      |
 | -------- | --------------- | ----------: | -----------------: | ------------------------------------------------------------------ | ------------------------------- |
 | ICD-10   | `ICD10_2010`    |      18,543 |                998 | `3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e` | `R42 — Dizziness and giddiness` |
-| ICD-9-CM | `ICD9CM_2010`   |       4,626 |                  0 | `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78` | `47.0 — Appendectomy`           |
+| ICD-9-CM | `ICD9CM_2010`   |       4,626 |                  0 | `c13d074be8fb271fccddfce4825ff56b6c958e48360ac148f7768c2de59e9697` | `47.0 — Appendectomy`           |
 
 The importer rejects an incorrect checksum, wrong sheet/header/version, invalid code, formula cell, unexpected populated column, partial blank row, or duplicate code before activation. A new valid release supersedes the prior active release without changing historical concepts, runs, decisions, or assignments.
 
