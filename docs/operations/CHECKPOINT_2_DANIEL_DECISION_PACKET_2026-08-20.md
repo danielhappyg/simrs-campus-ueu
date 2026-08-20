@@ -39,7 +39,7 @@ Primary evidence remains [Outpatient Checkpoint 2 UAT Record — 20 August 2026 
 | UAT-01–UAT-10 main journey | Local `LAB-REHEARSAL-001` / `ENC-SIM-Q0XZYBHFMREY` to `FINALIZED` (mixed browser + authenticated services) | PASS / FAIL / DECISION REQUIRED per scenario |
 | UAT-00 safety/assignment | Automated support exists (work-queue scope, unsafe env fail-closed, synthetic boundary elsewhere) | Faculty/browser confirmation before PASS |
 | Draft-guard residuals (UAT-02/03) | Unit coverage in `unsaved-changes-guard.test.tsx` | Observed disposable-session browser dirty-nav / Back / expired-session |
-| Deny-case residuals (UAT-09/10) | Feature coverage: work-queue isolation, timeline/debrief/interop exact-case denials | Observed unrelated-assignment browser deny on finalized routes |
+| Deny-case residuals (UAT-09/10) | Feature coverage + residual actingAs probes on `CP2-RESIDUAL-001` / tip `7d667de` | Observed facilitator-browser deny confirmation if you still require it before PASS; VAL-U05 retain/revise/remove |
 | Branch scenarios (01A/01B, 02B/02C, C01/C02) | Mostly `NOT RUN` | Fresh disposable fixtures if you require them before acceptance |
 
 ## 4. Automated evidence map (supports, does not replace PASS)
@@ -53,6 +53,7 @@ Primary evidence remains [Outpatient Checkpoint 2 UAT Record — 20 August 2026 
 - Stock alignment UX: PR #28 + pharmacy dispense-form unit tests
 - Coding honesty: PR #29 + gold-set `DX-ID-004` OBSERVED as `NO_RELIABLE_CANDIDATE`
 - Post-merge local recheck (tip `5f8baf2`, 20 Aug 2026 evening): 49 related PHPUnit + 15 Vitest cases passed — still not faculty PASS
+- Residual deny addendum (tip `7d667de`): disposable `CP2-RESIDUAL-001` FINALIZED + 32 targeted PHPUnit deny cases + actingAs HTTP probes documented in the dated UAT draft §8A — still not faculty PASS
 
 ## 5. VAL decisions still only you can close
 
