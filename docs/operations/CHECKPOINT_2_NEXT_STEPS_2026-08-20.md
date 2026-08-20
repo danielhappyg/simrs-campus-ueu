@@ -41,6 +41,7 @@ The following artifacts now exist and are aligned:
 4. **Review faculty-correction fix PRs**
    - [PR #27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) cancels superseded DRAFT service/medication requests when a successor medical version is created (addresses `UAT-20260820-002` / `003`).
    - [PR #28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) surfaces session synthetic stock on medical prescribing and names mismatched lots in pharmacy FEFO alerts (addresses `UAT-20260820-001`).
+   - [PR #29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) records Indonesian coding honesty guidance + gold-set observation `DX-ID-004` without activating aliases (addresses `UAT-20260820-004` / VAL-A16).
    - Merge/test decision remains Daniel's; do not treat the PRs alone as faculty PASS.
 
 5. **Daniel classification of the dated UAT draft**
