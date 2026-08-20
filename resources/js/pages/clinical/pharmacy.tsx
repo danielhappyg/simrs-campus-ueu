@@ -659,8 +659,25 @@ export function DispenseForm({
                     className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950"
                 >
                     Tidak ada lot stok sintetis dengan nama obat dan unit yang
-                    sama. Catat outcome “Tidak diserahkan” beserta alasannya;
-                    sistem tidak melakukan substitusi otomatis.
+                    sama untuk “{medicationRequest.authoredMedication}” /{' '}
+                    {medicationRequest.quantityUnit}.
+                    {stocks.length > 0 ? (
+                        <>
+                            {' '}
+                            Lot sesi saat ini:{' '}
+                            {stocks
+                                .map(
+                                    (stock) =>
+                                        `${stock.authoredMedication} (${stock.unit})`,
+                                )
+                                .join('; ')
+                            }.
+                        </>
+                    ) : (
+                        <> Tidak ada lot stok sintetis aktif pada sesi ini.</>
+                    )}{' '}
+                    Catat outcome “Tidak diserahkan” beserta alasannya; sistem
+                    tidak melakukan substitusi otomatis.
                 </div>
             )}
             <InputError message={errors.workflow} className="mt-2" />

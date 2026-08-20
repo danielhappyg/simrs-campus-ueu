@@ -266,6 +266,12 @@ export type MedicalAssessmentWorkspaceProps = ClinicalWorkspaceBase & {
         intents: Array<'SAVE_DRAFT' | 'SUBMIT'>;
         diagnosisCertainties: CodedStatus[];
         diagnosisRoles: CodedStatus[];
+        scenarioStocks: Array<{
+            authoredMedication: string;
+            unit: string;
+            lotNumber: string;
+            quantityOnHand: string;
+        }>;
     };
     urls: ClinicalWorkspaceBase['urls'] & {
         store: string;

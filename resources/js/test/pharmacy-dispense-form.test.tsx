@@ -36,6 +36,7 @@ describe('DispenseForm', () => {
             />,
         );
 
+        expect(screen.getByRole('alert')).toHaveTextContent('Parasetamol');
         expect(screen.getByRole('alert')).toHaveTextContent(
             'sistem tidak melakukan substitusi otomatis',
         );
@@ -61,6 +62,37 @@ describe('DispenseForm', () => {
 
         const result = await axe.run(container);
         expect(result.violations).toHaveLength(0);
+    });
+
+    it('names available session lots when the prescription does not match stock', () => {
+        render(
+            <DispenseForm
+                medicationRequest={medicationRequest}
+                stocks={[
+                    {
+                        id: 11,
+                        publicId: '01TESTSTOCK00000000000001',
+                        authoredMedication: 'Obat Simulasi A',
+                        form: 'Tablet',
+                        strength: '500 mg',
+                        lotNumber: 'LOT-SIM-A-001',
+                        expiresOn: '2027-01-01',
+                        quantityOnHand: '30.000',
+                        unit: 'tablet',
+                        synthetic: true,
+                    },
+                ]}
+                outcomes={outcomes}
+            />,
+        );
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Parasetamol');
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Obat Simulasi A (tablet)',
+        );
+        expect(screen.getByRole('combobox', { name: 'Outcome' })).toHaveValue(
+            'NOT_DISPENSED',
+        );
     });
 
     it('gives the linked supervisor separate approve and change controls', async () => {

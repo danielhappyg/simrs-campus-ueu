@@ -1445,7 +1445,53 @@ export default function MedicalAssessmentWorkspace(
                                         ditulis mahasiswa dan akan ditelaah
                                         manusia oleh farmasi. Sistem tidak
                                         menyatakan resep aman secara otomatis.
+                                        Nama obat dan unit harus cocok dengan
+                                        lot stok sintetis sesi agar FEFO
+                                        tersedia; sistem tidak mensubstitusi
+                                        lot secara otomatis.
                                     </p>
+                                    {formOptions.scenarioStocks.length > 0 ? (
+                                        <div
+                                            role="note"
+                                            className="mt-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-5 text-sky-950"
+                                        >
+                                            <p className="font-medium">
+                                                Stok sintetis tersedia pada sesi
+                                                ini
+                                            </p>
+                                            <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                                                {formOptions.scenarioStocks.map(
+                                                    (stock) => (
+                                                        <li
+                                                            key={`${stock.lotNumber}-${stock.authoredMedication}`}
+                                                        >
+                                                            {
+                                                                stock.authoredMedication
+                                                            }{' '}
+                                                            · unit {stock.unit}{' '}
+                                                            · lot{' '}
+                                                            {stock.lotNumber} ·
+                                                            sisa{' '}
+                                                            {
+                                                                stock.quantityOnHand
+                                                            }
+                                                        </li>
+                                                    ),
+                                                )}
+                                            </ul>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            role="note"
+                                            className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-950"
+                                        >
+                                            Tidak ada lot stok sintetis aktif
+                                            pada sesi ini. Farmasi hanya dapat
+                                            mencatat outcome “Tidak diserahkan”
+                                            sampai fasilitator menambahkan stok
+                                            skenario.
+                                        </div>
+                                    )}
 
                                     {form.data.medication_requests.length ===
                                     0 ? (
@@ -1475,6 +1521,7 @@ export default function MedicalAssessmentWorkspace(
                                                                 </Label>
                                                                 <Input
                                                                     id={`medication-name-${index}`}
+                                                                    list={`scenario-stock-medications-${index}`}
                                                                     value={
                                                                         request.authored_medication
                                                                     }
@@ -1491,6 +1538,22 @@ export default function MedicalAssessmentWorkspace(
                                                                     }
                                                                     className="mt-1 bg-white"
                                                                 />
+                                                                <datalist
+                                                                    id={`scenario-stock-medications-${index}`}
+                                                                >
+                                                                    {formOptions.scenarioStocks.map(
+                                                                        (
+                                                                            stock,
+                                                                        ) => (
+                                                                            <option
+                                                                                key={`${stock.lotNumber}-${stock.authoredMedication}`}
+                                                                                value={
+                                                                                    stock.authoredMedication
+                                                                                }
+                                                                            />
+                                                                        ),
+                                                                    )}
+                                                                </datalist>
                                                                 <InputError
                                                                     message={
                                                                         errors[
