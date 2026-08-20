@@ -10,14 +10,14 @@
 
 | Order | PR | Purpose | CI posture (re-check at merge time) |
 | --- | --- | --- | --- |
-| 1 | [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26) | Checkpoint 2 UAT docs, runbook/checklist alignment, dependency-hygiene baseline (no package upgrades) | Application checks green; Vercel may still be pending |
-| 2 | [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) | Cancel superseded DRAFT medical orders (`UAT-20260820-002` / `003`) | Green / mergeable |
-| 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | Green / mergeable after Prettier + asset rebuild |
-| 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | Merged `#28` into `#29` and rebuilt `public/build` to clear Vite rename conflicts; wait for CI green before merge |
+| 1 | [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26) | Checkpoint 2 UAT docs, runbook/checklist alignment, dependency-hygiene baseline (no package upgrades) | Green / mergeable (`CLEAN`) |
+| 2 | [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) | Cancel superseded DRAFT medical orders (`UAT-20260820-002` / `003`) | Green / mergeable (`CLEAN`) |
+| 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | Green / mergeable (`CLEAN`) |
+| 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | Green / mergeable (`CLEAN`) after merging `#28`, rebuilding assets, aligning Linux CSS hash + manifest EOF |
 
 Merge only after you accept the linked evidence. Do not treat green CI as faculty PASS.
 
-**Sequential-merge note:** `#29` now includes `#28` source + a single rebuilt asset tree. Prefer still merging `#28` before `#29` so history stays ordered; if `#28` is already on `main`, `#29` should apply cleanly.
+**Sequential-merge note:** `#29` includes `#28` source + a rebuilt asset tree. Prefer still merging `#28` before `#29` so history stays ordered; if `#28` is already on `main`, `#29` should apply cleanly.
 
 ## 2. Reporter-proposed issue classifications (not yet Daniel decisions)
 
