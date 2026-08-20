@@ -1,9 +1,9 @@
 # Checkpoint 2 Next Steps — 20 August 2026
 
-> **WORKING COORDINATION NOTE — NOT UAT EVIDENCE, MERGE AUTHORIZATION, OR PILOT APPROVAL.**
+> **WORKING COORDINATION NOTE — NOT UAT EVIDENCE, FACULTY ACCEPTANCE, OR PILOT APPROVAL.**
 
 - **Owner:** Daniel Happy Putra
-- **Scope:** next actions after the 20 August 2026 doc/runbook and dependency-hygiene alignment pass
+- **Scope:** next actions after the 20 August 2026 doc/runbook, faculty-correction merges, and synthetic demo publish
 
 ## What is already in place
 
@@ -21,6 +21,8 @@ The following artifacts now exist and are aligned:
 - [Dependency Update Candidates — 20 August 2026](DEPENDENCY_UPDATE_CANDIDATES_2026-08-20.md)
 - [GitHub Publication Checklist](GITHUB_PUBLICATION_CHECKLIST.md)
 - PR [#25](https://github.com/danielhappyg/simrs-campus-ueu/pull/25) ICD-9-CM register recheck **merged** to `main`
+- Faculty-correction / hygiene PRs **merged** to `main`: [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26), [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27), [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28), [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29), [#30](https://github.com/danielhappyg/simrs-campus-ueu/pull/30)
+- Synthetic demo production tip `5f8baf2` published on Vercel via branch `codex/vercel-supabase-demo` → https://simrs-campus-ueu-demo.vercel.app (login smoke HTTP 200). Campus production hosting remains TBD.
 
 ## Open actions before faculty Checkpoint 2 acceptance
 
@@ -28,7 +30,7 @@ The following artifacts now exist and are aligned:
    - Confirm the merged PR #25 register outcome remains the working baseline for upcoming faculty rehearsal evidence.
 
 2. **Choose the faculty rehearsal target**
-   - Either local isolated fixture or the current Vercel + Supabase synthetic demo.
+   - Either local isolated fixture or the current Vercel + Supabase synthetic demo (now on tip `5f8baf2`).
    - Do not treat campus hosting as a prerequisite for Checkpoint 2.
 
 3. **Close remaining rehearsal evidence gaps**
@@ -37,13 +39,14 @@ The following artifacts now exist and are aligned:
    - Automated support already exists and does **not** replace faculty PASS marks:
      - `resources/js/test/unsaved-changes-guard.test.tsx` covers dirty-nav / save-draft / reauth failure paths for `UnsavedChangesGuard`
      - `tests/Feature/WorkTaskInvariantTest.php` covers cross-assignment session boundary and capability deny cases
+     - Post-merge local recheck on tip `5f8baf2` (20 Aug 2026 evening): 49 related PHPUnit cases + 15 Vitest cases passed (work-queue/deny/draft-guard/medical/pharmacy/coding honesty suites). Still **not** faculty PASS.
      - Faculty UAT still needs observed browser evidence on a disposable session for UAT-02/03/09 residual notes
 
-4. **Review faculty-correction fix PRs**
-   - [PR #27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) cancels superseded DRAFT service/medication requests when a successor medical version is created (addresses `UAT-20260820-002` / `003`).
-   - [PR #28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) surfaces session synthetic stock on medical prescribing and names mismatched lots in pharmacy FEFO alerts (addresses `UAT-20260820-001`).
-   - [PR #29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) records Indonesian coding honesty guidance + gold-set observation `DX-ID-004` without activating aliases (addresses `UAT-20260820-004` / VAL-A16).
-   - Merge/test decision remains Daniel's; do not treat the PRs alone as faculty PASS.
+4. **Spot-check merged faculty-correction fixes on a disposable session**
+   - [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) cancels superseded DRAFT service/medication requests when a successor medical version is created (`UAT-20260820-002` / `003`).
+   - [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) surfaces session synthetic stock on medical prescribing and names mismatched lots in pharmacy FEFO alerts (`UAT-20260820-001`).
+   - [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) records Indonesian coding honesty guidance + gold-set observation `DX-ID-004` without activating aliases (`UAT-20260820-004` / VAL-A16).
+   - Merged code is on `main` and the synthetic demo tip; do not treat merge/demo publish as faculty PASS.
 
 5. **Daniel classification of the dated UAT draft**
    - Scenarios UAT-01–UAT-10 are largely `DECISION REQUIRED` with live evidence notes.
@@ -51,7 +54,7 @@ The following artifacts now exist and are aligned:
    - If the exact faculty rehearsal date/session changes, create a fresh dated copy from the blank [UAT record template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md).
 
 6. **Keep dependency work docs-only unless Daniel later approves maintenance**
-   - Current decision: avoid package changes on the validation docs branch.
+   - Current decision: avoid package changes on the validation path.
    - Open Dependabot PRs and [Dependency Update Candidates](DEPENDENCY_UPDATE_CANDIDATES_2026-08-20.md) wait for a separate low-risk maintenance branch after Daniel approval.
 
 7. **Faculty corrections / acceptance**
@@ -59,15 +62,14 @@ The following artifacts now exist and are aligned:
 
 ## Still not authorized by the current evidence
 
-- deployment approval
-- faculty-pilot approval
-- production-data use
+- faculty-pilot approval (Checkpoint 3)
+- production clinical data / SATUSEHAT / BPJS-live use
 - campus-host assumption or Hostinger assumption
 - automatic package upgrades from the hygiene baseline
 
 ## Practical next pick
 
-Highest-value next actions after this docs PR:
+Highest-value next actions now that #26–#30 are on `main` and the synthetic demo tip is published:
 
-1. Use the [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) to review/merge PRs #26–#29 and classify `UAT-20260820-001`–`004`; or
-2. run the remaining draft-guard / deny-case / branch scenarios against a fresh disposable session and append evidence to a new dated UAT copy.
+1. Use the [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) to classify `UAT-20260820-001`–`004` and choose the faculty rehearsal target; or
+2. run the remaining draft-guard / deny-case / branch scenarios against a fresh disposable session (local or hosted demo) and append evidence to a new dated UAT copy.
