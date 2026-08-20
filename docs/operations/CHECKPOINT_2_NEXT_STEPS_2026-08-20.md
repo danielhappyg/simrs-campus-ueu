@@ -33,6 +33,10 @@ The following artifacts now exist and are aligned:
 3. **Close remaining rehearsal evidence gaps**
    - Afternoon 20 Aug 2026 local `LAB-REHEARSAL-001` reached `FINALIZED` (mixed browser + authenticated service evidence).
    - Still open before treating scenarios as PASS: draft-guard branches, deny-case checks, selected branch scenarios, and VAL retain/revise/remove decisions.
+   - Automated support already exists and does **not** replace faculty PASS marks:
+     - `resources/js/test/unsaved-changes-guard.test.tsx` covers dirty-nav / save-draft / reauth failure paths for `UnsavedChangesGuard`
+     - `tests/Feature/WorkTaskInvariantTest.php` covers cross-assignment session boundary and capability deny cases
+     - Faculty UAT still needs observed browser evidence on a disposable session for UAT-02/03/09 residual notes
 
 4. **Daniel classification of the dated UAT draft**
    - Scenarios UAT-01–UAT-10 are largely `DECISION REQUIRED` with live evidence notes.
