@@ -670,8 +670,8 @@ export function DispenseForm({
                                     (stock) =>
                                         `${stock.authoredMedication} (${stock.unit})`,
                                 )
-                                .join('; ')
-                            }.
+                                .join('; ')}
+                            .
                         </>
                     ) : (
                         <> Tidak ada lot stok sintetis aktif pada sesi ini.</>

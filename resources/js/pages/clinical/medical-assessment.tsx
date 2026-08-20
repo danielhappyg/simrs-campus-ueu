@@ -1447,8 +1447,8 @@ export default function MedicalAssessmentWorkspace(
                                         menyatakan resep aman secara otomatis.
                                         Nama obat dan unit harus cocok dengan
                                         lot stok sintetis sesi agar FEFO
-                                        tersedia; sistem tidak mensubstitusi
-                                        lot secara otomatis.
+                                        tersedia; sistem tidak mensubstitusi lot
+                                        secara otomatis.
                                     </p>
                                     {formOptions.scenarioStocks.length > 0 ? (
                                         <div
