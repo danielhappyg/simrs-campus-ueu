@@ -2,7 +2,7 @@
 
 - **Evaluation date:** 2026-07-16
 - **Gold set:** `outpatient-reference-v1` / `1.0.0-draft.1`
-- **Dataset SHA-256:** `240122e6959ca2a4be1d6759f607dcf4ff8099d632baedf4f0d2fe65d28287a6`
+- **Dataset SHA-256:** `6ed08bbb696afca164f562510c0912980eb28a1f66c5d001366261102cb1bc43`
 - **Status:** draft; expert validation required
 - **Mode:** synthetic teaching data only
 - **Engine:** `DETERMINISTIC_LEXICAL` / `coding-reference.v1`
