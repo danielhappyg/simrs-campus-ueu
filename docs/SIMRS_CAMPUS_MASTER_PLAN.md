@@ -412,7 +412,7 @@ Every user story must satisfy applicable items:
 
 ## 15. GitHub and delivery model
 
-> **Hosting note (August 2026):** The active hosted demo uses [Vercel + Supabase](../operations/VERCEL_SUPABASE_DEMO.md). See [Current hosting posture](../operations/CURRENT_HOSTING_POSTURE.md). The SSH/shared-hosting pipeline below describes one possible future campus deployment path (including Hostinger-style shared PHP hosting), not the current working environment.
+> **Hosting note (August 2026):** The active hosted demo uses [Vercel + Supabase](operations/VERCEL_SUPABASE_DEMO.md). See [Current hosting posture](operations/CURRENT_HOSTING_POSTURE.md). The SSH/shared-hosting pipeline below describes one possible future campus deployment path (including Hostinger-style shared PHP hosting), not the current working environment.
 
 ### 15.1 Repository workflow
 
