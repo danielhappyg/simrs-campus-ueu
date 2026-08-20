@@ -125,16 +125,20 @@ The command stops at `AMENDMENT_PENDING`, assigns the exact medical/closure auth
 ```bash
 composer lint:check
 composer types:check
+composer audit
+composer outdated --direct
 php artisan test
 php artisan wayfinder:generate --with-form
 npm run format:check
 npm run lint:check
 npm run types:check
 npm run test:unit
+npm audit --omit=dev
+npm outdated
 npm run build
 ```
 
-The application workflow also validates dependency manifests, vulnerability advisories, and MySQL migrations. See the [foundation runbook](docs/operations/FOUNDATION_RUNBOOK.md) for environment checks and recovery boundaries.
+`composer audit` and `npm audit --omit=dev` should stay clean before release work. `composer outdated --direct` and `npm outdated` are dependency-hygiene review inputs rather than automatic upgrade instructions; record and classify the findings before changing versions. See the [foundation runbook](docs/operations/FOUNDATION_RUNBOOK.md) and the dated [dependency hygiene baseline](docs/operations/DEPENDENCY_HYGIENE_BASELINE_2026-08-20.md) for the current review boundary.
 
 ## Current hosting posture
 

@@ -1,10 +1,10 @@
 # GitHub Publication Checklist — Outpatient Reference MVP
 
-- **Status:** Pre-publication plan; no current feature changes have been staged, committed, pushed, or opened as a pull request
-- **Date inspected:** 2026-07-16
+- **Status:** Living private-repository publication checklist for outpatient reference follow-up branches
+- **Date inspected:** 2026-08-20
 - **Repository:** private `danielhappyg/simrs-campus-ueu`
 - **Default branch:** `main`
-- **Current local branch:** `agent/outpatient-domain-spine`
+- **Current local branch:** use the active feature branch under review
 - **Decision authority:** Daniel Happy Putra, project manager/PIC
 
 ## 1. Verified repository state
@@ -12,9 +12,9 @@
 | Check                       | Result                                                                                                              |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Remote repository           | Exists and remains private                                                                                          |
-| Local base                  | Current branch and local `main` both start from `origin/main` commit `893da9f`                                      |
-| Feature branch publication  | No remote `agent/outpatient-domain-spine` branch                                                                    |
-| Feature pull request        | None open or closed for the current branch                                                                          |
+| Local base                  | Confirm the active feature branch is rebased from or otherwise intentionally based on the desired `origin/main` state |
+| Feature branch publication  | Verify whether the active feature branch already exists on the remote before pushing                               |
+| Feature pull request        | Verify whether a draft or merged pull request already exists for the active branch                                 |
 | Repository permission       | Daniel has administrator permission                                                                                 |
 | Branch protection           | Unavailable for this private repository on the current GitHub plan; the API returned the plan limitation explicitly |
 | GitHub Actions              | Existing foundation checks have run on prior pull requests; the expanded MySQL 8.4 backend job has not run remotely |
@@ -72,16 +72,18 @@ Do not delete, move, rewrite, or newly ignore the presentation workspace merely 
 
 ## 5. Commit and pull-request structure
 
-The accumulated reference slice is vertically integrated across shared routes, assignments, fixtures, and state transitions. Splitting it into stacked independent pull requests now would require risky history surgery and could produce commits that do not run independently. Use one draft pull request with a small logical commit sequence:
+For each follow-up branch, prefer one coherent pull request whose commit structure matches the actual scope under review. Do not split a tightly coupled change set just to manufacture smaller history. When the work is docs-only or operational-evidence-only, a single coherent commit is acceptable.
 
-1. `feat: complete synthetic outpatient reference journey`
-    - integrated patient/encounter, nursing, medicine, results, pharmacy, closure, RMIK, coding/corrections, debrief, reporting, UI, migrations, fixtures, and automated tests;
-2. `docs: record outpatient validation and Checkpoint 2 contracts`
-    - ADRs, evidence/traceability, recovery/browser validation, UAT guide, master-plan and README updates; and
-3. `ci: run backend suite on MySQL 8.4`
-    - expanded MySQL job plus the semantic JSON-order portability assertion.
+Examples:
 
-If selective staging cannot keep each commit internally coherent, prefer one coherent feature commit plus one documentation/CI commit over artificially broken history. Future increments should return to smaller feature branches and pull requests.
+1. `docs: align Checkpoint 2 and dependency hygiene records`
+    - hosting-posture alignment, UAT/runbook updates, dependency baseline, and decision-support records;
+2. `fix: correct one bounded outpatient workflow regression`
+    - targeted code, test, and docs changes for one validated defect; or
+3. `chore: apply low-risk maintenance dependency batch`
+    - lockfile/manifests plus the focused verification evidence for that maintenance window.
+
+If selective staging cannot keep multiple commits internally coherent, prefer fewer coherent commits over artificially broken history.
 
 ## 6. Manual branch-governance fallback
 
@@ -106,11 +108,13 @@ Daniel can later choose GitHub Pro or an organization policy with branch protect
 - [ ] no `.env`, key, token, password, database, dump, log, raw ICD workbook, or real-person data is staged
 - [ ] Composer manifest validates
 - [ ] PHP formatting and PHPStan pass
-- [ ] full backend suite passes on SQLite
-- [ ] full backend suite passes on disposable real MySQL
-- [ ] frontend formatting, ESLint, TypeScript, React/axe tests, and production build pass
+- [ ] required backend/frontend verification matches the branch scope and any unchanged higher-cost gate that is being relied on is explicitly identified
+- [ ] for application changes, full backend suite passes on SQLite
+- [ ] for application changes, full backend suite passes on disposable real MySQL
+- [ ] for application changes, frontend formatting, ESLint, TypeScript, React/axe tests, and production build pass
 - [ ] Markdown link/fence validation and `git diff --check` pass
-- [ ] npm high-severity audit passes
+- [ ] dependency-hygiene evidence is current for the candidate branch (`composer audit`, `npm audit --omit=dev`, and dated outdated review)
+- [ ] npm production audit passes
 - [ ] Composer advisory check succeeds or its external outage is recorded without claiming a pass
 - [ ] current migrations and rollback/recovery notes are included
 - [ ] screenshots, if attached to the PR, contain synthetic data only

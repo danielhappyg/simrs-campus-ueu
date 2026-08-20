@@ -32,6 +32,7 @@ The facilitator records each item as `READY`, `NOT READY`, or `NOT APPLICABLE` b
 | Automated gate       | `php artisan simulation:lab-preflight` exits successfully with `READY` and zero failed checks             |
 | Isolated environment | Separate URL, key, database, storage, and synthetic-only configuration                                    |
 | Tested build         | Identifiable commit/release candidate with passing required checks                                        |
+| Dependency hygiene   | Current `composer audit` and `npm audit --omit=dev` results are clean; dated `outdated` review recorded |
 | Database             | Fresh migrations plus opt-in demo fixture                                                                 |
 | Terminology          | Exact approved development ICD-10 and ICD-9-CM releases active; version and checksums visible             |
 | Case state           | `simulation:lab-session-status` reports `OK` / `READY_TO_START` for the exact disposable code             |
@@ -55,6 +56,17 @@ php artisan simulation:lab-preflight
 ```
 
 The access command must report `ENABLED` or the idempotent `UNCHANGED` state, and preflight must report `READY`. Do not invite participants or clone a session if either command fails. Follow the short [Outpatient Laboratory Pilot Runbook](OUTPATIENT_LAB_PILOT_RUNBOOK.md) for rehearsal stages, stop rules, recovery, and closeout.
+
+For the tested candidate, also capture a dated dependency-hygiene record from a clean checkout:
+
+```bash
+composer audit
+composer outdated --direct
+npm audit --omit=dev
+npm outdated
+```
+
+Clean audit output is an entry-gate input. `Outdated` output is a review/control input, not an instruction to upgrade packages immediately before UAT.
 
 With the opt-in pristine `SIM-RJ-UEU-001` source retained unchanged, prepare a uniquely named session immediately before each branch:
 
@@ -435,6 +447,7 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - [Outpatient Service Blueprint](../product/OUTPATIENT_SERVICE_BLUEPRINT.md)
 - [Outpatient Domain Spine Validation](OUTPATIENT_DOMAIN_SPINE_VALIDATION.md)
 - [Computer-Assisted Coding Validation](COMPUTER_ASSISTED_CODING_VALIDATION.md)
+- [Dependency Hygiene Baseline — 20 August 2026](DEPENDENCY_HYGIENE_BASELINE_2026-08-20.md)
 - [Local MySQL and Recovery Validation](LOCAL_MYSQL_RECOVERY_VALIDATION.md)
 - [ADR-004: Finalized Debrief Projection](../adr/ADR-004-FINALIZED-DEBRIEF-PROJECTION.md)
 - [ADR-005: Debrief Notes and Rubric References](../adr/ADR-005-DEBRIEF-NOTES-AND-RUBRIC-REFERENCES.md)

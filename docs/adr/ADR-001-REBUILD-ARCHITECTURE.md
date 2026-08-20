@@ -10,7 +10,7 @@
 
 The existing application is a useful interaction prototype, but it is not a safe production foundation. Its deployed surface combines a React/Vite frontend with loosely secured PHP endpoints, incomplete persistence, mock clinical modules, browser-local configuration, and public claims of live integration that are not supported by the implementation.
 
-The replacement must support a university teaching environment spanning medicine, nursing, medical records and health information, pharmacy, nutrition, psychology, and physiotherapy. It must teach coherent hospital work rather than present independent forms. It also needs an incremental delivery path that can begin on Hostinger while preserving a credible route to managed infrastructure later.
+The replacement must support a university teaching environment spanning medicine, nursing, medical records and health information, pharmacy, nutrition, psychology, and physiotherapy. It must teach coherent hospital work rather than present independent forms. It also needs an incremental delivery path that works on the current Vercel + Supabase synthetic demo while preserving a credible route to the eventual campus hosting decision later.
 
 The key architectural forces are:
 
@@ -36,7 +36,7 @@ The initial technical baseline is:
 - **Background work:** queue-backed jobs for reports, interoperability messages, imports, and notifications;
 - **Files:** private object/file storage accessed through authorized application endpoints rather than public paths;
 - **Observability:** structured application logs, deployment metadata, health checks, error tracking, and audit-log review;
-- **Delivery:** GitHub pull-request workflow with automated tests and a controlled SSH deployment to Hostinger staging, followed by an explicitly approved production promotion.
+- **Delivery:** GitHub pull-request workflow with automated tests, a disposable synthetic demo on Vercel + Supabase for review/UAT, and a separately approved campus staging/production path once the hosting target is known.
 
 The first release is a **simulation and teaching system**, not a live-care HIS. All patients are synthetic, external bridges are clearly labelled simulations, and no claim of SATUSEHAT, BPJS, laboratory, payment, or pharmacy production connectivity may appear without a verified integration and operational approval.
 
@@ -79,7 +79,7 @@ Cross-module communication starts with application services and transactional ev
 | Option | Benefits | Costs and risks | Decision |
 |---|---|---|---|
 | Patch the current React/PHP application | Fastest route to cosmetic changes; preserves familiar screens | Security model, mock state, API shape, navigation, and domain boundaries would all require replacement; in-place work risks preserving misleading behavior | Rejected |
-| Greenfield Laravel modular monolith | Strong fit for Hostinger/PHP, transactional hospital workflows, migrations, policy authorization, queues, and a small team; supports incremental module delivery | Requires disciplined boundaries and an initial foundation phase | **Selected** |
+| Greenfield Laravel modular monolith | Strong fit for PHP-hosted workflows, transactional hospital workflows, migrations, policy authorization, queues, and a small team; supports incremental module delivery across the current demo and future campus host | Requires disciplined boundaries and an initial foundation phase | **Selected** |
 | Node/TypeScript services from the start | One language across the stack; flexible ecosystem | Higher shared-hosting and operations burden; unnecessary distributed-system complexity for the present team and scale | Rejected for now |
 | Microservices from the start | Independent scaling and deployment | High operational cost, difficult cross-service transactions, fragmented audits, and more failure modes before domain boundaries are proven | Rejected |
 | Buy or customize a full production HIS | Mature clinical coverage may be available | Teaching workflow, licensing, integration, customization, and data-control constraints are unknown; does not directly answer the campus simulation objective | Deferred as a future build-versus-buy checkpoint |
@@ -112,25 +112,26 @@ Cross-module communication starts with application services and transactional ev
 
 ## Deployment topology
 
-### Initial topology
+### Current topology and future campus path
 
 ```mermaid
 flowchart LR
     D["Developer branch"] --> PR["GitHub pull request"]
     PR --> CI["Lint, tests, build, security checks"]
     CI --> M["Protected main branch"]
-    M --> STG["Hostinger staging via controlled SSH deploy"]
-    STG --> UAT["Faculty and workflow acceptance"]
-    UAT --> A["Manual production approval"]
-    A --> PROD["Hostinger production release"]
+    M --> DEMO["Vercel + Supabase synthetic demo"]
+    DEMO --> UAT["Checkpoint 2 workflow/UAT review"]
+    UAT --> PRE["Campus-host preflight and release rehearsal"]
+    PRE --> A["Manual production approval"]
+    A --> PROD["Future campus teaching release"]
     PROD --> HC["Health checks and smoke tests"]
 ```
 
-Staging and production must use separate databases, environment variables, storage paths, keys, and public hostnames. Deployment should release a built artifact into a versioned directory and switch a stable application pointer only after migrations and health checks succeed. The exact atomic-switch mechanism must be proven against the selected Hostinger plan before implementation.
+The current demo and any later campus staging/production environments must use separate databases, environment variables, storage paths, keys, and public hostnames. Any future campus deployment should release a built artifact into a versioned directory or equivalent controlled release target and switch traffic only after migrations and health checks succeed. The exact promotion/rollback mechanics must be proven against the selected campus host before implementation.
 
-### Hostinger preflight gate
+### Future campus-host preflight gate
 
-Before committing to this topology, verify on the actual account:
+Before committing to a campus deployment topology, verify on the actual target environment:
 
 - SSH availability and restrictions;
 - supported PHP and extension versions;
@@ -158,7 +159,7 @@ If reliable workers, private storage, deployment isolation, or recovery cannot b
 Reconsider this decision when any of the following becomes true:
 
 - the university authorizes real-patient care and establishes the required clinical governance;
-- workload or availability targets exceed the proven Hostinger envelope;
+- workload or availability targets exceed the proven campus-host envelope;
 - one integration needs independent scaling or failure isolation;
 - multiple teams need autonomous deployment of stable bounded contexts;
 - procurement identifies a compliant product that materially changes the build-versus-buy case;
@@ -173,7 +174,7 @@ The project manager/PIC accepted these four decisions for the reference build. D
 1. The first program is simulation-only and uses synthetic data.
 2. The first end-to-end slice is outpatient care.
 3. Student clinical work requires explicit supervisor review and preserves revisions.
-4. Hostinger is the initial deployment target, conditional on the preflight gate and with a documented migration trigger.
+4. The current hosted demo is Vercel + Supabase, while the later campus deployment target remains TBD and must pass a separate preflight gate with a documented migration trigger.
 
 ## References
 
