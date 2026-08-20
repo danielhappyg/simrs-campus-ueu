@@ -38,16 +38,20 @@ The following artifacts now exist and are aligned:
      - `tests/Feature/WorkTaskInvariantTest.php` covers cross-assignment session boundary and capability deny cases
      - Faculty UAT still needs observed browser evidence on a disposable session for UAT-02/03/09 residual notes
 
-4. **Daniel classification of the dated UAT draft**
+4. **Review fix PR for orphan draft orders**
+   - [PR #27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) cancels superseded DRAFT service/medication requests when a successor medical version is created (addresses `UAT-20260820-002` / `003`).
+   - Merge/test decision remains Daniel's; do not treat the PR alone as faculty PASS.
+
+5. **Daniel classification of the dated UAT draft**
    - Scenarios UAT-01–UAT-10 are largely `DECISION REQUIRED` with live evidence notes.
    - Issues `UAT-20260820-001`–`004` need Daniel classification.
    - If the exact faculty rehearsal date/session changes, create a fresh dated copy from the blank [UAT record template](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md).
 
-5. **Keep dependency work docs-only unless Daniel later approves maintenance**
+6. **Keep dependency work docs-only unless Daniel later approves maintenance**
    - Current decision: avoid package changes on the validation docs branch.
    - Open Dependabot PRs and [Dependency Update Candidates](DEPENDENCY_UPDATE_CANDIDATES_2026-08-20.md) wait for a separate low-risk maintenance branch after Daniel approval.
 
-6. **Faculty corrections / acceptance**
+7. **Faculty corrections / acceptance**
    - Daniel records PASS/FAIL and VAL decisions; only then treat Checkpoint 2 as faculty-accepted.
 
 ## Still not authorized by the current evidence
