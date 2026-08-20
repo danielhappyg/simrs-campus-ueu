@@ -31,17 +31,17 @@ Allowed Daniel decision states: `NOT DECIDED`, `RETAIN`, `REVISE`, `REMOVE`, `DE
 | Record ID | `UAT-RUN-20260820-01` |
 | Local date/time and timezone | `<YYYY-MM-DD HH:MM Asia/Jakarta>` |
 | Facilitator role | `<role; no password or personal contact>` |
-| Candidate commit | `<NOT YET RECORDED ON THIS DRAFT>` |
-| Release-candidate/artifact reference | `<artifact ID or NOT USED>` |
+| Candidate commit | `7d667de` (residual evidence tip on `main`; primary afternoon journey was earlier the same day) |
+| Release-candidate/artifact reference | `NOT USED` |
 | Environment identifier | `local isolated Laravel fixture` |
-| Hosting topology | `local isolated` |
+| Hosting topology | `local isolated` (+ synthetic demo published at https://simrs-campus-ueu-demo.vercel.app tip `7d667de`; campus production TBD) |
 | Application mode | `SIMULATION` |
 | Synthetic-only configuration | `true` |
 | Database/reset reference | `reserved demo access enabled; active rehearsal fixture retained locally` |
-| Scenario/session identifier | `LAB-REHEARSAL-001` |
-| Encounter identifier | `ENC-SIM-Q0XZYBHFMREY` |
+| Scenario/session identifier | `LAB-REHEARSAL-001` (primary); residual addendum `CP2-RESIDUAL-001` / `CP2-RESIDUAL-002` |
+| Encounter identifier | `ENC-SIM-Q0XZYBHFMREY` (primary); residual finalized `ENC-SIM-TQT4QNY118PJ` |
 | Initial session-monitor phase | `OK / READY_TO_START` |
-| Closeout session-monitor phase | `<FINALIZED, ENDED, or exact observed phase>` |
+| Closeout session-monitor phase | `FINALIZED` (primary afternoon + residual `CP2-RESIDUAL-001`) |
 | ICD-10 release/checksum suffix | `<visible release and safe hash suffix>` |
 | ICD-9-CM release/checksum suffix | `<visible release and safe hash suffix>` |
 | Dependency-hygiene record | `DEPENDENCY_HYGIENE_BASELINE_2026-08-20.md` |
@@ -63,7 +63,7 @@ Record `NOT CONFIRMED`, `CONFIRMED`, or `FAILED`. Any `FAILED` safety item stops
 | `composer audit` and `npm audit --omit=dev` are clean for the exact candidate | `CONFIRMED` | `dependency baseline record` |
 | Permanent `SIMULASI — DATA SINTETIS` boundary visible | `CONFIRMED` | `local /login observation on 127.0.0.1:8030` |
 | Fresh/snapshotted synthetic fixture | `NOT CONFIRMED` | `<reference>` |
-| Exact tested commit identified | `NOT CONFIRMED` | `<reference>` |
+| Exact tested commit identified | `CONFIRMED` | `7d667de on main for residual addendum; primary afternoon journey predated tip` |
 | Required demo assignments available | `CONFIRMED` | `10 active assignments; 4 tasks; ready REGISTRATION handoff` |
 | No real patient or participant-sensitive data entered | `NOT CONFIRMED` | `<reference>` |
 | No production endpoint, credential, or transmission enabled | `NOT CONFIRMED` | `<reference>` |
@@ -95,7 +95,7 @@ Do not enter personal names in the repository copy. If one person operates multi
 
 | Scenario | Initial status | Evidence IDs | Issue IDs | Concise observable result |
 | --- | --- | --- | --- | --- |
-| UAT-00 — safety and assignment check | `DECISION REQUIRED` | `automated WorkQueueTest / WorkTaskInvariantTest / Interop-Timeline-Debrief deny suites; faculty browser confirmation still required` | `<none>` | `Automated isolation and fail-closed checks exist on main-line tests, but the facilitator/faculty browser confirmation of SIMULASI labelling + only-assigned capabilities on the disposable session remains outstanding before PASS. See CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md.` |
+| UAT-00 — safety and assignment check | `DECISION REQUIRED` | `automated WorkQueueTest / WorkTaskInvariantTest / Interop-Timeline-Debrief deny suites; residual actingAs probes on tip 7d667de; faculty browser confirmation still required` | `<none>` | `On tip 7d667de: 32 targeted PHPUnit deny/isolation cases passed. Residual actingAs probes: facilitator work queue for CP2-RESIDUAL-001 HTTP 200; unknown session code HTTP 404. Cursor browser MCP could not reach local 127.0.0.1 (chrome-error), so SIMULASI banner + only-assigned capabilities still need facilitator/faculty browser confirmation before PASS.` |
 | UAT-01 — registration and check-in | `DECISION REQUIRED` | `local authenticated queue, encounter, and session-status observation` | `<none>` | `Search returned one explicit synthetic candidate, the shared rehearsal encounter advanced to ARRIVED, provenance recorded appointment_check_in for ENC-SIM-Q0XZYBHFMREY, and command-line session status released NURSING_INTAKE as the next ready task; the remaining explicit Daniel/facilitator decision is whether this local rehearsal is sufficient to mark the full scenario PASS without a separately recorded second-shared-case rejection step.` |
 | UAT-01A — cancellation after check-in | `NOT RUN` | `<none>` | `<none>` | `<result>` |
 | UAT-01B — overdue no-show | `NOT RUN` | `<none>` | `<none>` | `<result>` |
@@ -108,7 +108,7 @@ Do not enter personal names in the repository copy. If one person operates multi
 | UAT-06 — clinical closure | `DECISION REQUIRED` | `authenticated EncounterClosureService submit/approve after readiness remediation` | `UAT-20260820-002`, `UAT-20260820-003` | `After cancelling orphan DRAFT service request 01M0F08B2JNG15VVGV5DSJ0EY0 from medical Versi 1, closure readiness passed. Medicine learner submitted EncounterClosure 01M0F1FBBXYYQSWSPF4TDR00MJ v1 (hash ...048555a5); medical supervisor APPROVE_SIMULATION set APPROVED; encounter became CLINICALLY_CLOSED and session released RECORD_REVIEW for RMIK CODER. Browser UI path not re-run for this stage after CDP permission block.` |
 | UAT-07 — RMIK completeness review | `DECISION REQUIRED` | `authenticated RecordQualityWorkflowService submit/approve` | `<none>` | `koder.rmik submitted RecordQualityReview 01M0F1N14GJ7CAFZADD8Z3D8S2 v1 (hash ...f7a1a7f4) with empty manual findings against a passing completeness checklist; supervisor.rmik APPROVE_SIMULATION set APPROVED; encounter remained RECORD_REVIEW and session released CODING for RMIK CODER. Browser UI path not re-run for this stage; VAL-A11 curriculum checklist discussion remains outstanding.` |
 | UAT-08 — human-reviewed coding/finalization | `DECISION REQUIRED` | `authenticated CodingSuggestionService + CodingWorkflowService observation` | `UAT-20260820-004` | `koder.rmik generated diagnosis suggestions for approved medical condition 01M0F08PV02C8TFK1R8RC4818Q; engine returned NO_RELIABLE_CANDIDATE for Indonesian authored text Faringitis akut against English ICD-10 displays. ManualAlternative selected active J02.9 (Acute pharyngitis, unspecified) from ICD10_2010 release hash ...548c5f4e into CodingAssignment 01M0F4540AAQX7JE8XJ8NXRTRN (hash ...9e058b44); submit then supervisor.rmik APPROVE_SIMULATION set APPROVED. Procedure source was NonePerformed so no ICD-9-CM assignment. Encounter advanced to FINALIZED and session phase FINALIZED with DEBRIEF ready for all ten assignments.` |
-| UAT-09 — longitudinal record/debrief/reports | `DECISION REQUIRED` | `authenticated timeline/debrief/report route probes + DebriefNoteService` | `<none>` | `After FINALIZED, facilitator and medicine learner both received HTTP 200 for /timeline, /debrief, outpatient-summary, and debrief-evidence. EncounterDebriefTimeline.build returned 33 events including check-in, nursing submit/approve, result release/ack, and coding/J02 provenance. Facilitator created DebriefNote 01M0F4848R9C1XTVTV1SV3G8VP FacilitatorSynthesis v1 (...2008f6fe) and revised to v2 (...212ed485). Automated deny suites already cover other-session/wrong-case timeline and debrief access; observed disposable-session browser deny plus VAL-U05 retain/revise/remove decisions remain outstanding before PASS.` |
+| UAT-09 — longitudinal record/debrief/reports | `DECISION REQUIRED` | `authenticated timeline/debrief/report route probes + DebriefNoteService; residual CP2-RESIDUAL-001 probes` | `<none>` | `After FINALIZED, facilitator and medicine learner both received HTTP 200 for /timeline, /debrief, outpatient-summary, and debrief-evidence on the afternoon session. Residual tip 7d667de: simulation:complete-reference-journey on CP2-RESIDUAL-001 → ENC-SIM-TQT4QNY118PJ FINALIZED; actingAs facilitator/medicine timeline+debrief+interop on that finalized encounter HTTP 200; debrief/interop on other-session PLANNED encounter ENC-SIM-G175X40NXTAW HTTP 409; Feature tests for same-role/other-session and wrong-case deny remain green (32 targeted cases). Observed disposable-session browser deny + VAL-U05 retain/revise/remove still outstanding before PASS (Cursor browser MCP could not reach localhost).` |
 | UAT-10 — local interoperability preview | `DECISION REQUIRED` | `authenticated interoperability-preview GET` | `<none>` | `Facilitator opened /encounters/.../interoperability-preview for FINALIZED ENC-SIM-Q0XZYBHFMREY and received HTTP 200. Detailed FHIR-aligned content review and VAL-U05 retain/revise/remove decision remain outstanding before PASS.` |
 | UAT-C01 — diagnosis-source correction | `NOT RUN` | `<none>` | `<none>` | `<result>` |
 | UAT-C02 — performed-procedure correction | `NOT RUN` | `<none>` | `<none>` | `<result>` |
@@ -235,11 +235,26 @@ Every unresolved P0/P1 item needs an owner and next evidence step. `NONE IDENTIF
 
 | Risk/validation ID | Level | Current evidence | Owner | Required action and target date/checkpoint |
 | --- | --- | --- | --- | --- |
-| `UAT-20260820-001` | `P1 candidate` | pharmacy FEFO empty until session lot `LOT-SIM-PARA-CP2-001` | Daniel (classification) | classify; decide seed-alignment vs teaching warning before next faculty run |
-| `UAT-20260820-002` | `P0 candidate` | orphan DRAFT medication request blocked pharmacy completion advancement | Daniel (classification) | classify; decide cancel/supersede-on-submit fix vs UAT workaround |
-| `UAT-20260820-003` | `P0 candidate` | orphan DRAFT service request blocked closure readiness | Daniel (classification) | classify with `002`; same root-cause decision |
-| `UAT-20260820-004` | `P1 candidate` | Indonesian authored diagnosis returned `NO_RELIABLE_CANDIDATE`; ManualAlternative to J02.9 succeeded | Daniel (classification) | classify for VAL-A16; do not add aliases without approval |
-| Draft-guard / deny-case gaps | `P1 candidate` | UAT-02/03/09 notes: dirty-nav / Back / expired-session and unrelated-assignment deny not fully evidenced | Facilitator + Daniel | schedule residual evidence on a fresh disposable session before PASS marks |
+| `UAT-20260820-001` | `P1 candidate` | pharmacy FEFO empty until session lot `LOT-SIM-PARA-CP2-001`; fix code merged via PR #28 | Daniel (classification) | classify; spot-check stock-alignment UX on disposable session before PASS |
+| `UAT-20260820-002` | `P0 candidate` | orphan DRAFT medication request blocked pharmacy completion; fix code merged via PR #27 + regression test | Daniel (classification) | classify; confirm cancel-on-successor behavior on disposable session if required before PASS |
+| `UAT-20260820-003` | `P0 candidate` | orphan DRAFT service request blocked closure readiness; same fix as `002` / PR #27 | Daniel (classification) | classify with `002` |
+| `UAT-20260820-004` | `P1 candidate` | Indonesian authored diagnosis returned `NO_RELIABLE_CANDIDATE`; ManualAlternative to J02.9 succeeded; honesty path merged via PR #29 | Daniel (classification) | classify for VAL-A16; do not add aliases without approval |
+| Draft-guard / deny-case gaps | `P1 candidate` | UAT-02/03 dirty-nav browser branches still outstanding; UAT-09 deny now has residual actingAs + Feature evidence on tip `7d667de` / `CP2-RESIDUAL-001` | Facilitator + Daniel | schedule browser residual for draft-guard + SIMULASI banner before PASS; classify whether residual deny probes are sufficient |
+
+## 8A. Residual evidence addendum — 20 August 2026 evening
+
+> Supporting evidence only. Does **not** mark scenarios PASS or authorize Checkpoint 2 acceptance.
+
+| Field | Entry |
+| --- | --- |
+| Tip | `7d667de` |
+| Lab preflight | `READY` (17/17) before residual clones |
+| Disposable sessions | `CP2-RESIDUAL-001` → `ENC-SIM-TQT4QNY118PJ` FINALIZED via `simulation:complete-reference-journey`; `CP2-RESIDUAL-002` → `ENC-SIM-G175X40NXTAW` left PLANNED for cross-case probes |
+| Journey counts (001) | clinicalVersions 2, results 1, closures 1, procedures 1, recordQualityReviews 1, codingAssignments 2, workTasks 28 |
+| Targeted PHPUnit | 32 passed (WorkQueue / WorkTaskInvariant / Timeline / Debrief / Interop deny + orphan-draft cancel filter set) |
+| ActingAs HTTP probes | assigned FINALIZED timeline/debrief/interop 200; other-session PLANNED debrief/interop 409; unknown work-session 404; facilitator work queue 001 200 |
+| Browser MCP | could not open `http://127.0.0.1:8000/login` (`chrome-error://chromewebdata/`); draft-guard dirty-nav and on-screen SIMULASI confirmation remain for facilitator browser |
+| Merged fix posture | PRs #27–#29 on `main`; issues still need Daniel classification |
 
 ## 9. Exit record and Daniel decision
 
