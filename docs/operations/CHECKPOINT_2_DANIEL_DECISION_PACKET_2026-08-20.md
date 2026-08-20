@@ -12,8 +12,8 @@
 | --- | --- | --- | --- |
 | 1 | [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26) | Checkpoint 2 UAT docs, runbook/checklist alignment, dependency-hygiene baseline (no package upgrades) | Green / mergeable |
 | 2 | [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) | Cancel superseded DRAFT medical orders (`UAT-20260820-002` / `003`) | Green / mergeable |
-| 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | Re-running after Prettier fix |
-| 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | Re-running after Prettier fix |
+| 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | CI fixes pushed (Prettier/assets); re-check before merge |
+| 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | CI fixes pushed (Prettier/assets); re-check before merge |
 
 Merge only after you accept the linked evidence. Do not treat green CI as faculty PASS.
 
