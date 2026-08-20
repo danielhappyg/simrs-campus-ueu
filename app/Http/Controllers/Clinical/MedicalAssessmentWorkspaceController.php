@@ -12,6 +12,7 @@ use App\Modules\Clinical\Enums\DiagnosisCertainty;
 use App\Modules\Clinical\Enums\DiagnosisRole;
 use App\Modules\Clinical\Models\ClinicalEntry;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
+use App\Modules\Clinical\Models\MedicationStock;
 use App\Modules\Clinical\Services\ApprovedAllergyAssessmentResolver;
 use App\Modules\Coding\Enums\CodingDocumentationCorrectionStatus;
 use App\Modules\Coding\Models\CodingDocumentationCorrection;
@@ -44,6 +45,21 @@ class MedicalAssessmentWorkspaceController extends Controller
 
         $encounter->load(['patient.identifiers', 'session.scenario', 'location']);
         $assignment = $this->assignmentResolver->forEncounter($user, $encounter, Capability::MedicalAssessmentWrite);
+        $scenarioStocks = MedicationStock::query()
+            ->where('session_id', $encounter->session_id)
+            ->where('synthetic_flag', true)
+            ->where('quantity_on_hand', '>', 0)
+            ->orderBy('authored_medication')
+            ->orderBy('expires_on')
+            ->get()
+            ->map(fn (MedicationStock $stock): array => [
+                'authoredMedication' => $stock->authored_medication,
+                'unit' => $stock->unit,
+                'lotNumber' => $stock->lot_number,
+                'quantityOnHand' => (string) $stock->quantity_on_hand,
+            ])
+            ->values()
+            ->all();
         $entry = ClinicalEntry::query()
             ->where('encounter_id', $encounter->getKey())
             ->where('document_type', ClinicalDocumentType::MedicalAssessment)
@@ -205,6 +221,7 @@ class MedicalAssessmentWorkspaceController extends Controller
                     'code' => $role->value,
                     'label' => $role->label(),
                 ])->all(),
+                'scenarioStocks' => $scenarioStocks,
             ],
             'urls' => [
                 'store' => route('encounters.medical-assessment.versions.store', $encounter),
