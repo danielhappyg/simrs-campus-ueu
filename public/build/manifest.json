@@ -575,7 +575,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-BscY7pym.js",
+    "file": "assets/app-DiwATmR3.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -959,7 +959,7 @@
     ]
   },
   "resources/js/pages/coding/workspace.tsx": {
-    "file": "assets/workspace-DiMjefkJ.js",
+    "file": "assets/workspace-jVAdV13n.js",
     "name": "workspace",
     "src": "resources/js/pages/coding/workspace.tsx",
     "isDynamicEntry": true,
