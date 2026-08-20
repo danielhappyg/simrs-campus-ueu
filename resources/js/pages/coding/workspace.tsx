@@ -734,15 +734,15 @@ export default function CodingWorkspace({
                                                 Engine leksikal deterministik
                                                 tidak memaksakan kecocokan
                                                 rendah terhadap display release
-                                                aktif (sering berbahasa Inggris).
-                                                Teks klinisi berbahasa Indonesia
-                                                dapat sah menghasilkan outcome
-                                                ini. Lanjutkan dengan pencarian
-                                                manual / alternatif manusia,
-                                                tolak run bila perlu, dan catat
-                                                alasannya. Alias atau ambang
-                                                baru hanya setelah keputusan
-                                                VAL-A16 oleh Daniel.
+                                                aktif (sering berbahasa
+                                                Inggris). Teks klinisi berbahasa
+                                                Indonesia dapat sah menghasilkan
+                                                outcome ini. Lanjutkan dengan
+                                                pencarian manual / alternatif
+                                                manusia, tolak run bila perlu,
+                                                dan catat alasannya. Alias atau
+                                                ambang baru hanya setelah
+                                                keputusan VAL-A16 oleh Daniel.
                                             </p>
                                         </div>
                                     ) : (
