@@ -34,6 +34,7 @@ Allowed Daniel decision states: `NOT DECIDED`, `RETAIN`, `REVISE`, `REMOVE`, `DE
 | Candidate commit                     | `<40-character commit>`                                             |
 | Release-candidate/artifact reference | `<artifact ID or NOT USED>`                                         |
 | Environment identifier               | `<isolated simulation environment>`                                 |
+| Hosting topology                     | `<local isolated \| Vercel + Supabase demo \| other; campus TBD>`   |
 | Application mode                     | `<must be SIMULATION>`                                              |
 | Synthetic-only configuration         | `<must be true>`                                                    |
 | Database/reset reference             | `<fresh fixture or approved snapshot ID>`                           |
@@ -56,6 +57,7 @@ Record `NOT CONFIRMED`, `CONFIRMED`, or `FAILED`. Any `FAILED` safety item stops
 | `simulation:lab-preflight` reports `READY` with zero failures                                    | `NOT CONFIRMED` | `<sanitized result reference>` |
 | `simulation:lab-session-status` reports `OK` / `READY_TO_START` for the exact disposable session | `NOT CONFIRMED` | `<sanitized result reference>` |
 | Isolated simulation environment                                                                  | `NOT CONFIRMED` | `<reference>`                  |
+| Hosting topology recorded (local or current Vercel + Supabase demo; not campus production)       | `NOT CONFIRMED` | `<reference>`                  |
 | Permanent `SIMULASI — DATA SINTETIS` boundary visible                                            | `NOT CONFIRMED` | `<reference>`                  |
 | Fresh/snapshotted synthetic fixture                                                              | `NOT CONFIRMED` | `<reference>`                  |
 | Exact tested commit identified                                                                   | `NOT CONFIRMED` | `<reference>`                  |
