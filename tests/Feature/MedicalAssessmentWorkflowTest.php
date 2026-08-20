@@ -72,7 +72,9 @@ class MedicalAssessmentWorkflowTest extends TestCase
                 ->where('document.workflowEnabled', true)
                 ->where('document.canEdit', true)
                 ->has('formOptions.diagnosisCertainties', 3)
-                ->has('formOptions.diagnosisRoles', 2));
+                ->has('formOptions.diagnosisRoles', 2)
+                ->has('formOptions.scenarioStocks', 1)
+                ->where('formOptions.scenarioStocks.0.authoredMedication', 'Obat Simulasi A'));
     }
 
     public function test_medical_draft_is_idempotent_versioned_and_creates_uncoded_clinician_authored_conditions(): void
