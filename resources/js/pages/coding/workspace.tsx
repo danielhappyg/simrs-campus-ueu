@@ -723,14 +723,26 @@ export default function CodingWorkspace({
                                             </p>
                                         </div>
                                     ) : latestRun.candidates.length === 0 ? (
-                                        <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-5">
+                                        <div
+                                            role="status"
+                                            className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-5"
+                                        >
                                             <p className="font-semibold text-amber-950">
                                                 Tidak ada kandidat andal
                                             </p>
                                             <p className="mt-1 text-sm leading-6 text-amber-950">
-                                                Sistem tidak memaksakan
-                                                kecocokan rendah. Cari manual,
-                                                tolak run, dan catat alasannya.
+                                                Engine leksikal deterministik
+                                                tidak memaksakan kecocokan
+                                                rendah terhadap display release
+                                                aktif (sering berbahasa Inggris).
+                                                Teks klinisi berbahasa Indonesia
+                                                dapat sah menghasilkan outcome
+                                                ini. Lanjutkan dengan pencarian
+                                                manual / alternatif manusia,
+                                                tolak run bila perlu, dan catat
+                                                alasannya. Alias atau ambang
+                                                baru hanya setelah keputusan
+                                                VAL-A16 oleh Daniel.
                                             </p>
                                         </div>
                                     ) : (

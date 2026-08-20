@@ -417,6 +417,12 @@ describe('Coding workspace', () => {
             screen.getByRole('button', { name: 'Tolak saran' }),
         ).toBeInTheDocument();
         expect(
+            screen.getByRole('status'),
+        ).toHaveTextContent('VAL-A16');
+        expect(
+            screen.getByRole('status'),
+        ).toHaveTextContent('Tidak ada kandidat andal');
+        expect(
             screen.getByRole('button', {
                 name: 'Minta koreksi prosedur',
             }),
