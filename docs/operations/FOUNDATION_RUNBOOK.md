@@ -96,6 +96,26 @@ Confirm that:
 - each work-queue view creates a correlated audit event;
 - the browser console is clear at desktop and narrow viewports.
 
+## Dependency hygiene
+
+Treat dependency hygiene as a separate release-readiness input, not as an automatic mass-upgrade task. From a clean checkout, capture:
+
+```bash
+composer audit
+composer outdated --direct
+npm audit --omit=dev
+npm outdated
+```
+
+Interpretation rules:
+
+- `audit` findings are blocking security inputs until classified and resolved or explicitly accepted by Daniel;
+- `outdated` results are maintenance signals and should be reviewed for scope, changelog risk, and compatibility before changing versions;
+- major-version jumps are not bundled into unrelated validation or documentation pull requests; and
+- environment warnings from package-manager configuration should be recorded when they affect future reproducibility, even if the current install still succeeds.
+
+The dated [Dependency Hygiene Baseline — 20 August 2026](DEPENDENCY_HYGIENE_BASELINE_2026-08-20.md) records the first post-merge review after PR #25 and should be superseded by later dated records rather than silently edited.
+
 ## Recovery and rollback boundary
 
 Before patient or encounter data exists, a local foundation database can be recreated from migrations and synthetic fixtures. Do not use destructive migration commands on shared, staging, or production-like environments.

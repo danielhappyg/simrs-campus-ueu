@@ -44,6 +44,7 @@ Allowed Daniel decision states: `NOT DECIDED`, `RETAIN`, `REVISE`, `REMOVE`, `DE
 | Closeout session-monitor phase       | `<FINALIZED, ENDED, or exact observed phase>`                       |
 | ICD-10 release/checksum suffix       | `<visible release and safe hash suffix>`                            |
 | ICD-9-CM release/checksum suffix     | `<visible release and safe hash suffix>`                            |
+| Dependency-hygiene record            | `<dated dependency baseline/candidate review or NOT RECORDED>`      |
 | Browser/viewport                     | `<supported browser, version, viewport, zoom>`                      |
 | Recovery evidence                    | `<snapshot/reset reference>`                                        |
 | Evidence location                    | `<restricted location identifier; never credentials or URL tokens>` |
@@ -58,6 +59,8 @@ Record `NOT CONFIRMED`, `CONFIRMED`, or `FAILED`. Any `FAILED` safety item stops
 | `simulation:lab-session-status` reports `OK` / `READY_TO_START` for the exact disposable session | `NOT CONFIRMED` | `<sanitized result reference>` |
 | Isolated simulation environment                                                                  | `NOT CONFIRMED` | `<reference>`                  |
 | Hosting topology recorded (local or current Vercel + Supabase demo; not campus production)       | `NOT CONFIRMED` | `<reference>`                  |
+| Dependency-hygiene evidence recorded for the exact candidate branch                               | `NOT CONFIRMED` | `<reference>`                  |
+| `composer audit` and `npm audit --omit=dev` are clean for the exact candidate                     | `NOT CONFIRMED` | `<reference>`                  |
 | Permanent `SIMULASI — DATA SINTETIS` boundary visible                                            | `NOT CONFIRMED` | `<reference>`                  |
 | Fresh/snapshotted synthetic fixture                                                              | `NOT CONFIRMED` | `<reference>`                  |
 | Exact tested commit identified                                                                   | `NOT CONFIRMED` | `<reference>`                  |
@@ -177,6 +180,7 @@ Every unresolved P0/P1 item needs an owner and next evidence step. `NONE IDENTIF
 | Merge authorization                                 | `NOT AUTHORIZED BY THIS RECORD`                              |
 | Deployment authorization                            | `NOT AUTHORIZED BY THIS RECORD`                              |
 | Faculty-pilot authorization                         | `NOT AUTHORIZED BY THIS RECORD`                              |
+| Dependency-maintenance decision for next branch     | `NOT DECIDED`                                                |
 | Daniel decision date/timezone                       | `<NOT RECORDED>`                                             |
 | Daniel decision note                                | `<NOT RECORDED>`                                             |
 
