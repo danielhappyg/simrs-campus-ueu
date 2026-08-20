@@ -396,6 +396,7 @@ class ClinicalDocumentationService
 
             if (! $amendmentMode) {
                 $this->persistMedicalRequests($version, $activeAuthor, $content, $recordedAt);
+                $this->cancelSupersededDraftMedicalOrders($entry, $version);
             }
 
             if ($lockedEncounter->status === EncounterStatus::WaitingClinician) {
@@ -960,6 +961,54 @@ class ClinicalDocumentationService
                 'status' => MedicationRequestStatus::Draft,
                 'authored_at' => $recordedAt,
             ]);
+        }
+    }
+
+    /**
+     * Cancel DRAFT service and medication requests from prior medical versions of the same entry.
+     *
+     * SAVE_DRAFT then SUBMIT creates a successor version with a new request set. Without this,
+     * orphan DRAFT orders from the superseded version remain open work for pharmacy advancement
+     * and closure readiness (Checkpoint 2 issues UAT-20260820-002 / UAT-20260820-003).
+     */
+    private function cancelSupersededDraftMedicalOrders(
+        ClinicalEntry $entry,
+        ClinicalEntryVersion $successorVersion,
+    ): void {
+        $priorVersionIds = ClinicalEntryVersion::query()
+            ->where('clinical_entry_id', $entry->getKey())
+            ->whereKeyNot($successorVersion->getKey())
+            ->lockForUpdate()
+            ->pluck('id');
+
+        if ($priorVersionIds->isEmpty()) {
+            return;
+        }
+
+        $reason = sprintf(
+            'Superseded by medical assessment version %d (%s).',
+            $successorVersion->version_number,
+            $successorVersion->content_hash,
+        );
+
+        $cancelledServiceRequests = ServiceRequest::query()
+            ->whereIn('source_entry_version_id', $priorVersionIds)
+            ->where('status', ServiceRequestStatus::Draft)
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($cancelledServiceRequests as $request) {
+            $request->persistStatus(ServiceRequestStatus::Cancelled);
+        }
+
+        $cancelledMedicationRequests = MedicationRequest::query()
+            ->whereIn('source_entry_version_id', $priorVersionIds)
+            ->where('status', MedicationRequestStatus::Draft)
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($cancelledMedicationRequests as $request) {
+            $request->persistStatus(MedicationRequestStatus::Cancelled, $reason);
         }
     }
 
