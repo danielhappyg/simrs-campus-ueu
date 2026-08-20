@@ -15,7 +15,7 @@ The evaluator runs the same bounded terminology-search service used by diagnosis
 | System | Release | Rows | Required SHA-256 |
 |---|---|---:|---|
 | ICD-10 | `ICD10_2010` | 18,543 | `3c22aa15012dd2e15576657e49001291fd21a5b30ce797998a495aac548c5f4e` |
-| ICD-9-CM | `ICD9CM_2010` | 4,626 | `9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78` |
+| ICD-9-CM | `ICD9CM_2010` | 4,626 | `c13d074be8fb271fccddfce4825ff56b6c958e48360ac148f7768c2de59e9697` |
 
 It validates the dataset schema, synthetic-only marker, source/classification pairing, code membership, release version, row count, and checksum before evaluating any case. It performs no clinical write, suggestion-run creation, assignment creation, alias activation, or audit event.
 

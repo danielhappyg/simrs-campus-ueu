@@ -15,7 +15,7 @@
         },
         "ICD_9_CM": {
             "logicalVersion": "ICD9CM_2010",
-            "sourceSha256": "9f625ada077b198e75e5f6a51596191cb9de94be198a967cedf07a52e08f8d78",
+            "sourceSha256": "c13d074be8fb271fccddfce4825ff56b6c958e48360ac148f7768c2de59e9697",
             "rowCount": 4626
         }
     },
