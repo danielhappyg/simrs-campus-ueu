@@ -31,9 +31,7 @@
             "synthetic": true,
             "statement": "Dizziness and giddiness",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "R42"
-            ],
+            "acceptableCodes": ["R42"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -47,9 +45,7 @@
             "synthetic": true,
             "statement": "Benign paroxysmal vertigo",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "H81.1"
-            ],
+            "acceptableCodes": ["H81.1"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -63,9 +59,7 @@
             "synthetic": true,
             "statement": "Essential (primary) hypertension",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "I10"
-            ],
+            "acceptableCodes": ["I10"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -79,9 +73,7 @@
             "synthetic": true,
             "statement": "Acute upper respiratory infection, unspecified",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "J06.9"
-            ],
+            "acceptableCodes": ["J06.9"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -95,9 +87,7 @@
             "synthetic": true,
             "statement": "Low back pain",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "M54.5"
-            ],
+            "acceptableCodes": ["M54.5"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -111,9 +101,7 @@
             "synthetic": true,
             "statement": "Generalized anxiety disorder",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "F41.1"
-            ],
+            "acceptableCodes": ["F41.1"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -127,9 +115,7 @@
             "synthetic": true,
             "statement": "Dietary counselling and surveillance",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "Z71.3"
-            ],
+            "acceptableCodes": ["Z71.3"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -157,9 +143,7 @@
             "synthetic": true,
             "statement": "Dizzines and giddiness",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "R42"
-            ],
+            "acceptableCodes": ["R42"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -173,9 +157,7 @@
             "synthetic": true,
             "statement": "BPPV",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "H81.1"
-            ],
+            "acceptableCodes": ["H81.1"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -189,9 +171,7 @@
             "synthetic": true,
             "statement": "Pusing dan rasa melayang",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "R42"
-            ],
+            "acceptableCodes": ["R42"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -205,9 +185,7 @@
             "synthetic": true,
             "statement": "Hipertensi primer",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "I10"
-            ],
+            "acceptableCodes": ["I10"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -221,9 +199,7 @@
             "synthetic": true,
             "statement": "Nyeri punggung bawah",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "M54.5"
-            ],
+            "acceptableCodes": ["M54.5"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -265,9 +241,7 @@
             "synthetic": true,
             "statement": "Appendectomy",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "47.0"
-            ],
+            "acceptableCodes": ["47.0"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -281,9 +255,7 @@
             "synthetic": true,
             "statement": "Electrocardiogram",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "89.52"
-            ],
+            "acceptableCodes": ["89.52"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -297,9 +269,7 @@
             "synthetic": true,
             "statement": "Parenteral infusion of concentrated nutritional substances",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "99.15"
-            ],
+            "acceptableCodes": ["99.15"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -313,9 +283,7 @@
             "synthetic": true,
             "statement": "Other physical therapy",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "93.39"
-            ],
+            "acceptableCodes": ["93.39"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -329,9 +297,7 @@
             "synthetic": true,
             "statement": "Psychiatric mental status determination",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "94.11"
-            ],
+            "acceptableCodes": ["94.11"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -345,9 +311,7 @@
             "synthetic": true,
             "statement": "Other puncture of vein",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "38.99"
-            ],
+            "acceptableCodes": ["38.99"],
             "provenance": "CHECKSUMMED_CATALOG_CODE_DISPLAY"
         },
         {
@@ -389,9 +353,7 @@
             "synthetic": true,
             "statement": "appendectmy",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "47.0"
-            ],
+            "acceptableCodes": ["47.0"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -405,9 +367,7 @@
             "synthetic": true,
             "statement": "Appendektomi",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "47.0"
-            ],
+            "acceptableCodes": ["47.0"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -421,9 +381,7 @@
             "synthetic": true,
             "statement": "Elektrokardiogram",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "89.52"
-            ],
+            "acceptableCodes": ["89.52"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
@@ -437,9 +395,7 @@
             "synthetic": true,
             "statement": "Terapi fisik lainnya",
             "expectation": "TARGET_RANKED",
-            "acceptableCodes": [
-                "93.39"
-            ],
+            "acceptableCodes": ["93.39"],
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
