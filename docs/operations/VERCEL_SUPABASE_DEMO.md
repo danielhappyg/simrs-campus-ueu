@@ -1,8 +1,11 @@
 # Vercel + Supabase synthetic demo
 
-This deployment is a testing-only SIMRS Campus UEU environment. It must contain
-only synthetic `example.invalid` accounts and the retained synthetic outpatient
-reference session.
+- **Status:** Active hosted demo runbook
+- **Posture:** See [Current hosting posture](CURRENT_HOSTING_POSTURE.md)
+
+This is the **current working hosted environment** for the reference build. It exists because Vercel and Supabase Free are the disposable tools available now; campus production hosting remains TBD.
+
+This deployment is a testing-only SIMRS Campus UEU environment. It must contain only synthetic `example.invalid` accounts and the retained synthetic outpatient reference session.
 
 ## Runtime model
 

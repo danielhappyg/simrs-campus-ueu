@@ -6,7 +6,7 @@ services:
     runtime: docker
     plan: free
     region: singapore
-    branch: codex/render-supabase-demo
+    branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /up

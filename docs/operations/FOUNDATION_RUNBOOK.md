@@ -2,7 +2,7 @@
 
 ## Purpose and boundary
 
-This runbook covers local development and evidence collection for the simulation-only platform foundation. It is not a Hostinger deployment procedure and does not authorize real patient data.
+This runbook covers local development and evidence collection for the simulation-only platform foundation. It is not a campus deployment procedure and does not authorize real patient data. For the current hosted demo, see [Current hosting posture](CURRENT_HOSTING_POSTURE.md) and [Vercel + Supabase synthetic demo](VERCEL_SUPABASE_DEMO.md).
 
 ## Environment contract
 
@@ -102,7 +102,7 @@ Before patient or encounter data exists, a local foundation database can be recr
 
 For a hosted release, rollback must restore a previously built application artifact while preserving a compatible database. Database rollback is permitted only when the migration has an explicitly reviewed reverse path and no retained record would be lost. Otherwise deploy a forward corrective migration.
 
-The SSH deployment workflow remains blocked until the project records evidence for:
+The SSH or platform-native deployment workflow remains blocked until the project records evidence for:
 
 1. separate staging and production databases, keys, storage, and hostnames;
 2. backup creation and test restoration;
@@ -112,9 +112,9 @@ The SSH deployment workflow remains blocked until the project records evidence f
 6. maintenance-mode and health-check behavior; and
 7. a tested code and database recovery exercise.
 
-The [Local MySQL and Recovery Validation](LOCAL_MYSQL_RECOVERY_VALIDATION.md) proves local migration portability plus a full finalized synthetic reference-journey backup/restore, relationship comparison, completed-state no-op check, and restored `/up` response. It does not satisfy hosted backup governance, Hostinger isolation, or release-artifact deployment/rollback requirements above.
+The [Local MySQL and Recovery Validation](LOCAL_MYSQL_RECOVERY_VALIDATION.md) proves local migration portability plus a full finalized synthetic reference-journey backup/restore, relationship comparison, completed-state no-op check, and restored `/up` response. It does not satisfy hosted backup governance, campus-host isolation, or release-artifact deployment/rollback requirements above.
 
-The [Hostinger Staging Preflight](HOSTINGER_STAGING_PREFLIGHT.md) provides the read-only `ops:hosting-preflight` command, a sanitized evidence schema, and fail-closed `READY`/`INCOMPLETE`/`BLOCKED` results. It advances the capability-assessment gate but does not satisfy `OPS-02`; the harmless staging deployment, failed-health behavior, and rollback rehearsal remain separately blocked pending authorization and actual account evidence.
+The [Hostinger Staging Preflight](HOSTINGER_STAGING_PREFLIGHT.md) provides an optional read-only `ops:hosting-preflight` command and sanitized evidence schema for a future shared PHP host. See [Current hosting posture](CURRENT_HOSTING_POSTURE.md). It is not required for the active Vercel + Supabase demo and does not satisfy `OPS-02`.
 
 The [Release Candidate Artifact](RELEASE_CANDIDATE_ARTIFACT.md) defines the manifest-bound runtime allowlist and the CI job that builds an immutable short-lived tar plus SHA-256 sidecar after application and MySQL checks, then verifies the completed archive fail-closed before upload. The [Local Release Control Validation](LOCAL_RELEASE_CONTROL_VALIDATION.md) records tamper/forbidden-content rejection and a disposable filesystem contract in which failed health blocks the pointer switch and the preceding release can be restored. These advance the tested-artifact and release-control prerequisites without enabling a deployment environment, SSH transfer, migration, hosted switch, or rollback claim.
 

@@ -22,7 +22,7 @@ The product owner has recorded decisions on:
 - [x] simulation-only initial operation using synthetic patients;
 - [x] outpatient care as the first complete learning journey;
 - [x] student drafts with explicit instructor/supervisor review and preserved revisions;
-- [x] Hostinger as a conditional initial host, with documented migration triggers;
+- [x] Vercel + Supabase as the current free synthetic demo host; campus production hosting TBD when IT availability is known;
 - [x] Indonesian as the initial clinical UI language, with recognized clinical/technical terminology where appropriate;
 - [x] medicine, nursing, RMIK, and pharmacy participating in the first pilot.
 
@@ -57,8 +57,8 @@ Build a concrete reference journey around one synthetic patient, then validate i
 
 - [x] Implement a read-only, fail-closed runtime and sanitized-evidence preflight command.
 - [x] Implement an identifiable, runtime-only CI release candidate without enabling deployment.
-- [ ] Confirm the Hostinger plan supports the required PHP version and extensions.
-- [ ] Verify SSH restrictions, Composer strategy, cron/queue behavior, private storage, database backups, logs, TLS, staging subdomain, symlinks/release directories, and recovery.
+- [ ] Confirm the selected campus or shared-hosting environment supports the required PHP version, extensions, and deployment model when IT inventory is available.
+- [ ] Verify SSH or platform-native deploy restrictions, Composer strategy, cron/queue behavior, private storage, database backups, logs, TLS, staging subdomain, release directories, and recovery for the chosen host.
 - [ ] Create separate staging and teaching-production databases, keys, storage, and hostnames.
 - [ ] Record the migration trigger to a VPS or managed platform.
 - [ ] Protect `main`, require pull requests, enable automated checks, and require production environment approval.
