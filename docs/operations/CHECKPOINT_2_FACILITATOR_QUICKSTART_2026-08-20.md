@@ -5,6 +5,7 @@
 - **Primary contract:** [Outpatient Checkpoint 2 UAT Facilitator Guide](OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
 - **Run record:** [Outpatient Checkpoint 2 UAT Record — 20 August 2026 Draft](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_2026-08-20_DRAFT.md)
 - **Entry gate evidence:** [Outpatient Checkpoint 2 Entry Gate Validation — 20 August 2026](OUTPATIENT_CHECKPOINT_2_ENTRY_GATE_VALIDATION_2026-08-20.md)
+- **Optional hosted demo target:** https://simrs-campus-ueu-demo.vercel.app (synthetic tip `5f8baf2` on `codex/vercel-supabase-demo`; campus production hosting TBD)
 
 ## Before participants join
 
@@ -14,11 +15,12 @@
    - no production SATUSEHAT/BPJS/email/messaging credentials
 
 2. Confirm the candidate branch/commit and evidence set:
-   - exact commit identified
+   - exact commit identified (for the published demo tip, start from `5f8baf2` unless a newer tip is intentional)
    - dependency-hygiene record linked
    - dated UAT record copy ready
+   - if using the hosted demo, confirm https://simrs-campus-ueu-demo.vercel.app `/login` loads and the permanent simulation banner remains visible after sign-in
 
-3. Run the gate commands:
+3. Run the gate commands (local fixture **or** against the hosted Supabase session from a trusted checkout with demo env loaded locally — never commit secrets):
 
 ```bash
 php artisan simulation:lab-access enable --confirm=ENABLE-RESERVED-DEMO-ACCESS
@@ -31,7 +33,7 @@ php artisan simulation:lab-session-status UAT-MAIN-001
    - session code
    - encounter identifier
    - terminology release/checksum suffixes
-   - environment/hosting topology
+   - environment/hosting topology (`local` vs `vercel+supabase` tip SHA)
 
 ## Before the first task
 
@@ -79,4 +81,4 @@ php artisan simulation:lab-access disable --confirm=DISABLE-RESERVED-DEMO-ACCESS
 
 ## Related Daniel packet
 
-Before inviting faculty participants, Daniel should review [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) for merge order, proposed issue classifications, and non-authorizations.
+Before inviting faculty participants, Daniel should review [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) for post-merge status, proposed issue classifications, and non-authorizations. Merged faculty-correction PRs and demo publish do **not** replace PASS/VAL marks.

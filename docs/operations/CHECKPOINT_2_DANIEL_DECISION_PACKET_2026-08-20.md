@@ -1,23 +1,23 @@
 # Checkpoint 2 — Daniel Decision Packet — 20 August 2026
 
-> **WORKING PACKET FOR DANIEL HAPPY PUTRA ONLY — NOT FACULTY ACCEPTANCE, MERGE INSTRUCTION BY ITSELF, DEPLOYMENT AUTHORIZATION, OR PILOT APPROVAL.**
+> **WORKING PACKET FOR DANIEL HAPPY PUTRA ONLY — NOT FACULTY ACCEPTANCE OR PILOT APPROVAL.**
 
 - **Owner / acceptance authority:** Daniel Happy Putra
-- **Scope:** synthetic outpatient reference MVP Checkpoint 2 review after local `LAB-REHEARSAL-001` journey + faculty-correction PRs
+- **Scope:** synthetic outpatient reference MVP Checkpoint 2 review after local `LAB-REHEARSAL-001` journey + faculty-correction merges
 - **Hosting posture:** Vercel + Supabase demo and/or local isolated fixture only; campus production hosting TBD; do **not** assume Hostinger
+- **Code tip (as of this packet update):** `main` / demo production branch `codex/vercel-supabase-demo` at `5f8baf2` (includes PRs #26–#30)
 
-## 1. Recommended merge order (docs then fixes)
+## 1. Merge status (docs then fixes)
 
-| Order | PR | Purpose | CI posture (re-check at merge time) |
+| Order | PR | Purpose | Status |
 | --- | --- | --- | --- |
-| 1 | [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26) | Checkpoint 2 UAT docs, runbook/checklist alignment, dependency-hygiene baseline (no package upgrades) | Green / mergeable (`CLEAN`) |
-| 2 | [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) | Cancel superseded DRAFT medical orders (`UAT-20260820-002` / `003`) | Green / mergeable (`CLEAN`) |
-| 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | Green / mergeable (`CLEAN`) |
-| 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | Green / mergeable (`CLEAN`) after merging `#28`, rebuilding assets, aligning Linux CSS hash + manifest EOF |
+| 1 | [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26) | Checkpoint 2 UAT docs, runbook/checklist alignment, dependency-hygiene baseline (no package upgrades) | **Merged** to `main` |
+| 2 | [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27) | Cancel superseded DRAFT medical orders (`UAT-20260820-002` / `003`) | **Merged** to `main` |
+| 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | **Merged** to `main` |
+| 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | **Merged** to `main` |
+| 5 | [#30](https://github.com/danielhappyg/simrs-campus-ueu/pull/30) | Align committed Vite CSS hash with Linux CI | **Merged** to `main` |
 
-Merge only after you accept the linked evidence. Do not treat green CI as faculty PASS.
-
-**Sequential-merge note:** `#29` includes `#28` source + a rebuilt asset tree. Prefer still merging `#28` before `#29` so history stays ordered; if `#28` is already on `main`, `#29` should apply cleanly.
+Synthetic demo production tip published at https://simrs-campus-ueu-demo.vercel.app (`5f8baf2` on `codex/vercel-supabase-demo`). Application checks on tip `5f8baf2` were green after #30. Do **not** treat merge or demo publish as faculty PASS.
 
 ## 2. Reporter-proposed issue classifications (not yet Daniel decisions)
 
@@ -25,8 +25,8 @@ These are proposals for you to accept, revise, or reject in the dated UAT draft.
 
 | Issue | Proposed classification | Proposed next action |
 | --- | --- | --- |
-| `UAT-20260820-001` | `MUST_FIX_BEFORE_UAT_RESUME` → resolved by PR #28 after merge + spot-check | Teach stock/name alignment; no auto-substitution |
-| `UAT-20260820-002` | `MUST_FIX_BEFORE_UAT_RESUME` → resolved by PR #27 after merge + regression already in PR | Cancel orphan DRAFT medication requests on successor medical versions |
+| `UAT-20260820-001` | `MUST_FIX_BEFORE_UAT_RESUME` → code on `main` via PR #28; still needs disposable-session spot-check | Teach stock/name alignment; no auto-substitution |
+| `UAT-20260820-002` | `MUST_FIX_BEFORE_UAT_RESUME` → code on `main` via PR #27; regression test present; spot-check still useful | Cancel orphan DRAFT medication requests on successor medical versions |
 | `UAT-20260820-003` | `MUST_FIX_BEFORE_UAT_RESUME` → same root cause as `002` / PR #27 | Cancel orphan DRAFT service requests on successor medical versions |
 | `UAT-20260820-004` | `DECISION_REQUIRED` under **VAL-A16** | Retain honesty (`NO_RELIABLE_CANDIDATE` + ManualAlternative); **do not** activate Indonesian aliases without explicit VAL-A16 decision |
 
@@ -52,6 +52,7 @@ Primary evidence remains [Outpatient Checkpoint 2 UAT Record — 20 August 2026 
 - Orphan draft cancel: PR #27 + `MedicalAssessmentWorkflowTest::test_successor_medical_version_cancels_orphaned_draft_orders_from_superseded_draft`
 - Stock alignment UX: PR #28 + pharmacy dispense-form unit tests
 - Coding honesty: PR #29 + gold-set `DX-ID-004` OBSERVED as `NO_RELIABLE_CANDIDATE`
+- Post-merge local recheck (tip `5f8baf2`, 20 Aug 2026 evening): 49 related PHPUnit + 15 Vitest cases passed — still not faculty PASS
 
 ## 5. VAL decisions still only you can close
 
@@ -63,7 +64,7 @@ Keep every VAL row at `NOT DECIDED` until you write a final state. Highest-signa
 
 ## 6. Explicit non-authorizations
 
-Even after you merge the PRs and mark scenarios:
+Even after merges, demo publish, and scenario marks:
 
 - no faculty-pilot authorization (Checkpoint 3 remains separate)
 - no production clinical data / SATUSEHAT / BPJS-live use
@@ -72,8 +73,8 @@ Even after you merge the PRs and mark scenarios:
 
 ## 7. Suggested immediate Daniel actions
 
-1. Review/merge PR #26, then #27–#29 in order (or request changes).
-2. Enter classifications for `UAT-20260820-001`–`004` in the dated UAT draft.
-3. Choose faculty rehearsal target: local fixture **or** Vercel + Supabase demo.
+1. Enter classifications for `UAT-20260820-001`–`004` in the dated UAT draft.
+2. Choose faculty rehearsal target: local fixture **or** Vercel + Supabase demo at https://simrs-campus-ueu-demo.vercel.app (`5f8baf2`).
+3. Spot-check the three faculty-correction behaviors on a disposable session if you require browser confirmation before PASS.
 4. Mark scenario PASS/FAIL/DECISION and Checkpoint 2 outcome (`ACCEPTED` / `CONDITIONALLY ACCEPTED` / `REQUIRES ANOTHER RUN`).
 5. Only after that, schedule faculty-facing UAT or decide a fresh dated record copy is required.
