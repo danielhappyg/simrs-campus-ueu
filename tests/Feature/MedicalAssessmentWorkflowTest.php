@@ -12,8 +12,12 @@ use App\Modules\Clinical\Enums\CurrentMedicationState;
 use App\Modules\Clinical\Enums\DiagnosisCertainty;
 use App\Modules\Clinical\Enums\DiagnosisRole;
 use App\Modules\Clinical\Enums\IntakeSafetyDecision;
+use App\Modules\Clinical\Enums\MedicationRequestStatus;
+use App\Modules\Clinical\Enums\ServiceRequestStatus;
 use App\Modules\Clinical\Models\ClinicalCondition;
 use App\Modules\Clinical\Models\ClinicalEntryVersion;
+use App\Modules\Clinical\Models\MedicationRequest;
+use App\Modules\Clinical\Models\ServiceRequest;
 use App\Modules\Encounter\Enums\EncounterStatus;
 use App\Modules\Encounter\Models\Encounter;
 use App\Modules\Teaching\Enums\WorkTaskStatus;
@@ -231,7 +235,76 @@ class MedicalAssessmentWorkflowTest extends TestCase
         }
     }
 
-    /** @return array{Encounter, User, ClinicalEntryVersion} */
+    public function test_successor_medical_version_cancels_orphaned_draft_orders_from_superseded_draft(): void
+    {
+        [$encounter, $medicalLearner, , $medicalSupervisor] = $this->prepareMedicalCase();
+
+        $this->actingAs($medicalLearner)->post(
+            route('encounters.medical-assessment.versions.store', $encounter),
+            $this->medicalPayloadWithOrders(ClinicalSaveIntent::SaveDraft),
+        );
+
+        $draftVersion = ClinicalEntryVersion::query()
+            ->where('schema_version', 'medical-assessment.v1')
+            ->sole();
+        $orphanedServiceRequest = ServiceRequest::query()
+            ->where('source_entry_version_id', $draftVersion->getKey())
+            ->sole();
+        $orphanedMedicationRequest = MedicationRequest::query()
+            ->where('source_entry_version_id', $draftVersion->getKey())
+            ->sole();
+
+        $this->assertSame(ServiceRequestStatus::Draft, $orphanedServiceRequest->status);
+        $this->assertSame(MedicationRequestStatus::Draft, $orphanedMedicationRequest->status);
+
+        $this->actingAs($medicalLearner)->post(
+            route('encounters.medical-assessment.versions.store', $encounter),
+            $this->medicalPayloadWithOrders(ClinicalSaveIntent::Submit),
+        );
+
+        $submittedVersion = ClinicalEntryVersion::query()
+            ->where('schema_version', 'medical-assessment.v1')
+            ->orderByDesc('version_number')
+            ->firstOrFail();
+
+        $this->assertSame(2, $submittedVersion->version_number);
+        $this->assertSame(ClinicalEntryStatus::Submitted, $submittedVersion->status);
+        $this->assertSame(ServiceRequestStatus::Cancelled, $orphanedServiceRequest->refresh()->status);
+        $this->assertSame(MedicationRequestStatus::Cancelled, $orphanedMedicationRequest->refresh()->status);
+        $this->assertStringContainsString(
+            'Superseded by medical assessment version 2',
+            (string) $orphanedMedicationRequest->cancellation_reason,
+        );
+
+        $currentServiceRequest = ServiceRequest::query()
+            ->where('source_entry_version_id', $submittedVersion->getKey())
+            ->sole();
+        $currentMedicationRequest = MedicationRequest::query()
+            ->where('source_entry_version_id', $submittedVersion->getKey())
+            ->sole();
+
+        $this->assertSame(ServiceRequestStatus::Draft, $currentServiceRequest->status);
+        $this->assertSame(MedicationRequestStatus::Draft, $currentMedicationRequest->status);
+
+        $this->actingAs($medicalSupervisor)->post(
+            route('clinical-versions.review-decisions.store', $submittedVersion),
+            [
+                'request_key' => (string) Str::ulid(),
+                'action' => ClinicalReviewAction::ApproveSimulation->value,
+                'comment' => 'Asesmen medis disetujui untuk skenario.',
+                'findings' => [],
+            ],
+        );
+
+        $this->assertSame(ServiceRequestStatus::Active, $currentServiceRequest->refresh()->status);
+        $this->assertSame(MedicationRequestStatus::Active, $currentMedicationRequest->refresh()->status);
+        $this->assertSame(ServiceRequestStatus::Cancelled, $orphanedServiceRequest->refresh()->status);
+        $this->assertSame(MedicationRequestStatus::Cancelled, $orphanedMedicationRequest->refresh()->status);
+        $this->assertDatabaseCount('service_requests', 2);
+        $this->assertDatabaseCount('medication_requests', 2);
+    }
+
+    /** @return array{Encounter, User, ClinicalEntryVersion, User} */
     private function prepareMedicalCase(): array
     {
         $this->seedReferenceOutpatient();
@@ -239,6 +312,7 @@ class MedicalAssessmentWorkflowTest extends TestCase
         $nurse = User::query()->where('email', 'mahasiswa.keperawatan@example.invalid')->firstOrFail();
         $nursingSupervisor = User::query()->where('email', 'supervisor.keperawatan@example.invalid')->firstOrFail();
         $medicalLearner = User::query()->where('email', 'mahasiswa.kedokteran@example.invalid')->firstOrFail();
+        $medicalSupervisor = User::query()->where('email', 'supervisor.kedokteran@example.invalid')->firstOrFail();
         $encounter = Encounter::query()->firstOrFail();
 
         $this->actingAs($registrar)->post(route('appointments.check-in', $encounter->appointment));
@@ -257,7 +331,7 @@ class MedicalAssessmentWorkflowTest extends TestCase
             ],
         );
 
-        return [$encounter->refresh(), $medicalLearner, $nursingVersion->refresh()];
+        return [$encounter->refresh(), $medicalLearner, $nursingVersion->refresh(), $medicalSupervisor];
     }
 
     /** @return array<string, mixed> */
@@ -319,5 +393,35 @@ class MedicalAssessmentWorkflowTest extends TestCase
             'follow_up_plan' => 'Kontrol simulasi sesuai jadwal skenario.',
             'intended_disposition' => 'Rawat jalan dalam skenario, menunggu penyelesaian tahap berikutnya.',
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function medicalPayloadWithOrders(ClinicalSaveIntent $intent): array
+    {
+        $payload = $this->medicalPayload($intent);
+        $payload['service_requests'] = [[
+            'request_type' => 'LABORATORY',
+            'authored_service' => 'Pemeriksaan darah sintetis skenario',
+            'clinical_question' => 'Dokumentasikan hasil fixture untuk mendukung penilaian skenario.',
+            'priority' => 'ROUTINE',
+            'source_diagnosis_index' => 0,
+        ]];
+        $payload['medication_requests'] = [[
+            'authored_medication' => 'Obat Simulasi A',
+            'form' => 'Tablet',
+            'strength' => '500 mg',
+            'dose_value' => 1,
+            'dose_unit' => 'tablet',
+            'route' => 'Oral',
+            'frequency' => 'Dua kali sehari',
+            'duration' => 'Tiga hari',
+            'quantity_value' => 6,
+            'quantity_unit' => 'tablet',
+            'directions' => 'Gunakan sesuai instruksi skenario.',
+            'indication_text' => 'Sindrom pusing dalam evaluasi.',
+            'source_diagnosis_index' => 0,
+        ]];
+
+        return $payload;
     }
 }
