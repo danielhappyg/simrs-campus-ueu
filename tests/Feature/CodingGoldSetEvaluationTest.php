@@ -191,7 +191,7 @@ class CodingGoldSetEvaluationTest extends TestCase
         $this->assertSame('SYNTHETIC_ONLY', $definition['mode']);
         $this->assertSame('PENDING', $definition['expertReviewStatus']);
         $this->assertNull($definition['accuracyThreshold']);
-        $this->assertCount(27, $definition['cases']);
+        $this->assertCount(28, $definition['cases']);
 
         foreach ($definition['cases'] as $case) {
             $this->assertTrue($case['synthetic']);
@@ -200,6 +200,16 @@ class CodingGoldSetEvaluationTest extends TestCase
                 $this->assertFalse($case['metricEligible']);
             }
         }
+
+        $honestyObservation = collect($definition['cases'])
+            ->firstWhere('id', 'DX-ID-004');
+        $this->assertIsArray($honestyObservation);
+        $this->assertSame('NO_RELIABLE_CANDIDATE', $honestyObservation['expectation']);
+        $this->assertSame('id', $honestyObservation['language']);
+        $this->assertSame(
+            'CHECKPOINT_2_UAT_20260820_HONESTY_OBSERVATION',
+            $honestyObservation['provenance'],
+        );
     }
 
     protected function tearDown(): void

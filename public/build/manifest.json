@@ -566,7 +566,7 @@
     "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BPC-QZor.css",
+    "file": "assets/app-DQo3qcaK.css",
     "name": "app",
     "names": [
       "app.css"
@@ -575,7 +575,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-CnVObOuw.js",
+    "file": "assets/app-Wzu-nwoC.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -959,7 +959,7 @@
     ]
   },
   "resources/js/pages/coding/workspace.tsx": {
-    "file": "assets/workspace-DiMjefkJ.js",
+    "file": "assets/workspace-jVAdV13n.js",
     "name": "workspace",
     "src": "resources/js/pages/coding/workspace.tsx",
     "isDynamicEntry": true,

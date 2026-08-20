@@ -203,6 +203,20 @@
             "provenance": "PROJECT_TEAM_PROPOSAL"
         },
         {
+            "id": "DX-ID-004",
+            "sourceType": "DIAGNOSIS",
+            "system": "ICD_10",
+            "cohort": "INDONESIAN_PROPOSAL",
+            "language": "id",
+            "validationStatus": "PENDING_EXPERT_REVIEW",
+            "metricEligible": false,
+            "synthetic": true,
+            "statement": "Faringitis akut dalam evaluasi pada skenario simulasi",
+            "expectation": "NO_RELIABLE_CANDIDATE",
+            "acceptableCodes": [],
+            "provenance": "CHECKPOINT_2_UAT_20260820_HONESTY_OBSERVATION"
+        },
+        {
             "id": "DX-AMB-001",
             "sourceType": "DIAGNOSIS",
             "system": "ICD_10",

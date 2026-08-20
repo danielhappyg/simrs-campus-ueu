@@ -2,11 +2,12 @@
 
 - **Evaluation date:** 2026-07-16
 - **Gold set:** `outpatient-reference-v1` / `1.0.0-draft.1`
-- **Dataset SHA-256:** `61a08d53865c359d76032bdc127d5670c46eab0736f4b6474f3478d5144b6443`
+- **Dataset SHA-256:** `6ed08bbb696afca164f562510c0912980eb28a1f66c5d001366261102cb1bc43`
 - **Status:** draft; expert validation required
 - **Mode:** synthetic teaching data only
 - **Engine:** `DETERMINISTIC_LEXICAL` / `coding-reference.v1`
 - **Final threshold authority:** Daniel Happy Putra after RMIK and medicine review
+- **2026-08-20 amendment:** added pending proposal `DX-ID-004` from Checkpoint 2 UAT honesty observation (`UAT-20260820-004`); no aliases activated and no accuracy threshold inferred.
 
 ## What this baseline proves
 
@@ -28,14 +29,15 @@ This is a **retrieval baseline**, not a clinical coding-accuracy claim. The metr
 | Diagnosis / ICD-10 | 8 | 7/7 (100.0%) | 7/7 (100.0%) | 1/1 | — | 0 |
 | Performed procedure / ICD-9-CM | 8 | 6/6 (100.0%) | 6/6 (100.0%) | 1/1 | 1/1 | 0 |
 
-There are 27 cases in total: 16 metric-eligible reference assertions and 11 proposals awaiting expert review. Nineteen current expectations are observed and eight are gaps. The eight gaps are deliberately excluded from the reference result:
+There are 28 cases in total: 16 metric-eligible reference assertions and 12 proposals awaiting expert review. Nineteen current TARGET/REVIEW expectations that currently miss remain excluded from the reference metric; the new honesty observation `DX-ID-004` documents expected `NO_RELIABLE_CANDIDATE` behavior for Indonesian pharyngitis wording against English ICD-10 displays and is also excluded from metrics.
 
 | Proposed case | Current gap | Required next decision |
-|---|---|---|
+| --- | --- | --- |
 | `BPPV` → `H81.1` | No candidate | RMIK/medicine approve, revise, or reject abbreviation mapping. |
 | `Pusing dan rasa melayang` → `R42` | No candidate | Validate Indonesian clinical phrase and acceptable ambiguity. |
 | `Hipertensi primer` → `I10` | No candidate | Validate Indonesian term and curriculum depth. |
 | `Nyeri punggung bawah` → `M54.5` | No candidate | Validate phrase and whether documentation is sufficiently specific. |
+| `Faringitis akut dalam evaluasi pada skenario simulasi` (`DX-ID-004`) | Honest no-candidate (observation) | Decide whether Indonesian aliases should be added, deferred, or rejected under VAL-A16. ManualAlternative remains valid. |
 | `appendectmy` → `47.0` | No candidate | Decide whether controlled spelling aliases are permitted. |
 | `Appendektomi` → `47.0` | No candidate | Validate Indonesian procedure term. |
 | `Elektrokardiogram` → `89.52` | No candidate | Validate Indonesian procedure term. |
