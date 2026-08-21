@@ -41,7 +41,7 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 describe('application header navigation', () => {
-    it('exposes vendor category links without a simulation banner', () => {
+    it('exposes live module links and muted Soon labels without fake navigation', () => {
         render(<AppHeader />);
 
         expect(screen.queryByText(/simulasi/i)).not.toBeInTheDocument();
@@ -51,11 +51,21 @@ describe('application header navigation', () => {
         });
         expect(navs.length).toBeGreaterThanOrEqual(1);
 
-        for (const category of SIMRS_MODULE_CATEGORIES) {
+        const live = SIMRS_MODULE_CATEGORIES.filter((category) => category.live);
+        const soon = SIMRS_MODULE_CATEGORIES.filter((category) => !category.live);
+
+        for (const category of live) {
             expect(
                 screen.getAllByRole('link', { name: new RegExp(category.label, 'i') })
                     .length,
             ).toBeGreaterThan(0);
+        }
+
+        for (const category of soon) {
+            expect(screen.getAllByText(category.label).length).toBeGreaterThan(0);
+            expect(
+                screen.queryByRole('link', { name: new RegExp(`^${category.label}$`, 'i') }),
+            ).not.toBeInTheDocument();
         }
 
         expect(screen.getAllByText('Soon').length).toBeGreaterThan(0);
@@ -77,5 +87,6 @@ describe('application header navigation', () => {
             screen.getByRole('heading', { name: 'Navigasi utama' }),
         ).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Tutup' })).toBeVisible();
+        expect(screen.getByText('Modul berikutnya')).toBeInTheDocument();
     });
 });

@@ -17,7 +17,17 @@ use Illuminate\Support\Carbon;
  * @property string $care_setting
  * @property string $status
  * @property string $clinic_name
+ * @property int|null $clinic_id
+ * @property int|null $doctor_id
+ * @property int|null $clinic_schedule_id
+ * @property string|null $doctor_name
+ * @property string|null $schedule_label
+ * @property Carbon|null $visit_date
+ * @property string|null $admission_mode
  * @property string $payer_type
+ * @property string|null $insurance_number
+ * @property string|null $booking_code
+ * @property int|null $queue_number
  * @property Carbon $registered_at
  * @property int $registered_by_user_id
  * @property string|null $chief_complaint
@@ -45,6 +55,12 @@ class Encounter extends Model
 
     public const PAYER_LAINNYA = 'LAINNYA';
 
+    public const ADMISSION_DATANG_SENDIRI = 'DATANG_SENDIRI';
+
+    public const ADMISSION_RUJUKAN = 'RUJUKAN';
+
+    public const ADMISSION_IGD = 'IGD';
+
     /**
      * @var list<string>
      */
@@ -52,6 +68,15 @@ class Encounter extends Model
         self::PAYER_UMUM,
         self::PAYER_BPJS,
         self::PAYER_LAINNYA,
+    ];
+
+    /**
+     * @var list<string>
+     */
+    public const ADMISSION_VALUES = [
+        self::ADMISSION_DATANG_SENDIRI,
+        self::ADMISSION_RUJUKAN,
+        self::ADMISSION_IGD,
     ];
 
     /**
@@ -67,7 +92,17 @@ class Encounter extends Model
         'care_setting',
         'status',
         'clinic_name',
+        'clinic_id',
+        'doctor_id',
+        'clinic_schedule_id',
+        'doctor_name',
+        'schedule_label',
+        'visit_date',
+        'admission_mode',
         'payer_type',
+        'insurance_number',
+        'booking_code',
+        'queue_number',
         'registered_at',
         'registered_by_user_id',
         'chief_complaint',
@@ -84,6 +119,30 @@ class Encounter extends Model
     public function patient(): BelongsTo
     {
         return $this->belongsTo(Patient::class);
+    }
+
+    /**
+     * @return BelongsTo<Clinic, $this>
+     */
+    public function clinic(): BelongsTo
+    {
+        return $this->belongsTo(Clinic::class);
+    }
+
+    /**
+     * @return BelongsTo<Doctor, $this>
+     */
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(Doctor::class);
+    }
+
+    /**
+     * @return BelongsTo<ClinicSchedule, $this>
+     */
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(ClinicSchedule::class, 'clinic_schedule_id');
     }
 
     /**
@@ -109,6 +168,8 @@ class Encounter extends Model
     {
         return [
             'registered_at' => 'datetime',
+            'visit_date' => 'date',
+            'queue_number' => 'integer',
         ];
     }
 }
