@@ -27,6 +27,8 @@ type EncounterDetail = {
     doctor_name: string | null;
     schedule_label: string | null;
     payer_type: string;
+    case_type?: string | null;
+    accident_type?: string | null;
     queue_number: number | null;
     registered_at: string | null;
     visit_date: string | null;
@@ -43,6 +45,10 @@ type EncounterDetail = {
 };
 
 type Props = {
+    variant?: 'rawat-jalan' | 'igd';
+    indexPath?: string;
+    showPathPrefix?: string;
+    storeEntryPath?: string;
     encounter: EncounterDetail;
     entryTypeOptions: EntryTypeOption[];
     canWriteNursing: boolean;
@@ -85,11 +91,18 @@ const clinicalTabs = [
 ] as const;
 
 export default function PemeriksaanRawatJalanShow({
+    variant = 'rawat-jalan',
+    indexPath = '/pemeriksaan/rawat-jalan',
+    storeEntryPath,
     encounter,
     entryTypeOptions,
     canWriteNursing,
     canWriteMedical,
 }: Props) {
+    const isIgd = variant === 'igd';
+    const entryPostPath =
+        storeEntryPath ??
+        `/pemeriksaan/rawat-jalan/${encounter.public_id}/entries`;
     const allowedOptions = entryTypeOptions.filter((option) => option.allowed);
     const canWrite = canWriteNursing || canWriteMedical;
     const closed = encounter.status === 'CLOSED';
@@ -103,7 +116,7 @@ export default function PemeriksaanRawatJalanShow({
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        form.post(`/pemeriksaan/rawat-jalan/${encounter.public_id}/entries`, {
+        form.post(entryPostPath, {
             preserveScroll: true,
             onSuccess: () => form.reset('body'),
         });
@@ -118,10 +131,10 @@ export default function PemeriksaanRawatJalanShow({
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
                 <div>
                     <Link
-                        href="/pemeriksaan/rawat-jalan"
+                        href={indexPath}
                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                     >
-                        ← Kembali ke worklist
+                        ← Kembali ke worklist {isIgd ? 'IGD' : 'rawat jalan'}
                     </Link>
                 </div>
 
@@ -146,6 +159,9 @@ export default function PemeriksaanRawatJalanShow({
                                 {encounter.patient.medical_record_number}
                                 {encounter.patient.nik
                                     ? ` · NIK ${encounter.patient.nik}`
+                                    : ''}
+                                {isIgd && encounter.case_type
+                                    ? ` · Kasus ${encounter.case_type}`
                                     : ''}
                             </p>
                         </div>
@@ -378,13 +394,29 @@ export default function PemeriksaanRawatJalanShow({
     );
 }
 
-PemeriksaanRawatJalanShow.layout = (props: Props) => ({
-    breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pemeriksaan', href: '/pemeriksaan/rawat-jalan' },
-        {
-            title: props.encounter.patient.full_name ?? 'Detail',
-            href: `/pemeriksaan/rawat-jalan/${props.encounter.public_id}`,
-        },
-    ] satisfies BreadcrumbItem[],
-});
+PemeriksaanRawatJalanShow.layout = (props: Props) => {
+    const indexPath =
+        props.indexPath ??
+        (props.variant === 'igd'
+            ? '/pemeriksaan/igd'
+            : '/pemeriksaan/rawat-jalan');
+    const showPrefix =
+        props.showPathPrefix ??
+        (props.variant === 'igd'
+            ? '/pemeriksaan/igd'
+            : '/pemeriksaan/rawat-jalan');
+
+    return {
+        breadcrumbs: [
+            { title: 'Beranda', href: '/' },
+            {
+                title: 'Pemeriksaan',
+                href: indexPath,
+            },
+            {
+                title: props.encounter.patient.full_name ?? 'Detail',
+                href: `${showPrefix}/${props.encounter.public_id}`,
+            },
+        ] satisfies BreadcrumbItem[],
+    };
+};

@@ -1,5 +1,12 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useState,
+    type FormEvent,
+    type ReactNode,
+} from 'react';
+import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,7 +84,10 @@ type WilayahOptions = {
     villages: Record<string, Option[]>;
 };
 
+type DeskVariant = 'rawat-jalan' | 'igd';
+
 type Props = {
+    variant?: DeskVariant;
     q: string;
     searchResults: PatientRow[];
     todaysEncounters: EncounterRow[];
@@ -90,6 +100,8 @@ type Props = {
     languageOptions: Option[];
     payerOptions: Option[];
     admissionOptions: Option[];
+    caseTypeOptions?: Option[];
+    accidentTypeOptions?: Option[];
     wilayahOptions: WilayahOptions;
     canRegister: boolean;
 };
@@ -181,6 +193,7 @@ function ActionStub({ label }: { label: string }) {
 }
 
 export default function PendaftaranRawatJalan({
+    variant = 'rawat-jalan',
     q,
     searchResults,
     todaysEncounters,
@@ -193,9 +206,18 @@ export default function PendaftaranRawatJalan({
     languageOptions,
     payerOptions,
     admissionOptions,
+    caseTypeOptions = [],
+    accidentTypeOptions = [],
     wilayahOptions,
     canRegister,
 }: Props) {
+    const isIgd = variant === 'igd';
+    const indexPath = isIgd ? '/pendaftaran/igd' : '/pendaftaran/rawat-jalan';
+    const storePath = indexPath;
+    const examPathPrefix = isIgd
+        ? '/pemeriksaan/igd'
+        : '/pemeriksaan/rawat-jalan';
+
     const [searchOpen, setSearchOpen] = useState(q !== '');
     const [printQueue, setPrintQueue] = useState(true);
     const [printFlags, setPrintFlags] = useState({
@@ -203,6 +225,8 @@ export default function PendaftaranRawatJalan({
         gelang: false,
         kartu: false,
         consent: false,
+        lembarIgd: false,
+        tracer: false,
         fastTrack: false,
     });
 
@@ -240,8 +264,18 @@ export default function PendaftaranRawatJalan({
         insurance_number: '',
         booking_code: '',
         chief_complaint: '',
+        case_type: 'NON_BEDAH',
+        accident_type: 'BUKAN_KECELAKAAN',
         is_synthetic: true,
     });
+
+    useEffect(() => {
+        if (!isIgd || clinics.length === 0 || form.data.clinic_public_id) {
+            return;
+        }
+        form.setData('clinic_public_id', clinics[0].public_id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- seed IGD clinic once
+    }, [isIgd, clinics]);
 
     const selectedClinic = clinics.find(
         (clinic) => clinic.public_id === form.data.clinic_public_id,
@@ -268,7 +302,7 @@ export default function PendaftaranRawatJalan({
         const query = String(data.get('q') ?? '').trim();
         setSearchOpen(true);
         router.get(
-            '/pendaftaran/rawat-jalan',
+            indexPath,
             query ? { q: query } : {},
             { preserveState: true, replace: true },
         );
@@ -350,9 +384,10 @@ export default function PendaftaranRawatJalan({
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        form.post('/pendaftaran/rawat-jalan', {
+        form.post(storePath, {
             preserveScroll: true,
             onSuccess: () => {
+                const igdClinicId = isIgd ? (clinics[0]?.public_id ?? '') : '';
                 form.reset();
                 form.setData({
                     ...form.data,
@@ -360,6 +395,9 @@ export default function PendaftaranRawatJalan({
                     visit_date: today,
                     admission_mode: 'DATANG_SENDIRI',
                     payer_type: 'UMUM',
+                    case_type: 'NON_BEDAH',
+                    accident_type: 'BUKAN_KECELAKAAN',
+                    clinic_public_id: igdClinicId,
                     is_synthetic: true,
                 });
             },
@@ -370,17 +408,41 @@ export default function PendaftaranRawatJalan({
 
     return (
         <>
-            <Head title="Pendaftaran Rawat Jalan" />
+            <Head
+                title={
+                    isIgd
+                        ? 'Pendaftaran IGD'
+                        : 'Pendaftaran Rawat Jalan'
+                }
+            />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-3 py-4 md:px-5 md:py-5">
+                <CareSettingSubnav
+                    items={[
+                        {
+                            href: '/pendaftaran/rawat-jalan',
+                            label: 'Rawat Jalan',
+                            active: !isIgd,
+                        },
+                        {
+                            href: '/pendaftaran/igd',
+                            label: 'IGD',
+                            active: isIgd,
+                        },
+                    ]}
+                />
+
                 <header className="flex flex-wrap items-end justify-between gap-2">
                     <div>
                         <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
-                            Data Pasien · Pendaftaran Rawat Jalan
+                            {isIgd
+                                ? 'Data Pasien · Pendaftaran IGD'
+                                : 'Data Pasien · Pendaftaran Rawat Jalan'}
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
                             Meja pendaftaran pengajaran (sintetis). Referensi
-                            densitas: SIMRS SAHABAT-family.
+                            densitas: SIMRS SAHABAT / CAP-REG-
+                            {isIgd ? '002' : '003'}.
                         </p>
                     </div>
                     {returning ? (
@@ -1064,28 +1126,30 @@ export default function PendaftaranRawatJalan({
                                 </DeskSection>
 
                                 <DeskSection title="Data kunjungan">
-                                    <Field
-                                        id="booking_code"
-                                        label="Kode booking"
-                                        error={form.errors.booking_code}
-                                    >
-                                        <Input
+                                    {!isIgd ? (
+                                        <Field
                                             id="booking_code"
-                                            className={fieldClass}
-                                            value={form.data.booking_code}
-                                            onChange={(e) =>
-                                                form.setData(
-                                                    'booking_code',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            placeholder="Opsional"
-                                        />
-                                    </Field>
+                                            label="Kode booking"
+                                            error={form.errors.booking_code}
+                                        >
+                                            <Input
+                                                id="booking_code"
+                                                className={fieldClass}
+                                                value={form.data.booking_code}
+                                                onChange={(e) =>
+                                                    form.setData(
+                                                        'booking_code',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="Opsional"
+                                            />
+                                        </Field>
+                                    ) : null}
                                     <div className="grid gap-2.5 sm:grid-cols-[1fr_auto]">
                                         <Field
                                             id="visit_date"
-                                            label="Tgl kunjungan"
+                                            label="Tgl/Jns kunjungan"
                                             error={form.errors.visit_date}
                                         >
                                             <Input
@@ -1108,39 +1172,47 @@ export default function PendaftaranRawatJalan({
                                             </span>
                                         </div>
                                     </div>
-                                    <Field
-                                        id="clinic_public_id"
-                                        label="Poliklinik"
-                                        error={form.errors.clinic_public_id}
-                                    >
-                                        <select
+                                    {!isIgd ? (
+                                        <Field
                                             id="clinic_public_id"
-                                            className={selectClass}
-                                            value={form.data.clinic_public_id}
-                                            onChange={(e) =>
-                                                form.setData({
-                                                    ...form.data,
-                                                    clinic_public_id:
-                                                        e.target.value,
-                                                    doctor_public_id: '',
-                                                    schedule_public_id: '',
-                                                })
-                                            }
-                                            required
+                                            label="Poliklinik"
+                                            error={form.errors.clinic_public_id}
                                         >
-                                            <option value="">
-                                                — Pilih poliklinik —
-                                            </option>
-                                            {clinics.map((clinic) => (
-                                                <option
-                                                    key={clinic.public_id}
-                                                    value={clinic.public_id}
-                                                >
-                                                    {clinic.name}
+                                            <select
+                                                id="clinic_public_id"
+                                                className={selectClass}
+                                                value={form.data.clinic_public_id}
+                                                onChange={(e) =>
+                                                    form.setData({
+                                                        ...form.data,
+                                                        clinic_public_id:
+                                                            e.target.value,
+                                                        doctor_public_id: '',
+                                                        schedule_public_id: '',
+                                                    })
+                                                }
+                                                required
+                                            >
+                                                <option value="">
+                                                    — Pilih poliklinik —
                                                 </option>
-                                            ))}
-                                        </select>
-                                    </Field>
+                                                {clinics.map((clinic) => (
+                                                    <option
+                                                        key={clinic.public_id}
+                                                        value={clinic.public_id}
+                                                    >
+                                                        {clinic.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </Field>
+                                    ) : (
+                                        <input
+                                            type="hidden"
+                                            name="clinic_public_id"
+                                            value={form.data.clinic_public_id}
+                                        />
+                                    )}
                                     <Field
                                         id="doctor_public_id"
                                         label="Dokter"
@@ -1176,7 +1248,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="schedule_public_id"
-                                        label="Jadwal"
+                                        label={isIgd ? 'Shift' : 'Jadwal'}
                                         error={form.errors.schedule_public_id}
                                     >
                                         <select
@@ -1193,7 +1265,9 @@ export default function PendaftaranRawatJalan({
                                             required
                                         >
                                             <option value="">
-                                                — Pilih jadwal —
+                                                {isIgd
+                                                    ? '— Pilih shift —'
+                                                    : '— Pilih jadwal —'}
                                             </option>
                                             {schedules.map((schedule) => (
                                                 <option
@@ -1205,6 +1279,80 @@ export default function PendaftaranRawatJalan({
                                             ))}
                                         </select>
                                     </Field>
+                                    {isIgd ? (
+                                        <>
+                                            <Field
+                                                id="case_type"
+                                                label="Kasus tindakan"
+                                                error={form.errors.case_type}
+                                            >
+                                                <select
+                                                    id="case_type"
+                                                    className={selectClass}
+                                                    value={form.data.case_type}
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'case_type',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    required
+                                                >
+                                                    {caseTypeOptions.map(
+                                                        (option) => (
+                                                            <option
+                                                                key={
+                                                                    option.value
+                                                                }
+                                                                value={
+                                                                    option.value
+                                                                }
+                                                            >
+                                                                {option.label}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                </select>
+                                            </Field>
+                                            <Field
+                                                id="accident_type"
+                                                label="Kecelakaan"
+                                                error={
+                                                    form.errors.accident_type
+                                                }
+                                            >
+                                                <select
+                                                    id="accident_type"
+                                                    className={selectClass}
+                                                    value={
+                                                        form.data.accident_type
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'accident_type',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    required
+                                                >
+                                                    {accidentTypeOptions.map(
+                                                        (option) => (
+                                                            <option
+                                                                key={
+                                                                    option.value
+                                                                }
+                                                                value={
+                                                                    option.value
+                                                                }
+                                                            >
+                                                                {option.label}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                </select>
+                                            </Field>
+                                        </>
+                                    ) : null}
                                     <Field
                                         id="admission_mode"
                                         label="Cara masuk"
@@ -1344,13 +1492,23 @@ export default function PendaftaranRawatJalan({
                                     No. Antrian
                                 </label>
                                 {(
-                                    [
-                                        ['sep', 'SEP'],
-                                        ['gelang', 'Gelang pasien'],
-                                        ['kartu', 'Kartu pasien'],
-                                        ['consent', 'General consent'],
-                                        ['fastTrack', 'Fast track'],
-                                    ] as const
+                                    (isIgd
+                                        ? ([
+                                              ['lembarIgd', 'Lembar IGD'],
+                                              ['gelang', 'Gelang pasien'],
+                                              ['kartu', 'Kartu pasien'],
+                                              ['tracer', 'Tracer berkas RM'],
+                                              ['sep', 'SEP'],
+                                              ['consent', 'General consent'],
+                                          ] as const)
+                                        : ([
+                                              ['sep', 'SEP'],
+                                              ['gelang', 'Gelang pasien'],
+                                              ['kartu', 'Kartu pasien'],
+                                              ['consent', 'General consent'],
+                                              ['fastTrack', 'Fast track'],
+                                          ] as const)
+                                    )
                                 ).map(([key, label]) => (
                                     <label
                                         key={key}
@@ -1427,7 +1585,7 @@ export default function PendaftaranRawatJalan({
                                         Nama
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Poli
+                                        {isIgd ? 'Unit' : 'Poli'}
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
                                         Dokter
@@ -1514,7 +1672,7 @@ export default function PendaftaranRawatJalan({
                                             </td>
                                             <td className="px-2 py-1.5 text-right">
                                                 <Link
-                                                    href={`/pemeriksaan/rawat-jalan/${encounter.public_id}`}
+                                                    href={`${examPathPrefix}/${encounter.public_id}`}
                                                     className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                 >
                                                     Buka
@@ -1532,10 +1690,20 @@ export default function PendaftaranRawatJalan({
     );
 }
 
-PendaftaranRawatJalan.layout = {
-    breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pendaftaran', href: '/pendaftaran/rawat-jalan' },
-        { title: 'Rawat Jalan', href: '/pendaftaran/rawat-jalan' },
-    ] satisfies BreadcrumbItem[],
+PendaftaranRawatJalan.layout = (props: Props) => {
+    const isIgd = props.variant === 'igd';
+
+    return {
+        breadcrumbs: [
+            { title: 'Beranda', href: '/' },
+            {
+                title: 'Pendaftaran',
+                href: isIgd ? '/pendaftaran/igd' : '/pendaftaran/rawat-jalan',
+            },
+            {
+                title: isIgd ? 'IGD' : 'Rawat Jalan',
+                href: isIgd ? '/pendaftaran/igd' : '/pendaftaran/rawat-jalan',
+            },
+        ] satisfies BreadcrumbItem[],
+    };
 };

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Emergency\EmergencyExaminationController;
+use App\Http\Controllers\Emergency\EmergencyRegistrationController;
+use App\Http\Controllers\Emergency\EmergencyTriageController;
 use App\Http\Controllers\ModulePlaceholderController;
 use App\Http\Controllers\Outpatient\OutpatientExaminationController;
 use App\Http\Controllers\Outpatient\OutpatientRegistrationController;
@@ -17,12 +20,27 @@ Route::middleware(['simulation'])->group(function (): void {
         Route::post('/pendaftaran/rawat-jalan', [OutpatientRegistrationController::class, 'store'])
             ->name('pendaftaran.rawat-jalan.store');
 
+        Route::get('/pendaftaran/igd', [EmergencyRegistrationController::class, 'index'])
+            ->name('pendaftaran.igd.index');
+        Route::post('/pendaftaran/igd', [EmergencyRegistrationController::class, 'store'])
+            ->name('pendaftaran.igd.store');
+
         Route::get('/pemeriksaan/rawat-jalan', [OutpatientExaminationController::class, 'index'])
             ->name('pemeriksaan.rawat-jalan.index');
         Route::get('/pemeriksaan/rawat-jalan/{encounter}', [OutpatientExaminationController::class, 'show'])
             ->name('pemeriksaan.rawat-jalan.show');
         Route::post('/pemeriksaan/rawat-jalan/{encounter}/entries', [OutpatientExaminationController::class, 'storeEntry'])
             ->name('pemeriksaan.rawat-jalan.entries.store');
+
+        Route::get('/pemeriksaan/igd', [EmergencyExaminationController::class, 'index'])
+            ->name('pemeriksaan.igd.index');
+        Route::get('/pemeriksaan/igd/{encounter}', [EmergencyExaminationController::class, 'show'])
+            ->name('pemeriksaan.igd.show');
+        Route::post('/pemeriksaan/igd/{encounter}/entries', [EmergencyExaminationController::class, 'storeEntry'])
+            ->name('pemeriksaan.igd.entries.store');
+
+        Route::get('/pemeriksaan/triage', [EmergencyTriageController::class, 'index'])
+            ->name('pemeriksaan.triage.index');
 
         Route::get('/rm/rawat-jalan', [OutpatientRmController::class, 'index'])
             ->name('rm.rawat-jalan.index');
