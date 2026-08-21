@@ -65,16 +65,15 @@ class HospitalSessionContext
      */
     public function sessionOptions(Collection $assignments): array
     {
-        return $assignments
+        return array_values($assignments
             ->unique('session_id')
             ->map(fn (Assignment $assignment): array => [
                 'code' => $assignment->session->code,
                 'publicId' => $assignment->session->public_id,
                 'courseCode' => $assignment->session->course_code,
-                'scenarioTitle' => $assignment->session->scenario?->title,
+                'scenarioTitle' => $assignment->session->scenario->title,
             ])
             ->sortBy('code')
-            ->values()
-            ->all();
+            ->all());
     }
 }

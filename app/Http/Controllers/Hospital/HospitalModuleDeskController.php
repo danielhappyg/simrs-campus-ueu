@@ -245,7 +245,7 @@ class HospitalModuleDeskController extends Controller
                 'publicId' => $session->public_id,
                 'code' => $session->code,
                 'courseCode' => $session->course_code,
-                'scenarioTitle' => $session->scenario?->title,
+                'scenarioTitle' => $session->scenario->title,
             ],
             'sessions' => $this->sessionContext->sessionOptions($assignments),
             'encounters' => $encounters->map(function (Encounter $encounter) use ($actionsFor): array {
@@ -261,8 +261,8 @@ class HospitalModuleDeskController extends Controller
                     ],
                     'patientName' => $encounter->patient->full_name,
                     'mrn' => $mrn?->value,
-                    'location' => $encounter->location?->name,
-                    'appointmentStatus' => $encounter->appointment?->status?->label(),
+                    'location' => $encounter->location->name,
+                    'appointmentStatus' => $encounter->appointment->status->label(),
                     'overviewUrl' => route('encounters.show', $encounter),
                     'actions' => $actionsFor($encounter),
                 ];

@@ -89,7 +89,7 @@ class HospitalDeskController extends Controller
                 'publicId' => $session->public_id,
                 'code' => $session->code,
                 'courseCode' => $session->course_code,
-                'scenarioTitle' => $session->scenario?->title,
+                'scenarioTitle' => $session->scenario->title,
             ] : null,
             'capabilities' => $capabilities,
             'canOpenPendaftaran' => $canRegister,
@@ -121,7 +121,7 @@ class HospitalDeskController extends Controller
                 'mrn' => $encounter->patient->identifiers
                     ->firstWhere('type', IdentifierType::MedicalRecordNumber)
                     ?->value,
-                'location' => $encounter->location?->name,
+                'location' => $encounter->location->name,
                 'url' => route('encounters.show', $encounter),
             ])->values()->all(),
             'urls' => [
