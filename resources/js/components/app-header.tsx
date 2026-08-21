@@ -65,8 +65,11 @@ function ModuleNavLabel({
         <span className="inline-flex items-center gap-1.5">
             {label}
             {!live ? (
-                <span className="rounded bg-white/10 px-1 py-0.5 text-[10px] font-semibold tracking-wide text-sky-100/70 uppercase">
-                    Soon
+                <span
+                    className="text-[0.6875rem] font-medium tracking-wide text-sky-100/45"
+                    aria-label="Belum tersedia"
+                >
+                    · segera
                 </span>
             ) : null}
         </span>
@@ -78,8 +81,8 @@ export function AppHeader() {
     const closeMobile = () => setMobileOpen(false);
 
     return (
-        <header className="sticky top-0 z-40 border-b border-[#1b4a73] bg-[#0d2b4a] text-white shadow-sm">
-            <div className="flex h-14 items-center gap-3 px-3 md:px-4 lg:px-5">
+        <header className="sticky top-0 z-40 border-b border-[#1b4a73] bg-[#0d2b4a] text-white">
+            <div className="flex min-h-16 items-center gap-3 px-3 py-2.5 md:px-4 lg:px-5">
                 <div className="flex shrink-0 items-center gap-2">
                     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                         <SheetTrigger asChild>
@@ -87,7 +90,7 @@ export function AppHeader() {
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="text-white hover:bg-white/10 hover:text-white lg:hidden"
+                                className="text-white hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/80 lg:hidden"
                                 aria-label="Buka menu navigasi"
                             >
                                 <Menu className="size-5" />
@@ -137,7 +140,7 @@ export function AppHeader() {
                     <Link
                         href="/"
                         prefetch
-                        className="rounded-md focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
+                        className="inline-flex min-w-0 items-center rounded-md focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
                     >
                         <AppLogo />
                     </Link>
@@ -145,7 +148,7 @@ export function AppHeader() {
 
                 <nav
                     aria-label="Navigasi modul"
-                    className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex"
+                    className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex"
                 >
                     <NavLink href="/">Beranda</NavLink>
                     {SIMRS_MODULE_CATEGORIES.map((category) => {

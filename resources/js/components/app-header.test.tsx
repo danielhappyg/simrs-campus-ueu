@@ -58,7 +58,7 @@ describe('application header navigation', () => {
             ).toBeGreaterThan(0);
         }
 
-        expect(screen.getAllByText('Soon').length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/segera/i).length).toBeGreaterThan(0);
         expect(
             screen.getAllByRole('link', { name: /Beranda/i }).length,
         ).toBeGreaterThan(0);
