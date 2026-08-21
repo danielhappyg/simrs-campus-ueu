@@ -159,22 +159,24 @@ Additional hospital services—laboratory, radiology, blood, surgery, intensive 
 
 ## 7. Information architecture
 
-The menu should reflect work and patient flow, not a list of software demos.
+The menu should feel like a hospital desk (legacy IA cue), not a worksheet of isolated lab steps. Teaching still rides the encounter spine; the **surface** is hospital-first (ADR-014).
 
 ### 7.1 Global navigation
 
-1. **My Work** — assigned patients, queues, overdue tasks, reviews, and learning objectives
-2. **Patients** — search, identity, registration, appointments, encounters, consent, and record access
-3. **Care** — outpatient, emergency, inpatient, surgery/intensive later, and discipline workspaces
-4. **Orders & Results** — laboratory, radiology, blood, referrals, and critical-result acknowledgement
-5. **Medication** — prescriptions, verification, dispensing, stock, medication administration, and reconciliation
-6. **Health Records** — longitudinal record, coding, completeness, amendments, release, retention, and reports
-7. **Finance & Claims** — charges, cashier, coverage, claim workbench, and claim simulation
-8. **Operations** — queues, beds, schedules, facilities, CSSD, maintenance, and service dashboards
-9. **Learning Center** — scenarios, sessions, cohorts, competencies, supervision, rubrics, and debrief
-10. **Administration** — users, roles, locations, reference data, integrations, audit, and system health
+**Primary shell (hospital modules — Indonesian labels):**
 
-Only relevant destinations appear for a user. The route still exists and is protected server-side; hiding a menu is never treated as authorization.
+1. **Meja kerja** — role desk dashboard (today’s kunjungan, baru/lama cues, antrean)
+2. **Pendaftaran** — search synthetic population, pasien baru vs lama, register, check-in
+3. **Pemeriksaan** — nursing/medical assessment path against shared encounters
+4. **Rekam Medis** — record quality, timeline, coding entry
+5. **Apotek** — pharmacy review/dispense workspaces
+6. **Klaim** — educational E-Klaim simulation only (never production send)
+7. **Laporan** — outpatient summary / debrief evidence when authorized
+8. **BPJS** — educational posture only; no real insurer connection
+9. **Kasir** — thin connected stub toward finance later
+10. **Kerja saya** — assigned tasks / Antrean kerja (**secondary**, not the only door)
+
+**Longer-term seams (still valid):** Patients, Care, Orders & Results, Medication, Health Records, Finance & Claims, Operations, Learning Center, Administration — capability-filtered; hiding a menu is never authorization.
 
 ### 7.2 Persistent patient/encounter context
 
@@ -188,14 +190,14 @@ When a patient is selected, every clinical page shows:
 - learner role and sign-off state; and
 - a clear way back to the user’s work queue.
 
-### 7.3 No duplicate launcher
+### 7.3 Hospital desk first; Kerja saya secondary
 
-Replace the legacy launcher with:
+Replace the legacy launcher and the work-queue-only door with:
 
-- a role-aware `My Work` landing page;
-- global patient/record search;
-- a keyboard command palette; and
-- saved teaching scenarios/favorites where useful.
+- a role-aware **Meja kerja** desk dashboard plus hospital module nav;
+- Pendaftaran over a synthetic multi-patient population;
+- **Kerja saya** for assigned tasks (secondary); and
+- optional later: command palette / teaching overlays on the living hospital dataset.
 
 ## 8. Canonical learning journeys
 

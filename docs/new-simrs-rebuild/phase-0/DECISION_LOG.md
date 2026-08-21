@@ -8,15 +8,17 @@ Rule: every material scope, safety, stack, environment or ownership choice gets 
 
 | ID | Date | Status | Decision | Owner | Evidence / notes |
 |---|---|---|---|---|---|
-| DEC-001 | 2026-08-21 | Accepted (interim) | Daniel Happy Putra is interim product owner and program/architecture lead for G0 drafting until UEU formally confirms or replaces the appointment. | Daniel Happy Putra | User authorization 2026-08-21 (orientation A = Yes). Does not by itself complete G0 sponsor sign-off. |
-| DEC-002 | 2026-08-21 | Accepted | Commit the `docs/new-simrs-rebuild/` planning package and `docs/vendor-simrs-assessment-2026-08-21/` assessment pack as the documentation baseline in this repository. | Interim product owner | User authorization 2026-08-21 (orientation B = Yes). Docs only; not a claim of implemented parity. |
-| DEC-003 | 2026-08-21 | Accepted | Create Phase 0 scaffolding in-repo (owners placeholders, DEC log, prototype reuse map, release-evidence index, environment/credential baseline). No mass feature generation. | Interim product owner | User authorization 2026-08-21 (orientation C = Yes). |
-| DEC-004 | 2026-08-21 | Accepted | Continue the clean-slate parity program in the **existing** repository `simrs-campus-ueu` (no mandatory new remote). Preserve existing local WIP; no destructive reset. | Interim product owner | User statement 2026-08-21. Branch strategy for large rebuild work remains open (DEC follow-up). |
-| DEC-005 | 2026-08-21 | Proposed (working baseline) | Treat `MASTER_REBUILD_BLUEPRINT.md` and the `docs/new-simrs-rebuild/` set as the **planning baseline**. Formal G0 sponsor acceptance still required. | Interim product owner | Pending executive sponsor / UEU confirmation. |
-| DEC-006 | 2026-08-21 | Accepted | Initial teaching release uses **generated synthetic data only**; no migration of vendor SIMRS data, credentials, cookies, or earlier prototype production-like datasets. | Interim product owner | `DATA_MIGRATION_AND_CUTOVER.md` default; user program constraints. |
-| DEC-007 | 2026-08-21 | Accepted | Do not push, deploy, publish, delete, or activate external services without explicit user authorization and a verified rollback path. | Interim product owner | Program safety boundary. Demo push to existing Vercel remains separately authorized later. |
-| DEC-008 | 2026-08-21 | Proposed | Re-evaluate the existing Laravel modular monolith + Vercel/Supabase demo stack against `TOOL_SELECTION_GUIDE.md` and record continue/constrain/replace in an ADR before Phase 2 exit. | Architecture lead (interim) | ADR-001 remains accepted for the prior simulation reference build; parity-program ratification is separate. |
-| DEC-009 | 2026-08-21 | Accepted | Keep four evidence sources separate: (1) vendor assessment, (2) Laravel teaching prototype, (3) new rebuild docs, (4) discussion deliverables. Do not merge claims across them. | Interim product owner | Orientation report 2026-08-21. |
+| DEC-001 | 2026-08-21 | Accepted (confirmed for now) | Daniel Happy Putra is product owner and program/architecture lead for the rebuild until UEU replaces the appointment. | Daniel Happy Putra | User confirmation 2026-08-21 (“Confirm for now”). |
+| DEC-002 | 2026-08-21 | Accepted | Commit the `docs/new-simrs-rebuild/` planning package and `docs/vendor-simrs-assessment-2026-08-21/` assessment pack as the documentation baseline. | Product owner | Orientation B = Yes. |
+| DEC-003 | 2026-08-21 | Accepted | Create Phase 0 scaffolding in-repo. No mass feature generation as a substitute for parity. | Product owner | Orientation C = Yes. |
+| DEC-004 | 2026-08-21 | Accepted | Continue the clean-slate parity program in the existing repository `simrs-campus-ueu`. | Product owner | User statement 2026-08-21. |
+| DEC-005 | 2026-08-21 | Accepted | `MASTER_REBUILD_BLUEPRINT.md` and the `docs/new-simrs-rebuild/` set are the planning baseline for the program. | Product owner | User confirmation 2026-08-21 (“Accept”). |
+| DEC-006 | 2026-08-21 | Accepted | Initial teaching release uses generated synthetic data only; no vendor data/credential migration. | Product owner | `DATA_MIGRATION_AND_CUTOVER.md` default. |
+| DEC-007 | 2026-08-21 | Accepted | Do not push/deploy/activate external services without explicit authorization and rollback path. | Product owner | Superseded in part by DEC-010 for this demo deploy only. |
+| DEC-008 | 2026-08-21 | Accepted | Continue Laravel modular monolith + React/Inertia + relational DB; Vercel + Supabase remains the synthetic demo host with explicit constraints. Recorded in ADR-015. | Architecture lead | Scored against `TOOL_SELECTION_GUIDE.md`; see ADR-015. |
+| DEC-009 | 2026-08-21 | Accepted | Keep vendor assessment, Laravel prototype, rebuild docs, and discussion deliverables as separate evidence sources. | Product owner | Orientation report. |
+| DEC-010 | 2026-08-21 | Accepted | Authorize push to `origin/main` and deploy of the synthetic Vercel + Supabase demo for immediate testing. Production integrations remain disabled. | Product owner | User 2026-08-21 (“Deploy immediately”). Rollback: previous Vercel deployment / prior git SHA. |
+| DEC-011 | 2026-08-21 | Accepted | RMIK Department is the named departmental owner for RMIK/coding/reports and teaching-owner representation until a named individual is recorded. | Product owner | User 2026-08-21 (“RMIK Department”). |
 
 ## Template for new entries
 
@@ -27,11 +29,12 @@ Status: Proposed | Accepted | Superseded | Rejected
 Decision:
 Owner:
 Consulted:
-Evidence label impact: (what becomes Approved / remains Pending evidence)
+Evidence label impact:
 Reversal path:
 Review date:
 ```
 
 ## Related ADRs
 
-Historical simulation-build ADRs live under `docs/adr/` (ADR-001 … ADR-014). They describe the outpatient teaching prototype. They do **not** automatically dispose PAR-* rows or close G0.
+- Historical simulation ADRs: `docs/adr/ADR-001` … `ADR-014`
+- Stack ratification for parity program: `docs/adr/ADR-015-STACK-SELECTION-FOR-PARITY-PROGRAM.md`

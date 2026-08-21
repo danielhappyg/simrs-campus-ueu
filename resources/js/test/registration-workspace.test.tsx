@@ -103,11 +103,16 @@ describe('registration workspace', () => {
         expect(
             screen.getByRole('heading', {
                 level: 1,
-                name: 'Pencarian & Registrasi Pasien',
+                name: 'Pendaftaran pasien',
             }),
         ).toBeInTheDocument();
         expect(
             screen.getByText(/Sesi ini sudah memiliki satu encounter bersama/),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', {
+                name: 'Check-in dan status setelah registrasi',
+            }),
         ).toBeInTheDocument();
 
         const caseForm = container.querySelector(

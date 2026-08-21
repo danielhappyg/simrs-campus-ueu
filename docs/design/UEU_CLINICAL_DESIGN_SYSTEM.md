@@ -24,7 +24,7 @@ The visual language uses the supplied logo's blue as the structural color and or
 | Principle | Product behavior |
 |---|---|
 | Context before content | Patient, encounter, simulation mode, location, assignment, and allergies remain visible on patient-work screens. |
-| Work before modules | `Pekerjaan Saya` presents actionable queues; navigation does not recreate the legacy launcher. |
+| Modules first; Kerja saya secondary | Hospital module nav (Pendaftaran, Pemeriksaan, RM, Apotek, Klaim, …) is the primary door. `Kerja saya` / Antrean kerja remains available for assigned tasks but is not the only entry. Do not recreate the legacy purple-glass launcher; use modern UEU campus SI chrome (see ADR-014). |
 | Calm density | Dense tables/forms use spacing, grouping, sticky anchors, and typography instead of excessive cards or decorative color. |
 | Status is explicit | Draft, submitted, approved, corrected, blocked, and simulation states use text labels, icons, and consistent placement. |
 | Provenance is visible | Authorship, role, clinical time, recorded time, version, and review state are inspectable without opening an audit database. |
@@ -36,7 +36,9 @@ The visual language uses the supplied logo's blue as the structural color and or
 
 ### 3.1 Color tokens
 
-The approximate logo reference colors are blue `#0070B8` and orange `#F05828`. Application colors are adjusted into a functional scale. White text on primary blue `#00639F` has an approximate contrast ratio of 6.39:1. Logo orange is not used as a white-text button background because its approximate contrast is only 3.42:1.
+Campus SI alignment (ADR-014): primary `ueu-blue` `#1B75BC`, accent-only `ueu-orange` `#F26A1B`, navy shell, Plus Jakarta Sans + IBM Plex Mono. Orange is never the primary button fill.
+
+Legacy logo reference blues (`#0070B8` / `#00639F`) and orange `#F05828` remain historical notes; encoded chrome follows campus SI tokens below. Orange is not used as a white-text button background.
 
 #### Brand
 
@@ -370,7 +372,9 @@ Default row height is 44 px. Numeric values use tabular figures and align consis
 
 Primary destinations for the MVP:
 
-1. `Pekerjaan Saya`
+1. `Meja kerja` (hospital desk)
+2. Modul: Pendaftaran, Pemeriksaan, Rekam Medis, Apotek, Klaim, Laporan, BPJS, Kasir
+3. `Kerja saya` (secondary task queue)
 2. `Pasien`
 3. `Pelayanan`
 4. `Pesanan & Hasil`

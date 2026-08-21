@@ -326,18 +326,39 @@ class LaboratoryPreflightCommand extends Command
         $patients = SyntheticPatient::query()->where('session_id', $source->getKey())->get();
         $appointments = AppointmentRegistration::query()->where('session_id', $source->getKey())->get();
         $encounters = Encounter::query()->where('session_id', $source->getKey())->with('location')->get();
+        $referencePatients = $patients->where('fixture_source', 'OPD-REF-001-v1')->values();
+        $populationPatients = $patients
+            ->filter(fn (SyntheticPatient $patient): bool => str_starts_with((string) $patient->fixture_source, 'OPD-POP-'))
+            ->values();
 
-        if ($patients->count() !== 1 || $appointments->count() !== 1 || $encounters->count() !== 1) {
+        if ($referencePatients->count() !== 1
+            || $appointments->count() !== 1
+            || $encounters->count() !== 1
+            || $patients->count() !== ($referencePatients->count() + $populationPatients->count())) {
             return $this->check(
                 'source.pristine_graph',
                 false,
-                'The source must contain exactly one synthetic patient, one appointment, and one encounter.',
+                'The source must contain exactly one reference patient, one appointment, and one encounter, plus only optional OPD-POP population patients.',
             );
         }
 
-        $patient = $patients->sole();
+        $patient = $referencePatients->sole();
         $appointment = $appointments->sole();
         $encounter = $encounters->sole();
+
+        if ($populationPatients->contains(
+            fn (SyntheticPatient $populationPatient): bool => ! $populationPatient->synthetic_flag
+                || $populationPatient->record_status !== PatientRecordStatus::Active
+                || $populationPatient->deceased_flag
+                || $appointments->contains('patient_id', $populationPatient->getKey())
+                || $encounters->contains('patient_id', $populationPatient->getKey()),
+        )) {
+            return $this->check(
+                'source.pristine_graph',
+                false,
+                'A population patient is progressed or unsafe and breaks the pristine reference contract.',
+            );
+        }
         $identifiers = $patient->identifiers()->get();
         $identifierTypes = $identifiers
             ->map(fn (PatientIdentifier $identifier): string => $identifier->type->value)
@@ -419,8 +440,8 @@ class LaboratoryPreflightCommand extends Command
             'source.pristine_graph',
             $ready,
             $ready
-                ? 'The one-case source graph is synthetic, PLANNED, untouched, and has pristine stock provenance.'
-                : 'The source graph has progressed or no longer matches the one-case pristine fixture contract.',
+                ? 'The reference source graph is synthetic, PLANNED, untouched, and has pristine stock provenance, with optional OPD-POP population patients only.'
+                : 'The source graph has progressed or no longer matches the pristine reference fixture contract.',
         );
     }
 

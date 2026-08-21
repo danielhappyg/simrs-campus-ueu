@@ -42,6 +42,7 @@
         "@fontsource-variable/atkinson-hyperlegible-next": "^5.2.6",
         "@fontsource/ibm-plex-mono": "^5.2.7",
         "@fontsource/ibm-plex-sans-condensed": "^5.2.8",
+        "@fontsource/plus-jakarta-sans": "^5.3.0",
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@laravel/passkeys": "^0.2.0",

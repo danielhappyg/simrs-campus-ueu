@@ -1,8 +1,8 @@
 # Phase 0 — Program and repository foundation
 
-Status: **in progress** (scaffolding started 2026-08-21)  
-Gate: **G0 — BLOCKED** until formal sponsor acceptance of owners + blueprint  
-Interim product owner: Daniel Happy Putra (see `OWNERS_AND_RACI.md`, DEC-001)
+Status: **in progress** (owners confirmed for now; blueprint accepted; stack ADR-015 accepted)  
+Gate: **G0 — PASS (interim)** for ASAP synthetic demo testing; strengthen named individual contacts when available  
+Product owner: Daniel Happy Putra (DEC-001 confirmed for now); RMIK Department named (DEC-011)
 
 ## Purpose
 
@@ -20,11 +20,14 @@ Establish ownership, decision rights, evidence structure, environment boundaries
 
 ## Exit gate (G0)
 
-- [ ] Named owners (or dated TBD with accountable interim) for all RACI roles
-- [ ] Blueprint accepted as planning baseline by sponsor / product owner
-- [ ] Decision, risk and release-evidence structure present
-- [ ] Synthetic-only environment confirmed; no unknown production credentials/endpoints
-- [ ] Repository documentation baseline committed
+- [x] Named owners (or dated TBD with accountable interim) for all RACI roles
+- [x] Blueprint accepted as planning baseline by product owner (DEC-005)
+- [x] Decision, risk and release-evidence structure present
+- [x] Synthetic-only environment confirmed for demo deploy; production endpoints remain disabled
+- [x] Repository documentation baseline committed
+- [x] Stack re-scored (DEC-008 / ADR-015)
+- [ ] Named individual contact inside RMIK Department (org named; person optional follow-up)
+- [ ] Distinct UEU executive sponsor (interim cover accepted for ASAP demo)
 
 ## Explicit non-goals of Phase 0
 

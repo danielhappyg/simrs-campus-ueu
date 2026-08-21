@@ -172,7 +172,10 @@ class LaboratorySessionStatusCommandTest extends TestCase
             ->where('session_id', $session->getKey())
             ->limit(1)
             ->update(['revoked_at' => now()]);
-        $patient = SyntheticPatient::query()->where('session_id', $session->getKey())->sole();
+        $patient = SyntheticPatient::query()
+            ->where('session_id', $session->getKey())
+            ->where('fixture_source', 'OPD-REF-001-v1')
+            ->sole();
         SyntheticPatient::query()->create([
             'session_id' => $session->getKey(),
             'synthetic_flag' => true,

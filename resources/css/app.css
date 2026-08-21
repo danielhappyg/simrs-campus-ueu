@@ -9,11 +9,11 @@
 
 @theme {
     --font-sans:
-        'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui,
-        sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
     --font-display:
-        'IBM Plex Sans Condensed', ui-sans-serif, system-ui, sans-serif;
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
     --radius-lg: var(--radius);
@@ -70,42 +70,42 @@
 }
 
 :root {
-    --background: #f4f8fa;
-    --foreground: #17232d;
+    --background: #f1f5f9;
+    --foreground: #0f172a;
     --card: #ffffff;
-    --card-foreground: #17232d;
+    --card-foreground: #0f172a;
     --popover: #ffffff;
-    --popover-foreground: #17232d;
-    --primary: #00639f;
+    --popover-foreground: #0f172a;
+    --primary: #1b75bc;
     --primary-foreground: #ffffff;
-    --secondary: #e7f1f6;
-    --secondary-foreground: #16425c;
-    --muted: #edf3f6;
-    --muted-foreground: #516674;
-    --accent: #e0eef5;
-    --accent-foreground: #123e58;
-    --destructive: #b42318;
+    --secondary: #e8f1f8;
+    --secondary-foreground: #123b63;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #e8f1f8;
+    --accent-foreground: #123b63;
+    --destructive: #dc2626;
     --destructive-foreground: #ffffff;
-    --border: #cedde5;
-    --input: #b9ccd6;
-    --ring: #0070b8;
-    --chart-1: #00639f;
-    --chart-2: #f05828;
-    --chart-3: #2f7659;
-    --chart-4: #9b5a00;
-    --chart-5: #6b4ea0;
-    --signal: #f05828;
-    --success: #286a4f;
-    --warning: #915000;
-    --info: #00639f;
-    --radius: 0.5rem;
-    --sidebar: #063650;
+    --border: #e2e8f0;
+    --input: #cbd5e1;
+    --ring: #1b75bc;
+    --chart-1: #1b75bc;
+    --chart-2: #f26a1b;
+    --chart-3: #059669;
+    --chart-4: #d97706;
+    --chart-5: #2563eb;
+    --signal: #f26a1b;
+    --success: #059669;
+    --warning: #d97706;
+    --info: #2563eb;
+    --radius: 0.75rem;
+    --sidebar: #0d2b4a;
     --sidebar-foreground: #edf7fb;
-    --sidebar-primary: #f05828;
+    --sidebar-primary: #f26a1b;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #0d4a6a;
+    --sidebar-accent: #123b63;
     --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #2c607a;
+    --sidebar-border: #1b4a73;
     --sidebar-ring: #ffffff;
 }
 

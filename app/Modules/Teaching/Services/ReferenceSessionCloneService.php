@@ -116,6 +116,7 @@ final class ReferenceSessionCloneService
             ]);
 
             $targetPatient = $this->clonePatient($sourceGraph['patient'], $target, $seed);
+            $this->clonePopulationPatients($sourceGraph['populationPatients'], $target, $seed);
             $assignmentMap = $this->cloneAssignments(
                 $sourceGraph['assignments'],
                 $target,
@@ -178,6 +179,7 @@ final class ReferenceSessionCloneService
                     'assignment_count' => $assignmentMap->count(),
                     'task_count' => $sourceGraph['tasks']->count(),
                     'stock_lot_count' => $sourceGraph['stocks']->count(),
+                    'population_patient_count' => $sourceGraph['populationPatients']->count(),
                     'synthetic_only' => true,
                     'progressed_state_copied' => false,
                 ],
@@ -257,6 +259,7 @@ final class ReferenceSessionCloneService
     /**
      * @return array{
      *   patient: SyntheticPatient,
+     *   populationPatients: Collection<int, SyntheticPatient>,
      *   appointment: AppointmentRegistration,
      *   encounter: Encounter,
      *   transition: EncounterTransition,
@@ -294,11 +297,19 @@ final class ReferenceSessionCloneService
             ->lockForUpdate()
             ->get();
 
-        if ($patients->count() !== 1 || $appointments->count() !== 1 || $encounters->count() !== 1) {
-            throw new DomainException('A clone source must contain exactly one patient, appointment, and encounter.');
+        $referencePatients = $patients->where('fixture_source', 'OPD-REF-001-v1')->values();
+        $populationPatients = $patients
+            ->filter(fn (SyntheticPatient $patient): bool => str_starts_with((string) $patient->fixture_source, 'OPD-POP-'))
+            ->values();
+
+        if ($referencePatients->count() !== 1
+            || $appointments->count() !== 1
+            || $encounters->count() !== 1
+            || $patients->count() !== ($referencePatients->count() + $populationPatients->count())) {
+            throw new DomainException('A clone source must contain exactly one reference patient, appointment, and encounter, plus only optional OPD-POP population patients.');
         }
 
-        $patient = $patients->sole();
+        $patient = $referencePatients->sole();
         $appointment = $appointments->sole();
         $encounter = $encounters->sole();
 
@@ -319,6 +330,16 @@ final class ReferenceSessionCloneService
             || $encounter->finalized_at !== null
             || ! $encounter->location->is_active) {
             throw new DomainException('The reference source has progressed or no longer matches the pristine planned fixture.');
+        }
+
+        foreach ($populationPatients as $populationPatient) {
+            if (! $populationPatient->synthetic_flag
+                || $populationPatient->record_status !== PatientRecordStatus::Active
+                || $populationPatient->deceased_flag
+                || $appointments->contains('patient_id', $populationPatient->getKey())
+                || $encounters->contains('patient_id', $populationPatient->getKey())) {
+                throw new DomainException('A population patient is progressed or unsafe and cannot be cloned with the pristine reference.');
+            }
         }
 
         $this->assertPatientFixture($patient);
@@ -347,7 +368,7 @@ final class ReferenceSessionCloneService
             throw new DomainException('The source stock ledger has progressed and cannot be cloned.');
         }
 
-        return compact('patient', 'appointment', 'encounter', 'transition', 'assignments', 'tasks', 'stocks');
+        return compact('patient', 'populationPatients', 'appointment', 'encounter', 'transition', 'assignments', 'tasks', 'stocks');
     }
 
     private function assertPatientFixture(SyntheticPatient $patient): void
@@ -495,6 +516,19 @@ final class ReferenceSessionCloneService
         }
 
         return $stocks;
+    }
+
+    /**
+     * @param  Collection<int, SyntheticPatient>  $populationPatients
+     */
+    private function clonePopulationPatients(
+        Collection $populationPatients,
+        SimulationSession $target,
+        string $seed,
+    ): void {
+        foreach ($populationPatients->values() as $index => $source) {
+            $this->clonePatient($source, $target, sprintf('%s-P%02d', $seed, $index + 1));
+        }
     }
 
     private function clonePatient(

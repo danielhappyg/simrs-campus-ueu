@@ -32,9 +32,12 @@ type Props = {
     assignmentPublicId: string;
     searchUrl: string;
     storeUrl: string;
+    deskUrl?: string;
     searchQuery: string;
     candidates: SyntheticPatientSummary[];
+    population?: SyntheticPatientSummary[];
     appointments: RegistrationAppointment[];
+    clinicQueue?: RegistrationAppointment[];
     canCreateRegistration: boolean;
     locations: Array<{ publicId: string; code: string; name: string }>;
     registrationKey: string;
@@ -119,15 +122,19 @@ export default function RegistrationWorkspace({
     session,
     searchUrl,
     storeUrl,
+    deskUrl = '/desk',
     searchQuery,
     candidates,
+    population = [],
     appointments,
+    clinicQueue,
     canCreateRegistration,
     locations,
     registrationKey,
     defaultScheduledAt,
     options,
 }: Props) {
+    const queue = clinicQueue ?? appointments;
     const [query, setQuery] = useState(searchQuery);
     const form = useForm<RegistrationForm>(
         registrationDefaults(
@@ -208,31 +215,36 @@ export default function RegistrationWorkspace({
 
     return (
         <>
-            <Head title="Pencarian dan registrasi pasien" />
+            <Head title="Pendaftaran" />
 
             <div className="mx-auto flex w-full max-w-[1480px] flex-1 flex-col gap-5 px-4 py-6 md:px-6 md:py-8">
                 <header className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
                     <div>
                         <p className="text-xs font-bold tracking-[0.14em] text-primary uppercase">
-                            Identitas bersama · {session.code}
+                            Meja Pendaftaran · {session.code}
                         </p>
                         <h1 className="mt-1 text-3xl font-semibold md:text-4xl">
-                            Pencarian &amp; Registrasi Pasien
+                            Pendaftaran pasien
                         </h1>
                         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-                            Cari terlebih dahulu, putuskan kandidat secara
-                            eksplisit, lalu buat janji dan encounter yang akan
-                            dipakai semua profesi dalam sesi ini.
+                            Cari populasi sintetis, bedakan pasien lama vs baru,
+                            registrasi, lalu check-in. Setelah check-in pasien
+                            tetap terlihat di antrean poli dan modul terkait.
                         </p>
                     </div>
 
-                    <div className="rounded-md border border-sky-200 bg-[#eaf4f8] px-4 py-3 text-sm">
-                        <p className="font-semibold text-primary">
-                            {session.courseCode}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                            {session.scenarioTitle}
-                        </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button asChild variant="outline">
+                            <Link href={deskUrl}>Kembali ke meja kerja</Link>
+                        </Button>
+                        <div className="rounded-md border border-sky-200 bg-[#eaf4f8] px-4 py-3 text-sm">
+                            <p className="font-semibold text-primary">
+                                {session.courseCode}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                {session.scenarioTitle}
+                            </p>
+                        </div>
                     </div>
                 </header>
 
@@ -271,7 +283,7 @@ export default function RegistrationWorkspace({
                                         Langkah 1
                                     </p>
                                     <h2 className="text-xl font-semibold">
-                                        Cari rekam sintetis
+                                        Cari pasien lama / populasi
                                     </h2>
                                 </div>
                             </div>
@@ -328,7 +340,8 @@ export default function RegistrationWorkspace({
                                                             </p>
                                                         </div>
                                                         <Badge variant="outline">
-                                                            DATA SINTETIS
+                                                            {candidate.kindLabel ??
+                                                                'DATA SINTETIS'}
                                                         </Badge>
                                                     </div>
                                                     <Button
@@ -376,23 +389,83 @@ export default function RegistrationWorkspace({
                             )}
                         </section>
 
+                        {population.length > 0 && (
+                            <section className="clinical-shadow overflow-hidden rounded-lg border border-border bg-white">
+                                <div className="border-b border-border px-5 py-4">
+                                    <p className="text-xs font-bold tracking-wider text-primary uppercase">
+                                        Direktori populasi
+                                    </p>
+                                    <h2 className="mt-1 text-xl font-semibold">
+                                        {population.length} pasien sintetis
+                                    </h2>
+                                    <p className="mt-1 text-sm text-muted-foreground">
+                                        Pasien lama siap dicari; calon baru
+                                        ditandai terpisah. Gunakan pencarian di
+                                        atas untuk memfilter.
+                                    </p>
+                                </div>
+                                <div className="max-h-80 divide-y divide-border overflow-y-auto">
+                                    {population.map((patient) => (
+                                        <div
+                                            key={patient.publicId}
+                                            className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+                                        >
+                                            <div>
+                                                <p className="font-medium">
+                                                    {patient.fullName}
+                                                </p>
+                                                <p className="font-mono text-xs text-muted-foreground">
+                                                    {patient.mrn ?? '—'} ·{' '}
+                                                    {patient.birthDate}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline">
+                                                    {patient.kindLabel ??
+                                                        'Sintetis'}
+                                                </Badge>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={
+                                                        !canCreateRegistration
+                                                    }
+                                                    onClick={() => {
+                                                        setQuery(patient.fullName);
+                                                        chooseExisting(patient);
+                                                    }}
+                                                >
+                                                    Pasien lama
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
                         <section className="clinical-shadow overflow-hidden rounded-lg border border-border bg-white">
                             <div className="border-b border-border px-5 py-4">
                                 <p className="text-xs font-bold tracking-wider text-primary uppercase">
-                                    Janji sesi
+                                    Antrean poli &amp; kunjungan
                                 </p>
                                 <h2 className="mt-1 text-xl font-semibold">
-                                    Siap untuk check-in
+                                    Check-in dan status setelah registrasi
                                 </h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Sistem tidak “selesai” setelah check-in —
+                                    pasien tetap di sini dan dapat dibuka di RM.
+                                </p>
                             </div>
 
-                            {appointments.length === 0 ? (
+                            {queue.length === 0 ? (
                                 <p className="px-5 py-10 text-center text-sm text-muted-foreground">
                                     Belum ada janji sintetis pada sesi ini.
                                 </p>
                             ) : (
                                 <div className="divide-y divide-border">
-                                    {appointments.map((appointment) => (
+                                    {queue.map((appointment) => (
                                         <article
                                             key={appointment.publicId}
                                             className="p-5"
@@ -478,7 +551,7 @@ export default function RegistrationWorkspace({
                                                                     .url
                                                             }
                                                         >
-                                                            Buka encounter
+                                                            Peek RM / encounter
                                                             <ArrowRight
                                                                 className="size-4"
                                                                 aria-hidden="true"
@@ -504,7 +577,7 @@ export default function RegistrationWorkspace({
                                     Langkah 2
                                 </p>
                                 <h2 className="text-xl font-semibold">
-                                    Buat janji &amp; encounter
+                                    Pasien baru atau lanjutkan pasien lama
                                 </h2>
                             </div>
                         </div>
@@ -513,7 +586,7 @@ export default function RegistrationWorkspace({
                             <div className="mt-5 flex items-start justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4">
                                 <div>
                                     <p className="text-xs font-bold text-emerald-800 uppercase">
-                                        Menggunakan rekam yang ada
+                                        Mode pasien lama
                                     </p>
                                     <p className="mt-1 font-semibold text-emerald-950">
                                         {selectedCandidate.fullName}
@@ -540,9 +613,10 @@ export default function RegistrationWorkspace({
                                     className="mb-5 rounded-md border border-sky-200 bg-[#eaf4f8] p-4 text-sm leading-6 text-[#174c68]"
                                 >
                                     Sesi ini sudah memiliki satu encounter
-                                    bersama. Selesaikan/check-in kasus tersebut;
-                                    gunakan clone sesi untuk kasus baru agar
-                                    lingkup penugasan setiap profesi tetap aman.
+                                    bersama. Check-in dan pantau antrean di
+                                    sebelah kiri; buka peek RM untuk melihat
+                                    pasien setelah check-in. Clone sesi untuk
+                                    latihan registrasi kasus baru.
                                 </div>
                             )}
                             <InputError
@@ -932,7 +1006,7 @@ export default function RegistrationWorkspace({
 
 RegistrationWorkspace.layout = {
     breadcrumbs: [
-        { title: 'Antrean kerja', href: '/work' },
-        { title: 'Registrasi pasien', href: '#' },
+        { title: 'Meja kerja', href: '/desk' },
+        { title: 'Pendaftaran', href: '/desk/pendaftaran' },
     ],
 };

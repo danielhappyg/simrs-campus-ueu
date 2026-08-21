@@ -79,8 +79,8 @@
       "_createLucideIcon-CCgX35NA.js"
     ]
   },
-  "_clinical-draft-recovery-3Q5qSrXv.js": {
-    "file": "assets/clinical-draft-recovery-3Q5qSrXv.js",
+  "_clinical-draft-recovery-DfcMEx_k.js": {
+    "file": "assets/clinical-draft-recovery-DfcMEx_k.js",
     "name": "clinical-draft-recovery",
     "imports": [
       "_rolldown-runtime-Bh1tDfsg.js",
@@ -90,7 +90,7 @@
       "_log-out-D6ow0AfS.js",
       "_shield-check-BZUf6lRK.js",
       "_triangle-alert-70jwPk6b.js",
-      "_routes-DIzPnWrm.js",
+      "_routes-BWL5QATF.js",
       "_guarded-history-FimwZf0I.js",
       "_dialog-cIGHvLqA.js"
     ]
@@ -294,6 +294,13 @@
       "_createLucideIcon-CCgX35NA.js"
     ]
   },
+  "_message-square-warning-CoXLozRn.js": {
+    "file": "assets/message-square-warning-CoXLozRn.js",
+    "name": "message-square-warning",
+    "imports": [
+      "_createLucideIcon-CCgX35NA.js"
+    ]
+  },
   "_network-BPubVvh-.js": {
     "file": "assets/network-BPubVvh-.js",
     "name": "network",
@@ -341,8 +348,8 @@
       "_badge-Bf7LI0EG.js"
     ]
   },
-  "_pill-CsDIcEgQ.js": {
-    "file": "assets/pill-CsDIcEgQ.js",
+  "_pill-B-KIDzuM.js": {
+    "file": "assets/pill-B-KIDzuM.js",
     "name": "pill",
     "imports": [
       "_createLucideIcon-CCgX35NA.js"
@@ -396,8 +403,8 @@
       "_createLucideIcon-CCgX35NA.js"
     ]
   },
-  "_routes-DIzPnWrm.js": {
-    "file": "assets/routes-DIzPnWrm.js",
+  "_routes-BWL5QATF.js": {
+    "file": "assets/routes-BWL5QATF.js",
     "name": "routes",
     "imports": [
       "_wayfinder-Dp7PqxvV.js"
@@ -514,6 +521,13 @@
       "_createLucideIcon-CCgX35NA.js"
     ]
   },
+  "_user-round-plus-Cyo4eltn.js": {
+    "file": "assets/user-round-plus-Cyo4eltn.js",
+    "name": "user-round-plus",
+    "imports": [
+      "_createLucideIcon-CCgX35NA.js"
+    ]
+  },
   "_verification-BOcn3HIw.js": {
     "file": "assets/verification-BOcn3HIw.js",
     "name": "verification",
@@ -525,14 +539,6 @@
     "file": "assets/wayfinder-Dp7PqxvV.js",
     "name": "wayfinder"
   },
-  "node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2": {
-    "file": "assets/atkinson-hyperlegible-next-latin-ext-wght-normal-C6vrW8VD.woff2",
-    "src": "node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2"
-  },
-  "node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2": {
-    "file": "assets/atkinson-hyperlegible-next-latin-wght-normal-BcXVPD7q.woff2",
-    "src": "node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2"
-  },
   "node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff": {
     "file": "assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff",
     "src": "node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff"
@@ -541,32 +547,136 @@
     "file": "assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2",
     "src": "node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2"
   },
-  "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-500-normal.woff": {
-    "file": "assets/ibm-plex-sans-condensed-latin-500-normal-BLe87hIu.woff",
-    "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-500-normal.woff"
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-400-normal.woff": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-400-normal-Dbdydbkh.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-400-normal.woff"
   },
-  "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-500-normal.woff2": {
-    "file": "assets/ibm-plex-sans-condensed-latin-500-normal-BqaLkUoX.woff2",
-    "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-500-normal.woff2"
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-400-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-400-normal-CJkVxub1.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-400-normal.woff2"
   },
-  "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-600-normal.woff": {
-    "file": "assets/ibm-plex-sans-condensed-latin-600-normal-6XnkKYvF.woff",
-    "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-600-normal.woff"
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-500-normal.woff": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-500-normal-B7C_nQD_.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-500-normal.woff"
   },
-  "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-600-normal.woff2": {
-    "file": "assets/ibm-plex-sans-condensed-latin-600-normal-CRd5VyFf.woff2",
-    "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-600-normal.woff2"
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-500-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-500-normal-WMJmRWOr.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-500-normal.woff2"
   },
-  "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-700-normal.woff": {
-    "file": "assets/ibm-plex-sans-condensed-latin-700-normal-D3enqrvP.woff",
-    "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-700-normal.woff"
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-600-normal.woff": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-600-normal-BtwufOTE.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-600-normal.woff"
   },
-  "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-700-normal.woff2": {
-    "file": "assets/ibm-plex-sans-condensed-latin-700-normal-D8r4s4aS.woff2",
-    "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-700-normal.woff2"
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-600-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-600-normal-C5KBqx06.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-600-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-700-normal.woff": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-700-normal-pWfpUei5.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-700-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-cyrillic-ext-700-normal-iShZaXYX.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-cyrillic-ext-700-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-400-normal-BDKaGhyp.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-400-normal-Dhut76fR.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-400-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-500-normal-DYtqi0QS.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-500-normal-Bf-nb4oT.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-500-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-600-normal-BR_Ojra4.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-600-normal-DLTa1BUW.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-600-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-700-normal-DqEcQeE5.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-700-normal-CfpNZvy6.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-700-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-400-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-ext-400-normal-2ppkqaOR.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-400-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-400-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-ext-400-normal-D127hM_v.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-400-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-500-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-ext-500-normal-CqEEAICU.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-500-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-500-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-ext-500-normal-9VZagAe1.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-500-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-600-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-ext-600-normal-B0WRRYJ1.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-600-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-600-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-ext-600-normal-DQgPU_Cg.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-600-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-700-normal.woff": {
+    "file": "assets/plus-jakarta-sans-latin-ext-700-normal-8-d-IyIQ.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-700-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-700-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-latin-ext-700-normal-BajbvANd.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-ext-700-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-400-normal.woff": {
+    "file": "assets/plus-jakarta-sans-vietnamese-400-normal-B8TCSmUq.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-400-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-400-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-vietnamese-400-normal-Cg2kxhWu.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-400-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-500-normal.woff": {
+    "file": "assets/plus-jakarta-sans-vietnamese-500-normal-CvE5C8T-.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-500-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-500-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-vietnamese-500-normal-DiU8zqi-.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-500-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-600-normal.woff": {
+    "file": "assets/plus-jakarta-sans-vietnamese-600-normal-5YsyKbU1.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-600-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-600-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-vietnamese-600-normal-Y4VTTRme.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-600-normal.woff2"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff": {
+    "file": "assets/plus-jakarta-sans-vietnamese-700-normal-BCh_uG_5.woff",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff"
+  },
+  "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff2": {
+    "file": "assets/plus-jakarta-sans-vietnamese-700-normal-CV6qDkkj.woff2",
+    "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BGySKqXF.css",
+    "file": "assets/app-BqJscxLP.css",
     "name": "app",
     "names": [
       "app.css"
@@ -575,7 +685,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-BYDt5cjc.js",
+    "file": "assets/app-ykVWEDhc.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -586,12 +696,16 @@
       "_dist-JFH9YRL2.js",
       "_createLucideIcon-CCgX35NA.js",
       "_clipboard-list-k7_MlKES.js",
+      "_file-text-DTSJ2_7d.js",
       "_flask-conical-D_NGjcxT.js",
       "_log-out-D6ow0AfS.js",
+      "_pill-B-KIDzuM.js",
+      "_user-round-plus-Cyo4eltn.js",
       "_shield-check-BZUf6lRK.js",
+      "_stethoscope-D4v5ITfz.js",
       "_input-Dw4uZTpQ.js",
       "_separator-BL0RNqq3.js",
-      "_routes-DIzPnWrm.js",
+      "_routes-BWL5QATF.js",
       "_profile-B4oZ_wlq.js",
       "_heading-ncxxhwal.js",
       "_security-ZZC6IP8e.js",
@@ -619,6 +733,9 @@
       "resources/js/pages/encounter/show.tsx",
       "resources/js/pages/encounter/timeline.tsx",
       "resources/js/pages/errors/workflow-conflict.tsx",
+      "resources/js/pages/hospital/desk.tsx",
+      "resources/js/pages/hospital/module-desk.tsx",
+      "resources/js/pages/hospital/session-picker.tsx",
       "resources/js/pages/patient/registration.tsx",
       "resources/js/pages/record-quality/workspace.tsx",
       "resources/js/pages/settings/profile.tsx",
@@ -626,19 +743,43 @@
       "resources/js/pages/work/index.tsx"
     ],
     "css": [
-      "assets/app-Dm3YrGAX.css"
+      "assets/app-BtG4B5FE.css"
     ],
     "assets": [
-      "assets/atkinson-hyperlegible-next-latin-ext-wght-normal-C6vrW8VD.woff2",
-      "assets/atkinson-hyperlegible-next-latin-wght-normal-BcXVPD7q.woff2",
+      "assets/plus-jakarta-sans-cyrillic-ext-400-normal-CJkVxub1.woff2",
+      "assets/plus-jakarta-sans-cyrillic-ext-400-normal-Dbdydbkh.woff",
+      "assets/plus-jakarta-sans-vietnamese-400-normal-Cg2kxhWu.woff2",
+      "assets/plus-jakarta-sans-vietnamese-400-normal-B8TCSmUq.woff",
+      "assets/plus-jakarta-sans-latin-ext-400-normal-D127hM_v.woff2",
+      "assets/plus-jakarta-sans-latin-ext-400-normal-2ppkqaOR.woff",
+      "assets/plus-jakarta-sans-latin-400-normal-Dhut76fR.woff2",
+      "assets/plus-jakarta-sans-latin-400-normal-BDKaGhyp.woff",
+      "assets/plus-jakarta-sans-cyrillic-ext-500-normal-WMJmRWOr.woff2",
+      "assets/plus-jakarta-sans-cyrillic-ext-500-normal-B7C_nQD_.woff",
+      "assets/plus-jakarta-sans-vietnamese-500-normal-DiU8zqi-.woff2",
+      "assets/plus-jakarta-sans-vietnamese-500-normal-CvE5C8T-.woff",
+      "assets/plus-jakarta-sans-latin-ext-500-normal-9VZagAe1.woff2",
+      "assets/plus-jakarta-sans-latin-ext-500-normal-CqEEAICU.woff",
+      "assets/plus-jakarta-sans-latin-500-normal-Bf-nb4oT.woff2",
+      "assets/plus-jakarta-sans-latin-500-normal-DYtqi0QS.woff",
+      "assets/plus-jakarta-sans-cyrillic-ext-600-normal-C5KBqx06.woff2",
+      "assets/plus-jakarta-sans-cyrillic-ext-600-normal-BtwufOTE.woff",
+      "assets/plus-jakarta-sans-vietnamese-600-normal-Y4VTTRme.woff2",
+      "assets/plus-jakarta-sans-vietnamese-600-normal-5YsyKbU1.woff",
+      "assets/plus-jakarta-sans-latin-ext-600-normal-DQgPU_Cg.woff2",
+      "assets/plus-jakarta-sans-latin-ext-600-normal-B0WRRYJ1.woff",
+      "assets/plus-jakarta-sans-latin-600-normal-DLTa1BUW.woff2",
+      "assets/plus-jakarta-sans-latin-600-normal-BR_Ojra4.woff",
+      "assets/plus-jakarta-sans-cyrillic-ext-700-normal-iShZaXYX.woff2",
+      "assets/plus-jakarta-sans-cyrillic-ext-700-normal-pWfpUei5.woff",
+      "assets/plus-jakarta-sans-vietnamese-700-normal-CV6qDkkj.woff2",
+      "assets/plus-jakarta-sans-vietnamese-700-normal-BCh_uG_5.woff",
+      "assets/plus-jakarta-sans-latin-ext-700-normal-BajbvANd.woff2",
+      "assets/plus-jakarta-sans-latin-ext-700-normal-8-d-IyIQ.woff",
+      "assets/plus-jakarta-sans-latin-700-normal-CfpNZvy6.woff2",
+      "assets/plus-jakarta-sans-latin-700-normal-DqEcQeE5.woff",
       "assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2",
-      "assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff",
-      "assets/ibm-plex-sans-condensed-latin-500-normal-BqaLkUoX.woff2",
-      "assets/ibm-plex-sans-condensed-latin-500-normal-BLe87hIu.woff",
-      "assets/ibm-plex-sans-condensed-latin-600-normal-CRd5VyFf.woff2",
-      "assets/ibm-plex-sans-condensed-latin-600-normal-6XnkKYvF.woff",
-      "assets/ibm-plex-sans-condensed-latin-700-normal-D8r4s4aS.woff2",
-      "assets/ibm-plex-sans-condensed-latin-700-normal-D3enqrvP.woff"
+      "assets/ibm-plex-mono-latin-500-normal-CB9ihrfo.woff"
     ]
   },
   "resources/js/pages/auth/confirm-password.tsx": {
@@ -658,7 +799,7 @@
     ]
   },
   "resources/js/pages/auth/forgot-password.tsx": {
-    "file": "assets/forgot-password-DU4lU4wO.js",
+    "file": "assets/forgot-password-CDDdG_d7.js",
     "name": "forgot-password",
     "src": "resources/js/pages/auth/forgot-password.tsx",
     "isDynamicEntry": true,
@@ -666,7 +807,7 @@
       "_button-BQ9INEqO.js",
       "_loader-circle-Dv5wVaj1.js",
       "_input-Dw4uZTpQ.js",
-      "_routes-DIzPnWrm.js",
+      "_routes-BWL5QATF.js",
       "_input-error-Bq6Msc07.js",
       "_label-DD1wnB27.js",
       "_text-link-Tzf04a1E.js",
@@ -721,13 +862,13 @@
     ]
   },
   "resources/js/pages/auth/verify-email.tsx": {
-    "file": "assets/verify-email-DuN8nZNH.js",
+    "file": "assets/verify-email-BLLss88v.js",
     "name": "verify-email",
     "src": "resources/js/pages/auth/verify-email.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_button-BQ9INEqO.js",
-      "_routes-DIzPnWrm.js",
+      "_routes-BWL5QATF.js",
       "_spinner-oZlhaMtB.js",
       "_text-link-Tzf04a1E.js",
       "_verification-BOcn3HIw.js"
@@ -759,7 +900,7 @@
     ]
   },
   "resources/js/pages/clinical/closure.tsx": {
-    "file": "assets/closure-DiyjTNX4.js",
+    "file": "assets/closure-CI2CQ7zS.js",
     "name": "closure",
     "src": "resources/js/pages/clinical/closure.tsx",
     "isDynamicEntry": true,
@@ -771,7 +912,7 @@
       "_circle-check-heCawQ1L.js",
       "_circle-x-Ddx4Xkhn.js",
       "_clipboard-check-CPBv4RYM.js",
-      "_clinical-draft-recovery-3Q5qSrXv.js",
+      "_clinical-draft-recovery-DfcMEx_k.js",
       "_file-check-2-DYZ-O2Uz.js",
       "_fingerprint-CVK1IdQL.js",
       "_history-D_6tjnX_.js",
@@ -809,7 +950,7 @@
     ]
   },
   "resources/js/pages/clinical/medical-assessment.tsx": {
-    "file": "assets/medical-assessment-DMVmBF-1.js",
+    "file": "assets/medical-assessment-D6rUedhf.js",
     "name": "medical-assessment",
     "src": "resources/js/pages/clinical/medical-assessment.tsx",
     "isDynamicEntry": true,
@@ -819,7 +960,7 @@
       "_arrow-left-COFm3efb.js",
       "_patient-context-banner-1txp6t6r.js",
       "_save-BSPcOXT9.js",
-      "_clinical-draft-recovery-3Q5qSrXv.js",
+      "_clinical-draft-recovery-DfcMEx_k.js",
       "_file-clock-DqIL06b5.js",
       "_history-D_6tjnX_.js",
       "_clinical-date-time-CiuHaYu3.js",
@@ -836,7 +977,7 @@
     ]
   },
   "resources/js/pages/clinical/nursing-intake.tsx": {
-    "file": "assets/nursing-intake-CxqiQjvJ.js",
+    "file": "assets/nursing-intake-tfFo7kOZ.js",
     "name": "nursing-intake",
     "src": "resources/js/pages/clinical/nursing-intake.tsx",
     "isDynamicEntry": true,
@@ -847,7 +988,7 @@
       "_patient-context-banner-1txp6t6r.js",
       "_save-BSPcOXT9.js",
       "_clock-3-CyuOm1Pp.js",
-      "_clinical-draft-recovery-3Q5qSrXv.js",
+      "_clinical-draft-recovery-DfcMEx_k.js",
       "_file-clock-DqIL06b5.js",
       "_heart-pulse-DzsJV_bK.js",
       "_send-BdzJ-lQN.js",
@@ -886,7 +1027,7 @@
     ]
   },
   "resources/js/pages/clinical/pharmacy.tsx": {
-    "file": "assets/pharmacy-DxpBApMj.js",
+    "file": "assets/pharmacy-KWlyl8RV.js",
     "name": "pharmacy",
     "src": "resources/js/pages/clinical/pharmacy.tsx",
     "isDynamicEntry": true,
@@ -898,7 +1039,8 @@
       "_circle-check-heCawQ1L.js",
       "_clipboard-check-CPBv4RYM.js",
       "_fingerprint-CVK1IdQL.js",
-      "_pill-CsDIcEgQ.js",
+      "_message-square-warning-CoXLozRn.js",
+      "_pill-B-KIDzuM.js",
       "_refresh-cw-30YL5SGC.js",
       "_send-BdzJ-lQN.js",
       "_shield-check-BZUf6lRK.js",
@@ -1098,8 +1240,46 @@
       "_badge-Bf7LI0EG.js"
     ]
   },
+  "resources/js/pages/hospital/desk.tsx": {
+    "file": "assets/desk-CCWSfiyY.js",
+    "name": "desk",
+    "src": "resources/js/pages/hospital/desk.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_button-BQ9INEqO.js",
+      "_createLucideIcon-CCgX35NA.js",
+      "_arrow-right-DBLntGTk.js",
+      "_clipboard-list-k7_MlKES.js",
+      "_file-text-DTSJ2_7d.js",
+      "_pill-B-KIDzuM.js",
+      "_user-round-plus-Cyo4eltn.js",
+      "_stethoscope-D4v5ITfz.js",
+      "_badge-Bf7LI0EG.js"
+    ]
+  },
+  "resources/js/pages/hospital/module-desk.tsx": {
+    "file": "assets/module-desk-D31d6vhj.js",
+    "name": "module-desk",
+    "src": "resources/js/pages/hospital/module-desk.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_button-BQ9INEqO.js",
+      "_arrow-right-DBLntGTk.js",
+      "_badge-Bf7LI0EG.js"
+    ]
+  },
+  "resources/js/pages/hospital/session-picker.tsx": {
+    "file": "assets/session-picker-DXimmGsm.js",
+    "name": "session-picker",
+    "src": "resources/js/pages/hospital/session-picker.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_button-BQ9INEqO.js",
+      "_arrow-right-DBLntGTk.js"
+    ]
+  },
   "resources/js/pages/patient/registration.tsx": {
-    "file": "assets/registration-BddZgncP.js",
+    "file": "assets/registration-BRmTfcov.js",
     "name": "registration",
     "src": "resources/js/pages/patient/registration.tsx",
     "isDynamicEntry": true,
@@ -1195,7 +1375,7 @@
     ]
   },
   "resources/js/pages/work/index.tsx": {
-    "file": "assets/work-C0N-Kg8W.js",
+    "file": "assets/work-_FKZLY3q.js",
     "name": "work",
     "src": "resources/js/pages/work/index.tsx",
     "isDynamicEntry": true,
@@ -1212,12 +1392,13 @@
       "_file-check-2-DYZ-O2Uz.js",
       "_fingerprint-CVK1IdQL.js",
       "_id-card-Y3WyJFsu.js",
-      "_pill-CsDIcEgQ.js",
+      "_message-square-warning-CoXLozRn.js",
+      "_pill-B-KIDzuM.js",
       "_rotate-ccw-CqXJkWVu.js",
       "_shield-check-BZUf6lRK.js",
       "_stethoscope-D4v5ITfz.js",
       "_triangle-alert-70jwPk6b.js",
-      "_routes-DIzPnWrm.js",
+      "_routes-BWL5QATF.js",
       "_badge-Bf7LI0EG.js"
     ]
   }

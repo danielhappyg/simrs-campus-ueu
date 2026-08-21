@@ -38,7 +38,14 @@ class CloneReferenceSessionCommandTest extends TestCase
         $this->seedReferenceOutpatient();
 
         $source = SimulationSession::query()->where('code', 'SIM-RJ-UEU-001')->sole();
-        $sourcePatient = SyntheticPatient::query()->where('session_id', $source->getKey())->sole();
+        $sourcePatient = SyntheticPatient::query()
+            ->where('session_id', $source->getKey())
+            ->where('fixture_source', 'OPD-REF-001-v1')
+            ->sole();
+        $sourcePopulationCount = SyntheticPatient::query()
+            ->where('session_id', $source->getKey())
+            ->where('fixture_source', 'like', 'OPD-POP-%')
+            ->count();
         $sourceAppointment = AppointmentRegistration::query()->where('session_id', $source->getKey())->sole();
         $sourceEncounter = Encounter::query()->where('session_id', $source->getKey())->sole();
         $sourceAssignments = Assignment::query()->where('session_id', $source->getKey())->get()->keyBy('user_id');
@@ -58,7 +65,17 @@ class CloneReferenceSessionCommandTest extends TestCase
             ->assertSuccessful();
 
         $target = SimulationSession::query()->where('code', 'UAT-MAIN-001')->sole();
-        $targetPatient = SyntheticPatient::query()->where('session_id', $target->getKey())->sole();
+        $targetPatient = SyntheticPatient::query()
+            ->where('session_id', $target->getKey())
+            ->where('fixture_source', 'OPD-REF-001-v1')
+            ->sole();
+        $this->assertSame(
+            $sourcePopulationCount,
+            SyntheticPatient::query()
+                ->where('session_id', $target->getKey())
+                ->where('fixture_source', 'like', 'OPD-POP-%')
+                ->count(),
+        );
         $targetAppointment = AppointmentRegistration::query()->where('session_id', $target->getKey())->sole();
         $targetEncounter = Encounter::query()->where('session_id', $target->getKey())->sole();
         $targetAssignments = Assignment::query()->where('session_id', $target->getKey())->get()->keyBy('user_id');
@@ -239,9 +256,13 @@ class CloneReferenceSessionCommandTest extends TestCase
         $this->assertSame(1, SimulationSession::query()->where('code', 'UAT-DUP-001')->count());
 
         $source = SimulationSession::query()->where('code', 'SIM-RJ-UEU-001')->sole();
-        SyntheticPatient::query()->where('session_id', $source->getKey())->sole()->update([
-            'phone' => 'synthetic-fixture-contamination',
-        ]);
+        SyntheticPatient::query()
+            ->where('session_id', $source->getKey())
+            ->where('fixture_source', 'OPD-REF-001-v1')
+            ->sole()
+            ->update([
+                'phone' => 'synthetic-fixture-contamination',
+            ]);
         $this->artisan('simulation:clone-reference-session', ['code' => 'UAT-CONTAMINATED-001'])
             ->expectsOutputToContain('reserved OPD-REF-001-v1 synthetic identity fixture')
             ->assertFailed();

@@ -1,9 +1,9 @@
 import { createInertiaApp } from '@inertiajs/react';
-import '@fontsource-variable/atkinson-hyperlegible-next';
+import '@fontsource/plus-jakarta-sans/400.css';
+import '@fontsource/plus-jakarta-sans/500.css';
+import '@fontsource/plus-jakarta-sans/600.css';
+import '@fontsource/plus-jakarta-sans/700.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
-import '@fontsource/ibm-plex-sans-condensed/latin-500.css';
-import '@fontsource/ibm-plex-sans-condensed/latin-600.css';
-import '@fontsource/ibm-plex-sans-condensed/latin-700.css';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
@@ -39,6 +39,6 @@ createInertiaApp({
         );
     },
     progress: {
-        color: '#00639F',
+        color: '#1b75bc',
     },
 });

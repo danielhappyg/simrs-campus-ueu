@@ -11,6 +11,8 @@ export type SyntheticPatientSummary = {
     mrn: string | null;
     recordStatus?: string;
     synthetic: true;
+    kind?: 'LAMA' | 'BARU_POOL';
+    kindLabel?: string;
 };
 
 export type RegistrationAppointment = {

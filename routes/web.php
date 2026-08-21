@@ -45,16 +45,28 @@ use App\Http\Controllers\RecordQuality\StoreRecordQualityReviewController;
 use App\Http\Controllers\RecordQuality\StoreRecordQualityReviewDecisionController;
 use App\Http\Controllers\Reporting\DebriefEvidenceReportController;
 use App\Http\Controllers\Reporting\OutpatientSummaryReportController;
+use App\Http\Controllers\Hospital\HospitalDeskController;
+use App\Http\Controllers\Hospital\HospitalModuleDeskController;
+use App\Http\Controllers\Hospital\PendaftaranDeskController;
 use App\Http\Controllers\Work\WorkQueueController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/work')->name('home');
+Route::redirect('/', '/desk')->name('home');
 
 Route::get('queue-display/{session}', PublicQueueController::class)
     ->middleware(['simulation', 'throttle:60,1'])
     ->name('queue-display');
 
 Route::middleware(['auth', 'active.account', 'verified', 'simulation'])->group(function () {
+    Route::get('desk', HospitalDeskController::class)->name('desk');
+    Route::get('desk/pendaftaran', PendaftaranDeskController::class)->name('desk.pendaftaran');
+    Route::get('desk/pemeriksaan', [HospitalModuleDeskController::class, 'pemeriksaan'])->name('desk.pemeriksaan');
+    Route::get('desk/rekam-medis', [HospitalModuleDeskController::class, 'rekamMedis'])->name('desk.rekam-medis');
+    Route::get('desk/apotek', [HospitalModuleDeskController::class, 'apotek'])->name('desk.apotek');
+    Route::get('desk/klaim', [HospitalModuleDeskController::class, 'klaim'])->name('desk.klaim');
+    Route::get('desk/laporan', [HospitalModuleDeskController::class, 'laporan'])->name('desk.laporan');
+    Route::get('desk/bpjs', [HospitalModuleDeskController::class, 'bpjs'])->name('desk.bpjs');
+    Route::get('desk/kasir', [HospitalModuleDeskController::class, 'kasir'])->name('desk.kasir');
     Route::get('work', WorkQueueController::class)->name('work');
     Route::get('sessions/{session}/registration', RegistrationWorkspaceController::class)
         ->name('sessions.registration');

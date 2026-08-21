@@ -43,7 +43,26 @@ class RegistrationWorkspaceController extends Controller
         $searchAssignment = $query === ''
             ? $assignment
             : $this->assignmentResolver->forSession($user, $session, Capability::PatientSearch);
-        $candidates = $query === '' ? collect() : $this->patientSearch->search($session, $query);
+
+        $appointments = AppointmentRegistration::query()
+            ->where('session_id', $session->getKey())
+            ->with(['patient.identifiers', 'encounter.location'])
+            ->orderBy('scheduled_at')
+            ->limit(50)
+            ->get();
+
+        $population = SyntheticPatient::query()
+            ->where('session_id', $session->getKey())
+            ->with('identifiers')
+            ->orderBy('full_name')
+            ->limit(100)
+            ->get();
+
+        $locations = ServiceLocation::query()->where('is_active', true)->orderBy('name')->get();
+
+        $candidates = $query === ''
+            ? collect()
+            : $this->patientSearch->search($session, $query, 25);
 
         if ($query !== '') {
             $this->auditRecorder->record(
@@ -60,14 +79,13 @@ class RegistrationWorkspaceController extends Controller
             );
         }
 
-        $appointments = AppointmentRegistration::query()
-            ->where('session_id', $session->getKey())
-            ->with(['patient.identifiers', 'encounter.location'])
-            ->orderBy('scheduled_at')
-            ->limit(50)
-            ->get();
-
-        $locations = ServiceLocation::query()->where('is_active', true)->orderBy('name')->get();
+        $clinicQueue = $appointments->filter(
+            fn (AppointmentRegistration $appointment): bool => in_array(
+                $appointment->status,
+                [AppointmentStatus::Booked, AppointmentStatus::CheckedIn],
+                true,
+            ),
+        );
 
         return Inertia::render('patient/registration', [
             'session' => [
@@ -79,9 +97,12 @@ class RegistrationWorkspaceController extends Controller
             'assignmentPublicId' => $assignment->public_id,
             'searchUrl' => route('sessions.registration', $session),
             'storeUrl' => route('sessions.registrations.store', $session),
+            'deskUrl' => route('desk'),
             'searchQuery' => $query,
             'candidates' => $candidates->map(fn (SyntheticPatient $patient): array => $this->patientPayload($patient))->values()->all(),
+            'population' => $population->map(fn (SyntheticPatient $patient): array => $this->patientPayload($patient))->values()->all(),
             'appointments' => $appointments->map(fn (AppointmentRegistration $appointment): array => $this->appointmentPayload($appointment))->values()->all(),
+            'clinicQueue' => $clinicQueue->map(fn (AppointmentRegistration $appointment): array => $this->appointmentPayload($appointment))->values()->all(),
             'canCreateRegistration' => $appointments->isEmpty(),
             'locations' => $locations->map(fn (ServiceLocation $location): array => [
                 'publicId' => $location->public_id,
@@ -109,6 +130,13 @@ class RegistrationWorkspaceController extends Controller
     private function patientPayload(SyntheticPatient $patient): array
     {
         $mrn = $patient->identifiers->firstWhere('type', IdentifierType::MedicalRecordNumber);
+        $source = (string) $patient->fixture_source;
+        $kind = match (true) {
+            str_starts_with($source, 'OPD-POP-RETURNING') => 'LAMA',
+            str_starts_with($source, 'OPD-POP-NEW') => 'BARU_POOL',
+            str_starts_with($source, 'OPD-REF') => 'LAMA',
+            default => 'LAMA',
+        };
 
         return [
             'publicId' => $patient->public_id,
@@ -118,6 +146,11 @@ class RegistrationWorkspaceController extends Controller
             'mrn' => $mrn?->value,
             'recordStatus' => $patient->record_status->value,
             'synthetic' => true,
+            'kind' => $kind,
+            'kindLabel' => match ($kind) {
+                'BARU_POOL' => 'Calon pasien baru',
+                default => 'Pasien lama',
+            },
         ];
     }
 

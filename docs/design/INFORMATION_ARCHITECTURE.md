@@ -2,56 +2,48 @@
 
 - **Version:** 1.0 reference specification
 - **Scope:** Outpatient reference MVP plus stable seams for later modules
-- **Primary organizing principle:** user work and patient journey, not software-module inventory
+- **Primary organizing principle:** hospital module desks over a shared encounter world; Kerja saya is secondary (ADR-014)
 
 ## 1. Navigation model
 
 ```mermaid
 flowchart TB
-    APP["SIMRS Campus UEU"] --> WORK["Pekerjaan Saya"]
-    APP --> PAT["Pasien"]
-    APP --> CARE["Pelayanan"]
-    APP --> ORD["Pesanan & Hasil"]
-    APP --> MED["Obat"]
-    APP --> REC["Rekam Kesehatan"]
-    APP --> LEARN["Pusat Pembelajaran"]
-    APP --> ADMIN["Administrasi"]
+    APP["SIMRS Campus UEU"] --> DESK["Meja kerja"]
+    APP --> REG["Pendaftaran"]
+    APP --> EXAM["Pemeriksaan"]
+    APP --> RM["Rekam Medis"]
+    APP --> PHARM["Apotek"]
+    APP --> CLAIM["Klaim"]
+    APP --> RPT["Laporan"]
+    APP --> BPJS["BPJS"]
+    APP --> CASH["Kasir"]
+    APP --> WORK["Kerja saya"]
 
-    WORK --> ASSIGNED["Tugas Saya"]
-    WORK --> REVIEW["Perlu Ditinjau"]
-    WORK --> HANDOFF["Serah Terima"]
+    DESK --> TODAY["Kunjungan hari ini"]
+    DESK --> QUEUE["Antrean poli"]
 
-    PAT --> SEARCH["Cari Pasien"]
-    PAT --> REG["Registrasi"]
-    PAT --> APPT["Janji & Antrean"]
+    REG --> SEARCH["Cari populasi sintetis"]
+    REG --> BARU["Pasien baru"]
+    REG --> LAMA["Pasien lama"]
+    REG --> CHECKIN["Check-in"]
 
-    CARE --> OPD["Rawat Jalan"]
-    OPD --> INTAKE["Asesmen Awal"]
-    OPD --> MEDASS["Asesmen Medis"]
-    OPD --> CLOSE["Penutupan"]
+    EXAM --> INTAKE["Asesmen awal"]
+    EXAM --> MEDASS["Asesmen medis"]
 
-    ORD --> ORDERS["Pesanan"]
-    ORD --> RESULTS["Hasil"]
+    RM --> TIMELINE["Linimasa"]
+    RM --> QUALITY["Kelengkapan"]
+    RM --> CODING["Koding"]
 
-    MED --> RX["Resep"]
-    MED --> REVIEWRX["Telaah Resep"]
-    MED --> DISP["Penyiapan & Penyerahan"]
+    PHARM --> REVIEW["Telaah resep"]
+    PHARM --> DISP["Dispensing"]
 
-    REC --> TIMELINE["Linimasa Rekam"]
-    REC --> COMPLETE["Kelengkapan"]
-    REC --> CODING["Koding"]
-    REC --> AMEND["Koreksi & Amendemen"]
+    CLAIM --> ECLAIM["Simulasi E-Klaim"]
+    BPJS --> EDUC["Postur edukatif saja"]
 
-    LEARN --> SESSIONS["Sesi Simulasi"]
-    LEARN --> SUPERVISION["Supervisi"]
-    LEARN --> DEBRIEF["Debrief"]
-
-    ADMIN --> USERS["Pengguna & Peran"]
-    ADMIN --> REFDATA["Data Referensi"]
-    ADMIN --> SYSTEM["Kesehatan Sistem"]
+    WORK --> ASSIGNED["Tugas saya"]
 ```
 
-Destinations are capability-filtered. A hidden destination is still protected at route and API level.
+Destinations are capability-filtered. A hidden destination is still protected at route and API level. Do not claim real BPJS connectivity.
 
 ## 2. Global shell hierarchy
 

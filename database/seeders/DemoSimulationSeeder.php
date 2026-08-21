@@ -76,6 +76,9 @@ class DemoSimulationSeeder extends Seeder
                 'fixture_spec' => [
                     'synthetic_only' => true,
                     'fixture_set' => 'OPD-REF-001-v1',
+                    'population_set' => 'OPD-POP-2026.08',
+                    'population_returning_count' => 8,
+                    'population_new_candidates_count' => 4,
                 ],
                 'ruleset_version' => 'OPD-REF-2026.07',
                 'published_at' => now(),
@@ -422,6 +425,89 @@ class DemoSimulationSeeder extends Seeder
             priority: 1,
             sourceProgram: Program::Nursing,
         );
+
+        $this->seedSyntheticPopulation($session);
+    }
+
+    private function seedSyntheticPopulation(SimulationSession $session): void
+    {
+        $returning = [
+            ['name' => 'Pasien Sintetis Bagas', 'birth' => '1988-11-02', 'sex' => AdministrativeSex::Male, 'mrn' => 'MR-SIM-000101', 'nik' => 'SYN-NIK-000101'],
+            ['name' => 'Pasien Sintetis Citra', 'birth' => '1995-07-21', 'sex' => AdministrativeSex::Female, 'mrn' => 'MR-SIM-000102', 'nik' => 'SYN-NIK-000102'],
+            ['name' => 'Pasien Sintetis Dimas', 'birth' => '1979-03-14', 'sex' => AdministrativeSex::Male, 'mrn' => 'MR-SIM-000103', 'nik' => 'SYN-NIK-000103'],
+            ['name' => 'Pasien Sintetis Eka', 'birth' => '2001-09-08', 'sex' => AdministrativeSex::Female, 'mrn' => 'MR-SIM-000104', 'nik' => 'SYN-NIK-000104'],
+            ['name' => 'Pasien Sintetis Farhan', 'birth' => '1968-12-30', 'sex' => AdministrativeSex::Male, 'mrn' => 'MR-SIM-000105', 'nik' => 'SYN-NIK-000105'],
+            ['name' => 'Pasien Sintetis Gita', 'birth' => '1990-05-05', 'sex' => AdministrativeSex::Female, 'mrn' => 'MR-SIM-000106', 'nik' => 'SYN-NIK-000106'],
+            ['name' => 'Pasien Sintetis Hana', 'birth' => '1984-01-19', 'sex' => AdministrativeSex::Female, 'mrn' => 'MR-SIM-000107', 'nik' => 'SYN-NIK-000107'],
+            ['name' => 'Pasien Sintetis Irfan', 'birth' => '1999-08-27', 'sex' => AdministrativeSex::Male, 'mrn' => 'MR-SIM-000108', 'nik' => 'SYN-NIK-000108'],
+        ];
+
+        foreach ($returning as $index => $row) {
+            $patient = SyntheticPatient::query()->updateOrCreate(
+                [
+                    'session_id' => $session->getKey(),
+                    'fixture_source' => sprintf('OPD-POP-RETURNING-%03d', $index + 1),
+                ],
+                [
+                    'synthetic_flag' => true,
+                    'full_name' => $row['name'],
+                    'birth_date' => $row['birth'],
+                    'administrative_sex' => $row['sex'],
+                    'deceased_flag' => false,
+                    'record_status' => PatientRecordStatus::Active,
+                ],
+            );
+
+            $this->seedIdentifier(
+                patient: $patient,
+                type: IdentifierType::MedicalRecordNumber,
+                system: PatientIdentifier::SYNTHETIC_SYSTEM_PREFIX.'mrn',
+                value: $row['mrn'],
+            );
+            $this->seedIdentifier(
+                patient: $patient,
+                type: IdentifierType::SyntheticNationalId,
+                system: PatientIdentifier::SYNTHETIC_SYSTEM_PREFIX.'nik',
+                value: $row['nik'],
+            );
+        }
+
+        $newCandidates = [
+            ['name' => 'Pasien Sintetis Jaya', 'birth' => '2003-02-11', 'sex' => AdministrativeSex::Male, 'mrn' => 'MR-SIM-000201', 'nik' => 'SYN-NIK-000201'],
+            ['name' => 'Pasien Sintetis Kirana', 'birth' => '1997-06-16', 'sex' => AdministrativeSex::Female, 'mrn' => 'MR-SIM-000202', 'nik' => 'SYN-NIK-000202'],
+            ['name' => 'Pasien Sintetis Luthfi', 'birth' => '1986-10-03', 'sex' => AdministrativeSex::Male, 'mrn' => 'MR-SIM-000203', 'nik' => 'SYN-NIK-000203'],
+            ['name' => 'Pasien Sintetis Maya', 'birth' => '2000-04-22', 'sex' => AdministrativeSex::Female, 'mrn' => 'MR-SIM-000204', 'nik' => 'SYN-NIK-000204'],
+        ];
+
+        foreach ($newCandidates as $index => $row) {
+            $patient = SyntheticPatient::query()->updateOrCreate(
+                [
+                    'session_id' => $session->getKey(),
+                    'fixture_source' => sprintf('OPD-POP-NEW-%03d', $index + 1),
+                ],
+                [
+                    'synthetic_flag' => true,
+                    'full_name' => $row['name'],
+                    'birth_date' => $row['birth'],
+                    'administrative_sex' => $row['sex'],
+                    'deceased_flag' => false,
+                    'record_status' => PatientRecordStatus::Active,
+                ],
+            );
+
+            $this->seedIdentifier(
+                patient: $patient,
+                type: IdentifierType::MedicalRecordNumber,
+                system: PatientIdentifier::SYNTHETIC_SYSTEM_PREFIX.'mrn',
+                value: $row['mrn'],
+            );
+            $this->seedIdentifier(
+                patient: $patient,
+                type: IdentifierType::SyntheticNationalId,
+                system: PatientIdentifier::SYNTHETIC_SYSTEM_PREFIX.'nik',
+                value: $row['nik'],
+            );
+        }
     }
 
     private function seedUser(string $email, string $name, string $password): User

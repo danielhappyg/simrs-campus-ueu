@@ -798,8 +798,9 @@ export default function WorkQueue({
 
 WorkQueue.layout = {
     breadcrumbs: [
+        { title: 'Meja kerja', href: '/desk' },
         {
-            title: 'Antrean kerja',
+            title: 'Kerja saya',
             href: work(),
         },
     ],

@@ -121,13 +121,16 @@ class LaboratorySessionMonitor
         }
 
         if ($encounters->count() !== 1
-            || $patients->count() !== 1
             || $appointments->count() !== 1
+            || $patients->isEmpty()
+            || $patients->where('fixture_source', 'OPD-REF-001-v1')->count() !== 1
             || $patients->contains(fn ($patient): bool => ! $patient->synthetic_flag)
+            || $patients->contains(fn ($patient): bool => $patient->fixture_source !== 'OPD-REF-001-v1'
+                && ! str_starts_with((string) $patient->fixture_source, 'OPD-POP-'))
             || $encounters->contains(fn (Encounter $encounter): bool => $encounter->environment_mode !== EnvironmentMode::Simulation)) {
             $blockers[] = [
                 'id' => 'session.one_synthetic_case',
-                'detail' => 'The disposable session must retain exactly one internally scoped synthetic patient, appointment, and encounter.',
+                'detail' => 'The disposable session must retain exactly one reference patient case, one appointment, and one encounter, with only optional OPD-POP population patients.',
             ];
         }
 
