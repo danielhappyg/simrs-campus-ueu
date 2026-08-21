@@ -20,6 +20,10 @@ This deployment is a testing-only SIMRS Campus UEU environment. It must contain 
 - `public/build` is committed on the Vercel deployment branch. Vercel's generic
   build container does not provide PHP, so it cannot run Laravel Wayfinder
   before Vite; the assets must be rebuilt and verified locally before release.
+- Static files served through `api/assets.php` must be listed in `vercel.json`
+  routes. Today that includes `/build/*`, `/brand/*`, `/favicon.svg`,
+  `/favicon.png`, and `/robots.txt`. Paths that are not routed there fall
+  through to Laravel and will 404 even when the files exist in `public/`.
 
 ## Required Vercel environment variables
 

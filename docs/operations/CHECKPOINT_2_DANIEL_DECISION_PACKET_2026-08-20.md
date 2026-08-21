@@ -5,7 +5,7 @@
 - **Owner / acceptance authority:** Daniel Happy Putra
 - **Scope:** synthetic outpatient reference MVP Checkpoint 2 review after local `LAB-REHEARSAL-001` journey + faculty-correction merges
 - **Hosting posture:** Vercel + Supabase demo and/or local isolated fixture only; campus production hosting TBD; do **not** assume Hostinger
-- **Code tip (as of this packet update):** `main` / demo production branch `codex/vercel-supabase-demo` at `5f8baf2` (includes PRs #26–#30)
+- **Code tip (as of this packet update):** `main` / demo production branch `codex/vercel-supabase-demo` at `ef45c80` (includes PRs #26–#34; brand asset routes follow in the next deploy)
 
 ## 1. Merge status (docs then fixes)
 
@@ -16,8 +16,10 @@
 | 3 | [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28) | Surface session synthetic stock on medical prescribing (`UAT-20260820-001`) | **Merged** to `main` |
 | 4 | [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29) | Indonesian coding honesty path + gold-set `DX-ID-004` (`UAT-20260820-004` / VAL-A16); **no aliases** | **Merged** to `main` |
 | 5 | [#30](https://github.com/danielhappyg/simrs-campus-ueu/pull/30) | Align committed Vite CSS hash with Linux CI | **Merged** to `main` |
+| 6 | [#31](https://github.com/danielhappyg/simrs-campus-ueu/pull/31)–[#33](https://github.com/danielhappyg/simrs-campus-ueu/pull/33) | Post-merge/demo status, residual deny evidence, hosted SIMULASI + branch fixture evidence | **Merged** to `main` |
+| 7 | [#34](https://github.com/danielhappyg/simrs-campus-ueu/pull/34) | Official SIMRS Campus mark + UEU wordmark in UI / favicon | **Merged** to `main` |
 
-Synthetic demo production tip published at https://simrs-campus-ueu-demo.vercel.app (`5f8baf2` on `codex/vercel-supabase-demo`). Application checks on tip `5f8baf2` were green after #30. Do **not** treat merge or demo publish as faculty PASS.
+Synthetic demo tip tracked at https://simrs-campus-ueu-demo.vercel.app on `codex/vercel-supabase-demo` (`ef45c80` in git). Hosted login recheck 21 Aug 2026 morning confirmed `SIMULASI — DATA SINTETIS`; brand PNGs were still 404 until `/brand/*` is routed through `api/assets.php`. Do **not** treat merge or demo publish as faculty PASS.
 
 ## 2. Reporter-proposed issue classifications (not yet Daniel decisions)
 
@@ -75,7 +77,7 @@ Even after merges, demo publish, and scenario marks:
 ## 7. Suggested immediate Daniel actions
 
 1. Enter classifications for `UAT-20260820-001`–`004` in the dated UAT draft.
-2. Choose faculty rehearsal target: local fixture **or** Vercel + Supabase demo at https://simrs-campus-ueu-demo.vercel.app (`5f8baf2`).
+2. Choose faculty rehearsal target: local fixture **or** Vercel + Supabase demo at https://simrs-campus-ueu-demo.vercel.app (`ef45c80` tip; confirm brand assets after the vercel route fix deploys).
 3. Spot-check the three faculty-correction behaviors on a disposable session if you require browser confirmation before PASS.
 4. Mark scenario PASS/FAIL/DECISION and Checkpoint 2 outcome (`ACCEPTED` / `CONDITIONALLY ACCEPTED` / `REQUIRES ANOTHER RUN`).
 5. Only after that, schedule faculty-facing UAT or decide a fresh dated record copy is required.

@@ -5,7 +5,7 @@
 - **Primary contract:** [Outpatient Checkpoint 2 UAT Facilitator Guide](OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
 - **Run record:** [Outpatient Checkpoint 2 UAT Record — 20 August 2026 Draft](OUTPATIENT_CHECKPOINT_2_UAT_RECORD_2026-08-20_DRAFT.md)
 - **Entry gate evidence:** [Outpatient Checkpoint 2 Entry Gate Validation — 20 August 2026](OUTPATIENT_CHECKPOINT_2_ENTRY_GATE_VALIDATION_2026-08-20.md)
-- **Optional hosted demo target:** https://simrs-campus-ueu-demo.vercel.app (synthetic tip `5f8baf2` on `codex/vercel-supabase-demo`; campus production hosting TBD)
+- **Optional hosted demo target:** https://simrs-campus-ueu-demo.vercel.app (synthetic tip `ef45c80` on `codex/vercel-supabase-demo`; campus production hosting TBD)
 
 ## Before participants join
 
