@@ -1,5 +1,4 @@
 import { Link, usePage } from '@inertiajs/react';
-import AppLogoIcon from '@/components/app-logo-icon';
 import { SimulationBanner } from '@/components/simulation-banner';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
@@ -15,56 +14,40 @@ export default function AuthSimpleLayout({
         <div className="min-h-svh bg-background">
             <SimulationBanner {...environment} compact />
             <main className="mx-auto grid min-h-[calc(100svh-2.5rem)] w-full max-w-6xl items-stretch lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
-                <section className="relative hidden overflow-hidden rounded-l-xl bg-[#063650] p-12 text-white lg:flex lg:flex-col lg:justify-between">
-                    <div>
-                        <Link
-                            href={home()}
-                            className="inline-flex items-center gap-3 font-medium"
-                        >
-                            <AppLogoIcon className="size-11" />
-                            <div>
-                                <p className="font-display text-lg font-bold tracking-wide">
-                                    {name}
-                                </p>
-                                <p className="text-xs text-sky-100">
-                                    Universitas Esa Unggul
-                                </p>
-                            </div>
-                        </Link>
-                    </div>
-
-                    <div className="relative z-10 max-w-md">
-                        <p className="mb-3 text-xs font-bold tracking-[0.14em] text-orange-300 uppercase">
-                            Reference teaching environment
-                        </p>
-                        <p className="font-display text-4xl leading-tight font-semibold">
-                            Satu alur klinis. Banyak perspektif pembelajaran.
-                        </p>
-                        <p className="mt-5 max-w-sm text-sm leading-6 text-sky-100">
-                            Ruang simulasi terintegrasi untuk Kedokteran,
-                            Keperawatan, RMIK, dan Farmasi. Seluruh identitas
-                            dan encounter adalah data sintetis.
-                        </p>
-                    </div>
-
-                    <div className="relative" aria-hidden="true">
-                        <div className="h-px w-full bg-sky-300/50" />
-                        <span className="absolute top-1/2 left-[18%] size-3 -translate-y-1/2 rounded-full border-2 border-sky-100 bg-[#063650]" />
-                        <span className="absolute top-1/2 left-[48%] size-3 -translate-y-1/2 rounded-full border-2 border-sky-100 bg-[#063650]" />
-                        <span className="absolute top-1/2 left-[78%] size-4 -translate-y-1/2 rounded-full border-[3px] border-white bg-signal shadow-[0_0_0_5px_rgb(240_88_40_/_0.18)]" />
-                    </div>
+                <section className="relative hidden overflow-hidden rounded-l-xl bg-[#063650] p-12 text-white lg:flex lg:flex-col lg:justify-center">
+                    <Link
+                        href={home()}
+                        className="inline-flex max-w-sm flex-col items-start gap-4"
+                    >
+                        <img
+                            src="/brand/ueu-wordmark.png"
+                            alt="Universitas Esa Unggul"
+                            decoding="async"
+                            className="h-24 w-auto max-w-[16rem] object-contain object-left"
+                        />
+                        <div className="space-y-1">
+                            <p className="font-display text-xl font-semibold tracking-wide">
+                                {name}
+                            </p>
+                            <p className="text-sm text-sky-100">
+                                Lingkungan simulasi pembelajaran
+                            </p>
+                        </div>
+                    </Link>
                 </section>
 
                 <section className="flex items-center justify-center bg-white px-6 py-12 lg:rounded-r-xl lg:border lg:border-l-0 lg:border-border lg:px-14">
                     <div className="w-full max-w-sm">
-                        <div className="mb-8 flex items-center gap-3 lg:hidden">
-                            <AppLogoIcon className="size-10" />
-                            <div>
-                                <p className="font-display font-bold">{name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    Universitas Esa Unggul
-                                </p>
-                            </div>
+                        <div className="mb-8 flex flex-col items-start gap-2 lg:hidden">
+                            <img
+                                src="/brand/ueu-wordmark.png"
+                                alt="Universitas Esa Unggul"
+                                decoding="async"
+                                className="h-14 w-auto max-w-[12rem] object-contain object-left"
+                            />
+                            <p className="font-display text-sm font-semibold text-foreground">
+                                {name}
+                            </p>
                         </div>
                         <div className="mb-8 space-y-2">
                             <h1 className="font-display text-2xl font-semibold">
