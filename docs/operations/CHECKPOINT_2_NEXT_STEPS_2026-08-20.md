@@ -21,8 +21,8 @@ The following artifacts now exist and are aligned:
 - [Dependency Update Candidates — 20 August 2026](DEPENDENCY_UPDATE_CANDIDATES_2026-08-20.md)
 - [GitHub Publication Checklist](GITHUB_PUBLICATION_CHECKLIST.md)
 - PR [#25](https://github.com/danielhappyg/simrs-campus-ueu/pull/25) ICD-9-CM register recheck **merged** to `main`
-- Faculty-correction / hygiene PRs **merged** to `main`: [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26), [#27](https://github.com/danielhappyg/simrs-campus-ueu/pull/27), [#28](https://github.com/danielhappyg/simrs-campus-ueu/pull/28), [#29](https://github.com/danielhappyg/simrs-campus-ueu/pull/29), [#30](https://github.com/danielhappyg/simrs-campus-ueu/pull/30)
-- Synthetic demo production tip `5f8baf2` published on Vercel via branch `codex/vercel-supabase-demo` → https://simrs-campus-ueu-demo.vercel.app (login smoke HTTP 200). Campus production hosting remains TBD.
+- Faculty-correction / hygiene / evidence / brand PRs **merged** to `main`: [#26](https://github.com/danielhappyg/simrs-campus-ueu/pull/26)–[#34](https://github.com/danielhappyg/simrs-campus-ueu/pull/34)
+- Synthetic demo git tip `ef45c80` on `codex/vercel-supabase-demo` → https://simrs-campus-ueu-demo.vercel.app (login smoke + `SIMULASI — DATA SINTETIS` confirmed 21 Aug 2026). Brand PNG routes needed an explicit `vercel.json` entry (see following PR). Campus production hosting remains TBD.
 
 ## Open actions before faculty Checkpoint 2 acceptance
 
@@ -30,7 +30,7 @@ The following artifacts now exist and are aligned:
    - Confirm the merged PR #25 register outcome remains the working baseline for upcoming faculty rehearsal evidence.
 
 2. **Choose the faculty rehearsal target**
-   - Either local isolated fixture or the current Vercel + Supabase synthetic demo (now on tip `5f8baf2`).
+   - Either local isolated fixture or the current Vercel + Supabase synthetic demo (git tip `ef45c80`).
    - Do not treat campus hosting as a prerequisite for Checkpoint 2.
 
 3. **Close remaining rehearsal evidence gaps**

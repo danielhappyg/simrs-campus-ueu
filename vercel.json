@@ -18,8 +18,16 @@
             "dest": "/api/assets.php?asset=build/$1"
         },
         {
+            "src": "/brand/(.*)",
+            "dest": "/api/assets.php?asset=brand/$1"
+        },
+        {
             "src": "/favicon.svg",
             "dest": "/api/assets.php?asset=favicon.svg"
+        },
+        {
+            "src": "/favicon.png",
+            "dest": "/api/assets.php?asset=favicon.png"
         },
         {
             "src": "/robots.txt",
