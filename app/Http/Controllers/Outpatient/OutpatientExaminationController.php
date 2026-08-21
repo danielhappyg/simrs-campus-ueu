@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Outpatient;
 
 use App\Http\Controllers\Controller;
+use App\Models\Clinic;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Support\Audit\AuditRecorder;
@@ -23,13 +24,51 @@ class OutpatientExaminationController extends Controller
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
+        $q = trim((string) $request->query('q', ''));
+        $clinic = trim((string) $request->query('clinic', ''));
+        $dateFrom = trim((string) $request->query('date_from', ''));
+        $dateTo = trim((string) $request->query('date_to', ''));
+
         $encounters = [];
+        $clinics = [];
 
         try {
-            $encounters = Encounter::query()
+            $clinics = Clinic::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Clinic $row): array => [
+                    'value' => $row->name,
+                    'label' => $row->name,
+                ])
+                ->all();
+
+            $query = Encounter::query()
                 ->with('patient')
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
-                ->whereIn('status', Encounter::EXAMINATION_STATUSES)
+                ->whereIn('status', Encounter::EXAMINATION_STATUSES);
+
+            if ($clinic !== '') {
+                $query->where('clinic_name', $clinic);
+            }
+
+            if ($dateFrom !== '') {
+                $query->whereDate('registered_at', '>=', $dateFrom);
+            }
+
+            if ($dateTo !== '') {
+                $query->whereDate('registered_at', '<=', $dateTo);
+            }
+
+            if ($q !== '') {
+                $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+                $query->whereHas('patient', function ($patientQuery) use ($q, $like): void {
+                    $patientQuery->where('full_name', $like, '%'.$q.'%')
+                        ->orWhere('medical_record_number', $like, '%'.$q.'%');
+                });
+            }
+
+            $encounters = $query
                 ->orderBy('registered_at')
                 ->limit(100)
                 ->get()
@@ -37,8 +76,12 @@ class OutpatientExaminationController extends Controller
                     'public_id' => $encounter->public_id,
                     'status' => $encounter->status,
                     'clinic_name' => $encounter->clinic_name,
+                    'doctor_name' => $encounter->doctor_name,
+                    'schedule_label' => $encounter->schedule_label,
                     'payer_type' => $encounter->payer_type,
+                    'queue_number' => $encounter->queue_number,
                     'registered_at' => $encounter->registered_at?->toIso8601String(),
+                    'visit_date' => $encounter->visit_date?->toDateString(),
                     'chief_complaint' => $encounter->chief_complaint,
                     'patient' => [
                         'public_id' => $encounter->patient?->public_id,
@@ -55,6 +98,13 @@ class OutpatientExaminationController extends Controller
 
         return Inertia::render('pemeriksaan/rawat-jalan/index', [
             'encounters' => $encounters,
+            'clinics' => $clinics,
+            'filters' => [
+                'q' => $q,
+                'clinic' => $clinic,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ],
             'canOpen' => $request->user()?->canCapability(Capability::ENCOUNTER_OPEN) ?? false,
         ]);
     }
@@ -78,8 +128,12 @@ class OutpatientExaminationController extends Controller
                 'public_id' => $encounter->public_id,
                 'status' => $encounter->status,
                 'clinic_name' => $encounter->clinic_name,
+                'doctor_name' => $encounter->doctor_name,
+                'schedule_label' => $encounter->schedule_label,
                 'payer_type' => $encounter->payer_type,
+                'queue_number' => $encounter->queue_number,
                 'registered_at' => $encounter->registered_at?->toIso8601String(),
+                'visit_date' => $encounter->visit_date?->toDateString(),
                 'chief_complaint' => $encounter->chief_complaint,
                 'patient' => [
                     'public_id' => $encounter->patient?->public_id,
@@ -87,6 +141,7 @@ class OutpatientExaminationController extends Controller
                     'full_name' => $encounter->patient?->full_name,
                     'date_of_birth' => $encounter->patient?->date_of_birth?->toDateString(),
                     'sex' => $encounter->patient?->sex,
+                    'nik' => $encounter->patient?->nik,
                 ],
                 'entries' => $encounter->clinicalEntries
                     ->sortBy('created_at')

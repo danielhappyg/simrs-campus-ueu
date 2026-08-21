@@ -1,12 +1,22 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState, type FormEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
+
+type ClinicOption = { value: string; label: string };
 
 type EncounterRow = {
     public_id: string;
     status: string;
     clinic_name: string;
+    doctor_name: string | null;
+    schedule_label: string | null;
     payer_type: string;
+    queue_number: number | null;
     registered_at: string | null;
+    visit_date: string | null;
     chief_complaint: string | null;
     patient: {
         public_id: string | null;
@@ -17,8 +27,17 @@ type EncounterRow = {
     };
 };
 
+type Filters = {
+    q: string;
+    clinic: string;
+    date_from: string;
+    date_to: string;
+};
+
 type Props = {
     encounters: EncounterRow[];
+    clinics: ClinicOption[];
+    filters: Filters;
     canOpen: boolean;
 };
 
@@ -27,64 +46,217 @@ const statusLabel: Record<string, string> = {
     IN_EXAMINATION: 'Dalam pemeriksaan',
 };
 
+const statusChip: Record<string, string> = {
+    REGISTERED: 'bg-[#e8f2fa] text-[#123b63]',
+    IN_EXAMINATION: 'bg-[#fdeee3] text-[#9a3412]',
+};
+
 const payerLabel: Record<string, string> = {
     UMUM: 'Umum',
     BPJS: 'BPJS',
     LAINNYA: 'Lainnya',
 };
 
+const fieldClass =
+    'border-input h-8 rounded-md border bg-white px-2.5 text-sm shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30';
+
 export default function PemeriksaanRawatJalanIndex({
     encounters,
+    clinics,
+    filters,
     canOpen,
 }: Props) {
+    const [q, setQ] = useState(filters.q);
+    const [clinic, setClinic] = useState(filters.clinic);
+    const [dateFrom, setDateFrom] = useState(filters.date_from);
+    const [dateTo, setDateTo] = useState(filters.date_to);
+    const [showIter, setShowIter] = useState(false);
+    const [showKonsul, setShowKonsul] = useState(true);
+    const [showBatal, setShowBatal] = useState(false);
+
+    const applyFilters = (event: FormEvent) => {
+        event.preventDefault();
+        router.get(
+            '/pemeriksaan/rawat-jalan',
+            {
+                q: q || undefined,
+                clinic: clinic || undefined,
+                date_from: dateFrom || undefined,
+                date_to: dateTo || undefined,
+            },
+            { preserveState: true, replace: true },
+        );
+    };
+
     return (
         <>
             <Head title="Pemeriksaan Rawat Jalan" />
 
-            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 md:px-6">
-                <header className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight text-[#0f172a] md:text-3xl">
-                        Pemeriksaan Rawat Jalan
-                    </h1>
-                    <p className="text-sm text-[#64748b]">
-                        Daftar kunjungan yang menunggu atau sedang diperiksa.
-                    </p>
+            <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
+                <header className="flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                        <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
+                            Pemeriksaan · Rawat Jalan
+                        </h1>
+                        <p className="mt-0.5 text-xs text-[#64748b]">
+                            Worklist pengajaran (sintetis). Densitas filter
+                            mengikuti meja SAHABAT / CAP-CLN-004.
+                        </p>
+                    </div>
                 </header>
 
-                <section className="rounded-xl border border-[#e2e8f0] bg-white p-5">
+                <form
+                    onSubmit={applyFilters}
+                    className="rounded-lg border border-[#d7e6f3] bg-[#f5f9fc] p-3"
+                >
+                    <div className="flex flex-wrap items-end gap-2">
+                        <div className="grid min-w-[12rem] flex-1 gap-1">
+                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                No. RM / Nama
+                            </label>
+                            <Input
+                                className={cn(fieldClass, 'bg-white')}
+                                value={q}
+                                onChange={(e) => setQ(e.target.value)}
+                                placeholder="No.RM / Nama"
+                            />
+                        </div>
+                        <div className="grid min-w-[10rem] gap-1">
+                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                Klinik
+                            </label>
+                            <select
+                                className={fieldClass}
+                                value={clinic}
+                                onChange={(e) => setClinic(e.target.value)}
+                            >
+                                <option value="">Semua klinik</option>
+                                {clinics.map((option) => (
+                                    <option
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="grid min-w-[9rem] gap-1">
+                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                Dari
+                            </label>
+                            <Input
+                                type="date"
+                                className={fieldClass}
+                                value={dateFrom}
+                                onChange={(e) => setDateFrom(e.target.value)}
+                            />
+                        </div>
+                        <div className="grid min-w-[9rem] gap-1">
+                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                Sampai
+                            </label>
+                            <Input
+                                type="date"
+                                className={fieldClass}
+                                value={dateTo}
+                                onChange={(e) => setDateTo(e.target.value)}
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            className="h-8 bg-[#1b75bc] hover:bg-[#1665a3]"
+                        >
+                            Tampilkan
+                        </Button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-4 text-xs text-[#64748b]">
+                        <label className="inline-flex items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                checked={showIter}
+                                onChange={(e) => setShowIter(e.target.checked)}
+                                className="accent-[#1b75bc]"
+                            />
+                            Tampilkan pasien iterasi
+                            <span className="text-[0.65rem] text-[#94a3b8]">
+                                · stub
+                            </span>
+                        </label>
+                        <label className="inline-flex items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                checked={showKonsul}
+                                onChange={(e) =>
+                                    setShowKonsul(e.target.checked)
+                                }
+                                className="accent-[#1b75bc]"
+                            />
+                            Tampilkan pasien konsul internal
+                            <span className="text-[0.65rem] text-[#94a3b8]">
+                                · stub
+                            </span>
+                        </label>
+                        <label className="inline-flex items-center gap-1.5">
+                            <input
+                                type="checkbox"
+                                checked={showBatal}
+                                onChange={(e) => setShowBatal(e.target.checked)}
+                                className="accent-[#1b75bc]"
+                            />
+                            Tampilkan pasien batal
+                            <span className="text-[0.65rem] text-[#94a3b8]">
+                                · stub
+                            </span>
+                        </label>
+                    </div>
+                </form>
+
+                <section className="rounded-lg border border-[#e2e8f0] bg-white p-3">
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[44rem] text-left text-sm">
-                            <thead className="border-b border-[#e2e8f0] text-xs tracking-wide text-[#64748b] uppercase">
+                        <table className="w-full min-w-[56rem] text-left text-sm">
+                            <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
-                                    <th className="px-2 py-2 font-medium">
+                                    <th className="px-2 py-1.5 font-medium">
+                                        Antrian
+                                    </th>
+                                    <th className="px-2 py-1.5 font-medium">
                                         No. RM
                                     </th>
-                                    <th className="px-2 py-2 font-medium">
+                                    <th className="px-2 py-1.5 font-medium">
                                         Nama
                                     </th>
-                                    <th className="px-2 py-2 font-medium">
+                                    <th className="px-2 py-1.5 font-medium">
                                         Klinik
                                     </th>
-                                    <th className="px-2 py-2 font-medium">
+                                    <th className="px-2 py-1.5 font-medium">
+                                        Dokter
+                                    </th>
+                                    <th className="px-2 py-1.5 font-medium">
+                                        Jadwal
+                                    </th>
+                                    <th className="px-2 py-1.5 font-medium">
                                         Penjamin
                                     </th>
-                                    <th className="px-2 py-2 font-medium">
+                                    <th className="px-2 py-1.5 font-medium">
                                         Status
                                     </th>
-                                    <th className="px-2 py-2 font-medium">
+                                    <th className="px-2 py-1.5 font-medium">
                                         Keluhan
                                     </th>
-                                    <th className="px-2 py-2 font-medium" />
+                                    <th className="px-2 py-1.5 font-medium" />
                                 </tr>
                             </thead>
                             <tbody>
                                 {encounters.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={7}
+                                            colSpan={10}
                                             className="px-2 py-6 text-[#64748b]"
                                         >
-                                            Tidak ada kunjungan aktif.
+                                            Tidak ada kunjungan aktif untuk
+                                            filter ini.
                                         </td>
                                     </tr>
                                 ) : (
@@ -93,41 +265,61 @@ export default function PemeriksaanRawatJalanIndex({
                                             key={encounter.public_id}
                                             className="border-b border-[#f1f5f9]"
                                         >
-                                            <td className="px-2 py-2.5 font-mono text-xs">
+                                            <td className="px-2 py-1.5 font-mono text-xs">
+                                                {encounter.queue_number ?? '—'}
+                                            </td>
+                                            <td className="px-2 py-1.5 font-mono text-xs">
                                                 {
                                                     encounter.patient
                                                         .medical_record_number
                                                 }
                                             </td>
-                                            <td className="px-2 py-2.5">
+                                            <td className="px-2 py-1.5 font-medium text-[#0f172a]">
                                                 {encounter.patient.full_name}
                                             </td>
-                                            <td className="px-2 py-2.5">
+                                            <td className="px-2 py-1.5">
                                                 {encounter.clinic_name}
                                             </td>
-                                            <td className="px-2 py-2.5">
+                                            <td className="px-2 py-1.5">
+                                                {encounter.doctor_name ?? '—'}
+                                            </td>
+                                            <td className="px-2 py-1.5 text-[#64748b]">
+                                                {encounter.schedule_label ??
+                                                    '—'}
+                                            </td>
+                                            <td className="px-2 py-1.5">
                                                 {payerLabel[
                                                     encounter.payer_type
                                                 ] ?? encounter.payer_type}
                                             </td>
-                                            <td className="px-2 py-2.5">
-                                                {statusLabel[
-                                                    encounter.status
-                                                ] ?? encounter.status}
+                                            <td className="px-2 py-1.5">
+                                                <span
+                                                    className={cn(
+                                                        'inline-flex rounded-md px-2 py-0.5 text-[0.7rem] font-semibold',
+                                                        statusChip[
+                                                            encounter.status
+                                                        ] ??
+                                                            'bg-[#f1f5f9] text-[#123b63]',
+                                                    )}
+                                                >
+                                                    {statusLabel[
+                                                        encounter.status
+                                                    ] ?? encounter.status}
+                                                </span>
                                             </td>
-                                            <td className="max-w-[12rem] truncate px-2 py-2.5 text-[#64748b]">
+                                            <td className="max-w-[10rem] truncate px-2 py-1.5 text-[#64748b]">
                                                 {encounter.chief_complaint ||
                                                     '—'}
                                             </td>
-                                            <td className="px-2 py-2.5 text-right">
-                                                {canOpen && (
+                                            <td className="px-2 py-1.5 text-right">
+                                                {canOpen ? (
                                                     <Link
                                                         href={`/pemeriksaan/rawat-jalan/${encounter.public_id}`}
                                                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                     >
                                                         Buka
                                                     </Link>
-                                                )}
+                                                ) : null}
                                             </td>
                                         </tr>
                                     ))
