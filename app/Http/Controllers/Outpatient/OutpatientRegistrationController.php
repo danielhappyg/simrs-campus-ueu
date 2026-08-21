@@ -10,6 +10,7 @@ use App\Models\Encounter;
 use App\Models\Patient;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
+use App\Support\Database\SchemaQualifier;
 use Database\Seeders\OutpatientMastersSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,14 +30,14 @@ class OutpatientRegistrationController extends Controller
         Gate::authorize(Capability::PATIENT_SEARCH);
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
-        $this->ensureMastersSeeded();
-
         $search = trim((string) $request->query('q', ''));
         $searchResults = [];
         $todaysEncounters = [];
         $clinics = [];
 
         try {
+            $this->ensureMastersSeeded();
+
             if ($search !== '') {
                 $searchResults = Patient::query()
                     ->where('is_synthetic', true)
@@ -293,11 +294,15 @@ class OutpatientRegistrationController extends Controller
 
     private function ensureMastersSeeded(): void
     {
-        if (Clinic::query()->exists()) {
-            return;
-        }
+        try {
+            if (Clinic::query()->exists()) {
+                return;
+            }
 
-        (new OutpatientMastersSeeder)->run();
+            (new OutpatientMastersSeeder)->run();
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**

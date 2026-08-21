@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -42,7 +43,7 @@ use Illuminate\Support\Carbon;
 class Patient extends Model
 {
     /** @use HasFactory<PatientFactory> */
-    use HasFactory, HasPublicUlid;
+    use HasFactory, HasPublicUlid, UsesSchemaQualifiedTable;
 
     public const SEX_LAKI_LAKI = 'LAKI_LAKI';
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\EncounterFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,7 +38,7 @@ use Illuminate\Support\Carbon;
 class Encounter extends Model
 {
     /** @use HasFactory<EncounterFactory> */
-    use HasFactory, HasPublicUlid;
+    use HasFactory, HasPublicUlid, UsesSchemaQualifiedTable;
 
     public const CARE_SETTING_OUTPATIENT = 'OUTPATIENT';
 

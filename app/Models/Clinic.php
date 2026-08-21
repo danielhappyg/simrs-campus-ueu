@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Clinic extends Model
 {
     use HasPublicUlid;
+    use UsesSchemaQualifiedTable;
 
     protected $fillable = [
         'code',

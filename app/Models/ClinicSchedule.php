@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ClinicSchedule extends Model
 {
     use HasPublicUlid;
+    use UsesSchemaQualifiedTable;
 
     protected $fillable = [
         'clinic_id',
