@@ -1,8 +1,9 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
 type EntryTypeOption = {
@@ -23,8 +24,12 @@ type EncounterDetail = {
     public_id: string;
     status: string;
     clinic_name: string;
+    doctor_name: string | null;
+    schedule_label: string | null;
     payer_type: string;
+    queue_number: number | null;
     registered_at: string | null;
+    visit_date: string | null;
     chief_complaint: string | null;
     patient: {
         public_id: string | null;
@@ -32,6 +37,7 @@ type EncounterDetail = {
         full_name: string | null;
         date_of_birth: string | null;
         sex: string | null;
+        nik: string | null;
     };
     entries: ClinicalEntryRow[];
 };
@@ -61,6 +67,23 @@ const sexLabel: Record<string, string> = {
     TIDAK_DIKETAHUI: 'Tidak diketahui',
 };
 
+const payerLabel: Record<string, string> = {
+    UMUM: 'Umum',
+    BPJS: 'BPJS',
+    LAINNYA: 'Lainnya',
+};
+
+const clinicalTabs = [
+    'Asesmen',
+    'SOAP',
+    'Diagnosa',
+    'Tindakan',
+    'Resep',
+    'Order Lab',
+    'Order Rad',
+    'Riwayat',
+] as const;
+
 export default function PemeriksaanRawatJalanShow({
     encounter,
     entryTypeOptions,
@@ -70,6 +93,8 @@ export default function PemeriksaanRawatJalanShow({
     const allowedOptions = entryTypeOptions.filter((option) => option.allowed);
     const canWrite = canWriteNursing || canWriteMedical;
     const closed = encounter.status === 'CLOSED';
+    const [activeTab, setActiveTab] =
+        useState<(typeof clinicalTabs)[number]>('Asesmen');
 
     const form = useForm({
         entry_type: allowedOptions[0]?.value ?? '',
@@ -90,41 +115,73 @@ export default function PemeriksaanRawatJalanShow({
                 title={`Pemeriksaan — ${encounter.patient.full_name ?? 'Kunjungan'}`}
             />
 
-            <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-8 md:px-6">
+            <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
                 <div>
                     <Link
                         href="/pemeriksaan/rawat-jalan"
                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                     >
-                        ← Kembali ke daftar
+                        ← Kembali ke worklist
                     </Link>
                 </div>
 
-                <header className="rounded-xl border border-[#e2e8f0] bg-white p-5">
+                <header className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <h1 className="text-2xl font-semibold tracking-tight text-[#0f172a]">
-                                {encounter.patient.full_name}
-                            </h1>
-                            <p className="mt-1 font-mono text-sm text-[#64748b]">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h1 className="text-xl font-semibold tracking-tight text-[#0f172a]">
+                                    {encounter.patient.full_name}
+                                </h1>
+                                <span className="rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[0.7rem] font-semibold text-[#123b63]">
+                                    {statusLabel[encounter.status] ??
+                                        encounter.status}
+                                </span>
+                                {encounter.queue_number != null ? (
+                                    <span className="rounded-md bg-[#e8f2fa] px-2 py-0.5 font-mono text-[0.7rem] font-semibold text-[#123b63]">
+                                        Antrian {encounter.queue_number}
+                                    </span>
+                                ) : null}
+                            </div>
+                            <p className="mt-1 font-mono text-xs text-[#64748b]">
                                 {encounter.patient.medical_record_number}
+                                {encounter.patient.nik
+                                    ? ` · NIK ${encounter.patient.nik}`
+                                    : ''}
                             </p>
                         </div>
-                        <span className="rounded-md bg-[#f1f5f9] px-2.5 py-1 text-xs font-medium text-[#123b63]">
-                            {statusLabel[encounter.status] ?? encounter.status}
-                        </span>
+                        <div className="flex flex-wrap gap-2">
+                            {(
+                                [
+                                    'Cetak',
+                                    'Riwayat EMR',
+                                    'Order',
+                                    'Resep',
+                                ] as const
+                            ).map((label) => (
+                                <button
+                                    key={label}
+                                    type="button"
+                                    disabled
+                                    title="Belum tersedia di demo pengajaran"
+                                    className="inline-flex h-8 items-center rounded-md border border-[#c5d9eb] bg-[#f8fbfe] px-2.5 text-xs font-medium text-[#64748b] opacity-70"
+                                >
+                                    {label}
+                                    <span className="ml-1.5 text-[0.65rem] text-[#94a3b8]">
+                                        · stub
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                    <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                         <div>
-                            <dt className="text-[#64748b]">Tanggal lahir</dt>
+                            <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
+                                Tgl lahir / JK
+                            </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {encounter.patient.date_of_birth ?? '—'}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-[#64748b]">Jenis kelamin</dt>
-                            <dd className="font-medium text-[#0f172a]">
+                                {' · '}
                                 {encounter.patient.sex
                                     ? (sexLabel[encounter.patient.sex] ??
                                       encounter.patient.sex)
@@ -132,13 +189,31 @@ export default function PemeriksaanRawatJalanShow({
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-[#64748b]">Klinik</dt>
+                            <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
+                                Klinik / Dokter
+                            </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {encounter.clinic_name}
+                                {encounter.doctor_name
+                                    ? ` · ${encounter.doctor_name}`
+                                    : ''}
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-[#64748b]">Keluhan utama</dt>
+                            <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
+                                Jadwal / Penjamin
+                            </dt>
+                            <dd className="font-medium text-[#0f172a]">
+                                {encounter.schedule_label ?? '—'}
+                                {' · '}
+                                {payerLabel[encounter.payer_type] ??
+                                    encounter.payer_type}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
+                                Keluhan utama
+                            </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {encounter.chief_complaint || '—'}
                             </dd>
@@ -146,98 +221,157 @@ export default function PemeriksaanRawatJalanShow({
                     </dl>
                 </header>
 
-                <section className="rounded-xl border border-[#e2e8f0] bg-white p-5">
-                    <h2 className="text-sm font-semibold text-[#123b63]">
-                        Catatan klinis
-                    </h2>
+                <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] pb-px">
+                    {clinicalTabs.map((tab) => {
+                        const live = tab === 'Asesmen' || tab === 'Riwayat';
+                        return (
+                            <button
+                                key={tab}
+                                type="button"
+                                disabled={!live}
+                                onClick={() => live && setActiveTab(tab)}
+                                className={cn(
+                                    'rounded-t-md px-3 py-1.5 text-xs font-medium',
+                                    activeTab === tab && live
+                                        ? 'bg-white text-[#1b75bc] ring-1 ring-[#e2e8f0] ring-b-white'
+                                        : 'text-[#64748b]',
+                                    !live && 'cursor-not-allowed opacity-50',
+                                )}
+                                title={
+                                    live
+                                        ? undefined
+                                        : 'Tab klinis lanjutan — stub pengajaran'
+                                }
+                            >
+                                {tab}
+                                {!live ? (
+                                    <span className="ml-1 text-[0.6rem] text-[#94a3b8]">
+                                        stub
+                                    </span>
+                                ) : null}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                    <div className="mt-4 space-y-3">
-                        {encounter.entries.length === 0 ? (
-                            <p className="text-sm text-[#64748b]">
-                                Belum ada catatan.
-                            </p>
-                        ) : (
-                            encounter.entries.map((entry) => (
-                                <article
-                                    key={entry.public_id}
-                                    className="rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-4"
-                                >
-                                    <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <h3 className="text-sm font-semibold text-[#0f172a]">
-                                            {entryTypeLabel[entry.entry_type] ??
-                                                entry.entry_type}
-                                        </h3>
-                                        <p className="text-xs text-[#64748b]">
-                                            {entry.author_name}
-                                            {entry.created_at
-                                                ? ` · ${new Date(entry.created_at).toLocaleString('id-ID')}`
-                                                : ''}
-                                        </p>
-                                    </div>
-                                    <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#0f172a]">
-                                        {entry.body}
+                {(activeTab === 'Asesmen' || activeTab === 'Riwayat') && (
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                        <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
+                            <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
+                                Catatan klinis
+                            </h2>
+                            <div className="mt-3 space-y-2">
+                                {encounter.entries.length === 0 ? (
+                                    <p className="text-sm text-[#64748b]">
+                                        Belum ada catatan.
                                     </p>
-                                </article>
-                            ))
+                                ) : (
+                                    encounter.entries.map((entry) => (
+                                        <article
+                                            key={entry.public_id}
+                                            className="rounded-md border border-[#e2e8f0] bg-[#f8fafc] p-3"
+                                        >
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <h3 className="text-sm font-semibold text-[#0f172a]">
+                                                    {entryTypeLabel[
+                                                        entry.entry_type
+                                                    ] ?? entry.entry_type}
+                                                </h3>
+                                                <p className="text-xs text-[#64748b]">
+                                                    {entry.author_name}
+                                                    {entry.created_at
+                                                        ? ` · ${new Date(entry.created_at).toLocaleString('id-ID')}`
+                                                        : ''}
+                                                </p>
+                                            </div>
+                                            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#0f172a]">
+                                                {entry.body}
+                                            </p>
+                                        </article>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
+                        {canWrite && !closed ? (
+                            <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
+                                <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
+                                    Tambah asesmen
+                                </h2>
+                                <form
+                                    onSubmit={submit}
+                                    className="mt-3 space-y-3"
+                                >
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="entry_type">
+                                            Jenis catatan
+                                        </Label>
+                                        <select
+                                            id="entry_type"
+                                            className="border-input h-8 rounded-md border bg-white px-2.5 text-sm"
+                                            value={form.data.entry_type}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'entry_type',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            required
+                                        >
+                                            {allowedOptions.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError
+                                            message={form.errors.entry_type}
+                                        />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="body">
+                                            Isi catatan
+                                        </Label>
+                                        <textarea
+                                            id="body"
+                                            className="border-input min-h-36 rounded-md border bg-white px-2.5 py-2 text-sm"
+                                            value={form.data.body}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'body',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            required
+                                            placeholder="Tuliskan asesmen teaching/sintetis…"
+                                        />
+                                        <InputError
+                                            message={form.errors.body}
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            form.processing ||
+                                            !form.data.entry_type
+                                        }
+                                        className="w-full bg-[#1b75bc] hover:bg-[#1665a3]"
+                                    >
+                                        Simpan catatan
+                                    </Button>
+                                </form>
+                            </section>
+                        ) : (
+                            <section className="rounded-lg border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-4 text-sm text-[#64748b]">
+                                {closed
+                                    ? 'Kunjungan sudah ditutup — catatan tidak dapat ditambah.'
+                                    : 'Akun ini tidak punya hak menulis catatan klinis.'}
+                            </section>
                         )}
                     </div>
-                </section>
-
-                {canWrite && !closed && (
-                    <section className="rounded-xl border border-[#e2e8f0] bg-white p-5">
-                        <h2 className="text-sm font-semibold text-[#123b63]">
-                            Tambah catatan
-                        </h2>
-                        <form onSubmit={submit} className="mt-4 space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="entry_type">Jenis catatan</Label>
-                                <select
-                                    id="entry_type"
-                                    className="border-input h-9 rounded-md border bg-transparent px-3 text-sm"
-                                    value={form.data.entry_type}
-                                    onChange={(e) =>
-                                        form.setData(
-                                            'entry_type',
-                                            e.target.value,
-                                        )
-                                    }
-                                    required
-                                >
-                                    {allowedOptions.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <InputError message={form.errors.entry_type} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="body">Isi catatan</Label>
-                                <textarea
-                                    id="body"
-                                    className="border-input min-h-32 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                    value={form.data.body}
-                                    onChange={(e) =>
-                                        form.setData('body', e.target.value)
-                                    }
-                                    required
-                                />
-                                <InputError message={form.errors.body} />
-                            </div>
-
-                            <Button
-                                type="submit"
-                                disabled={form.processing || !form.data.entry_type}
-                                className="bg-[#1b75bc] hover:bg-[#1665a3]"
-                            >
-                                Simpan catatan
-                            </Button>
-                        </form>
-                    </section>
                 )}
             </div>
         </>
