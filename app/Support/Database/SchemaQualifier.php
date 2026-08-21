@@ -22,20 +22,18 @@ final class SchemaQualifier
 
     public static function primarySchema(): ?string
     {
-        if (config('database.default') !== 'pgsql') {
+        $schemas = self::configuredSchemas();
+
+        if ($schemas === []) {
             return null;
         }
 
-        $searchPath = (string) config('database.connections.pgsql.search_path', 'public');
-        $schemas = collect(explode(',', $searchPath))
-            ->map(fn (string $part): string => trim($part, " \t\n\r\0\x0B\""))
-            ->filter()
-            ->values();
+        $primary = $schemas[0];
 
-        $primary = $schemas->first();
-
-        if (! is_string($primary) || $primary === '' || $primary === 'public') {
-            return null;
+        if ($primary === 'public') {
+            // Hosted synthetic demo keeps app tables in private `laravel`.
+            // Prefer that schema over unqualified public lookups when env drifts.
+            return self::shouldPreferLaravelSchema() ? 'laravel' : null;
         }
 
         return $primary;
@@ -46,20 +44,46 @@ final class SchemaQualifier
      */
     public static function searchPathSchemas(): array
     {
+        $schemas = collect(self::configuredSchemas());
+
+        if ($schemas->isEmpty()) {
+            return [];
+        }
+
+        if ($schemas->first() === 'public' && self::shouldPreferLaravelSchema()) {
+            $schemas = collect(['laravel', 'public']);
+        } elseif (! $schemas->contains('public')) {
+            $schemas->push('public');
+        }
+
+        return $schemas->values()->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function configuredSchemas(): array
+    {
         if (config('database.default') !== 'pgsql') {
             return [];
         }
 
-        $searchPath = (string) config('database.connections.pgsql.search_path', 'public');
-        $schemas = collect(explode(',', $searchPath))
-            ->map(fn (string $part): string => trim($part, " \t\n\r\0\x0B\""))
-            ->filter()
-            ->values();
+        $searchPath = (string) config('database.connections.pgsql.search_path', '');
 
-        if ($schemas->isNotEmpty() && ! $schemas->contains('public')) {
-            $schemas->push('public');
+        if ($searchPath === '') {
+            $searchPath = (string) env('DB_SCHEMA', 'public');
         }
 
-        return $schemas->all();
+        return collect(explode(',', $searchPath))
+            ->map(fn (string $part): string => trim($part, " \t\n\r\0\x0B\""))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private static function shouldPreferLaravelSchema(): bool
+    {
+        return filter_var(env('APP_SYNTHETIC_ONLY', false), FILTER_VALIDATE_BOOLEAN)
+            || strtoupper((string) env('APP_MODE', '')) === 'SIMULATION';
     }
 }

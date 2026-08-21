@@ -47,6 +47,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'is_system_administrator' => false,
     ];
 
+    /** @var list<string>|null */
+    private ?array $resolvedCapabilities = null;
+
+    /** @var list<string>|null */
+    private ?array $resolvedRoleSlugs = null;
+
     /**
      * @return BelongsToMany<Role, $this>
      */
@@ -82,8 +88,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function capabilityList(): array
     {
+        if ($this->resolvedCapabilities !== null) {
+            return $this->resolvedCapabilities;
+        }
+
         if ($this->is_system_administrator) {
-            return Capability::all();
+            return $this->resolvedCapabilities = Capability::all();
         }
 
         try {
@@ -106,12 +116,13 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
                 $rows,
             )));
 
-            return $names;
+            return $this->resolvedCapabilities = $names;
         } catch (\Throwable $exception) {
             report($exception);
             error_log('[simrs] capabilityList failed for user '.$this->getKey().': '.$exception->getMessage());
 
-            return [];
+            // Fail closed: empty capabilities deny Gate abilities. Do not fail-open.
+            return $this->resolvedCapabilities = [];
         }
     }
 
@@ -120,6 +131,10 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function roleSlugs(): array
     {
+        if ($this->resolvedRoleSlugs !== null) {
+            return $this->resolvedRoleSlugs;
+        }
+
         try {
             $roleUser = SchemaQualifier::table('role_user');
             $roles = SchemaQualifier::table('roles');
@@ -138,12 +153,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
                 $rows,
             )));
 
-            return $slugs;
+            return $this->resolvedRoleSlugs = $slugs;
         } catch (\Throwable $exception) {
             report($exception);
             error_log('[simrs] roleSlugs failed for user '.$this->getKey().': '.$exception->getMessage());
 
-            return [];
+            return $this->resolvedRoleSlugs = [];
         }
     }
 

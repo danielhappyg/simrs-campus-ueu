@@ -78,9 +78,15 @@ class AppServiceProvider extends ServiceProvider
                 ->implode(', ');
 
             try {
-                $event->connection->statement('SET search_path TO '.$quoted);
+                // Prefer SET LOCAL so PgBouncer transaction pooling keeps the
+                // path for the current transaction even when session SETs drop.
+                $event->connection->statement('SET LOCAL search_path TO '.$quoted);
             } catch (\Throwable) {
-                // Connection may be read-only or mid-transaction in edge cases.
+                try {
+                    $event->connection->statement('SET search_path TO '.$quoted);
+                } catch (\Throwable) {
+                    // Connection may be read-only or mid-transaction in edge cases.
+                }
             }
         });
 

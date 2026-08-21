@@ -81,6 +81,33 @@ class OutpatientFlowTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_registrar_inertia_can_open_pendaftaran_without_access_flash(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rawat-jalan.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('pendaftaran/rawat-jalan')
+                ->where('canRegister', true));
+    }
+
+    public function test_inertia_forbidden_pendaftaran_redirects_home_with_flash(): void
+    {
+        $user = User::factory()->create();
+        $version = hash_file('xxh128', public_path('build/manifest.json'));
+
+        $this->actingAs($user)
+            ->withHeaders([
+                'X-Inertia' => 'true',
+                'X-Inertia-Version' => $version,
+            ])
+            ->get(route('pendaftaran.rawat-jalan.index'))
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('error', 'Anda tidak memiliki akses ke modul tersebut.');
+    }
+
     public function test_clinical_entry_requires_capability(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
