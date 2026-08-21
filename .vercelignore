@@ -10,7 +10,8 @@ deliverables
 docker
 docs
 node_modules
-storage/logs/*
+storage
+storage/**
 tests
 vendor
 Dockerfile

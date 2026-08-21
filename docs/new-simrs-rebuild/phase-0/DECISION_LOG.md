@@ -20,6 +20,7 @@ Rule: every material scope, safety, stack, environment or ownership choice gets 
 | DEC-010 | 2026-08-21 | Accepted | Authorize push to `origin/main` and deploy of the synthetic Vercel + Supabase demo for immediate testing. Production integrations remain disabled. | Product owner | User 2026-08-21 (“Deploy immediately”). Rollback: previous Vercel deployment / prior git SHA. |
 | DEC-011 | 2026-08-21 | Accepted | RMIK Department is the named departmental owner for RMIK/coding/reports and teaching-owner representation until a named individual is recorded. | Product owner | User 2026-08-21 (“RMIK Department”). |
 | DEC-012 | 2026-08-21 | Accepted | Option B — replace MVP application domain in place on branch `rebuild/clean-slate`; keep docs and simulation safety; leave Laravel + Inertia/React foundation for Phase 2. | Product owner | Recorded in ADR-016. |
+| DEC-013 | 2026-08-21 | Accepted | **UI/placement reference** = live vendor SIMRS (`https://simrs.universitasesaunggul.com/`) — menu architecture, screen placement, and workflow familiarity are acceptable inspiration; UEU logo/theme tokens OK. **Anti-reference** = the previous Vercel teaching MVP (Antrean kerja / outpatient work-queue product). That build is treated as a failed experiment and must not drive IA, copy, or UX. Still forbidden: copying vendor architecture, schema, secrets, insecure patterns, or production integrations. | Product owner | User 2026-08-21 clarifications. See `phase-1/UI_DIRECTION.md`. |
 
 ## Template for new entries
 
