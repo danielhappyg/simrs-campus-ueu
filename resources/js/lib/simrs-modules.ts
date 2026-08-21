@@ -23,6 +23,12 @@ export const SIMRS_MODULE_CATEGORIES: readonly SimrsModuleCategory[] = [
     { slug: 'help', label: 'Help' },
 ] as const;
 
+const DEDICATED_HREFS: Record<string, string> = {
+    pendaftaran: '/pendaftaran/rawat-jalan',
+    pemeriksaan: '/pemeriksaan/rawat-jalan',
+    rm: '/rm/rawat-jalan',
+};
+
 export function moduleHref(slug: string): string {
-    return `/modul/${slug}`;
+    return DEDICATED_HREFS[slug] ?? `/modul/${slug}`;
 }

@@ -2,6 +2,10 @@
 
 namespace Tests\Feature\Simulation;
 
+use App\Models\ClinicalEntry;
+use App\Models\Encounter;
+use App\Models\Patient;
+use App\Models\User;
 use App\Support\Audit\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -32,10 +36,27 @@ class SimulationResetCommandTest extends TestCase
             'simulation.synthetic_only' => true,
         ]);
 
+        $user = User::factory()->create();
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $user->id,
+        ]);
+        $encounter = Encounter::factory()->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $user->id,
+        ]);
+        ClinicalEntry::factory()->create([
+            'encounter_id' => $encounter->id,
+            'author_user_id' => $user->id,
+        ]);
+
         $exitCode = Artisan::call('simulation:reset', ['--force' => true]);
 
         $this->assertSame(0, $exitCode);
         $this->assertStringContainsString('Synthetic simulation reset completed', Artisan::output());
+
+        $this->assertDatabaseCount('patients', 0);
+        $this->assertDatabaseCount('encounters', 0);
+        $this->assertDatabaseCount('clinical_entries', 0);
 
         $this->assertDatabaseHas('audit_events', [
             'action' => 'teaching.reset.started',

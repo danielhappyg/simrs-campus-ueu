@@ -26,6 +26,17 @@ final class SimrsModuleCategories
     ];
 
     /**
+     * Dedicated operational routes for Phase 3 outpatient slice.
+     *
+     * @var array<string, string>
+     */
+    public const DEDICATED_HREFS = [
+        'pendaftaran' => '/pendaftaran/rawat-jalan',
+        'pemeriksaan' => '/pemeriksaan/rawat-jalan',
+        'rm' => '/rm/rawat-jalan',
+    ];
+
+    /**
      * @return list<string>
      */
     public static function slugs(): array
@@ -41,5 +52,10 @@ final class SimrsModuleCategories
     public static function label(string $slug): ?string
     {
         return self::CATEGORIES[$slug] ?? null;
+    }
+
+    public static function href(string $slug): string
+    {
+        return self::DEDICATED_HREFS[$slug] ?? '/modul/'.$slug;
     }
 }

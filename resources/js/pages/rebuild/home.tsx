@@ -1,5 +1,16 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/types';
+
+type Counts = {
+    kunjungan_hari_ini: number;
+    pasien_baru_hari_ini: number;
+    in_examination: number;
+    ready_for_rm: number;
+};
+
+type Props = {
+    counts: Counts;
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -8,7 +19,30 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function RebuildHome() {
+export default function RebuildHome({ counts }: Props) {
+    const cards = [
+        {
+            label: 'Kunjungan hari ini',
+            value: counts.kunjungan_hari_ini,
+            href: '/pendaftaran/rawat-jalan',
+        },
+        {
+            label: 'Pasien baru hari ini',
+            value: counts.pasien_baru_hari_ini,
+            href: '/pendaftaran/rawat-jalan',
+        },
+        {
+            label: 'Dalam pemeriksaan',
+            value: counts.in_examination,
+            href: '/pemeriksaan/rawat-jalan',
+        },
+        {
+            label: 'Siap RM',
+            value: counts.ready_for_rm,
+            href: '/rm/rawat-jalan',
+        },
+    ];
+
     return (
         <>
             <Head title="Beranda" />
@@ -19,8 +53,7 @@ export default function RebuildHome() {
                         Beranda
                     </h1>
                     <p className="max-w-2xl text-base leading-relaxed text-[#64748b]">
-                        SIMRS Campus UEU. Modul operasional akan ditambahkan
-                        sesuai program parity.
+                        SIMRS Campus UEU — ringkasan operasional rawat jalan.
                     </p>
                 </header>
 
@@ -31,15 +64,11 @@ export default function RebuildHome() {
                     <h2 id="stats-heading" className="sr-only">
                         Ringkasan
                     </h2>
-                    {[
-                        { label: 'Kunjungan', value: '—' },
-                        { label: 'Pasien dirawat', value: '—' },
-                        { label: 'Pasien baru', value: '—' },
-                        { label: 'Pasien lama', value: '—' },
-                    ].map((card) => (
-                        <div
+                    {cards.map((card) => (
+                        <Link
                             key={card.label}
-                            className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-4"
+                            href={card.href}
+                            className="rounded-xl border border-[#e2e8f0] bg-white px-5 py-4 transition-colors hover:border-[#1b75bc]/40"
                         >
                             <p className="text-xs font-medium tracking-wide text-[#64748b] uppercase">
                                 {card.label}
@@ -47,8 +76,40 @@ export default function RebuildHome() {
                             <p className="mt-2 text-3xl font-semibold text-[#0f172a]">
                                 {card.value}
                             </p>
-                        </div>
+                        </Link>
                     ))}
+                </section>
+
+                <section className="rounded-xl border border-[#e2e8f0] bg-white p-5">
+                    <h2 className="text-sm font-semibold text-[#123b63]">
+                        Alur cepat
+                    </h2>
+                    <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+                        <li>
+                            <Link
+                                href="/pendaftaran/rawat-jalan"
+                                className="font-medium text-[#1b75bc] hover:underline"
+                            >
+                                Pendaftaran rawat jalan
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href="/pemeriksaan/rawat-jalan"
+                                className="font-medium text-[#1b75bc] hover:underline"
+                            >
+                                Pemeriksaan rawat jalan
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href="/rm/rawat-jalan"
+                                className="font-medium text-[#1b75bc] hover:underline"
+                            >
+                                RM rawat jalan
+                            </Link>
+                        </li>
+                    </ul>
                 </section>
             </div>
         </>

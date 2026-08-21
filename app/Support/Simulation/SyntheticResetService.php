@@ -17,7 +17,9 @@ class SyntheticResetService
      * @var list<string>
      */
     private const DOMAIN_TABLE_ALLOWLIST = [
-        // Future: patients, encounters, clinical_notes, orders, queues, charges, …
+        'clinical_entries',
+        'encounters',
+        'patients',
     ];
 
     public function __construct(private readonly AuditRecorder $auditRecorder) {}
