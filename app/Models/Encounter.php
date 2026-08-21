@@ -32,6 +32,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $registered_at
  * @property int $registered_by_user_id
  * @property string|null $chief_complaint
+ * @property string|null $case_type
+ * @property string|null $accident_type
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -41,6 +43,8 @@ class Encounter extends Model
     use HasFactory, HasPublicUlid, UsesSchemaQualifiedTable;
 
     public const CARE_SETTING_OUTPATIENT = 'OUTPATIENT';
+
+    public const CARE_SETTING_EMERGENCY = 'EMERGENCY';
 
     public const STATUS_REGISTERED = 'REGISTERED';
 
@@ -62,6 +66,14 @@ class Encounter extends Model
 
     public const ADMISSION_IGD = 'IGD';
 
+    public const CASE_NON_BEDAH = 'NON_BEDAH';
+
+    public const CASE_BEDAH = 'BEDAH';
+
+    public const ACCIDENT_NONE = 'BUKAN_KECELAKAAN';
+
+    public const ACCIDENT_YES = 'KECELAKAAN';
+
     /**
      * @var list<string>
      */
@@ -78,6 +90,30 @@ class Encounter extends Model
         self::ADMISSION_DATANG_SENDIRI,
         self::ADMISSION_RUJUKAN,
         self::ADMISSION_IGD,
+    ];
+
+    /**
+     * @var list<string>
+     */
+    public const EMERGENCY_ADMISSION_VALUES = [
+        self::ADMISSION_DATANG_SENDIRI,
+        self::ADMISSION_RUJUKAN,
+    ];
+
+    /**
+     * @var list<string>
+     */
+    public const CASE_TYPE_VALUES = [
+        self::CASE_NON_BEDAH,
+        self::CASE_BEDAH,
+    ];
+
+    /**
+     * @var list<string>
+     */
+    public const ACCIDENT_TYPE_VALUES = [
+        self::ACCIDENT_NONE,
+        self::ACCIDENT_YES,
     ];
 
     /**
@@ -107,6 +143,8 @@ class Encounter extends Model
         'registered_at',
         'registered_by_user_id',
         'chief_complaint',
+        'case_type',
+        'accident_type',
     ];
 
     protected $attributes = [

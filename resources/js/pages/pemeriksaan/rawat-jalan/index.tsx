@@ -1,11 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
+import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
 type ClinicOption = { value: string; label: string };
+type Option = { value: string; label: string };
 
 type EncounterRow = {
     public_id: string;
@@ -14,6 +16,8 @@ type EncounterRow = {
     doctor_name: string | null;
     schedule_label: string | null;
     payer_type: string;
+    case_type?: string | null;
+    accident_type?: string | null;
     queue_number: number | null;
     registered_at: string | null;
     visit_date: string | null;
@@ -32,11 +36,18 @@ type Filters = {
     clinic: string;
     date_from: string;
     date_to: string;
+    payer?: string;
 };
 
+type DeskVariant = 'rawat-jalan' | 'igd' | 'triage';
+
 type Props = {
+    variant?: DeskVariant;
+    indexPath?: string;
+    showPathPrefix?: string;
     encounters: EncounterRow[];
     clinics: ClinicOption[];
+    payerOptions?: Option[];
     filters: Filters;
     canOpen: boolean;
 };
@@ -61,13 +72,26 @@ const fieldClass =
     'border-input h-8 rounded-md border bg-white px-2.5 text-sm shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30';
 
 export default function PemeriksaanRawatJalanIndex({
+    variant = 'rawat-jalan',
+    indexPath = '/pemeriksaan/rawat-jalan',
+    showPathPrefix = '/pemeriksaan/rawat-jalan',
     encounters,
     clinics,
+    payerOptions = [],
     filters,
     canOpen,
 }: Props) {
+    const isIgd = variant === 'igd';
+    const isTriage = variant === 'triage';
+    const title = isTriage
+        ? 'Pemeriksaan · Triage'
+        : isIgd
+          ? 'Pemeriksaan · IGD'
+          : 'Pemeriksaan · Rawat Jalan';
+
     const [q, setQ] = useState(filters.q);
     const [clinic, setClinic] = useState(filters.clinic);
+    const [payer, setPayer] = useState(filters.payer ?? '');
     const [dateFrom, setDateFrom] = useState(filters.date_from);
     const [dateTo, setDateTo] = useState(filters.date_to);
     const [showIter, setShowIter] = useState(false);
@@ -77,10 +101,11 @@ export default function PemeriksaanRawatJalanIndex({
     const applyFilters = (event: FormEvent) => {
         event.preventDefault();
         router.get(
-            '/pemeriksaan/rawat-jalan',
+            indexPath,
             {
                 q: q || undefined,
-                clinic: clinic || undefined,
+                clinic: !isTriage && clinic ? clinic : undefined,
+                payer: isTriage && payer ? payer : undefined,
                 date_from: dateFrom || undefined,
                 date_to: dateTo || undefined,
             },
@@ -90,17 +115,41 @@ export default function PemeriksaanRawatJalanIndex({
 
     return (
         <>
-            <Head title="Pemeriksaan Rawat Jalan" />
+            <Head title={title} />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
+                <CareSettingSubnav
+                    items={[
+                        {
+                            href: '/pemeriksaan/rawat-jalan',
+                            label: 'Rawat Jalan',
+                            active: variant === 'rawat-jalan',
+                        },
+                        {
+                            href: '/pemeriksaan/igd',
+                            label: 'IGD',
+                            active: isIgd,
+                        },
+                        {
+                            href: '/pemeriksaan/triage',
+                            label: 'Triage',
+                            active: isTriage,
+                        },
+                    ]}
+                />
+
                 <header className="flex flex-wrap items-end justify-between gap-2">
                     <div>
                         <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
-                            Pemeriksaan · Rawat Jalan
+                            {title}
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
                             Worklist pengajaran (sintetis). Densitas filter
-                            mengikuti meja SAHABAT / CAP-CLN-004.
+                            mengikuti meja SAHABAT / CAP-CLN-
+                            {isTriage ? '002' : isIgd ? '003' : '004'}.
+                            {isTriage
+                                ? ' Skala triage tetap stub sampai SME confirm.'
+                                : ''}
                         </p>
                     </div>
                 </header>
@@ -121,26 +170,55 @@ export default function PemeriksaanRawatJalanIndex({
                                 placeholder="No.RM / Nama"
                             />
                         </div>
-                        <div className="grid min-w-[10rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
-                                Klinik
-                            </label>
-                            <select
-                                className={fieldClass}
-                                value={clinic}
-                                onChange={(e) => setClinic(e.target.value)}
-                            >
-                                <option value="">Semua klinik</option>
-                                {clinics.map((option) => (
-                                    <option
-                                        key={option.value}
-                                        value={option.value}
-                                    >
-                                        {option.label}
+                        {isTriage ? (
+                            <div className="grid min-w-[10rem] gap-1">
+                                <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                    Cara bayar
+                                </label>
+                                <select
+                                    className={fieldClass}
+                                    value={payer}
+                                    onChange={(e) => setPayer(e.target.value)}
+                                >
+                                    <option value="">
+                                        — Semua cara bayar —
                                     </option>
-                                ))}
-                            </select>
-                        </div>
+                                    {payerOptions.map((option) => (
+                                        <option
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <div className="grid min-w-[10rem] gap-1">
+                                <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                    {isIgd ? 'Unit' : 'Klinik'}
+                                </label>
+                                <select
+                                    className={fieldClass}
+                                    value={clinic}
+                                    onChange={(e) => setClinic(e.target.value)}
+                                >
+                                    <option value="">
+                                        {isIgd
+                                            ? 'Semua unit IGD'
+                                            : 'Semua klinik'}
+                                    </option>
+                                    {clinics.map((option) => (
+                                        <option
+                                            key={option.value}
+                                            value={option.value}
+                                        >
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div className="grid min-w-[9rem] gap-1">
                             <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
                                 Dari
@@ -172,32 +250,38 @@ export default function PemeriksaanRawatJalanIndex({
                         </Button>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-4 text-xs text-[#64748b]">
-                        <label className="inline-flex items-center gap-1.5">
-                            <input
-                                type="checkbox"
-                                checked={showIter}
-                                onChange={(e) => setShowIter(e.target.checked)}
-                                className="accent-[#1b75bc]"
-                            />
-                            Tampilkan pasien iterasi
-                            <span className="text-[0.65rem] text-[#94a3b8]">
-                                · stub
-                            </span>
-                        </label>
-                        <label className="inline-flex items-center gap-1.5">
-                            <input
-                                type="checkbox"
-                                checked={showKonsul}
-                                onChange={(e) =>
-                                    setShowKonsul(e.target.checked)
-                                }
-                                className="accent-[#1b75bc]"
-                            />
-                            Tampilkan pasien konsul internal
-                            <span className="text-[0.65rem] text-[#94a3b8]">
-                                · stub
-                            </span>
-                        </label>
+                        {!isTriage ? (
+                            <>
+                                <label className="inline-flex items-center gap-1.5">
+                                    <input
+                                        type="checkbox"
+                                        checked={showIter}
+                                        onChange={(e) =>
+                                            setShowIter(e.target.checked)
+                                        }
+                                        className="accent-[#1b75bc]"
+                                    />
+                                    Tampilkan pasien iterasi
+                                    <span className="text-[0.65rem] text-[#94a3b8]">
+                                        · stub
+                                    </span>
+                                </label>
+                                <label className="inline-flex items-center gap-1.5">
+                                    <input
+                                        type="checkbox"
+                                        checked={showKonsul}
+                                        onChange={(e) =>
+                                            setShowKonsul(e.target.checked)
+                                        }
+                                        className="accent-[#1b75bc]"
+                                    />
+                                    Tampilkan pasien konsul internal
+                                    <span className="text-[0.65rem] text-[#94a3b8]">
+                                        · stub
+                                    </span>
+                                </label>
+                            </>
+                        ) : null}
                         <label className="inline-flex items-center gap-1.5">
                             <input
                                 type="checkbox"
@@ -228,14 +312,19 @@ export default function PemeriksaanRawatJalanIndex({
                                         Nama
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Klinik
+                                        {isIgd || isTriage ? 'Unit' : 'Klinik'}
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
                                         Dokter
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Jadwal
+                                        {isIgd || isTriage ? 'Shift' : 'Jadwal'}
                                     </th>
+                                    {(isIgd || isTriage) && (
+                                        <th className="px-2 py-1.5 font-medium">
+                                            Kasus
+                                        </th>
+                                    )}
                                     <th className="px-2 py-1.5 font-medium">
                                         Penjamin
                                     </th>
@@ -252,7 +341,9 @@ export default function PemeriksaanRawatJalanIndex({
                                 {encounters.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={10}
+                                            colSpan={
+                                                isIgd || isTriage ? 11 : 10
+                                            }
                                             className="px-2 py-6 text-[#64748b]"
                                         >
                                             Tidak ada kunjungan aktif untuk
@@ -287,6 +378,11 @@ export default function PemeriksaanRawatJalanIndex({
                                                 {encounter.schedule_label ??
                                                     '—'}
                                             </td>
+                                            {(isIgd || isTriage) && (
+                                                <td className="px-2 py-1.5 text-[#64748b]">
+                                                    {encounter.case_type ?? '—'}
+                                                </td>
+                                            )}
                                             <td className="px-2 py-1.5">
                                                 {payerLabel[
                                                     encounter.payer_type
@@ -314,10 +410,12 @@ export default function PemeriksaanRawatJalanIndex({
                                             <td className="px-2 py-1.5 text-right">
                                                 {canOpen ? (
                                                     <Link
-                                                        href={`/pemeriksaan/rawat-jalan/${encounter.public_id}`}
+                                                        href={`${showPathPrefix}/${encounter.public_id}`}
                                                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                     >
-                                                        Buka
+                                                        {isTriage
+                                                            ? 'Ke IGD'
+                                                            : 'Buka'}
                                                     </Link>
                                                 ) : null}
                                             </td>
@@ -333,10 +431,27 @@ export default function PemeriksaanRawatJalanIndex({
     );
 }
 
-PemeriksaanRawatJalanIndex.layout = {
-    breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pemeriksaan', href: '/pemeriksaan/rawat-jalan' },
-        { title: 'Rawat Jalan', href: '/pemeriksaan/rawat-jalan' },
-    ] satisfies BreadcrumbItem[],
+PemeriksaanRawatJalanIndex.layout = (props: Props) => {
+    const variant = props.variant ?? 'rawat-jalan';
+    const indexPath =
+        props.indexPath ??
+        (variant === 'triage'
+            ? '/pemeriksaan/triage'
+            : variant === 'igd'
+              ? '/pemeriksaan/igd'
+              : '/pemeriksaan/rawat-jalan');
+    const label =
+        variant === 'triage'
+            ? 'Triage'
+            : variant === 'igd'
+              ? 'IGD'
+              : 'Rawat Jalan';
+
+    return {
+        breadcrumbs: [
+            { title: 'Beranda', href: '/' },
+            { title: 'Pemeriksaan', href: indexPath },
+            { title: label, href: indexPath },
+        ] satisfies BreadcrumbItem[],
+    };
 };

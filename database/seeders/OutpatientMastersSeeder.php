@@ -75,6 +75,28 @@ class OutpatientMastersSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'code' => 'IGD',
+                'name' => 'Instalasi Gawat Darurat',
+                'doctors' => [
+                    [
+                        'name' => 'dr. Eko Wijaya, Sp.EM',
+                        'specialty' => 'Emergency Medicine',
+                        'schedules' => [
+                            ['label' => 'Shift Pagi 07:00–14:00', 'day_label' => 'Setiap hari', 'starts_at' => '07:00:00', 'ends_at' => '14:00:00'],
+                            ['label' => 'Shift Sore 14:00–21:00', 'day_label' => 'Setiap hari', 'starts_at' => '14:00:00', 'ends_at' => '21:00:00'],
+                        ],
+                    ],
+                    [
+                        'name' => 'dr. Fitri Rahmawati',
+                        'specialty' => 'Emergency Medicine',
+                        'schedules' => [
+                            ['label' => 'Shift Pagi 07:00–14:00', 'day_label' => 'Setiap hari', 'starts_at' => '07:00:00', 'ends_at' => '14:00:00'],
+                            ['label' => 'Shift Sore 14:00–21:00', 'day_label' => 'Setiap hari', 'starts_at' => '14:00:00', 'ends_at' => '21:00:00'],
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         foreach ($catalog as $clinicData) {
