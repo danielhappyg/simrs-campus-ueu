@@ -2,7 +2,24 @@
 
 **Branch:** `feature/pendaftaran-sahabat-desk`  
 **Date:** 2026-08-21  
-**Scope:** teaching-safe outpatient registration desk. Vendor UI is visual/workflow reference only (DEC-013). No production BPJS send.
+**Scope:** teaching-safe outpatient registration desk. Vendor UI is visual/workflow reference only (DEC-013). No production BPJS send.  
+**Bar:** DEC-014 — assessed Data Pasien desk (`_evidence/sahabat-page-1.png`, `sahabat-page-2.png`) + live REG captures.
+
+## DEC-014 compliance (desk silhouette)
+
+| Requirement | Status |
+|---|---|
+| Three-column desk (Data pribadi / PJ+Kunjungan / Cetak) | Met |
+| Top strip: Riwayat, EMR, RegOn, Cari Pasien, Approval SEP, Data Kunjungan | Met (stubs + live Cari) |
+| Data pribadi through wilayah, Domisili Auto, telepon, email, suku/bahasa, catatan | Met |
+| JK → Tempat lahir → Tanggal lahir order (SAHABAT) | Met |
+| PJ Auto + Edit | Met |
+| Poli → Dokter → Jadwal masters | Met |
+| Cara masuk / bayar / asuransi + Cek/FR/FP stubs | Met |
+| No. Antrian persist + print stubs + Cetak stub + Simpan | Met |
+| Production BPJS/SEP/SatuSehat send | Correctly absent |
+
+## Field map
 
 | SAHABAT zone / field | Our column / surface | Persist? | Notes |
 |---|---|---|---|
@@ -22,9 +39,9 @@
 | Domisili | `patients.domicile` | Yes | UI “Auto” concatenates wilayah |
 | Telepon | `patients.phone` | Yes | |
 | Email | `patients.email` | Yes | |
-| Suku / Bahasa | `patients.ethnicity` / `patients.language` | Yes | Free text teaching |
+| Suku / Bahasa | `patients.ethnicity` / `patients.language` | Yes | Teaching selects (DEC-014 silhouette) |
 | Catatan pasien | `patients.notes` | Yes | |
-| PJ Nama (+ Auto) | `patients.responsible_party_name` | Yes | Auto copies patient name |
+| PJ Nama (+ Auto / Edit) | `patients.responsible_party_name` | Yes | Auto copies patient name; Edit focuses field |
 | Kode Booking | `encounters.booking_code` | Yes | Optional |
 | Tgl Kunjungan + Baru chip | `encounters.visit_date` | Yes | Chip is UI-only |
 | Poliklinik | `clinics` + `encounters.clinic_id` + denorm `clinic_name` | Yes | Seeded masters; replaces free-text klinik |
@@ -47,4 +64,5 @@
 
 - Production SEP/BPJS bridging, biometrics, real EMR deep-link
 - Antrean kerja / work-queue MVP revival
+- Classic CAP-REG-003 extra fields (status nikah, SatuSehat Id, hambatan, full Cetak set) — discovery backlog
 - Pemeriksaan / RM desk density parity (next pass)

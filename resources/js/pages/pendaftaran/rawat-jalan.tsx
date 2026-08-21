@@ -86,6 +86,8 @@ type Props = {
     religionOptions: Option[];
     educationOptions: Option[];
     occupationOptions: Option[];
+    ethnicityOptions: Option[];
+    languageOptions: Option[];
     payerOptions: Option[];
     admissionOptions: Option[];
     wilayahOptions: WilayahOptions;
@@ -187,6 +189,8 @@ export default function PendaftaranRawatJalan({
     religionOptions,
     educationOptions,
     occupationOptions,
+    ethnicityOptions,
+    languageOptions,
     payerOptions,
     admissionOptions,
     wilayahOptions,
@@ -604,41 +608,41 @@ export default function PendaftaranRawatJalan({
                                         </select>
                                     </Field>
                                     <Field
-                                        id="date_of_birth"
-                                        label="Tanggal lahir"
-                                        error={form.errors.date_of_birth}
+                                        id="place_of_birth"
+                                        label="Tempat lahir"
+                                        error={form.errors.place_of_birth}
                                     >
                                         <Input
-                                            id="date_of_birth"
-                                            type="date"
+                                            id="place_of_birth"
                                             className={fieldClass}
-                                            value={form.data.date_of_birth}
+                                            value={form.data.place_of_birth}
                                             onChange={(e) =>
                                                 form.setData(
-                                                    'date_of_birth',
+                                                    'place_of_birth',
                                                     e.target.value,
                                                 )
                                             }
-                                            disabled={returning}
-                                            required={!returning}
                                         />
                                     </Field>
                                 </div>
                                 <Field
-                                    id="place_of_birth"
-                                    label="Tempat lahir"
-                                    error={form.errors.place_of_birth}
+                                    id="date_of_birth"
+                                    label="Tanggal lahir"
+                                    error={form.errors.date_of_birth}
                                 >
                                     <Input
-                                        id="place_of_birth"
+                                        id="date_of_birth"
+                                        type="date"
                                         className={fieldClass}
-                                        value={form.data.place_of_birth}
+                                        value={form.data.date_of_birth}
                                         onChange={(e) =>
                                             form.setData(
-                                                'place_of_birth',
+                                                'date_of_birth',
                                                 e.target.value,
                                             )
                                         }
+                                        disabled={returning}
+                                        required={!returning}
                                     />
                                 </Field>
                                 <div className="grid gap-2.5 sm:grid-cols-3">
@@ -935,9 +939,9 @@ export default function PendaftaranRawatJalan({
                                         label="Suku"
                                         error={form.errors.ethnicity}
                                     >
-                                        <Input
+                                        <select
                                             id="ethnicity"
-                                            className={fieldClass}
+                                            className={selectClass}
                                             value={form.data.ethnicity}
                                             onChange={(e) =>
                                                 form.setData(
@@ -945,16 +949,26 @@ export default function PendaftaranRawatJalan({
                                                     e.target.value,
                                                 )
                                             }
-                                        />
+                                        >
+                                            <option value="">— Suku —</option>
+                                            {ethnicityOptions.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </Field>
                                     <Field
                                         id="language"
                                         label="Bahasa"
                                         error={form.errors.language}
                                     >
-                                        <Input
+                                        <select
                                             id="language"
-                                            className={fieldClass}
+                                            className={selectClass}
                                             value={form.data.language}
                                             onChange={(e) =>
                                                 form.setData(
@@ -962,8 +976,17 @@ export default function PendaftaranRawatJalan({
                                                     e.target.value,
                                                 )
                                             }
-                                            placeholder="Indonesia"
-                                        />
+                                        >
+                                            <option value="">— Bahasa —</option>
+                                            {languageOptions.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </Field>
                                 </div>
                                 <Field
@@ -1020,6 +1043,21 @@ export default function PendaftaranRawatJalan({
                                                 onClick={autoResponsibleParty}
                                             >
                                                 Auto
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 shrink-0"
+                                                onClick={() => {
+                                                    document
+                                                        .getElementById(
+                                                            'responsible_party_name',
+                                                        )
+                                                        ?.focus();
+                                                }}
+                                            >
+                                                Edit
                                             </Button>
                                         </div>
                                     </Field>
