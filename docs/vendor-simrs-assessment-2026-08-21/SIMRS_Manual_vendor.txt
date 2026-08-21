@@ -1,0 +1,2401 @@
+               PANDUAN
+    SISTEM INFORMASI
+MANAJEMEN RUMAH SAKIT
+
+
+
+
+           CV. SAHABAT
+  Tamanan Pabrik, Tamanmartani, Kalasan, Sleman 55571
+              Telp : (0856) 4313-3361
+                                        KATA PENGANTAR
+
+
+
+        Segala puji syukur kami panjatkan kepada Allah Subhanahuwata’ala, Tuhan semesta alam yang
+telah memberikan Ridlo dan Petunjuk – Nya, sehingga Panduan Sistem Informasi Rumah Sakit ini dapat
+diselesaikan dan dapat diterbitkan.
+
+        Panduan ini dibuat untuk menjadi panduan kerja bagi semua staf dalam me mberikan pelayanan
+yang terkait Sistem Informasi Manajemen.
+
+       Untuk peningkatan mutu pelayanan diperlukan pengembangan kebijakan, pedoman, panduan
+dan prosedur. Untuk tujuan tersebut panduan ini akan kami evaluasi setidaknya setiap 2 tahun sekali.
+Masukan, kritik dan saran yang konstruktif untuk pengembangan panduan ini sangat kami harapkan dari
+para pembaca.
+
+
+
+
+                                                                     Sleman, 29 September 2018
+
+
+
+                                                                            Penyusun
+                      PANDUAN SISTEM INFORMASI RUMAH SAKIT
+
+
+A. DEFINISI
+
+Sistem Informasi Manajemen Rumah Sakit (SIMRS) adalah sebuah system komputerisasi umum (dasar)
+yang memproses dan mengintegrasikan keseluruhan proses bisnis layanan kesehatan di rumah sakit,
+dalam bentuk jaringan koordinasi, pelaporan, dan prosedur administrasi untuk memperoleh informasi
+secara cepat dan tepat, mulai dari pendaftaran, pelayanan, tindakan, dan pemeriksaan penunjang untuk
+pasien, rekam medis, farmasi, keuangan, sekertariat, personalia, akuntansi sampai dengan pelaporan
+dan pengendalian oleh manajemen untuk peningkatan mutu dan keselamatan pasien.
+
+
+
+B. RUANG LINGKUP
+
+Ruang lingkup Sistem Informasi Manajemen Rumah Sakit mencakup:
+
+SIMRS Sahabat Media meliputi:
+
+      Pendaftaran Registrasi mulai dari pendaftaran, registrasi IGD, registrasi rawat jalan/rawat inap,
+       antrian poli, register masuk, data kunjungan, pencarian data pasien, cek nomer asuransi,
+       pembuatan SEP, riwayat SEP, cetak SEP, cetak kartu pasien, cetak gelang, cetak nomer antrian,
+       cetak label, cetak tracer berkas RM, cetak surat bukti pelayanan, dan cetak kartu kendali.
+      Medis mulai dari pemeriksaan dokter, pemeriksaan medis perawat, pemeriksaan medis
+       kebidanan, ringkasan biaya tindakan, surat keterangan dokter, dan rekap info pemeriksaan
+       medis.
+      Penunjang mulai dari entry hasil laboratorium, info pemeriksaan laboratorium, info tindakan
+       laboratorium, info hasil laboatorium, monitoring status pemeriksaan, dan hasil radiologi.
+      Kasir meliputi kasir rawat jalan, rawat inap, transaksi lain, detail rajal, detail ranap, pendapatan,
+       pendapatan rajal, pendapatan ranap, pendapatan igd, jasa medis, piutang, setoran, info billing,
+       dan info kasir.
+      Farmasi terdiri dari apotek rawat jalan, apotek rawat inap, apotek pasien luar, distribusi obat,
+       stock opname, laporan posisi stock, laporan distribusi obat, laporan obat masuk, laporan
+       pemakaian, pengeluaran rajal, pengeluaran ranap, retur bagian, obat, obat masuk, distribusi
+       obat, retur supplier, laporan posisi stock, laporan perpetual, dan kartu stock.
+      Medical Record terdiri dari data social pasien, cek kelengkapan data pasien, morbiditas pasien,
+       sensus, rekap, index, ICD X, IC9CM, permintaan MR, peminjaman MR, pertukaran berkas MR,
+       mutasi berkas MR, dan Monitor Claim.
+      Informasi tempat tidur kosong.
+      Setting untuk Hak Akses petugas.
+      Pemakaian dan pemanfaatan SIMRS oleh seluruh unit yang ada di rumah sakit sesuai dengan
+       hak akses yang dimiliki.
+C. TATA LAKSANA
+
+   1. MEMBUKA BROWSER :
+
+          a. Halaman Login :
+
+
+
+
+   Form halaman Login ini berfungsi untuk masuk ke Program Sistem Informasi Rumah Sakit (SIMRS)
+   serta mengetahui hak akses dari user atau operator. Untuk setiap operator atau user mempunyai
+   kode petugas dan password masing-masing. Jika nama dan password yang dimasukkan benar, maka
+   operator atau user tersebut akan dapat mengakses program aplikasi SIMRS ini.
+
+   2. MENU HALAMAN LOGIN :
+        a. Form login : Kotak entrian putih adalah kotak yang harus diisikan username, password ,
+            dan memilih shift jaga petugas sebelum Login.
+        b. Tombol Login : Untuk masuk ke Program SIMRS.
+        c. Info Kamar Kosong : Untuk menampilan jumlah kamar tidur kosong pasien dapat
+            ditampilkan per Kelas, per Ruang kelas dan Aplicares (Bisa digunakan untuk Display
+            Rumah Sakit).
+        d. Info Pasien Dirawat : Untuk menampilkan data pasien yang sedang dirawat.
+        e. F11 : Tombol F11 digunakan agar tampilan maksimal atau Full Screen pada monitor.
+        f. ESC : Tombol ESC untuk menutup perintah print.
+3. MENU PENDAFTARAN :
+   Menu Pendaftaran yang digunakan untuk mendaftarkan pasien Rumah Sakit antara lain :
+
+
+
+
+       a. Pendaftaran IGD : Menu untuk meregistrasikan/mendaftarkan pasien IGD sebagai
+          pasien Rumah Sakit.
+       b. Pendaftaran Rawat Jalan : Menu untuk meregistrasikan/mendaftarkan pasien rawat
+          jalan sebagai pasien Rumah Sakit.
+       c. Pendaftaran Rawat Inap : Menu untuk meregistrasikan/mendaftarkan pasien rawat inap
+          sebagai pasien Rumah Sakit.
+
+a. PENDAFTARAN IGD
+
+
+
+
+                                 F
+                          o
+                          r
+
+
+
+
+                                 Form Input Data Pasien
+b. PENDAFTARAN RAWAT JALAN
+
+
+
+
+                             Form Input Data Pasien
+
+
+
+c. PENDAFTARAN RAWAT INAP
+
+
+
+
+                             Form Pendaftaran Rawat Inap
+DATA PRIBADI
+
+   Form Pendaftaran IGD/ Rawat Jalan/ Rawat Inap untuk informasi mengenai identitas pasien yang
+   harus diisikan antara lain :
+
+   a. Jenis Pasien : Jenis Pasien Baru / Pasien Lama yang sudah memiliki No. Rekam Medis.
+   b. No.RM : Nomor Rekam Medis Pasien, terdapat menu pilihan pasien baru / pasien lama apabila
+      Pasien Baru Otomatis terisi No. RM dan Pasien lama bisa diisikan manual No. RM yang sudah
+      terdaftar sebelumnya.
+   c. NIK : Nomor Induk Kependudukan di isi sesuai Nomor KTP (Kartu Tanda Penduduk) atau KK
+      kartu Keluarga apabila Pasien masih di bawah umur diisi secara manual.
+   d. Nama : Nama Lengkap pasien Rumah Sakit diisi secara manual.
+   e. Jenis Kelamin : Jenis kelamin pasien Rumah Sakit bisa dipilih dalam menu pilihan sesuai jenis
+      kelamin pasien.
+   f. Tanggal Lahir/Usia : Tanggal Lahir pasien sesuai identitas pasien diisi secara manual, untuk umur
+      otomatis terisi apabila tgl lahir pasien sudah terisikan.
+   g. Agama : Agama pasien bisa langsung dipilih dalam menu pilihan yang sudah tersedia sesuai
+      dengan agama pasien.
+   h. Pendidikan : Pendidikan terakhir pasien, bisa langsung dipilih dalam menu pilihan yang sudah
+      tersedia sesuai dengan pendidikan terakhir pasien atau bisa memilih lain-lain apabila tidak
+      mengetahui pendidikan pasien.
+   i. Pekerjaan : Pekerjaan Pasien, bisa langsung dipilih dalam menu pilihan yang sudah tersedia
+      sesuai dengan pekerjaan pasien atau bisa memilih lain-lain apabila tidak mengetahui pekerjaan
+      pasien.
+   j. Provinsi, Kab/Kota, Kecamatan, Kelurahan, Dusun/Jalan : Dapat langsung dipilih dalam menu
+      pilihan yang sudah tersedia sesuai dengan tempat tinggal pasien.
+   k. Telepon : Nomer telepon Pasien yang harus diisikan secara manual.
+
+PENANGGUNG JAWAB :
+
+   a.   Nama dan Telepon : Nama penanggung jawab pasien dan nomer telpon penanggung jawab
+        pasien diisikan secara manual.
+
+
+DATA KUNJUNGAN :
+
+   a. Tgl/Jenis Kunjungan : Tanggal diisi berdasarkan tanggal pasien periksa (otomatis menunjuk
+      pada tanggal sekarang, sesuai setting tanggal komputer).
+   b. Poliklinik : Poliklinik ini diisikan sesuai poliklinik yang akan dituju untuk pemeriksaan pasien
+      (Umum,Bedah,Penyakit Dalam, Obsgyn,dll).
+   c. Dokter : Dokter diisikan sesuai dokter yang memeriksa pasien dokter Poli umum / dokter Poli
+      spesialis yang akan di tuju Pasien tulis manual nama dokter otomatis akan keluar menu pilihan
+      nama-nama dokter di Rumah Sakit.
+   d. Kasus Tindakan : Kasus Tindakan Bedah / Non Bedah.
+   e. Kecelakaan : Kecelakaan atau Bukan kecelakaan saat pasien masuk IGD.
+   f. Cara Masuk : Cara masuk pasien ke Rumah Sakit (sendiri, rujukan/kiriman, kasus Polisi).
+   g. Cara Pembayaran : Cara pembayaran pasien (Umun, BPJS, Asuransi, dll).
+   h. No. Asuransi : Isikan No Asuransi / BPJS Pasien dan langsung bisa di Cek dengan menekan
+      tombol CEK.
+   i. Rujukan PCARE/RS : Rujukan.
+
+CETAK :
+
+Pada menu cetak untuk mencetak, kita bisa memilih dan menyesuaikan dengan kebutuhan /
+menyesuaikan dengan perangkat yang tersedia di Rumah Sakit antara lain:
+
+
+
+
+                     CETAK IGD                         CETAK RAWAT JALAN/RAWAT INAP
+
+           Kartu Pasien : Mencetak Pembuatan Kartu Pasien Baru / Pasien lama yang hilang Kartu
+            Pasiennya untuk di cetak ulang.
+           Lembar IGD : Mencetak Lembar Pasien IGD
+           Lembar Poliklinik : Mencetak Lembar Poliklinik Pasien Rawat Jalan.
+           Label Kecil : Label kecil yang berukuran 5x8
+           Label Besar : Label besar yang berukuran 3x4
+           Gelang Pasien : Mencetak gelang pasien Rawat Inap.
+           SEP : Mencetak SEP
+            No Antrian : Mencetak No Antrian pasien (bagi pasien Rawat Jalan).
+            Kartu Kendali : Mencetak Kartu Kendali.
+            Tracer Berkas RM : Mencetak Berkas Rekam Medis.
+            Surat Bukti Pelayanan : Mencetak Surat Bukti Pelayanan.
+
+
+
+TOMBOL MENU BAWAH DI PENDAFTARAN
+
+  a. PENDAFTARAN IGD
+
+
+  b. PENDAFTARAN RAWAT JALAN/RAWAT INAP
+
+
+
+
+   Keterangan :
+  a. Pencarian Pasien : Tombol untuk mencari pasien berdasarkan Nama pasien, No RM, Alamat
+      pasien, dan juga bisa berdasarkan (Provinsi, kab/kota, kecamatan dan kelurahan).
+  b. Data Kunjungan : Tombol Data Kunjungan pasien ke Rumah Sakit.
+  c. Simpan : Tombol untuk menyimpan data yang sudah di input / diisi.
+  d. Ambil Reg-Online : Untuk mengambil registrasi secara online.
+  e. Daftar Baru : Tombol untuk menambahkan pasien baru.
+  f. Tutup : Tombol untuk menutup form.
+
+  4. MENU PEMERIKSAAN :
+                                            PEMERIKSAAN :
+
+   Menu Pemeriksaan meliputi : (IGD, Rawat Inap, Rawat Jalan, Laboratorium, Radiologi , Operasi, Gizi)
+
+   a.   IGD : Pemeriksaan pasien IGD Rumah Sakit.
+   b.   Rawat Jalan : Pemeriksaan pasien Rawat Jalan / Poli Rumah Sakit.
+   c.   Rawat Inap : Pemeriksaan pasien Rawat Inap Rumah Sakit.
+   d.   Laboratorium RJ/RI :Pemeriksaan Laboratorium pasien Rawat Jalan / Rawat Inap.
+   e.   Radiologi RJ/RI : Pemeriksaan Laboratorium pasien Rawat Jalan / Rawat Inap.
+   f.   Operasi RJ/RI : Pemeriksaan Operasi Rawat Jalan/Rawat Inap.
+   g.   Gizi : Pemeriksaan gizi pada pasien.
+
+
+   a. PEMERIKSAAN IGD :
+
+Pilih pasien yang akan dilakukan tindakan IGD yang telah terdaftar oleh petugas pendaftaran
+sebelumnya klik tombol (    ) pada sisi kanan pasien.
+
+
+
+
+                                  Pilih pasien yang akan dilakukan tindakan
+
+Form Input Data IGD : Untuk menginput Tindakan, Anamnesa, Diagnosa, dan Pemeriksaan Medis.
+
+
+
+
+                                       Gambar Form Input Data IGD
+
+Sebelah kiri Atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi dengan Data
+Pribadi dan Data Kunjungan lengkap sesuai identitas pasien yang telah di input/ diisi saat Pendaftaran
+pasien IGD sebelumnya.
+      Waktu Periksa : Untuk memberikan jumlah waktu mulai hingga selesai pemeriksaan.
+      Dokter : Dokter pemeriksa pasien IGD.
+      Kasus : Kasus bisa kita pilih Bedah, Non Bedah, dll.
+      Kecelakaan : Pasien masuk IGD kecelakaan atau non kecelakaan.
+      Tarif : Sesuai tarif
+      Kelas Tarif : Sesuai kelas tarif
+      Kelanjutan : Kelanjutan pasien ada beberapa pilihan (Pulang, Rawat Inap, Dirujuk, Dikembalikan
+       ke RS Asal, Dikembalikan ke Puskesmas, Dikembalikan ke Faskes lain, Mati di IGD, DOA).
+
+
+
+
+                                      Gambar Pilihan pada Kelanjutan
+
+Menu Form Input Data IGD terdapat 5 tab menu antara lain:
+
+
+
+
+Keterangan :
+
+   a. Ringkasan Biaya : Ringkasan biaya tindakan yang dilakukan.
+   b. Tindakan : Tindakan yang dilakukan di IGD.
+   c. Lain-Lain : Lain-lain tindakan yang dilakukan, apabila di daftar tindakan tidak ada bisa input
+      tindakan sendiri secara manual di Tab menu lain-lain.
+   d. Obat Depo : Obat depo
+   e. Pemeriksaan Medis : Pemeriksaan yang meliputi Anamnesa, Diagnosa dan Tindakan diisikan
+      secara manual.
+
+
+
+
+                                   Gambar Form Input Pemeriksaan Medis
+Keterangan :
+
+      Riwayat : Tombol untuk melihat riwayat pasien.
+      Rujuk Internal : Tombol untuk merujuk internal ke Klinik dan Dokter masih didalam satu Rumah
+       Sakit, Tanggal dan Jam rujuk otomatis akan terisi sesuai tanggal dan jam komputer.
+
+
+
+
+      Simpan : Tombol Simpan untuk menyimpan data.
+      Tutup : Tombol Tutup untuk menutup form.
+
+   b. PEMERIKSAAN RAWAT JALAN :
+
+Pilih pasien yang akan dilakukan pemeriksaan Poli / Rawat Jalan yang telah terdaftar oleh petugas
+pendaftaran sebelumnya dengan klik tombol (        ) pada sisi kanan pasien.
+
+
+
+
+                                  Pilih pasien yang akan dilakukan tindakan
+
+
+
+
+                                      Form input data pasien Rawat Jalan
+
+Form Input Data Rawat Jalan (POLI) : Form untuk menginput Tindakan, Anamnesa, Diagnosa,
+Pemeriksaan Medis, dan Ringkasan Biaya sementara.
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah di inputkan / diisikan saat pendaftaran.
+
+      Waktu Periksa           : Untuk memberi jumlah waktu mulai hingga selesai dalam pemeriksaan
+      Dokter                  : Dokter pemeriksa pasien Rawat Jalan / POLI
+      Tarif                   : Sesuai tarif
+      Kelas Tarif             : Sesuai Kelas Tarif
+
+
+
+
+                                           Gambar Pilihan pada Kelas Tarif
+      Kelanjutan            : Kelanjutan pasien ada beberapa pilihan (Pulang, Rawat Inap, Dirujuk,
+       Dikembalikan ke RS Asal, Dikembalikan ke Puskesmas, Dikembalikan ke Faskes lain, Mati di IGD,
+       DOA).
+
+
+
+
+                                       Gambar Pilihan pada Kelanjutan
+
+Menu Form Input Data Rawat Jalan terdapat 6 tab menu antara lain:
+
+
+
+
+      Ringkasan Biaya      : Ringkasan biaya sementara tindakan yang dilakukan.
+      Tindakan             : Tindakan yang dilakukan di Poli / Rawat Jalan, untuk menambahkan
+
+       tindakan bisa tekan tombol
+                                    Tekan tombol tambah untuk tindakan
+
+Form Cari Komponen Biaya berfungsi untuk memilih jenis tindakan yang dilakukan dengan menekan
+
+tombol panah (      ) pada sisi kanan tindakan.
+
+
+
+
+                                         Gambar Form Cari Biaya
+Sehingga muncul form tambah komponen biaya Poli Rawat Jalan terdapat nama tindakan, tanggal
+tindakan, dan waktu secara otomatis terisi sesuai tanggal dan waktu yang di setting di komputer.
+
+
+
+
+                                  Gambar Form Tambahan Komponen Biaya
+
+      Lain-Lain               : Tab menu Lain-lain untuk tindakan yang dilakukan di Poli / Rawat
+       Jalan, apabila di daftar tindakan tidak ada tindakan yang telah dilakukan bisa input tindakan
+       sendiri di Tab menu lain-lain secara manual, untuk menambahkan tindakan bisa tekan tombol
+
+                   , dan di Tab Menu lain-lain juga terdapat biaya administrasi rawat jalan yang
+       muncul secara otomatis saat pendaftaran menginputkan pasien ke Poli rawat jalan.
+Form Input Data Tab Menu Lain-lain :
+
+
+
+
+                                         Gambar Tab Menu Lain-lain
+
+Form Cari Biaya pemeriksaan lain-lain dilakukan dengan menekan tombol panah (   ) pada sisi kanan
+tindakan.
+
+
+
+
+                                       Gambar Form Tindakan Lain-Lain
+
+Sehingga akan muncul form tambah komponen biaya, setelah itu tekan tombol Simpan untuk
+menyimpan data.
+
+
+
+
+                                        Gambar Form Tambah Biaya
+   Menu Resep           : Tab menu resep setelah dilakukan tindakan terhadap pasien.
+
+
+
+
+                                        Gambar Tab Menu Resep
+
+    Untuk menambahkan resep bisa tekan tombol                   , sehingga akan muncul form input
+    resep obat seperti dibawah ini.
+
+
+
+
+    G
+                                 Gambar Form Input Resep Obat
+
+    Cara untuk mengisi Form Resep Obat, Ketikan/masukan resep obat, maka secara otomatis
+    keluar pilihan obat seperti dibawah ini.
+
+
+
+
+                                 Gambar Form Input Resep Obat
+       Pemeriksaan Medis      : Tab Menu Pemeriksaan Medis form untuk pemeriksaan pasien yang
+        meliputi Anamnesa, Diagnosa, dan Tindakan diisikan secara manual.
+
+
+
+
+Anamnesa : Anamnesa diisikan secara manual kotak form.
+
+Diagnosa : Diagnosa pasien diisikan secara manual kotak form.
+
+ICD-10 : Di isikan secara manual di kotak otomatis akan keluar pilihan.
+
+Tindakan : Tindakan ke pasien diisikan secara manual di kotak form.
+
+Tombol Dibawah Form Pemeriksaan Medis :
+
+
+
+
+Riwayat : Tombol untuk melihat riwayat pasien Rumah Sakit.
+
+Rujuk Internal : Tombol untuk merujuk internal ke Poli dan dokter lain atau ke Laborat yang masih
+dalam satu Rumah Sakit.
+Simpan : Tombol Simpan untuk menyimpan data.
+
+Tutup : Tombol Tutup untuk menutup form.
+
+       TAB MENU HAI’s          : Tab menu HAI’s untuk tindakan yang dilakukan terhadap pasien di
+        rumah sakit.
+
+
+
+
+                                        Gambar Tab Menu HAI’s
+Berikut ini contoh formulir HAI’s :
+
+
+
+
+                                          Gambar Form Formulir HAI’s
+
+
+
+
+    c. PEMERIKSAAN RAWAT INAP :
+
+        Daftar Pasien Rawat Inap yang akan dilakukan tindakan bisa dicari sesuai per Ruangan, Cara
+        Bayar, No Rekam Medis, Tanggal Tanda (             ) untuk memasukan atau menambah tindakan.
+
+
+
+
+                                      Pilih pasien yang akan dilakukan tindakan
+Form Input Data Rawat Inap :
+
+
+
+
+                                     Gambar Form Input Data Rawat Inap
+
+
+
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah di inputkan / diisikan saat pendaftaran.
+
+
+
+
+PEMULANGAN : Menu untuk memulangkan pasien terdapat beberapa pilihan antara lain:
+
+(Pulang Membaik dengan ijin dokter, APS/Pulang paksa, Dirujuk, Meninggal <48 jam, Meninggal>48 jam)
+
+
+
+
+                                             Form Pemulangan
+TAB MENU RAWAT INAP :
+
+
+
+
+Keterangan :
+
+   a. Tab Menu Ruang & Biaya : Informasi Ruang dirawat pasien dan biaya berjalan.
+   b. Tab Menu Pemeriksaan : Dokter Pemeriksaan Jenis DPJP dan terdapat form isian Anamnesa,
+      Diagnosa dan Tindakan pasien.
+   c. Tab Menu Visite : Visite/Kunjungan dokter, untuk menambahkan visite bisa tekan tombol
+
+                   . Terdapat pilihan Visite dokter umum atau visite dokter spesialis dengan menekan
+
+      tombol panah (   ) untuk menambahkan.
+   d. Tab Menu Tindakan Dokter : Tindakan dokter untuk menambahkan jenis tindakan dokter
+       dengan tekan tombol (      ) dan pilih jenis tindakan yang dilakukan dengan menekan tombol
+
+      panah (    ) pada sisi kanan tindakan.
+   e. Tab Menu Tindakan Perawat : Tindakan Perawat untuk menambahkan jenis tindakan Perawat
+
+      dengan tekan tombol                    dan pilih jenis tindakan yang ada dengan menekan tombol
+      panah pada sisi kanan tindakan yang dipilih.
+   f. Lain-Lain : Lain-Lain bisa ditambahkan apabila ada tindakan yang tidak ada pada menu pilihan
+      tindakan bisa menggunakan layanan Menu Lain-lain.
+   g. Obat Depo : Obat depo
+   h. HAI’s : HAI’s
+   i. INOS : Inos
+   j. Diit : Diit diisikan secara manual di kotak kolom.
+   k. Riwayat : Tombol untuk melihat riwayat pasien Rumah Sakit.
+   l. Rujuk Internal : Tombol untuk merujuk internal ke Poli dan dokter lain atau ke Laborat yang
+      masih dalam satu Rumah Sakit.
+   m. Simpan : Tombol Simpan untuk menyimpan data.
+   n. Tutup : Tombol Tutup untuk menutup form.
+   o. Manajemendata : Manajemen data bisa digunakan untuk mencetak / Print.
+   d. PEMERIKSAAN LABORATORIUM :
+
+Pilih Pasien yang akan dilakukan tindakan dengan menekan tanda (           ) pada sisi kanan nama pasien.
+Berikut ini form pemeriksaan laboratorium Rawat Jalan/Rawat Inap :
+
+
+
+
+                               Gambbar Form Laboratorium Rawat Inap
+
+
+Form Input Pemeriksaan Laboratorium :
+
+
+
+
+                                     Gambar Form Input Data Laboratorium
+
+
+
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah di inputkan / diisikan oleh Pendaftaran.
+Form Input data Laboratorium : Untuk mengisi pemeriksaan yang dilakukan petugas laboratorium
+
+dengan menekan tanda              dan memilih tindakan yang dilakukan.
+
+
+
+
+                                       Gambar Form Cari Biaya
+
+
+
+
+Pilih jenis tindakan Laboratorium yang dilakukan dengan menekan tombol panah     pada sisi kanan
+otomatis biaya tindakan sudah masuk ke biaya pasien, setelah keluar form tambah biaya kemudian
+tekan tombol
+
+
+
+
+                                    Form Tambah Biaya
+   e. PEMERIKSAAN RADIOLOGI :
+
+       Pemeriksaan Radiologi pada pasien Rawat Jalan dan pasien Rawat Inap.
+
+
+
+
+       Pilih Pasien yang akan dilakukan tindakan dengan menekan tanda (   ) pada sisi kanan nama
+       pasien
+
+
+
+
+                                     Gambar Form Radiologi Rawat Jalan
+
+Form Input Pemeriksaan Radiologi Rawat Jalan / Rawat Inap :
+
+
+
+
+                                     Gambar Form Input Data Radiologi
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah di inputkan / diisikan saat pendaftaran.
+
+Form Input data Radiologi : untuk mengisi pemeriksaan yang dilakukan petugas radiologi.
+
+
+
+
+                                          Gambar Form Cari Biaya
+
+
+Pilih jenis tindakan Radiologi yang dilakukan dengan menekan tombol panah          pada sisi kanan
+otomatis biaya tindakan sudah masuk ke biaya pasien, akan keluar form tambah biaya seperti dibawah
+ini, kemudian tekan tombol            untuk menyimpan data tersebut.
+
+
+
+
+                                       Form Tambah Biaya Radiologi
+   f.   PEMERIKSAAN OPERASI
+        Pemeriksaan Operasi pada pasien Rawat Jalan dan pasien Rawat Inap.
+
+
+
+
+                                     Gambar Form Operasi Rawat Jalan
+
+
+Pilih Pasien yang akan dilakukan tindakan dengan menekan tanda (       ) pada sisi kanan nama pasien,
+sehingga muncul form input data operasi seperti dibawah ini.
+
+
+
+
+                                      Gambar Form Input Data Operasi
+
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah diinputkan / diisikan saat pendaftaran.
+
+
+
+
+                                         Gambar Form Cari Biaya
+Pilih jenis tindakan Operasi yang dilakukan dengan menekan tombol panah            pada sisi kanan
+otomatis biaya tindakan sudah masuk ke biaya pasien, akan keluar form tambah biaya seperti dibawah
+ini, kemudian tekan tombol           untuk menyimpan data tersebut.
+
+
+
+
+                                         Form Tambah Biaya
+
+   g. GIZI: Tab menu Gizi untuk pemberian gizi pasien Rawat Inap.
+
+       Pilih Pasien yang akan dilakukan tindakan dengan menekan tanda (       ) pada sisi kanan nama
+       pasien.
+
+
+
+
+                                        Gambar Form Tab Menu Gizi
+
+
+Setelah menekan tanda (     ) pada sisi kanan nama pasien, kemudian muncul form input data
+pemberian gizi seperti dbawah ini.
+
+
+
+
+                                Gambar Form Input Pemberian Gizi Rawat Inap
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah di inputkan / diisikan saat pendaftaran.
+Form Input Pemeriksaan Gizi Rawat Inap untuk mengisi gizi yang akan diberikan tekan tanda
+
+           .
+                                           REKAM MEDIS :
+
+
+
+
+   a. Rekam Medis Rawat Jalan / Rawat Inap
+
+      Pilih Pasien yang akan dilakukan tindakan dengan menekan tanda (      ) pada sisi kanan nama
+      pasien.
+
+
+
+
+Form Input data Rekam Medis :
+
+
+
+
+                                       Gambar Form Input Data Rawat Jalan
+Sebelah kiri atas terdapat Data Pribadi Pasien dan Data Kunjungan otomatis sudah terisi, Data Pribadi
+dan Data Kunjungan lengkap sesuai identitas pasien yang telah di inputkan / diisikan saat pendaftaran.
+Form Input data Rekam Medis terdapat ICD-10 dan ICD-9 untuk mengisi ICD dengan menekan tanda
+
+               , dengan menulis ICD-10 dan ICD-9 secara manual maka otomatis keluar menu pilihan.
+
+
+
+
+Form Input Data Rekam Medis :
+
+
+
+
+Keterangan :
+
+Dokter                    : Dokter yang memeriksa pasien Rumah Sakit.
+
+Kelanjutan               : Kelanjutan pasien ada beberapa pilihan (Pulang, Rawat Inap, Dirujuk,
+Dikembalikan ke RS Asal, Dikembalikan ke Puskesmas, Dikembalikan ke Faskes lain, Mati di IGD, DOA).
+
+Kasus                    : Kasus Tindakan Bedah / Non Bedah.
+
+Kecelakaan               : Saat pasien masuk IGD dalam keadaan kecelakaan/bukan kecelakaan.
+
+Kelengkapan Berkas       : Kelengkapan berkas centang yang diperlukan (Anamnesa, Diagnosa, Nama
+dokter, Ttd dokter).
+Setelah memasukan diagnosa tekan tombol centang            untuk memasukan data diagnosa pasien RS.
+
+Setelah semua terisi tekan tombol simpan untuk menyimpan data dan tombol tutup untuk menutup
+form.
+
+   b. Monitor Klaim
+
+
+
+
+                                        Gambar Form Monitor Klaim
+
+Form Monitor Klaim digunakan untuk mengetahui jenis layanan dan proses verifikasi pasien di rumah
+
+sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol           (cetak).
+   c. FILING
+
+                                             G
+                                     a
+                                     m
+                                     b
+                                     a
+                                     r
+
+                                     F
+                                     o
+                                     r
+                                     m
+
+                                     F
+                                     i
+                                     l
+                                     i
+                                     n
+                                     g
+
+
+
+                                              Gambar Form Filing
+
+
+
+Form Filing digunakan untuk mengetahui arsip data kunjungan pasien di rumah sakit tersebut. Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol         (cetak).
+
+
+
+
+                                             LAPORAN
+
+       a. Statistik
+1.   10 Besar Penyakit Rajal
+
+
+
+
+                                    Gambar Form 10 Penyakit Rajal
+
+Form 10 Besar Penyakit Rajal digunakan untuk mengetahui presentase 10 besar penyakit
+rawat jalan di rumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak
+
+kemudian tekan tombol                   (cetak).
+
+2. 10 Besar Penyakit Ranap
+
+
+
+
+                               Gambar Form 10 Besar Penyakit Ranap
+
+Form 10 Besar Penyakit Ranap digunakan untuk mengetahui presentase 10 besar penyakit
+rawat inap di rumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak
+
+kemudian tekan tombol                   (cetak).
+3. 10 Tindakan Rajal
+
+
+
+
+                              Gambar Form 10 Tindakan Rajal
+
+Form 10 tindakan rajal digunakan untuk mengetahui presentase 10 tindakan rawat jalan di
+rumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+
+tombol           (cetak).
+
+
+
+
+4. 10 Tindakan Ranap
+
+
+
+
+                                 Gambar Form 10 Tindakan Ranap
+
+Form 10 tindakan ranap digunakan untuk mengetahui presentase 10 tindakan rawat inap di
+rumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+
+tombol           (cetak).
+5. Pasien
+
+
+
+
+                                    Gambar Form Pasien
+
+Form 10 pasien digunakan untuk mengetahui presentase dari agama pasien di rumah sakit
+
+tersebut. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+(cetak).
+
+6. Kunjungan
+
+
+
+
+                                 Gambar Form Kunjungan
+
+Form kunjungan digunakan untuk mengetahui presentase kunjungan di rumah sakit
+tersebut baik dengan BPJS, JAMKESOS, JAMPERSAL, JASA RAHARJA, dan UMUM. Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol          (cetak).
+7. Trend
+
+
+
+
+                                  Gambar Form Trend
+
+Form Trend digunakan untuk mengetahui cara pembayaran semua poliklinik berdasarkan
+periode bulan. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+
+           (cetak).
+
+8. HAI’s
+
+
+
+
+                                    Gambar Form HAI’s
+
+
+Form HAI’s digunakan untuk mengetahui data HAI’s berdasarkan periode tertentu. Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol        (cetak).
+b. Laporan
+
+
+
+
+      1. Register Pendaftaran
+
+
+
+
+                                Gambar Form Register Pendaftaran
+
+   Form register pendaftaran digunakan untuk mengetahui rekap data pasien dalam semua
+   poliklinik maupun poliklinik tertentu. Untuk mencetak pilih bagian yang akan dicetak
+
+   kemudian tekan tombol           (cetak).
+   2. Kunjungan Terakhir
+
+
+
+
+                                 Gambar Form Kunjungan Terakhir
+
+
+Form kunjungan terakhir digunakan untuk mengetahui rekap data kunjungan terakhir
+pasien berdasarkan poliklinik, dokter, dan cara bayar. Untuk mencetak pilih bagian yang
+
+akan dicetak kemudian tekan tombol                (cetak).
+
+
+
+   3. Register IGD/Rawat Jalan/Rawat Inap
+
+
+
+
+                             Gambar Form Register Rawat Jalan
+
+Form register IGD/rawat jalan/rawat inap digunakan untuk mengetahui rekap data pasien
+rawat jalan / inap dalam semua poliklinik maupun poliklinik tertentu. Untuk mencetak pilih
+
+bagian yang akan dicetak kemudian tekan tombol                    (cetak).
+   4. Rekap JHP
+
+
+
+
+                                Gambar Form Rekap JHP
+
+Form rekap JHP digunakan untuk mengetahui rekap data pasien          berdasarkan ruang
+perawatan, kelas, jumlah bed, dan tanggal. Untuk mencetak pilih bagian yang akan dicetak
+
+kemudian tekan tombol           (cetak).
+
+ 5. W2
+
+
+
+
+                                   Gambar Form W2
+ 6. Analisis Kuantitatif
+
+
+
+
+                             Gambar Form Analisis Kuantitatif
+
+
+
+
+ 9. Px Masuk Ranap
+
+
+
+
+                              Gambar Form Px Masuk Ranap
+
+Form Px Masuk Ranap digunakan untuk mengetahui rekap data pasien yang masuk rawat
+inap berdasarkan biodata pasien, cara bayar, tanggal masuk, dokter, dan lain-lain.Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol          (cetak)
+ 10. Px Pindah Ranap
+
+
+
+
+                              Gambar Form Px Pindah Ranap
+
+Form Px Pindah Ranap digunakan untuk mengetahui rekap data pasien yang pindah rawat
+inap berdasarkan biodata pasien, cara bayar, tanggal masuk, dokter, dan lain-lain. Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol           (cetak).
+
+
+
+ 11. Px Pulang
+
+
+
+
+                                Gambar Form Px Pulang
+
+
+
+ Form Px Pulang digunakan untuk mengetahui rekap data pasien yang dipulangkan
+ berdasarkan biodata pasien, cara bayar, tanggal masuk, dokter, dan lain-lain. Untuk
+
+ mencetak pilih bagian yang akan dicetak kemudian tekan tombol           (cetak).
+12. PTM Rajal/Ranap
+
+
+
+
+                               Gambar Form PTM Rajal
+
+Form PTM Rajal/ Ranap digunakan untuk mengetahui rekap data penyakit tidak menular
+di rawat jalan/rawat inap. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+
+tombol             (cetak).
+
+13. Kuantitatif Rajal
+
+
+
+
+                              Gambar Form Kuantitatif Rajal
+15. Evaluasi CMRJ/CMRI
+
+
+
+
+                             Gambar Form Evaluasi CMRJ
+
+
+
+
+17. Evaluasi Keterlambatan
+
+
+
+
+                         Gambar Form Evaluasi Keterlambatan
+
+Form Evaluasi Keterlambatan digunakan untuk mengetahui data keterlambatan Px Pulang.
+
+Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol         (cetak).
+18. Rekap Evaluasi Keterlambatan
+
+
+
+
+                         Gambar Form Rekap Evaluasi Keterlambatan
+
+Form Rekap Evaluasi Keterlambatan digunakan untuk mengetahui rekap data
+keterlambatan Px Pulang per bulan berdasarkan presentase waktu. Untuk mencetak pilih
+
+bagian yang akan dicetak kemudian tekan tombol                      (cetak).
+
+
+
+19. K. Catatan Perawat
+
+
+
+
+                            Gambar Form K. Catatan Perawat
+
+Form K. Catatan Perawat          digunakan untuk mengetahui rekap catatan perawat
+berdasarkan ruang perawatan, jumlah pasien pulang, jumlah CM 6A, jumlah resume
+ASKEP, dan monitoring Inos. Untuk mencetak pilih bagian yang akan dicetak kemudian
+
+tekan tombol             (cetak).
+20. K. Resume ASKEP
+
+
+
+
+                      Gambar Form K. Resume ASKEP
+
+
+
+
+21. K. Rekam Medis
+
+
+
+
+                      Gambar Form K. Rekam Medis
+         22. Perujuk
+
+
+
+
+                                           Gambar Form Perujuk
+
+        Form Perujuk digunakan untuk mengetahui rujukan berdasarkan periode bulan. Dalam
+        Form tersebut terdapat tanggal kirim, tanggal pulang, ruang, keadaan pulang, dokter, dan
+        biodata pasien. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+
+                 (cetak).
+
+   Cetak Surat Balasan Rujukan
+
+
+
+
+      23. Imunisasi
+ Form Imunisasi digunakan untuk mengetahui rekap data imunisasi pasien. Untuk
+
+ mencetak pilih bagian yang akan dicetak kemudian tekan tombol        (cetak).
+
+ 24. Kematian
+
+
+
+
+                                Gambar Form Kematian
+
+Form Kematian digunakan untuk mengetahui rekap kematian berdasarkan periode bulan.
+
+Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol        (cetak).
+
+ 25. Kematian ASKES
+
+
+
+
+                             Gambar Form Kematian ASKES
+
+Form Kematian ASKES digunakan untuk mengetahui rekap kematian ASKES berdasarkan
+periode bulan. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+
+         (cetak).
+ 26. Masih Dirawat
+
+
+
+
+                                     Gambar Form Masih Dirawat
+
+
+Form Masih Dirawat digunakan untuk mengetahui rekap data pasien yang masih dirawat
+berdasarkan nomer rekam medis, nama, jenis kelamin, usia, kelas, tanggal masuk, dan cara
+
+bayar. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+(cetak).
+
+ 27. Kematian External
+
+
+
+
+                            Gambar Form Kematian Exsternal
+
+Form Kematian Exsternal digunakan untuk mengetahui rekap kematian exsternal
+berdasarkan periode bulan. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+
+tombol           (cetak).
+ 28. Imunisasi Ranap
+
+
+
+
+                              Gambar Form Imunisasi Ranap
+
+ Form Imunisasi Ranap digunakan untuk mengetahui rekap data imunisasi pasien rawat
+
+ inap. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+ (cetak).
+
+ 29. Data Cara Bayar
+
+
+
+
+                             Gambar Form Data Cara Bayar
+
+Form data cara bayar digunakan untuk mengetahui cara bayar pasien rawat inap maupun
+rawat jalan baik dengan cara asuransi lain, BPJS, JAMKESDA, JAMKESOS, JAMPERSAL, JASA
+RAHARJA, dan lain-lain. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+
+tombol          (cetak).
+30. Px Dirujuk
+
+
+
+
+                           Gambar Form Px Dirujuk
+
+Form Px Dirujuk digunakan untuk mengetahui rekap data pasien yang dirujuk berdasarkan
+biodata pasien, cara bayar, tanggal masuk, dokter, dan lain-lain. Untuk mencetak pilih
+
+bagian yang akan dicetak kemudian tekan tombol               (cetak).
+
+31. Sebaran Pasien
+
+
+
+
+                                Gambar Form Sebaran Pasien
+
+
+Form sebaran pasien digunakan untuk mengetahui data wilayah pasien rawat inap
+maupun rawat jalan berdasarkan periode maupun cara bayarnya. Untuk mencetak pilih
+
+bagian yang akan dicetak kemudian tekan tombol               (cetak).
+      32. Register HAI’s
+
+
+
+
+                                      Gambar Form Register HAI’s
+
+
+
+      Form Register HAI’s digunakan untuk mengetahui data pasien HAI’s berdasarkan jenis
+      rawat, anamnesa, diagnosa, tindakan, dan lain-lain. Untuk mencetak pilih bagian yang
+
+      akan dicetak kemudian tekan tombol                  (cetak).
+
+c. Indeks
+
+      1. P
+         e
+         n
+         y
+         a
+         k
+         i
+         t
+
+
+
+            1.   Rawat Jalan/Rawat Inap
+
+
+
+
+                                Gambar Form Penyakit Rawat Jalan
+Form Penyakit Rajal/Ranap digunakan untuk mengetahui kode maupun nama penyakit
+berdasarkan golongan umur, domisili, poliklinik, tanggal, dokter, dan kelanjutan. Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol          (cetak).
+
+     2. Dokter
+
+
+
+
+                                  Gambar Form Dokter
+
+Form Dokter digunakan untuk mengetahui kode maupun nama dokter berdasarkan nomer
+pasien,golongan umur, jenis kelamin, nama dokter, dan keterangan lain-lain. Untuk
+
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol          (cetak).
+
+ 3. Operasi
+
+
+
+
+                               Gambar Form Operasi
+   Form Operasi digunakan untuk mengetahui kode maupun nama dokter berdasarkan indeks
+   operasi, nomer kode, nama penyait, dan tindakan. Untuk mencetak pilih bagian yang akan
+
+   dicetak kemudian tekan tombol               (cetak).
+
+c. RL
+
+
+
+
+    1. RL 3.2
+
+
+
+
+                                   Gambar Form RL 3.2
+2. RL 4A/4B
+
+
+
+
+              Gambar Form RL 4A
+
+
+
+3. RL 5.1
+
+
+
+
+                 Gambar Form RL 5.1
+4. RL 5.2
+
+
+
+
+            Gambar Form RL 5.2
+
+
+
+5. RL 5.3
+
+
+
+
+                Gambar Form RL 5.3
+6. RL 5.4
+
+
+
+
+                       Gambar Form RL 5.4
+
+
+
+
+7. RL 4A/4B Sebab
+
+
+
+
+                    Gambar Form RL 4A Sebab
+    8. STP-RS-RI/RJ
+
+
+
+
+                               Gambar Form STP-RS-RI
+
+
+
+
+d. REKAP RAJAL/RANAP
+
+
+
+
+    1. Rekap Rajal Per Bulan
+
+
+
+
+                               Gambar Form Rekap Rajal Per Bulan
+Form rekap rajal per bulan digunakan untuk mengetahui rekap kunjungan, cara masuk, dan
+tindak lanjut di rumah sakit tersebut per bulan. Untuk mencetak pilih bagian yang akan
+
+dicetak kemudian tekan tombol               (cetak).
+
+ 2. Rekap Rajal Per Hari
+
+
+
+
+                           Gambar Form Rekap Rajal Per Hari
+
+
+Form rekap rajal per hari digunakan untuk mengetahui rekap kunjungan, cara masuk, dan
+tindak lanjut di rumah sakit tersebut per hari. Untuk mencetak pilih bagian yang akan
+
+dicetak kemudian tekan tombol               (cetak).
+
+ 3. Per Poliklinik
+
+
+
+
+                            Gambar Form Per Poliklinik
+Form rakap per poliklinik digunakan untuk mengetahui rekap kunjungan, cara masuk, dan
+tindak lanjut di rumah sakit tersebut per poliklinik. Untuk mencetak pilih bagian yang akan
+
+dicetak kemudian tekan tombol               (cetak).
+
+ 4. Per Dokter Baru-Lama
+
+
+
+
+                            Gambar Form Per Dokter Baru
+
+Form Per Dokter Baru digunakan untuk mengetahui rekap data pasien baru dan lama setiap
+dokter per bulan. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+
+           (cetak).
+
+
+
+
+ 5. Pasien DOA-DOS
+
+
+
+
+                            Gambar Form Per Dokter Baru
+
+Form Pasien DOA-DOS digunakan untuk mengetahui rekap data pasien DOA (Death On
+
+Arrival). Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+(cetak).
+6. Pasien Dirujuk Keluar
+
+
+
+
+                              Gambar Form Pasien Dirujuk Keluar
+
+Form Pasien Dirujuk Keluar digunakan untuk mengetahui rekap pasien yang dirujuk keluar
+dari rumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+tombol            (cetak).
+
+
+7.   Lakalantas
+
+
+
+
+                                  Gambar Form Lakalantas
+
+Form Lakalantas digunakan untuk mengetahui rekap pasien masuk ke rumah sakit karena
+kecelakan lalu lintas. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan
+tombol            (cetak).
+8.   Per Dokter Umum
+
+
+
+
+                             Gambar Form Per Dokter
+
+Form Per Dokter digunakan untuk mengetahui rekap pasien masuk ke rumah sakit setiap
+dokter yang menanganinya dalam periode per bulan. Untuk mencetak pilih bagian yang
+akan dicetak kemudian tekan tombol              (cetak).
+
+
+9. Per Dokter IGD
+
+
+
+
+                            Gambar Form Per Dokter IGD
+
+Form Per Dokter IGD digunakan untuk mengetahui rekap pasien masuk ke rumah sakit
+setiap dokter IGD yang menanganinya dalam periode per bulan. Untuk mencetak pilih
+bagian yang akan dicetak kemudian tekan tombol             (cetak).
+  10. Rekap Ranap Per Bulan
+
+
+
+
+                        Gambar Form Rekap Ranap Per Bulan
+
+Form Rekap Ranap Per Bulan digunakan untuk mengetahui rekap jumlah pasien rawat
+inap per bulan dirumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak
+kemudian tekan tombol              (cetak).
+
+
+
+11. Rekap Ranap Per Ruang
+
+
+
+
+                         Gambar Form Rekap Ranap Per Hari
+
+Form Rekap Ranap Per Hari digunakan untuk mengetahui rekap jumlah pasien rawat inap
+per hari dirumah sakit tersebut. Untuk mencetak pilih bagian yang akan dicetak kemudian
+tekan tombol           (cetak).
+12. Rekap Per Dokter
+
+
+
+
+                         Gambar Form Rekap Per Dokter
+
+Form Rekap Per Dokter digunakan untuk mengetahui rekap jumlah pasien yang diberikan
+tindakan untuk setiap dokter. Untuk mencetak pilih bagian yang akan dicetak kemudian
+tekan tombol           (cetak).
+
+
+ 13. Dokter APS
+
+
+
+
+                           Gambar Form Dokter APS
+
+Form Dokter APS digunakan untuk mengetahui rekap jumlah pasien yang diberikan
+tindakan untuk setiap dokter APS. Untuk mencetak pilih bagian yang akan dicetak
+kemudian tekan tombol             (cetak).
+14. Indikasi Pulang Per Kelas
+
+
+
+
+                           Gambar Form Indikasi Pulang Per Kelas
+
+Form Indikasi Pulang Per Kelas untuk mengetahui rekap sebab pasien dipulangkan
+berdasarkan kelas baik karena membaik, pulang paksa, dirujuk, atau meninggal. Untuk
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol          (cetak).
+
+
+15. Indikasi Pulang Per Ruang
+
+
+
+
+                        Gambar Form Indikasi Pulang Per Ruang
+
+Form Indikasi Pulang Per Ruang untuk mengetahui rekap sebab pasien dipulangkan
+berdasarkan ruangan baik karena membaik, pulang paksa, dirujuk, atau meninggal. Untuk
+mencetak pilih bagian yang akan dicetak kemudian tekan tombol          (cetak).
+16. Sebab Pulang APS
+
+
+
+
+                         Gambar Form Indikasi Pulang Per Ruang
+
+Form Sebab Pulang APS untuk mengetahui jumlah dan presentase pasien pulang paksa.
+Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol            (cetak).
+
+
+17. Rekap Per Kelas/Spesialis
+
+
+
+
+                             Gambar Form Rekap Per Kelas
+
+Form Rekap Per Kelas/Spesialis untuk mengetahui rekap pasien per kelas/spesialis pada
+bulan tertentu. Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol
+         (cetak).
+ 18. Kematian
+
+
+
+
+                                  Gambar Form Kematian
+
+Form Kematian digunakan untuk mengetahui rekap kematian di rumah sakit tersebut
+berdasarkan kelompok umur, jenis kelamin, dan lamanya waktu. Untuk mencetak pilih
+
+bagian yang akan dicetak kemudian tekan tombol           (cetak).
+
+
+
+                                APOTEK :
+Menu apotek terdiri dari beberapa form yang menunjang transaksi atau keluar masuk obat atau BMHP
+di dalam instalasi farmasi, dengan form-form sebagai berikut :
+
+   a. Form Apotek Rawat Jalan
+
+
+
+
+       Form apotek rawat jalan digunakan untuk menginput transaksi obat/BMHP rawat jalan
+       berdasarkan resep yang diberikan dokter melalui poliklinik atau IGD. Untuk menginput resep
+       yang diberikan oleh dokter berdasarkan nama pasien langkah-langkahnya sebagai berikut :
+       a. Ketik nama atau no rekam medis kemudian tekan tombol          (lup).
+       b. Maka akan terlihat nama dan nomor rekam medis pasien.
+       c. Tekan atau klik tanda         (plus) sehingga akan muncul seperti gambar berikut :
+
+
+
+
+       d. Ketikan / Masukan resep obat automatis akan keluar pilihan obat, seperti contoh dibawah
+          ini:
+
+
+
+
+       e. Kemudian tekan tombol               (simpan).
+       f. Akan terlihat pop up untuk cetak etiket:
+   g. Kemudian klik print.
+
+b. Form Apotek Rawat Inap
+
+
+
+
+                                   Gambar Form Apotek Rawat Inap
+   Form apotek rawat inap digunakan untuk menginput transaksi obat/BMHP rawat inap
+   berdasarkan resep yang diberikan oleh dokter. Untuk menginput resep yang diberikan oleh
+   dokter berdasarkan nama pasien dengan cara sebagai berikut :
+   a. Ketik nama atau no rekam medis kemudian tekan tombol     (lup),
+   b. Maka akan terlihat nama dan nomor rekam medis pasien yang dimaksud,
+   c. Tekan atau klik tanda      (plus) sehingga akan muncul seperti gambar berikut :
+   d. Ketikan atau Masukan resep obat seperti contoh dibawah ini:
+
+
+
+
+   e. Kemudian tekan tombol               (simpan).
+   f. Akan terlihat pop up untuk cetak etiket:
+
+
+
+
+   g. Kemudian klik print.
+
+
+c. Form Apotek Pasien Luar
+
+
+
+
+                                   Gambar Form Apotek Pasien Luar
+   Form apotek pasien luar digunakan untuk menginput transaksi obat/BMHP tanpa pendaftaran
+   poliklinik/IGD berdasarkan resep yang diberikan dokter dari luar rumah sakit. Untuk menginput
+   resep yang diberikan dokter dari luar rumah sakit dengan cara sebagai berikut :
+   a. Klik tombol              (resep baru), kemudian akan muncul form input resep pasien luar
+      seperti gambar berikut :
+
+
+
+
+   b. Memasukan data yang sesui kemudian tekan tombol                       (simpan).
+
+d. Form Distribusi Obat
+
+
+
+
+                                    Gambar Form Distribusi Obat
+
+   Form distribusi obat digunakan untuk mendistribusikan obat yang berada di gudang farmasi ke
+   unit atau instalasi lain, seperti instalasi rawat inap, instalasi gawat darurat, poliklinik, dan lain-
+
+   lain. Untuk mendistribusikan obat tekan tombol             maka akan tampil seperti gambar berikut.
+                               Gambar Form Transaksi Distribusi Obat
+
+
+   Kemudian pilih distribusi bagian , setelah itu isikan sesuai data yang akan didistribusikan lalu
+
+   tekan tombol              (simpan).
+e. Form Stock Opname
+
+
+
+
+                                          Gambar Form Stock Opname
+
+   Form stock opname digunakan untuk menyesuaikan stock real dengan stock yang berada di
+
+   dalam database SIMRS. Untuk menyesuaikan stock tekan tombol            (plus) maka akan tampil
+   seperti gambar berikut.
+     K
+     e
+     m
+     u
+     d
+     i
+
+
+
+
+     a
+
+     Kemudian isikan sesuai data yang akan sesuai lalu tekan tombol             (simpan).
+
+
+f.   Form Laporan Posisi Stock
+
+
+
+
+                                  Gambar Form Laporan Posisi Stock
+
+     Form laporan posisi stock digunakan untuk mengecek posisi stock atau mencetak laporan posisi
+     stock yang dapat dilihat menurut tiap-tiap unit, bagian, atau instalasi. Untuk mencetak pilih
+
+     bagian yang akan dicetak kemudian tekan tombol                  (cetak).
+g. Form Laporan Distribusi Obat
+
+
+
+
+                               Gambar Form Laporan Distribusi Obat
+
+   Form laporan distribusi obat digunakan untuk mengecek distribusi obat/BMHP atau mencetak
+   laporan distribusi obat/BMHP yang dapat dilihat menurut tiap-tiap unit, bagian, atau instalasi
+   dan dapat dilihat harian, bulanan, atau tahunan.
+
+    Untuk mencetak pilih bagian yang akan dicetak kemudian tekan tombol                  (cetak).
+   Contoh hasil cetak seperti gambar berikut :
+h. Form Laporan Obat Masuk
+
+
+
+
+                                Gambar Form Laporan Obat Masuk
+
+
+     Form laporan obat masuk digunakan untuk mengecek obat/BMHP yang masuk di apotek atau
+     mencetak laporan obat/BMHP yang masuk dan dapat dilihat menurut tiap-tiap unit, bagian,
+     atau instalasi dan dapat dilihat harian, bulanan, atau tahunan. Untuk mencetak sesuaikan
+
+     periode yang akan dicetak kemudian tekan tombol             (cetak).
+
+
+i.   Form Laporan Pemakaian Obat
+
+
+
+
+                            Gambar Form Laporan Pemakaian Obat
+
+
+
+     Form laporan pemakaian obat digunakan untuk mengecek pemakaian obat dan bisa terlihat
+     setiap tanggal perbulannya. Dapat juga sebagai control obat yang terlaris diberikan kepada
+
+     pasien. Laporan pemakaian obat ini juga dapat dicetak. Untuk mencetak tekan tombol
+     (cetak).
+j.   Form Pengeluaran Rajal
+
+
+
+
+                                   Gambar Form Pengeluaran Rajal
+
+
+     Form pengeluaran rajal (rawat jalan) digunakan untuk mengidentifikasi detail mulai dari klinik
+     kemudian dokternya, pasiennya, sampai obat apa saja yang diberikan oleh dokter. Untuk
+     mencetak tekan tombol           (cetak).
+
+k. Form Pengeluaran Ranap
+
+
+
+
+                                    G
+                                    a
+                                    m
+                                    b
+                                    a
+                                    r
+                                     Form Pengeluaran Ranap
+
+     Form pengeluaran ranap (rawat inap) digunakan untuk mengidentifikasi detail pemberian obat
+     mulai dari dokternya, waktu pemberian resep, nama obat, kode obat sampai nama pasien yang
+     bersangkutan. Untuk mencetak tekan tombol                 (cetak).
+l.    Form Retur Bagian
+
+
+
+
+      F
+                                          Gambar Form Retur Bagian
+
+      Form retur bagian digunakan untuk mengembalikan obat/BMHP atau mengembalikan stock
+      dari bagian, unit, poliklinik, IGD, atau instalasi lain ke apotek .
+
+      Untuk mengembalikan obat/BMHP atau mengembalikan stock ke apotek tekan tombol
+      (plus) maka akan tampil seperti gambar berikut :
+
+
+      K
+      e
+
+
+
+
+     Kemudian pilih darimana stock yang akan dikembalikan ke stock apotek, kemudian isikan
+
+     obat/BMHP dan jumlahnya lalu tekan tombol                       (simpan).
+
+                                        GF ( GUDANG FARMASI )
+Menu GF (Gudang Farmasi) terdiri dari beberapa form yang menunjang transaksi atau keluar masuk
+obat atau BMHP di dalam gudang farmasi, dengan form-form sebagai berikut :
+
+      a.   Form Obat
+
+
+
+
+Form Obat digunakan untuk melihat data obat, menambah jenis obat, atau menghapus jenis obat.
+
+Untuk menambah jenis obat tekan tombol         maka akan muncul gambar seperti berikut ini.
+
+
+
+
+Kemudian isikan sesuai data yang diminta lalu tekan tombol          (simpan).
+      b. Form Obat Masuk
+ Form obat masuk digunakan untuk menginput pembelian obat atau BMHP dan dapat terlihat
+ riwayat pembelian seperti nomor faktur, tanggal faktur, tanggal transaksi, dan nama user. Untuk
+
+ menginput pembelian obat tekan tombol          maka akan tampil seperti gambar berikut.
+
+
+
+
+ Kemudian isikan/pilih sesuai data pembelian obat atau BMHP, lalu tekan tombol
+ (simpan).
+
+
+c. Form Distribusi Obat
+
+
+
+
+    Form distribusi obat digunakan untuk mendistribusikan obat yang berada di gudang farmasi
+    ke unit atau instalasi lain, seperti instalasi farmasi, instalasi rawat inap, instalasi gawat
+
+    darurat, poliklinik dan lain-lain. Untuk mendistribusikan obat tekan tombol       maka akan
+    tampil seperti gambar berikut:
+ Kemudian pilih distribusi bagian,setelah itu isikan sesuai data yang akan didistribusikan lalu
+
+ tekan tombol              (simpan).
+
+
+d. Form Stock Opname
+
+
+
+
+                                       Gambar Form Stock Opname
+
+ Form stock opname digunakan untuk menyesuaikan stock real dengan stock yang berada di
+
+ dalam database SIMRS. Untuk menyesuaikan stock tekan tombol           (plus) maka akan tampil
+ seperti gambar berikut.
+ Kemudian isikan sesuai data yang akan disesuaikan lalu tekan tombol         (simpan).
+
+
+e. Form Retur Supplier
+
+
+
+
+ Form retur supplier digunakan untuk mengembalikan obat atau BMHP kepada supplier jika ada
+ kesalahan pengiriman ataupun alasan lain. Untuk mengembalikan obat atau BMHP kepada
+
+ supplier tekan tombol     (plus) maka akan tampil seperti gambar berikut.
+     Kemudian isikan nama obat/BMHP yang akan dikembalikan kepada supplier dan pilih supplier
+
+     yang bersangkutan lalu tekan tombol            (simpan).
+
+
+f.     Form Retur Bagian
+
+
+
+
+     Form retur bagian digunakan untuk mengembalikan obat/BMHP atau mengembalikan stock dari
+     bagian, unit, poliklinik, IGD, farmasi atau instalasi lain ke   gudang farmasi (GF). Untuk
+     mengembalikan obat/BMHP atau mengembalikan stock ke gudang farmasi (GF) tekan tombol
+
+         (plus) maka akan tampil seperti gambar berikut.
+ Kemudian pilih darimana stock yang akan dikembalikan ke stock gudang farmasi, kemudian
+
+ isikan obat/BMHP dan jumlahnya lalu tekan tombol            (simpan).
+
+
+g. Form Laporan Posisi Stock
+
+
+
+
+ Form laporan posisi stock digunakan untuk mengecek posisi stock atau mencetak laporan posisi
+ stock yang dapat dilihat menurut tiap-tiap unit, bagian, atau instalasi. Untuk mencetak pilih
+
+ bagian yang akan dicetak kemudian tekan tombol           (cetak).
+h. Form Laporan Distribusi Obat
+
+
+
+
+Form laporan distribusi obat digunakan untuk mengecek distribusi obat/BMHP atau mencetak
+laporan distribusi obat/BMHP yang dapat dilihat menurut tiap-tiap unit, bagian, atau instalasi dan
+dapat dilihat harian, bulanan, atau tahunan. Untuk mencetak pilih bagian yang akan dicetak
+
+kemudian tekan tombol             (cetak). Contoh hasil cetak seperti gambar berikut :
+
+
+
+
+i.   Form Laporan Obat Masuk
+     Form laporan obat masuk digunakan untuk mengecek obat/BMHP yang masuk di gudang
+     farmasi atau mencetak laporan obat/BMHP yang masuk dan dapat dilihat menurut tiap-tiap
+     unit, bagian, atau instalasi dan dapat dilihat harian, bulanan, atau tahunan. Untuk mence tak
+
+     sesuaikan periode yang akan dicetak kemudian tekan tombol            (cetak).
+
+
+     Contoh hasil cetak seperti gambar berikut.
+
+
+
+
+j.     Form Laporan Perpetual
+
+
+
+
+     Form laporan perpetual digunakan untuk mengecek laporan perpetual. Laporan tersebut juga
+     dapat dicetak atau dikonfersi ke microsoft office excel. Untuk mencetak sesuaikan tanggal yang
+
+     akan dicetak kemudian tekan tombol            (cetak) atau untuk yang berbentuk file microsoft
+
+     office excel tekan tombol          (excel).
+Contoh hasil cetak seperti gambar berikut.
+
+
+
+
+k. Form Kartu Stock
+
+
+
+
+Form Kartu stock digunakan untuk melihat stock perobat/BMHP. Untuk mencetak tekan tombol
+
+          (cetak) atau untuk yang berbentuk file microsoft office excel tekan tombol
+(excel) . Contoh hasil cetak seperti gambar berikut:
+                                              KASIR :
+
+
+
+
+Menu kasir terdiri dari beberapa form yang menunjang transaksi keuangan, rumah sakit rawat jalan,
+rawat inap, transaksi lain, dan lain-lain untuk menunjang keuangan rumah sakit. Dengan form-form
+sebagai berikut :
+
+   a. Form Rawat Jalan
+
+       a
+       n
+
+       F
+       o
+       r
+       m
+
+       r
+       a
+
+
+
+
+                                     Gambar Form Rawat Jalan
+
+       Form Rawat Jalan digunakan untuk penetapan biaya rawat jalan dan transaksi pembayaran di
+       kasir, baik tunai atau non tunai. Untuk transaksi pembayaran langkah-langkahnya sebagai
+       berikut :
+
+       a. Ketik nama atau no rekam medis kemudian tekan tombol       (lup),
+       b. Maka akan terlihat nama dan nomor rekam medis pasien dengan berlatar belakang warna
+          merah, dan nanti jika sudah LUNAS maka latar belakang akan menjadi putih secara otomatis,
+       c. Kemudian klik tanda        (plus) sehingga akan muncul seperti gambar berikut :
+   d. Setelah pasien membayar, maka pada kolom pilihan yang bertuliskan BELUM BAYAR diganti
+      menjadi LUNAS,
+   e. Centang rincian biaya yang akan dicetak, terdapat empat jenis rincian yaitu :
+        Cetak rincian biaya
+        Cetak rincian biaya detail
+        Cetak kwitansi
+        Lembar RMK
+   f.   Kemudian tekan tombol          (simpan). Maka akan tercetak rincian biayanya
+
+b. Form IGD
+
+
+   F
+   o
+   r
+   m
+
+   I
+   G
+   D
+
+   d
+   i
+   g
+
+
+
+
+                                       Gambar Form IGD
+   Form IGD digunakan untuk penetapan biaya dan transaksi pembayaran di kasir, baik tunai atau
+   non tunai. Untuk transaksi pembayaran langkah-langkahnya sebagai berikut :
+          a. Ketik nama atau no rekam medis kemudian tekan tombol     (lup),
+          b. Maka akan terlihat nama dan nomor rekam medis pasien dengan berlatar belakang
+             warna merah, dan nanti jika sudah LUNAS maka latar belakang akan menjadi putih
+             secara otomatis,
+          c. Kemudian klik tanda          (plus) sehingga akan muncul seperti gambar berikut :
+
+
+
+
+          d. Setelah pasien membayar, maka pada kolom pilihan yang bertuliskan BELUM BAYAR
+             diganti menjadi LUNAS,
+          e. Centang rincian biaya yang akan dicetak, terdapat empat jenis rincian yaitu :
+              Cetak rincian biaya
+              Cetak rincian biaya detail
+              Cetak kwitansi
+              Lembar RMK
+          f.   Kemudian tekan tombol              (simpan). Maka akan tercetak rincian biayanya.
+
+c. Form Rawat Inap
+
+
+
+
+                                 Gambar Form Rawat Inap
+   Form rawat inap digunakan untuk penetapan biaya rawat inap dan transaksi pembayaran di
+   kasir, baik tunai atau non tunai. Untuk transaksi pembayaran langkah-langkahnya sebagai
+   berikut :
+   a. Ketik nama atau no rekam medis kemudian tekan tombol         (lup),
+   b. Maka akan terlihat nama dan nomor rekam medis pasien,
+   c. Kemudian klik tanda        (plus) sehingga akan muncul seperti gambar berikut :
+
+
+
+
+   d. Setelah pasien membayar, maka pada kolom pilihan yang bertuliskan BELUM BAYAR diganti
+      menjadi LUNAS,
+   e. Centang rincian biaya yang akan dicetak, terdapat tiga jenis rincian biaya yaitu :
+        Cetak rincian biaya
+        Cetak rincian biaya detail
+        Cetak kwitansi
+   f.   Kemudian tekan tombol             (simpan). Maka akan tercetak rincian biayanya.
+
+d. Form Transaksi Lain
+
+
+
+
+                                 Gambar Form Transaksi Lain
+   Form transaksi lain digunakan untuk trasaksi non pasien seperti pembelian obat langsung oleh
+   karyawan, pendapatan parkir, sewa tempat ATM, dan lain-lain. Semua dapat diinput melewati
+   form transaksi lain. Sebagai contoh pembelian obat langsung oleh karyawan yang sudah diinput
+   melalui apotek, dengan langkah-langkah sebagai berikut :
+   a. Tekan tanda         (pencil)
+   b. Maka akan muncul form transaksi baru seperti berikut:
+
+
+
+
+   c. Setelah membayar, maka pada kolom pilihan yang bertuliskan BELUM BAYAR diganti
+      menjadi LUNAS,
+   d. Centang rincian biaya yang akan dicetak, terdapat 2 jenis rincian biaya yaitu :
+        Cetak rincian biaya
+        Cetak kwitansi
+   e. Kemudian tekan tombol              (simpan).
+
+e. Form Pendapatan
+
+   F
+   o
+   r
+   m
+
+
+
+
+                                     Gambar Form Pendapatan
+
+
+   Form pendapatan digunakan untuk mengecek transaksi atau pendapatan bisa dilihat periode
+   yang diinginkan periode harian, periode bulanan, dan periode tahunan. Transaksi yang terdapat
+     pada form pendapatan meliputi pendapatan rawat jalan, pendapatan rawat inap, dan transaksi
+     lain sehingga dapat digunakan untuk pembukuan seluruh pembukuan all in one. Untuk
+     mencetak tekan tombol             (cetak) atau untuk yang berbentuk file microsoft office excel
+     tekan tombol           (excel). Contoh hasil cetak seperti gambar berikut:
+
+
+
+
+f.   Form Pendapatan Ranap (Rawat Inap)
+
+
+
+
+     F
+     o
+     r
+     m
+
+     p
+     e
+     n
+
+
+
+     Form pendapatan ranap (rawat inap) digunakan untuk mengecek transaksi atau pendapatan
+     bisa dilihat periode yang diinginkan periode harian, periode bulanan, dan periode tahunan.
+     Transaksi yang terdapat pada form pendapatan ranap (rawat inap) difilter hanya transak si
+     pendapatan rawat inap sehingga hanya dapat digunakan untuk pembukuan pendapatan rawat
+     inap. Untuk mencetak tekan tombol              (cetak) atau untuk yang berbentuk file microsoft
+     office excel tekan tombol          (excel).
+   Contoh hasil cetak seperti gambar berikut:
+
+
+
+
+g. Form Pendapatan Rajal (Rawat Jalan)
+
+
+
+
+                                  Gambar Form Pendapatan Rajal
+
+
+   Form pendapatan rajal (rawat jalan) digunakan untuk mengecek transaksi atau pendapatan bisa
+   dilihat periode yang diinginkan periode harian, periode bulanan, dan periode tahunan. Transaksi
+   yang terdapat pada form pendapatan rajal (rawat jalan) difilter hanya transaksi pendapatan
+   rawat jalan sehingga hanya dapat digunakan untuk pembukuan pendapatan rawat jalan. Untuk
+   mencetak tekan tombol               (cetak) atau untuk yang berbentuk file microsoft office excel
+   tekan tombol            (excel).
+   Contoh hasil cetak seperti gambar berikut:
+
+
+
+
+h. Form Piutang
+
+
+
+
+                                       Gambar Form Piutang
+
+   Form piutang digunakan untuk mengecek transaksi yang belum lunas atau belum bayar. Piutang
+   yang terdapat di form ini meliputi semua piutang pasien rawat inap atau rawat jalan. Form
+   piutang dapat difilter cara bayar pasien, pasien umum, pasien BPJS, pasien prudential , dan lain-
+   lain. Untuk mencetak tekan tombol              (cetak).
+   Contoh hasil cetak seperti gambar berikut :
+i.   Form Setoran
+
+
+     G
+     a
+     m
+     b
+     a
+     r
+
+
+
+
+                                             Gambar Form Setoran
+     Form setoran digunakan untuk transaksi setoran pendapatan yang dilakukan oleh petugas kasir
+     ke keuangan atau bank. Dengan langkah-langkah sebagai berikut:
+     a. Tekan tombol    (plus)
+     b. Akan muncul form transaksi pembuatan setoran,
+
+
+
+
+                               Gambar Form Transaksi Pembuatan Setoran
+
+
+
+     c. Kemudian mengisikan jenis setoran dan nomor setoran,
+     d. Tekan tombol             (cari pendapatan),
+     e. Kemudian akan muncul form data pendapatan,
+
+
+
+
+                                    Gambar Form Data Pendapatan
+     f.   Klik transaksi pendapatan yang akan disetor kemudian tekan tombol                 (ambil
+          pendapatan),
+     g. Kemudian tekan tombol                 (simpan). Secara otomatis akan mencetak lembar
+        setoran.
+
+j.   Form Detail Rajal (Rawat Jalan)
+
+
+
+
+     Form detail rajal (rawat jalan) digunakan untuk laporan detail rincian pendapatan rawat jalan
+     sesuai jasa sarana dan nama dokter penerima jasa dari pelayanan terhadap pasien. Untuk
+     mencetak tekan tombol            (cetak).
+     Contoh hasil cetak seperti gambar berikut:
+
+
+
+
+k. Form Detail Ranap (Rawat Inap)
+
+
+
+
+     F
+     Form detail ranap (rawat inap) digunakan untuk laporan detail rincian pendapatan rawat inap
+     sesuai jasa sarana dan nama dokter penerima jasa dari pelayanan terhadap pasien. Untuk
+     mencetak tekan tombol             (cetak).
+
+     Contoh hasil cetak seperti gambar berikut:
+
+
+
+
+l.   Form Jasa Medis
+
+     e
+
+
+
+
+     Form jasa medis digunakan untuk merangkum jasa medis perdokter dengan rincian detail nama
+     pasien yang ditangani, tanggal bayar, tanggal tindakan, layanan komponen biaya, jumlah jasa ,
+     dan total jasa yang diterima. Untuk mencetak hasil laporan jasa medis sebagai contoh gambar
+     diatas dr. Abimanyu,.MM. tekan tombol            (cetak).
+     Contoh hasil cetak seperti gambar berikut :
+                                  MANAJEMENDATA
+
+
+
+
+Menu Manajemendata terdiri dari beberapa form yang menunjang transaksi keuangan. Dengan
+form-form sebagai berikut :
+
+           a.   Group
+
+
+
+
+           Dalam Form Group terdapat group farmasi, gizi, IGD, kasir IGD, keuangan, dan lain-
+           lain untuk menambahkan aksi tekan              sehingga muncul form seperti dibawah
+           ini.
+
+
+
+
+                                     Gambar Form Input Data Group
+  b.   Pengguna
+
+
+
+
+                                 Gambar Form Pengguna
+
+  Form Pengguna digunakan untuk mengetahui data pengguna berdasarkan username,
+
+  group, dan klinik. Untuk menambahkan aksi tekan               sehingga muncul form
+  seperti dibawah ini.
+
+
+
+
+                         Gambar Form Input Data Pengguna
+
+c. Backup & Restore
+   d
+
+
+
+
+                                 Gambar Form Backup & Restore
+
+
+  Form Backup Database digunakan untuk memindahkan atau menyalin kumpulan
+  informasi (data) yang tersimpan. Restore digunakan untuk mengembalikan
+  sistem/data ke titik tertentu sebelumnya.
+d. Profile
+
+
+
+
+                                Form Profile
+
+     Form profile digunakan untuk mengetahui profil dari rumah sakit tersebut pada
+     bagian header laporan 1, laporan 2, laporan 3, jabatan pejabat, nama pejabat, dan
+     NIP pejabat.
+
+e. Menu
+
+
+
+
+f.    Staff Medis
+
+
+
+
+      G
+      a
+      m
+      b
+      a
+      r
+
+      F
+      o
+      r
+
+
+
+
+Form Staff Medis untuk mengetahui dokter berdasarkan kode, klinik, jenis, spesialis, dan
+lain-lain.
+     Untuk menambahkan aksi tekan            sehingga muncul form seperti dibawah ini.
+
+
+
+
+                              Form Input Data Dokter
+
+
+
+
+g. Target Rajal
+
+
+
+
+h.    Template Tanda Tangan
+
+
+
+
+                                 Gambar Form Template
+
+     Form template tanda tangan digunakan untuk mengetahui tanda tangan masing
+     masing bagian seperti direktur, keuangan, kasir, Dir & RM, dan lain-lain. Untuk
+
+     menambahkan aksi tekan          sehingga muncul form seperti dibawah ini.
+                                 Form Input Data Dokter
+
+
+i.     Tempat Tidur
+
+
+
+
+                              Gambar Form Tempat Tidur
+
+     Form Tempat Tidur digunakan untuk mengetahui rekap data ruang, kelas, jumlah
+
+     bed, tahun berlaku, dan lain-lain. Untuk menambahkan aksi tekan     sehingga
+     muncul form seperti dibawah ini.
+
+
+
+
+                                 Form Input Data Tempat Tidur
+j. Data Cara Bayar
+
+
+
+
+                                   Gambar Form Data Cara Bayar
+
+
+     Form Data Cara Bayar digunakan untuk mengetahui data cara bayar dirumah sakit
+     tersebut baik dengan cara asuransi lain, BPJS, JAMKESDA, JAMKESOS, JAMPERSAL,
+     Jasa Raharja, LAZIZMU, dan lain-lain sesuai tarif yang berlaku.
+
+k.        Tarif
+
+
+
+
+                                    Gambar Form Tarif
+
+     Form Tarif digunakan untuk mengetahui tarif yang berlaku di rumah sakit tersebut.
+
+l.     Poliklinik
+
+
+
+
+                                  Gambar Form Poliklinik
+
+     Form Poliklinik digunakan untuk mengetahui beberapa poliklinik di rumah sakkit
+     tersebut berdasarkan kelas, kode BPJS, automatic komponen biaya, dan lain-lain.
+
+     Untuk menambahkan aksi tekan               sehingga muncul form seperti dibawah ini.
+                                     Form Input Data Poliklinik
+
+
+ m. Supplier
+
+
+
+
+                                    Gambar Form Supplier
+
+     Form Supplier digunakan untuk mengetahui data supplier baik nama, nomer telepon,
+     e-mail, NPWP, alamat, CP, dan lain-lain.
+
+n.     Group Komponen Biaya
+
+
+
+
+                              Gambar Form Group Komponen Biaya
+
+     Form Group Komponen Biaya digunakan untuk mengetahui komponen biaya yang
+     terdapat dalam rumah sakit berdasarkan nama group, nama eklaim, layanan, klinik,
+     tab, dan urutan cetak.
+o. Komponen Biaya
+
+
+
+
+                          Gambar Form Komponen Biaya
+
+  Form Komponen Biaya digunakan untuk mengetahui komponen biaya yang terdapat
+  dalam rumah sakit berdasarkan ruang perawatan, tarif, kelas, dan harga.
+
+p. Bank
+
+
+
+
+                                Gambar Form Bank
+
+Form Bank mengetahui beberapa bank yang dapat melakukan transaksi pembayaran
+dengan biaya kartu debit atau kredit yang berbeda.
+
+
+
+ q. Diskon Apotek
+
+
+
+
+                            Gambar Form Diskon Apotek
+
+Form Diskon Apotek untuk mengetahui besarnya potongan harga untuk karyawan,
+pasien luar, dan pemilik.
+SELESAI
+
