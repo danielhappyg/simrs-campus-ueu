@@ -1,5 +1,4 @@
 import { Link, usePage } from '@inertiajs/react';
-import AppLogoIcon from '@/components/app-logo-icon';
 import { SimulationBanner } from '@/components/simulation-banner';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
@@ -19,17 +18,17 @@ export default function AuthSimpleLayout({
                     <div>
                         <Link
                             href={home()}
-                            className="inline-flex items-center gap-3 font-medium"
+                            className="inline-flex flex-col items-start gap-3"
                         >
-                            <AppLogoIcon className="size-11" />
-                            <div>
-                                <p className="font-display text-lg font-bold tracking-wide">
-                                    {name}
-                                </p>
-                                <p className="text-xs text-sky-100">
-                                    Universitas Esa Unggul
-                                </p>
-                            </div>
+                            <img
+                                src="/brand/ueu-wordmark.png"
+                                alt="Universitas Esa Unggul"
+                                decoding="async"
+                                className="h-20 w-auto max-w-[15rem] object-contain object-left"
+                            />
+                            <p className="font-display text-sm font-semibold tracking-wide text-sky-100">
+                                {name}
+                            </p>
                         </Link>
                     </div>
 
@@ -57,14 +56,16 @@ export default function AuthSimpleLayout({
 
                 <section className="flex items-center justify-center bg-white px-6 py-12 lg:rounded-r-xl lg:border lg:border-l-0 lg:border-border lg:px-14">
                     <div className="w-full max-w-sm">
-                        <div className="mb-8 flex items-center gap-3 lg:hidden">
-                            <AppLogoIcon className="size-10" />
-                            <div>
-                                <p className="font-display font-bold">{name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    Universitas Esa Unggul
-                                </p>
-                            </div>
+                        <div className="mb-8 flex flex-col items-start gap-2 lg:hidden">
+                            <img
+                                src="/brand/ueu-wordmark.png"
+                                alt="Universitas Esa Unggul"
+                                decoding="async"
+                                className="h-14 w-auto max-w-[12rem] object-contain object-left"
+                            />
+                            <p className="font-display text-sm font-semibold text-foreground">
+                                {name}
+                            </p>
                         </div>
                         <div className="mb-8 space-y-2">
                             <h1 className="font-display text-2xl font-semibold">

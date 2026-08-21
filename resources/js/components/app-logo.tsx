@@ -3,7 +3,9 @@ import AppLogoIcon from '@/components/app-logo-icon';
 export default function AppLogo() {
     return (
         <>
-            <AppLogoIcon className="size-9 shrink-0" />
+            <div className="flex aspect-square size-9 shrink-0 items-center justify-center rounded-md bg-white p-1 shadow-sm">
+                <AppLogoIcon className="size-7" />
+            </div>
             <div className="ml-1 grid min-w-0 flex-1 text-left">
                 <span className="truncate font-display text-[0.92rem] leading-tight font-bold tracking-wide text-white">
                     SIMRS Campus UEU
