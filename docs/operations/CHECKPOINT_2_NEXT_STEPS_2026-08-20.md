@@ -69,7 +69,7 @@ The following artifacts now exist and are aligned:
 
 ## Practical next pick
 
-Highest-value next actions now that #26–#30 are on `main`, the synthetic demo tip is published, and residual deny probes exist on `CP2-RESIDUAL-001`:
+Highest-value next actions now that residual deny probes and branch fixtures exist:
 
-1. Use the [Checkpoint 2 Daniel Decision Packet — 20 August 2026](CHECKPOINT_2_DANIEL_DECISION_PACKET_2026-08-20.md) to classify `UAT-20260820-001`–`004` and choose the faculty rehearsal target; or
-2. complete facilitator-browser residuals still blocked for automation here: draft-guard dirty-nav / Back / expired-session (UAT-02/03) and on-screen `SIMULASI — DATA SINTETIS` confirmation on a disposable session (local or hosted demo).
+1. Classify `UAT-20260820-001`–`004` and mark scenario PASS/FAIL/DECISION in the dated UAT draft; or
+2. complete facilitator-browser residuals still open: draft-guard dirty-nav / Back / expired-session (UAT-02/03), post-login only-assigned capabilities, and the named UI paths for 01A/01B/02B/02C/C01/C02 if you require browser observation before PASS.

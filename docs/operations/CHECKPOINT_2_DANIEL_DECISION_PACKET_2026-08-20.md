@@ -40,7 +40,7 @@ Primary evidence remains [Outpatient Checkpoint 2 UAT Record — 20 August 2026 
 | UAT-00 safety/assignment | Automated support exists (work-queue scope, unsafe env fail-closed, synthetic boundary elsewhere) | Faculty/browser confirmation before PASS |
 | Draft-guard residuals (UAT-02/03) | Unit coverage in `unsaved-changes-guard.test.tsx` | Observed disposable-session browser dirty-nav / Back / expired-session |
 | Deny-case residuals (UAT-09/10) | Feature coverage + residual actingAs probes on `CP2-RESIDUAL-001` / tip `7d667de` | Observed facilitator-browser deny confirmation if you still require it before PASS; VAL-U05 retain/revise/remove |
-| Branch scenarios (01A/01B, 02B/02C, C01/C02) | Mostly `NOT RUN` | Fresh disposable fixtures if you require them before acceptance |
+| Branch scenarios (01A/01B, 02B/02C, C01/C02) | Feature suites + prepared disposable fixtures (`UAT-NO-SHOW-001`, `UAT-CORR-DX-001`, `UAT-CORR-PX-001`) on tip `da2d15c` | Facilitator/browser observation of each named UI path if you require it before PASS |
 
 ## 4. Automated evidence map (supports, does not replace PASS)
 
