@@ -14,5 +14,7 @@ storage
 storage/**
 tests
 vendor
+bootstrap/cache/*.php
+!bootstrap/cache/.gitignore
 Dockerfile
 render.yaml

@@ -41,3 +41,4 @@ Review date:
 - Historical simulation ADRs: `docs/adr/ADR-001` … `ADR-014`
 - Stack ratification for parity program: `docs/adr/ADR-015-STACK-SELECTION-FOR-PARITY-PROGRAM.md`
 - Clean-slate replace-in-place: `docs/adr/ADR-016-CLEAN-SLATE-REPLACE-IN-PLACE.md`
+- UI reference (vendor SIMRS) / anti-reference (failed MVP): DEC-013 + `docs/new-simrs-rebuild/phase-1/UI_DIRECTION.md`
