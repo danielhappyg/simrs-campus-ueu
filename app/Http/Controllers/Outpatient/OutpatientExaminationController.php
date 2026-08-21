@@ -23,29 +23,35 @@ class OutpatientExaminationController extends Controller
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
-        $encounters = Encounter::query()
-            ->with('patient')
-            ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
-            ->whereIn('status', Encounter::EXAMINATION_STATUSES)
-            ->orderBy('registered_at')
-            ->limit(100)
-            ->get()
-            ->map(fn (Encounter $encounter): array => [
-                'public_id' => $encounter->public_id,
-                'status' => $encounter->status,
-                'clinic_name' => $encounter->clinic_name,
-                'payer_type' => $encounter->payer_type,
-                'registered_at' => $encounter->registered_at?->toIso8601String(),
-                'chief_complaint' => $encounter->chief_complaint,
-                'patient' => [
-                    'public_id' => $encounter->patient?->public_id,
-                    'medical_record_number' => $encounter->patient?->medical_record_number,
-                    'full_name' => $encounter->patient?->full_name,
-                    'date_of_birth' => $encounter->patient?->date_of_birth?->toDateString(),
-                    'sex' => $encounter->patient?->sex,
-                ],
-            ])
-            ->all();
+        $encounters = [];
+
+        try {
+            $encounters = Encounter::query()
+                ->with('patient')
+                ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
+                ->whereIn('status', Encounter::EXAMINATION_STATUSES)
+                ->orderBy('registered_at')
+                ->limit(100)
+                ->get()
+                ->map(fn (Encounter $encounter): array => [
+                    'public_id' => $encounter->public_id,
+                    'status' => $encounter->status,
+                    'clinic_name' => $encounter->clinic_name,
+                    'payer_type' => $encounter->payer_type,
+                    'registered_at' => $encounter->registered_at?->toIso8601String(),
+                    'chief_complaint' => $encounter->chief_complaint,
+                    'patient' => [
+                        'public_id' => $encounter->patient?->public_id,
+                        'medical_record_number' => $encounter->patient?->medical_record_number,
+                        'full_name' => $encounter->patient?->full_name,
+                        'date_of_birth' => $encounter->patient?->date_of_birth?->toDateString(),
+                        'sex' => $encounter->patient?->sex,
+                    ],
+                ])
+                ->all();
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return Inertia::render('pemeriksaan/rawat-jalan/index', [
             'encounters' => $encounters,

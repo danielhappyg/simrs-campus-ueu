@@ -26,37 +26,43 @@ class OutpatientRegistrationController extends Controller
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
         $search = trim((string) $request->query('q', ''));
-
         $searchResults = [];
-        if ($search !== '') {
-            $searchResults = Patient::query()
-                ->where('is_synthetic', true)
-                ->where(function ($query) use ($search): void {
-                    $query->where('full_name', 'like', '%'.$search.'%')
-                        ->orWhere('medical_record_number', 'like', '%'.$search.'%');
-                })
-                ->orderBy('full_name')
-                ->limit(20)
-                ->get()
-                ->map(fn (Patient $patient): array => [
-                    'public_id' => $patient->public_id,
-                    'medical_record_number' => $patient->medical_record_number,
-                    'full_name' => $patient->full_name,
-                    'date_of_birth' => $patient->date_of_birth?->toDateString(),
-                    'sex' => $patient->sex,
-                ])
-                ->all();
-        }
+        $todaysEncounters = [];
 
-        $todaysEncounters = Encounter::query()
-            ->with('patient')
-            ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
-            ->whereDate('registered_at', today())
-            ->orderByDesc('registered_at')
-            ->limit(50)
-            ->get()
-            ->map(fn (Encounter $encounter): array => $this->encounterSummary($encounter))
-            ->all();
+        try {
+            if ($search !== '') {
+                $searchResults = Patient::query()
+                    ->where('is_synthetic', true)
+                    ->where(function ($query) use ($search): void {
+                        $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+                        $query->where('full_name', $like, '%'.$search.'%')
+                            ->orWhere('medical_record_number', $like, '%'.$search.'%');
+                    })
+                    ->orderBy('full_name')
+                    ->limit(20)
+                    ->get()
+                    ->map(fn (Patient $patient): array => [
+                        'public_id' => $patient->public_id,
+                        'medical_record_number' => $patient->medical_record_number,
+                        'full_name' => $patient->full_name,
+                        'date_of_birth' => $patient->date_of_birth?->toDateString(),
+                        'sex' => $patient->sex,
+                    ])
+                    ->all();
+            }
+
+            $todaysEncounters = Encounter::query()
+                ->with('patient')
+                ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
+                ->whereDate('registered_at', today())
+                ->orderByDesc('registered_at')
+                ->limit(50)
+                ->get()
+                ->map(fn (Encounter $encounter): array => $this->encounterSummary($encounter))
+                ->all();
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return Inertia::render('pendaftaran/rawat-jalan', [
             'q' => $search,

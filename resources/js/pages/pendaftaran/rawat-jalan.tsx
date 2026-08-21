@@ -238,7 +238,7 @@ export default function PendaftaranRawatJalan({
                     )}
                 </section>
 
-                {canRegister && (
+                {canRegister ? (
                     <section className="rounded-xl border border-[#e2e8f0] bg-white p-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <h2 className="text-sm font-semibold text-[#123b63]">
@@ -420,6 +420,16 @@ export default function PendaftaranRawatJalan({
                                 </Button>
                             </div>
                         </form>
+                    </section>
+                ) : (
+                    <section className="rounded-xl border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-5">
+                        <h2 className="text-sm font-semibold text-[#123b63]">
+                            Form pendaftaran tidak tersedia
+                        </h2>
+                        <p className="mt-2 text-sm text-[#64748b]">
+                            Akun ini dapat melihat antrean, tetapi belum punya
+                            hak untuk mendaftarkan pasien baru.
+                        </p>
                     </section>
                 )}
 

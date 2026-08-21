@@ -45,4 +45,37 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn ($request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->reportable(function (\Throwable $e): void {
+            error_log(sprintf(
+                '[simrs] %s: %s in %s:%d',
+                $e::class,
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine(),
+            ));
+        });
+
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            $isForbidden = $e instanceof \Illuminate\Auth\Access\AuthorizationException
+                || (
+                    $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface
+                    && $e->getStatusCode() === 403
+                );
+
+            if (! $isForbidden) {
+                return null;
+            }
+
+            error_log('[simrs] forbidden: '.$e->getMessage().' on '.$request->path());
+
+            // Inertia navigations: flash to Beranda. Keep bare 403 for API/tests.
+            if ($request->header('X-Inertia')) {
+                return redirect()
+                    ->route('home')
+                    ->with('error', 'Anda tidak memiliki akses ke modul tersebut.');
+            }
+
+            return null;
+        });
     })->create();

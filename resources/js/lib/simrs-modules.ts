@@ -1,6 +1,8 @@
 export type SimrsModuleCategory = {
     slug: string;
     label: string;
+    /** Phase 3 outpatient slice — dedicated live route */
+    live?: boolean;
 };
 
 /**
@@ -8,9 +10,9 @@ export type SimrsModuleCategory = {
  * App\Support\SimrsModuleCategories.
  */
 export const SIMRS_MODULE_CATEGORIES: readonly SimrsModuleCategory[] = [
-    { slug: 'pendaftaran', label: 'Pendaftaran' },
-    { slug: 'pemeriksaan', label: 'Pemeriksaan' },
-    { slug: 'rm', label: 'RM' },
+    { slug: 'pendaftaran', label: 'Pendaftaran', live: true },
+    { slug: 'pemeriksaan', label: 'Pemeriksaan', live: true },
+    { slug: 'rm', label: 'RM', live: true },
     { slug: 'klaim', label: 'Klaim' },
     { slug: 'laporan', label: 'Laporan' },
     { slug: 'bpjs', label: 'BPJS' },
@@ -31,4 +33,8 @@ const DEDICATED_HREFS: Record<string, string> = {
 
 export function moduleHref(slug: string): string {
     return DEDICATED_HREFS[slug] ?? `/modul/${slug}`;
+}
+
+export function isLiveModule(slug: string): boolean {
+    return Boolean(DEDICATED_HREFS[slug]);
 }

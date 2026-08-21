@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Authorization\Capability;
+use App\Support\Database\SchemaQualifier;
 use App\Support\Models\HasPublicUlid;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -59,7 +61,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             return $this->roles->contains(fn (Role $role): bool => $role->slug === $slug);
         }
 
-        return $this->roles()->where('slug', $slug)->exists();
+        try {
+            return $this->roles()->where('roles.slug', $slug)->exists();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function canCapability(string $capability): bool
@@ -68,9 +74,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             return true;
         }
 
-        return $this->roles()
-            ->whereHas('permissions', fn ($query) => $query->where('name', $capability))
-            ->exists();
+        return in_array($capability, $this->capabilityList(), true);
     }
 
     /**
@@ -83,16 +87,32 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         }
 
         try {
-            $this->loadMissing('roles.permissions');
-        } catch (\Throwable) {
+            $roleUser = SchemaQualifier::table('role_user');
+            $permissionRole = SchemaQualifier::table('permission_role');
+            $permissions = SchemaQualifier::table('permissions');
+
+            $rows = DB::select(
+                "SELECT DISTINCT p.name AS name
+                 FROM {$roleUser} AS ru
+                 INNER JOIN {$permissionRole} AS pr ON pr.role_id = ru.role_id
+                 INNER JOIN {$permissions} AS p ON p.id = pr.permission_id
+                 WHERE ru.user_id = ?",
+                [$this->getKey()],
+            );
+
+            /** @var list<string> $names */
+            $names = array_values(array_unique(array_map(
+                static fn (object $row): string => (string) $row->name,
+                $rows,
+            )));
+
+            return $names;
+        } catch (\Throwable $exception) {
+            report($exception);
+            error_log('[simrs] capabilityList failed for user '.$this->getKey().': '.$exception->getMessage());
+
             return [];
         }
-
-        return $this->roles
-            ->flatMap(fn (Role $role) => $role->permissions->pluck('name'))
-            ->unique()
-            ->values()
-            ->all();
     }
 
     /**
@@ -101,18 +121,36 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function roleSlugs(): array
     {
         try {
-            $this->loadMissing('roles');
-        } catch (\Throwable) {
+            $roleUser = SchemaQualifier::table('role_user');
+            $roles = SchemaQualifier::table('roles');
+
+            $rows = DB::select(
+                "SELECT r.slug AS slug
+                 FROM {$roleUser} AS ru
+                 INNER JOIN {$roles} AS r ON r.id = ru.role_id
+                 WHERE ru.user_id = ?",
+                [$this->getKey()],
+            );
+
+            /** @var list<string> $slugs */
+            $slugs = array_values(array_unique(array_map(
+                static fn (object $row): string => (string) $row->slug,
+                $rows,
+            )));
+
+            return $slugs;
+        } catch (\Throwable $exception) {
+            report($exception);
+            error_log('[simrs] roleSlugs failed for user '.$this->getKey().': '.$exception->getMessage());
+
             return [];
         }
-
-        return $this->roles->pluck('slug')->values()->all();
     }
 
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function casts(): array
     {

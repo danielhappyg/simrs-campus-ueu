@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/types';
 
 type Counts = {
@@ -20,6 +20,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function RebuildHome({ counts }: Props) {
+    const { flash } = usePage().props;
+
     const cards = [
         {
             label: 'Kunjungan hari ini',
@@ -57,6 +59,24 @@ export default function RebuildHome({ counts }: Props) {
                     </p>
                 </header>
 
+                {flash?.error ? (
+                    <div
+                        role="alert"
+                        className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm text-[#991b1b]"
+                    >
+                        {flash.error}
+                    </div>
+                ) : null}
+
+                {flash?.success ? (
+                    <div
+                        role="status"
+                        className="rounded-xl border border-[#a7f3d0] bg-[#ecfdf5] px-4 py-3 text-sm text-[#065f46]"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <section
                     aria-labelledby="stats-heading"
                     className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
@@ -82,7 +102,7 @@ export default function RebuildHome({ counts }: Props) {
 
                 <section className="rounded-xl border border-[#e2e8f0] bg-white p-5">
                     <h2 className="text-sm font-semibold text-[#123b63]">
-                        Alur cepat
+                        Alur cepat (aktif)
                     </h2>
                     <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
                         <li>
@@ -110,6 +130,10 @@ export default function RebuildHome({ counts }: Props) {
                             </Link>
                         </li>
                     </ul>
+                    <p className="mt-4 text-xs text-[#94a3b8]">
+                        Modul lain di bilah navigasi (Klaim, BPJS, Apotek, dll.)
+                        masih penanda tempat untuk fase berikutnya.
+                    </p>
                 </section>
             </div>
         </>

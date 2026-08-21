@@ -4,9 +4,12 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Support\Authorization\Capability;
+use App\Support\Database\SchemaQualifier;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -27,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configurePostgresSearchPath();
         $this->configureAuthorization();
     }
 
@@ -50,6 +54,51 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Re-apply PostgreSQL search_path on every established connection.
+     * Boot-time SET alone is unreliable under serverless + poolers.
+     */
+    protected function configurePostgresSearchPath(): void
+    {
+        Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event): void {
+            if ($event->connection->getDriverName() !== 'pgsql') {
+                return;
+            }
+
+            $schemas = SchemaQualifier::searchPathSchemas();
+
+            if ($schemas === []) {
+                return;
+            }
+
+            $quoted = collect($schemas)
+                ->map(fn (string $name): string => '"'.str_replace('"', '""', $name).'"')
+                ->implode(', ');
+
+            try {
+                $event->connection->statement('SET search_path TO '.$quoted);
+            } catch (\Throwable) {
+                // Connection may be read-only or mid-transaction in edge cases.
+            }
+        });
+
+        if (config('database.default') === 'pgsql') {
+            $schemas = SchemaQualifier::searchPathSchemas();
+
+            if ($schemas !== []) {
+                $quoted = collect($schemas)
+                    ->map(fn (string $name): string => '"'.str_replace('"', '""', $name).'"')
+                    ->implode(', ');
+
+                try {
+                    DB::statement('SET search_path TO '.$quoted);
+                } catch (\Throwable) {
+                    // Connection may be unavailable during early boot / package discovery.
+                }
+            }
+        }
     }
 
     /**

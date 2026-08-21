@@ -60,6 +60,10 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $user instanceof User ? $user->roleSlugs() : [],
                 'capabilities' => $user instanceof User ? $user->capabilityList() : [],
             ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
             'requestId' => $request->attributes->get('request_id'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

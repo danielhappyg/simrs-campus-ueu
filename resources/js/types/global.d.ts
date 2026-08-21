@@ -18,6 +18,10 @@ declare module '@inertiajs/core' {
                 restriction: string;
             };
             auth: Auth;
+            flash: {
+                success: string | null;
+                error: string | null;
+            };
             requestId: string | null;
             sidebarOpen: boolean;
             [key: string]: unknown;

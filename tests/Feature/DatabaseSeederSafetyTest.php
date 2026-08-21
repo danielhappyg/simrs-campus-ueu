@@ -42,5 +42,10 @@ class DatabaseSeederSafetyTest extends TestCase
             'status' => 'ACTIVE',
             'is_system_administrator' => true,
         ]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'mahasiswa.rmik@example.invalid',
+            'status' => 'ACTIVE',
+        ]);
     }
 }

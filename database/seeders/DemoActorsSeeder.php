@@ -22,31 +22,43 @@ class DemoActorsSeeder extends Seeder
             [
                 'email' => 'registrar.demo@example.invalid',
                 'name' => 'Demo Registrar',
-                'role' => RoleCapabilityMatrix::ROLE_REGISTRAR,
+                'roles' => [RoleCapabilityMatrix::ROLE_REGISTRAR],
                 'is_system_administrator' => false,
             ],
             [
                 'email' => 'nurse.demo@example.invalid',
                 'name' => 'Demo Nurse',
-                'role' => RoleCapabilityMatrix::ROLE_NURSE,
+                'roles' => [RoleCapabilityMatrix::ROLE_NURSE],
                 'is_system_administrator' => false,
             ],
             [
                 'email' => 'physician.demo@example.invalid',
                 'name' => 'Demo Physician',
-                'role' => RoleCapabilityMatrix::ROLE_PHYSICIAN,
+                'roles' => [RoleCapabilityMatrix::ROLE_PHYSICIAN],
                 'is_system_administrator' => false,
             ],
             [
                 'email' => 'rmik.demo@example.invalid',
                 'name' => 'Demo RMIK',
-                'role' => RoleCapabilityMatrix::ROLE_RMIK,
+                'roles' => [RoleCapabilityMatrix::ROLE_RMIK],
+                'is_system_administrator' => false,
+            ],
+            // Campus teaching walkthrough: one account can register → document → close RM.
+            [
+                'email' => 'mahasiswa.rmik@example.invalid',
+                'name' => 'Mahasiswa RMIK Demo',
+                'roles' => [
+                    RoleCapabilityMatrix::ROLE_REGISTRAR,
+                    RoleCapabilityMatrix::ROLE_NURSE,
+                    RoleCapabilityMatrix::ROLE_PHYSICIAN,
+                    RoleCapabilityMatrix::ROLE_RMIK,
+                ],
                 'is_system_administrator' => false,
             ],
             [
                 'email' => config('simulation.rebuild_admin_email'),
                 'name' => 'Rebuild Admin',
-                'role' => RoleCapabilityMatrix::ROLE_ADMIN,
+                'roles' => [RoleCapabilityMatrix::ROLE_ADMIN],
                 'is_system_administrator' => true,
             ],
         ];
@@ -63,8 +75,12 @@ class DemoActorsSeeder extends Seeder
                 ],
             );
 
-            $role = Role::query()->where('slug', $actor['role'])->firstOrFail();
-            $user->roles()->sync([$role->id]);
+            $roleIds = Role::query()
+                ->whereIn('slug', $actor['roles'])
+                ->pluck('id')
+                ->all();
+
+            $user->roles()->sync($roleIds);
         }
     }
 }

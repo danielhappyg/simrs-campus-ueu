@@ -21,29 +21,35 @@ class OutpatientRmController extends Controller
         Gate::authorize(Capability::ENCOUNTER_LIST);
         Gate::authorize(Capability::RMIK_REVIEW);
 
-        $encounters = Encounter::query()
-            ->with(['patient', 'clinicalEntries'])
-            ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
-            ->where('status', Encounter::STATUS_READY_FOR_RM)
-            ->orderBy('updated_at')
-            ->limit(100)
-            ->get()
-            ->map(fn (Encounter $encounter): array => [
-                'public_id' => $encounter->public_id,
-                'status' => $encounter->status,
-                'clinic_name' => $encounter->clinic_name,
-                'payer_type' => $encounter->payer_type,
-                'registered_at' => $encounter->registered_at?->toIso8601String(),
-                'entry_count' => $encounter->clinicalEntries->count(),
-                'patient' => [
-                    'public_id' => $encounter->patient?->public_id,
-                    'medical_record_number' => $encounter->patient?->medical_record_number,
-                    'full_name' => $encounter->patient?->full_name,
-                    'date_of_birth' => $encounter->patient?->date_of_birth?->toDateString(),
-                    'sex' => $encounter->patient?->sex,
-                ],
-            ])
-            ->all();
+        $encounters = [];
+
+        try {
+            $encounters = Encounter::query()
+                ->with(['patient', 'clinicalEntries'])
+                ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
+                ->where('status', Encounter::STATUS_READY_FOR_RM)
+                ->orderBy('updated_at')
+                ->limit(100)
+                ->get()
+                ->map(fn (Encounter $encounter): array => [
+                    'public_id' => $encounter->public_id,
+                    'status' => $encounter->status,
+                    'clinic_name' => $encounter->clinic_name,
+                    'payer_type' => $encounter->payer_type,
+                    'registered_at' => $encounter->registered_at?->toIso8601String(),
+                    'entry_count' => $encounter->clinicalEntries->count(),
+                    'patient' => [
+                        'public_id' => $encounter->patient?->public_id,
+                        'medical_record_number' => $encounter->patient?->medical_record_number,
+                        'full_name' => $encounter->patient?->full_name,
+                        'date_of_birth' => $encounter->patient?->date_of_birth?->toDateString(),
+                        'sex' => $encounter->patient?->sex,
+                    ],
+                ])
+                ->all();
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return Inertia::render('rm/rawat-jalan', [
             'encounters' => $encounters,

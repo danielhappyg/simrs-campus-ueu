@@ -13,17 +13,23 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { moduleHref, SIMRS_MODULE_CATEGORIES } from '@/lib/simrs-modules';
+import {
+    isLiveModule,
+    moduleHref,
+    SIMRS_MODULE_CATEGORIES,
+} from '@/lib/simrs-modules';
 import { cn } from '@/lib/utils';
 
 function NavLink({
     href,
     children,
     onNavigate,
+    muted = false,
 }: {
     href: string;
     children: ReactNode;
     onNavigate?: () => void;
+    muted?: boolean;
 }) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const active = isCurrentOrParentUrl(href);
@@ -38,11 +44,32 @@ function NavLink({
                 'rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none',
                 active
                     ? 'bg-white/15 text-white'
-                    : 'text-sky-100/90 hover:bg-white/10 hover:text-white',
+                    : muted
+                      ? 'text-sky-100/55 hover:bg-white/10 hover:text-sky-100/90'
+                      : 'text-sky-100/90 hover:bg-white/10 hover:text-white',
             )}
         >
             {children}
         </Link>
+    );
+}
+
+function ModuleNavLabel({
+    label,
+    live,
+}: {
+    label: string;
+    live: boolean;
+}) {
+    return (
+        <span className="inline-flex items-center gap-1.5">
+            {label}
+            {!live ? (
+                <span className="rounded bg-white/10 px-1 py-0.5 text-[10px] font-semibold tracking-wide text-sky-100/70 uppercase">
+                    Soon
+                </span>
+            ) : null}
+        </span>
     );
 }
 
@@ -75,7 +102,8 @@ export function AppHeader() {
                                     Navigasi utama
                                 </SheetTitle>
                                 <SheetDescription className="text-sky-100/80">
-                                    Modul SIMRS Campus UEU
+                                    Modul aktif: Pendaftaran, Pemeriksaan, RM.
+                                    Lainnya masih penanda tempat.
                                 </SheetDescription>
                             </SheetHeader>
                             <nav
@@ -85,15 +113,23 @@ export function AppHeader() {
                                 <NavLink href="/" onNavigate={closeMobile}>
                                     Beranda
                                 </NavLink>
-                                {SIMRS_MODULE_CATEGORIES.map((category) => (
-                                    <NavLink
-                                        key={category.slug}
-                                        href={moduleHref(category.slug)}
-                                        onNavigate={closeMobile}
-                                    >
-                                        {category.label}
-                                    </NavLink>
-                                ))}
+                                {SIMRS_MODULE_CATEGORIES.map((category) => {
+                                    const live = isLiveModule(category.slug);
+
+                                    return (
+                                        <NavLink
+                                            key={category.slug}
+                                            href={moduleHref(category.slug)}
+                                            onNavigate={closeMobile}
+                                            muted={!live}
+                                        >
+                                            <ModuleNavLabel
+                                                label={category.label}
+                                                live={live}
+                                            />
+                                        </NavLink>
+                                    );
+                                })}
                             </nav>
                         </SheetContent>
                     </Sheet>
@@ -112,14 +148,22 @@ export function AppHeader() {
                     className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex"
                 >
                     <NavLink href="/">Beranda</NavLink>
-                    {SIMRS_MODULE_CATEGORIES.map((category) => (
-                        <NavLink
-                            key={category.slug}
-                            href={moduleHref(category.slug)}
-                        >
-                            {category.label}
-                        </NavLink>
-                    ))}
+                    {SIMRS_MODULE_CATEGORIES.map((category) => {
+                        const live = isLiveModule(category.slug);
+
+                        return (
+                            <NavLink
+                                key={category.slug}
+                                href={moduleHref(category.slug)}
+                                muted={!live}
+                            >
+                                <ModuleNavLabel
+                                    label={category.label}
+                                    live={live}
+                                />
+                            </NavLink>
+                        );
+                    })}
                 </nav>
 
                 <div className="ml-auto shrink-0">

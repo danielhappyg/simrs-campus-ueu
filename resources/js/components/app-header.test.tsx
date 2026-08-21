@@ -53,10 +53,12 @@ describe('application header navigation', () => {
 
         for (const category of SIMRS_MODULE_CATEGORIES) {
             expect(
-                screen.getAllByRole('link', { name: category.label }).length,
+                screen.getAllByRole('link', { name: new RegExp(category.label, 'i') })
+                    .length,
             ).toBeGreaterThan(0);
         }
 
+        expect(screen.getAllByText('Soon').length).toBeGreaterThan(0);
         expect(
             screen.getAllByRole('link', { name: /Beranda/i }).length,
         ).toBeGreaterThan(0);
