@@ -429,6 +429,10 @@ export default function PendaftaranRawatJalan({
                             label: 'IGD',
                             active: isIgd,
                         },
+                        {
+                            href: '/pendaftaran/rawat-inap',
+                            label: 'Rawat Inap',
+                        },
                     ]}
                 />
 

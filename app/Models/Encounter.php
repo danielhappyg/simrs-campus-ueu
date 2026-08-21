@@ -34,6 +34,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $chief_complaint
  * @property string|null $case_type
  * @property string|null $accident_type
+ * @property string|null $ward_name
+ * @property string|null $ward_class
+ * @property string|null $bed_code
+ * @property string|null $continue_from
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -45,6 +49,8 @@ class Encounter extends Model
     public const CARE_SETTING_OUTPATIENT = 'OUTPATIENT';
 
     public const CARE_SETTING_EMERGENCY = 'EMERGENCY';
+
+    public const CARE_SETTING_INPATIENT = 'INPATIENT';
 
     public const STATUS_REGISTERED = 'REGISTERED';
 
@@ -73,6 +79,21 @@ class Encounter extends Model
     public const ACCIDENT_NONE = 'BUKAN_KECELAKAAN';
 
     public const ACCIDENT_YES = 'KECELAKAAN';
+
+    public const CONTINUE_LANGSUNG = 'LANGSUNG';
+
+    public const CONTINUE_DARI_IGD = 'DARI_IGD';
+
+    public const CONTINUE_DARI_RJ = 'DARI_RJ';
+
+    /**
+     * @var list<string>
+     */
+    public const CONTINUE_FROM_VALUES = [
+        self::CONTINUE_LANGSUNG,
+        self::CONTINUE_DARI_IGD,
+        self::CONTINUE_DARI_RJ,
+    ];
 
     /**
      * @var list<string>
@@ -145,6 +166,10 @@ class Encounter extends Model
         'chief_complaint',
         'case_type',
         'accident_type',
+        'ward_name',
+        'ward_class',
+        'bed_code',
+        'continue_from',
     ];
 
     protected $attributes = [

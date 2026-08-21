@@ -26,6 +26,10 @@ type EncounterDetail = {
     clinic_name: string;
     doctor_name: string | null;
     schedule_label: string | null;
+    ward_name?: string | null;
+    ward_class?: string | null;
+    bed_code?: string | null;
+    continue_from?: string | null;
     payer_type: string;
     case_type?: string | null;
     accident_type?: string | null;
@@ -45,7 +49,7 @@ type EncounterDetail = {
 };
 
 type Props = {
-    variant?: 'rawat-jalan' | 'igd';
+    variant?: 'rawat-jalan' | 'igd' | 'rawat-inap';
     indexPath?: string;
     showPathPrefix?: string;
     storeEntryPath?: string;
@@ -79,6 +83,12 @@ const payerLabel: Record<string, string> = {
     LAINNYA: 'Lainnya',
 };
 
+const continueLabel: Record<string, string> = {
+    LANGSUNG: 'Langsung',
+    DARI_IGD: 'Dari IGD',
+    DARI_RJ: 'Dari RJ',
+};
+
 const clinicalTabs = [
     'Asesmen',
     'SOAP',
@@ -100,6 +110,7 @@ export default function PemeriksaanRawatJalanShow({
     canWriteMedical,
 }: Props) {
     const isIgd = variant === 'igd';
+    const isInpatient = variant === 'rawat-inap';
     const entryPostPath =
         storeEntryPath ??
         `/pemeriksaan/rawat-jalan/${encounter.public_id}/entries`;
@@ -134,7 +145,12 @@ export default function PemeriksaanRawatJalanShow({
                         href={indexPath}
                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                     >
-                        ← Kembali ke worklist {isIgd ? 'IGD' : 'rawat jalan'}
+                        ← Kembali ke worklist{' '}
+                        {isInpatient
+                            ? 'rawat inap'
+                            : isIgd
+                              ? 'IGD'
+                              : 'rawat jalan'}
                     </Link>
                 </div>
 
@@ -162,6 +178,9 @@ export default function PemeriksaanRawatJalanShow({
                                     : ''}
                                 {isIgd && encounter.case_type
                                     ? ` · Kasus ${encounter.case_type}`
+                                    : ''}
+                                {isInpatient && encounter.bed_code
+                                    ? ` · TT ${encounter.bed_code}`
                                     : ''}
                             </p>
                         </div>
@@ -206,24 +225,33 @@ export default function PemeriksaanRawatJalanShow({
                         </div>
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
-                                Klinik / Dokter
+                                {isInpatient ? 'Bangsal / Kelas' : 'Klinik / Dokter'}
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
-                                {encounter.clinic_name}
-                                {encounter.doctor_name
+                                {isInpatient
+                                    ? `${encounter.ward_name ?? encounter.clinic_name} · ${encounter.ward_class ?? '—'}`
+                                    : encounter.clinic_name}
+                                {!isInpatient && encounter.doctor_name
                                     ? ` · ${encounter.doctor_name}`
                                     : ''}
                             </dd>
                         </div>
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
-                                Jadwal / Penjamin
+                                {isInpatient ? 'TT / Penjamin' : 'Jadwal / Penjamin'}
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
-                                {encounter.schedule_label ?? '—'}
+                                {isInpatient
+                                    ? (encounter.bed_code ??
+                                      encounter.schedule_label ??
+                                      '—')
+                                    : (encounter.schedule_label ?? '—')}
                                 {' · '}
                                 {payerLabel[encounter.payer_type] ??
                                     encounter.payer_type}
+                                {isInpatient && encounter.continue_from
+                                    ? ` · ${continueLabel[encounter.continue_from] ?? encounter.continue_from}`
+                                    : ''}
                             </dd>
                         </div>
                         <div>
@@ -399,12 +427,16 @@ PemeriksaanRawatJalanShow.layout = (props: Props) => {
         props.indexPath ??
         (props.variant === 'igd'
             ? '/pemeriksaan/igd'
-            : '/pemeriksaan/rawat-jalan');
+            : props.variant === 'rawat-inap'
+              ? '/pemeriksaan/rawat-inap'
+              : '/pemeriksaan/rawat-jalan');
     const showPrefix =
         props.showPathPrefix ??
         (props.variant === 'igd'
             ? '/pemeriksaan/igd'
-            : '/pemeriksaan/rawat-jalan');
+            : props.variant === 'rawat-inap'
+              ? '/pemeriksaan/rawat-inap'
+              : '/pemeriksaan/rawat-jalan');
 
     return {
         breadcrumbs: [
