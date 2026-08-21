@@ -1,6 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
-import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -21,8 +20,6 @@ export default function Login({ status, canResetPassword }: Props) {
         <>
             <Head title="Masuk" />
 
-            <PasskeyVerify />
-
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
@@ -32,7 +29,7 @@ export default function Login({ status, canResetPassword }: Props) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email institusi</Label>
+                                <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -90,9 +87,7 @@ export default function Login({ status, canResetPassword }: Props) {
 
                             <div className="flex items-center space-x-3">
                                 <Checkbox id="remember" name="remember" />
-                                <Label htmlFor="remember">
-                                    Ingat sesi saya
-                                </Label>
+                                <Label htmlFor="remember">Ingat saya</Label>
                             </div>
 
                             <Button
@@ -102,12 +97,12 @@ export default function Login({ status, canResetPassword }: Props) {
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Masuk ke ruang simulasi
+                                Masuk
                             </Button>
                         </div>
                         <p className="text-center text-xs leading-5 text-muted-foreground">
-                            Akun disediakan oleh administrator kampus. Tidak
-                            tersedia pendaftaran mandiri.
+                            Akun disediakan oleh administrator. Pendaftaran
+                            mandiri tidak tersedia.
                         </p>
                     </>
                 )}
@@ -123,7 +118,6 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Masuk ke SIMRS Campus UEU',
-    description:
-        'Gunakan akun simulasi yang diberikan administrator untuk membuka ruang kerja Anda.',
+    title: 'Masuk',
+    description: 'Masuk ke SIMRS Campus UEU dengan akun yang diberikan.',
 };

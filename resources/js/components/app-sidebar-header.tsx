@@ -13,9 +13,6 @@ export function AppSidebarHeader({
                 <SidebarTrigger className="-ml-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
-            <p className="hidden font-mono text-[0.68rem] text-muted-foreground lg:block">
-                SIMRS CAMPUS UEU · SIMULASI
-            </p>
         </header>
     );
 }

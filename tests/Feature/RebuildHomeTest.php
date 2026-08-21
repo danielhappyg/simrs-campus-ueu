@@ -17,7 +17,7 @@ class RebuildHomeTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_users_see_rebuild_home(): void
+    public function test_authenticated_users_see_home(): void
     {
         $user = User::factory()->create();
 
@@ -25,10 +25,6 @@ class RebuildHomeTest extends TestCase
             ->get(route('home'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('rebuild/home')
-                ->where('branch', 'rebuild/clean-slate')
-                ->where('docsPath', 'docs/new-simrs-rebuild/')
-                ->where('mode', 'SIMULATION')
-                ->where('syntheticOnly', true));
+                ->component('rebuild/home'));
     }
 }

@@ -29,7 +29,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         <div className="px-4 py-6">
             <Heading
                 title="Pengaturan akun"
-                description="Kelola profil dan perlindungan akun simulasi Anda"
+                description="Kelola profil dan keamanan akun Anda"
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">

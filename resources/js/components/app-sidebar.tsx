@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { FlaskConical, Home, BookOpen } from 'lucide-react';
+import { Home, UserRound } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -14,16 +14,16 @@ import {
 } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
 
-const foundationNavItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
     {
-        title: 'Beranda rebuild',
+        title: 'Beranda',
         href: '/',
         icon: Home,
     },
     {
         title: 'Profil',
         href: '/settings/profile',
-        icon: BookOpen,
+        icon: UserRound,
     },
 ];
 
@@ -43,15 +43,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={foundationNavItems} label="Fondasi rebuild" />
-                <div className="mx-3 mt-auto mb-3 hidden rounded-md border border-white/15 bg-white/5 p-3 text-xs leading-relaxed text-sky-100 group-data-[collapsible=icon]:hidden md:block">
-                    <FlaskConical
-                        className="mb-2 size-4 text-[color:var(--signal)]"
-                        aria-hidden="true"
-                    />
-                    Clean-slate Phase 0/2. Data wajib sintetis. Bukan MVP
-                    outpatient lama dan bukan klon vendor.
-                </div>
+                <NavMain items={mainNavItems} label="Menu" />
             </SidebarContent>
 
             <SidebarFooter>

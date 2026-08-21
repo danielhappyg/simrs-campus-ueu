@@ -21,8 +21,8 @@ vi.mock('@inertiajs/react', () => ({
             environment: {
                 mode: 'SIMULATION',
                 syntheticOnly: true,
-                banner: 'SIMULASI — DATA SINTETIS',
-                restriction: 'Tidak untuk pelayanan pasien nyata',
+                banner: '',
+                restriction: '',
             },
         },
     }),
@@ -32,8 +32,8 @@ describe('authentication layout', () => {
     it('keeps the form title as the single page heading at every breakpoint', () => {
         render(
             <AuthSimpleLayout
-                title="Masuk ke SIMRS Campus UEU"
-                description="Gunakan akun simulasi."
+                title="Masuk"
+                description="Masuk ke SIMRS Campus UEU dengan akun yang diberikan."
             >
                 <form aria-label="Formulir masuk" />
             </AuthSimpleLayout>,
@@ -43,8 +43,9 @@ describe('authentication layout', () => {
         expect(
             screen.getByRole('heading', {
                 level: 1,
-                name: 'Masuk ke SIMRS Campus UEU',
+                name: 'Masuk',
             }),
         ).toBeInTheDocument();
+        expect(screen.queryByText(/simulasi/i)).not.toBeInTheDocument();
     });
 });

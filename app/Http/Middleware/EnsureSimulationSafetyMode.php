@@ -20,7 +20,7 @@ class EnsureSimulationSafetyMode
         $syntheticOnly = config('simulation.synthetic_only');
 
         if (! is_string($mode) || ! in_array($mode, $allowedModes, true) || $syntheticOnly !== true) {
-            $message = 'Aplikasi dihentikan karena batas keselamatan simulasi tidak valid.';
+            $message = 'Aplikasi dihentikan karena konfigurasi lingkungan tidak valid.';
 
             if ($request->expectsJson()) {
                 return new JsonResponse([

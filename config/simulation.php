@@ -11,9 +11,9 @@ return [
 
     'rebuild_admin_email' => 'admin.rebuild@example.invalid',
 
-    'banner' => 'SIMULASI — DATA SINTETIS',
+    'banner' => '',
 
-    'restriction' => 'Tidak untuk pelayanan pasien nyata',
+    'restriction' => '',
 
     'allowed_modes' => ['SIMULATION'],
 ];

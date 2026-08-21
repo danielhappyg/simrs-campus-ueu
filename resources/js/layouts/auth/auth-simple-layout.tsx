@@ -1,5 +1,4 @@
 import { Link, usePage } from '@inertiajs/react';
-import { SimulationBanner } from '@/components/simulation-banner';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -8,12 +7,11 @@ export default function AuthSimpleLayout({
     title,
     description,
 }: AuthLayoutProps) {
-    const { environment, name } = usePage().props;
+    const { name } = usePage().props;
 
     return (
         <div className="min-h-svh bg-background">
-            <SimulationBanner {...environment} compact />
-            <main className="mx-auto grid min-h-[calc(100svh-2.5rem)] w-full max-w-6xl items-stretch lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
+            <main className="mx-auto grid min-h-svh w-full max-w-6xl items-stretch lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
                 <section className="relative hidden overflow-hidden rounded-l-xl bg-[#063650] p-12 text-white lg:flex lg:flex-col lg:justify-center">
                     <Link
                         href={home()}
@@ -30,7 +28,7 @@ export default function AuthSimpleLayout({
                                 {name}
                             </p>
                             <p className="text-sm text-sky-100">
-                                Lingkungan simulasi pembelajaran
+                                Sistem Informasi Manajemen Rumah Sakit
                             </p>
                         </div>
                     </Link>
