@@ -82,7 +82,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             return Capability::all();
         }
 
-        $this->loadMissing('roles.permissions');
+        try {
+            $this->loadMissing('roles.permissions');
+        } catch (\Throwable) {
+            return [];
+        }
 
         return $this->roles
             ->flatMap(fn (Role $role) => $role->permissions->pluck('name'))
@@ -96,7 +100,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function roleSlugs(): array
     {
-        $this->loadMissing('roles');
+        try {
+            $this->loadMissing('roles');
+        } catch (\Throwable) {
+            return [];
+        }
 
         return $this->roles->pluck('slug')->values()->all();
     }
