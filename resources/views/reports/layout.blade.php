@@ -514,7 +514,7 @@
                 <header class="report-header">
                     <div class="brand-row">
                         <div class="brand">
-                            <img src="{{ asset('brand/simrs-campus-mark.png') }}" alt="" />
+                            <img src="{{ asset('brand/ueu-mark.png') }}" alt="" />
                             <div>
                                 <p class="eyebrow">SIMRS Campus UEU</p>
                                 <h1>{{ $report['document']['title'] }}</h1>
