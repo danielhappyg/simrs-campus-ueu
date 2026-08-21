@@ -4,6 +4,8 @@
 **Audience:** Daniel (product owner)  
 **Sources:** `~/Downloads/SIMRS SAHABAT.pdf` (2-page Chrome print of vendor Data Pasien); live demo `https://simrs-campus-ueu-demo.vercel.app`; repo Phase 3 outpatient slice; DEC-013 / `phase-1/UI_DIRECTION.md` / `phase-3/README.md`
 
+**Status update (same day):** Product owner accepted **DEC-014** — SAHABAT Data Pasien desk density is the **minimum** bar. Evidence assessed from `_evidence/sahabat-page-1.png` / `sahabat-page-2.png` and live REG captures under `docs/legacy-visual-field-capture/screenshots/menus/REG/`. Pendaftaran RJ on `feature/pendaftaran-sahabat-desk` was rebuilt toward that bar (`PENDAFTARAN_SAHABAT_FIELD_MAP.md`). This document remains the **why-we-were-thin** record; do not use the “~7 fields” section as the current target. Pemeriksaan/RM density catch-up is still open.
+
 Interactive summary: open the Cursor canvas beside chat — `sahabat-vs-demo-gap.canvas.tsx` in the workspace canvases folder.
 
 ---

@@ -12,6 +12,7 @@ Establish ownership, decision rights, evidence structure, environment boundaries
 
 | File | Purpose |
 |---|---|
+| `CURRENT_BASELINE.md` | Branch/tree snapshot + **SAHABAT minimum desk bar** (DEC-014) from assessed screenshots |
 | `OWNERS_AND_RACI.md` | Named / interim / TBD owners for G0 |
 | `DECISION_LOG.md` | `DEC-*` register for Phase 0+ |
 | `PROTOTYPE_REUSE_MAP.md` | Keep / Adapt / Retire / Isolate for the existing Laravel prototype |
@@ -26,8 +27,10 @@ Establish ownership, decision rights, evidence structure, environment boundaries
 - [x] Synthetic-only environment confirmed for demo deploy; production endpoints remain disabled
 - [x] Repository documentation baseline committed
 - [x] Stack re-scored (DEC-008 / ADR-015)
+- [x] Orientation baseline + SAHABAT minimum desk bar recorded (`CURRENT_BASELINE.md`, DEC-014)
 - [ ] Named individual contact inside RMIK Department (org named; person optional follow-up)
 - [ ] Distinct UEU executive sponsor (interim cover accepted for ASAP demo)
+- [ ] Privacy-reviewed git intake of `docs/legacy-visual-field-capture/` (still untracked locally)
 
 ## Explicit non-goals of Phase 0
 
