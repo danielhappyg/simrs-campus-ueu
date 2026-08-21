@@ -21,7 +21,7 @@ Rule: never claim **implemented**, **tested**, **committed**, **pushed**, or **d
 
 | Evidence ID | Date | Scope | Local | Committed | Pushed | Deployed | Gate |
 |---|---|---|---|---|---|---|---|
-| REL-20260821-01 | 2026-08-21 | Phase 0 docs baseline: `docs/new-simrs-rebuild/`, vendor assessment pack, Phase 0 scaffolding | Docs authored; no app test run required for docs-only | *filled at commit time* | not pushed (unless later authorized) | not deployed | G0 BLOCKED (owners/sponsor pending); scaffolding started |
+| REL-20260821-01 | 2026-08-21 | Phase 0 docs baseline: `docs/new-simrs-rebuild/`, vendor assessment pack, Phase 0 scaffolding | Docs authored; no app test run required for docs-only | `9d9c0d1` on `main` | not pushed | not deployed | G0 BLOCKED (owners/sponsor pending); scaffolding started |
 
 ## State vocabulary
 
