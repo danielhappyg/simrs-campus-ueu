@@ -1,37 +1,29 @@
-# SIMRS Campus Universitas Esa Unggul
+# README — SIMRS Campus Universitas Esa Unggul (clean-slate rebuild)
 
-Teaching-first hospital information system for integrated health-sciences education. The reference MVP models a coherent outpatient journey for Medicine, Nursing, Medical Records and Health Information (RMIK), and Pharmacy before later expansion to other study programs.
+Teaching-first hospital information system for integrated health-sciences education at Universitas Esa Unggul.
 
-This is a **simulation environment only**. It accepts synthetic patient data and is not authorized for real clinical care.
+This repository branch is a **clean-slate rebuild foundation** for the full SIMRS parity program. It is a **simulation environment only**: synthetic data, fail-closed `APP_MODE=SIMULATION` / `APP_SYNTHETIC_ONLY=true`, and no production clinical or BPJS integrations.
 
-## Current status
+## Branch status
 
-The research, product contract, UEU Clinical design package, and secure application foundation are implemented. The current application includes:
+| Branch | Meaning |
+|---|---|
+| `rebuild/clean-slate` (this branch) | Option B replace-in-place: Laravel 13 + Inertia/React foundation after removing the outpatient teaching MVP application domain. Ready for Phase 2 identity/authorization and subsequent parity slices. |
+| `main` (history) | Previous outpatient teaching MVP remains in git history on `main`. Do not treat it as the rebuild target path. |
 
-- Laravel 13, React 19, TypeScript, Inertia 3, Vite, and Fortify;
-- administrator-provisioned accounts with inactive-account rejection, password throttling, email verification, passkeys, and two-factor support;
-- fail-closed `SIMULATION` and synthetic-only middleware;
-- versioned scenarios, simulation sessions, contextual assignments, capabilities, and work tasks;
-- a user-scoped work queue with the UEU encounter-orbit design and fail-closed exact-session selection when one demo identity has several active disposable sessions;
-- public ULID identifiers and an application-level append-only audit trail;
-- deterministic opt-in demo fixtures using reserved `example.invalid` accounts;
-- a fail-closed, transaction-bound command that deep-clones only a pristine synthetic reference graph into a separately attributable session, remaps every case/assignment/task/supervision reference, and supports an explicitly overdue appointment for an isolated no-show rehearsal without resetting retained data;
-- one source-linked outpatient workflow covering registration/check-in, bounded registrar cancellation and overdue no-show without history deletion, nursing intake, supervised medical assessment, orders/results, pharmacy review/dispense, supervised closure, reproducible RMIK completeness review, and attributed correction;
-- an append-only human safety-disposition workflow that keeps an escalated encounter and medical task paused until the linked nursing supervisor or session facilitator explicitly resumes the synthetic routine flow or records a simulated transfer, with no default or clinical recommendation;
-- a distinct append-only `Pulang atas permintaan sendiri` branch after clinical service begins, recorded only by the exact medical supervisor or session facilitator with explicit confirmation, exact source hashes, preserved prior work, no clinical verdict, and no automatic closure, coding, finalization, or transmission;
-- a reusable unsaved-change guard on the versioned nursing, medical, and closure authoring forms, with a visible local-change state, the same explicit stay/save-draft-then-leave/discard choices for Inertia links and in-session browser Back/Forward, and a bounded stale-session recovery path that keeps the clinical delta in the original tab while reauthentication opens separately;
-- checksummed immutable ICD-10/ICD-9-CM release import and search, plus explainable ICD-10 diagnosis and ICD-9-CM performed-procedure candidates that always require separate coder and linked-supervisor actions;
-- a versioned synthetic coding retrieval evaluator with separate diagnosis/procedure top-1/top-5 reporting, negative controls, ambiguity controls, and unapproved Indonesian/stress proposals kept outside reference metrics;
-- coder-requested diagnosis and performed-procedure correction loops through the exact responsible clinical author, linked medical supervisor, successor closure, and replacement RMIK review, with stale assignments marked `REVIEW_REQUIRED`; and
-- guarded simulation commands that can either complete a fresh reference fixture or stop at an active diagnosis/procedure correction through the same domain services for demonstration and staged validation; and
-- a read-only, fail-closed hosting capability preflight for a future shared PHP host (optional; not required for the current Vercel + Supabase demo); and
-- a manifest-bound, runtime-only release-candidate build that produces a short-lived CI artifact without enabling deployment; and
-- a distinct, read-only longitudinal outpatient record that exposes a curated, source/version/actor/time-attributed event projection during active or completed simulation sessions, while keeping finalized debrief evidence on its own route; and
-- a deterministic, read-only FHIR R4-aligned local interoperability preview for finalized synthetic encounters, with stable source provenance, human-approved ICD-10/ICD-9-CM coding, explicit mapping gaps, and no endpoint or transmission capability; and
-- a capability-gated E-Klaim/BPJS claim simulation that maps only finalized synthetic encounters with approved coding through local `new_claim`, `set_claim_data`, `grouper`, `claim_final`, and deliberately never-sent submission checkpoints, with immutable request/response hashes and no external endpoint; and
-- automated PHP, JavaScript, static-analysis, formatting, build, and database-migration checks.
+Planning baseline: [`docs/new-simrs-rebuild/`](docs/new-simrs-rebuild/). Stack ratification: [`docs/adr/ADR-015-STACK-SELECTION-FOR-PARITY-PROGRAM.md`](docs/adr/ADR-015-STACK-SELECTION-FOR-PARITY-PROGRAM.md). Clean-slate decision: [`docs/adr/ADR-016-CLEAN-SLATE-REPLACE-IN-PLACE.md`](docs/adr/ADR-016-CLEAN-SLATE-REPLACE-IN-PLACE.md).
 
-The reference workflow is a concrete development model, not a faculty-pilot or clinical-use release. Local MySQL migration/rollback, the complete backend suite on real MySQL, and full synthetic reference-journey backup/restore have passed. The outpatient reference journey is merged on `main`. Separate browser rehearsals completed both diagnosis- and procedure-source correction chains through successor approvals, replacement RMIK review, human ICD-10/ICD-9-CM decisions, correction resolution, and encounter finalization while preserving exact source timestamps. Later browser passes exercised the distinct longitudinal-record route, human safety-disposition route, patient-requested early-departure route, multi-session work-queue scoping, and unsaved-clinical-draft recovery. The draft-guard passes verified visible navigation plus marked Back/Forward interception, all three explicit choices, append-only save-before-leave, no-version discard, generic expired-session recovery without clinical-text echo, separate-tab same-account reauthentication, authorized retry, 390×844 containment/focus, and a deliberate local-server outage that retained the unsaved nursing delta and recovered through the same authoritative save after restart. Automated accessibility coverage guards the complete sign-in Tab order and programmatic error associations. The current hosted demo uses Vercel + Supabase; campus production hosting remains TBD. Shared-hosting preflight and campus deploy/rollback rehearsal remain pending until IT inventory is known. Stakeholder validation of the safety questions/dispositions, early-departure vocabulary/roles/incomplete-record policy, longitudinal record, procedure-correction responsibility policy, validated Indonesian coding aliases, expert approval of the draft gold set and pilot threshold, remaining native keyboard/manual browser review, and stakeholder UAT also remain pending. No production deployment workflow is enabled until campus hosting evidence and rollback design are verified.
+This is **not** a vendor SIMRS clone and **not** the retired outpatient MVP UI.
+
+## What remains on this foundation
+
+- Laravel 13, React 19, TypeScript, Inertia 3, Vite, Fortify (sessions, passkeys, 2FA);
+- simulation safety middleware and inactive-account enforcement;
+- append-only `audit_events` table + authorization-denial audit hook;
+- rebuild home page (authenticated) stating Phase 0/2 foundation status;
+- settings (profile / password / security) for Fortify;
+- release-candidate / hosting-preflight ops commands (no domain clinic workflows);
+- CI workflows under `.github/workflows`.
 
 ## Local development
 
@@ -48,176 +40,53 @@ npm run build
 composer dev
 ```
 
-Open `http://localhost:8000`. Public self-registration is intentionally unavailable.
+Open `http://localhost:8000`. Guests are sent to login; authenticated users see the rebuild home. Public self-registration remains unavailable.
 
-### Optional synthetic demo
+Confirm foundation status:
 
-Set these values only in the ignored local `.env` file:
+```bash
+php artisan rebuild:status
+```
+
+### Optional synthetic admin seed
+
+Set only in the ignored local `.env`:
 
 ```dotenv
 DEMO_SEED_ENABLED=true
 DEMO_ACCOUNT_PASSWORD=choose-at-least-12-characters
 ```
 
-Then, on a disposable local database:
+Then on a disposable database:
 
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-The learner account is `mahasiswa.keperawatan@example.invalid`; its password is the local value you selected. `migrate:fresh` deletes existing tables and must never be used against an environment containing data that should be preserved.
+Creates verified ACTIVE admin `admin.rebuild@example.invalid`. Seeding refuses non-simulation or non-synthetic-only environments.
 
-Prepare a disposable branch from the still-pristine reference session without deleting prior evidence:
-
-```bash
-php artisan simulation:clone-reference-session UAT-MAIN-001 --duration=480
-```
-
-Use a unique uppercase code for every run. The command is restricted to an explicitly opted-in, synthetic-only, non-production environment; it refuses a progressed or malformed source and rolls back every target record if any write fails. It prints no patient name, MRN, or NIK-like value. To prepare an immediately due no-show branch through the same contract:
+## Quality checks
 
 ```bash
-php artisan simulation:clone-reference-session UAT-NO-SHOW-001 --duration=480 --appointment-offset=-5
-```
-
-The default appointment offset is 15 minutes after session start. The negative offset is a bounded fixture-preparation input, not a schedule policy or acceptance of class duration. When more than one disposable session is active for an account, open the exact work queue (for example, `/work?session=UAT-MAIN-001`) or choose one session before tasks become available. See [ADR-011](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md), [ADR-012](docs/adr/ADR-012-MULTI-SESSION-WORK-QUEUE-SCOPING.md), and the [Checkpoint 2 UAT guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md).
-
-### Optional verified ICD catalogs
-
-The raw ICD workbooks are intentionally not stored in Git. After enabling the synthetic demo fixture, import an explicitly verified local file with its complete expected SHA-256:
-
-```bash
-php artisan terminology:import ICD_10 /absolute/path/to/icd10.xlsx --sha256=<64-character-approved-hash>
-php artisan terminology:import ICD_9_CM /absolute/path/to/icd9cm.xlsx --sha256=<64-character-approved-hash>
-```
-
-The command validates the selected system, workbook schema, version, codes, duplicates, blank rows, formulas, and checksum before atomic activation. See the [coding reference register](docs/research/CODING_REFERENCE_REGISTER.md) for the approved development hashes and redistribution boundary.
-
-After both exact releases are active, reproduce the draft synthetic retrieval baseline without creating clinical records or aliases:
-
-```bash
-php artisan coding:evaluate-gold-set --fail-on-reference-miss
-```
-
-The command intentionally reports pending expert-review gaps without treating them as an approved accuracy threshold.
-
-On a fresh isolated demo fixture with both exact releases active, this command reproduces the completed reference journey for recovery or demonstration validation:
-
-```bash
-php artisan simulation:complete-reference-journey
-```
-
-It refuses production, non-synthetic, missing-terminology, and partially progressed contexts. The two fixture codes are attributed manual coder selections from the active releases; the command does not claim that free-text retrieval or autonomous coding is clinically accurate.
-
-After the encounter is finalized, the reference RMIK coder can open **Simulasi E-Klaim** from the encounter, timeline, or debrief. The exercise records five ordered local exchanges and remains permanently `NOT_SENT`; its group and tariff are educational placeholders. See [ADR-013](docs/adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md), the [E-Klaim/BPJS simulation specification](docs/product/ECLAIM_BPJS_SIMULATION_SPEC.md), and the [runbook](docs/operations/ECLAIM_SIMULATION_RUNBOOK.md).
-
-For correction-state UI and accessibility validation, use a separate fresh isolated fixture and prepare exactly one attributed branch:
-
-```bash
-php artisan simulation:prepare-reference-correction diagnosis
-# or, on another fresh fixture
-php artisan simulation:prepare-reference-correction procedure
-```
-
-The command stops at `AMENDMENT_PENDING`, assigns the exact medical/closure author, and blocks the coder until the guarded successor workflow is completed. Repeating the same command is a no-op; requesting the other branch against that progressed fixture is rejected.
-
-## Quality gates
-
-```bash
-composer lint:check
+vendor/bin/pint --dirty
 composer types:check
-composer audit
-composer outdated --direct
 php artisan test
-php artisan wayfinder:generate --with-form
-npm run format:check
-npm run lint:check
 npm run types:check
-npm run test:unit
-npm audit --omit=dev
-npm outdated
 npm run build
 ```
 
-`composer audit` and `npm audit --omit=dev` should stay clean before release work. `composer outdated --direct` and `npm outdated` are dependency-hygiene review inputs rather than automatic upgrade instructions; record and classify the findings before changing versions. See the [foundation runbook](docs/operations/FOUNDATION_RUNBOOK.md) and the dated [dependency hygiene baseline](docs/operations/DEPENDENCY_HYGIENE_BASELINE_2026-08-20.md) for the current review boundary.
+Full CI suite: `composer ci:check` (after `php artisan wayfinder:generate --with-form`).
 
-## Current hosting posture
+## Safety constraints
 
-The active hosted demo uses **Vercel + Supabase Free** for synthetic teaching data only. Campus production hosting is **TBD** when IT availability is known. See [Current hosting posture](docs/operations/CURRENT_HOSTING_POSTURE.md).
+- `APP_MODE` must remain `SIMULATION`; `APP_SYNTHETIC_ONLY` must remain `true` for application routes.
+- No production BPJS, SATUSEHAT, LIS, PACS, or payment endpoints.
+- Do not commit `.env`, secrets, `.vercel/`, or `deliverables/`.
 
-## Free synthetic demo hosting (active)
+## Documentation map
 
-The current testing topology runs the complete same-origin Laravel application on **Vercel** and uses **Supabase Free PostgreSQL** in a private `laravel` schema. It is a disposable synthetic demonstration environment, not a campus production host and not a real-care system. See the [Vercel + Supabase demo runbook](docs/operations/VERCEL_SUPABASE_DEMO.md).
-
-An alternate disposable path using Render Free + Supabase remains documented in the [Render + Supabase demo runbook](docs/operations/RENDER_SUPABASE_DEMO.md).
-
-## Optional shared-hosting preflight
-
-For a future campus or shared PHP host, collect a machine-readable capability assessment without changing the runtime:
-
-```bash
-php artisan ops:hosting-preflight --json
-```
-
-The command returns `INCOMPLETE` until every required manual item has sanitized evidence, and `BLOCKED` for unsafe runtime configuration, failed evidence, or malformed evidence. See the [Hostinger staging preflight guide](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md) for the optional shared-hosting reference schema. This is **not required** for the current Vercel + Supabase demo. A `READY` preflight permits consideration of a separately authorized staging rehearsal on a future host; it does not deploy or satisfy `OPS-02`.
-
-## Non-deploying release candidate
-
-After production dependencies and frontend assets are built in a clean checkout, generate and assemble an identifiable runtime candidate:
-
-```bash
-php artisan ops:release-manifest release-manifest.json --commit=<checked-out-sha>
-php artisan ops:assemble-release release-manifest.json storage/app/release-candidate
-```
-
-CI performs these steps only after the application and MySQL jobs pass, then uploads a short-lived immutable tar plus SHA-256 sidecar. It does not contact a deployment host, expose environment secrets, migrate a database, switch a release, merge, or deploy. See the [release candidate artifact guide](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md).
-
-## Product and architecture references
-
-- [Approved project charter](docs/PROJECT_CHARTER.md)
-- [Campus SIMRS master plan](docs/SIMRS_CAMPUS_MASTER_PLAN.md)
-- [Legacy assessment](docs/LEGACY_ASSESSMENT.md)
-- [ADR-001: Teaching-first modular monolith](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md)
-- [ADR-002: Same-origin platform foundation](docs/adr/ADR-002-PLATFORM-FOUNDATION.md)
-- [ADR-003: Outpatient domain spine](docs/adr/ADR-003-OUTPATIENT-DOMAIN-SPINE.md)
-- [ADR-007: Deterministic local interoperability preview](docs/adr/ADR-007-LOCAL-INTEROPERABILITY-PREVIEW.md)
-- [ADR-008: Human outpatient safety disposition](docs/adr/ADR-008-HUMAN-OUTPATIENT-SAFETY-DISPOSITION.md)
-- [ADR-010: Unsaved clinical draft guard](docs/adr/ADR-010-UNSAVED-CLINICAL-DRAFT-GUARD.md)
-- [ADR-011: Disposable reference-session cloning](docs/adr/ADR-011-DISPOSABLE-REFERENCE-SESSION-CLONING.md)
-- [ADR-012: Fail-closed multi-session work-queue scoping](docs/adr/ADR-012-MULTI-SESSION-WORK-QUEUE-SCOPING.md)
-- [ADR-013: E-Klaim educational adapter and never-sent simulation](docs/adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md)
-- [Outpatient evidence register](docs/research/OUTPATIENT_EVIDENCE_REGISTER.md)
-- [Outpatient service blueprint](docs/product/OUTPATIENT_SERVICE_BLUEPRINT.md)
-- [Outpatient role and permission matrix](docs/product/OUTPATIENT_ROLE_MATRIX.md)
-- [Outpatient data dictionary](docs/product/OUTPATIENT_DATA_DICTIONARY.md)
-- [Assumption and validation register](docs/product/ASSUMPTION_AND_VALIDATION_REGISTER.md)
-- [Outpatient acceptance scenarios](docs/product/OUTPATIENT_ACCEPTANCE_SCENARIOS.md)
-- [Outpatient traceability matrix](docs/product/OUTPATIENT_TRACEABILITY_MATRIX.md)
-- [Computer-assisted coding specification](docs/product/COMPUTER_ASSISTED_CODING_SPEC.md)
-- [E-Klaim and BPJS claim simulation specification](docs/product/ECLAIM_BPJS_SIMULATION_SPEC.md)
-- [E-Klaim simulation runbook](docs/operations/ECLAIM_SIMULATION_RUNBOOK.md)
-- [Coding reference register](docs/research/CODING_REFERENCE_REGISTER.md)
-- [Computer-assisted coding validation record](docs/operations/COMPUTER_ASSISTED_CODING_VALIDATION.md)
-- [Synthetic coding retrieval baseline](docs/operations/CODING_GOLD_SET_BASELINE.md)
-- [Local MySQL and recovery validation](docs/operations/LOCAL_MYSQL_RECOVERY_VALIDATION.md)
-- [Current hosting posture](docs/operations/CURRENT_HOSTING_POSTURE.md)
-- [Vercel + Supabase synthetic demo](docs/operations/VERCEL_SUPABASE_DEMO.md)
-- [Render + Supabase demo](docs/operations/RENDER_SUPABASE_DEMO.md)
-- [Shared-hosting preflight reference (optional)](docs/operations/HOSTINGER_STAGING_PREFLIGHT.md)
-- [Release candidate artifact](docs/operations/RELEASE_CANDIDATE_ARTIFACT.md)
-- [Checkpoint 2 outpatient UAT facilitator guide](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
-- [Checkpoint 2 outpatient UAT record template](docs/operations/OUTPATIENT_CHECKPOINT_2_UAT_RECORD_TEMPLATE.md)
-- [GitHub publication checklist](docs/operations/GITHUB_PUBLICATION_CHECKLIST.md)
-- [UEU Clinical design system](docs/design/UEU_CLINICAL_DESIGN_SYSTEM.md)
-- [Information architecture](docs/design/INFORMATION_ARCHITECTURE.md)
-- [Outpatient critical-path wireframes](docs/design/OUTPATIENT_WIREFRAMES.md)
-- [Outpatient interaction specifications](docs/design/OUTPATIENT_INTERACTION_SPECIFICATIONS.md)
-
-## Authority and validation gates
-
-Daniel Happy Putra is the sole project manager/PIC and final authority for scope, priority, acceptance, and releases during the reference-build phase. Stakeholder input is concentrated at three checkpoints after a concrete model exists:
-
-1. workflow-baseline validation;
-2. end-to-end UAT using one shared synthetic case; and
-3. faculty-pilot readiness after security, accessibility, and deployment evidence is available.
-
-These checkpoints improve the model without transferring final product authority. Real patient data remains prohibited until a separate institutional clinical, privacy, legal, security, and operational approval process is completed.
+- Rebuild program: `docs/new-simrs-rebuild/`
+- Vendor assessment pack: `docs/vendor-simrs-assessment-2026-08-21/`
+- ADRs: `docs/adr/`
+- Security notes: `SECURITY.md`
+- Contribution notes: `CONTRIBUTING.md`

@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Modules\Claims\Contracts\EClaimGateway;
-use App\Modules\Claims\Services\SimulatedEClaimGateway;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(EClaimGateway::class, SimulatedEClaimGateway::class);
+        //
     }
 
     /**

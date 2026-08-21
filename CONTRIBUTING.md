@@ -2,15 +2,15 @@
 
 ## Before starting work
 
-1. Read the [master plan](docs/SIMRS_CAMPUS_MASTER_PLAN.md), [legacy assessment](docs/LEGACY_ASSESSMENT.md), [ADR-001](docs/adr/ADR-001-REBUILD-ARCHITECTURE.md), and [ADR-002](docs/adr/ADR-002-PLATFORM-FOUNDATION.md).
-2. Confirm that the requested work belongs to the currently approved increment.
+1. On branch `rebuild/clean-slate`, read [`docs/new-simrs-rebuild/`](docs/new-simrs-rebuild/), [ADR-015](docs/adr/ADR-015-STACK-SELECTION-FOR-PARITY-PROGRAM.md), and [ADR-016](docs/adr/ADR-016-CLEAN-SLATE-REPLACE-IN-PLACE.md). Historical ADRs (`ADR-001` …) remain context only.
+2. Confirm that the requested work belongs to the currently approved rebuild phase/increment.
 3. Use synthetic data and simulation/test credentials only.
-4. Define the user, patient journey, authorization rule, and acceptance evidence before implementation.
+4. Define the user journey, authorization rule, and acceptance evidence before implementation. Do not bulk-copy the retired outpatient MVP from `main` without an explicit DEC.
 
 ## Change workflow
 
-- Do not work directly on `main`.
-- Create a short-lived branch such as `feat/outpatient-registration`, `fix/encounter-policy`, or `docs/nursing-workshop`.
+- Do not work directly on `main` for rebuild slices; prefer `rebuild/clean-slate` or short-lived branches from it.
+- Create a short-lived branch such as `feat/phase2-role-matrix`, `fix/simulation-guard`, or `docs/parity-slice`.
 - Keep each pull request focused on one coherent outcome.
 - Include migrations, tests, documentation, and rollback implications where applicable.
 - Require review from the relevant domain owner for clinical-workflow changes.
@@ -32,7 +32,7 @@ npm run test:unit
 npm run build
 ```
 
-Do not regenerate demo fixtures on a database whose data should be preserved. The application must remain usable with `DEMO_SEED_ENABLED=false`.
+Do not seed on a database whose data should be preserved. The application must remain usable with `DEMO_SEED_ENABLED=false`. Opt-in seed creates only `admin.rebuild@example.invalid`.
 
 ## Pull-request evidence
 

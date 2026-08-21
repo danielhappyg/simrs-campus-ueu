@@ -19,6 +19,7 @@ Rule: every material scope, safety, stack, environment or ownership choice gets 
 | DEC-009 | 2026-08-21 | Accepted | Keep vendor assessment, Laravel prototype, rebuild docs, and discussion deliverables as separate evidence sources. | Product owner | Orientation report. |
 | DEC-010 | 2026-08-21 | Accepted | Authorize push to `origin/main` and deploy of the synthetic Vercel + Supabase demo for immediate testing. Production integrations remain disabled. | Product owner | User 2026-08-21 (“Deploy immediately”). Rollback: previous Vercel deployment / prior git SHA. |
 | DEC-011 | 2026-08-21 | Accepted | RMIK Department is the named departmental owner for RMIK/coding/reports and teaching-owner representation until a named individual is recorded. | Product owner | User 2026-08-21 (“RMIK Department”). |
+| DEC-012 | 2026-08-21 | Accepted | Option B — replace MVP application domain in place on branch `rebuild/clean-slate`; keep docs and simulation safety; leave Laravel + Inertia/React foundation for Phase 2. | Product owner | Recorded in ADR-016. |
 
 ## Template for new entries
 
@@ -38,3 +39,4 @@ Review date:
 
 - Historical simulation ADRs: `docs/adr/ADR-001` … `ADR-014`
 - Stack ratification for parity program: `docs/adr/ADR-015-STACK-SELECTION-FOR-PARITY-PROGRAM.md`
+- Clean-slate replace-in-place: `docs/adr/ADR-016-CLEAN-SLATE-REPLACE-IN-PLACE.md`

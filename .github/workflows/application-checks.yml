@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - rebuild/clean-slate
 
 permissions:
   contents: read

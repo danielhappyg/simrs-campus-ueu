@@ -86,31 +86,4 @@ describe('accessibility guardrails', () => {
         expect(stylesheet).toContain("[data-slot='breadcrumb-link']");
     });
 
-    it('allows long machine-readable encounter reasons to wrap on narrow screens', () => {
-        const encounterOverview = readFileSync(
-            resolve('resources/js/pages/encounter/show.tsx'),
-            'utf8',
-        );
-
-        expect(encounterOverview).toContain('[overflow-wrap:anywhere]');
-    });
-
-    it('exposes every rendered clinical correction reason as required', () => {
-        const correctionPages = [
-            'resources/js/pages/clinical/nursing-intake.tsx',
-            'resources/js/pages/clinical/medical-assessment.tsx',
-            'resources/js/pages/clinical/closure.tsx',
-        ];
-
-        for (const page of correctionPages) {
-            const source = readFileSync(resolve(page), 'utf8');
-            const correctionReason = source.match(
-                /<Textarea\s+[\s\S]*?id="(?:change-reason|medical-change-reason|change_reason)"[\s\S]*?\/>/,
-            );
-
-            expect(correctionReason?.[0]).toContain('required');
-            expect(correctionReason?.[0]).toContain('aria-invalid');
-            expect(correctionReason?.[0]).toContain('aria-describedby');
-        }
-    });
 });

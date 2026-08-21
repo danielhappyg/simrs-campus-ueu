@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
-use App\Modules\Audit\Services\AuditRecorder;
+use App\Support\Audit\AuditRecorder;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;

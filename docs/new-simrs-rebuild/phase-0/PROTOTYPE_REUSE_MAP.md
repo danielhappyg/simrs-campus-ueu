@@ -1,62 +1,56 @@
 # Prototype reuse map (Keep / Adapt / Retire / Isolate)
 
-Status: initial inventory — Phase 0  
+Status: rewritten for Option B clean-slate — Phase 0  
 Date: 2026-08-21  
-Scope: committed `main` teaching prototype at orientation time + noted local WIP  
-Rule: reuse security and domain patterns where they match the rebuild blueprint; do not treat outpatient MVP completeness as full-SIMRS parity.
+Scope: branch `rebuild/clean-slate` after DEC-012 / ADR-016  
+Rule: the previous outpatient teaching MVP is **historical on `main`**. This rebuild branch starts fresh. Patterns may be re-copied later **deliberately**, not by default.
 
 ## Disposition legend
 
 | Label | Meaning |
 |---|---|
-| **Keep** | Retain as-is for the parity program foundation |
-| **Adapt** | Reuse core idea/code with deliberate changes and tests |
-| **Retire** | Stop using as a target path; may remain as historical reference briefly |
-| **Isolate** | Keep available but do not expand; boundary until a DEC/ADR says otherwise |
+| **Keep** | Retained on the rebuild foundation |
+| **Adapt** | Reintroduce later with deliberate changes and tests |
+| **Retire** | Not present on this branch; historical on `main` only |
+| **Isolate** | Available as evidence/docs or constrained demo hosting; do not expand silently |
 
-## Platform and controls
+## Platform and controls (this branch)
 
 | Area | Path / artifact | Disposition | Rationale |
 |---|---|---|---|
-| Modular monolith shape | `app/Modules/*`, ADR-001 | Keep | Matches reference architecture preference for initial delivery |
-| Synthetic-only / simulation mode | `APP_MODE`, `APP_SYNTHETIC_ONLY`, guards | Keep | Mandatory safety boundary |
-| Identity / Fortify auth | Fortify, named accounts | Adapt | Extend to full role/action matrix and cohort admin (Phase 2) |
-| Append-only audit | `app/Modules/Audit` | Adapt | Must meet tamper-resistant / coverage NFRs for all privileged actions |
-| Teaching sessions / clone / reset | `Teaching` module, clone command | Adapt | Becomes teaching control plane; expand fixture packs carefully |
-| CI (`composer ci:check`, GitHub workflows) | `.github/workflows` | Keep | Phase 0 quality floor; extend with parity/auth/audit suites later |
-| Vercel + Supabase demo path | `vercel.json`, hosting docs | Isolate | Allowed demo hosting; not campus production; no silent expand |
-| Public self-registration | disabled | Keep | Correct for teaching provisioning model |
+| Laravel + Inertia/React stack | framework configs, ADR-015 | Keep | Ratified stack for parity program |
+| Synthetic-only / simulation mode | `APP_MODE`, `APP_SYNTHETIC_ONLY`, middleware | Keep | Mandatory safety boundary |
+| Identity / Fortify auth | Fortify, settings pages | Keep / Adapt | Expand role/action matrix in Phase 2 |
+| Append-only audit foundation | `audit_events`, `App\Support\Audit` | Keep / Adapt | Minimal schema; strengthen coverage in Phase 2 |
+| CI | `.github/workflows` | Keep | Quality floor; extend with parity suites later |
+| Vercel + Supabase demo path | `vercel.json`, hosting docs | Isolate | Synthetic demo hosting only |
+| Public self-registration | disabled | Keep | Correct for provisioned teaching accounts |
 
-## Domain modules (committed prototype)
+## Previous MVP domain (historical on `main`)
 
-| Module | Disposition | Notes for parity program |
-|---|---|---|
-| Patient / registration / check-in | Adapt | Seed for Pendaftaran slice; expand multi-patient population & canonical RJ rules under Phase 1 specs |
-| Encounter state machine | Adapt | Core spine; extend for IGD/RI without duplicating v2/v3 forks |
-| Clinical outpatient (nursing, medical, orders, pharmacy handoff) | Adapt | Proving ground for vertical-slice quality; not a substitute for ED/IP specs |
-| Coding / terminology import | Adapt | Keep checksummed import pattern; gold-set approval still pending stakeholders |
-| Record quality / RMIK completeness | Adapt | Outpatient-shaped; generalize after PAR-RMIK discovery |
-| Claims E-Klaim educational adapter | Isolate | Sandbox/education only (ADR-013); never production endpoint |
-| Interoperability FHIR preview | Isolate | Local preview only (ADR-007); no transmission |
-| Reporting / debrief projections | Adapt | Teaching evidence ≠ 117 operational Laporan definitions |
-| Identity policies | Adapt | Least privilege vs legacy student over-permission is a hard NEW requirement |
+The following lived on the outpatient teaching MVP and were **removed** from `rebuild/clean-slate`. They are **Retire** on this branch (recover from `main` only if a later DEC explicitly chooses Adapt):
+
+- `app/Modules/*` (Patient, Clinical, Teaching, Coding, Claims, Encounter, Reporting, Interoperability, RecordQuality, prior Audit module graph)
+- Domain HTTP controllers, requests, and domain console commands (`simulation:clone-*`, laboratory helpers, reference journey completers, terminology import, etc.)
+- Domain migrations for outpatient/teaching/clinical/pharmacy/coding/eclaim graphs
+- Domain Inertia pages under hospital/patient/clinical/coding/claims/encounter/work/record-quality
+- Domain factories/seeders beyond the opt-in rebuild admin
+
+## Explicit reuse policy
+
+1. Do **not** bulk-copy MVP modules onto this branch “to save time.”
+2. When a Phase 1/2 slice needs a proven pattern (authz + audit + fixtures + tests), open a DEC, cite the `main` path, and Adapt with new tests.
+3. Prefer blueprint + `PARITY_REQUIREMENTS_MATRIX.md` over MVP UI completeness as the definition of done.
+4. Teaching session clone/reset, coding gold-set, E-Klaim educational adapter, and FHIR preview remain **Isolate** ideas until re-specified for parity scope.
 
 ## Explicitly not present (must not be invented as “already done”)
 
-Emergency/triage full slice; inpatient bed/transfer/discharge; diagnostics LIS/PACS; surgery/IBS; GF warehouse ledger; full Kasir; 117 reports; BPJS production; IoT; mortuary/ambulance; full Manajemen Data masters.
+Emergency/triage full slice; inpatient bed/transfer/discharge; diagnostics LIS/PACS; surgery/IBS; GF warehouse ledger; full Kasir; 117 reports; BPJS production; IoT; mortuary/ambulance; full Manajemen Data masters; and the retired outpatient MVP workspaces.
 
-These remain Phase 1+ specification and Phase 3–4 build work.
+These remain Phase 1+ specification and later build work.
 
-## Local WIP (uncommitted at Phase 0 scaffolding time)
+## Related decisions
 
-| Item | Disposition | Notes |
-|---|---|---|
-| ADR-014 hospital-shell UX pivot | Isolate until reviewed | Proposed bridge for teaching IA; not PAR disposition |
-| `Hospital*DeskController`, hospital pages, shell tests | Isolate | Do not commit inside Phase 0 docs baseline unless separately authorized |
-| Expanded demo seeder / registration UX edits | Isolate | Preserve in worktree; review as Adapt candidate after G0 |
-
-## Reuse principles
-
-1. Prefer complete vertical-slice patterns (authz + audit + fixtures + tests) over copying UI alone.
-2. One authoritative implementation per capability — do not recreate legacy/v2/v3/EMR forks in code.
-3. Any Keep/Adapt item that fails a mandatory `TOOL_SELECTION_GUIDE` capability triggers DEC-008 / ADR, not silent narrowing of SIMRS requirements.
+- DEC-012 Option B Accepted
+- ADR-016 Clean-slate replace-in-place
+- ADR-015 Stack selection

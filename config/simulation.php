@@ -9,18 +9,7 @@ return [
 
     'demo_account_password' => env('DEMO_ACCOUNT_PASSWORD'),
 
-    'demo_account_emails' => [
-        'fasilitator.simulasi@example.invalid',
-        'mahasiswa.rmik@example.invalid',
-        'koder.rmik@example.invalid',
-        'supervisor.rmik@example.invalid',
-        'mahasiswa.keperawatan@example.invalid',
-        'supervisor.keperawatan@example.invalid',
-        'mahasiswa.kedokteran@example.invalid',
-        'supervisor.kedokteran@example.invalid',
-        'mahasiswa.farmasi@example.invalid',
-        'supervisor.farmasi@example.invalid',
-    ],
+    'rebuild_admin_email' => 'admin.rebuild@example.invalid',
 
     'banner' => 'SIMULASI — DATA SINTETIS',
 
