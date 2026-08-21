@@ -1,56 +1,79 @@
 # Prototype reuse map (Keep / Adapt / Retire / Isolate)
 
-Status: rewritten for Option B clean-slate — Phase 0  
+Status: refreshed after Phase 0 orientation + SAHABAT minimum bar (DEC-014)  
 Date: 2026-08-21  
-Scope: branch `rebuild/clean-slate` after DEC-012 / ADR-016  
-Rule: the previous outpatient teaching MVP is **historical on `main`**. This rebuild branch starts fresh. Patterns may be re-copied later **deliberately**, not by default.
+Scope: actual tree on `feature/pendaftaran-sahabat-desk` (and ancestors on `main` / `rebuild/clean-slate`)  
+Rule: previous Antrean-kerja teaching MVP is **anti-reference** (DEC-013). Vendor SAHABAT is **UI/workflow minimum for desks**, not architecture to clone.
 
 ## Disposition legend
 
 | Label | Meaning |
 |---|---|
-| **Keep** | Retained on the rebuild foundation |
-| **Adapt** | Reintroduce later with deliberate changes and tests |
-| **Retire** | Not present on this branch; historical on `main` only |
-| **Isolate** | Available as evidence/docs or constrained demo hosting; do not expand silently |
+| **Keep** | Retain and maintain on the rebuild |
+| **Adapt** | Keep pattern; change deliberately with tests + evidence |
+| **Retire** | Do not expand; historical only |
+| **Isolate** | Evidence, hosting, or stub — do not treat as completed parity |
 
-## Platform and controls (this branch)
+## Platform and controls
 
 | Area | Path / artifact | Disposition | Rationale |
 |---|---|---|---|
-| Laravel + Inertia/React stack | framework configs, ADR-015 | Keep | Ratified stack for parity program |
-| Synthetic-only / simulation mode | `APP_MODE`, `APP_SYNTHETIC_ONLY`, middleware | Keep | Mandatory safety boundary |
-| Identity / Fortify auth | Fortify, settings pages | Keep / Adapt | Expand role/action matrix in Phase 2 |
-| Append-only audit foundation | `audit_events`, `App\Support\Audit` | Keep / Adapt | Minimal schema; strengthen coverage in Phase 2 |
-| CI | `.github/workflows` | Keep | Quality floor; extend with parity suites later |
-| Vercel + Supabase demo path | `vercel.json`, hosting docs | Isolate | Synthetic demo hosting only |
-| Public self-registration | disabled | Keep | Correct for provisioned teaching accounts |
+| Laravel + Inertia/React | framework, ADR-015 | Keep | Ratified stack |
+| Synthetic-only / simulation mode | `APP_MODE`, `APP_SYNTHETIC_ONLY`, middleware | Keep | Mandatory safety |
+| Fortify auth / settings | auth stack | Keep / Adapt | Expand cohort/contextual auth later |
+| RBAC roles/capabilities/Gates | `app/Support/Authorization`, seeders, denial tests | Keep / Adapt | Teaching-demo quality; fail-closed |
+| Schema-qualified Postgres tables | `SchemaQualifier`, `UsesSchemaQualifiedTable` | Keep | Pooled search_path drift on demo host |
+| Append-only audit | `audit_events`, `App\Support\Audit` | Keep / Adapt | Broaden coverage per NFR |
+| CI workflows | `.github/workflows` | Keep | Extend with parity suites |
+| Vercel + Supabase demo | `vercel.json`, hosting notes | Isolate | Synthetic demo only |
+| Public self-registration | disabled | Keep | Provisioned teaching accounts |
 
-## Previous MVP domain (historical on `main`)
+## Rebuild domain already on this line of work
 
-The following lived on the outpatient teaching MVP and were **removed** from `rebuild/clean-slate`. They are **Retire** on this branch (recover from `main` only if a later DEC explicitly chooses Adapt):
+| Area | Path / artifact | Disposition | Rationale |
+|---|---|---|---|
+| Patient / encounter / clinical entry models | `app/Models/*`, migrations | Adapt | Outpatient spine; expand only with PAR + tests |
+| Clinic / doctor / schedule masters | models + `OutpatientMastersSeeder` | Keep / Adapt | Required for SAHABAT poli→dokter→jadwal |
+| Pendaftaran RJ SAHABAT desk UI | `resources/js/pages/pendaftaran/rawat-jalan.tsx` | Adapt | Must meet DEC-014 minimum; map in `PENDAFTARAN_SAHABAT_FIELD_MAP.md` |
+| Pemeriksaan / RM RJ pages | `resources/js/pages/pemeriksaan|rm/*` | Adapt | Still below SAHABAT density — next density pass |
+| Outpatient controllers + routes | `Outpatient*Controller`, `routes/web.php` | Adapt | Preserve schema-qualified validation hardenings |
+| Module placeholder shell | `/modul/{category}`, nav | Adapt | Honest “segera” / disabled — no fake-full HIS |
+| Demo actors / facilititor seed | seeders | Isolate | Synthetic accounts only |
+| SAHABAT field map + gap docs | `PENDAFTARAN_SAHABAT_FIELD_MAP.md`, `SAHABAT_VS_DEMO_GAP.md` | Keep | Desk acceptance aid |
+| SAHABAT PNG evidence | `_evidence/sahabat-page-*.png` | Isolate (evidence) | Visual oracle for DEC-014 |
 
-- `app/Modules/*` (Patient, Clinical, Teaching, Coding, Claims, Encounter, Reporting, Interoperability, RecordQuality, prior Audit module graph)
-- Domain HTTP controllers, requests, and domain console commands (`simulation:clone-*`, laboratory helpers, reference journey completers, terminology import, etc.)
-- Domain migrations for outpatient/teaching/clinical/pharmacy/coding/eclaim graphs
-- Domain Inertia pages under hospital/patient/clinical/coding/claims/encounter/work/record-quality
-- Domain factories/seeders beyond the opt-in rebuild admin
+## Evidence packs (not application code)
+
+| Area | Path | Disposition | Rationale |
+|---|---|---|---|
+| Vendor assessment | `docs/vendor-simrs-assessment-2026-08-21/` | Isolate | Functional reference |
+| Visual field capture | `docs/legacy-visual-field-capture/` | Isolate | Screenshots + catalogues; commit only after privacy review |
+| North-star decks / deliverables | `deliverables/` | Isolate | Discussion artifacts; not runtime |
+| Local Vercel link | `.vercel/` | Isolate | Do not commit secrets |
+
+## Historical MVP (do not revive by default)
+
+Lived on older `main` / agent branches; **Retire** as product direction (recover only via explicit DEC):
+
+- Antrean kerja / outpatient work-queue UX
+- Bulk `app/Modules/*` teaching MVP graph copied wholesale without PAR disposition
+- Production-shaped integration “just to look complete”
 
 ## Explicit reuse policy
 
-1. Do **not** bulk-copy MVP modules onto this branch “to save time.”
-2. When a Phase 1/2 slice needs a proven pattern (authz + audit + fixtures + tests), open a DEC, cite the `main` path, and Adapt with new tests.
-3. Prefer blueprint + `PARITY_REQUIREMENTS_MATRIX.md` over MVP UI completeness as the definition of done.
-4. Teaching session clone/reset, coding gold-set, E-Klaim educational adapter, and FHIR preview remain **Isolate** ideas until re-specified for parity scope.
+1. **Desk screens** that replace SAHABAT registration/examination must meet **DEC-014** (three-column Data Pasien minimum from assessed screenshots). Thin ~7-field cards are non-compliant.
+2. Classic CAP-REG-003 density (**224** rendered controls) is a **discovery backlog**, not an instruction to ship every BPJS hidden field or live integration.
+3. Prefer blueprint + `PARITY_REQUIREMENTS_MATRIX.md` + visual capture IDs over “it looks done on the demo.”
+4. Do not bulk-copy vendor HTML/CSS/JS or schema. Re-implement with server-side authz, audit, and synthetic fixtures.
+5. Teaching stubs (Cetak, SEP checkbox, Cek/FR/FP) must remain **visibly non-production**.
 
-## Explicitly not present (must not be invented as “already done”)
+## Explicitly not present (must not be claimed done)
 
-Emergency/triage full slice; inpatient bed/transfer/discharge; diagnostics LIS/PACS; surgery/IBS; GF warehouse ledger; full Kasir; 117 reports; BPJS production; IoT; mortuary/ambulance; full Manajemen Data masters; and the retired outpatient MVP workspaces.
-
-These remain Phase 1+ specification and later build work.
+Full ED/inpatient beds; diagnostics LIS/PACS; surgery/IBS; GF ledger; full Kasir; 117 reports; production BPJS; IoT; mortuary/ambulance; full Manajemen Data; Pemeriksaan/RM SAHABAT-grade desks.
 
 ## Related decisions
 
-- DEC-012 Option B Accepted
-- ADR-016 Clean-slate replace-in-place
-- ADR-015 Stack selection
+- DEC-012 Option B clean-slate
+- DEC-013 Vendor UI reference / Antrean anti-reference
+- DEC-014 SAHABAT Data Pasien minimum desk density
+- ADR-015 Stack; ADR-016 Clean-slate replace-in-place

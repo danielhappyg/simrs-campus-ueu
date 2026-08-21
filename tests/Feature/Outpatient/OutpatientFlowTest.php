@@ -3,11 +3,15 @@
 namespace Tests\Feature\Outpatient;
 
 use App\Models\ClinicalEntry;
+use App\Models\Clinic;
+use App\Models\ClinicSchedule;
+use App\Models\Doctor;
 use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -22,31 +26,71 @@ class OutpatientFlowTest extends TestCase
         parent::setUp();
 
         $this->seed(RbacSeeder::class);
+        $this->seed(OutpatientMastersSeeder::class);
+    }
+
+    /**
+     * @return array{clinic: Clinic, doctor: Doctor, schedule: ClinicSchedule}
+     */
+    private function firstMasterChain(): array
+    {
+        $clinic = Clinic::query()->orderBy('id')->firstOrFail();
+        $doctor = Doctor::query()->where('clinic_id', $clinic->id)->orderBy('id')->firstOrFail();
+        $schedule = ClinicSchedule::query()
+            ->where('clinic_id', $clinic->id)
+            ->where('doctor_id', $doctor->id)
+            ->orderBy('id')
+            ->firstOrFail();
+
+        return compact('clinic', 'doctor', 'schedule');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function registrationPayload(array $overrides = []): array
+    {
+        ['clinic' => $clinic, 'doctor' => $doctor, 'schedule' => $schedule] = $this->firstMasterChain();
+
+        return array_merge([
+            'full_name' => 'Pasien Sintetis Satu',
+            'date_of_birth' => '1990-05-15',
+            'sex' => Patient::SEX_PEREMPUAN,
+            'nik' => '3174010101900001',
+            'clinic_public_id' => $clinic->public_id,
+            'doctor_public_id' => $doctor->public_id,
+            'schedule_public_id' => $schedule->public_id,
+            'visit_date' => now()->toDateString(),
+            'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
+            'payer_type' => Encounter::PAYER_UMUM,
+            'is_synthetic' => true,
+        ], $overrides);
     }
 
     public function test_registrar_can_register_synthetic_outpatient_and_see_encounter(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        ['clinic' => $clinic, 'doctor' => $doctor, 'schedule' => $schedule] = $this->firstMasterChain();
 
         $response = $this->actingAs($registrar)
-            ->post(route('pendaftaran.rawat-jalan.store'), [
-                'full_name' => 'Pasien Sintetis Satu',
-                'date_of_birth' => '1990-05-15',
-                'sex' => Patient::SEX_PEREMPUAN,
-                'clinic_name' => 'Poliklinik Umum',
-                'payer_type' => Encounter::PAYER_UMUM,
-                'is_synthetic' => true,
-            ]);
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload());
 
         $response->assertRedirect(route('pendaftaran.rawat-jalan.index'));
 
         $this->assertDatabaseHas('patients', [
             'full_name' => 'Pasien Sintetis Satu',
+            'nik' => '3174010101900001',
             'is_synthetic' => true,
         ]);
 
         $this->assertDatabaseHas('encounters', [
-            'clinic_name' => 'Poliklinik Umum',
+            'clinic_name' => $clinic->name,
+            'clinic_id' => $clinic->id,
+            'doctor_id' => $doctor->id,
+            'clinic_schedule_id' => $schedule->id,
+            'doctor_name' => $doctor->name,
+            'schedule_label' => $schedule->label,
+            'queue_number' => 1,
             'status' => Encounter::STATUS_REGISTERED,
             'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
         ]);
@@ -63,7 +107,9 @@ class OutpatientFlowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('pendaftaran/rawat-jalan')
                 ->has('todaysEncounters', 1)
-                ->where('todaysEncounters.0.patient.full_name', 'Pasien Sintetis Satu'));
+                ->has('clinics')
+                ->where('todaysEncounters.0.patient.full_name', 'Pasien Sintetis Satu')
+                ->where('todaysEncounters.0.queue_number', 1));
     }
 
     public function test_user_without_patient_register_gets_forbidden(): void
@@ -71,13 +117,11 @@ class OutpatientFlowTest extends TestCase
         $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
 
         $this->actingAs($nurse)
-            ->post(route('pendaftaran.rawat-jalan.store'), [
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload([
                 'full_name' => 'Tidak Diizinkan',
                 'date_of_birth' => '1988-01-01',
                 'sex' => Patient::SEX_LAKI_LAKI,
-                'clinic_name' => 'Poliklinik Umum',
-                'payer_type' => Encounter::PAYER_UMUM,
-            ])
+            ]))
             ->assertForbidden();
     }
 
@@ -206,15 +250,30 @@ class OutpatientFlowTest extends TestCase
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
 
         $this->actingAs($registrar)
-            ->post(route('pendaftaran.rawat-jalan.store'), [
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload([
                 'full_name' => 'Pasien Non Sintetis',
                 'date_of_birth' => '1992-02-02',
                 'sex' => Patient::SEX_LAKI_LAKI,
-                'clinic_name' => 'Poliklinik Umum',
-                'payer_type' => Encounter::PAYER_UMUM,
                 'is_synthetic' => false,
-            ])
+            ]))
             ->assertStatus(422);
+    }
+
+    public function test_poli_dokter_jadwal_must_belong_to_same_chain(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $clinic = Clinic::query()->where('code', 'UMUM')->firstOrFail();
+        $otherClinic = Clinic::query()->where('code', 'GIGI')->firstOrFail();
+        $foreignDoctor = Doctor::query()->where('clinic_id', $otherClinic->id)->firstOrFail();
+        $schedule = ClinicSchedule::query()->where('clinic_id', $clinic->id)->firstOrFail();
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload([
+                'clinic_public_id' => $clinic->public_id,
+                'doctor_public_id' => $foreignDoctor->public_id,
+                'schedule_public_id' => $schedule->public_id,
+            ]))
+            ->assertNotFound();
     }
 
     private function userWithRole(string $roleSlug): User

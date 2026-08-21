@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RbacSeeder::class);
+        $this->call(OutpatientMastersSeeder::class);
 
         if (! config('simulation.demo_seed_enabled')) {
             return;

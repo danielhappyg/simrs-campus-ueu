@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\ClinicalEntryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Support\Carbon;
 class ClinicalEntry extends Model
 {
     /** @use HasFactory<ClinicalEntryFactory> */
-    use HasFactory, HasPublicUlid;
+    use HasFactory, HasPublicUlid, UsesSchemaQualifiedTable;
 
     public const TYPE_NURSING_INTAKE = 'NURSING_INTAKE';
 
