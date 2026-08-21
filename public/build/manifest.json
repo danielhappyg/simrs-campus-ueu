@@ -566,7 +566,7 @@
     "src": "node_modules/@fontsource/ibm-plex-sans-condensed/files/ibm-plex-sans-condensed-latin-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BNHmo1eV.css",
+    "file": "assets/app-Dj-4RGlm.css",
     "name": "app",
     "names": [
       "app.css"
@@ -575,7 +575,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-DtWUJroV.js",
+    "file": "assets/app-BUbvF7Ki.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
