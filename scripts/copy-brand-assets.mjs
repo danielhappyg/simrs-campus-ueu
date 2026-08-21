@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-import { copyFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import process from 'node:process';
 
 const brandSource = 'public/brand';
 const brandDest = 'public/build/brand';
@@ -17,6 +18,7 @@ for (const name of readdirSync(brandSource)) {
     if (!name.endsWith('.png')) {
         continue;
     }
+
     copyFileSync(join(brandSource, name), join(brandDest, name));
 }
 
