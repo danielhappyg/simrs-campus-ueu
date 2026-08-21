@@ -10,7 +10,7 @@ export default function AppLogoIcon({
 }: AppLogoIconProps) {
     return (
         <img
-            src="/brand/simrs-campus-mark.png"
+            src="/build/brand/simrs-campus-mark.png"
             alt={alt}
             decoding="async"
             className={cn('object-contain', className)}

@@ -57,7 +57,7 @@ export default function AuthSimpleLayout({
                             <span className="absolute top-1/2 left-[78%] size-4 -translate-y-1/2 rounded-full border-[3px] border-white bg-signal shadow-[0_0_0_5px_rgb(240_88_40_/_0.18)]" />
                         </div>
                         <img
-                            src="/brand/ueu-wordmark.png"
+                            src="/build/brand/ueu-wordmark.png"
                             alt="Universitas Esa Unggul"
                             decoding="async"
                             className="h-14 w-auto object-contain opacity-95"
