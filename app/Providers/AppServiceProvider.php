@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Support\Authorization\Capability;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureAuthorization();
     }
 
     /**
@@ -46,5 +50,18 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Register capability gates from Capability constants.
+     * System administrators are break-glass via User::canCapability().
+     */
+    protected function configureAuthorization(): void
+    {
+        foreach (Capability::all() as $capability) {
+            Gate::define($capability, function (?User $user) use ($capability): bool {
+                return $user instanceof User && $user->canCapability($capability);
+            });
+        }
     }
 }

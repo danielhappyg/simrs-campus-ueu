@@ -3,6 +3,7 @@
 use App\Http\Middleware\AssignRequestCorrelationId;
 use App\Http\Middleware\AuditAuthorizationDenial;
 use App\Http\Middleware\EnsureAccountIsActive;
+use App\Http\Middleware\EnsureCapability;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'active.account' => EnsureAccountIsActive::class,
+            'capability' => EnsureCapability::class,
             'simulation' => EnsureSimulationSafetyMode::class,
         ]);
 

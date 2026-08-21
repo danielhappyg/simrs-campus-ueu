@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Support\Authorization\Capability;
 use App\Support\Models\HasPublicUlid;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -42,6 +44,62 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'status' => 'ACTIVE',
         'is_system_administrator' => false,
     ];
+
+    /**
+     * @return BelongsToMany<Role, $this>
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function hasRole(string $slug): bool
+    {
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->contains(fn (Role $role): bool => $role->slug === $slug);
+        }
+
+        return $this->roles()->where('slug', $slug)->exists();
+    }
+
+    public function canCapability(string $capability): bool
+    {
+        if ($this->is_system_administrator) {
+            return true;
+        }
+
+        return $this->roles()
+            ->whereHas('permissions', fn ($query) => $query->where('name', $capability))
+            ->exists();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function capabilityList(): array
+    {
+        if ($this->is_system_administrator) {
+            return Capability::all();
+        }
+
+        $this->loadMissing('roles.permissions');
+
+        return $this->roles
+            ->flatMap(fn (Role $role) => $role->permissions->pluck('name'))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function roleSlugs(): array
+    {
+        $this->loadMissing('roles');
+
+        return $this->roles->pluck('slug')->values()->all();
+    }
 
     /**
      * Get the attributes that should be cast.

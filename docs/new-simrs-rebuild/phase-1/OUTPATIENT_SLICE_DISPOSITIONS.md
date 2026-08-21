@@ -49,7 +49,7 @@ States and posting rules: **Unknown** until synthetic walkthrough with owners â€
 |---|---|---|
 | NFR-AUTH-01 | Server-side action authorization; no student over-permission | Proposed / Approved for build (security baseline) |
 | NFR-AUD-01 | Append-only audit for privileged actions | Proposed / Approved for build |
-| NFR-SYN-01 | Synthetic-only teaching data; environment banner | Proposed / Approved for build |
+| NFR-SYN-01 | Synthetic-only teaching data; backend enforce (UI chrome banner removed by product decision) | Proposed / Approved for build |
 | NFR-INT-01 | Sandbox adapters cannot fall through to production | Proposed / Approved for build |
 
 ## Detailed requirement packs
@@ -70,4 +70,4 @@ States and posting rules: **Unknown** until synthetic walkthrough with owners â€
 
 ## Next Phase 1 step after this pack
 
-Disposition ED (PAR-REG-002, PAR-CLN-002/003) and inpatient admission (PAR-REG-001, PAR-CLN-005) at the same evidence discipline.
+~~Disposition ED (PAR-REG-002, PAR-CLN-002/003) and inpatient admission (PAR-REG-001, PAR-CLN-005) at the same evidence discipline.~~ **Done** â€” see `ED_SLICE_DISPOSITIONS.md` and `INPATIENT_SLICE_DISPOSITIONS.md`. Next: Phase 2 foundation; residual Phase 1 domain dispositions in parallel.

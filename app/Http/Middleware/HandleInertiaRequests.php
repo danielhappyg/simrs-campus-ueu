@@ -57,6 +57,8 @@ class HandleInertiaRequests extends Middleware
                     'isSystemAdministrator' => $user->is_system_administrator,
                     'twoFactorEnabled' => $user->hasEnabledTwoFactorAuthentication(),
                 ] : null,
+                'roles' => $user instanceof User ? $user->roleSlugs() : [],
+                'capabilities' => $user instanceof User ? $user->capabilityList() : [],
             ],
             'requestId' => $request->attributes->get('request_id'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -13,6 +12,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RbacSeeder::class);
+
         if (! config('simulation.demo_seed_enabled')) {
             return;
         }
@@ -27,15 +28,6 @@ class DatabaseSeeder extends Seeder
             throw new RuntimeException('DEMO_ACCOUNT_PASSWORD must be set to at least 12 characters when seeding.');
         }
 
-        User::query()->updateOrCreate(
-            ['email' => config('simulation.rebuild_admin_email')],
-            [
-                'name' => 'Rebuild Admin',
-                'password' => $password,
-                'status' => 'ACTIVE',
-                'is_system_administrator' => true,
-                'email_verified_at' => now(),
-            ],
-        );
+        $this->call(DemoActorsSeeder::class);
     }
 }

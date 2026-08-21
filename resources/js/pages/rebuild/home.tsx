@@ -1,5 +1,4 @@
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -11,7 +10,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function RebuildHome() {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <>
             <Head title="Beranda" />
 
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-10 md:px-6">
@@ -52,6 +51,10 @@ export default function RebuildHome() {
                     ))}
                 </section>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+RebuildHome.layout = {
+    breadcrumbs,
+};
