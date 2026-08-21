@@ -168,7 +168,20 @@ jobs:
           npm run build
 
       - name: Verify the build did not modify tracked source
+        id: verify-frontend-build
         run: git diff --exit-code
+
+      - name: Upload Linux Vite assets when the committed build drifts
+        if: failure() && steps.verify-frontend-build.outcome == 'failure'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: linux-vite-build
+          path: |
+            public/build/manifest.json
+            public/build/assets/app-*.css
+            public/build/assets/app-*.js
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Generate and assemble the release candidate
         id: release
