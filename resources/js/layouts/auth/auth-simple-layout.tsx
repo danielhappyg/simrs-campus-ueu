@@ -49,11 +49,19 @@ export default function AuthSimpleLayout({
                         </p>
                     </div>
 
-                    <div className="relative" aria-hidden="true">
-                        <div className="h-px w-full bg-sky-300/50" />
-                        <span className="absolute top-1/2 left-[18%] size-3 -translate-y-1/2 rounded-full border-2 border-sky-100 bg-[#063650]" />
-                        <span className="absolute top-1/2 left-[48%] size-3 -translate-y-1/2 rounded-full border-2 border-sky-100 bg-[#063650]" />
-                        <span className="absolute top-1/2 left-[78%] size-4 -translate-y-1/2 rounded-full border-[3px] border-white bg-signal shadow-[0_0_0_5px_rgb(240_88_40_/_0.18)]" />
+                    <div className="relative z-10 flex items-end justify-between gap-6">
+                        <div className="relative flex-1" aria-hidden="true">
+                            <div className="h-px w-full bg-sky-300/50" />
+                            <span className="absolute top-1/2 left-[18%] size-3 -translate-y-1/2 rounded-full border-2 border-sky-100 bg-[#063650]" />
+                            <span className="absolute top-1/2 left-[48%] size-3 -translate-y-1/2 rounded-full border-2 border-sky-100 bg-[#063650]" />
+                            <span className="absolute top-1/2 left-[78%] size-4 -translate-y-1/2 rounded-full border-[3px] border-white bg-signal shadow-[0_0_0_5px_rgb(240_88_40_/_0.18)]" />
+                        </div>
+                        <img
+                            src="/brand/ueu-wordmark.png"
+                            alt="Universitas Esa Unggul"
+                            decoding="async"
+                            className="h-14 w-auto object-contain opacity-95"
+                        />
                     </div>
                 </section>
 
