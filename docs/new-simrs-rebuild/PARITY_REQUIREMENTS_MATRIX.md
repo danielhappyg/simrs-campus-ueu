@@ -1,6 +1,6 @@
 # Legacy-to-New Parity Requirements Matrix
 
-Status: initial traceability baseline  
+Status: Phase 1 dispositions in progress (outpatient slice started 2026-08-21)  
 Source: verified 268-menu inventory from 2026-08-21
 
 ## How to use this matrix
@@ -10,6 +10,8 @@ Every row must be reviewed and receive a deliberate disposition: **Reproduce**, 
 Evidence strength values should use: Observed, Manual-documented, Vendor-stated, Inferred, Unknown. Parity status should progress through: Unspecified, Specified, Designed, Implemented, Verified, Accepted, or Deferred.
 
 For each row, create linked detailed requirements for actors, fields, rules, state transitions, permissions, downstream postings, reports, audit, integration, correction/reversal, synthetic test data and acceptance criteria.
+
+Outpatient slice working pack: [`phase-1/OUTPATIENT_SLICE_DISPOSITIONS.md`](phase-1/OUTPATIENT_SLICE_DISPOSITIONS.md).
 
 ## Reconciliation
 
@@ -34,16 +36,16 @@ For each row, create linked detailed requirements for actors, fields, rules, sta
 
 | Requirement ID | Legacy category | Legacy menu | Initial disposition | Evidence | Parity status | Business owner | Target capability / slice | Detailed requirement | Acceptance test |
 |---|---|---|---|---|---|---|---|---|---|
-| PAR-REG-001 | Pendaftaran | Rawat Inap | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-REG-002 | Pendaftaran | IGD | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-REG-003 | Pendaftaran | Rawat Jalan | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-REG-004 | Pendaftaran | Display Admisi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-REG-005 | Pendaftaran | Rawat Jalan v2 | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLN-001 | Pemeriksaan | Assesmen | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLN-002 | Pemeriksaan | Triage | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLN-003 | Pemeriksaan | IGD | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLN-004 | Pemeriksaan | Rawat Jalan | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLN-005 | Pemeriksaan | Rawat Inap | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
+| PAR-REG-001 | Pendaftaran | Rawat Inap | Pending evidence | Menu observed | Unspecified | Daniel (interim) | Inpatient slice | TBD | TBD |
+| PAR-REG-002 | Pendaftaran | IGD | Pending evidence | Menu observed | Unspecified | Daniel (interim) | ED slice | TBD | TBD |
+| PAR-REG-003 | Pendaftaran | Rawat Jalan | Reproduce | Observed form/route | Specified | Daniel (interim) | Outpatient slice | [phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md](phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md) | In spec |
+| PAR-REG-004 | Pendaftaran | Display Admisi | Replace | Observed external route (not opened); insecure pattern prohibited | Specified | Daniel + security interim | Outpatient / access display | Safe synthetic display only; see outpatient dispositions | TBD |
+| PAR-REG-005 | Pendaftaran | Rawat Jalan v2 | Consolidate → PAR-REG-003 | Observed route | Specified | Daniel (interim) | Outpatient slice | See PAR-REG-003 | See PAR-REG-003 |
+| PAR-CLN-001 | Pemeriksaan | Assesmen | Consolidate → PAR-CLN-004 | Menu observed | Specified | Clinical TBD | Outpatient slice | See PAR-CLN-004 | See PAR-CLN-004 |
+| PAR-CLN-002 | Pemeriksaan | Triage | Pending evidence | Menu observed | Unspecified | Clinical TBD | ED slice | TBD | TBD |
+| PAR-CLN-003 | Pemeriksaan | IGD | Pending evidence | Menu observed | Unspecified | Clinical TBD | ED slice | TBD | TBD |
+| PAR-CLN-004 | Pemeriksaan | Rawat Jalan | Reproduce | Observed screen | Specified | Clinical TBD / Daniel interim | Outpatient slice | [phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md](phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md) | In spec |
+| PAR-CLN-005 | Pemeriksaan | Rawat Inap | Pending evidence | Menu observed | Unspecified | Clinical TBD | Inpatient slice | TBD | TBD |
 | PAR-CLN-006 | Pemeriksaan | Laboratorium | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-007 | Pemeriksaan | Radiologi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-008 | Pemeriksaan | Gizi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
@@ -59,16 +61,16 @@ For each row, create linked detailed requirements for actors, fields, rules, sta
 | PAR-CLN-018 | Pemeriksaan | Jenazah | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-019 | Pemeriksaan | Rawat Inap v2 | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-020 | Pemeriksaan | Ambulance | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-001 | RM | Rawat Jalan | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-002 | RM | Rawat Inap | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-003 | RM | Monitor Klaim | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-004 | RM | Filing | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-005 | RM | SatuSehat RJ | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-006 | RM | EMR IPP RAWAT JALAN | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-RMIK-007 | RM | EMR IPP RAWAT INAP | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLM-001 | Klaim | Rawat Jalan | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLM-002 | Klaim | Rawat Inap | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLM-003 | Klaim | Rawat Jalan iDRG | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
+| PAR-RMIK-001 | RM | Rawat Jalan | Reproduce | Menu observed | Specified | RMIK Department | Outpatient slice | [phase-1/requirements/PAR-RMIK-001-rawat-jalan-rm.md](phase-1/requirements/PAR-RMIK-001-rawat-jalan-rm.md) | In spec |
+| PAR-RMIK-002 | RM | Rawat Inap | Pending evidence | Menu observed | Unspecified | RMIK Department | Inpatient slice | TBD | TBD |
+| PAR-RMIK-003 | RM | Monitor Klaim | Pending evidence | Menu observed | Unspecified | RMIK Department | Claims slice | TBD | TBD |
+| PAR-RMIK-004 | RM | Filing | Pending evidence | Menu observed | Unspecified | RMIK Department | RM custody | TBD | TBD |
+| PAR-RMIK-005 | RM | SatuSehat RJ | Replace (sandbox only) | Screen observed | Specified | RMIK Department | Outpatient / integration | Non-transmitting sandbox adapter | TBD |
+| PAR-RMIK-006 | RM | EMR IPP RAWAT JALAN | Consolidate → PAR-RMIK-001 / PAR-CLN-004 | Menu observed | Specified | RMIK Department | Outpatient slice | See outpatient dispositions | See PAR-RMIK-001 |
+| PAR-RMIK-007 | RM | EMR IPP RAWAT INAP | Pending evidence | Menu observed | Unspecified | RMIK Department | Inpatient slice | TBD | TBD |
+| PAR-CLM-001 | Klaim | Rawat Jalan | Reproduce (sandbox) | Menu observed | Specified | RMIK Department | Outpatient / claims | See outpatient dispositions | TBD |
+| PAR-CLM-002 | Klaim | Rawat Inap | Pending evidence | Menu observed | Unspecified | RMIK Department | Inpatient / claims | TBD | TBD |
+| PAR-CLM-003 | Klaim | Rawat Jalan iDRG | Consolidate → PAR-CLM-001 | Menu observed | Specified | RMIK Department | Outpatient / claims | Grouping mode on canonical claim | TBD |
 | PAR-CLM-004 | Klaim | Rawat Inap iDRG | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLM-005 | Klaim | Perk Plafon RI | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLM-006 | Klaim | Monitor Klaim | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |

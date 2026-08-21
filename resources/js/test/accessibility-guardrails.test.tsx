@@ -85,5 +85,4 @@ describe('accessibility guardrails', () => {
         expect(stylesheet).toContain('min-inline-size: 2.75rem');
         expect(stylesheet).toContain("[data-slot='breadcrumb-link']");
     });
-
 });
