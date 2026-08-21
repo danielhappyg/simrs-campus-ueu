@@ -15,6 +15,10 @@ type EncounterRow = {
     clinic_name: string;
     doctor_name: string | null;
     schedule_label: string | null;
+    ward_name?: string | null;
+    ward_class?: string | null;
+    bed_code?: string | null;
+    continue_from?: string | null;
     payer_type: string;
     case_type?: string | null;
     accident_type?: string | null;
@@ -37,9 +41,10 @@ type Filters = {
     date_from: string;
     date_to: string;
     payer?: string;
+    continue_from?: string;
 };
 
-type DeskVariant = 'rawat-jalan' | 'igd' | 'triage';
+type DeskVariant = 'rawat-jalan' | 'igd' | 'triage' | 'rawat-inap';
 
 type Props = {
     variant?: DeskVariant;
@@ -48,6 +53,7 @@ type Props = {
     encounters: EncounterRow[];
     clinics: ClinicOption[];
     payerOptions?: Option[];
+    continueFromOptions?: Option[];
     filters: Filters;
     canOpen: boolean;
 };
@@ -68,6 +74,12 @@ const payerLabel: Record<string, string> = {
     LAINNYA: 'Lainnya',
 };
 
+const continueLabel: Record<string, string> = {
+    LANGSUNG: 'Langsung',
+    DARI_IGD: 'Dari IGD',
+    DARI_RJ: 'Dari RJ',
+};
+
 const fieldClass =
     'border-input h-8 rounded-md border bg-white px-2.5 text-sm shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30';
 
@@ -78,20 +90,27 @@ export default function PemeriksaanRawatJalanIndex({
     encounters,
     clinics,
     payerOptions = [],
+    continueFromOptions = [],
     filters,
     canOpen,
 }: Props) {
     const isIgd = variant === 'igd';
     const isTriage = variant === 'triage';
+    const isInpatient = variant === 'rawat-inap';
     const title = isTriage
         ? 'Pemeriksaan · Triage'
         : isIgd
           ? 'Pemeriksaan · IGD'
-          : 'Pemeriksaan · Rawat Jalan';
+          : isInpatient
+            ? 'Pemeriksaan · Rawat Inap'
+            : 'Pemeriksaan · Rawat Jalan';
 
     const [q, setQ] = useState(filters.q);
     const [clinic, setClinic] = useState(filters.clinic);
     const [payer, setPayer] = useState(filters.payer ?? '');
+    const [continueFrom, setContinueFrom] = useState(
+        filters.continue_from ?? '',
+    );
     const [dateFrom, setDateFrom] = useState(filters.date_from);
     const [dateTo, setDateTo] = useState(filters.date_to);
     const [showIter, setShowIter] = useState(false);
@@ -105,7 +124,9 @@ export default function PemeriksaanRawatJalanIndex({
             {
                 q: q || undefined,
                 clinic: !isTriage && clinic ? clinic : undefined,
-                payer: isTriage && payer ? payer : undefined,
+                payer: (isTriage || isInpatient) && payer ? payer : undefined,
+                continue_from:
+                    isInpatient && continueFrom ? continueFrom : undefined,
                 date_from: dateFrom || undefined,
                 date_to: dateTo || undefined,
             },
@@ -131,6 +152,11 @@ export default function PemeriksaanRawatJalanIndex({
                             active: isIgd,
                         },
                         {
+                            href: '/pemeriksaan/rawat-inap',
+                            label: 'Rawat Inap',
+                            active: isInpatient,
+                        },
+                        {
                             href: '/pemeriksaan/triage',
                             label: 'Triage',
                             active: isTriage,
@@ -146,7 +172,13 @@ export default function PemeriksaanRawatJalanIndex({
                         <p className="mt-0.5 text-xs text-[#64748b]">
                             Worklist pengajaran (sintetis). Densitas filter
                             mengikuti meja SAHABAT / CAP-CLN-
-                            {isTriage ? '002' : isIgd ? '003' : '004'}.
+                            {isTriage
+                                ? '002'
+                                : isIgd
+                                  ? '003'
+                                  : isInpatient
+                                    ? '005'
+                                    : '004'}.
                             {isTriage
                                 ? ' Skala triage tetap stub sampai SME confirm.'
                                 : ''}
@@ -194,30 +226,94 @@ export default function PemeriksaanRawatJalanIndex({
                                 </select>
                             </div>
                         ) : (
-                            <div className="grid min-w-[10rem] gap-1">
-                                <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
-                                    {isIgd ? 'Unit' : 'Klinik'}
-                                </label>
-                                <select
-                                    className={fieldClass}
-                                    value={clinic}
-                                    onChange={(e) => setClinic(e.target.value)}
-                                >
-                                    <option value="">
-                                        {isIgd
-                                            ? 'Semua unit IGD'
-                                            : 'Semua klinik'}
-                                    </option>
-                                    {clinics.map((option) => (
-                                        <option
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {option.label}
+                            <>
+                                <div className="grid min-w-[10rem] gap-1">
+                                    <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                        {isInpatient
+                                            ? 'Bangsal'
+                                            : isIgd
+                                              ? 'Unit'
+                                              : 'Klinik'}
+                                    </label>
+                                    <select
+                                        className={fieldClass}
+                                        value={clinic}
+                                        onChange={(e) =>
+                                            setClinic(e.target.value)
+                                        }
+                                    >
+                                        <option value="">
+                                            {isInpatient
+                                                ? 'Semua bangsal'
+                                                : isIgd
+                                                  ? 'Semua unit IGD'
+                                                  : 'Semua klinik'}
                                         </option>
-                                    ))}
-                                </select>
-                            </div>
+                                        {clinics.map((option) => (
+                                            <option
+                                                key={option.value}
+                                                value={option.value}
+                                            >
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {isInpatient ? (
+                                    <>
+                                        <div className="grid min-w-[8rem] gap-1">
+                                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                                Cara bayar
+                                            </label>
+                                            <select
+                                                className={fieldClass}
+                                                value={payer}
+                                                onChange={(e) =>
+                                                    setPayer(e.target.value)
+                                                }
+                                            >
+                                                <option value="">Semua</option>
+                                                {payerOptions.map((option) => (
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="grid min-w-[9rem] gap-1">
+                                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                                Asal
+                                            </label>
+                                            <select
+                                                className={fieldClass}
+                                                value={continueFrom}
+                                                onChange={(e) =>
+                                                    setContinueFrom(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            >
+                                                <option value="">Semua</option>
+                                                {continueFromOptions.map(
+                                                    (option) => (
+                                                        <option
+                                                            key={option.value}
+                                                            value={
+                                                                option.value
+                                                            }
+                                                        >
+                                                            {option.label}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </>
                         )}
                         <div className="grid min-w-[9rem] gap-1">
                             <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
@@ -312,15 +408,37 @@ export default function PemeriksaanRawatJalanIndex({
                                         Nama
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        {isIgd || isTriage ? 'Unit' : 'Klinik'}
+                                        {isInpatient
+                                            ? 'Bangsal'
+                                            : isIgd || isTriage
+                                              ? 'Unit'
+                                              : 'Klinik'}
                                     </th>
-                                    <th className="px-2 py-1.5 font-medium">
-                                        Dokter
-                                    </th>
-                                    <th className="px-2 py-1.5 font-medium">
-                                        {isIgd || isTriage ? 'Shift' : 'Jadwal'}
-                                    </th>
-                                    {(isIgd || isTriage) && (
+                                    {isInpatient ? (
+                                        <>
+                                            <th className="px-2 py-1.5 font-medium">
+                                                Kelas
+                                            </th>
+                                            <th className="px-2 py-1.5 font-medium">
+                                                TT
+                                            </th>
+                                            <th className="px-2 py-1.5 font-medium">
+                                                Asal
+                                            </th>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <th className="px-2 py-1.5 font-medium">
+                                                Dokter
+                                            </th>
+                                            <th className="px-2 py-1.5 font-medium">
+                                                {isIgd || isTriage
+                                                    ? 'Shift'
+                                                    : 'Jadwal'}
+                                            </th>
+                                        </>
+                                    )}
+                                    {(isIgd || isTriage) && !isInpatient && (
                                         <th className="px-2 py-1.5 font-medium">
                                             Kasus
                                         </th>
@@ -342,7 +460,11 @@ export default function PemeriksaanRawatJalanIndex({
                                     <tr>
                                         <td
                                             colSpan={
-                                                isIgd || isTriage ? 11 : 10
+                                                isInpatient
+                                                    ? 11
+                                                    : isIgd || isTriage
+                                                      ? 11
+                                                      : 10
                                             }
                                             className="px-2 py-6 text-[#64748b]"
                                         >
@@ -369,16 +491,46 @@ export default function PemeriksaanRawatJalanIndex({
                                                 {encounter.patient.full_name}
                                             </td>
                                             <td className="px-2 py-1.5">
-                                                {encounter.clinic_name}
+                                                {isInpatient
+                                                    ? (encounter.ward_name ??
+                                                      encounter.clinic_name)
+                                                    : encounter.clinic_name}
                                             </td>
-                                            <td className="px-2 py-1.5">
-                                                {encounter.doctor_name ?? '—'}
-                                            </td>
-                                            <td className="px-2 py-1.5 text-[#64748b]">
-                                                {encounter.schedule_label ??
-                                                    '—'}
-                                            </td>
-                                            {(isIgd || isTriage) && (
+                                            {isInpatient ? (
+                                                <>
+                                                    <td className="px-2 py-1.5">
+                                                        {encounter.ward_class ??
+                                                            '—'}
+                                                    </td>
+                                                    <td className="px-2 py-1.5 font-mono text-xs">
+                                                        {encounter.bed_code ??
+                                                            encounter.schedule_label ??
+                                                            '—'}
+                                                    </td>
+                                                    <td className="px-2 py-1.5">
+                                                        {encounter.continue_from
+                                                            ? (continueLabel[
+                                                                  encounter
+                                                                      .continue_from
+                                                              ] ??
+                                                              encounter.continue_from)
+                                                            : '—'}
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td className="px-2 py-1.5">
+                                                        {encounter.doctor_name ??
+                                                            '—'}
+                                                    </td>
+                                                    <td className="px-2 py-1.5 text-[#64748b]">
+                                                        {encounter.schedule_label ??
+                                                            '—'}
+                                                    </td>
+                                                </>
+                                            )}
+                                            {(isIgd || isTriage) &&
+                                                !isInpatient && (
                                                 <td className="px-2 py-1.5 text-[#64748b]">
                                                     {encounter.case_type ?? '—'}
                                                 </td>
@@ -439,13 +591,17 @@ PemeriksaanRawatJalanIndex.layout = (props: Props) => {
             ? '/pemeriksaan/triage'
             : variant === 'igd'
               ? '/pemeriksaan/igd'
-              : '/pemeriksaan/rawat-jalan');
+              : variant === 'rawat-inap'
+                ? '/pemeriksaan/rawat-inap'
+                : '/pemeriksaan/rawat-jalan');
     const label =
         variant === 'triage'
             ? 'Triage'
             : variant === 'igd'
               ? 'IGD'
-              : 'Rawat Jalan';
+              : variant === 'rawat-inap'
+                ? 'Rawat Inap'
+                : 'Rawat Jalan';
 
     return {
         breadcrumbs: [
