@@ -6,10 +6,13 @@ use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureCapability;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -46,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             fn ($request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        $exceptions->reportable(function (\Throwable $e): void {
+        $exceptions->reportable(function (Throwable $e): void {
             error_log(sprintf(
                 '[simrs] %s: %s in %s:%d',
                 $e::class,
@@ -56,10 +59,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ));
         });
 
-        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
-            $isForbidden = $e instanceof \Illuminate\Auth\Access\AuthorizationException
+        $exceptions->render(function (Throwable $e, Request $request) {
+            $isForbidden = $e instanceof AuthorizationException
                 || (
-                    $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface
+                    $e instanceof HttpExceptionInterface
                     && $e->getStatusCode() === 403
                 );
 

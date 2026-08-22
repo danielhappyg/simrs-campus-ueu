@@ -112,7 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
             /** @var list<string> $names */
             $names = array_values(array_unique(array_map(
-                static fn (object $row): string => (string) $row->name,
+                static fn (object $row): string => (string) data_get($row, 'name'),
                 $rows,
             )));
 
@@ -149,7 +149,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
             /** @var list<string> $slugs */
             $slugs = array_values(array_unique(array_map(
-                static fn (object $row): string => (string) $row->slug,
+                static fn (object $row): string => (string) data_get($row, 'slug'),
                 $rows,
             )));
 

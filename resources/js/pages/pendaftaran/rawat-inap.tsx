@@ -1,5 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -142,7 +143,8 @@ export default function PendaftaranRawatInap({
     });
 
     const selectedWard = useMemo(
-        () => wards.find((ward) => ward.name === form.data.ward_name) ?? wards[0],
+        () =>
+            wards.find((ward) => ward.name === form.data.ward_name) ?? wards[0],
         [form.data.ward_name, wards],
     );
 
@@ -201,6 +203,7 @@ export default function PendaftaranRawatInap({
 
     const onWardChange = (wardName: string) => {
         const ward = wards.find((item) => item.name === wardName);
+
         if (!ward) {
             return;
         }
@@ -309,7 +312,9 @@ export default function PendaftaranRawatInap({
                                     <tr>
                                         <th className="px-2 py-1.5">No. RM</th>
                                         <th className="px-2 py-1.5">Nama</th>
-                                        <th className="px-2 py-1.5">Tgl lahir</th>
+                                        <th className="px-2 py-1.5">
+                                            Tgl lahir
+                                        </th>
                                         <th className="px-2 py-1.5">JK</th>
                                         <th className="px-2 py-1.5" />
                                     </tr>
@@ -373,7 +378,9 @@ export default function PendaftaranRawatInap({
                         {!selectedPatient ? (
                             <>
                                 <div className="grid gap-1">
-                                    <Label htmlFor="full_name">Nama lengkap</Label>
+                                    <Label htmlFor="full_name">
+                                        Nama lengkap
+                                    </Label>
                                     <Input
                                         id="full_name"
                                         className={fieldClass}
@@ -386,7 +393,9 @@ export default function PendaftaranRawatInap({
                                         }
                                         disabled={!canRegister}
                                     />
-                                    <InputError message={form.errors.full_name} />
+                                    <InputError
+                                        message={form.errors.full_name}
+                                    />
                                 </div>
                                 <div className="grid gap-1">
                                     <Label htmlFor="date_of_birth">
@@ -563,7 +572,9 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <div className="grid gap-1">
-                            <Label htmlFor="continue_from">Asal / kelanjutan</Label>
+                            <Label htmlFor="continue_from">
+                                Asal / kelanjutan
+                            </Label>
                             <select
                                 id="continue_from"
                                 className={fieldClass}
@@ -589,7 +600,9 @@ export default function PendaftaranRawatInap({
                         </div>
 
                         <div className="grid gap-1 md:col-span-2 lg:col-span-3">
-                            <Label htmlFor="chief_complaint">Keluhan utama</Label>
+                            <Label htmlFor="chief_complaint">
+                                Keluhan utama
+                            </Label>
                             <textarea
                                 id="chief_complaint"
                                 className={cn(
@@ -725,7 +738,9 @@ export default function PendaftaranRawatInap({
                                 type="date"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={filterDateTo}
-                                onChange={(e) => setFilterDateTo(e.target.value)}
+                                onChange={(e) =>
+                                    setFilterDateTo(e.target.value)
+                                }
                             />
                         </div>
                         <Button type="submit" size="sm" variant="secondary">
@@ -803,7 +818,8 @@ export default function PendaftaranRawatInap({
                                             <td className="px-2 py-1.5">
                                                 {encounter.continue_from
                                                     ? (continueLabel[
-                                                          encounter.continue_from
+                                                          encounter
+                                                              .continue_from
                                                       ] ??
                                                       encounter.continue_from)
                                                     : '—'}

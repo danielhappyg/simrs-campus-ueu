@@ -84,14 +84,14 @@ class OutpatientRmController extends Controller
                     'payer_type' => $encounter->payer_type,
                     'admission_mode' => $encounter->admission_mode,
                     'queue_number' => $encounter->queue_number,
-                    'registered_at' => $encounter->registered_at?->toIso8601String(),
+                    'registered_at' => $encounter->registered_at->toIso8601String(),
                     'visit_date' => $encounter->visit_date?->toDateString(),
                     'entry_count' => $encounter->clinicalEntries->count(),
                     'patient' => [
                         'public_id' => $encounter->patient?->public_id,
                         'medical_record_number' => $encounter->patient?->medical_record_number,
                         'full_name' => $encounter->patient?->full_name,
-                        'date_of_birth' => $encounter->patient?->date_of_birth?->toDateString(),
+                        'date_of_birth' => $encounter->patient?->date_of_birth->toDateString(),
                         'sex' => $encounter->patient?->sex,
                     ],
                 ])

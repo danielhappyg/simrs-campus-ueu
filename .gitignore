@@ -35,6 +35,10 @@ storage/*.key
 storage/pail/
 database/*.sqlite
 
+# ibnux/data-indonesia JSON (fetch via scripts/fetch-ibnux-wilayah.sh; import into DB)
+resources/data/wilayah/ibnux/
+!resources/data/wilayah/SOURCE.md
+
 # Generated Laravel Wayfinder route bindings
 resources/js/actions/
 resources/js/routes/
