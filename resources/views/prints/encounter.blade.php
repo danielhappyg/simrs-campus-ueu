@@ -81,11 +81,7 @@
         $patient = $encounter->patient;
         $queue = $encounter->queue_number !== null ? str_pad((string) $encounter->queue_number, 3, '0', STR_PAD_LEFT) : '—';
         $visit = $encounter->visit_date?->format('d/m/Y') ?? $encounter->registered_at->format('d/m/Y');
-        $payer = match ($encounter->payer_type) {
-            'BPJS' => 'BPJS (simulasi)',
-            'LAINNYA' => 'Lainnya',
-            default => 'Umum',
-        };
+        $payer = $labels['payer'];
     @endphp
 
     @foreach ($documents as $document)
@@ -99,11 +95,19 @@
                     <dt>No. antrian</dt><dd>{{ $queue }}</dd>
                     <dt>No. RM</dt><dd>{{ $patient?->medical_record_number }}</dd>
                     <dt>Nama</dt><dd>{{ $patient?->full_name }}</dd>
+                    <dt>Jenis kelamin</dt><dd>{{ $labels['sex'] }}</dd>
+                    <dt>Status pernikahan</dt><dd>{{ $labels['marital'] }}</dd>
+                    <dt>Agama</dt><dd>{{ $labels['religion'] }}</dd>
                     <dt>NIK (sintetis)</dt><dd>{{ $patient?->nik ?? '—' }}</dd>
+                    <dt>Wilayah</dt><dd>{{ $labels['wilayah'] }}</dd>
+                    <dt>Kode wilayah</dt><dd style="font-family:monospace;font-size:11px">{{ $labels['wilayah_codes'] }}</dd>
                     <dt>Tanggal kunjungan</dt><dd>{{ $visit }}</dd>
+                    <dt>Setting</dt><dd>{{ $labels['care_setting'] }}</dd>
                     <dt>Poli / unit</dt><dd>{{ $encounter->clinic_name }}</dd>
                     <dt>Dokter</dt><dd>{{ $encounter->doctor_name ?? '—' }}</dd>
                     <dt>Jadwal</dt><dd>{{ $encounter->schedule_label ?? '—' }}</dd>
+                    <dt>Cara masuk</dt><dd>{{ $labels['admission'] }}</dd>
+                    <dt>Asal kunjungan</dt><dd>{{ $labels['origin'] }}</dd>
                     <dt>Cara bayar</dt><dd>{{ $payer }}</dd>
                     <dt>No. asuransi</dt><dd>{{ $encounter->insurance_number ?? '—' }}</dd>
                     <dt>Kode booking</dt><dd>{{ $encounter->booking_code ?? '—' }}</dd>
@@ -124,7 +128,7 @@
                         <dt>Peserta</dt><dd>{{ $patient?->full_name }}</dd>
                         <dt>No. kartu (ajar)</dt><dd>{{ $encounter->insurance_number ?: 'SYNTH-BPJS' }}</dd>
                         <dt>Tgl SEP</dt><dd>{{ $visit }}</dd>
-                        <dt>Jenis pelayanan</dt><dd>Rawat jalan pengajaran</dd>
+                        <dt>Jenis pelayanan</dt><dd>{{ $labels['care_setting'] }} (pengajaran)</dd>
                         <dt>Poli tujuan</dt><dd>{{ $encounter->clinic_name }}</dd>
                         <dt>DPJP</dt><dd>{{ $encounter->doctor_name ?? '—' }}</dd>
                         <dt>Diagnosa</dt><dd>Tidak dikode — dokumen siluet pengajaran</dd>

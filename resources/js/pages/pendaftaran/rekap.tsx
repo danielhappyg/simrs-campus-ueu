@@ -15,11 +15,14 @@ type RecapRow = {
     visit_date: string | null;
     queue_number: number | null;
     care_setting: string;
+    care_setting_label?: string;
     clinic_name: string;
     doctor_name: string | null;
     payer_type: string;
+    payer_label?: string;
     booking_code: string | null;
     origin: 'ONLINE' | 'WALK_IN';
+    origin_label?: string;
     status: string;
     patient: {
         medical_record_number: string | null;
@@ -40,12 +43,6 @@ type Props = {
     totals: { all: number; online: number; walk_in: number };
     clinicOptions: Option[];
     payerOptions: Option[];
-};
-
-const payerLabel: Record<string, string> = {
-    UMUM: 'Umum',
-    BPJS: 'BPJS (simulasi)',
-    LAINNYA: 'Lainnya',
 };
 
 export default function PendaftaranRekap({
@@ -302,17 +299,17 @@ export default function PendaftaranRekap({
                                                         : 'bg-[#f1f5f9] text-[#475569]',
                                                 )}
                                             >
-                                                {row.origin === 'ONLINE'
-                                                    ? 'Online / booking'
-                                                    : 'Walk-in'}
+                                                {row.origin_label ??
+                                                    (row.origin === 'ONLINE'
+                                                        ? 'Online / booking'
+                                                        : 'Walk-in')}
                                             </span>
                                         </td>
                                         <td className="px-3 py-2">
                                             {row.clinic_name}
                                         </td>
                                         <td className="px-3 py-2">
-                                            {payerLabel[row.payer_type] ??
-                                                row.payer_type}
+                                            {row.payer_label ?? row.payer_type}
                                         </td>
                                         <td className="px-3 py-2 text-right">
                                             <a

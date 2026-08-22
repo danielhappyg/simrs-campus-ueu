@@ -55,6 +55,7 @@ type PatientRow = {
     phone: string | null;
     email: string | null;
     ethnicity: string | null;
+    marital_status: string | null;
     language: string | null;
     notes: string | null;
     responsible_party_name: string | null;
@@ -85,6 +86,7 @@ type Props = {
     todaysEncounters: EncounterRow[];
     clinics: ClinicOption[];
     sexOptions: Option[];
+    maritalOptions: Option[];
     religionOptions: Option[];
     educationOptions: Option[];
     occupationOptions: Option[];
@@ -218,6 +220,7 @@ export default function PendaftaranRawatJalan({
     todaysEncounters,
     clinics,
     sexOptions,
+    maritalOptions = [],
     religionOptions,
     educationOptions,
     occupationOptions,
@@ -268,6 +271,7 @@ export default function PendaftaranRawatJalan({
         nik: '',
         place_of_birth: '',
         religion: '',
+        marital_status: '',
         education: '',
         occupation: '',
         province_code: '',
@@ -407,6 +411,7 @@ export default function PendaftaranRawatJalan({
             nik: patient.nik ?? '',
             place_of_birth: patient.place_of_birth ?? '',
             religion: patient.religion ?? '',
+            marital_status: patient.marital_status ?? '',
             education: patient.education ?? '',
             occupation: patient.occupation ?? '',
             province_code: patient.province_code ?? '',
@@ -440,6 +445,7 @@ export default function PendaftaranRawatJalan({
             nik: '',
             place_of_birth: '',
             religion: '',
+            marital_status: '',
             education: '',
             occupation: '',
             province_code: '',
@@ -833,6 +839,33 @@ export default function PendaftaranRawatJalan({
                                     />
                                 </Field>
                                 <div className="grid gap-2.5 sm:grid-cols-3">
+                                    <Field
+                                        id="marital_status"
+                                        label="Status pernikahan"
+                                        error={form.errors.marital_status}
+                                    >
+                                        <select
+                                            id="marital_status"
+                                            className={selectClass}
+                                            value={form.data.marital_status}
+                                            onChange={(e) =>
+                                                form.setData(
+                                                    'marital_status',
+                                                    e.target.value,
+                                                )
+                                            }
+                                        >
+                                            <option value="">— Pilih —</option>
+                                            {maritalOptions.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </Field>
                                     <Field
                                         id="religion"
                                         label="Agama"

@@ -57,6 +57,10 @@ class OutpatientFlowTest extends TestCase
             'date_of_birth' => '1990-05-15',
             'sex' => Patient::SEX_PEREMPUAN,
             'nik' => '3174010101900001',
+            'religion' => 'ISLAM',
+            'marital_status' => Patient::MARITAL_KAWIN,
+            'ethnicity' => 'JAWA',
+            'language' => 'INDONESIA',
             'clinic_public_id' => $clinic->public_id,
             'doctor_public_id' => $doctor->public_id,
             'schedule_public_id' => $schedule->public_id,
@@ -81,6 +85,10 @@ class OutpatientFlowTest extends TestCase
             'full_name' => 'Pasien Sintetis Satu',
             'nik' => '3174010101900001',
             'is_synthetic' => true,
+            'religion' => 'ISLAM',
+            'marital_status' => Patient::MARITAL_KAWIN,
+            'ethnicity' => 'JAWA',
+            'language' => 'INDONESIA',
         ]);
 
         $this->assertDatabaseHas('encounters', [
@@ -110,6 +118,18 @@ class OutpatientFlowTest extends TestCase
                 ->has('clinics')
                 ->where('todaysEncounters.0.patient.full_name', 'Pasien Sintetis Satu')
                 ->where('todaysEncounters.0.queue_number', 1));
+    }
+
+    public function test_registrar_cannot_save_free_text_ethnicity(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->from(route('pendaftaran.rawat-jalan.index'))
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload([
+                'ethnicity' => 'Suku bebas',
+            ]))
+            ->assertSessionHasErrors('ethnicity');
     }
 
     public function test_user_without_patient_register_gets_forbidden(): void

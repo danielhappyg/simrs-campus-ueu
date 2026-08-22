@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Encounter;
 use App\Support\Authorization\Capability;
+use App\Support\TeachingVocabulary;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
@@ -62,23 +63,30 @@ class OutpatientRecapController extends Controller
             ->limit(500)
             ->get();
 
-        $summaries = array_values($rows->map(fn (Encounter $encounter): array => [
-            'public_id' => $encounter->public_id,
-            'registered_at' => $encounter->registered_at->toIso8601String(),
-            'visit_date' => $encounter->visit_date?->toDateString(),
-            'queue_number' => $encounter->queue_number,
-            'care_setting' => $encounter->care_setting,
-            'clinic_name' => $encounter->clinic_name,
-            'doctor_name' => $encounter->doctor_name,
-            'payer_type' => $encounter->payer_type,
-            'booking_code' => $encounter->booking_code,
-            'origin' => filled($encounter->booking_code) ? 'ONLINE' : 'WALK_IN',
-            'status' => $encounter->status,
-            'patient' => [
-                'medical_record_number' => $encounter->patient?->medical_record_number,
-                'full_name' => $encounter->patient?->full_name,
-            ],
-        ])->all());
+        $summaries = array_values($rows->map(function (Encounter $encounter): array {
+            $origin = filled($encounter->booking_code) ? 'ONLINE' : 'WALK_IN';
+
+            return [
+                'public_id' => $encounter->public_id,
+                'registered_at' => $encounter->registered_at->toIso8601String(),
+                'visit_date' => $encounter->visit_date?->toDateString(),
+                'queue_number' => $encounter->queue_number,
+                'care_setting' => $encounter->care_setting,
+                'care_setting_label' => TeachingVocabulary::label(TeachingVocabulary::CARE_SETTING, $encounter->care_setting),
+                'clinic_name' => $encounter->clinic_name,
+                'doctor_name' => $encounter->doctor_name,
+                'payer_type' => $encounter->payer_type,
+                'payer_label' => TeachingVocabulary::label(TeachingVocabulary::PAYER, $encounter->payer_type),
+                'booking_code' => $encounter->booking_code,
+                'origin' => $origin,
+                'origin_label' => TeachingVocabulary::label(TeachingVocabulary::ORIGIN, $origin),
+                'status' => $encounter->status,
+                'patient' => [
+                    'medical_record_number' => $encounter->patient?->medical_record_number,
+                    'full_name' => $encounter->patient?->full_name,
+                ],
+            ];
+        })->all());
 
         if ($request->query('format') === 'csv') {
             $csv = $this->toCsv($summaries);
@@ -113,11 +121,7 @@ class OutpatientRecapController extends Controller
                 'walk_in' => $rows->filter(fn (Encounter $encounter): bool => ! filled($encounter->booking_code))->count(),
             ],
             'clinicOptions' => $clinics,
-            'payerOptions' => [
-                ['value' => Encounter::PAYER_UMUM, 'label' => 'Umum'],
-                ['value' => Encounter::PAYER_BPJS, 'label' => 'BPJS (simulasi)'],
-                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Lainnya'],
-            ],
+            'payerOptions' => TeachingVocabulary::options(TeachingVocabulary::PAYER),
         ]);
     }
 
@@ -137,11 +141,11 @@ class OutpatientRecapController extends Controller
                 (string) ($row['queue_number'] ?? ''),
                 (string) ($patient['medical_record_number'] ?? ''),
                 (string) ($patient['full_name'] ?? ''),
-                (string) $row['origin'],
+                (string) ($row['origin_label'] ?? $row['origin']),
                 (string) ($row['booking_code'] ?? ''),
                 (string) $row['clinic_name'],
                 (string) ($row['doctor_name'] ?? ''),
-                (string) $row['payer_type'],
+                (string) ($row['payer_label'] ?? $row['payer_type']),
                 (string) $row['status'],
             ]);
         }
