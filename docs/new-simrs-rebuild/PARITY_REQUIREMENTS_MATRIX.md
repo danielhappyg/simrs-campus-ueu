@@ -50,7 +50,7 @@ Slice working packs:
 | PAR-CLN-003 | Pemeriksaan | IGD | Reproduce | Observed screen/route `/pemeriksaan/ugd` | Specified | Clinical TBD / Daniel interim | ED slice | [phase-1/requirements/PAR-CLN-003-igd-examination.md](phase-1/requirements/PAR-CLN-003-igd-examination.md) | In spec |
 | PAR-CLN-004 | Pemeriksaan | Rawat Jalan | Reproduce | Observed screen | Specified | Clinical TBD / Daniel interim | Outpatient slice | [phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md](phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md) | In spec |
 | PAR-CLN-005 | Pemeriksaan | Rawat Inap | Reproduce | Observed screen/route `/pemeriksaan/rawatinap` | Specified | Clinical TBD / Daniel interim | Inpatient slice | [phase-1/requirements/PAR-CLN-005-rawat-inap-examination.md](phase-1/requirements/PAR-CLN-005-rawat-inap-examination.md) | In spec |
-| PAR-CLN-006 | Pemeriksaan | Laboratorium | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
+| PAR-CLN-006 | Pemeriksaan | Laboratorium | Reproduce (partial) | Menu observed; CAP-CLN-006 capture | Implemented (teaching partial) | Daniel (interim) | Outpatient lab slice | RJ order + lab worklist + synthetic result (#48); no tarif/LIS/specimen | [TEACHING_UAT_LAB_SLICE_2026-08-22.md](../operations/TEACHING_UAT_LAB_SLICE_2026-08-22.md) |
 | PAR-CLN-007 | Pemeriksaan | Radiologi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-008 | Pemeriksaan | Gizi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-009 | Pemeriksaan | Operasi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |

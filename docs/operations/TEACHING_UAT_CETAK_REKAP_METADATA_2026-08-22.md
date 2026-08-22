@@ -2,6 +2,8 @@
 
 Agent-operated synthetic UAT on the live demo. No passwords, tokens, or real patient data.
 
+**Related:** Lab slice Run 3 — [TEACHING_UAT_LAB_SLICE_2026-08-22.md](TEACHING_UAT_LAB_SLICE_2026-08-22.md) · Full facilitator script — [TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md)
+
 ## Run 2 — Full end-to-end (post #47 + APP_DEBUG off)
 
 | Field | Value |
