@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\Database\SchemaQualifier;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -12,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Permission extends Model
 {
+    use UsesSchemaQualifiedTable;
+
     protected $fillable = [
         'name',
         'description',
@@ -22,6 +26,6 @@ class Permission extends Model
      */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class, SchemaQualifier::table('permission_role'));
     }
 }

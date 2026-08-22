@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
 use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -40,7 +41,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasPublicUlid, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasPublicUlid, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable, UsesSchemaQualifiedTable;
 
     protected $attributes = [
         'status' => 'ACTIVE',
@@ -58,7 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class, SchemaQualifier::table('role_user'));
     }
 
     public function hasRole(string $slug): bool
