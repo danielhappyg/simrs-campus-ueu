@@ -254,6 +254,10 @@ export default function PendaftaranRawatInap({
                             label: 'Rawat Inap',
                             active: true,
                         },
+                        {
+                            href: '/pendaftaran/rekap',
+                            label: 'Rekap',
+                        },
                     ]}
                 />
 
@@ -775,13 +779,14 @@ export default function PendaftaranRawatInap({
                                     <th className="px-2 py-1.5">Penjamin</th>
                                     <th className="px-2 py-1.5">Status</th>
                                     <th className="px-2 py-1.5">Keluhan</th>
+                                    <th className="px-2 py-1.5" />
                                 </tr>
                             </thead>
                             <tbody>
                                 {todaysEncounters.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan={10}
+                                            colSpan={11}
                                             className="px-2 py-6 text-[#64748b]"
                                         >
                                             Belum ada pendaftaran rawat inap
@@ -847,6 +852,16 @@ export default function PendaftaranRawatInap({
                                             <td className="max-w-[12rem] truncate px-2 py-1.5 text-[#64748b]">
                                                 {encounter.chief_complaint ??
                                                     '—'}
+                                            </td>
+                                            <td className="px-2 py-1.5 text-right">
+                                                <a
+                                                    href={`/pendaftaran/kunjungan/${encounter.public_id}/cetak?docs=bukti,antrian`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                >
+                                                    Cetak
+                                                </a>
                                             </td>
                                         </tr>
                                     ))

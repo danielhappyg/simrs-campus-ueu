@@ -255,7 +255,8 @@ class InpatientRegistrationController extends Controller
 
         return redirect()
             ->route('pendaftaran.rawat-inap.index')
-            ->with('success', 'Pendaftaran rawat inap berhasil.');
+            ->with('success', 'Pendaftaran rawat inap berhasil.')
+            ->with('last_encounter_public_id', $encounter->public_id);
     }
 
     private function assertValidWardSelection(string $wardName, string $wardClass, string $bedCode): void

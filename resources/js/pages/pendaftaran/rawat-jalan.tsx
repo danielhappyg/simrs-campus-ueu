@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
@@ -203,6 +203,14 @@ function ActionStub({ label }: { label: string }) {
     );
 }
 
+const PRINTABLE_FLAGS = ['sep', 'gelang', 'kartu', 'consent'] as const;
+
+function encounterPrintUrl(publicId: string, docs: string[]): string {
+    const params = new URLSearchParams({ docs: docs.join(',') });
+
+    return `/pendaftaran/kunjungan/${publicId}/cetak?${params.toString()}`;
+}
+
 export default function PendaftaranRawatJalan({
     variant = 'rawat-jalan',
     q,
@@ -223,6 +231,11 @@ export default function PendaftaranRawatJalan({
     canRegister,
 }: Props) {
     const isIgd = variant === 'igd';
+    const { flash } = usePage().props;
+    const lastEncounterPublicId =
+        typeof flash?.lastEncounterPublicId === 'string'
+            ? flash.lastEncounterPublicId
+            : null;
     const indexPath = isIgd ? '/pendaftaran/igd' : '/pendaftaran/rawat-jalan';
     const storePath = indexPath;
     const examPathPrefix = isIgd
@@ -491,6 +504,20 @@ export default function PendaftaranRawatJalan({
     };
 
     const returning = form.data.patient_public_id !== '';
+    const printTargetId =
+        lastEncounterPublicId ?? todaysEncounters[0]?.public_id ?? null;
+    const selectedPrintDocs = [
+        'bukti',
+        ...(printQueue ? ['antrian'] : []),
+        ...PRINTABLE_FLAGS.filter((key) => printFlags[key]),
+    ];
+    const openPrint = (publicId: string, docs = selectedPrintDocs) => {
+        window.open(
+            encounterPrintUrl(publicId, docs),
+            '_blank',
+            'noopener,noreferrer',
+        );
+    };
 
     return (
         <>
@@ -514,6 +541,10 @@ export default function PendaftaranRawatJalan({
                         {
                             href: '/pendaftaran/rawat-inap',
                             label: 'Rawat Inap',
+                        },
+                        {
+                            href: '/pendaftaran/rekap',
+                            label: 'Rekap',
                         },
                     ]}
                 />
@@ -566,7 +597,15 @@ export default function PendaftaranRawatJalan({
                         </Button>
                     </form>
                     <ActionStub label="Approval SEP" />
-                    <ActionStub label="Data Kunjungan" />
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        asChild
+                    >
+                        <Link href="/pendaftaran/rekap">Data Kunjungan</Link>
+                    </Button>
                 </div>
 
                 {searchOpen && q !== '' ? (
@@ -1662,35 +1701,52 @@ export default function PendaftaranRawatJalan({
                                           ['consent', 'General consent'],
                                           ['fastTrack', 'Fast track'],
                                       ] as const)
-                                ).map(([key, label]) => (
-                                    <label
-                                        key={key}
-                                        className="flex items-center gap-2 text-sm text-[#64748b]"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={printFlags[key]}
-                                            onChange={(e) =>
-                                                setPrintFlags((prev) => ({
-                                                    ...prev,
-                                                    [key]: e.target.checked,
-                                                }))
-                                            }
-                                            className="accent-[#1b75bc]"
-                                        />
-                                        {label}
-                                        <span className="text-[0.65rem] text-[#94a3b8]">
-                                            stub
-                                        </span>
-                                    </label>
-                                ))}
+                                ).map(([key, label]) => {
+                                    const printable = (
+                                        PRINTABLE_FLAGS as readonly string[]
+                                    ).includes(key);
+
+                                    return (
+                                        <label
+                                            key={key}
+                                            className="flex items-center gap-2 text-sm text-[#64748b]"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={printFlags[key]}
+                                                onChange={(e) =>
+                                                    setPrintFlags((prev) => ({
+                                                        ...prev,
+                                                        [key]: e.target.checked,
+                                                    }))
+                                                }
+                                                className="accent-[#1b75bc]"
+                                            />
+                                            {label}
+                                            {printable ? null : (
+                                                <span className="text-[0.65rem] text-[#94a3b8]">
+                                                    stub
+                                                </span>
+                                            )}
+                                        </label>
+                                    );
+                                })}
                                 <div className="mt-auto grid gap-2 border-t border-[#e2e8f0] pt-3">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         className="w-full"
-                                        disabled
-                                        title="Cetak belum diaktifkan — nomor antrean tetap tersimpan"
+                                        disabled={!printTargetId}
+                                        title={
+                                            printTargetId
+                                                ? 'Buka bukti/SEP pengajaran (bukan BPJS asli)'
+                                                : 'Simpan pendaftaran dulu, atau pilih Cetak di daftar hari ini'
+                                        }
+                                        onClick={() => {
+                                            if (printTargetId) {
+                                                openPrint(printTargetId);
+                                            }
+                                        }}
                                     >
                                         Cetak
                                     </Button>
@@ -1824,12 +1880,28 @@ export default function PendaftaranRawatJalan({
                                                 </span>
                                             </td>
                                             <td className="px-2 py-1.5 text-right">
-                                                <Link
-                                                    href={`${examPathPrefix}/${encounter.public_id}`}
-                                                    className="text-sm font-medium text-[#1b75bc] hover:underline"
-                                                >
-                                                    Buka
-                                                </Link>
+                                                <div className="flex justify-end gap-3">
+                                                    <a
+                                                        href={encounterPrintUrl(
+                                                            encounter.public_id,
+                                                            [
+                                                                'bukti',
+                                                                'antrian',
+                                                            ],
+                                                        )}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                    >
+                                                        Cetak
+                                                    </a>
+                                                    <Link
+                                                        href={`${examPathPrefix}/${encounter.public_id}`}
+                                                        className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                    >
+                                                        Buka
+                                                    </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

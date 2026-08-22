@@ -7,6 +7,8 @@ use App\Http\Controllers\Inpatient\InpatientExaminationController;
 use App\Http\Controllers\Inpatient\InpatientRegistrationController;
 use App\Http\Controllers\ModulePlaceholderController;
 use App\Http\Controllers\Outpatient\OutpatientExaminationController;
+use App\Http\Controllers\Outpatient\OutpatientPrintController;
+use App\Http\Controllers\Outpatient\OutpatientRecapController;
 use App\Http\Controllers\Outpatient\OutpatientRegistrationController;
 use App\Http\Controllers\Outpatient\OutpatientRmController;
 use App\Http\Controllers\Rebuild\RebuildHomeController;
@@ -41,6 +43,11 @@ Route::middleware(['simulation'])->group(function (): void {
             ->name('pendaftaran.rawat-inap.index');
         Route::post('/pendaftaran/rawat-inap', [InpatientRegistrationController::class, 'store'])
             ->name('pendaftaran.rawat-inap.store');
+
+        Route::get('/pendaftaran/rekap', [OutpatientRecapController::class, 'index'])
+            ->name('pendaftaran.rekap');
+        Route::get('/pendaftaran/kunjungan/{encounter}/cetak', [OutpatientPrintController::class, 'show'])
+            ->name('pendaftaran.kunjungan.cetak');
 
         Route::get('/pemeriksaan/rawat-jalan', [OutpatientExaminationController::class, 'index'])
             ->name('pemeriksaan.rawat-jalan.index');

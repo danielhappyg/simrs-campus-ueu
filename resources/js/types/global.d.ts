@@ -21,6 +21,7 @@ declare module '@inertiajs/core' {
             flash: {
                 success: string | null;
                 error: string | null;
+                lastEncounterPublicId?: string | null;
             };
             requestId: string | null;
             sidebarOpen: boolean;
