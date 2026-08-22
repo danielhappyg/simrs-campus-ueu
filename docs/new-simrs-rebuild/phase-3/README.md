@@ -60,7 +60,8 @@ Nav: Pendaftaran / Pemeriksaan / RM point at these dedicated routes (other categ
 - Pharmacy, radiology, charges (lab teaching slice only; no billing/LIS)
 - Antrean / work-queue MVP modules (do not restore)
 
-Facilitator script: `docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md`
+Facilitator script: `docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md`  
+**Full handoff (start here for other humans/agents):** `docs/operations/HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md`
 
 ## Evidence
 

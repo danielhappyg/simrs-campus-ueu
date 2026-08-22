@@ -2,6 +2,8 @@
 
 Single script for synthetic RJ demo on the hosted teaching environment. Use with [VERCEL_SUPABASE_DEMO.md](VERCEL_SUPABASE_DEMO.md).
 
+**Program handoff (whole rebuild story, PRs, traps, next work):** [HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md](HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md)
+
 **Demo URL:** https://simrs-campus-ueu-demo.vercel.app  
 **Git tip (lab slice):** `807bbf2` (PR #48)  
 **Boundary:** SIMULATION only — no real patient data, no production BPJS/VClaim.

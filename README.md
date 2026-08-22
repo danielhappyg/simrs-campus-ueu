@@ -4,6 +4,8 @@ Teaching-first hospital information system for integrated health-sciences educat
 
 This repository branch is a **clean-slate rebuild foundation** for the full SIMRS parity program. It is a **simulation environment only**: synthetic data, fail-closed `APP_MODE=SIMULATION` / `APP_SYNTHETIC_ONLY=true`, and no production clinical or BPJS integrations.
 
+**Continuing this work?** Start with the durable handoff pack: [`docs/operations/HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md`](docs/operations/HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md) (product arc, PRs #39–#48, UAT evidence, traps, next slices). Live demo: https://simrs-campus-ueu-demo.vercel.app
+
 ## Branch status
 
 | Branch | Meaning |
