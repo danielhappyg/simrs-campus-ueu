@@ -2,7 +2,7 @@
 
 **Audience:** Daniel, facilitators, and any human or agent continuing this work without prior chat history.  
 **Date:** 2026-08-23  
-**Git tip when written:** `315d912` on `main` (lab UAT evidence; product code tip for lab slice is `807bbf2` / PR #48)  
+**Git tip at stabilization review:** `7689b0c` on `main` (product code tip for lab slice is `807bbf2` / PR #48)
 **Live demo:** https://simrs-campus-ueu-demo.vercel.app  
 **Repo:** https://github.com/danielhappyg/simrs-campus-ueu  
 
@@ -26,13 +26,16 @@ This is the **start-here** pack for the clean-slate teaching SIMRS. It is not li
 | --- | --- | --- |
 | DEC-013 | Live vendor SIMRS is **UI/IA reference**; the failed Antrean/work-queue teaching MVP is **anti-reference** (do not restore) | `docs/new-simrs-rebuild/phase-0/DECISION_LOG.md` |
 | DEC-014 | **SAHABAT Data Pasien desk density** is the minimum bar for Pendaftaran (and similar care desks) | same + `docs/new-simrs-rebuild/PENDAFTARAN_SAHABAT_FIELD_MAP.md` |
+| DEC-015 | Every interactive teaching screen, including login and authenticated desks, retains a restrained, permanent **`SIMULASI — DATA SINTETIS`** indicator; backend synthetic-only enforcement remains mandatory | same + `docs/new-simrs-rebuild/phase-1/UI_DIRECTION.md` |
 | UI tokens | UEU blue `#1b75bc`, orange `#f26a1b`, navy sidebar — copy campus SI patterns, not ad-hoc purple themes | `docs/new-simrs-rebuild/phase-1/UI_DIRECTION.md` |
 
 **Hosting ops:** `docs/operations/CURRENT_HOSTING_POSTURE.md` · `docs/operations/VERCEL_SUPABASE_DEMO.md`
 
 ---
 
-## 2. What is delivered today (teaching-demo quality)
+## 2. What is available today (teaching-demo quality)
+
+“Available” means the code exists on `main`. It does **not** mean complete SAHABAT parity, clinical production readiness, or faculty acceptance. Build availability and parity acceptance are tracked separately in the parity matrix.
 
 ### 2.1 Core RJ teaching arc (primary story)
 
@@ -83,23 +86,23 @@ REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
 
 Slice write-up: [`docs/new-simrs-rebuild/phase-3/README.md`](../new-simrs-rebuild/phase-3/README.md)
 
-### 2.4 Adjacent desks (shipped, not the primary UAT arc)
+### 2.4 Adjacent desks (available, not the primary UAT arc)
 
 Also on `main` with SAHABAT-density desks:
 
 - **IGD / Triage** — Pendaftaran + Pemeriksaan + triage stub worklist (PR #41)
 - **Rawat Inap** — admission + examination desks (PR #42)
 
-Treat these as parallel care settings. Deep clinical ED/RI parity is still unfinished.
+Treat these as partial teaching desks in parallel care settings. Automated tests exist, but hosted role-based UAT and deep clinical ED/RI parity are still unfinished.
 
 ### 2.5 Parity IDs for the RJ arc
 
-| ID | Topic | Status (teaching) |
+| ID | Build availability | Parity acceptance |
 | --- | --- | --- |
-| PAR-REG-003 | Pendaftaran RJ | Specified → implemented teaching desk |
-| PAR-CLN-004 | Pemeriksaan RJ | Specified → notes live; many tabs stubbed |
-| PAR-CLN-006 | Laboratorium | **Implemented (partial)** — RJ order + worklist + result; no tarif/LIS/specimen |
-| PAR-RMIK-001 | RM RJ | Implemented teaching close |
+| PAR-REG-003 | Teaching desk available; registration/cetak/rekap slice evidence recorded | **Not accepted** — remains Specified |
+| PAR-CLN-004 | Nursing/medical notes available; many tabs stubbed | **Not accepted** — remains Specified |
+| PAR-CLN-006 | RJ order + worklist + synthetic result available; no tarif/LIS/specimen | **Not accepted** — remains Specified |
+| PAR-RMIK-001 | Teaching close available | **Not accepted** — remains Specified; coding/quality and closure rules incomplete |
 
 Matrix: [`docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md`](../new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md)
 
@@ -137,6 +140,8 @@ Read bottom-up for “how we got here.” Older Checkpoint 2 / Antrean MVP work 
 | --- | --- | --- |
 | Runs 1–2 | [`TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md`](TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md) | PASS after #47 — register metadata, Simpan, cetak, rekap |
 | Run 3 | [`TEACHING_UAT_LAB_SLICE_2026-08-22.md`](TEACHING_UAT_LAB_SLICE_2026-08-22.md) | PASS — HB order + FINAL result on production |
+
+These records validate separate slices. They do **not** yet prove one continuous, role-switched, actual-UI journey through registration, nursing, physician, lab, RM closure, cetak, rekap, one denied-role check, and reset/cleanup on a single encounter.
 
 ### 4.2 Automated tests (local)
 
@@ -308,27 +313,28 @@ Committed visual oracles for SAHABAT (DEC-014): `docs/new-simrs-rebuild/_evidenc
 
 ---
 
-## 12. Recommended next work (pick one)
+## 12. Approved next work — operational-truth stabilization
 
-| Option | Why | Effort |
-| --- | --- | --- |
-| **A. Radiology (Order Rad)** | Same pattern as lab | Low–medium |
-| **B. Resep / apotek handoff** | Completes diagnosis → order → pharmacy story | Medium |
-| **C. Pemeriksaan/RM SAHABAT density** | Honest residual vs vendor desk | Medium UI |
-| **D. ED clinical depth** | Desks exist (#41); acuity/FR incomplete | Medium |
-| **E. PAR-CLN-006 FR pack** | Formalize lab fields from capture before expanding | Spec only |
+Product-owner approval was recorded on 2026-08-23. Complete this stabilization before Radiology, Pharmacy, or another clinical module:
 
-Default recommendation after this handoff: **A or B** for product story; **E** if locking evidence before more lab features.
+1. Apply DEC-015 consistently: the restrained permanent simulation indicator, backend synthetic-only enforcement, and aligned tests/docs.
+2. Repair active deployment guidance: remove retired Checkpoint 2/work-queue instructions; document the real asset command, explicit Supabase migration, RBAC synchronization, Preview isolation and rollback evidence.
+3. Separate build availability from parity acceptance; do not mark current RJ, IGD, RI or Lab slices Accepted without their acceptance gates.
+4. Harden synthetic scoping and add PostgreSQL schema-`laravel` CI coverage in a subsequent small PR.
+5. Decide the outpatient active-order/closure, late-result and amendment contract.
+6. Run one fresh continuous, actual-UI, role-specific RJ rehearsal with denied-role and reset/cleanup evidence.
+
+Only then choose the next bounded product slice. Current candidates remain a PAR-CLN-006 Lab requirements pack, structured clinical/RM completeness, and a PAR-CLN-007 Radiology requirements pack. Do not implement “Order Rad like Lab” until its workflow and acceptance contract are specified.
 
 ---
 
 ## 13. Handoff checklist for the next owner
 
-- [ ] Clone `main`, confirm tip ≥ `807bbf2` for lab code  
+- [ ] Clone `main`, confirm tip ≥ `7689b0c` for this handoff baseline and ≥ `807bbf2` for lab code
 - [ ] Read this file + facilitator runbook  
 - [ ] Confirm demo `/up` and simulation banner  
 - [ ] Obtain `DEMO_ACCOUNT_PASSWORD` out-of-band  
-- [ ] Rehearse full RJ arc once (or trust UAT Runs 1–3)  
+- [ ] Rehearse the full RJ arc once; treat Runs 1–3 as slice evidence, not a substitute for continuous role-specific UAT
 - [ ] Before schema work: remember Supabase migrate is **manual** on Vercel  
 - [ ] Before validation work: use `SchemaAwareRules` / model classes, never `laravel.table` strings in `Rule::exists`  
 - [ ] Do not restore Antrean MVP; do not wire live BPJS without an explicit new decision  

@@ -7,7 +7,9 @@ Source: verified 268-menu inventory from 2026-08-21
 
 Every row must be reviewed and receive a deliberate disposition: **Reproduce**, **Consolidate**, **Replace**, **Retire**, or **Pending evidence**. The initial value is Pending evidence because menu presence alone does not prove complete behavior or necessity.
 
-Evidence strength values should use: Observed, Manual-documented, Vendor-stated, Inferred, Unknown. Parity status should progress through: Unspecified, Specified, Designed, Implemented, Verified, Accepted, or Deferred.
+Evidence strength values should use: Observed, Manual-documented, Vendor-stated, Inferred, Unknown.
+
+The matrix's **Parity status** is an acceptance-governance field, not a statement that code exists. It progresses through: Unspecified, Specified, Acceptance review, Accepted, or Deferred. Build availability and verification evidence are tracked separately below. A teaching screen can be available and locally tested while its parity status remains Specified.
 
 For each row, create linked detailed requirements for actors, fields, rules, state transitions, permissions, downstream postings, reports, audit, integration, correction/reversal, synthetic test data and acceptance criteria.
 
@@ -16,6 +18,24 @@ Slice working packs:
 - Outpatient: [`phase-1/OUTPATIENT_SLICE_DISPOSITIONS.md`](phase-1/OUTPATIENT_SLICE_DISPOSITIONS.md)
 - ED / triage: [`phase-1/ED_SLICE_DISPOSITIONS.md`](phase-1/ED_SLICE_DISPOSITIONS.md)
 - Inpatient / bed: [`phase-1/INPATIENT_SLICE_DISPOSITIONS.md`](phase-1/INPATIENT_SLICE_DISPOSITIONS.md)
+
+## Current build availability (separate from parity acceptance)
+
+Snapshot: 2026-08-23. “Available” means code exists on `main`; it does not mean full SAHABAT equivalence, clinical acceptance, or production readiness.
+
+| PAR ID | Build availability | Verification evidence | Parity acceptance | Honest boundary |
+|---|---|---|---|---|
+| PAR-REG-003 | Available — teaching partial | Automated outpatient flow plus hosted Pendaftaran/cetak/rekap slice UAT | Not accepted; matrix remains Specified | Registration desk exists; exact legacy rules, corrections and downstream reconciliation are incomplete |
+| PAR-CLN-004 | Available — teaching partial | Automated outpatient flow; notes exercised in slice-level evidence | Not accepted; matrix remains Specified | Nursing/medical notes work; many clinical tabs and correction rules are still stubs/unspecified |
+| PAR-CLN-006 | Available — teaching partial | Automated lab flow plus hosted lab order/result slice UAT | Not accepted; matrix remains Specified | RJ order, lab worklist and synthetic result exist; no specimen, tarif, LIS, correction or full lifecycle parity |
+| PAR-RMIK-001 | Available — teaching partial | Automated outpatient close flow | Not accepted; matrix remains Specified | Teaching close exists; complete coding/quality, amendment and active-order closure rules are unresolved |
+| PAR-REG-002 | Available — teaching desk partial | Automated emergency-flow tests | Not accepted; matrix remains Specified | Synthetic IGD registration desk exists; hosted role-based UAT and full ED rules are not recorded |
+| PAR-CLN-002 | Available — teaching stub/partial | Automated emergency-flow tests | Not accepted; matrix remains Specified | Triage desk exists; acuity scale and clinical-owner FR pack remain unresolved |
+| PAR-CLN-003 | Available — teaching desk partial | Automated emergency-flow tests | Not accepted; matrix remains Specified | IGD examination desk exists; deep clinical/disposition parity is unfinished |
+| PAR-REG-001 | Available — teaching desk partial | Automated inpatient-flow tests | Not accepted; matrix remains Specified | Synthetic admission/bed context exists; hosted role-based UAT and complete bed lifecycle are not recorded |
+| PAR-CLN-005 | Available — teaching desk partial | Automated inpatient-flow tests | Not accepted; matrix remains Specified | Inpatient examination desk exists; transfer, discharge and deep ward workflow parity are unfinished |
+
+The three hosted RJ evidence runs are slice-level. They do **not** establish one continuous, role-switched, actual-UI journey from registration through RM closure, cetak, rekap, denied-role behavior and reset.
 
 ## Reconciliation
 
@@ -50,7 +70,7 @@ Slice working packs:
 | PAR-CLN-003 | Pemeriksaan | IGD | Reproduce | Observed screen/route `/pemeriksaan/ugd` | Specified | Clinical TBD / Daniel interim | ED slice | [phase-1/requirements/PAR-CLN-003-igd-examination.md](phase-1/requirements/PAR-CLN-003-igd-examination.md) | In spec |
 | PAR-CLN-004 | Pemeriksaan | Rawat Jalan | Reproduce | Observed screen | Specified | Clinical TBD / Daniel interim | Outpatient slice | [phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md](phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md) | In spec |
 | PAR-CLN-005 | Pemeriksaan | Rawat Inap | Reproduce | Observed screen/route `/pemeriksaan/rawatinap` | Specified | Clinical TBD / Daniel interim | Inpatient slice | [phase-1/requirements/PAR-CLN-005-rawat-inap-examination.md](phase-1/requirements/PAR-CLN-005-rawat-inap-examination.md) | In spec |
-| PAR-CLN-006 | Pemeriksaan | Laboratorium | Reproduce (partial) | Menu observed; CAP-CLN-006 capture | Implemented (teaching partial) | Daniel (interim) | Outpatient lab slice | RJ order + lab worklist + synthetic result (#48); no tarif/LIS/specimen | [TEACHING_UAT_LAB_SLICE_2026-08-22.md](../operations/TEACHING_UAT_LAB_SLICE_2026-08-22.md) |
+| PAR-CLN-006 | Pemeriksaan | Laboratorium | Reproduce (partial) | Menu observed; CAP-CLN-006 capture | Specified | Daniel (interim) | Outpatient lab slice | RJ order + lab worklist + synthetic result (#48); no tarif/LIS/specimen | [TEACHING_UAT_LAB_SLICE_2026-08-22.md](../operations/TEACHING_UAT_LAB_SLICE_2026-08-22.md) |
 | PAR-CLN-007 | Pemeriksaan | Radiologi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-008 | Pemeriksaan | Gizi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-009 | Pemeriksaan | Operasi | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
@@ -311,7 +331,7 @@ Slice working packs:
 
 ## Required completion checks
 
-A row cannot become Accepted until:
+A row cannot become Accepted until all gates below pass. Code availability, an automated test, or a hosted slice UAT does not independently satisfy parity acceptance.
 
 - the business owner and affected actors approve the disposition;
 - legacy evidence and any current external standard are referenced;
@@ -321,4 +341,3 @@ A row cannot become Accepted until:
 - synthetic happy-path and failure-path tests pass;
 - user and operational documentation is linked;
 - implementation and deployment evidence are recorded.
-

@@ -38,7 +38,7 @@ vi.mock('@inertiajs/react', () => ({
             environment: {
                 mode: 'SIMULATION',
                 syntheticOnly: true,
-                banner: '',
+                banner: 'SIMULASI — DATA SINTETIS',
                 restriction: '',
             },
         },
@@ -49,7 +49,11 @@ describe('application header navigation', () => {
     it('exposes live module links and muted Soon labels without fake navigation', () => {
         render(<AppHeader />);
 
-        expect(screen.queryByText(/simulasi/i)).not.toBeInTheDocument();
+        expect(
+            screen.getByRole('note', {
+                name: 'Status lingkungan aplikasi',
+            }),
+        ).toHaveTextContent('SIMULASI — DATA SINTETIS');
 
         const navs = screen.getAllByRole('navigation', {
             name: 'Navigasi modul',

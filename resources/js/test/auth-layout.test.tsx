@@ -21,7 +21,7 @@ vi.mock('@inertiajs/react', () => ({
             environment: {
                 mode: 'SIMULATION',
                 syntheticOnly: true,
-                banner: '',
+                banner: 'SIMULASI — DATA SINTETIS',
                 restriction: '',
             },
         },
@@ -46,6 +46,10 @@ describe('authentication layout', () => {
                 name: 'Masuk',
             }),
         ).toBeInTheDocument();
-        expect(screen.queryByText(/simulasi/i)).not.toBeInTheDocument();
+        expect(
+            screen.getByRole('note', {
+                name: 'Status lingkungan aplikasi',
+            }),
+        ).toHaveTextContent('SIMULASI — DATA SINTETIS');
     });
 });

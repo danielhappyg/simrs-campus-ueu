@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import AppLogo from '@/components/app-logo';
 import { AppUserMenu } from '@/components/app-user-menu';
+import { SimulationBoundary } from '@/components/simulation-boundary';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -82,6 +83,7 @@ export function AppHeader() {
 
     return (
         <header className="sticky top-0 z-40 border-b border-[#1b4a73] bg-[#0d2b4a] text-white">
+            <SimulationBoundary />
             <div className="flex min-h-16 items-center gap-3 px-3 py-2.5 md:px-4 lg:px-5">
                 <div className="flex shrink-0 items-center gap-2">
                     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>

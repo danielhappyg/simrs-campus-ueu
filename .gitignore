@@ -49,3 +49,6 @@ deliverables/**/rendered/
 deliverables/**/working/deps/
 **/__pycache__/
 *.py[cod]
+
+# Local Vercel project metadata
+.vercel/

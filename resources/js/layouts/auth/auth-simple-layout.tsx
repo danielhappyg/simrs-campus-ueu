@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { SimulationBoundary } from '@/components/simulation-boundary';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -10,8 +11,9 @@ export default function AuthSimpleLayout({
     const { name } = usePage().props;
 
     return (
-        <div className="min-h-svh bg-background">
-            <main className="mx-auto grid min-h-svh w-full max-w-6xl items-stretch lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
+        <div className="flex min-h-svh flex-col bg-background">
+            <SimulationBoundary />
+            <main className="mx-auto grid w-full max-w-6xl flex-1 items-stretch lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
                 <section className="relative hidden overflow-hidden rounded-l-xl bg-[#063650] p-12 text-white lg:flex lg:flex-col lg:justify-center">
                     <Link
                         href={home()}

@@ -45,14 +45,14 @@ The read-only `php artisan ops:hosting-preflight` command and [Hostinger staging
 | Environment | Purpose | Current posture |
 |---|---|---|
 | Local | developer work | SQLite or local MySQL; see README |
-| CI | pull-request gates | ephemeral fixtures; MySQL 8.4 job |
+| CI | pull-request gates | ephemeral fixtures and database-specific jobs configured in `.github/workflows` |
 | Hosted demo | synthetic review/UAT | **Vercel + Supabase** (active runbook) |
 | Campus staging/production | teaching pilot later | **TBD** — pending institutional IT decision |
 | Future clinical | real patient data | out of scope; separate governance program |
 
-## 5. Checkpoint 2 implication
+## 5. Teaching rehearsal implication
 
-Faculty UAT does **not** wait for campus IT. Run Checkpoint 2 against an isolated synthetic environment: local disposable database, or the current Vercel + Supabase demo, following the [Checkpoint 2 UAT facilitator guide](OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md). Campus staging/rollback remains a Checkpoint 3 / faculty-pilot gate.
+Faculty rehearsal does **not** wait for campus IT. Use a local disposable database or the current Vercel + Supabase demo, then follow the [current RJ facilitator runbook](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md). Preview deployments must use isolated persistence; when that is unavailable, they are limited to public, non-authenticated health and asset checks. A hosted demo rehearsal is not evidence that campus staging, backup/restore, or rollback is ready.
 
 ## 6. Non-negotiable boundary
 
@@ -65,5 +65,5 @@ No hosted environment may be described as production clinical care, SATUSEHAT-co
 - [Platform foundation runbook](FOUNDATION_RUNBOOK.md)
 - [Hostinger staging preflight (optional shared-hosting reference)](HOSTINGER_STAGING_PREFLIGHT.md)
 - [Release candidate artifact](RELEASE_CANDIDATE_ARTIFACT.md)
-- [Checkpoint 2 UAT facilitator guide](OUTPATIENT_CHECKPOINT_2_UAT_GUIDE.md)
+- [Current RJ facilitator runbook](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md)
 - [Project charter](../PROJECT_CHARTER.md)

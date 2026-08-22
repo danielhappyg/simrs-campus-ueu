@@ -11,7 +11,7 @@ return [
 
     'rebuild_admin_email' => 'admin.rebuild@example.invalid',
 
-    'banner' => '',
+    'banner' => 'SIMULASI — DATA SINTETIS',
 
     'restriction' => '',
 

@@ -1,7 +1,9 @@
 # Phase 3 — Outpatient vertical slice
 
-**Status:** MVP delivered (teaching-demo quality)  
-**Date:** 2026-08-21
+**Status:** Teaching slice available; parity acceptance not granted
+**Date:** 2026-08-23
+
+This page describes build availability. It does not claim complete SAHABAT parity, clinical production readiness, or acceptance of PAR-REG-003, PAR-CLN-004, PAR-CLN-006, or PAR-RMIK-001. See the separate availability and acceptance ledger in `../PARITY_REQUIREMENTS_MATRIX.md`.
 
 ## Scope
 

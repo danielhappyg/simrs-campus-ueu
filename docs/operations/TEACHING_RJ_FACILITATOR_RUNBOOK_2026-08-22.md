@@ -8,11 +8,13 @@ Single script for synthetic RJ demo on the hosted teaching environment. Use with
 **Git tip (lab slice):** `807bbf2` (PR #48)  
 **Boundary:** SIMULATION only — no real patient data, no production BPJS/VClaim.
 
+**Evidence boundary:** this runbook exercises an available teaching slice. Passing it does not by itself grant SAHABAT parity acceptance or clinical production readiness.
+
 ---
 
 ## Before you start
 
-1. Confirm the permanent banner **SIMULASI — DATA SINTETIS** appears after login.
+1. Confirm the permanent indicator **SIMULASI — DATA SINTETIS** appears after login and remains visible on each teaching desk. If it is absent, stop the rehearsal and record a teaching-readiness defect (DEC-015).
 2. Use demo passwords from your secure store (`DEMO_ACCOUNT_PASSWORD` on Vercel — never paste in slides or chat).
 3. Prefer **role-specific accounts** for class demos; use **one multi-role account** for solo rehearsal.
 
@@ -30,6 +32,8 @@ Single script for synthetic RJ demo on the hosted teaching environment. Use with
 ---
 
 ## Full teaching arc (~25–35 min)
+
+For acceptance evidence, use the role-specific accounts below and keep one encounter identifier through every step. The solo multi-role account is for facilitator practice only.
 
 ### 1. Pendaftaran rawat jalan — Registrar
 
@@ -112,6 +116,19 @@ Reopen **Pemeriksaan → Rawat Jalan → encounter → Order Lab**.
 
 - Filter date = today, channel **Online** if booking was used.
 - Confirm new row and counts.
+
+---
+
+### 7. Acceptance checks and cleanup — Facilitator/Admin
+
+These checks are required for the next continuous UAT record even though the current Runs 1–3 were captured as separate slices:
+
+1. Attempt one protected clinical or RM action with an unauthorized role and record the denied result without bypassing RBAC.
+2. Record the encounter, order/result, audit-event and deployed-commit identifiers used in the journey.
+3. Run only the documented synthetic session/reset procedure for the rehearsal data; never delete hosted rows manually during class.
+4. Confirm the reset/cleanup scope did not affect another teaching session.
+
+If the safe session-scoped reset procedure is not yet available, mark cleanup **blocked** and preserve the synthetic evidence for an authorized operator. Do not improvise destructive SQL.
 
 ---
 
