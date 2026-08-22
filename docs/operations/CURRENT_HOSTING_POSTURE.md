@@ -16,6 +16,8 @@ This topology exists because it is the free stack available today for developmen
 
 See the active runbook: [Vercel + Supabase synthetic demo](VERCEL_SUPABASE_DEMO.md).
 
+**Teaching rebuild handoff (full RJ arc + evidence):** [HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md](HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md)
+
 An alternate disposable demo path using **Render + Supabase** remains documented in [Render + Supabase demo](RENDER_SUPABASE_DEMO.md).
 
 ## 2. What is not decided yet
