@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $date_of_birth
  * @property string $sex
  * @property string|null $religion
+ * @property string|null $marital_status
  * @property string|null $education
  * @property string|null $occupation
  * @property string|null $province_code
@@ -62,6 +63,24 @@ class Patient extends Model
         self::SEX_LAKI_LAKI,
         self::SEX_PEREMPUAN,
         self::SEX_TIDAK_DIKETAHUI,
+    ];
+
+    public const MARITAL_BELUM_KAWIN = 'BELUM_KAWIN';
+
+    public const MARITAL_KAWIN = 'KAWIN';
+
+    public const MARITAL_CERAI_HIDUP = 'CERAI_HIDUP';
+
+    public const MARITAL_CERAI_MATI = 'CERAI_MATI';
+
+    /**
+     * @var list<string>
+     */
+    public const MARITAL_VALUES = [
+        self::MARITAL_BELUM_KAWIN,
+        self::MARITAL_KAWIN,
+        self::MARITAL_CERAI_HIDUP,
+        self::MARITAL_CERAI_MATI,
     ];
 
     /**
@@ -106,6 +125,30 @@ class Patient extends Model
         'LAINNYA',
     ];
 
+    /**
+     * @var list<string>
+     */
+    public const ETHNICITY_VALUES = [
+        'JAWA',
+        'SUNDA',
+        'BETAWI',
+        'BATAK',
+        'MINANG',
+        'BUGIS',
+        'LAINNYA',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    public const LANGUAGE_VALUES = [
+        'INDONESIA',
+        'JAWA',
+        'SUNDA',
+        'INGGRIS',
+        'LAINNYA',
+    ];
+
     protected $fillable = [
         'medical_record_number',
         'nik',
@@ -114,6 +157,7 @@ class Patient extends Model
         'date_of_birth',
         'sex',
         'religion',
+        'marital_status',
         'education',
         'occupation',
         'province_code',

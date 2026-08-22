@@ -13,6 +13,7 @@ use App\Services\Wilayah\WilayahRepository;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
+use App\Support\TeachingVocabulary;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\WilayahMinimalSeeder;
 use Illuminate\Http\RedirectResponse;
@@ -105,74 +106,20 @@ class EmergencyRegistrationController extends Controller
             'searchResults' => $searchResults,
             'todaysEncounters' => $todaysEncounters,
             'clinics' => $clinics,
-            'sexOptions' => $this->options([
-                Patient::SEX_LAKI_LAKI => 'Laki-laki',
-                Patient::SEX_PEREMPUAN => 'Perempuan',
-                Patient::SEX_TIDAK_DIKETAHUI => 'Tidak diketahui',
-            ]),
-            'religionOptions' => $this->options([
-                'ISLAM' => 'Islam',
-                'KRISTEN' => 'Kristen',
-                'KATOLIK' => 'Katolik',
-                'HINDU' => 'Hindu',
-                'BUDDHA' => 'Buddha',
-                'KONGHUCU' => 'Konghucu',
-                'LAINNYA' => 'Lainnya',
-            ]),
-            'educationOptions' => $this->options([
-                'TIDAK_SEKOLAH' => 'Tidak sekolah',
-                'SD' => 'SD',
-                'SMP' => 'SMP',
-                'SMA' => 'SMA',
-                'D3' => 'D3',
-                'S1' => 'S1',
-                'S2' => 'S2',
-                'S3' => 'S3',
-                'LAINNYA' => 'Lainnya',
-            ]),
-            'occupationOptions' => $this->options([
-                'PELAJAR' => 'Pelajar',
-                'MAHASISWA' => 'Mahasiswa',
-                'PNS' => 'PNS',
-                'SWASTA' => 'Karyawan swasta',
-                'WIRASWASTA' => 'Wiraswasta',
-                'IRT' => 'Ibu rumah tangga',
-                'PENSIUNAN' => 'Pensiunan',
-                'LAINNYA' => 'Lainnya',
-            ]),
-            'ethnicityOptions' => $this->options([
-                'JAWA' => 'Jawa',
-                'SUNDA' => 'Sunda',
-                'BETAWI' => 'Betawi',
-                'BATAK' => 'Batak',
-                'MINANG' => 'Minang',
-                'BUGIS' => 'Bugis',
-                'LAINNYA' => 'Lainnya',
-            ]),
-            'languageOptions' => $this->options([
-                'INDONESIA' => 'Indonesia',
-                'JAWA' => 'Jawa',
-                'SUNDA' => 'Sunda',
-                'INGGRIS' => 'Inggris',
-                'LAINNYA' => 'Lainnya',
-            ]),
-            'payerOptions' => $this->options([
-                Encounter::PAYER_UMUM => 'Umum',
-                Encounter::PAYER_BPJS => 'BPJS',
-                Encounter::PAYER_LAINNYA => 'Lainnya',
-            ]),
-            'admissionOptions' => $this->options([
-                Encounter::ADMISSION_DATANG_SENDIRI => 'Sendiri',
-                Encounter::ADMISSION_RUJUKAN => 'Rujukan',
-            ]),
-            'caseTypeOptions' => $this->options([
-                Encounter::CASE_NON_BEDAH => 'Non-bedah',
-                Encounter::CASE_BEDAH => 'Bedah',
-            ]),
-            'accidentTypeOptions' => $this->options([
-                Encounter::ACCIDENT_NONE => 'Bukan kecelakaan',
-                Encounter::ACCIDENT_YES => 'Kecelakaan',
-            ]),
+            'sexOptions' => TeachingVocabulary::options(TeachingVocabulary::SEX),
+            'maritalOptions' => TeachingVocabulary::options(TeachingVocabulary::MARITAL),
+            'religionOptions' => TeachingVocabulary::options(TeachingVocabulary::RELIGION),
+            'educationOptions' => TeachingVocabulary::options(TeachingVocabulary::EDUCATION),
+            'occupationOptions' => TeachingVocabulary::options(TeachingVocabulary::OCCUPATION),
+            'ethnicityOptions' => TeachingVocabulary::options(TeachingVocabulary::ETHNICITY),
+            'languageOptions' => TeachingVocabulary::options(TeachingVocabulary::LANGUAGE),
+            'payerOptions' => TeachingVocabulary::options(TeachingVocabulary::PAYER),
+            'admissionOptions' => TeachingVocabulary::options(array_intersect_key(
+                TeachingVocabulary::ADMISSION,
+                array_flip(Encounter::EMERGENCY_ADMISSION_VALUES),
+            )),
+            'caseTypeOptions' => TeachingVocabulary::options(TeachingVocabulary::CASE_TYPE),
+            'accidentTypeOptions' => TeachingVocabulary::options(TeachingVocabulary::ACCIDENT),
             'wilayahProvinces' => $this->wilayah->provinces(),
             'canRegister' => $request->user()?->canCapability(Capability::PATIENT_REGISTER) ?? false,
         ]);
@@ -193,6 +140,7 @@ class EmergencyRegistrationController extends Controller
             'nik' => ['nullable', 'string', 'max:16'],
             'place_of_birth' => ['nullable', 'string', 'max:120'],
             'religion' => ['nullable', Rule::in(Patient::RELIGION_VALUES)],
+            'marital_status' => ['nullable', Rule::in(Patient::MARITAL_VALUES)],
             'education' => ['nullable', Rule::in(Patient::EDUCATION_VALUES)],
             'occupation' => ['nullable', Rule::in(Patient::OCCUPATION_VALUES)],
             'province_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_provinces'), 'code')],
@@ -207,8 +155,8 @@ class EmergencyRegistrationController extends Controller
             'domicile' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255'],
-            'ethnicity' => ['nullable', 'string', 'max:80'],
-            'language' => ['nullable', 'string', 'max:80'],
+            'ethnicity' => ['nullable', Rule::in(Patient::ETHNICITY_VALUES)],
+            'language' => ['nullable', Rule::in(Patient::LANGUAGE_VALUES)],
             'notes' => ['nullable', 'string', 'max:2000'],
             'responsible_party_name' => ['nullable', 'string', 'max:255'],
             'clinic_public_id' => ['required', 'string', Rule::exists(SchemaQualifier::table('clinics'), 'public_id')],
@@ -368,6 +316,7 @@ class EmergencyRegistrationController extends Controller
             'nik' => $validated['nik'] ?? null,
             'place_of_birth' => $validated['place_of_birth'] ?? null,
             'religion' => $validated['religion'] ?? null,
+            'marital_status' => $validated['marital_status'] ?? null,
             'education' => $validated['education'] ?? null,
             'occupation' => $validated['occupation'] ?? null,
             ...$wilayah,
@@ -405,6 +354,7 @@ class EmergencyRegistrationController extends Controller
             'date_of_birth' => $patient->date_of_birth->toDateString(),
             'sex' => $patient->sex,
             'religion' => $patient->religion,
+            'marital_status' => $patient->marital_status,
             'education' => $patient->education,
             'occupation' => $patient->occupation,
             'province_code' => $patient->province_code,
@@ -450,19 +400,5 @@ class EmergencyRegistrationController extends Controller
                 'full_name' => $patient?->full_name,
             ],
         ];
-    }
-
-    /**
-     * @param  array<string, string>  $map
-     * @return list<array{value: string, label: string}>
-     */
-    private function options(array $map): array
-    {
-        $options = [];
-        foreach ($map as $value => $label) {
-            $options[] = ['value' => $value, 'label' => $label];
-        }
-
-        return $options;
     }
 }

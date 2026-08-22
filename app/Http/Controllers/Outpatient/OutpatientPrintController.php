@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Encounter;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
+use App\Support\TeachingVocabulary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -55,6 +56,7 @@ class OutpatientPrintController extends Controller
             'encounter' => $encounter,
             'documents' => $documents,
             'printedAt' => now(),
+            'labels' => TeachingVocabulary::printLabels($encounter),
         ]);
     }
 }

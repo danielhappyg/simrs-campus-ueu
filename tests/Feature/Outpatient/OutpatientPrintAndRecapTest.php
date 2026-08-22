@@ -37,11 +37,22 @@ class OutpatientPrintAndRecapTest extends TestCase
     public function test_registrar_can_print_teaching_bukti_and_sep(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'sex' => Patient::SEX_PEREMPUAN,
+            'religion' => 'ISLAM',
+            'marital_status' => Patient::MARITAL_KAWIN,
+            'ethnicity' => 'JAWA',
+            'province' => 'DKI JAKARTA',
+            'province_code' => '31',
+        ]);
         $encounter = Encounter::factory()->create([
+            'patient_id' => $patient->id,
             'registered_by_user_id' => $registrar->id,
             'payer_type' => Encounter::PAYER_BPJS,
             'insurance_number' => 'SYNTH-0001',
             'queue_number' => 7,
+            'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
         ]);
 
         $response = $this->actingAs($registrar)
@@ -53,7 +64,13 @@ class OutpatientPrintAndRecapTest extends TestCase
         $response->assertSee('SEP pengajaran', false);
         $response->assertSee('Tidak dikirim ke VClaim', false);
         $response->assertSee('SIM-SEP-', false);
-        $response->assertDontSee('Authorization: Bearer', false);
+        $response->assertSee('Perempuan', false);
+        $response->assertSee('Islam', false);
+        $response->assertSee('Kawin', false);
+        $response->assertSee('Datang sendiri', false);
+        $response->assertSee('DKI JAKARTA', false);
+        $response->assertSee('31', false);
+        $response->assertDontSee('LAKI_LAKI', false);
 
         $this->assertDatabaseHas('audit_events', [
             'action' => 'encounter.print',
@@ -120,7 +137,7 @@ class OutpatientPrintAndRecapTest extends TestCase
 
         $csv->assertOk();
         $csv->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $csv->assertSee('WALK_IN', false);
+        $csv->assertSee('Walk-in', false);
         $csv->assertDontSee('RGN-ONLINE-1', false);
     }
 

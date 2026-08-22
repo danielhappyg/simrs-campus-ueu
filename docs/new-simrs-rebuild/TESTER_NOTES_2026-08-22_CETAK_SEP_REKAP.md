@@ -2,7 +2,7 @@
 
 **Source:** WhatsApp from system tester (timestamp ~17.46)  
 **Captured by:** product owner → engineering  
-**Status:** Accepted as **teaching-product requirements** for the clean-slate SIMRS (not optional nice-to-haves).
+**Status:** Items 2–3 shipped on demo (cetak + rekap, PR #45). Item 1 (metadata) in `feature/pendaftaran-metadata-fidelity`.
 
 ## Tester wording
 
@@ -14,7 +14,7 @@
 
 | Tester note | Already in plan? | Where | Current demo reality | Required teaching outcome |
 |---|---|---|---|---|
-| **Variabel dan meta data sesuai** | Partially | Field maps (`PENDAFTARAN_SAHABAT_FIELD_MAP.md`), capture dictionaries (`docs/legacy-visual-field-capture/`), PAR-REG-* required fields, DEC-014 desk bar | Desk fields expanded; wilayah was stubby (in-progress cascade); not every SAHABAT/classic variable is live | Registration + downstream screens use **consistent labels, codes, and stored metadata** (patient/encounter/wilayah/payer/queue) aligned to SAHABAT/legacy dictionaries — no orphan free-text where masters exist |
+| **Variabel dan meta data sesuai** | Partially | Field maps (`PENDAFTARAN_SAHABAT_FIELD_MAP.md`), capture dictionaries (`docs/legacy-visual-field-capture/`), PAR-REG-* required fields, DEC-014 desk bar | `TeachingVocabulary` shared codes/labels; marital_status; wilayah BPS codes; cetak/rekap use the same maps | Registration + downstream screens use **consistent labels, codes, and stored metadata** aligned to SAHABAT/legacy dictionaries — no orphan free-text where masters exist |
 | **Bisa cetak bukti dan SEP** | Named, but as **stub / non-production** | DEC-014; SAHABAT gap P1 “Cetak stub”; field map “SEP / Cetak UI stubs only”; PAR-REG “SEP sandbox or offline”; explicit **no production BPJS send** | Right panel has SEP checkbox + **disabled Cetak** button | Must be able to **print teaching bukti registrasi** and a **teaching SEP document** from saved encounter data (PDF/print preview). Still **no live VClaim/BPJS** — synthetic/sandbox payload only |
 | **Bisa rekap pendaftaran online** | **Weak / not explicit** as a first-class module | SAHABAT top strip “Data Kunjungan” / RegOn stubs; today’s encounter list on Pendaftaran; RPT menus in legacy capture not rebuilt | “Pendaftaran hari ini” list only; no dedicated online-registration recap report | Need a **rekap pendaftaran** surface (filter by date/poli/cara bayar/asal online vs walk-in) with export/print for teaching — covers “pendaftaran online” intake recap |
 

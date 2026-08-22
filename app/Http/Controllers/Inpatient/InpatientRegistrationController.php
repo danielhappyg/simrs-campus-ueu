@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
+use App\Support\TeachingVocabulary;
 use Database\Seeders\InpatientMastersSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -105,21 +106,9 @@ class InpatientRegistrationController extends Controller
             'todaysEncounters' => $todaysEncounters,
             'wards' => $wards,
             'wardOptions' => InpatientMastersSeeder::wardFilterOptions(),
-            'sexOptions' => $this->options([
-                Patient::SEX_LAKI_LAKI => 'Laki-laki',
-                Patient::SEX_PEREMPUAN => 'Perempuan',
-                Patient::SEX_TIDAK_DIKETAHUI => 'Tidak diketahui',
-            ]),
-            'payerOptions' => $this->options([
-                Encounter::PAYER_UMUM => 'Umum',
-                Encounter::PAYER_BPJS => 'BPJS',
-                Encounter::PAYER_LAINNYA => 'Lainnya',
-            ]),
-            'continueFromOptions' => $this->options([
-                Encounter::CONTINUE_LANGSUNG => 'Langsung',
-                Encounter::CONTINUE_DARI_IGD => 'Dari IGD',
-                Encounter::CONTINUE_DARI_RJ => 'Dari Rawat Jalan',
-            ]),
+            'sexOptions' => TeachingVocabulary::options(TeachingVocabulary::SEX),
+            'payerOptions' => TeachingVocabulary::options(TeachingVocabulary::PAYER),
+            'continueFromOptions' => TeachingVocabulary::options(TeachingVocabulary::CONTINUE_FROM),
             'filters' => [
                 'q' => $search,
                 'ward' => $ward,
@@ -331,19 +320,5 @@ class InpatientRegistrationController extends Controller
                 'full_name' => $patient?->full_name,
             ],
         ];
-    }
-
-    /**
-     * @param  array<string, string>  $map
-     * @return list<array{value: string, label: string}>
-     */
-    private function options(array $map): array
-    {
-        $options = [];
-        foreach ($map as $value => $label) {
-            $options[] = ['value' => $value, 'label' => $label];
-        }
-
-        return $options;
     }
 }
