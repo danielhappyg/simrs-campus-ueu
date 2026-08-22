@@ -226,6 +226,14 @@ class Encounter extends Model
     }
 
     /**
+     * @return HasMany<LabServiceRequest, $this>
+     */
+    public function labServiceRequests(): HasMany
+    {
+        return $this->hasMany(LabServiceRequest::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

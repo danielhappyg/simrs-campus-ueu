@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Clinical\LaboratoryController;
 use App\Http\Controllers\Emergency\EmergencyExaminationController;
 use App\Http\Controllers\Emergency\EmergencyRegistrationController;
 use App\Http\Controllers\Emergency\EmergencyTriageController;
@@ -55,6 +56,13 @@ Route::middleware(['simulation'])->group(function (): void {
             ->name('pemeriksaan.rawat-jalan.show');
         Route::post('/pemeriksaan/rawat-jalan/{encounter}/entries', [OutpatientExaminationController::class, 'storeEntry'])
             ->name('pemeriksaan.rawat-jalan.entries.store');
+        Route::post('/pemeriksaan/rawat-jalan/{encounter}/lab-orders', [OutpatientExaminationController::class, 'storeLabOrder'])
+            ->name('pemeriksaan.rawat-jalan.lab-orders.store');
+
+        Route::get('/pemeriksaan/laboratorium', [LaboratoryController::class, 'index'])
+            ->name('pemeriksaan.laboratorium.index');
+        Route::post('/pemeriksaan/laboratorium/{order}/results', [LaboratoryController::class, 'storeResult'])
+            ->name('pemeriksaan.laboratorium.results.store');
 
         Route::get('/pemeriksaan/igd', [EmergencyExaminationController::class, 'index'])
             ->name('pemeriksaan.igd.index');

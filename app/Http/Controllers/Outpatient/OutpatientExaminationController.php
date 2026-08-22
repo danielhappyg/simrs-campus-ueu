@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
+use App\Models\LabServiceRequest;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
+use App\Support\Clinical\LabTestCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -118,7 +120,7 @@ class OutpatientExaminationController extends Controller
             404,
         );
 
-        $encounter->load(['patient', 'clinicalEntries.author']);
+        $encounter->load(['patient', 'clinicalEntries.author', 'labServiceRequests.requestedBy', 'labServiceRequests.result.enteredBy']);
 
         $user = $request->user();
         assert($user !== null);
@@ -154,7 +156,29 @@ class OutpatientExaminationController extends Controller
                         'author_name' => $entry->author?->name,
                     ])
                     ->all(),
+                'lab_orders' => $encounter->labServiceRequests
+                    ->sortByDesc('requested_at')
+                    ->values()
+                    ->map(fn (LabServiceRequest $order): array => [
+                        'public_id' => $order->public_id,
+                        'test_code' => $order->test_code,
+                        'test_label' => $order->test_label,
+                        'clinical_question' => $order->clinical_question,
+                        'status' => $order->status,
+                        'requested_at' => $order->requested_at->toIso8601String(),
+                        'requested_by_name' => $order->requestedBy?->name,
+                        'result' => $order->result ? [
+                            'public_id' => $order->result->public_id,
+                            'status' => $order->result->status,
+                            'result_text' => $order->result->result_text,
+                            'issued_at' => $order->result->issued_at->toIso8601String(),
+                            'entered_by_name' => $order->result->enteredBy?->name,
+                        ] : null,
+                    ])
+                    ->all(),
             ],
+            'labTestOptions' => LabTestCatalog::all(),
+            'canCreateLabOrder' => $user->canCapability(Capability::CLINICAL_ORDER_CREATE),
             'entryTypeOptions' => [
                 [
                     'value' => ClinicalEntry::TYPE_NURSING_INTAKE,
@@ -228,5 +252,60 @@ class OutpatientExaminationController extends Controller
         return redirect()
             ->route('pemeriksaan.rawat-jalan.show', $encounter)
             ->with('success', 'Catatan klinis disimpan.');
+    }
+
+    public function storeLabOrder(Request $request, Encounter $encounter): RedirectResponse
+    {
+        abort_unless(
+            $encounter->care_setting === Encounter::CARE_SETTING_OUTPATIENT,
+            404,
+        );
+
+        abort_if(
+            $encounter->status === Encounter::STATUS_CLOSED,
+            422,
+            'Kunjungan sudah ditutup.',
+        );
+
+        Gate::authorize(Capability::CLINICAL_ORDER_CREATE);
+
+        $validated = $request->validate([
+            'test_code' => ['required', Rule::in(LabTestCatalog::codes())],
+            'clinical_question' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $test = LabTestCatalog::find($validated['test_code']);
+        assert($test !== null);
+
+        $user = $request->user();
+        assert($user !== null);
+
+        $order = DB::transaction(function () use ($validated, $encounter, $user, $test): LabServiceRequest {
+            return LabServiceRequest::query()->create([
+                'encounter_id' => $encounter->id,
+                'requested_by_user_id' => $user->id,
+                'test_code' => $test['code'],
+                'test_label' => $test['label'],
+                'clinical_question' => $validated['clinical_question'] ?? null,
+                'status' => LabServiceRequest::STATUS_ACTIVE,
+                'requested_at' => now(),
+            ]);
+        });
+
+        $this->auditRecorder->record(
+            action: 'clinical.lab.order.create',
+            resourceType: 'lab_service_request',
+            resourceId: $order->public_id,
+            actor: $user,
+            outcome: 'SUCCESS',
+            metadata: [
+                'encounter_id' => $encounter->public_id,
+                'test_code' => $test['code'],
+            ],
+        );
+
+        return redirect()
+            ->route('pemeriksaan.rawat-jalan.show', $encounter)
+            ->with('success', 'Order lab disimpan.');
     }
 }

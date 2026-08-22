@@ -63,6 +63,7 @@ final class RoleCapabilityMatrix
                 Capability::ENCOUNTER_LIST,
                 Capability::ENCOUNTER_OPEN,
                 Capability::CLINICAL_NURSING_WRITE,
+                Capability::CLINICAL_LAB_RESULT_WRITE,
                 Capability::CLINICAL_AMEND,
             ],
             self::ROLE_PHYSICIAN => [
