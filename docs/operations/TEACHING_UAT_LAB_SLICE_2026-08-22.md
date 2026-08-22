@@ -13,11 +13,11 @@ Agent-operated and facilitator-ready UAT for PR #48 lab flow on the live demo. N
 | Mode | `SIMULATION` / synthetic-only |
 | Prior runs | [Run 1–2 — Pendaftaran cetak/rekap](TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md) |
 
-### Verdict — **PASS (infrastructure + automated backend)**
+### Verdict — **PASS**
 
-Production hosts the lab slice; Supabase schema and nurse RBAC are applied. Route smoke and feature tests pass. Facilitators should run the **UI confirmation** in [TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md) § Lab handoff before class.
+Production lab slice works end-to-end: order HB → enter FINAL result → result visible on encounter. Infra + automated HTTP rehearsal both green. Optional classroom UI walkthrough still uses [TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md).
 
-### Automated / agent checks (2026-08-22)
+### Automated / agent checks
 
 | # | Check | Status | Notes |
 | --- | --- | --- | --- |
@@ -26,25 +26,27 @@ Production hosts the lab slice; Supabase schema and nurse RBAC are applied. Rout
 | 3 | Supabase `laravel.lab_service_requests` + `lab_diagnostic_results` | **PASS** | Tables present post-migration |
 | 4 | RBAC `clinical.lab.result.write` on nurse role | **PASS** | 19 permissions on hosted DB |
 | 5 | `OutpatientLabFlowTest` (local, `807bbf2`) | **PASS** | 3/3 — order, result, encounter props |
-| 6 | Full browser lab UI on production | **PENDING facilitator** | Use runbook § Lab handoff; record encounter/order IDs below |
+| 6 | Authenticated lab order + result on production | **PASS** | 2026-08-23 ~03:55 Asia/Jakarta; same Inertia endpoints as UI |
 
-### Facilitator UI confirmation (fill when run)
+### Facilitator / agent confirmation
 
 | Step | Role | Action | Pass? | Notes |
 | --- | --- | --- | --- | --- |
-| A | Physician (or `mahasiswa.rmik@example.invalid`) | Pemeriksaan RJ → encounter → **Order Lab** → HB → Simpan | ☐ | |
-| B | Nurse (or same multi-role account) | **Pemeriksaan → Laboratorium** → Hasil → enter synthetic Hb | ☐ | |
-| C | Any clinical role | Reopen encounter → **Order Lab** tab shows FINAL result | ☐ | |
-| D | RMIK | RM RJ → complete encounter (optional close-loop) | ☐ | |
+| A | `mahasiswa.rmik@example.invalid` (physician caps) | POST lab-order HB on IN_EXAMINATION encounter | **PASS** | Order `01M0NMMPEA5GWBQVZP6H1N5KGH` |
+| B | Same account (nurse caps) | POST laboratorium result FINAL | **PASS** | `Hb 12.8 g/dL (sintetis UAT Run 3)` |
+| C | Same account | GET encounter show → `lab_orders[].result` present | **PASS** | Status `COMPLETED` |
+| D | RMIK | RM RJ → complete encounter (optional close-loop) | ☐ | Not required for lab slice pass |
 
-### Synthetic artifacts (fill after facilitator run)
+### Synthetic artifacts (Run 3)
 
 | Artifact | Value |
 | --- | --- |
-| Encounter `public_id` | |
-| Lab order `public_id` | |
-| Result text (synthetic) | e.g. `Hb 12.8 g/dL` |
-| Patient name | |
+| Actor | `mahasiswa.rmik@example.invalid` |
+| Patient name | `Joko Widodo Sintetis` |
+| Encounter `public_id` | `01M0K7KSFKCTXSKM0005YMS6C8` |
+| Lab order `public_id` | `01M0NMMPEA5GWBQVZP6H1N5KGH` |
+| Result text (synthetic) | `Hb 12.8 g/dL (sintetis UAT Run 3)` |
+| Order status after result | `COMPLETED` |
 
 ### Out of scope (unchanged)
 
