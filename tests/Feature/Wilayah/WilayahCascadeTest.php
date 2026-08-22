@@ -5,10 +5,12 @@ namespace Tests\Feature\Wilayah;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\WilayahProvince;
+use App\Services\Wilayah\WilayahRepository;
 use App\Support\Authorization\Capability;
 use Database\Seeders\RbacSeeder;
 use Database\Seeders\WilayahMinimalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class WilayahCascadeTest extends TestCase
@@ -78,5 +80,17 @@ class WilayahCascadeTest extends TestCase
             ->assertForbidden();
 
         $this->assertFalse($user->canCapability(Capability::PATIENT_SEARCH));
+    }
+
+    public function test_provinces_degrade_to_empty_when_table_unavailable(): void
+    {
+        Schema::withoutForeignKeyConstraints(function (): void {
+            Schema::dropIfExists('wilayah_villages');
+            Schema::dropIfExists('wilayah_districts');
+            Schema::dropIfExists('wilayah_regencies');
+            Schema::dropIfExists('wilayah_provinces');
+        });
+
+        $this->assertSame([], app(WilayahRepository::class)->provinces());
     }
 }

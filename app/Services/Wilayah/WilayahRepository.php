@@ -15,14 +15,16 @@ class WilayahRepository
      */
     public function provinces(): array
     {
-        return array_values(WilayahProvince::query()
-            ->orderBy('name')
-            ->get(['code', 'name'])
-            ->map(fn (WilayahProvince $row): array => [
-                'value' => $row->code,
-                'label' => $row->name,
-            ])
-            ->all());
+        return $this->optionRows(function (): array {
+            return array_values(WilayahProvince::query()
+                ->orderBy('name')
+                ->get(['code', 'name'])
+                ->map(fn (WilayahProvince $row): array => [
+                    'value' => $row->code,
+                    'label' => $row->name,
+                ])
+                ->all());
+        });
     }
 
     /**
@@ -30,15 +32,17 @@ class WilayahRepository
      */
     public function regencies(string $provinceCode): array
     {
-        return array_values(WilayahRegency::query()
-            ->where('province_code', $provinceCode)
-            ->orderBy('name')
-            ->get(['code', 'name'])
-            ->map(fn (WilayahRegency $row): array => [
-                'value' => $row->code,
-                'label' => $row->name,
-            ])
-            ->all());
+        return $this->optionRows(function () use ($provinceCode): array {
+            return array_values(WilayahRegency::query()
+                ->where('province_code', $provinceCode)
+                ->orderBy('name')
+                ->get(['code', 'name'])
+                ->map(fn (WilayahRegency $row): array => [
+                    'value' => $row->code,
+                    'label' => $row->name,
+                ])
+                ->all());
+        });
     }
 
     /**
@@ -46,15 +50,17 @@ class WilayahRepository
      */
     public function districts(string $regencyCode): array
     {
-        return array_values(WilayahDistrict::query()
-            ->where('regency_code', $regencyCode)
-            ->orderBy('name')
-            ->get(['code', 'name'])
-            ->map(fn (WilayahDistrict $row): array => [
-                'value' => $row->code,
-                'label' => $row->name,
-            ])
-            ->all());
+        return $this->optionRows(function () use ($regencyCode): array {
+            return array_values(WilayahDistrict::query()
+                ->where('regency_code', $regencyCode)
+                ->orderBy('name')
+                ->get(['code', 'name'])
+                ->map(fn (WilayahDistrict $row): array => [
+                    'value' => $row->code,
+                    'label' => $row->name,
+                ])
+                ->all());
+        });
     }
 
     /**
@@ -62,15 +68,17 @@ class WilayahRepository
      */
     public function villages(string $districtCode): array
     {
-        return array_values(WilayahVillage::query()
-            ->where('district_code', $districtCode)
-            ->orderBy('name')
-            ->get(['code', 'name'])
-            ->map(fn (WilayahVillage $row): array => [
-                'value' => $row->code,
-                'label' => $row->name,
-            ])
-            ->all());
+        return $this->optionRows(function () use ($districtCode): array {
+            return array_values(WilayahVillage::query()
+                ->where('district_code', $districtCode)
+                ->orderBy('name')
+                ->get(['code', 'name'])
+                ->map(fn (WilayahVillage $row): array => [
+                    'value' => $row->code,
+                    'label' => $row->name,
+                ])
+                ->all());
+        });
     }
 
     public function provinceName(?string $code): ?string
@@ -156,5 +164,22 @@ class WilayahRepository
     public function hasLocalData(): bool
     {
         return File::isFile($this->dataPath().'/provinsi.json');
+    }
+
+    /**
+     * Keep registration desks rendering when hosted grants or search_path drift.
+     *
+     * @param  callable(): list<array{value: string, label: string}>  $query
+     * @return list<array{value: string, label: string}>
+     */
+    private function optionRows(callable $query): array
+    {
+        try {
+            return $query();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return [];
+        }
     }
 }
