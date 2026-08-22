@@ -9,7 +9,7 @@ Agent-operated and facilitator-ready UAT for PR #48 lab flow on the live demo. N
 | Record ID | `UAT-TEACH-20260822-03` |
 | Local time | 2026-08-22 ~19:30 Asia/Jakarta |
 | Environment | `https://simrs-campus-ueu-demo.vercel.app` |
-| Deployment | Production promote after merge #48 (commit `807bbf2`) |
+| Deployment | `dpl_4BJScnJZXo98j2AF1h7YydJhL3vx` (production promote of #48 / `807bbf2`) |
 | Mode | `SIMULATION` / synthetic-only |
 | Prior runs | [Run 1–2 — Pendaftaran cetak/rekap](TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md) |
 
