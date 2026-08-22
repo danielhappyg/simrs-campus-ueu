@@ -338,7 +338,7 @@
     "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DpoPorgB.css",
+    "file": "assets/app-CXiNxXTb.css",
     "name": "app",
     "names": [
       "app.css"
@@ -347,7 +347,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-DDtLwWZU.js",
+    "file": "assets/app-CaMF6o6B.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -372,6 +372,7 @@
       "resources/js/pages/auth/two-factor-challenge.tsx",
       "resources/js/pages/auth/verify-email.tsx",
       "resources/js/pages/modules/placeholder.tsx",
+      "resources/js/pages/pemeriksaan/laboratorium/index.tsx",
       "resources/js/pages/pemeriksaan/rawat-jalan/index.tsx",
       "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx",
       "resources/js/pages/pendaftaran/rawat-inap.tsx",
@@ -530,8 +531,23 @@
       "_jsx-runtime-BpbW1mBX.js"
     ]
   },
+  "resources/js/pages/pemeriksaan/laboratorium/index.tsx": {
+    "file": "assets/laboratorium-_N9ovehN.js",
+    "name": "laboratorium",
+    "src": "resources/js/pages/pemeriksaan/laboratorium/index.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-Bh1tDfsg.js",
+      "_jsx-runtime-BpbW1mBX.js",
+      "_button-D9y-xDpe.js",
+      "_input-BMVCMb5R.js",
+      "_input-error-DFsNOEzY.js",
+      "_label-bg3hva81.js",
+      "_care-setting-subnav-l3xlQ9U6.js"
+    ]
+  },
   "resources/js/pages/pemeriksaan/rawat-jalan/index.tsx": {
-    "file": "assets/rawat-jalan-CythuScJ.js",
+    "file": "assets/rawat-jalan-Cer0vzSf.js",
     "name": "rawat-jalan",
     "src": "resources/js/pages/pemeriksaan/rawat-jalan/index.tsx",
     "isDynamicEntry": true,
@@ -544,7 +560,7 @@
     ]
   },
   "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx": {
-    "file": "assets/show-DZx2Cfc3.js",
+    "file": "assets/show-BNxsIFhR.js",
     "name": "show",
     "src": "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx",
     "isDynamicEntry": true,
@@ -572,7 +588,7 @@
     ]
   },
   "resources/js/pages/pendaftaran/rawat-jalan.tsx": {
-    "file": "assets/rawat-jalan-Cfr6Wd0j.js",
+    "file": "assets/rawat-jalan-fQZV9yWT.js",
     "name": "rawat-jalan",
     "src": "resources/js/pages/pendaftaran/rawat-jalan.tsx",
     "isDynamicEntry": true,

@@ -22,6 +22,8 @@ final class Capability
 
     public const CLINICAL_ORDER_CREATE = 'clinical.order.create';
 
+    public const CLINICAL_LAB_RESULT_WRITE = 'clinical.lab.result.write';
+
     public const CLINICAL_AMEND = 'clinical.amend';
 
     public const RMIK_REVIEW = 'rmik.review';
@@ -55,6 +57,7 @@ final class Capability
             self::CLINICAL_NURSING_WRITE,
             self::CLINICAL_MEDICAL_WRITE,
             self::CLINICAL_ORDER_CREATE,
+            self::CLINICAL_LAB_RESULT_WRITE,
             self::CLINICAL_AMEND,
             self::RMIK_REVIEW,
             self::RMIK_CODING_WRITE,

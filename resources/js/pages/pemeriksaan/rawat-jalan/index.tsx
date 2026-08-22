@@ -162,6 +162,10 @@ export default function PemeriksaanRawatJalanIndex({
                             label: 'Triage',
                             active: isTriage,
                         },
+                        {
+                            href: '/pemeriksaan/laboratorium',
+                            label: 'Laboratorium',
+                        },
                     ]}
                 />
 

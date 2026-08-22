@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
@@ -19,6 +19,28 @@ type ClinicalEntryRow = {
     body: string;
     created_at: string | null;
     author_name: string | null;
+};
+
+type LabOrderRow = {
+    public_id: string;
+    test_code: string;
+    test_label: string;
+    clinical_question: string | null;
+    status: string;
+    requested_at: string;
+    requested_by_name: string | null;
+    result: {
+        public_id: string;
+        status: string;
+        result_text: string;
+        issued_at: string;
+        entered_by_name: string | null;
+    } | null;
+};
+
+type LabTestOption = {
+    code: string;
+    label: string;
 };
 
 type EncounterDetail = {
@@ -47,6 +69,7 @@ type EncounterDetail = {
         nik: string | null;
     };
     entries: ClinicalEntryRow[];
+    lab_orders?: LabOrderRow[];
 };
 
 type Props = {
@@ -54,8 +77,11 @@ type Props = {
     indexPath?: string;
     showPathPrefix?: string;
     storeEntryPath?: string;
+    storeLabOrderPath?: string;
     encounter: EncounterDetail;
     entryTypeOptions: EntryTypeOption[];
+    labTestOptions?: LabTestOption[];
+    canCreateLabOrder?: boolean;
     canWriteNursing: boolean;
     canWriteMedical: boolean;
 };
@@ -76,6 +102,17 @@ const sexLabel: Record<string, string> = {
     LAKI_LAKI: 'Laki-laki',
     PEREMPUAN: 'Perempuan',
     TIDAK_DIKETAHUI: 'Tidak diketahui',
+};
+
+const labOrderStatusLabel: Record<string, string> = {
+    ACTIVE: 'Menunggu hasil',
+    COMPLETED: 'Selesai',
+    CANCELLED: 'Dibatalkan',
+};
+
+const labResultStatusLabel: Record<string, string> = {
+    PRELIMINARY: 'Preliminer',
+    FINAL: 'Final',
 };
 
 const payerLabel: Record<string, string> = {
@@ -105,16 +142,25 @@ export default function PemeriksaanRawatJalanShow({
     variant = 'rawat-jalan',
     indexPath = '/pemeriksaan/rawat-jalan',
     storeEntryPath,
+    storeLabOrderPath,
     encounter,
     entryTypeOptions,
+    labTestOptions = [],
+    canCreateLabOrder = false,
     canWriteNursing,
     canWriteMedical,
 }: Props) {
+    const { flash } = usePage().props;
     const isIgd = variant === 'igd';
     const isInpatient = variant === 'rawat-inap';
+    const isOutpatient = variant === 'rawat-jalan';
     const entryPostPath =
         storeEntryPath ??
         `/pemeriksaan/rawat-jalan/${encounter.public_id}/entries`;
+    const labOrderPostPath =
+        storeLabOrderPath ??
+        `/pemeriksaan/rawat-jalan/${encounter.public_id}/lab-orders`;
+    const labOrders = encounter.lab_orders ?? [];
     const allowedOptions = entryTypeOptions.filter((option) => option.allowed);
     const canWrite = canWriteNursing || canWriteMedical;
     const closed = encounter.status === 'CLOSED';
@@ -126,12 +172,33 @@ export default function PemeriksaanRawatJalanShow({
         body: '',
     });
 
+    const labForm = useForm({
+        test_code: labTestOptions[0]?.code ?? '',
+        clinical_question: '',
+    });
+
     const submit = (event: FormEvent) => {
         event.preventDefault();
         form.post(entryPostPath, {
             preserveScroll: true,
             onSuccess: () => form.reset('body'),
         });
+    };
+
+    const submitLabOrder = (event: FormEvent) => {
+        event.preventDefault();
+        labForm.post(labOrderPostPath, {
+            preserveScroll: true,
+            onSuccess: () => labForm.reset('clinical_question'),
+        });
+    };
+
+    const tabIsLive = (tab: (typeof clinicalTabs)[number]) => {
+        if (tab === 'Asesmen' || tab === 'Riwayat') {
+            return true;
+        }
+
+        return tab === 'Order Lab' && isOutpatient;
     };
 
     return (
@@ -141,6 +208,17 @@ export default function PemeriksaanRawatJalanShow({
             />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
+                {typeof flash?.error === 'string' && flash.error !== '' ? (
+                    <div className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]">
+                        {flash.error}
+                    </div>
+                ) : null}
+                {typeof flash?.success === 'string' && flash.success !== '' ? (
+                    <div className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]">
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <div>
                     <Link
                         href={indexPath}
@@ -272,7 +350,7 @@ export default function PemeriksaanRawatJalanShow({
 
                 <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] pb-px">
                     {clinicalTabs.map((tab) => {
-                        const live = tab === 'Asesmen' || tab === 'Riwayat';
+                        const live = tabIsLive(tab);
 
                         return (
                             <button
@@ -303,6 +381,178 @@ export default function PemeriksaanRawatJalanShow({
                         );
                     })}
                 </div>
+
+                {activeTab === 'Order Lab' && isOutpatient && (
+                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                        <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
+                                    Order laboratorium
+                                </h2>
+                                <Link
+                                    href="/pemeriksaan/laboratorium"
+                                    className="text-xs font-medium text-[#1b75bc] hover:underline"
+                                >
+                                    Buka meja lab →
+                                </Link>
+                            </div>
+                            <div className="mt-3 space-y-2">
+                                {labOrders.length === 0 ? (
+                                    <p className="text-sm text-[#64748b]">
+                                        Belum ada order lab untuk kunjungan ini.
+                                    </p>
+                                ) : (
+                                    labOrders.map((order) => (
+                                        <article
+                                            key={order.public_id}
+                                            className="rounded-md border border-[#e2e8f0] bg-[#f8fafc] p-3"
+                                        >
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <h3 className="text-sm font-semibold text-[#0f172a]">
+                                                    {order.test_label}
+                                                    <span className="ml-2 font-mono text-xs font-normal text-[#64748b]">
+                                                        {order.test_code}
+                                                    </span>
+                                                </h3>
+                                                <span className="rounded-md bg-[#e8f2fa] px-2 py-0.5 text-[0.65rem] font-semibold text-[#123b63]">
+                                                    {labOrderStatusLabel[
+                                                        order.status
+                                                    ] ?? order.status}
+                                                </span>
+                                            </div>
+                                            {order.clinical_question ? (
+                                                <p className="mt-2 text-xs text-[#64748b]">
+                                                    Klinis:{' '}
+                                                    {order.clinical_question}
+                                                </p>
+                                            ) : null}
+                                            <p className="mt-1 text-xs text-[#64748b]">
+                                                {order.requested_by_name}
+                                                {' · '}
+                                                {new Date(
+                                                    order.requested_at,
+                                                ).toLocaleString('id-ID')}
+                                            </p>
+                                            {order.result ? (
+                                                <div className="mt-3 rounded-md border border-[#bbf7d0] bg-[#f0fdf4] p-2.5">
+                                                    <p className="text-xs font-semibold text-[#166534]">
+                                                        Hasil (
+                                                        {labResultStatusLabel[
+                                                            order.result.status
+                                                        ] ??
+                                                            order.result.status}
+                                                        )
+                                                    </p>
+                                                    <p className="mt-1 text-sm whitespace-pre-wrap text-[#0f172a]">
+                                                        {
+                                                            order.result
+                                                                .result_text
+                                                        }
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-[#64748b]">
+                                                        {
+                                                            order.result
+                                                                .entered_by_name
+                                                        }
+                                                        {' · '}
+                                                        {new Date(
+                                                            order.result
+                                                                .issued_at,
+                                                        ).toLocaleString(
+                                                            'id-ID',
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            ) : null}
+                                        </article>
+                                    ))
+                                )}
+                            </div>
+                        </section>
+
+                        {canCreateLabOrder && !closed ? (
+                            <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
+                                <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
+                                    Buat order lab
+                                </h2>
+                                <form
+                                    onSubmit={submitLabOrder}
+                                    className="mt-3 space-y-3"
+                                >
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="test_code">
+                                            Pemeriksaan
+                                        </Label>
+                                        <select
+                                            id="test_code"
+                                            className="h-8 rounded-md border border-input bg-white px-2.5 text-sm"
+                                            value={labForm.data.test_code}
+                                            onChange={(e) =>
+                                                labForm.setData(
+                                                    'test_code',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            required
+                                        >
+                                            {labTestOptions.map((test) => (
+                                                <option
+                                                    key={test.code}
+                                                    value={test.code}
+                                                >
+                                                    {test.label} ({test.code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <InputError
+                                            message={labForm.errors.test_code}
+                                        />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="clinical_question">
+                                            Pertanyaan klinis (opsional)
+                                        </Label>
+                                        <textarea
+                                            id="clinical_question"
+                                            className="min-h-24 rounded-md border border-input bg-white px-2.5 py-2 text-sm"
+                                            value={
+                                                labForm.data.clinical_question
+                                            }
+                                            onChange={(e) =>
+                                                labForm.setData(
+                                                    'clinical_question',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Contoh: evaluasi anemia, kontrol DM…"
+                                        />
+                                        <InputError
+                                            message={
+                                                labForm.errors.clinical_question
+                                            }
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            labForm.processing ||
+                                            !labForm.data.test_code
+                                        }
+                                        className="w-full bg-[#1b75bc] hover:bg-[#1665a3]"
+                                    >
+                                        Simpan order lab
+                                    </Button>
+                                </form>
+                            </section>
+                        ) : (
+                            <section className="rounded-lg border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-4 text-sm text-[#64748b]">
+                                {closed
+                                    ? 'Kunjungan sudah ditutup — order lab tidak dapat ditambah.'
+                                    : 'Akun ini tidak punya hak membuat order lab.'}
+                            </section>
+                        )}
+                    </div>
+                )}
 
                 {(activeTab === 'Asesmen' || activeTab === 'Riwayat') && (
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
