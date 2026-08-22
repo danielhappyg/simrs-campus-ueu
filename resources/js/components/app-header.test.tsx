@@ -13,16 +13,16 @@ type MockLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
 };
 
 vi.mock('@inertiajs/react', () => ({
-    Link: ({
-        href,
-        children,
-        prefetch: _prefetch,
-        ...props
-    }: MockLinkProps) => (
-        <a href={href} {...props}>
-            {children}
-        </a>
-    ),
+    Link: ({ href, children, ...props }: MockLinkProps) => {
+        const { prefetch, ...anchorProps } = props;
+        void prefetch;
+
+        return (
+            <a href={href} {...anchorProps}>
+                {children}
+            </a>
+        );
+    },
     usePage: () => ({
         url: '/',
         props: {

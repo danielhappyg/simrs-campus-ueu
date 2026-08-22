@@ -1,5 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState  } from 'react';
+import type {FormEvent} from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -202,6 +203,7 @@ export default function PendaftaranRawatInap({
 
     const onWardChange = (wardName: string) => {
         const ward = wards.find((item) => item.name === wardName);
+
         if (!ward) {
             return;
         }

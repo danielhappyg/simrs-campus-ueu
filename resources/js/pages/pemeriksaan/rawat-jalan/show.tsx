@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { useState  } from 'react';
+import type {FormEvent} from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -272,6 +273,7 @@ export default function PemeriksaanRawatJalanShow({
                 <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] pb-px">
                     {clinicalTabs.map((tab) => {
                         const live = tab === 'Asesmen' || tab === 'Riwayat';
+
                         return (
                             <button
                                 key={tab}

@@ -1,11 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import {
-    useEffect,
-    useMemo,
-    useState,
-    type FormEvent,
-    type ReactNode,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -109,10 +104,13 @@ async function fetchWilayahOptions(url: string): Promise<Option[]> {
             headers: { Accept: 'application/json' },
             credentials: 'same-origin',
         });
+
         if (!response.ok) {
             return [];
         }
+
         const payload = (await response.json()) as { options?: Option[] };
+
         return payload.options ?? [];
     } catch {
         return [];
@@ -293,6 +291,7 @@ export default function PendaftaranRawatJalan({
         if (!isIgd || clinics.length === 0 || form.data.clinic_public_id) {
             return;
         }
+
         form.setData('clinic_public_id', clinics[0].public_id);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- seed IGD clinic once
     }, [isIgd, clinics]);
@@ -306,12 +305,14 @@ export default function PendaftaranRawatJalan({
     );
     const schedules = selectedDoctor?.schedules ?? [];
 
+    const visibleCityOptions = form.data.province_code ? cityOptions : [];
+    const visibleDistrictOptions = form.data.city_code ? districtOptions : [];
+    const visibleVillageOptions = form.data.district_code ? villageOptions : [];
+
     useEffect(() => {
         const provinceCode = form.data.province_code;
+
         if (!provinceCode) {
-            setCityOptions([]);
-            setDistrictOptions([]);
-            setVillageOptions([]);
             return;
         }
 
@@ -331,9 +332,8 @@ export default function PendaftaranRawatJalan({
 
     useEffect(() => {
         const cityCode = form.data.city_code;
+
         if (!cityCode) {
-            setDistrictOptions([]);
-            setVillageOptions([]);
             return;
         }
 
@@ -353,8 +353,8 @@ export default function PendaftaranRawatJalan({
 
     useEffect(() => {
         const districtCode = form.data.district_code;
+
         if (!districtCode) {
-            setVillageOptions([]);
             return;
         }
 
@@ -909,6 +909,9 @@ export default function PendaftaranRawatJalan({
                                                     village_code: '',
                                                     village: '',
                                                 });
+                                                setCityOptions([]);
+                                                setDistrictOptions([]);
+                                                setVillageOptions([]);
                                             }}
                                         >
                                             <option value="">— Pilih —</option>
@@ -937,7 +940,7 @@ export default function PendaftaranRawatJalan({
                                             onChange={(e) => {
                                                 const code = e.target.value;
                                                 const selected =
-                                                    cityOptions.find(
+                                                    visibleCityOptions.find(
                                                         (option) =>
                                                             option.value ===
                                                             code,
@@ -951,18 +954,22 @@ export default function PendaftaranRawatJalan({
                                                     village_code: '',
                                                     village: '',
                                                 });
+                                                setDistrictOptions([]);
+                                                setVillageOptions([]);
                                             }}
                                             disabled={!form.data.province_code}
                                         >
                                             <option value="">— Pilih —</option>
-                                            {cityOptions.map((option) => (
-                                                <option
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </option>
-                                            ))}
+                                            {visibleCityOptions.map(
+                                                (option) => (
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ),
+                                            )}
                                         </select>
                                     </Field>
                                     <Field
@@ -980,7 +987,7 @@ export default function PendaftaranRawatJalan({
                                             onChange={(e) => {
                                                 const code = e.target.value;
                                                 const selected =
-                                                    districtOptions.find(
+                                                    visibleDistrictOptions.find(
                                                         (option) =>
                                                             option.value ===
                                                             code,
@@ -993,18 +1000,21 @@ export default function PendaftaranRawatJalan({
                                                     village_code: '',
                                                     village: '',
                                                 });
+                                                setVillageOptions([]);
                                             }}
                                             disabled={!form.data.city_code}
                                         >
                                             <option value="">— Pilih —</option>
-                                            {districtOptions.map((option) => (
-                                                <option
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </option>
-                                            ))}
+                                            {visibleDistrictOptions.map(
+                                                (option) => (
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ),
+                                            )}
                                         </select>
                                     </Field>
                                     <Field
@@ -1022,7 +1032,7 @@ export default function PendaftaranRawatJalan({
                                             onChange={(e) => {
                                                 const code = e.target.value;
                                                 const selected =
-                                                    villageOptions.find(
+                                                    visibleVillageOptions.find(
                                                         (option) =>
                                                             option.value ===
                                                             code,
@@ -1037,14 +1047,16 @@ export default function PendaftaranRawatJalan({
                                             disabled={!form.data.district_code}
                                         >
                                             <option value="">— Pilih —</option>
-                                            {villageOptions.map((option) => (
-                                                <option
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </option>
-                                            ))}
+                                            {visibleVillageOptions.map(
+                                                (option) => (
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </option>
+                                                ),
+                                            )}
                                         </select>
                                     </Field>
                                 </div>
