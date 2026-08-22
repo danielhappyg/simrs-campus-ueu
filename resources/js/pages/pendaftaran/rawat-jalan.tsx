@@ -588,8 +588,7 @@ export default function PendaftaranRawatJalan({
                         {flash.error}
                     </div>
                 ) : null}
-                {typeof flash?.success === 'string' &&
-                flash.success !== '' ? (
+                {typeof flash?.success === 'string' && flash.success !== '' ? (
                     <div
                         role="status"
                         className="rounded-md border border-[#a7f3d0] bg-[#ecfdf5] px-3 py-2 text-sm text-[#065f46]"

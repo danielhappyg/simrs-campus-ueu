@@ -79,8 +79,7 @@ export default function PemeriksaanLaboratoriumIndex({
                         {flash.error}
                     </div>
                 ) : null}
-                {typeof flash?.success === 'string' &&
-                flash.success !== '' ? (
+                {typeof flash?.success === 'string' && flash.success !== '' ? (
                     <div className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]">
                         {flash.success}
                     </div>
@@ -273,7 +272,9 @@ export default function PemeriksaanLaboratoriumIndex({
                                                             className="mx-auto max-w-2xl space-y-3"
                                                         >
                                                             <div className="grid gap-1.5">
-                                                                <Label htmlFor={`result-${order.public_id}`}>
+                                                                <Label
+                                                                    htmlFor={`result-${order.public_id}`}
+                                                                >
                                                                     Hasil
                                                                     pemeriksaan
                                                                 </Label>

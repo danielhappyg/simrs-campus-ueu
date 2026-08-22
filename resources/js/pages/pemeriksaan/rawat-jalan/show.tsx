@@ -213,8 +213,7 @@ export default function PemeriksaanRawatJalanShow({
                         {flash.error}
                     </div>
                 ) : null}
-                {typeof flash?.success === 'string' &&
-                flash.success !== '' ? (
+                {typeof flash?.success === 'string' && flash.success !== '' ? (
                     <div className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]">
                         {flash.success}
                     </div>
