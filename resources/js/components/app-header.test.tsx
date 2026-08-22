@@ -13,7 +13,12 @@ type MockLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
 };
 
 vi.mock('@inertiajs/react', () => ({
-    Link: ({ href, children, prefetch: _prefetch, ...props }: MockLinkProps) => (
+    Link: ({
+        href,
+        children,
+        prefetch: _prefetch,
+        ...props
+    }: MockLinkProps) => (
         <a href={href} {...props}>
             {children}
         </a>
@@ -51,20 +56,29 @@ describe('application header navigation', () => {
         });
         expect(navs.length).toBeGreaterThanOrEqual(1);
 
-        const live = SIMRS_MODULE_CATEGORIES.filter((category) => category.live);
-        const soon = SIMRS_MODULE_CATEGORIES.filter((category) => !category.live);
+        const live = SIMRS_MODULE_CATEGORIES.filter(
+            (category) => category.live,
+        );
+        const soon = SIMRS_MODULE_CATEGORIES.filter(
+            (category) => !category.live,
+        );
 
         for (const category of live) {
             expect(
-                screen.getAllByRole('link', { name: new RegExp(category.label, 'i') })
-                    .length,
+                screen.getAllByRole('link', {
+                    name: new RegExp(category.label, 'i'),
+                }).length,
             ).toBeGreaterThan(0);
         }
 
         for (const category of soon) {
-            expect(screen.getAllByText(category.label).length).toBeGreaterThan(0);
+            expect(screen.getAllByText(category.label).length).toBeGreaterThan(
+                0,
+            );
             expect(
-                screen.queryByRole('link', { name: new RegExp(`^${category.label}$`, 'i') }),
+                screen.queryByRole('link', {
+                    name: new RegExp(`^${category.label}$`, 'i'),
+                }),
             ).not.toBeInTheDocument();
         }
 

@@ -225,7 +225,9 @@ export default function PemeriksaanRawatJalanShow({
                         </div>
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
-                                {isInpatient ? 'Bangsal / Kelas' : 'Klinik / Dokter'}
+                                {isInpatient
+                                    ? 'Bangsal / Kelas'
+                                    : 'Klinik / Dokter'}
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {isInpatient
@@ -238,7 +240,9 @@ export default function PemeriksaanRawatJalanShow({
                         </div>
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
-                                {isInpatient ? 'TT / Penjamin' : 'Jadwal / Penjamin'}
+                                {isInpatient
+                                    ? 'TT / Penjamin'
+                                    : 'Jadwal / Penjamin'}
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {isInpatient
@@ -277,7 +281,7 @@ export default function PemeriksaanRawatJalanShow({
                                 className={cn(
                                     'rounded-t-md px-3 py-1.5 text-xs font-medium',
                                     activeTab === tab && live
-                                        ? 'bg-white text-[#1b75bc] ring-1 ring-[#e2e8f0] ring-b-white'
+                                        ? 'ring-b-white bg-white text-[#1b75bc] ring-1 ring-[#e2e8f0]'
                                         : 'text-[#64748b]',
                                     !live && 'cursor-not-allowed opacity-50',
                                 )}
@@ -328,7 +332,7 @@ export default function PemeriksaanRawatJalanShow({
                                                         : ''}
                                                 </p>
                                             </div>
-                                            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#0f172a]">
+                                            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-[#0f172a]">
                                                 {entry.body}
                                             </p>
                                         </article>
@@ -352,7 +356,7 @@ export default function PemeriksaanRawatJalanShow({
                                         </Label>
                                         <select
                                             id="entry_type"
-                                            className="border-input h-8 rounded-md border bg-white px-2.5 text-sm"
+                                            className="h-8 rounded-md border border-input bg-white px-2.5 text-sm"
                                             value={form.data.entry_type}
                                             onChange={(e) =>
                                                 form.setData(
@@ -381,7 +385,7 @@ export default function PemeriksaanRawatJalanShow({
                                         </Label>
                                         <textarea
                                             id="body"
-                                            className="border-input min-h-36 rounded-md border bg-white px-2.5 py-2 text-sm"
+                                            className="min-h-36 rounded-md border border-input bg-white px-2.5 py-2 text-sm"
                                             value={form.data.body}
                                             onChange={(e) =>
                                                 form.setData(

@@ -377,11 +377,10 @@ export default function PendaftaranRawatJalan({
         const data = new FormData(event.currentTarget);
         const query = String(data.get('q') ?? '').trim();
         setSearchOpen(true);
-        router.get(
-            indexPath,
-            query ? { q: query } : {},
-            { preserveState: true, replace: true },
-        );
+        router.get(indexPath, query ? { q: query } : {}, {
+            preserveState: true,
+            replace: true,
+        });
     };
 
     const selectPatient = (patient: PatientRow) => {
@@ -496,11 +495,7 @@ export default function PendaftaranRawatJalan({
     return (
         <>
             <Head
-                title={
-                    isIgd
-                        ? 'Pendaftaran IGD'
-                        : 'Pendaftaran Rawat Jalan'
-                }
+                title={isIgd ? 'Pendaftaran IGD' : 'Pendaftaran Rawat Jalan'}
             />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-3 py-4 md:px-5 md:py-5">
@@ -1323,7 +1318,9 @@ export default function PendaftaranRawatJalan({
                                             <select
                                                 id="clinic_public_id"
                                                 className={selectClass}
-                                                value={form.data.clinic_public_id}
+                                                value={
+                                                    form.data.clinic_public_id
+                                                }
                                                 onChange={(e) =>
                                                     form.setData({
                                                         ...form.data,
@@ -1372,7 +1369,9 @@ export default function PendaftaranRawatJalan({
                                                     schedule_public_id: '',
                                                 })
                                             }
-                                            disabled={!form.data.clinic_public_id}
+                                            disabled={
+                                                !form.data.clinic_public_id
+                                            }
                                             required
                                         >
                                             <option value="">
@@ -1403,7 +1402,9 @@ export default function PendaftaranRawatJalan({
                                                     e.target.value,
                                                 )
                                             }
-                                            disabled={!form.data.doctor_public_id}
+                                            disabled={
+                                                !form.data.doctor_public_id
+                                            }
                                             required
                                         >
                                             <option value="">
@@ -1633,24 +1634,22 @@ export default function PendaftaranRawatJalan({
                                     />
                                     No. Antrian
                                 </label>
-                                {(
-                                    (isIgd
-                                        ? ([
-                                              ['lembarIgd', 'Lembar IGD'],
-                                              ['gelang', 'Gelang pasien'],
-                                              ['kartu', 'Kartu pasien'],
-                                              ['tracer', 'Tracer berkas RM'],
-                                              ['sep', 'SEP'],
-                                              ['consent', 'General consent'],
-                                          ] as const)
-                                        : ([
-                                              ['sep', 'SEP'],
-                                              ['gelang', 'Gelang pasien'],
-                                              ['kartu', 'Kartu pasien'],
-                                              ['consent', 'General consent'],
-                                              ['fastTrack', 'Fast track'],
-                                          ] as const)
-                                    )
+                                {(isIgd
+                                    ? ([
+                                          ['lembarIgd', 'Lembar IGD'],
+                                          ['gelang', 'Gelang pasien'],
+                                          ['kartu', 'Kartu pasien'],
+                                          ['tracer', 'Tracer berkas RM'],
+                                          ['sep', 'SEP'],
+                                          ['consent', 'General consent'],
+                                      ] as const)
+                                    : ([
+                                          ['sep', 'SEP'],
+                                          ['gelang', 'Gelang pasien'],
+                                          ['kartu', 'Kartu pasien'],
+                                          ['consent', 'General consent'],
+                                          ['fastTrack', 'Fast track'],
+                                      ] as const)
                                 ).map(([key, label]) => (
                                     <label
                                         key={key}

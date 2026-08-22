@@ -5,10 +5,7 @@ type Props = {
     categoryLabel: string;
 };
 
-export default function ModulePlaceholder({
-    category,
-    categoryLabel,
-}: Props) {
+export default function ModulePlaceholder({ category, categoryLabel }: Props) {
     return (
         <>
             <Head title={categoryLabel} />

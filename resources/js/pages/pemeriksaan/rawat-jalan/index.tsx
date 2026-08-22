@@ -178,7 +178,8 @@ export default function PemeriksaanRawatJalanIndex({
                                   ? '003'
                                   : isInpatient
                                     ? '005'
-                                    : '004'}.
+                                    : '004'}
+                            .
                             {isTriage
                                 ? ' Skala triage tetap stub sampai SME confirm.'
                                 : ''}
@@ -301,9 +302,7 @@ export default function PemeriksaanRawatJalanIndex({
                                                     (option) => (
                                                         <option
                                                             key={option.value}
-                                                            value={
-                                                                option.value
-                                                            }
+                                                            value={option.value}
                                                         >
                                                             {option.label}
                                                         </option>
@@ -531,10 +530,11 @@ export default function PemeriksaanRawatJalanIndex({
                                             )}
                                             {(isIgd || isTriage) &&
                                                 !isInpatient && (
-                                                <td className="px-2 py-1.5 text-[#64748b]">
-                                                    {encounter.case_type ?? '—'}
-                                                </td>
-                                            )}
+                                                    <td className="px-2 py-1.5 text-[#64748b]">
+                                                        {encounter.case_type ??
+                                                            '—'}
+                                                    </td>
+                                                )}
                                             <td className="px-2 py-1.5">
                                                 {payerLabel[
                                                     encounter.payer_type

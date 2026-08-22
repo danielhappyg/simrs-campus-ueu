@@ -202,11 +202,19 @@ export default function RmRawatJalan({
                     </div>
                     <div className="mt-2 flex flex-wrap gap-4 text-xs text-[#64748b]">
                         <label className="inline-flex items-center gap-1.5 opacity-70">
-                            <input type="checkbox" disabled className="accent-[#1b75bc]" />
+                            <input
+                                type="checkbox"
+                                disabled
+                                className="accent-[#1b75bc]"
+                            />
                             Semua cara masuk · stub
                         </label>
                         <label className="inline-flex items-center gap-1.5 opacity-70">
-                            <input type="checkbox" disabled className="accent-[#1b75bc]" />
+                            <input
+                                type="checkbox"
+                                disabled
+                                className="accent-[#1b75bc]"
+                            />
                             Semua status klaim · stub
                         </label>
                         <label className="inline-flex items-center gap-1.5">

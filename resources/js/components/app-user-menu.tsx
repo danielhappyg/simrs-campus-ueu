@@ -24,7 +24,7 @@ export function AppUserMenu({ className }: Props) {
         <DropdownMenu>
             <DropdownMenuTrigger
                 className={cn(
-                    'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-white outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/80 [&_span]:text-white',
+                    'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-white transition-colors outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/80 [&_span]:text-white',
                     className,
                 )}
                 data-test="header-user-menu"
