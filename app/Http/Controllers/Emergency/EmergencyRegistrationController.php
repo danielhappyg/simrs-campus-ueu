@@ -332,7 +332,8 @@ class EmergencyRegistrationController extends Controller
 
         return redirect()
             ->route('pendaftaran.igd.index')
-            ->with('success', 'Pendaftaran IGD berhasil.');
+            ->with('success', 'Pendaftaran IGD berhasil.')
+            ->with('last_encounter_public_id', $encounter->public_id);
     }
 
     private function ensureMastersSeeded(): void

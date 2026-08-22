@@ -315,7 +315,8 @@ class OutpatientRegistrationController extends Controller
 
         return redirect()
             ->route('pendaftaran.rawat-jalan.index')
-            ->with('success', 'Pendaftaran rawat jalan berhasil.');
+            ->with('success', 'Pendaftaran rawat jalan berhasil.')
+            ->with('last_encounter_public_id', $encounter->public_id);
     }
 
     private function ensureMastersSeeded(): void

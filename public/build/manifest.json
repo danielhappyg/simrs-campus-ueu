@@ -338,7 +338,7 @@
     "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DrQX6kv1.css",
+    "file": "assets/app-DpoPorgB.css",
     "name": "app",
     "names": [
       "app.css"
@@ -347,7 +347,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-OGhIRn0A.js",
+    "file": "assets/app-CTVPRWhL.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -376,6 +376,7 @@
       "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx",
       "resources/js/pages/pendaftaran/rawat-inap.tsx",
       "resources/js/pages/pendaftaran/rawat-jalan.tsx",
+      "resources/js/pages/pendaftaran/rekap.tsx",
       "resources/js/pages/rebuild/home.tsx",
       "resources/js/pages/rm/rawat-jalan.tsx",
       "resources/js/pages/settings/profile.tsx",
@@ -556,7 +557,7 @@
     ]
   },
   "resources/js/pages/pendaftaran/rawat-inap.tsx": {
-    "file": "assets/rawat-inap-KyxZwrz0.js",
+    "file": "assets/rawat-inap-ClVVWrXg.js",
     "name": "rawat-inap",
     "src": "resources/js/pages/pendaftaran/rawat-inap.tsx",
     "isDynamicEntry": true,
@@ -571,7 +572,7 @@
     ]
   },
   "resources/js/pages/pendaftaran/rawat-jalan.tsx": {
-    "file": "assets/rawat-jalan-73bGCRrM.js",
+    "file": "assets/rawat-jalan-jWhFnxqg.js",
     "name": "rawat-jalan",
     "src": "resources/js/pages/pendaftaran/rawat-jalan.tsx",
     "isDynamicEntry": true,
@@ -581,6 +582,19 @@
       "_button-D9y-xDpe.js",
       "_input-BMVCMb5R.js",
       "_input-error-DFsNOEzY.js",
+      "_label-bg3hva81.js",
+      "_care-setting-subnav-l3xlQ9U6.js"
+    ]
+  },
+  "resources/js/pages/pendaftaran/rekap.tsx": {
+    "file": "assets/rekap-JlRVNY87.js",
+    "name": "rekap",
+    "src": "resources/js/pages/pendaftaran/rekap.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_jsx-runtime-BpbW1mBX.js",
+      "_button-D9y-xDpe.js",
+      "_input-BMVCMb5R.js",
       "_label-bg3hva81.js",
       "_care-setting-subnav-l3xlQ9U6.js"
     ]
