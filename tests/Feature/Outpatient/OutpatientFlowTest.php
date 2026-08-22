@@ -134,6 +134,7 @@ class OutpatientFlowTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('pendaftaran/rawat-jalan')
+                ->has('wilayahProvinces')
                 ->where('canRegister', true));
     }
 

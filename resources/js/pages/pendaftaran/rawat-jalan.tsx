@@ -219,7 +219,7 @@ export default function PendaftaranRawatJalan({
     admissionOptions,
     caseTypeOptions = [],
     accidentTypeOptions = [],
-    wilayahProvinces,
+    wilayahProvinces = [],
     canRegister,
 }: Props) {
     const isIgd = variant === 'igd';
