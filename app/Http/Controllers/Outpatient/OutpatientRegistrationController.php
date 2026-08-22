@@ -8,10 +8,11 @@ use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;
 use App\Models\Patient;
+use App\Models\WilayahProvince;
+use App\Services\Wilayah\WilayahRepository;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
-use App\Services\Wilayah\WilayahRepository;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\WilayahMinimalSeeder;
 use Illuminate\Http\RedirectResponse;
@@ -320,7 +321,7 @@ class OutpatientRegistrationController extends Controller
     private function ensureMastersSeeded(): void
     {
         try {
-            if (! \App\Models\WilayahProvince::query()->exists()) {
+            if (! WilayahProvince::query()->exists()) {
                 (new WilayahMinimalSeeder)->run();
             }
 

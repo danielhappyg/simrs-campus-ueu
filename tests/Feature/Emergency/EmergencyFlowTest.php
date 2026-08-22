@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Emergency;
 
-use App\Models\ClinicalEntry;
 use App\Models\Clinic;
+use App\Models\ClinicalEntry;
 use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;

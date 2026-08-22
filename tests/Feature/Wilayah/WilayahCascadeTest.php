@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Wilayah;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Models\WilayahProvince;
 use App\Support\Authorization\Capability;
@@ -29,7 +30,7 @@ class WilayahCascadeTest extends TestCase
             'email_verified_at' => now(),
         ]);
         $user->roles()->attach(
-            \App\Models\Role::query()->where('slug', 'registrar')->value('id'),
+            Role::query()->where('slug', 'registrar')->value('id'),
         );
 
         $this->actingAs($user)

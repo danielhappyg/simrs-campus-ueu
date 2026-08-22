@@ -3,14 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\Clinic;
-use App\Models\ClinicSchedule;
 use App\Models\ClinicalEntry;
+use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\User;
+use App\Models\WilayahProvince;
 use App\Models\WilayahVillage;
-use Database\Seeders\InpatientMastersSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ class TeachingCensusSeeder extends Seeder
 {
     public function run(): void
     {
-        if (\App\Models\WilayahProvince::query()->count() < 4) {
+        if (WilayahProvince::query()->count() < 4) {
             $this->call(WilayahMinimalSeeder::class);
         }
         $this->call(OutpatientMastersSeeder::class);

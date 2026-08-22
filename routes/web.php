@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Wilayah\WilayahController;
 use App\Http\Controllers\Emergency\EmergencyExaminationController;
 use App\Http\Controllers\Emergency\EmergencyRegistrationController;
 use App\Http\Controllers\Emergency\EmergencyTriageController;
@@ -11,6 +10,7 @@ use App\Http\Controllers\Outpatient\OutpatientExaminationController;
 use App\Http\Controllers\Outpatient\OutpatientRegistrationController;
 use App\Http\Controllers\Outpatient\OutpatientRmController;
 use App\Http\Controllers\Rebuild\RebuildHomeController;
+use App\Http\Controllers\Wilayah\WilayahController;
 use App\Support\SimrsModuleCategories;
 use Illuminate\Support\Facades\Route;
 
