@@ -580,6 +580,24 @@ export default function PendaftaranRawatJalan({
                     ) : null}
                 </header>
 
+                {typeof flash?.error === 'string' && flash.error !== '' ? (
+                    <div
+                        role="alert"
+                        className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]"
+                    >
+                        {flash.error}
+                    </div>
+                ) : null}
+                {typeof flash?.success === 'string' &&
+                flash.success !== '' ? (
+                    <div
+                        role="status"
+                        className="rounded-md border border-[#a7f3d0] bg-[#ecfdf5] px-3 py-2 text-sm text-[#065f46]"
+                    >
+                        {flash.success}
+                    </div>
+                ) : null}
+
                 <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#d7e6f3] bg-[#f5f9fc] px-3 py-2">
                     <ActionStub label="Riwayat" />
                     <ActionStub label="EMR" />

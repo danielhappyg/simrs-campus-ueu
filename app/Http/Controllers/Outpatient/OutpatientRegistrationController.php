@@ -8,11 +8,16 @@ use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;
 use App\Models\Patient;
+use App\Models\User;
+use App\Models\WilayahDistrict;
 use App\Models\WilayahProvince;
+use App\Models\WilayahRegency;
+use App\Models\WilayahVillage;
 use App\Services\Wilayah\WilayahRepository;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
-use App\Support\Database\SchemaQualifier;
+use App\Support\Database\SchemaAwareRules;
+use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\WilayahMinimalSeeder;
@@ -24,6 +29,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class OutpatientRegistrationController extends Controller
 {
@@ -95,7 +101,7 @@ class OutpatientRegistrationController extends Controller
                     ])->values()->all(),
                 ])
                 ->all();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
 
@@ -122,24 +128,39 @@ class OutpatientRegistrationController extends Controller
     {
         Gate::authorize(Capability::PATIENT_REGISTER);
 
+        try {
+            return $this->storeRegistration($request);
+        } catch (Throwable $exception) {
+            $redirect = RegistrationFailureResponder::redirect($request, $exception);
+
+            if ($redirect !== null) {
+                return $redirect;
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function storeRegistration(Request $request): RedirectResponse
+    {
         $this->ensureMastersSeeded();
 
         $validated = $request->validate([
-            'patient_public_id' => ['nullable', 'string', Rule::exists(SchemaQualifier::table('patients'), 'public_id')],
+            'patient_public_id' => ['nullable', 'string', SchemaAwareRules::exists(Patient::class, 'public_id')],
             'full_name' => ['required_without:patient_public_id', 'nullable', 'string', 'max:255'],
             'date_of_birth' => ['required_without:patient_public_id', 'nullable', 'date'],
             'sex' => ['required_without:patient_public_id', 'nullable', Rule::in(Patient::SEX_VALUES)],
-            'medical_record_number' => ['nullable', 'string', 'max:64', Rule::unique(SchemaQualifier::table('patients'), 'medical_record_number')],
+            'medical_record_number' => ['nullable', 'string', 'max:64', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
             'nik' => ['nullable', 'string', 'max:16'],
             'place_of_birth' => ['nullable', 'string', 'max:120'],
             'religion' => ['nullable', Rule::in(Patient::RELIGION_VALUES)],
             'marital_status' => ['nullable', Rule::in(Patient::MARITAL_VALUES)],
             'education' => ['nullable', Rule::in(Patient::EDUCATION_VALUES)],
             'occupation' => ['nullable', Rule::in(Patient::OCCUPATION_VALUES)],
-            'province_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_provinces'), 'code')],
-            'city_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_regencies'), 'code')],
-            'district_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_districts'), 'code')],
-            'village_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_villages'), 'code')],
+            'province_code' => ['nullable', 'string', 'max:16', SchemaAwareRules::exists(WilayahProvince::class, 'code')],
+            'city_code' => ['nullable', 'string', 'max:16', SchemaAwareRules::exists(WilayahRegency::class, 'code')],
+            'district_code' => ['nullable', 'string', 'max:16', SchemaAwareRules::exists(WilayahDistrict::class, 'code')],
+            'village_code' => ['nullable', 'string', 'max:16', SchemaAwareRules::exists(WilayahVillage::class, 'code')],
             'province' => ['nullable', 'string', 'max:120'],
             'city' => ['nullable', 'string', 'max:120'],
             'district' => ['nullable', 'string', 'max:120'],
@@ -152,9 +173,9 @@ class OutpatientRegistrationController extends Controller
             'language' => ['nullable', Rule::in(Patient::LANGUAGE_VALUES)],
             'notes' => ['nullable', 'string', 'max:2000'],
             'responsible_party_name' => ['nullable', 'string', 'max:255'],
-            'clinic_public_id' => ['required', 'string', Rule::exists(SchemaQualifier::table('clinics'), 'public_id')],
-            'doctor_public_id' => ['required', 'string', Rule::exists(SchemaQualifier::table('doctors'), 'public_id')],
-            'schedule_public_id' => ['required', 'string', Rule::exists(SchemaQualifier::table('clinic_schedules'), 'public_id')],
+            'clinic_public_id' => ['required', 'string', SchemaAwareRules::exists(Clinic::class, 'public_id')],
+            'doctor_public_id' => ['required', 'string', SchemaAwareRules::exists(Doctor::class, 'public_id')],
+            'schedule_public_id' => ['required', 'string', SchemaAwareRules::exists(ClinicSchedule::class, 'public_id')],
             'visit_date' => ['required', 'date'],
             'admission_mode' => ['required', Rule::in(Encounter::ADMISSION_VALUES)],
             'payer_type' => ['required', Rule::in(Encounter::PAYER_VALUES)],
@@ -187,7 +208,9 @@ class OutpatientRegistrationController extends Controller
             ->firstOrFail();
 
         $user = $request->user();
-        assert($user !== null);
+        if (! $user instanceof User) {
+            abort(403);
+        }
 
         $encounter = DB::transaction(function () use ($validated, $user, $clinic, $doctor, $schedule): Encounter {
             if (! empty($validated['patient_public_id'])) {
@@ -279,7 +302,7 @@ class OutpatientRegistrationController extends Controller
             if (! Clinic::query()->exists()) {
                 (new OutpatientMastersSeeder)->run();
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
     }

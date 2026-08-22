@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Inpatient;
 use App\Http\Controllers\Controller;
 use App\Models\Encounter;
 use App\Models\Patient;
+use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
-use App\Support\Database\SchemaQualifier;
+use App\Support\Database\SchemaAwareRules;
+use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Database\Seeders\InpatientMastersSeeder;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +20,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class InpatientRegistrationController extends Controller
 {
@@ -96,7 +99,7 @@ class InpatientRegistrationController extends Controller
                 ->get()
                 ->map(fn (Encounter $encounter): array => $this->encounterSummary($encounter))
                 ->all();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
 
@@ -125,12 +128,27 @@ class InpatientRegistrationController extends Controller
     {
         Gate::authorize(Capability::PATIENT_REGISTER);
 
+        try {
+            return $this->storeRegistration($request);
+        } catch (Throwable $exception) {
+            $redirect = RegistrationFailureResponder::redirect($request, $exception);
+
+            if ($redirect !== null) {
+                return $redirect;
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function storeRegistration(Request $request): RedirectResponse
+    {
         $validated = $request->validate([
-            'patient_public_id' => ['nullable', 'string', Rule::exists(SchemaQualifier::table('patients'), 'public_id')],
+            'patient_public_id' => ['nullable', 'string', SchemaAwareRules::exists(Patient::class, 'public_id')],
             'full_name' => ['required_without:patient_public_id', 'nullable', 'string', 'max:255'],
             'date_of_birth' => ['required_without:patient_public_id', 'nullable', 'date'],
             'sex' => ['required_without:patient_public_id', 'nullable', Rule::in(Patient::SEX_VALUES)],
-            'medical_record_number' => ['nullable', 'string', 'max:64', Rule::unique(SchemaQualifier::table('patients'), 'medical_record_number')],
+            'medical_record_number' => ['nullable', 'string', 'max:64', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
             'nik' => ['nullable', 'string', 'max:16'],
             'phone' => ['nullable', 'string', 'max:32'],
             'ward_name' => ['required', 'string', 'max:120'],
@@ -167,7 +185,9 @@ class InpatientRegistrationController extends Controller
         }
 
         $user = $request->user();
-        assert($user !== null);
+        if (! $user instanceof User) {
+            abort(403);
+        }
 
         $encounter = DB::transaction(function () use ($validated, $user): Encounter {
             if (! empty($validated['patient_public_id'])) {

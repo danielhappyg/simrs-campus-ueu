@@ -3,6 +3,7 @@
 namespace App\Support\Audit;
 
 use App\Models\User;
+use App\Support\Models\UsesSchemaQualifiedTable;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,8 @@ use LogicException;
  */
 class AuditEvent extends Model
 {
+    use UsesSchemaQualifiedTable;
+
     public $incrementing = false;
 
     public $timestamps = false;
