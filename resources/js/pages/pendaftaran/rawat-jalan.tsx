@@ -47,9 +47,13 @@ type PatientRow = {
     religion: string | null;
     education: string | null;
     occupation: string | null;
+    province_code: string | null;
     province: string | null;
+    city_code: string | null;
     city: string | null;
+    district_code: string | null;
     district: string | null;
+    village_code: string | null;
     village: string | null;
     address_line: string | null;
     domicile: string | null;
@@ -77,13 +81,6 @@ type EncounterRow = {
     };
 };
 
-type WilayahOptions = {
-    provinces: Option[];
-    cities: Record<string, Option[]>;
-    districts: Record<string, Option[]>;
-    villages: Record<string, Option[]>;
-};
-
 type DeskVariant = 'rawat-jalan' | 'igd';
 
 type Props = {
@@ -102,9 +99,25 @@ type Props = {
     admissionOptions: Option[];
     caseTypeOptions?: Option[];
     accidentTypeOptions?: Option[];
-    wilayahOptions: WilayahOptions;
+    wilayahProvinces: Option[];
     canRegister: boolean;
 };
+
+async function fetchWilayahOptions(url: string): Promise<Option[]> {
+    try {
+        const response = await fetch(url, {
+            headers: { Accept: 'application/json' },
+            credentials: 'same-origin',
+        });
+        if (!response.ok) {
+            return [];
+        }
+        const payload = (await response.json()) as { options?: Option[] };
+        return payload.options ?? [];
+    } catch {
+        return [];
+    }
+}
 
 const statusLabel: Record<string, string> = {
     REGISTERED: 'Terdaftar',
@@ -208,7 +221,7 @@ export default function PendaftaranRawatJalan({
     admissionOptions,
     caseTypeOptions = [],
     accidentTypeOptions = [],
-    wilayahOptions,
+    wilayahProvinces,
     canRegister,
 }: Props) {
     const isIgd = variant === 'igd';
@@ -219,6 +232,9 @@ export default function PendaftaranRawatJalan({
         : '/pemeriksaan/rawat-jalan';
 
     const [searchOpen, setSearchOpen] = useState(q !== '');
+    const [cityOptions, setCityOptions] = useState<Option[]>([]);
+    const [districtOptions, setDistrictOptions] = useState<Option[]>([]);
+    const [villageOptions, setVillageOptions] = useState<Option[]>([]);
     const [printQueue, setPrintQueue] = useState(true);
     const [printFlags, setPrintFlags] = useState({
         sep: false,
@@ -243,6 +259,10 @@ export default function PendaftaranRawatJalan({
         religion: '',
         education: '',
         occupation: '',
+        province_code: '',
+        city_code: '',
+        district_code: '',
+        village_code: '',
         province: '',
         city: '',
         district: '',
@@ -286,15 +306,71 @@ export default function PendaftaranRawatJalan({
     );
     const schedules = selectedDoctor?.schedules ?? [];
 
-    const cityOptions = form.data.province
-        ? (wilayahOptions.cities[form.data.province] ?? [])
-        : [];
-    const districtOptions = form.data.city
-        ? (wilayahOptions.districts[form.data.city] ?? [])
-        : [];
-    const villageOptions = form.data.district
-        ? (wilayahOptions.villages[form.data.district] ?? [])
-        : [];
+    useEffect(() => {
+        const provinceCode = form.data.province_code;
+        if (!provinceCode) {
+            setCityOptions([]);
+            setDistrictOptions([]);
+            setVillageOptions([]);
+            return;
+        }
+
+        let cancelled = false;
+        void fetchWilayahOptions(`/wilayah/regencies/${provinceCode}`).then(
+            (options) => {
+                if (!cancelled) {
+                    setCityOptions(options);
+                }
+            },
+        );
+
+        return () => {
+            cancelled = true;
+        };
+    }, [form.data.province_code]);
+
+    useEffect(() => {
+        const cityCode = form.data.city_code;
+        if (!cityCode) {
+            setDistrictOptions([]);
+            setVillageOptions([]);
+            return;
+        }
+
+        let cancelled = false;
+        void fetchWilayahOptions(`/wilayah/districts/${cityCode}`).then(
+            (options) => {
+                if (!cancelled) {
+                    setDistrictOptions(options);
+                }
+            },
+        );
+
+        return () => {
+            cancelled = true;
+        };
+    }, [form.data.city_code]);
+
+    useEffect(() => {
+        const districtCode = form.data.district_code;
+        if (!districtCode) {
+            setVillageOptions([]);
+            return;
+        }
+
+        let cancelled = false;
+        void fetchWilayahOptions(`/wilayah/villages/${districtCode}`).then(
+            (options) => {
+                if (!cancelled) {
+                    setVillageOptions(options);
+                }
+            },
+        );
+
+        return () => {
+            cancelled = true;
+        };
+    }, [form.data.district_code]);
 
     const search = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -321,6 +397,10 @@ export default function PendaftaranRawatJalan({
             religion: patient.religion ?? '',
             education: patient.education ?? '',
             occupation: patient.occupation ?? '',
+            province_code: patient.province_code ?? '',
+            city_code: patient.city_code ?? '',
+            district_code: patient.district_code ?? '',
+            village_code: patient.village_code ?? '',
             province: patient.province ?? '',
             city: patient.city ?? '',
             district: patient.district ?? '',
@@ -350,6 +430,10 @@ export default function PendaftaranRawatJalan({
             religion: '',
             education: '',
             occupation: '',
+            province_code: '',
+            city_code: '',
+            district_code: '',
+            village_code: '',
             province: '',
             city: '',
             district: '',
@@ -363,6 +447,9 @@ export default function PendaftaranRawatJalan({
             notes: '',
             responsible_party_name: '',
         });
+        setCityOptions([]);
+        setDistrictOptions([]);
+        setVillageOptions([]);
     };
 
     const autoResponsibleParty = () => {
@@ -796,55 +883,81 @@ export default function PendaftaranRawatJalan({
                                 </div>
                                 <div className="grid gap-2.5 sm:grid-cols-2">
                                     <Field
-                                        id="province"
+                                        id="province_code"
                                         label="Provinsi"
-                                        error={form.errors.province}
+                                        error={
+                                            form.errors.province_code ??
+                                            form.errors.province
+                                        }
                                     >
                                         <select
-                                            id="province"
+                                            id="province_code"
                                             className={selectClass}
-                                            value={form.data.province}
-                                            onChange={(e) =>
+                                            value={form.data.province_code}
+                                            onChange={(e) => {
+                                                const code = e.target.value;
+                                                const selected =
+                                                    wilayahProvinces.find(
+                                                        (option) =>
+                                                            option.value ===
+                                                            code,
+                                                    );
                                                 form.setData({
                                                     ...form.data,
-                                                    province: e.target.value,
+                                                    province_code: code,
+                                                    province:
+                                                        selected?.label ?? '',
+                                                    city_code: '',
                                                     city: '',
+                                                    district_code: '',
                                                     district: '',
+                                                    village_code: '',
                                                     village: '',
-                                                })
-                                            }
+                                                });
+                                            }}
                                         >
                                             <option value="">— Pilih —</option>
-                                            {wilayahOptions.provinces.map(
-                                                (option) => (
-                                                    <option
-                                                        key={option.value}
-                                                        value={option.value}
-                                                    >
-                                                        {option.label}
-                                                    </option>
-                                                ),
-                                            )}
+                                            {wilayahProvinces.map((option) => (
+                                                <option
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </option>
+                                            ))}
                                         </select>
                                     </Field>
                                     <Field
-                                        id="city"
+                                        id="city_code"
                                         label="Kabupaten/Kota"
-                                        error={form.errors.city}
+                                        error={
+                                            form.errors.city_code ??
+                                            form.errors.city
+                                        }
                                     >
                                         <select
-                                            id="city"
+                                            id="city_code"
                                             className={selectClass}
-                                            value={form.data.city}
-                                            onChange={(e) =>
+                                            value={form.data.city_code}
+                                            onChange={(e) => {
+                                                const code = e.target.value;
+                                                const selected =
+                                                    cityOptions.find(
+                                                        (option) =>
+                                                            option.value ===
+                                                            code,
+                                                    );
                                                 form.setData({
                                                     ...form.data,
-                                                    city: e.target.value,
+                                                    city_code: code,
+                                                    city: selected?.label ?? '',
+                                                    district_code: '',
                                                     district: '',
+                                                    village_code: '',
                                                     village: '',
-                                                })
-                                            }
-                                            disabled={!form.data.province}
+                                                });
+                                            }}
+                                            disabled={!form.data.province_code}
                                         >
                                             <option value="">— Pilih —</option>
                                             {cityOptions.map((option) => (
@@ -858,22 +971,35 @@ export default function PendaftaranRawatJalan({
                                         </select>
                                     </Field>
                                     <Field
-                                        id="district"
+                                        id="district_code"
                                         label="Kecamatan"
-                                        error={form.errors.district}
+                                        error={
+                                            form.errors.district_code ??
+                                            form.errors.district
+                                        }
                                     >
                                         <select
-                                            id="district"
+                                            id="district_code"
                                             className={selectClass}
-                                            value={form.data.district}
-                                            onChange={(e) =>
+                                            value={form.data.district_code}
+                                            onChange={(e) => {
+                                                const code = e.target.value;
+                                                const selected =
+                                                    districtOptions.find(
+                                                        (option) =>
+                                                            option.value ===
+                                                            code,
+                                                    );
                                                 form.setData({
                                                     ...form.data,
-                                                    district: e.target.value,
+                                                    district_code: code,
+                                                    district:
+                                                        selected?.label ?? '',
+                                                    village_code: '',
                                                     village: '',
-                                                })
-                                            }
-                                            disabled={!form.data.city}
+                                                });
+                                            }}
+                                            disabled={!form.data.city_code}
                                         >
                                             <option value="">— Pilih —</option>
                                             {districtOptions.map((option) => (
@@ -887,21 +1013,33 @@ export default function PendaftaranRawatJalan({
                                         </select>
                                     </Field>
                                     <Field
-                                        id="village"
+                                        id="village_code"
                                         label="Kelurahan"
-                                        error={form.errors.village}
+                                        error={
+                                            form.errors.village_code ??
+                                            form.errors.village
+                                        }
                                     >
                                         <select
-                                            id="village"
+                                            id="village_code"
                                             className={selectClass}
-                                            value={form.data.village}
-                                            onChange={(e) =>
-                                                form.setData(
-                                                    'village',
-                                                    e.target.value,
-                                                )
-                                            }
-                                            disabled={!form.data.district}
+                                            value={form.data.village_code}
+                                            onChange={(e) => {
+                                                const code = e.target.value;
+                                                const selected =
+                                                    villageOptions.find(
+                                                        (option) =>
+                                                            option.value ===
+                                                            code,
+                                                    );
+                                                form.setData({
+                                                    ...form.data,
+                                                    village_code: code,
+                                                    village:
+                                                        selected?.label ?? '',
+                                                });
+                                            }}
+                                            disabled={!form.data.district_code}
                                         >
                                             <option value="">— Pilih —</option>
                                             {villageOptions.map((option) => (

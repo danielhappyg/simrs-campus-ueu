@@ -23,9 +23,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $religion
  * @property string|null $education
  * @property string|null $occupation
+ * @property string|null $province_code
  * @property string|null $province
+ * @property string|null $city_code
  * @property string|null $city
+ * @property string|null $district_code
  * @property string|null $district
+ * @property string|null $village_code
  * @property string|null $village
  * @property string|null $address_line
  * @property string|null $domicile
@@ -112,9 +116,13 @@ class Patient extends Model
         'religion',
         'education',
         'occupation',
+        'province_code',
         'province',
+        'city_code',
         'city',
+        'district_code',
         'district',
+        'village_code',
         'village',
         'address_line',
         'domicile',

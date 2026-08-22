@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Wilayah\WilayahController;
 use App\Http\Controllers\Emergency\EmergencyExaminationController;
 use App\Http\Controllers\Emergency\EmergencyRegistrationController;
 use App\Http\Controllers\Emergency\EmergencyTriageController;
@@ -16,6 +17,15 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['simulation'])->group(function (): void {
     Route::middleware(['auth', 'active.account', 'verified'])->group(function (): void {
         Route::get('/', RebuildHomeController::class)->name('home');
+
+        Route::get('/wilayah/provinces', [WilayahController::class, 'provinces'])
+            ->name('wilayah.provinces');
+        Route::get('/wilayah/regencies/{provinceCode}', [WilayahController::class, 'regencies'])
+            ->name('wilayah.regencies');
+        Route::get('/wilayah/districts/{regencyCode}', [WilayahController::class, 'districts'])
+            ->name('wilayah.districts');
+        Route::get('/wilayah/villages/{districtCode}', [WilayahController::class, 'villages'])
+            ->name('wilayah.villages');
 
         Route::get('/pendaftaran/rawat-jalan', [OutpatientRegistrationController::class, 'index'])
             ->name('pendaftaran.rawat-jalan.index');

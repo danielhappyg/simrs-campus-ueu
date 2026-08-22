@@ -11,7 +11,9 @@ use App\Models\Patient;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
+use App\Services\Wilayah\WilayahRepository;
 use Database\Seeders\OutpatientMastersSeeder;
+use Database\Seeders\WilayahMinimalSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,10 @@ use Inertia\Response;
 
 class OutpatientRegistrationController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(
+        private readonly AuditRecorder $auditRecorder,
+        private readonly WilayahRepository $wilayah,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -158,7 +163,7 @@ class OutpatientRegistrationController extends Controller
                 Encounter::ADMISSION_RUJUKAN => 'Rujukan',
                 Encounter::ADMISSION_IGD => 'Dari IGD',
             ]),
-            'wilayahOptions' => $this->teachingWilayahOptions(),
+            'wilayahProvinces' => $this->wilayah->provinces(),
             'canRegister' => $request->user()?->canCapability(Capability::PATIENT_REGISTER) ?? false,
         ]);
     }
@@ -180,6 +185,10 @@ class OutpatientRegistrationController extends Controller
             'religion' => ['nullable', Rule::in(Patient::RELIGION_VALUES)],
             'education' => ['nullable', Rule::in(Patient::EDUCATION_VALUES)],
             'occupation' => ['nullable', Rule::in(Patient::OCCUPATION_VALUES)],
+            'province_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_provinces'), 'code')],
+            'city_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_regencies'), 'code')],
+            'district_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_districts'), 'code')],
+            'village_code' => ['nullable', 'string', 'max:16', Rule::exists(SchemaQualifier::table('wilayah_villages'), 'code')],
             'province' => ['nullable', 'string', 'max:120'],
             'city' => ['nullable', 'string', 'max:120'],
             'district' => ['nullable', 'string', 'max:120'],
@@ -311,11 +320,13 @@ class OutpatientRegistrationController extends Controller
     private function ensureMastersSeeded(): void
     {
         try {
-            if (Clinic::query()->exists()) {
-                return;
+            if (! \App\Models\WilayahProvince::query()->exists()) {
+                (new WilayahMinimalSeeder)->run();
             }
 
-            (new OutpatientMastersSeeder)->run();
+            if (! Clinic::query()->exists()) {
+                (new OutpatientMastersSeeder)->run();
+            }
         } catch (\Throwable $e) {
             report($e);
         }
@@ -327,16 +338,20 @@ class OutpatientRegistrationController extends Controller
      */
     private function patientUpdatableAttributes(array $validated): array
     {
+        $wilayah = $this->wilayah->resolvePatientWilayah([
+            'province_code' => $validated['province_code'] ?? null,
+            'city_code' => $validated['city_code'] ?? null,
+            'district_code' => $validated['district_code'] ?? null,
+            'village_code' => $validated['village_code'] ?? null,
+        ]);
+
         return [
             'nik' => $validated['nik'] ?? null,
             'place_of_birth' => $validated['place_of_birth'] ?? null,
             'religion' => $validated['religion'] ?? null,
             'education' => $validated['education'] ?? null,
             'occupation' => $validated['occupation'] ?? null,
-            'province' => $validated['province'] ?? null,
-            'city' => $validated['city'] ?? null,
-            'district' => $validated['district'] ?? null,
-            'village' => $validated['village'] ?? null,
+            ...$wilayah,
             'address_line' => $validated['address_line'] ?? null,
             'domicile' => $validated['domicile'] ?? null,
             'phone' => $validated['phone'] ?? null,
@@ -373,9 +388,13 @@ class OutpatientRegistrationController extends Controller
             'religion' => $patient->religion,
             'education' => $patient->education,
             'occupation' => $patient->occupation,
+            'province_code' => $patient->province_code,
             'province' => $patient->province,
+            'city_code' => $patient->city_code,
             'city' => $patient->city,
+            'district_code' => $patient->district_code,
             'district' => $patient->district,
+            'village_code' => $patient->village_code,
             'village' => $patient->village,
             'address_line' => $patient->address_line,
             'domicile' => $patient->domicile,
@@ -424,129 +443,5 @@ class OutpatientRegistrationController extends Controller
         }
 
         return $options;
-    }
-
-    /**
-     * Teaching stubs for wilayah cascade (not live wilayah API).
-     *
-     * @return array{
-     *     provinces: list<array{value: string, label: string}>,
-     *     cities: array<string, list<array{value: string, label: string}>>,
-     *     districts: array<string, list<array{value: string, label: string}>>,
-     *     villages: array<string, list<array{value: string, label: string}>>
-     * }
-     */
-    private function teachingWilayahOptions(): array
-    {
-        return [
-            'provinces' => [
-                ['value' => 'DKI Jakarta', 'label' => 'DKI Jakarta'],
-                ['value' => 'Jawa Barat', 'label' => 'Jawa Barat'],
-                ['value' => 'Banten', 'label' => 'Banten'],
-            ],
-            'cities' => [
-                'DKI Jakarta' => [
-                    ['value' => 'Jakarta Barat', 'label' => 'Jakarta Barat'],
-                    ['value' => 'Jakarta Selatan', 'label' => 'Jakarta Selatan'],
-                    ['value' => 'Jakarta Timur', 'label' => 'Jakarta Timur'],
-                ],
-                'Jawa Barat' => [
-                    ['value' => 'Kota Bekasi', 'label' => 'Kota Bekasi'],
-                    ['value' => 'Kota Depok', 'label' => 'Kota Depok'],
-                ],
-                'Banten' => [
-                    ['value' => 'Kota Tangerang', 'label' => 'Kota Tangerang'],
-                    ['value' => 'Kota Tangerang Selatan', 'label' => 'Kota Tangerang Selatan'],
-                ],
-            ],
-            'districts' => [
-                'Jakarta Barat' => [
-                    ['value' => 'Kebon Jeruk', 'label' => 'Kebon Jeruk'],
-                    ['value' => 'Palmerah', 'label' => 'Palmerah'],
-                ],
-                'Jakarta Selatan' => [
-                    ['value' => 'Kebayoran Baru', 'label' => 'Kebayoran Baru'],
-                    ['value' => 'Pasar Minggu', 'label' => 'Pasar Minggu'],
-                ],
-                'Jakarta Timur' => [
-                    ['value' => 'Cakung', 'label' => 'Cakung'],
-                    ['value' => 'Jatinegara', 'label' => 'Jatinegara'],
-                ],
-                'Kota Bekasi' => [
-                    ['value' => 'Bekasi Barat', 'label' => 'Bekasi Barat'],
-                    ['value' => 'Bekasi Timur', 'label' => 'Bekasi Timur'],
-                ],
-                'Kota Depok' => [
-                    ['value' => 'Beji', 'label' => 'Beji'],
-                    ['value' => 'Cimanggis', 'label' => 'Cimanggis'],
-                ],
-                'Kota Tangerang' => [
-                    ['value' => 'Ciledug', 'label' => 'Ciledug'],
-                    ['value' => 'Karawaci', 'label' => 'Karawaci'],
-                ],
-                'Kota Tangerang Selatan' => [
-                    ['value' => 'Serpong', 'label' => 'Serpong'],
-                    ['value' => 'Pondok Aren', 'label' => 'Pondok Aren'],
-                ],
-            ],
-            'villages' => [
-                'Kebon Jeruk' => [
-                    ['value' => 'Kedoya Utara', 'label' => 'Kedoya Utara'],
-                    ['value' => 'Sukabumi Utara', 'label' => 'Sukabumi Utara'],
-                ],
-                'Palmerah' => [
-                    ['value' => 'Slipi', 'label' => 'Slipi'],
-                    ['value' => 'Kemanggisan', 'label' => 'Kemanggisan'],
-                ],
-                'Kebayoran Baru' => [
-                    ['value' => 'Senayan', 'label' => 'Senayan'],
-                    ['value' => 'Gunung', 'label' => 'Gunung'],
-                ],
-                'Pasar Minggu' => [
-                    ['value' => 'Pejaten Barat', 'label' => 'Pejaten Barat'],
-                    ['value' => 'Ragunan', 'label' => 'Ragunan'],
-                ],
-                'Cakung' => [
-                    ['value' => 'Jatinegara', 'label' => 'Jatinegara'],
-                    ['value' => 'Pulo Gebang', 'label' => 'Pulo Gebang'],
-                ],
-                'Jatinegara' => [
-                    ['value' => 'Kampung Melayu', 'label' => 'Kampung Melayu'],
-                    ['value' => 'Bidara Cina', 'label' => 'Bidara Cina'],
-                ],
-                'Bekasi Barat' => [
-                    ['value' => 'Jakasampurna', 'label' => 'Jakasampurna'],
-                    ['value' => 'Kranji', 'label' => 'Kranji'],
-                ],
-                'Bekasi Timur' => [
-                    ['value' => 'Aren Jaya', 'label' => 'Aren Jaya'],
-                    ['value' => 'Bekasi Jaya', 'label' => 'Bekasi Jaya'],
-                ],
-                'Beji' => [
-                    ['value' => 'Beji', 'label' => 'Beji'],
-                    ['value' => 'Kukusan', 'label' => 'Kukusan'],
-                ],
-                'Cimanggis' => [
-                    ['value' => 'Tugu', 'label' => 'Tugu'],
-                    ['value' => 'Mekarsari', 'label' => 'Mekarsari'],
-                ],
-                'Ciledug' => [
-                    ['value' => 'Sudimara Barat', 'label' => 'Sudimara Barat'],
-                    ['value' => 'Paninggilan', 'label' => 'Paninggilan'],
-                ],
-                'Karawaci' => [
-                    ['value' => 'Cimone', 'label' => 'Cimone'],
-                    ['value' => 'Nambo Jaya', 'label' => 'Nambo Jaya'],
-                ],
-                'Serpong' => [
-                    ['value' => 'Ciater', 'label' => 'Ciater'],
-                    ['value' => 'Rawa Buntu', 'label' => 'Rawa Buntu'],
-                ],
-                'Pondok Aren' => [
-                    ['value' => 'Pondok Kacang Barat', 'label' => 'Pondok Kacang Barat'],
-                    ['value' => 'Jurang Mangu Barat', 'label' => 'Jurang Mangu Barat'],
-                ],
-            ],
-        ];
     }
 }
