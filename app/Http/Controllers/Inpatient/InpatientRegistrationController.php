@@ -73,7 +73,7 @@ class InpatientRegistrationController extends Controller
 
             if ($dateFrom !== '') {
                 $encounterQuery->whereDate('registered_at', '>=', $dateFrom);
-            } elseif ($dateFrom === '' && $dateTo === '' && $ward === '' && $payer === '' && $continueFrom === '') {
+            } elseif ($dateTo === '' && $ward === '' && $payer === '' && $continueFrom === '') {
                 $encounterQuery->whereDate('registered_at', today());
             }
 
@@ -300,7 +300,7 @@ class InpatientRegistrationController extends Controller
             'medical_record_number' => $patient->medical_record_number,
             'nik' => $patient->nik,
             'full_name' => $patient->full_name,
-            'date_of_birth' => $patient->date_of_birth?->toDateString(),
+            'date_of_birth' => $patient->date_of_birth->toDateString(),
             'sex' => $patient->sex,
             'phone' => $patient->phone,
         ];
@@ -322,7 +322,7 @@ class InpatientRegistrationController extends Controller
             'continue_from' => $encounter->continue_from,
             'payer_type' => $encounter->payer_type,
             'queue_number' => $encounter->queue_number,
-            'registered_at' => $encounter->registered_at?->toIso8601String(),
+            'registered_at' => $encounter->registered_at->toIso8601String(),
             'chief_complaint' => $encounter->chief_complaint,
             'patient' => [
                 'public_id' => $patient?->public_id,

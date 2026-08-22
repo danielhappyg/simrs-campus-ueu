@@ -15,14 +15,14 @@ class WilayahRepository
      */
     public function provinces(): array
     {
-        return WilayahProvince::query()
+        return array_values(WilayahProvince::query()
             ->orderBy('name')
             ->get(['code', 'name'])
             ->map(fn (WilayahProvince $row): array => [
                 'value' => $row->code,
                 'label' => $row->name,
             ])
-            ->all();
+            ->all());
     }
 
     /**
@@ -30,7 +30,7 @@ class WilayahRepository
      */
     public function regencies(string $provinceCode): array
     {
-        return WilayahRegency::query()
+        return array_values(WilayahRegency::query()
             ->where('province_code', $provinceCode)
             ->orderBy('name')
             ->get(['code', 'name'])
@@ -38,7 +38,7 @@ class WilayahRepository
                 'value' => $row->code,
                 'label' => $row->name,
             ])
-            ->all();
+            ->all());
     }
 
     /**
@@ -46,7 +46,7 @@ class WilayahRepository
      */
     public function districts(string $regencyCode): array
     {
-        return WilayahDistrict::query()
+        return array_values(WilayahDistrict::query()
             ->where('regency_code', $regencyCode)
             ->orderBy('name')
             ->get(['code', 'name'])
@@ -54,7 +54,7 @@ class WilayahRepository
                 'value' => $row->code,
                 'label' => $row->name,
             ])
-            ->all();
+            ->all());
     }
 
     /**
@@ -62,7 +62,7 @@ class WilayahRepository
      */
     public function villages(string $districtCode): array
     {
-        return WilayahVillage::query()
+        return array_values(WilayahVillage::query()
             ->where('district_code', $districtCode)
             ->orderBy('name')
             ->get(['code', 'name'])
@@ -70,7 +70,7 @@ class WilayahRepository
                 'value' => $row->code,
                 'label' => $row->name,
             ])
-            ->all();
+            ->all());
     }
 
     public function provinceName(?string $code): ?string

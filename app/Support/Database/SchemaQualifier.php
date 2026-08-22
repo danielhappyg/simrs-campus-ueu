@@ -56,7 +56,7 @@ final class SchemaQualifier
             $schemas->push('public');
         }
 
-        return $schemas->values()->all();
+        return array_values($schemas->values()->all());
     }
 
     /**
@@ -68,22 +68,22 @@ final class SchemaQualifier
             return [];
         }
 
-        $searchPath = (string) config('database.connections.pgsql.search_path', '');
+        $searchPath = (string) config('database.connections.pgsql.search_path', 'public');
 
         if ($searchPath === '') {
-            $searchPath = (string) env('DB_SCHEMA', 'public');
+            $searchPath = 'public';
         }
 
-        return collect(explode(',', $searchPath))
+        return array_values(collect(explode(',', $searchPath))
             ->map(fn (string $part): string => trim($part, " \t\n\r\0\x0B\""))
             ->filter()
             ->values()
-            ->all();
+            ->all());
     }
 
     private static function shouldPreferLaravelSchema(): bool
     {
-        return filter_var(env('APP_SYNTHETIC_ONLY', false), FILTER_VALIDATE_BOOLEAN)
-            || strtoupper((string) env('APP_MODE', '')) === 'SIMULATION';
+        return filter_var(config('simulation.synthetic_only'), FILTER_VALIDATE_BOOLEAN)
+            || strtoupper((string) config('simulation.mode')) === 'SIMULATION';
     }
 }

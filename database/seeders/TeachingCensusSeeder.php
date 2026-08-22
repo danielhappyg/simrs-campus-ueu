@@ -32,7 +32,9 @@ class TeachingCensusSeeder extends Seeder
         $physician = User::query()->where('email', 'physician.demo@example.invalid')->first() ?? $registrar;
 
         if ($registrar === null) {
-            $this->command?->warn('TeachingCensusSeeder skipped: no demo users.');
+            if ($this->command !== null) {
+                $this->command->warn('TeachingCensusSeeder skipped: no demo users.');
+            }
 
             return;
         }
@@ -42,7 +44,9 @@ class TeachingCensusSeeder extends Seeder
         $gigiClinic = Clinic::query()->where('code', 'GIGI')->first();
 
         if ($rjClinic === null || $igdClinic === null) {
-            $this->command?->warn('TeachingCensusSeeder skipped: clinics missing.');
+            if ($this->command !== null) {
+                $this->command->warn('TeachingCensusSeeder skipped: clinics missing.');
+            }
 
             return;
         }
@@ -145,7 +149,9 @@ class TeachingCensusSeeder extends Seeder
             }
         });
 
-        $this->command?->info('Teaching census patients: '.Patient::query()->where('is_synthetic', true)->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
+        if ($this->command !== null) {
+            $this->command->info('Teaching census patients: '.Patient::query()->where('is_synthetic', true)->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
+        }
     }
 
     /**
@@ -252,22 +258,50 @@ class TeachingCensusSeeder extends Seeder
             ]];
         }
 
-        return $villages->map(function (WilayahVillage $village): array {
+        return array_values($villages->map(function (WilayahVillage $village): array {
             $district = $village->district;
-            $regency = $district?->regency;
-            $province = $regency?->province;
+
+            if ($district === null) {
+                return [
+                    'province_code' => '31',
+                    'province' => 'DKI Jakarta',
+                    'city_code' => '3173',
+                    'city' => 'Kota Jakarta Barat',
+                    'district_code' => '317301',
+                    'district' => 'Kebon Jeruk',
+                    'village_code' => $village->code,
+                    'village' => $village->name,
+                ];
+            }
+
+            $regency = $district->regency;
+
+            if ($regency === null) {
+                return [
+                    'province_code' => '31',
+                    'province' => 'DKI Jakarta',
+                    'city_code' => '3173',
+                    'city' => 'Kota Jakarta Barat',
+                    'district_code' => $district->code,
+                    'district' => $district->name,
+                    'village_code' => $village->code,
+                    'village' => $village->name,
+                ];
+            }
+
+            $province = $regency->province;
 
             return [
-                'province_code' => $province?->code ?? '31',
-                'province' => $province?->name ?? 'DKI Jakarta',
-                'city_code' => $regency?->code ?? '3173',
-                'city' => $regency?->name ?? 'Kota Jakarta Barat',
-                'district_code' => $district?->code ?? '317301',
-                'district' => $district?->name ?? 'Kebon Jeruk',
+                'province_code' => $province !== null ? $province->code : '31',
+                'province' => $province !== null ? $province->name : 'DKI Jakarta',
+                'city_code' => $regency->code,
+                'city' => $regency->name,
+                'district_code' => $district->code,
+                'district' => $district->name,
                 'village_code' => $village->code,
                 'village' => $village->name,
             ];
-        })->all();
+        })->all());
     }
 
     private function seedOutpatientEncounter(

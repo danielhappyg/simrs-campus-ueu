@@ -30,20 +30,13 @@ class SchemaQualifierTest extends TestCase
         config([
             'database.default' => 'pgsql',
             'database.connections.pgsql.search_path' => 'public',
+            'simulation.synthetic_only' => true,
+            'simulation.mode' => 'SIMULATION',
         ]);
 
-        putenv('APP_SYNTHETIC_ONLY=true');
-        $_ENV['APP_SYNTHETIC_ONLY'] = 'true';
-        $_SERVER['APP_SYNTHETIC_ONLY'] = 'true';
-
-        try {
-            $this->assertSame('laravel', SchemaQualifier::primarySchema());
-            $this->assertSame('laravel.role_user', SchemaQualifier::table('role_user'));
-            $this->assertSame(['laravel', 'public'], SchemaQualifier::searchPathSchemas());
-        } finally {
-            putenv('APP_SYNTHETIC_ONLY');
-            unset($_ENV['APP_SYNTHETIC_ONLY'], $_SERVER['APP_SYNTHETIC_ONLY']);
-        }
+        $this->assertSame('laravel', SchemaQualifier::primarySchema());
+        $this->assertSame('laravel.role_user', SchemaQualifier::table('role_user'));
+        $this->assertSame(['laravel', 'public'], SchemaQualifier::searchPathSchemas());
     }
 
     public function test_public_search_path_without_synthetic_flag_does_not_qualify(): void
@@ -51,27 +44,11 @@ class SchemaQualifierTest extends TestCase
         config([
             'database.default' => 'pgsql',
             'database.connections.pgsql.search_path' => 'public',
+            'simulation.synthetic_only' => false,
+            'simulation.mode' => 'LOCAL',
         ]);
 
-        putenv('APP_SYNTHETIC_ONLY=false');
-        $_ENV['APP_SYNTHETIC_ONLY'] = 'false';
-        $_SERVER['APP_SYNTHETIC_ONLY'] = 'false';
-        putenv('APP_MODE=LOCAL');
-        $_ENV['APP_MODE'] = 'LOCAL';
-        $_SERVER['APP_MODE'] = 'LOCAL';
-
-        try {
-            $this->assertNull(SchemaQualifier::primarySchema());
-            $this->assertSame('role_user', SchemaQualifier::table('role_user'));
-        } finally {
-            putenv('APP_SYNTHETIC_ONLY');
-            putenv('APP_MODE');
-            unset(
-                $_ENV['APP_SYNTHETIC_ONLY'],
-                $_SERVER['APP_SYNTHETIC_ONLY'],
-                $_ENV['APP_MODE'],
-                $_SERVER['APP_MODE'],
-            );
-        }
+        $this->assertNull(SchemaQualifier::primarySchema());
+        $this->assertSame('role_user', SchemaQualifier::table('role_user'));
     }
 }

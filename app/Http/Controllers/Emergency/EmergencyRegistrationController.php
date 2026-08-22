@@ -401,7 +401,7 @@ class EmergencyRegistrationController extends Controller
             'nik' => $patient->nik,
             'full_name' => $patient->full_name,
             'place_of_birth' => $patient->place_of_birth,
-            'date_of_birth' => $patient->date_of_birth?->toDateString(),
+            'date_of_birth' => $patient->date_of_birth->toDateString(),
             'sex' => $patient->sex,
             'religion' => $patient->religion,
             'education' => $patient->education,
@@ -442,7 +442,7 @@ class EmergencyRegistrationController extends Controller
             'case_type' => $encounter->case_type,
             'accident_type' => $encounter->accident_type,
             'queue_number' => $encounter->queue_number,
-            'registered_at' => $encounter->registered_at?->toIso8601String(),
+            'registered_at' => $encounter->registered_at->toIso8601String(),
             'patient' => [
                 'public_id' => $patient?->public_id,
                 'medical_record_number' => $patient?->medical_record_number,
