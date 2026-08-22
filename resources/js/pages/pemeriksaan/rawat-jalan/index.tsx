@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState  } from 'react';
-import type {FormEvent} from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

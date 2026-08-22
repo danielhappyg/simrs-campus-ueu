@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
-import { useState  } from 'react';
-import type {ReactNode} from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import AppLogo from '@/components/app-logo';
 import { AppUserMenu } from '@/components/app-user-menu';
 import { Button } from '@/components/ui/button';
