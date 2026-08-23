@@ -9,6 +9,8 @@ class SchemaQualifierTest extends TestCase
 {
     public function test_sqlite_default_does_not_qualify_tables(): void
     {
+        config(['database.default' => 'sqlite']);
+
         $this->assertNull(SchemaQualifier::primarySchema());
         $this->assertSame('role_user', SchemaQualifier::table('role_user'));
     }
