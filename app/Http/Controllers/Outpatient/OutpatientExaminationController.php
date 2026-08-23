@@ -7,9 +7,9 @@ use App\Models\Clinic;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\LabServiceRequest;
-use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Clinical\LabTestCatalog;
+use App\Support\Clinical\OutpatientLabLifecycle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +20,7 @@ use Inertia\Response;
 
 class OutpatientExaminationController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(private readonly OutpatientLabLifecycle $lifecycle) {}
 
     public function index(Request $request): Response
     {
@@ -199,17 +199,6 @@ class OutpatientExaminationController extends Controller
 
     public function storeEntry(Request $request, Encounter $encounter): RedirectResponse
     {
-        abort_unless(
-            $encounter->care_setting === Encounter::CARE_SETTING_OUTPATIENT,
-            404,
-        );
-
-        abort_if(
-            in_array($encounter->status, [Encounter::STATUS_CLOSED], true),
-            422,
-            'Kunjungan sudah ditutup.',
-        );
-
         $validated = $request->validate([
             'entry_type' => ['required', Rule::in(ClinicalEntry::TYPE_VALUES)],
             'body' => ['required', 'string', 'max:10000'],
@@ -224,30 +213,11 @@ class OutpatientExaminationController extends Controller
         $user = $request->user();
         assert($user !== null);
 
-        DB::transaction(function () use ($validated, $encounter, $user): void {
-            ClinicalEntry::query()->create([
-                'encounter_id' => $encounter->id,
-                'author_user_id' => $user->id,
-                'entry_type' => $validated['entry_type'],
-                'body' => $validated['body'],
-            ]);
-
-            if ($validated['entry_type'] === ClinicalEntry::TYPE_MEDICAL_ASSESSMENT) {
-                $encounter->update(['status' => Encounter::STATUS_READY_FOR_RM]);
-            } elseif ($encounter->status === Encounter::STATUS_REGISTERED) {
-                $encounter->update(['status' => Encounter::STATUS_IN_EXAMINATION]);
-            }
-        });
-
-        $this->auditRecorder->record(
-            action: 'clinical.note.write',
-            resourceType: 'encounter',
-            resourceId: $encounter->public_id,
+        $this->lifecycle->writeClinicalEntry(
+            encounter: $encounter,
             actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'entry_type' => $validated['entry_type'],
-            ],
+            entryType: $validated['entry_type'],
+            body: $validated['body'],
         );
 
         return redirect()
@@ -257,17 +227,6 @@ class OutpatientExaminationController extends Controller
 
     public function storeLabOrder(Request $request, Encounter $encounter): RedirectResponse
     {
-        abort_unless(
-            $encounter->care_setting === Encounter::CARE_SETTING_OUTPATIENT,
-            404,
-        );
-
-        abort_if(
-            $encounter->status === Encounter::STATUS_CLOSED,
-            422,
-            'Kunjungan sudah ditutup.',
-        );
-
         Gate::authorize(Capability::CLINICAL_ORDER_CREATE);
 
         $validated = $request->validate([
@@ -281,28 +240,11 @@ class OutpatientExaminationController extends Controller
         $user = $request->user();
         assert($user !== null);
 
-        $order = DB::transaction(function () use ($validated, $encounter, $user, $test): LabServiceRequest {
-            return LabServiceRequest::query()->create([
-                'encounter_id' => $encounter->id,
-                'requested_by_user_id' => $user->id,
-                'test_code' => $test['code'],
-                'test_label' => $test['label'],
-                'clinical_question' => $validated['clinical_question'] ?? null,
-                'status' => LabServiceRequest::STATUS_ACTIVE,
-                'requested_at' => now(),
-            ]);
-        });
-
-        $this->auditRecorder->record(
-            action: 'clinical.lab.order.create',
-            resourceType: 'lab_service_request',
-            resourceId: $order->public_id,
+        $this->lifecycle->createLabOrder(
+            encounter: $encounter,
             actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'encounter_id' => $encounter->public_id,
-                'test_code' => $test['code'],
-            ],
+            test: $test,
+            clinicalQuestion: $validated['clinical_question'] ?? null,
         );
 
         return redirect()

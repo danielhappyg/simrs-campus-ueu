@@ -19,6 +19,7 @@ A registrar can create/find a synthetic outpatient patient, open an encounter, p
 | PAR-REG-001 | Pendaftaran / Rawat Inap | Pending evidence | Menu observed | Daniel | Inpatient slice — not outpatient P0 build yet |
 | PAR-REG-002 | Pendaftaran / IGD | Pending evidence | Menu observed | Daniel | ED slice — not outpatient P0 build yet |
 | PAR-CLN-004 | Pemeriksaan / Rawat Jalan | **Reproduce** (canonical) | Observed screen | Clinical owner TBD; interim Daniel | Outpatient examination queue |
+| PAR-CLN-006 | Pemeriksaan / Laboratorium | **Reproduce (partial)** | Menu/capture observed; hosted synthetic order → FINAL result evidence | Clinical/Laboratory owner TBD; interim Daniel | Bounded lab teaching path; lifecycle policy is Proposed NEW, not observed parity |
 | PAR-CLN-001 | Assesmen | **Consolidate** into encounter assessment capability | Menu observed | Clinical TBD | Shared assessment; not a separate product forever |
 | PAR-CLN-019 | Rawat Inap v2 | Pending evidence | Menu observed | Clinical TBD | Inpatient |
 | PAR-RMIK-001 | RM / Rawat Jalan | **Reproduce** | Menu observed | **RMIK Department** | Outpatient record completion/coding handoff |
@@ -36,12 +37,13 @@ Identity search/create (synthetic)
   -> Queue / clinic routing
   -> Nursing/medical assessment & orders (Unknown field set)
   -> Pharmacy / diagnostics handoffs as ordered
-  -> RM completeness + coding
+  -> Resolve ACTIVE lab orders with one FINAL result
+  -> RM completeness + coding (close blocked while lab order remains ACTIVE)
   -> Claim prep (sandbox) + billing handoff
   -> Closure / reporting effects
 ```
 
-States and posting rules: **Unknown** until synthetic walkthrough with owners — tracked as discovery tasks, not guessed FR rows.
+Exact SAHABAT states and posting rules remain **Unknown** until walkthroughs with owners. The bounded order/result/closure guard is separately labelled Proposed NEW teaching safety in [`OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md`](OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md); it is not legacy parity evidence.
 
 ## NEW controls (not legacy parity)
 
@@ -51,6 +53,7 @@ States and posting rules: **Unknown** until synthetic walkthrough with owners �
 | NFR-AUD-01 | Append-only audit for privileged actions | Proposed / Approved for build |
 | NFR-SYN-01 | Synthetic-only teaching data; backend enforcement plus the permanent application-shell indicator `SIMULASI — DATA SINTETIS` on authentication and authenticated screens (DEC-015) | Implemented: local model scopes isolate patient graphs; route binding rejects non-synthetic encounters/orders; reset and teaching census fail closed; negative feature tests verify counts, worklists, writes, reset, and collision handling |
 | NFR-INT-01 | Sandbox adapters cannot fall through to production | Proposed / Approved for build |
+| NFR-LFC-01 | ACTIVE lab orders block RM close; closed encounters reject late results; one immutable FINAL result completes an active order | Proposed NEW teaching safety (DEC-016); implemented as a fail-closed guard, but Clinical/Laboratory and RMIK owner acceptance is unresolved |
 
 ## Detailed requirement packs
 
@@ -58,12 +61,14 @@ States and posting rules: **Unknown** until synthetic walkthrough with owners �
 |---|---|
 | `requirements/PAR-REG-003-rawat-jalan-registration.md` | Canonical RJ registration |
 | `requirements/PAR-CLN-004-rawat-jalan-examination.md` | Canonical RJ examination |
+| `requirements/PAR-CLN-006-laboratory.md` | Partial laboratory teaching flow and lifecycle boundary |
 | `requirements/PAR-RMIK-001-rawat-jalan-rm.md` | RM outpatient completion |
+| `OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md` | Cross-role active-order, final-result and closure contract |
 
 ## Open discovery (do not build as guessed rules)
 
 1. Exact required fields and validation for RJ registration (Observed form structure only).
-2. Cancellation/correction effects on queue, charges, SEP context.
+2. Cancellation/correction effects on queue, charges, SEP context; preliminary result, lab cancellation, amendment and encounter-reopen policy.
 3. Whether v2 fields are supersets or alternate product.
 4. EMR IPP vs classic RM semantic differences.
 5. Report formulas for RJ registers among 117 Laporan rows.

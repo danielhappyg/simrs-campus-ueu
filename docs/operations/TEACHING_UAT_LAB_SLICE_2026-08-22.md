@@ -17,6 +17,12 @@ Agent-operated and facilitator-ready UAT for PR #48 lab flow on the live demo. N
 
 Production lab slice works end-to-end: order HB → enter FINAL result → result visible on encounter. Infra + automated HTTP rehearsal both green. Optional classroom UI walkthrough still uses [TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md).
 
+### Evidence boundary after DEC-016 proposal
+
+This historical PASS proves only synthetic order → `FINAL` result → order `COMPLETED`. Step D was optional, so Run 3 does **not** validate active-order closure blocking, late-result rejection, duplicate-final immutability, authorization-before-state-disclosure, amendment/reopen behavior, or full SIMRS Sahabat lifecycle parity.
+
+Those rules are a **Proposed NEW teaching-safety contract**, not observed SAHABAT behavior. A fresh continuous lifecycle UAT is required using [the outpatient order/result/closure contract](../new-simrs-rebuild/phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md); Clinical/Laboratory and RMIK approval remains unresolved.
+
 ### Automated / agent checks
 
 | # | Check | Status | Notes |
@@ -53,6 +59,7 @@ Production lab slice works end-to-end: order HB → enter FINAL result → resul
 - LIS / instrument integration
 - Tarif, charges, specimen tracking
 - PA / mikro sub-desks
+- Preliminary results, amendment/correction, encounter reopen and lab-order cancellation
 - Klaim / BPJS / Apotek nav (**Soon**)
 
 ### Evidence links

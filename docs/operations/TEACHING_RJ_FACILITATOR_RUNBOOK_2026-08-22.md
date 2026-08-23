@@ -5,8 +5,8 @@ Single script for synthetic RJ demo on the hosted teaching environment. Use with
 **Program handoff (whole rebuild story, PRs, traps, next work):** [HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md](HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md)
 
 **Demo URL:** https://simrs-campus-ueu-demo.vercel.app  
-**Git tip (lab slice):** `807bbf2` (PR #48)  
-**Boundary:** SIMULATION only — no real patient data, no production BPJS/VClaim.
+**Code baseline:** lifecycle-contract release (record the deployed SHA before UAT; historical lab origin is `807bbf2` / PR #48)
+**Boundary:** SIMULATION only — no real patient data, no production BPJS/VClaim/SATUSEHAT.
 
 **Evidence boundary:** this runbook exercises an available teaching slice. Passing it does not by itself grant SAHABAT parity acceptance or clinical production readiness.
 
@@ -87,9 +87,9 @@ Same encounter (log in as physician or continue solo account).
 
 1. Find the active order for your patient.
 2. Click **Hasil** → enter synthetic text, e.g. `Hb 12.8 g/dL`.
-3. Status **Final** → **Simpan hasil lab**.
+3. Confirm status **Final** → **Simpan hasil lab**. Preliminary results are not available in this slice.
 
-**Expected:** Order leaves active worklist; audit events `clinical.lab.order.create` and `clinical.lab.result.write`.
+**Expected:** Order leaves active worklist; its one final result is immutable; audit events `clinical.lab.order.create` and `clinical.lab.result.write` exist.
 
 #### 4c. Verify on encounter
 
@@ -104,9 +104,12 @@ Reopen **Pemeriksaan → Rawat Jalan → encounter → Order Lab**.
 **Path:** **RM** → Rawat Jalan
 
 1. Encounter appears in **Siap RM** worklist.
-2. **Complete** / tandai selesai (RM review).
+2. Confirm **Order lab aktif = 0**.
+3. **Complete** / tandai selesai (RM review).
 
 **Expected:** Status **Ditutup** (`CLOSED`); no new clinical writes.
+
+If an active lab order remains, the close action must be unavailable and the server must reject a stale/direct request with reason `active_lab_orders`. Resolve it with its one FINAL result; do not cancel or edit rows directly.
 
 ---
 
@@ -124,9 +127,12 @@ Reopen **Pemeriksaan → Rawat Jalan → encounter → Order Lab**.
 These checks are required for the next continuous UAT record even though the current Runs 1–3 were captured as separate slices:
 
 1. Attempt one protected clinical or RM action with an unauthorized role and record the denied result without bypassing RBAC.
-2. Record the encounter, order/result, audit-event and deployed-commit identifiers used in the journey.
-3. Run only the documented synthetic session/reset procedure for the rehearsal data; never delete hosted rows manually during class.
-4. Confirm the reset/cleanup scope did not affect another teaching session.
+2. On a disposable synthetic encounter, attempt RM closure while an order is ACTIVE; expect rejection and an unchanged encounter.
+3. Complete that order with one FINAL result, then close the encounter; expect `CLOSED`.
+4. Confirm a late-result or duplicate-final attempt is rejected without mutation. Do not attempt amendment/reopen because those workflows are not built.
+5. Record the encounter, order/result, denial reason, audit-event and deployed-commit identifiers used in the journey.
+6. Run only the documented synthetic session/reset procedure for the rehearsal data; never delete hosted rows manually during class.
+7. Confirm the reset/cleanup scope did not affect another teaching session.
 
 If the safe session-scoped reset procedure is not yet available, mark cleanup **blocked** and preserve the synthetic evidence for an authorized operator. Do not improvise destructive SQL.
 
@@ -138,11 +144,12 @@ If the safe session-scoped reset procedure is not yet available, mark cleanup **
 REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
      ↑              ↑                ↑
   Pendaftaran   Nursing note    Medical note
-                                  (+ lab order/result parallel)
-                                        RM complete → CLOSED
+                                  (+ lab order/result parallel;
+                                   ACTIVE blocks RM close)
+                                        FINAL → COMPLETED → RM close
 ```
 
-Lab orders do **not** change encounter status; notes still drive the spine.
+Lab orders do **not** change encounter status; notes still drive the spine. An `ACTIVE` lab order is nevertheless a closure guard.
 
 ---
 
@@ -154,6 +161,7 @@ Lab orders do **not** change encounter status; notes still drive the spine.
 | Header actions | Cetak / Riwayat EMR / Order / Resep on exam desk |
 | Nav modules | Klaim, BPJS, Apotek → **Soon** |
 | Charges / LIS | Not implemented |
+| Lab lifecycle extensions | Preliminary, amendment/correction, cancellation and encounter reopen are not implemented |
 
 ---
 
@@ -166,6 +174,7 @@ Lab orders do **not** change encounter status; notes still drive the spine.
 | Nurse cannot enter lab result | RBAC not seeded | Re-run RBAC sync on Supabase (see PR #48 ops notes) |
 | Laboratorium 404 | Migration not applied | Apply `2026_08_22_001100_create_lab_service_tables` |
 | Empty lab worklist | No ACTIVE orders | Create order from RJ encounter first |
+| RM close disabled/rejected | Encounter still has an ACTIVE lab order | Enter its one FINAL result; never edit/cancel hosted rows directly |
 
 ---
 
@@ -173,4 +182,7 @@ Lab orders do **not** change encounter status; notes still drive the spine.
 
 - Pendaftaran UAT Runs 1–2: [TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md](TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md)
 - Lab UAT Run 3: [TEACHING_UAT_LAB_SLICE_2026-08-22.md](TEACHING_UAT_LAB_SLICE_2026-08-22.md)
+- Proposed NEW lifecycle policy: [OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md](../new-simrs-rebuild/phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md)
 - Hosted ops: [VERCEL_SUPABASE_DEMO.md](VERCEL_SUPABASE_DEMO.md)
+
+Passing this script does not convert DEC-016 or lifecycle parity to Accepted. Clinical/Laboratory and RMIK owner review remains required.

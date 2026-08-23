@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Clinical;
 use App\Http\Controllers\Controller;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
-use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
+use App\Support\Clinical\OutpatientLabLifecycle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +17,7 @@ use Inertia\Response;
 
 class LaboratoryController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(private readonly OutpatientLabLifecycle $lifecycle) {}
 
     public function index(Request $request): Response
     {
@@ -84,49 +84,18 @@ class LaboratoryController extends Controller
     {
         Gate::authorize(Capability::CLINICAL_LAB_RESULT_WRITE);
 
-        abort_unless(
-            $order->status === LabServiceRequest::STATUS_ACTIVE,
-            422,
-            'Order lab sudah selesai atau dibatalkan.',
-        );
-
-        abort_if(
-            $order->result()->exists(),
-            422,
-            'Hasil lab sudah tercatat.',
-        );
-
         $validated = $request->validate([
             'result_text' => ['required', 'string', 'max:10000'],
-            'status' => ['required', Rule::in(LabDiagnosticResult::STATUS_VALUES)],
+            'status' => ['required', Rule::in([LabDiagnosticResult::STATUS_FINAL])],
         ]);
 
         $user = $request->user();
         assert($user !== null);
 
-        DB::transaction(function () use ($validated, $order, $user): void {
-            LabDiagnosticResult::query()->create([
-                'lab_service_request_id' => $order->id,
-                'entered_by_user_id' => $user->id,
-                'status' => $validated['status'],
-                'result_text' => $validated['result_text'],
-                'issued_at' => now(),
-            ]);
-
-            $order->update(['status' => LabServiceRequest::STATUS_COMPLETED]);
-        });
-
-        $this->auditRecorder->record(
-            action: 'clinical.lab.result.write',
-            resourceType: 'lab_service_request',
-            resourceId: $order->public_id,
+        $this->lifecycle->writeFinalLabResult(
+            order: $order,
             actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'encounter_id' => $order->encounter?->public_id,
-                'test_code' => $order->test_code,
-                'result_status' => $validated['status'],
-            ],
+            resultText: $validated['result_text'],
         );
 
         return redirect()
