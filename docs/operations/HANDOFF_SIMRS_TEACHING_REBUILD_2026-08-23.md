@@ -2,7 +2,7 @@
 
 **Audience:** Daniel, facilitators, and any human or agent continuing this work without prior chat history.  
 **Date:** 2026-08-23  
-**Git tip at stabilization review:** `7689b0c` on `main` (product code tip for lab slice is `807bbf2` / PR #48)
+**Git tip before lifecycle-contract work:** `5e9c43a` on `main` (synthetic/PostgreSQL hardening; lab slice originated in `807bbf2` / PR #48)
 **Live demo:** https://simrs-campus-ueu-demo.vercel.app  
 **Repo:** https://github.com/danielhappyg/simrs-campus-ueu  
 
@@ -27,6 +27,7 @@ This is the **start-here** pack for the clean-slate teaching SIMRS. It is not li
 | DEC-013 | Live vendor SIMRS is **UI/IA reference**; the failed Antrean/work-queue teaching MVP is **anti-reference** (do not restore) | `docs/new-simrs-rebuild/phase-0/DECISION_LOG.md` |
 | DEC-014 | **SAHABAT Data Pasien desk density** is the minimum bar for Pendaftaran (and similar care desks) | same + `docs/new-simrs-rebuild/PENDAFTARAN_SAHABAT_FIELD_MAP.md` |
 | DEC-015 | Every interactive teaching screen, including login and authenticated desks, retains a restrained, permanent **`SIMULASI — DATA SINTETIS`** indicator; backend synthetic-only enforcement remains mandatory | same + `docs/new-simrs-rebuild/phase-1/UI_DIRECTION.md` |
+| DEC-016 (**Proposed**) | Active lab orders block RM close; closed encounters reject late results; one immutable FINAL result completes an active order. This is Proposed NEW teaching safety, not SAHABAT-observed parity; Clinical/Laboratory and RMIK approval remains unresolved | same + `docs/new-simrs-rebuild/phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md` |
 | UI tokens | UEU blue `#1b75bc`, orange `#f26a1b`, navy sidebar — copy campus SI patterns, not ad-hoc purple themes | `docs/new-simrs-rebuild/phase-1/UI_DIRECTION.md` |
 
 **Hosting ops:** `docs/operations/CURRENT_HOSTING_POSTURE.md` · `docs/operations/VERCEL_SUPABASE_DEMO.md`
@@ -41,8 +42,8 @@ This is the **start-here** pack for the clean-slate teaching SIMRS. It is not li
 
 ```
 Pendaftaran RJ → Pemeriksaan RJ (nurse + physician notes)
-              → Order Lab → Laboratorium (result)
-              → RM RJ (close)
+              → Order Lab → Laboratorium (one FINAL result)
+              → RM RJ (close only with no ACTIVE lab order)
               → optional Cetak + Rekap
 ```
 
@@ -55,6 +56,7 @@ Pendaftaran RJ → Pemeriksaan RJ (nurse + physician notes)
 REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
      ↑              ↑                ↑            ↑
  Pendaftaran   Nursing note    Medical note   RM complete
+                                  ACTIVE lab order blocks this transition
 ```
 
 ### 2.2 Routes (auth + simulation middleware)
@@ -101,8 +103,8 @@ Treat these as partial teaching desks in parallel care settings. Automated tests
 | --- | --- | --- |
 | PAR-REG-003 | Teaching desk available; registration/cetak/rekap slice evidence recorded | **Not accepted** — remains Specified |
 | PAR-CLN-004 | Nursing/medical notes available; many tabs stubbed | **Not accepted** — remains Specified |
-| PAR-CLN-006 | RJ order + worklist + synthetic result available; no tarif/LIS/specimen | **Not accepted** — remains Specified |
-| PAR-RMIK-001 | Teaching close available | **Not accepted** — remains Specified; coding/quality and closure rules incomplete |
+| PAR-CLN-006 | RJ order + worklist + immutable FINAL result available; no tarif/LIS/specimen/preliminary/amendment | **Not accepted** — remains Specified; lifecycle guard is Proposed NEW |
+| PAR-RMIK-001 | Teaching close blocks ACTIVE lab orders | **Not accepted** — remains Specified; RMIK and Clinical/Laboratory approval unresolved |
 
 Matrix: [`docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md`](../new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md)
 
@@ -187,9 +189,9 @@ Seeder source: `database/seeders/DemoActorsSeeder.php`
 | Role | Capabilities that matter for the arc |
 | --- | --- |
 | registrar | `patient.search`, `patient.view`, `patient.register`, `encounter.list`, `encounter.open`, `encounter.cancel` |
-| nurse | `clinical.nursing.write`, `clinical.lab.result.write`, `clinical.amend` |
-| physician | `clinical.medical.write`, `clinical.order.create`, `clinical.amend` |
-| rmik | `rmik.review`, coding caps reserved |
+| nurse | `clinical.nursing.write`, `clinical.lab.result.write`, `clinical.amend` (reserved; amendment workflow not built) |
+| physician | `clinical.medical.write`, `clinical.order.create`, `clinical.amend` (reserved; amendment workflow not built) |
+| rmik | `rmik.review` (worklist), `rmik.completeness.signoff` (close), coding caps reserved |
 | admin | user/role/audit/synthetic reset |
 
 Detail: `docs/new-simrs-rebuild/phase-2/RBAC_MATRIX.md` · code: `app/Support/Authorization/`
@@ -209,6 +211,7 @@ Say these honestly in demos and planning:
 | Nav Klaim / BPJS / Apotek | **Soon** placeholders |
 | Production SEP / VClaim / SATUSEHAT | Forbidden on this demo |
 | LIS, specimen, tarif, PA/mikro lab desks | Not built |
+| Preliminary lab result, final-result amendment, lab cancellation, encounter reopen | Not built; requires Clinical/Laboratory + RMIK approval |
 | ICD coding UI | Not built |
 | Pharmacy dispense / charges / kasir | Not built |
 | Antrean kerja / old teaching MVP | Do not restore (DEC-013) |
@@ -313,24 +316,22 @@ Committed visual oracles for SAHABAT (DEC-014): `docs/new-simrs-rebuild/_evidenc
 
 ---
 
-## 12. Approved next work — operational-truth stabilization
+## 12. Current next work — lifecycle contract and continuous UAT
 
-Product-owner approval was recorded on 2026-08-23. Complete this stabilization before Radiology, Pharmacy, or another clinical module:
+Product-owner approval was recorded on 2026-08-23. Operational-truth stabilization and synthetic/PostgreSQL hardening have landed. Before Radiology, Pharmacy, or another clinical module:
 
-1. Apply DEC-015 consistently: the restrained permanent simulation indicator, backend synthetic-only enforcement, and aligned tests/docs.
-2. Repair active deployment guidance: remove retired Checkpoint 2/work-queue instructions; document the real asset command, explicit Supabase migration, RBAC synchronization, Preview isolation and rollback evidence.
-3. Separate build availability from parity acceptance; do not mark current RJ, IGD, RI or Lab slices Accepted without their acceptance gates.
-4. Harden synthetic scoping and add PostgreSQL schema-`laravel` CI coverage in a subsequent small PR.
-5. Decide the outpatient active-order/closure, late-result and amendment contract.
-6. Run one fresh continuous, actual-UI, role-specific RJ rehearsal with denied-role and reset/cleanup evidence.
+1. Keep DEC-016 **Proposed**: implement the bounded fail-closed teaching guard, but do not call it SAHABAT parity.
+2. Obtain Clinical/Laboratory and RMIK review of the FINAL-only, active-order closure and late-result policy.
+3. Run one fresh continuous, actual-UI, role-specific RJ rehearsal including active-order close denial, FINAL completion, successful RM close, late/duplicate-result denial, wrong-role denial and reset/cleanup evidence.
+4. Preserve the unresolved boundary: preliminary results, amendment, reopen and cancellation are not built.
 
-Only then choose the next bounded product slice. Current candidates remain a PAR-CLN-006 Lab requirements pack, structured clinical/RM completeness, and a PAR-CLN-007 Radiology requirements pack. Do not implement “Order Rad like Lab” until its workflow and acceptance contract are specified.
+Only then choose the next bounded product slice. Current candidates are structured clinical/RM completeness and a PAR-CLN-007 Radiology requirements pack. Do not implement “Order Rad like Lab” until its workflow and acceptance contract are specified.
 
 ---
 
 ## 13. Handoff checklist for the next owner
 
-- [ ] Clone `main`, confirm tip ≥ `7689b0c` for this handoff baseline and ≥ `807bbf2` for lab code
+- [ ] Clone `main`, confirm tip ≥ `5e9c43a` for the synthetic/PostgreSQL hardening baseline
 - [ ] Read this file + facilitator runbook  
 - [ ] Confirm demo `/up` and simulation banner  
 - [ ] Obtain `DEMO_ACCOUNT_PASSWORD` out-of-band  
@@ -338,6 +339,7 @@ Only then choose the next bounded product slice. Current candidates remain a PAR
 - [ ] Before schema work: remember Supabase migrate is **manual** on Vercel  
 - [ ] Before validation work: use `SchemaAwareRules` / model classes, never `laravel.table` strings in `Rule::exists`  
 - [ ] Do not restore Antrean MVP; do not wire live BPJS without an explicit new decision  
+- [ ] Treat DEC-016 as Proposed until Clinical/Laboratory and RMIK owners approve; do not imply lifecycle parity
 
 ---
 

@@ -307,38 +307,25 @@ export default function PemeriksaanLaboratoriumIndex({
                                                                     }
                                                                 />
                                                             </div>
-                                                            <div className="grid gap-1.5 sm:max-w-xs">
-                                                                <Label
-                                                                    htmlFor={`status-${order.public_id}`}
-                                                                >
-                                                                    Status hasil
-                                                                </Label>
-                                                                <select
-                                                                    id={`status-${order.public_id}`}
-                                                                    className="h-8 rounded-md border border-input bg-white px-2.5 text-sm"
-                                                                    value={
-                                                                        resultForm
-                                                                            .data
-                                                                            .status
-                                                                    }
-                                                                    onChange={(
-                                                                        e,
-                                                                    ) =>
-                                                                        resultForm.setData(
-                                                                            'status',
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <option value="FINAL">
-                                                                        Final
-                                                                    </option>
-                                                                    <option value="PRELIMINARY">
-                                                                        Preliminer
-                                                                    </option>
-                                                                </select>
+                                                            <div className="rounded-md border border-[#bfdbfe] bg-[#eff6ff] px-3 py-2 text-xs text-[#1e3a8a]">
+                                                                <p className="font-semibold">
+                                                                    Status
+                                                                    hasil: Final
+                                                                </p>
+                                                                <p className="mt-0.5">
+                                                                    Dalam
+                                                                    simulasi
+                                                                    pengajaran
+                                                                    ini, hasil
+                                                                    final tidak
+                                                                    dapat diubah
+                                                                    setelah
+                                                                    disimpan.
+                                                                    Fitur
+                                                                    amendemen
+                                                                    belum
+                                                                    tersedia.
+                                                                </p>
                                                                 <InputError
                                                                     message={
                                                                         resultForm

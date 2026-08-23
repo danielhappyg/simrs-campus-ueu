@@ -15,14 +15,14 @@ Complete outpatient record quality/coding readiness for the encounter so claim p
 
 ## Preconditions
 
-- Encounter with clinical documentation from PAR-CLN-004
+- Encounter with clinical documentation from PAR-CLN-004 and no `ACTIVE` lab order
 - Coding terminology releases available (teaching catalogues)
 - Actor has record review / coding capabilities
 
 ## Workflow and state transitions
 
 1. Trigger: encounter enters RM worklist (criteria **Unknown**)
-2. Sequence: completeness review → coding candidates/decisions → supervisor actions as required → ready for claim
+2. Sequence: completeness review → verify no active lab order → coding candidates/decisions → supervisor actions as required → close
 3. Resulting state: coded/complete flags (**Unknown** exact statuses)
 4. Downstream: Klaim RJ, reports, optional SatuSehat sandbox preview
 
@@ -33,10 +33,12 @@ Complete outpatient record quality/coding readiness for the encounter so claim p
 | BR-RM-001 | Coding requires human confirmation; suggestions are not auto-final | Proposed NEW (teaching safety) |
 | BR-RM-002 | Corrections create attributable chain to clinical authors when policy requires | Proposed NEW |
 | BR-RM-003 | Exact completeness checklist | **Unknown** — RMIK Department discovery |
+| BR-RM-004 | An `ACTIVE` lab order blocks outpatient RM closure | Proposed NEW (teaching safety); reason `active_lab_orders`; **not SAHABAT-observed** |
+| BR-RM-005 | A `CLOSED` encounter rejects late lab results and new clinical writes | Proposed NEW (teaching safety) |
 
 ## Authorization and audit
 
-RMIK roles only for coding write; audit all coding decisions and completeness sign-off.
+`rmik.review` controls worklist access; `rmik.completeness.signoff` controls closure; RMIK coding capability controls coding writes. Audit all coding decisions and completeness sign-off.
 
 ## Acceptance criteria (synthetic)
 
@@ -44,7 +46,8 @@ RMIK roles only for coding write; audit all coding decisions and completeness si
 2. Coding decision recorded with actor/time/code system version.
 3. Non-RMIK cannot finalize coding.
 4. SatuSehat remains non-transmitting sandbox (PAR-RMIK-005 Replace).
+5. RM close fails without mutation while an active lab order exists and succeeds after its one final result completes the order.
 
 ## Open unknowns
 
-Completeness checklist; filing interaction; claim status filters on RM screen; IPP vs classic differences — **RMIK Department** must confirm before Verified.
+Completeness checklist; filing interaction; claim status filters on RM screen; IPP vs classic differences — **RMIK Department** must confirm before Verified. Preliminary results, amendment/correction, encounter reopening and lab-order cancellation are not built. DEC-016 remains **Proposed** until Clinical/Laboratory and RMIK owners approve [`../OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md`](../OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md).

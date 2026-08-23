@@ -11,8 +11,8 @@ Clean-slate outpatient flow for SIMRS Campus UEU:
 
 1. **Pendaftaran rawat jalan** — search synthetic patients, register patient + encounter
 2. **Pemeriksaan rawat jalan** — worklist, encounter detail, nursing/medical clinical entries, **lab order (Order Lab tab)**
-3. **Pemeriksaan laboratorium** — active lab worklist, synthetic result entry (teaching slice, PR #48)
-4. **RM rawat jalan** — READY_FOR_RM worklist, mark reviewed → CLOSED
+3. **Pemeriksaan laboratorium** — active lab worklist, one immutable synthetic `FINAL` result
+4. **RM rawat jalan** — READY_FOR_RM worklist, close only when no lab order remains `ACTIVE`
 5. **Beranda** — live counts from domain tables
 
 Parity references: PAR-REG-003, PAR-CLN-004, PAR-CLN-006 (partial), PAR-RMIK-001.
@@ -25,7 +25,7 @@ Parity references: PAR-REG-003, PAR-CLN-004, PAR-CLN-006 (partial), PAR-RMIK-001
 | `encounters` | Outpatient visit; statuses REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED |
 | `clinical_entries` | NURSING_INTAKE / MEDICAL_ASSESSMENT notes bound to encounter |
 | `lab_service_requests` | Physician lab orders on encounter (catalog test code + label) |
-| `lab_diagnostic_results` | Nurse-entered synthetic results (one per order) |
+| `lab_diagnostic_results` | Nurse-entered synthetic FINAL results (one immutable result per order) |
 
 ## Authorization
 
@@ -34,9 +34,15 @@ Server-side Gate capabilities:
 - Registrar: `patient.search`, `patient.register`, `encounter.list`
 - Nurse: `encounter.open`, `clinical.nursing.write`, `clinical.lab.result.write`
 - Physician: `encounter.open`, `clinical.medical.write`, `clinical.order.create`
-- RMIK: `rmik.review` to close
+- RMIK: `rmik.review` for worklist access; `rmik.completeness.signoff` to close
 
 Audit via `AuditRecorder` on register, clinical note write, lab order/result, and RM complete.
+
+## Order/result/closure boundary
+
+The teaching implementation is fail-closed: active lab orders block RM closure; closed encounters reject late results; only one `FINAL` result may complete an active order. This is **Proposed NEW teaching safety**, not observed or validated SIMRS Sahabat lifecycle parity. DEC-016 remains Proposed pending Clinical/Laboratory and RMIK owner approval.
+
+Preliminary results, result amendment, encounter reopening and lab-order cancellation are not built. See [`../phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md`](../phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md).
 
 ## Routes
 
@@ -60,6 +66,7 @@ Nav: Pendaftaran / Pemeriksaan / RM point at these dedicated routes (other categ
 - SEP/BPJS production eligibility
 - ICD coding UI
 - Pharmacy, radiology, charges (lab teaching slice only; no billing/LIS)
+- Preliminary lab results, final-result amendment, encounter reopen and lab-order cancellation
 - Antrean / work-queue MVP modules (do not restore)
 
 Facilitator script: `docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md`  
@@ -69,5 +76,6 @@ Facilitator script: `docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.
 
 - `tests/Feature/Outpatient/OutpatientFlowTest.php`
 - `tests/Feature/Outpatient/OutpatientLabFlowTest.php`
+- `tests/Feature/Outpatient/OutpatientLifecycleContractTest.php` (closure and final/late/duplicate-result rules)
 - `tests/Feature/RebuildHomeTest.php`
 - `tests/Feature/Simulation/SimulationResetCommandTest.php`

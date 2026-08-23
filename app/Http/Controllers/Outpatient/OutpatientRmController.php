@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Outpatient;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Encounter;
-use App\Support\Audit\AuditRecorder;
+use App\Models\LabServiceRequest;
 use App\Support\Authorization\Capability;
+use App\Support\Clinical\OutpatientLabLifecycle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Inertia\Response;
 
 class OutpatientRmController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(private readonly OutpatientLabLifecycle $lifecycle) {}
 
     public function index(Request $request): Response
     {
@@ -46,6 +47,10 @@ class OutpatientRmController extends Controller
             $query = Encounter::query()
                 ->syntheticOnly()
                 ->with(['patient', 'clinicalEntries'])
+                ->withCount([
+                    'labServiceRequests as active_lab_order_count' => fn ($builder) => $builder
+                        ->where('status', LabServiceRequest::STATUS_ACTIVE),
+                ])
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                 ->where('status', Encounter::STATUS_READY_FOR_RM);
 
@@ -88,6 +93,7 @@ class OutpatientRmController extends Controller
                     'registered_at' => $encounter->registered_at->toIso8601String(),
                     'visit_date' => $encounter->visit_date?->toDateString(),
                     'entry_count' => $encounter->clinicalEntries->count(),
+                    'active_lab_order_count' => (int) $encounter->getAttribute('active_lab_order_count'),
                     'patient' => [
                         'public_id' => $encounter->patient?->public_id,
                         'medical_record_number' => $encounter->patient?->medical_record_number,
@@ -116,41 +122,18 @@ class OutpatientRmController extends Controller
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
             ],
-            'canComplete' => $request->user()?->canCapability(Capability::RMIK_REVIEW) ?? false,
+            'canComplete' => $request->user()?->canCapability(Capability::RMIK_COMPLETENESS_SIGNOFF) ?? false,
         ]);
     }
 
     public function complete(Request $request, Encounter $encounter): RedirectResponse
     {
-        Gate::authorize(Capability::RMIK_REVIEW);
-
-        abort_unless(
-            $encounter->care_setting === Encounter::CARE_SETTING_OUTPATIENT,
-            404,
-        );
-
-        abort_unless(
-            $encounter->status === Encounter::STATUS_READY_FOR_RM,
-            422,
-            'Kunjungan belum siap untuk penutupan RM.',
-        );
+        Gate::authorize(Capability::RMIK_COMPLETENESS_SIGNOFF);
 
         $user = $request->user();
         assert($user !== null);
 
-        $encounter->update(['status' => Encounter::STATUS_CLOSED]);
-
-        $this->auditRecorder->record(
-            action: 'rmik.review.complete',
-            resourceType: 'encounter',
-            resourceId: $encounter->public_id,
-            actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'previous_status' => Encounter::STATUS_READY_FOR_RM,
-                'new_status' => Encounter::STATUS_CLOSED,
-            ],
-        );
+        $this->lifecycle->closeEncounter($encounter, $user);
 
         return redirect()
             ->route('rm.rawat-jalan.index')

@@ -19,6 +19,7 @@ type EncounterRow = {
     registered_at: string | null;
     visit_date: string | null;
     entry_count: number;
+    active_lab_order_count: number;
     patient: {
         public_id: string | null;
         medical_record_number: string | null;
@@ -88,7 +89,11 @@ export default function RmRawatJalan({
         );
     };
 
-    const complete = (publicId: string) => {
+    const complete = (publicId: string, activeLabOrderCount: number) => {
+        if (activeLabOrderCount > 0) {
+            return;
+        }
+
         if (
             !window.confirm(
                 'Tandai rekam medis selesai dan tutup kunjungan ini?',
@@ -315,22 +320,48 @@ export default function RmRawatJalan({
                                                 ] ?? encounter.payer_type}
                                             </td>
                                             <td className="px-2 py-1.5">
-                                                {encounter.entry_count}
+                                                <p>{encounter.entry_count}</p>
+                                                {encounter.active_lab_order_count >
+                                                0 ? (
+                                                    <p className="mt-0.5 text-xs font-medium text-[#b45309]">
+                                                        {
+                                                            encounter.active_lab_order_count
+                                                        }{' '}
+                                                        order lab aktif
+                                                    </p>
+                                                ) : null}
                                             </td>
-                                            <td className="px-2 py-1.5 text-right">
+                                            <td className="max-w-[17rem] px-2 py-1.5 text-right">
                                                 {canComplete ? (
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        className="h-7 bg-[#1b75bc] hover:bg-[#1665a3]"
-                                                        onClick={() =>
-                                                            complete(
-                                                                encounter.public_id,
-                                                            )
-                                                        }
-                                                    >
-                                                        Selesai RM
-                                                    </Button>
+                                                    <div className="inline-flex flex-col items-end gap-1">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            disabled={
+                                                                encounter.active_lab_order_count >
+                                                                0
+                                                            }
+                                                            className="h-7 bg-[#1b75bc] hover:bg-[#1665a3]"
+                                                            onClick={() =>
+                                                                complete(
+                                                                    encounter.public_id,
+                                                                    encounter.active_lab_order_count,
+                                                                )
+                                                            }
+                                                        >
+                                                            Selesai RM
+                                                        </Button>
+                                                        {encounter.active_lab_order_count >
+                                                        0 ? (
+                                                            <p className="text-xs leading-tight text-[#b45309]">
+                                                                Belum dapat
+                                                                ditutup: masih
+                                                                ada order
+                                                                laboratorium
+                                                                aktif.
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
                                                 ) : null}
                                             </td>
                                         </tr>
