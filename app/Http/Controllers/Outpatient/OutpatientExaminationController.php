@@ -46,6 +46,7 @@ class OutpatientExaminationController extends Controller
                 ->all();
 
             $query = Encounter::query()
+                ->syntheticOnly()
                 ->with('patient')
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                 ->whereIn('status', Encounter::EXAMINATION_STATUSES);

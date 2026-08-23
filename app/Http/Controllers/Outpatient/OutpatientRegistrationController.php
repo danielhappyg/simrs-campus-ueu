@@ -53,7 +53,7 @@ class OutpatientRegistrationController extends Controller
 
             if ($search !== '') {
                 $searchResults = Patient::query()
-                    ->where('is_synthetic', true)
+                    ->syntheticOnly()
                     ->where(function ($query) use ($search): void {
                         $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
                         $query->where('full_name', $like, '%'.$search.'%')
@@ -68,6 +68,7 @@ class OutpatientRegistrationController extends Controller
             }
 
             $todaysEncounters = Encounter::query()
+                ->syntheticOnly()
                 ->with('patient')
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                 ->whereDate('registered_at', today())
@@ -215,6 +216,7 @@ class OutpatientRegistrationController extends Controller
         $encounter = DB::transaction(function () use ($validated, $user, $clinic, $doctor, $schedule): Encounter {
             if (! empty($validated['patient_public_id'])) {
                 $patient = Patient::query()
+                    ->syntheticOnly()
                     ->where('public_id', $validated['patient_public_id'])
                     ->firstOrFail();
 
@@ -240,6 +242,7 @@ class OutpatientRegistrationController extends Controller
                 ]);
             }
 
+            // Allocation stays global so a contaminated row cannot cause duplicate operational numbering.
             $queueNumber = ((int) Encounter::query()
                 ->whereDate('registered_at', today())
                 ->max('queue_number')) + 1;

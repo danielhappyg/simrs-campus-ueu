@@ -136,11 +136,81 @@ jobs:
       - name: Run backend suite on MySQL
         run: php artisan test
 
+  postgres-integration:
+    name: PostgreSQL 17 laravel-schema integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APP_MODE: SIMULATION
+      APP_SYNTHETIC_ONLY: 'true'
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: simrs_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: local-ci-password
+      DB_SCHEMA: laravel
+      DB_SSLMODE: disable
+      PGPASSWORD: local-ci-password
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: simrs_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d simrs_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: mbstring, pdo_pgsql
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare migration environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Create private application schema
+        run: >-
+          psql --host=127.0.0.1 --username=postgres --dbname=simrs_test
+          --set=ON_ERROR_STOP=1 --command='CREATE SCHEMA IF NOT EXISTS laravel;'
+
+      - name: Apply migrations to PostgreSQL laravel schema
+        run: php artisan migrate:fresh --force
+
+      - name: Assert sentinel tables are isolated to laravel schema
+        shell: bash
+        run: |
+          LARAVEL_SENTINELS="$(psql --host=127.0.0.1 --username=postgres --dbname=simrs_test --tuples-only --no-align --command="SELECT count(*) FROM information_schema.tables WHERE table_schema = 'laravel' AND table_name IN ('migrations', 'users', 'patients');")"
+          PUBLIC_SENTINELS="$(psql --host=127.0.0.1 --username=postgres --dbname=simrs_test --tuples-only --no-align --command="SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('migrations', 'users', 'patients');")"
+          test "${LARAVEL_SENTINELS}" = "3"
+          test "${PUBLIC_SENTINELS}" = "0"
+
+      - name: Run backend suite on PostgreSQL laravel schema
+        run: php artisan test
+
   release-candidate:
     name: Build release candidate (no deploy)
     needs:
       - quality
       - mysql-integration
+      - postgres-integration
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

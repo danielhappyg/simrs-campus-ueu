@@ -14,11 +14,40 @@ use App\Models\WilayahVillage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class TeachingCensusSeeder extends Seeder
 {
     public function run(): void
     {
+        if (config('simulation.mode') !== 'SIMULATION' || config('simulation.synthetic_only') !== true) {
+            throw new RuntimeException('Teaching census requires SIMULATION mode with synthetic-only data enforced.');
+        }
+
+        $blueprints = $this->patientBlueprints();
+        $blueprintMrns = array_column($blueprints, 'mrn');
+        $nonSyntheticCollision = Patient::query()
+            ->whereIn('medical_record_number', $blueprintMrns)
+            ->where('is_synthetic', false)
+            ->first();
+
+        if ($nonSyntheticCollision !== null) {
+            throw new RuntimeException(
+                'Teaching census refused: medical record number '.$nonSyntheticCollision->medical_record_number.' belongs to a non-synthetic patient.',
+            );
+        }
+
+        $nonSyntheticEncounterCollision = Encounter::query()
+            ->where('booking_code', 'like', 'SYNTH-ENC-%')
+            ->whereHas('patient', fn ($patientQuery) => $patientQuery->where('is_synthetic', false))
+            ->first();
+
+        if ($nonSyntheticEncounterCollision !== null) {
+            throw new RuntimeException(
+                'Teaching census refused: booking marker '.$nonSyntheticEncounterCollision->booking_code.' belongs to a non-synthetic patient encounter.',
+            );
+        }
+
         if (WilayahProvince::query()->count() < 4) {
             $this->call(WilayahMinimalSeeder::class);
         }
@@ -55,8 +84,6 @@ class TeachingCensusSeeder extends Seeder
         $addresses = $this->addressCatalogue();
         $today = Carbon::today();
 
-        $blueprints = $this->patientBlueprints();
-
         DB::transaction(function () use (
             $blueprints,
             $addresses,
@@ -73,7 +100,7 @@ class TeachingCensusSeeder extends Seeder
                 $address = $addresses[$index % count($addresses)];
                 $mrn = $blueprint['mrn'];
 
-                $patient = Patient::query()->updateOrCreate(
+                $patient = Patient::query()->syntheticOnly()->updateOrCreate(
                     ['medical_record_number' => $mrn],
                     [
                         'nik' => $blueprint['nik'],
@@ -150,7 +177,7 @@ class TeachingCensusSeeder extends Seeder
         });
 
         if ($this->command !== null) {
-            $this->command->info('Teaching census patients: '.Patient::query()->where('is_synthetic', true)->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
+            $this->command->info('Teaching census patients: '.Patient::query()->syntheticOnly()->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
         }
     }
 
@@ -320,8 +347,9 @@ class TeachingCensusSeeder extends Seeder
             : null;
 
         $marker = 'SYNTH-ENC-RJ-'.sprintf('%03d', $index + 1);
+        $this->assertSyntheticEncounterMarker($marker);
 
-        $encounter = Encounter::query()->updateOrCreate(
+        $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
             ['booking_code' => $marker],
             [
                 'patient_id' => $patient->id,
@@ -363,8 +391,9 @@ class TeachingCensusSeeder extends Seeder
             : null;
 
         $marker = 'SYNTH-ENC-IGD-'.sprintf('%03d', $index + 1);
+        $this->assertSyntheticEncounterMarker($marker);
 
-        $encounter = Encounter::query()->updateOrCreate(
+        $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
             ['booking_code' => $marker],
             [
                 'patient_id' => $patient->id,
@@ -404,6 +433,7 @@ class TeachingCensusSeeder extends Seeder
         int $index,
     ): void {
         $marker = 'SYNTH-ENC-RI-'.sprintf('%03d', $index + 1);
+        $this->assertSyntheticEncounterMarker($marker);
 
         // Soft dual-book: skip creating a second OPEN stay on the same bed.
         $openConflict = Encounter::query()
@@ -419,7 +449,7 @@ class TeachingCensusSeeder extends Seeder
             $status = Encounter::STATUS_CLOSED;
         }
 
-        $encounter = Encounter::query()->updateOrCreate(
+        $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
             ['booking_code' => $marker],
             [
                 'patient_id' => $patient->id,
@@ -441,6 +471,21 @@ class TeachingCensusSeeder extends Seeder
         );
 
         $this->seedNotesIfNeeded($encounter, $nurse, $physician, $status);
+    }
+
+    private function assertSyntheticEncounterMarker(string $marker): void
+    {
+        $collision = Encounter::query()
+            ->where('booking_code', $marker)
+            ->whereHas('patient', fn ($patientQuery) => $patientQuery->where('is_synthetic', false))
+            ->lockForUpdate()
+            ->exists();
+
+        if ($collision) {
+            throw new RuntimeException(
+                'Teaching census refused: booking marker '.$marker.' belongs to a non-synthetic patient encounter.',
+            );
+        }
     }
 
     private function seedNotesIfNeeded(Encounter $encounter, User $nurse, User $physician, string $status): void

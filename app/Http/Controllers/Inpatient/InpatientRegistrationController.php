@@ -45,7 +45,7 @@ class InpatientRegistrationController extends Controller
         try {
             if ($search !== '') {
                 $searchResults = Patient::query()
-                    ->where('is_synthetic', true)
+                    ->syntheticOnly()
                     ->where(function ($query) use ($search): void {
                         $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
                         $query->where('full_name', $like, '%'.$search.'%')
@@ -60,6 +60,7 @@ class InpatientRegistrationController extends Controller
             }
 
             $encounterQuery = Encounter::query()
+                ->syntheticOnly()
                 ->with('patient')
                 ->where('care_setting', Encounter::CARE_SETTING_INPATIENT);
 
@@ -171,6 +172,7 @@ class InpatientRegistrationController extends Controller
             $validated['bed_code'],
         );
 
+        // Occupancy stays global so hidden contamination cannot produce a double-booked bed.
         $bedTaken = Encounter::query()
             ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
             ->where('bed_code', $validated['bed_code'])
@@ -192,6 +194,7 @@ class InpatientRegistrationController extends Controller
         $encounter = DB::transaction(function () use ($validated, $user): Encounter {
             if (! empty($validated['patient_public_id'])) {
                 $patient = Patient::query()
+                    ->syntheticOnly()
                     ->where('public_id', $validated['patient_public_id'])
                     ->firstOrFail();
 
@@ -217,6 +220,7 @@ class InpatientRegistrationController extends Controller
                 ]);
             }
 
+            // Allocation stays global so a contaminated row cannot cause duplicate operational numbering.
             $queueNumber = ((int) Encounter::query()
                 ->whereDate('registered_at', today())
                 ->max('queue_number')) + 1;

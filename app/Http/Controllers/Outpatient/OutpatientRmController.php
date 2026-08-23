@@ -44,6 +44,7 @@ class OutpatientRmController extends Controller
                 ->all();
 
             $query = Encounter::query()
+                ->syntheticOnly()
                 ->with(['patient', 'clinicalEntries'])
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                 ->where('status', Encounter::STATUS_READY_FOR_RM);

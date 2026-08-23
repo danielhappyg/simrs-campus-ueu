@@ -26,6 +26,7 @@ class EmergencyTriageController extends Controller
 
         try {
             $query = Encounter::query()
+                ->syntheticOnly()
                 ->with('patient')
                 ->where('care_setting', Encounter::CARE_SETTING_EMERGENCY)
                 ->whereIn('status', Encounter::EXAMINATION_STATUSES);

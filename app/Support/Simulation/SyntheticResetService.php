@@ -2,26 +2,14 @@
 
 namespace App\Support\Simulation;
 
+use App\Models\Patient;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
 class SyntheticResetService
 {
-    /**
-     * Domain tables truncated on reset. Empty until Phase 3 clinical tables exist.
-     * Preserve: users, roles, permissions, permission_role, role_user, audit_events (unless purged).
-     *
-     * @var list<string>
-     */
-    private const DOMAIN_TABLE_ALLOWLIST = [
-        'clinical_entries',
-        'encounters',
-        'patients',
-    ];
-
     public function __construct(private readonly AuditRecorder $auditRecorder) {}
 
     /**
@@ -37,48 +25,49 @@ class SyntheticResetService
         $actor = $options['actor'] ?? null;
         $reason = $options['reason'] ?? 'simulation_reset';
 
-        $this->auditRecorder->record(
-            action: 'teaching.reset.started',
-            resourceType: 'simulation',
-            resourceId: 'synthetic-reset',
-            actor: $actor instanceof User ? $actor : null,
-            outcome: 'SUCCESS',
-            reason: $reason,
-            metadata: [
-                'purge_audit' => $purgeAudit,
-                'domain_tables' => self::DOMAIN_TABLE_ALLOWLIST,
-            ],
-            includeRequestFingerprint: false,
-        );
+        DB::transaction(function () use ($purgeAudit, $actor, $reason): void {
+            $started = $this->auditRecorder->record(
+                action: 'teaching.reset.started',
+                resourceType: 'simulation',
+                resourceId: 'synthetic-reset',
+                actor: $actor instanceof User ? $actor : null,
+                outcome: 'SUCCESS',
+                reason: $reason,
+                metadata: [
+                    'purge_audit' => $purgeAudit,
+                    'boundary' => 'synthetic_patient_graph',
+                ],
+                includeRequestFingerprint: false,
+            );
 
-        Schema::disableForeignKeyConstraints();
-
-        try {
-            foreach (self::DOMAIN_TABLE_ALLOWLIST as $table) {
-                if (Schema::hasTable($table)) {
-                    DB::table($table)->delete();
-                }
+            if ($started === null) {
+                throw new RuntimeException('Synthetic reset refused because its start audit event could not be recorded.');
             }
-        } finally {
-            Schema::enableForeignKeyConstraints();
-        }
 
-        if ($purgeAudit) {
-            DB::table('audit_events')->delete();
-        }
+            $deleted = Patient::query()->syntheticOnly()->delete();
 
-        $this->auditRecorder->record(
-            action: 'teaching.reset.completed',
-            resourceType: 'simulation',
-            resourceId: 'synthetic-reset',
-            actor: $actor instanceof User ? $actor : null,
-            outcome: 'SUCCESS',
-            reason: $reason,
-            metadata: [
-                'purge_audit' => $purgeAudit,
-                'domain_tables' => self::DOMAIN_TABLE_ALLOWLIST,
-            ],
-            includeRequestFingerprint: false,
-        );
+            if ($purgeAudit) {
+                DB::table('audit_events')->delete();
+            }
+
+            $completed = $this->auditRecorder->record(
+                action: 'teaching.reset.completed',
+                resourceType: 'simulation',
+                resourceId: 'synthetic-reset',
+                actor: $actor instanceof User ? $actor : null,
+                outcome: 'SUCCESS',
+                reason: $reason,
+                metadata: [
+                    'purge_audit' => $purgeAudit,
+                    'boundary' => 'synthetic_patient_graph',
+                    'deleted_patients' => $deleted,
+                ],
+                includeRequestFingerprint: false,
+            );
+
+            if ($completed === null) {
+                throw new RuntimeException('Synthetic reset rolled back because its completion audit event could not be recorded.');
+            }
+        });
     }
 }
