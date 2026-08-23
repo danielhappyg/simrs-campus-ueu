@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Models\HasPublicUlid;
 use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\LabServiceRequestFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -80,6 +81,29 @@ class LabServiceRequest extends Model
     public function result(): HasOne
     {
         return $this->hasOne(LabDiagnosticResult::class);
+    }
+
+    /**
+     * @param  Builder<LabServiceRequest>  $query
+     * @return Builder<LabServiceRequest>
+     */
+    public function scopeSyntheticOnly(Builder $query): Builder
+    {
+        return $query->whereHas('encounter.patient', fn (Builder $patientQuery): Builder => $patientQuery->where('is_synthetic', true));
+    }
+
+    /**
+     * Route-bound lab orders must belong to a synthetic patient encounter.
+     *
+     * @param  mixed  $query
+     * @param  mixed  $value
+     * @return mixed
+     */
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        return $query
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->whereHas('encounter.patient', fn (Builder $patientQuery): Builder => $patientQuery->where('is_synthetic', true));
     }
 
     /**

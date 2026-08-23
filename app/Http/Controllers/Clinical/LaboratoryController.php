@@ -29,6 +29,7 @@ class LaboratoryController extends Controller
 
         try {
             $query = LabServiceRequest::query()
+                ->syntheticOnly()
                 ->with(['encounter.patient', 'requestedBy'])
                 ->where('status', LabServiceRequest::STATUS_ACTIVE)
                 ->orderBy('requested_at');

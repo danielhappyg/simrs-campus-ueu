@@ -49,7 +49,7 @@ States and posting rules: **Unknown** until synthetic walkthrough with owners �
 |---|---|---|
 | NFR-AUTH-01 | Server-side action authorization; no student over-permission | Proposed / Approved for build (security baseline) |
 | NFR-AUD-01 | Append-only audit for privileged actions | Proposed / Approved for build |
-| NFR-SYN-01 | Synthetic-only teaching data; backend enforcement plus the permanent application-shell indicator `SIMULASI — DATA SINTETIS` on authentication and authenticated screens (DEC-015) | Approved boundary; implementation and verification tracked separately |
+| NFR-SYN-01 | Synthetic-only teaching data; backend enforcement plus the permanent application-shell indicator `SIMULASI — DATA SINTETIS` on authentication and authenticated screens (DEC-015) | Implemented: local model scopes isolate patient graphs; route binding rejects non-synthetic encounters/orders; reset and teaching census fail closed; negative feature tests verify counts, worklists, writes, reset, and collision handling |
 | NFR-INT-01 | Sandbox adapters cannot fall through to production | Proposed / Approved for build |
 
 ## Detailed requirement packs

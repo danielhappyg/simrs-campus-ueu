@@ -27,8 +27,8 @@ class OutpatientRecapController extends Controller
         $careSetting = trim((string) $request->query('care_setting', Encounter::CARE_SETTING_OUTPATIENT));
 
         $query = Encounter::query()
-            ->with('patient')
-            ->whereHas('patient', fn ($patient) => $patient->where('is_synthetic', true));
+            ->syntheticOnly()
+            ->with('patient');
 
         if ($careSetting !== '' && $careSetting !== 'ALL') {
             $query->where('care_setting', $careSetting);

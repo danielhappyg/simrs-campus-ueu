@@ -17,18 +17,21 @@ class RebuildHomeController extends Controller
         try {
             $counts = [
                 'kunjungan_hari_ini' => Encounter::query()
+                    ->syntheticOnly()
                     ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                     ->whereDate('registered_at', $today)
                     ->count(),
                 'pasien_baru_hari_ini' => Patient::query()
-                    ->where('is_synthetic', true)
+                    ->syntheticOnly()
                     ->whereDate('created_at', $today)
                     ->count(),
                 'in_examination' => Encounter::query()
+                    ->syntheticOnly()
                     ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                     ->where('status', Encounter::STATUS_IN_EXAMINATION)
                     ->count(),
                 'ready_for_rm' => Encounter::query()
+                    ->syntheticOnly()
                     ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                     ->where('status', Encounter::STATUS_READY_FOR_RM)
                     ->count(),

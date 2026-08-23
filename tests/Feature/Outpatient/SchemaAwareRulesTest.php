@@ -25,6 +25,38 @@ class SchemaAwareRulesTest extends TestCase
         $this->assertStringNotContainsString('laravel.', (string) $unique);
     }
 
+    public function test_exists_and_unique_rules_execute_against_the_configured_database(): void
+    {
+        $clinic = Clinic::query()->create([
+            'code' => 'POLI-SCHEMA-RULES',
+            'name' => 'Poli Uji Aturan Skema',
+        ]);
+        $patient = Patient::factory()->create([
+            'medical_record_number' => 'RM-SCHEMA-RULES',
+        ]);
+
+        $rules = [
+            'clinic_public_id' => ['required', SchemaAwareRules::exists(Clinic::class, 'public_id')],
+            'medical_record_number' => ['required', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
+        ];
+
+        $valid = Validator::make([
+            'clinic_public_id' => $clinic->public_id,
+            'medical_record_number' => 'RM-SCHEMA-RULES-NEW',
+        ], $rules);
+
+        $this->assertTrue($valid->passes());
+
+        $invalid = Validator::make([
+            'clinic_public_id' => '01H00000000000000000000000',
+            'medical_record_number' => $patient->medical_record_number,
+        ], $rules);
+
+        $this->assertTrue($invalid->fails());
+        $this->assertArrayHasKey('clinic_public_id', $invalid->errors()->toArray());
+        $this->assertArrayHasKey('medical_record_number', $invalid->errors()->toArray());
+    }
+
     public function test_laravel_parse_table_treats_dotted_name_as_connection(): void
     {
         $validator = Validator::make([], []);

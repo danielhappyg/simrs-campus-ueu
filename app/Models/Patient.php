@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Models\HasPublicUlid;
 use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\PatientFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -198,6 +199,17 @@ class Patient extends Model
     public function encounters(): HasMany
     {
         return $this->hasMany(Encounter::class);
+    }
+
+    /**
+     * Keep teaching workflows inside the synthetic patient boundary.
+     *
+     * @param  Builder<Patient>  $query
+     * @return Builder<Patient>
+     */
+    public function scopeSyntheticOnly(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('is_synthetic'), true);
     }
 
     /**

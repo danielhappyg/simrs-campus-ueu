@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Models\HasPublicUlid;
 use App\Support\Models\UsesSchemaQualifiedTable;
 use Database\Factories\EncounterFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -231,6 +232,29 @@ class Encounter extends Model
     public function labServiceRequests(): HasMany
     {
         return $this->hasMany(LabServiceRequest::class);
+    }
+
+    /**
+     * @param  Builder<Encounter>  $query
+     * @return Builder<Encounter>
+     */
+    public function scopeSyntheticOnly(Builder $query): Builder
+    {
+        return $query->whereHas('patient', fn (Builder $patientQuery): Builder => $patientQuery->where('is_synthetic', true));
+    }
+
+    /**
+     * Route-bound encounters must never resolve outside the synthetic graph.
+     *
+     * @param  mixed  $query
+     * @param  mixed  $value
+     * @return mixed
+     */
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        return $query
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->whereHas('patient', fn (Builder $patientQuery): Builder => $patientQuery->where('is_synthetic', true));
     }
 
     /**
