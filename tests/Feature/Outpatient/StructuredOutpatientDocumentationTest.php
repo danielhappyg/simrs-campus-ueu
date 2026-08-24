@@ -331,6 +331,29 @@ class StructuredOutpatientDocumentationTest extends TestCase
         ] as $table) {
             $this->assertStringContainsString("'{$table}'", $migration);
         }
+        foreach ([
+            'ocd_encounter_fk',
+            'ocd_author_user_fk',
+            'ocd_finalized_by_user_fk',
+            'ocd_public_id_uq',
+            'ocd_encounter_type_uq',
+            'ocd_encounter_state_idx',
+            'ocdv_document_fk',
+            'ocdv_actor_user_fk',
+            'ocdv_public_id_uq',
+            'ocdv_document_version_uq',
+            'ormcr_encounter_fk',
+            'ormcr_reviewed_by_user_fk',
+            'ormcr_signed_off_by_user_fk',
+            'ormcr_public_id_uq',
+            'ormcr_encounter_version_uq',
+            'ormcr_encounter_state_idx',
+            'ormci_review_fk',
+            'ormci_review_item_uq',
+        ] as $identifier) {
+            $this->assertLessThanOrEqual(63, strlen($identifier));
+            $this->assertStringContainsString("'{$identifier}'", $migration);
+        }
 
         $migrationObject = require database_path('migrations/2026_08_24_000100_create_outpatient_documentation_tables.php');
         $reflection = new \ReflectionClass($migrationObject);
