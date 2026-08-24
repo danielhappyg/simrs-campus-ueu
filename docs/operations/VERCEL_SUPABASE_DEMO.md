@@ -108,6 +108,8 @@ php artisan --env=vercel.local tinker --execute='foreach (\App\Support\Authoriza
 
 The seeder and comparison are both required when a release adds or changes capabilities. Finish with one permitted-role and one denied-role browser check; a successful seed alone does not prove route authorization.
 
+Do not rerun `DemoActorsSeeder` to repair a single actor's role membership. For the known rebuild-admin drift, use the narrowly scoped [privileged rebuild-admin reconciliation runbook](PRIVILEGED_REBUILD_ADMIN_RUNBOOK_2026-08-25.md). Its role correction is distinct from RBAC capability seeding and from the still-open G1 break-glass design.
+
 ## Disposable bootstrap only
 
 Creating the synthetic actors or teaching census is a separate destructive bootstrap operation. On a new, disposable database only, set `DEMO_SEED_ENABLED=true`, `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, and a temporary `DEMO_ACCOUNT_PASSWORD` of at least 12 characters in the ignored environment file, then run:

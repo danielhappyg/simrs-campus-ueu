@@ -83,6 +83,8 @@ Nav: Pendaftaran / Pemeriksaan / RM point at these dedicated routes (other categ
 Facilitator script: `docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md`  
 **Full handoff (start here for other humans/agents):** `docs/operations/HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md`
 
+Current exact-SHA deployment and schema reconciliation: `docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md`. Focused authenticated structured-v1 UAT and Clinical/RMIK acceptance remain open.
+
 ## Evidence
 
 - `tests/Feature/Outpatient/OutpatientFlowTest.php`

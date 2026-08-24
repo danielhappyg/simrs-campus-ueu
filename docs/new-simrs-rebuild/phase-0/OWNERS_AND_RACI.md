@@ -56,6 +56,8 @@ Authority: DEC-001 (confirmed), DEC-011 (RMIK Department)
 
 ## Open appointment actions
 
+Ready-to-record appointment form: [`G0_OWNER_APPOINTMENT_PACK_2026-08-25.md`](G0_OWNER_APPOINTMENT_PACK_2026-08-25.md).
+
 1. Record a named contact person inside RMIK Department when available.
 2. Prefer a distinct UEU executive sponsor when institutional process allows.
 3. Name clinical, pharmacy/finance SMEs before Phase 1 P0/P1 dispositions freeze.

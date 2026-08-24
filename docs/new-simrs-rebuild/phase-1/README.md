@@ -43,6 +43,7 @@ The next outpatient-depth slice has a bounded v1 engineering authorization. Clin
 | [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md) | Exact narrow field, lifecycle, RM-review and safety boundary authorized for implementation | Authorized by product owner on 2026-08-24 |
 
 Matrix: [`../PARITY_REQUIREMENTS_MATRIX.md`](../PARITY_REQUIREMENTS_MATRIX.md)  
+G0 control baseline and dependency-safe decision batches: [`../phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md`](../phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md)
 UI direction: [`UI_DIRECTION.md`](UI_DIRECTION.md)
 
 ## Next

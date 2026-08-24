@@ -42,6 +42,12 @@ jobs:
           abort(failures.join("\n")) unless failures.empty?
           puts "Validated #{files.length} Markdown files"
 
+      - name: Test parity governance validator
+        run: ruby tests/Documentation/ParityGovernanceValidatorTest.rb
+
+      - name: Validate parity governance integrity
+        run: ruby scripts/validate-parity-governance.rb --mode integrity
+
       - name: Reject tracked credential files
         shell: ruby {0}
         run: |

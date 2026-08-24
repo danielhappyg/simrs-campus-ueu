@@ -3,6 +3,8 @@
 Status: Phase 1 slice packs drafted (outpatient, ED, inpatient — 2026-08-21); remaining domains Pending evidence  
 Source: verified 268-menu inventory from 2026-08-21
 
+Current G0 reconciliation and decision batches: [`phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md`](phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md).
+
 ## How to use this matrix
 
 Every row must be reviewed and receive a deliberate disposition: **Reproduce**, **Consolidate**, **Replace**, **Retire**, or **Pending evidence**. The initial value is Pending evidence because menu presence alone does not prove complete behavior or necessity.
@@ -21,14 +23,14 @@ Slice working packs:
 
 ## Current build availability (separate from parity acceptance)
 
-Snapshot: 2026-08-24. “Available” means code exists on `main`; it does not mean full SAHABAT equivalence, clinical acceptance, or production readiness.
+Snapshot: 2026-08-25. “Available” means code exists on `main`; it does not mean full SAHABAT equivalence, clinical acceptance, or production readiness.
 
 | PAR ID | Build availability | Verification evidence | Parity acceptance | Honest boundary |
 |---|---|---|---|---|
 | PAR-REG-003 | Available — teaching partial | Automated outpatient flow plus hosted Pendaftaran/cetak/rekap slice UAT | Not accepted; matrix remains Specified | Registration desk exists; exact legacy rules, corrections and downstream reconciliation are incomplete |
-| PAR-CLN-004 | Available — teaching partial | Automated outpatient flow plus hosted continuous Run 4 nursing/medical-note evidence | Not accepted; matrix remains Specified | Current deployed notes are attributable free text; bounded structured-documentation v1 engineering is authorized, while Clinical acceptance and broader fields/supervision remain open |
+| PAR-CLN-004 | Available and deployed — teaching partial | Automated structured-documentation tests; exact-SHA deployment and schema evidence; hosted Run 4 remains historical free-text evidence | Not accepted; matrix remains Specified | Draft/Final, immutable version history and required-field mechanics are deployed; focused hosted structured-v1 UAT, Clinical acceptance, broader fields and supervision remain open |
 | PAR-CLN-006 | Available — teaching partial | Automated lab/lifecycle tests plus hosted Run 3 and continuous Run 4 evidence | Not accepted; matrix remains Specified | RJ order, lab worklist and FINAL-only synthetic result exist; closure guard is Proposed NEW teaching safety, not SAHABAT parity; no specimen, tarif, LIS, preliminary, cancellation or amendment |
-| PAR-RMIK-001 | Available — teaching partial | Automated close/lifecycle tests plus hosted continuous Run 4 close, wrong-role and late-write denial evidence | Not accepted; matrix remains Specified | Current deployed RM desk counts notes/active orders and closes directly; bounded completeness-review v1 engineering is authorized, while RMIK acceptance and DEC-016 parity remain open |
+| PAR-RMIK-001 | Available and deployed — teaching partial | Automated completeness-review/sign-off tests; exact-SHA deployment and schema evidence; hosted Run 4 remains historical direct-close evidence | Not accepted; matrix remains Specified | Automatic checklist, versioned review, attributable sign-off and closed read-only retrieval are deployed; focused hosted structured-v1 UAT, RMIK acceptance and DEC-016 parity remain open |
 | PAR-REG-002 | Available — teaching desk partial | Automated emergency-flow tests | Not accepted; matrix remains Specified | Synthetic IGD registration desk exists; hosted role-based UAT and full ED rules are not recorded |
 | PAR-CLN-002 | Available — teaching stub/partial | Automated emergency-flow tests | Not accepted; matrix remains Specified | Triage desk exists; acuity scale and clinical-owner FR pack remain unresolved |
 | PAR-CLN-003 | Available — teaching desk partial | Automated emergency-flow tests | Not accepted; matrix remains Specified | IGD examination desk exists; deep clinical/disposition parity is unfinished |
@@ -65,7 +67,7 @@ Runs 1–3 remain slice evidence. Run 4 establishes one continuous, role-switche
 | PAR-REG-003 | Pendaftaran | Rawat Jalan | Reproduce | Observed form/route | Specified | Daniel (interim) | Outpatient slice | [phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md](phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md) | In spec |
 | PAR-REG-004 | Pendaftaran | Display Admisi | Replace | Observed external route (not opened); insecure pattern prohibited | Specified | Daniel + security interim | Outpatient / access display | Safe synthetic display only; see outpatient dispositions | TBD |
 | PAR-REG-005 | Pendaftaran | Rawat Jalan v2 | Consolidate → PAR-REG-003 | Observed route | Specified | Daniel (interim) | Outpatient slice | See PAR-REG-003 | See PAR-REG-003 |
-| PAR-CLN-001 | Pemeriksaan | Assesmen | Consolidate → PAR-CLN-004 | Menu observed | Specified | Clinical TBD | Outpatient slice | See PAR-CLN-004 | See PAR-CLN-004 |
+| PAR-CLN-001 | Pemeriksaan | Assesmen | Consolidate → PAR-CLN-004 | Menu observed | Unspecified | Clinical TBD | Outpatient slice | See PAR-CLN-004 | See PAR-CLN-004 |
 | PAR-CLN-002 | Pemeriksaan | Triage | Reproduce | Observed route `/pemeriksaan/triage`; scale Unknown | Specified | Clinical TBD / Daniel interim | ED slice | See ED dispositions; FR pack after acuity discovery | TBD |
 | PAR-CLN-003 | Pemeriksaan | IGD | Reproduce | Observed screen/route `/pemeriksaan/ugd` | Specified | Clinical TBD / Daniel interim | ED slice | [phase-1/requirements/PAR-CLN-003-igd-examination.md](phase-1/requirements/PAR-CLN-003-igd-examination.md) | In spec |
 | PAR-CLN-004 | Pemeriksaan | Rawat Jalan | Reproduce | Observed screen | Specified | Clinical TBD / Daniel interim | Outpatient slice | [phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md](phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md) + [owner-decision pack](phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) | Run 4 current-flow evidence; structured slice pending owner decisions |
@@ -83,7 +85,7 @@ Runs 1–3 remain slice evidence. Run 4 establishes one continuous, role-switche
 | PAR-CLN-016 | Pemeriksaan | Lab Mikro | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-017 | Pemeriksaan | Bank Darah | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-CLN-018 | Pemeriksaan | Jenazah | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
-| PAR-CLN-019 | Pemeriksaan | Rawat Inap v2 | Consolidate → PAR-CLN-005 | Observed route `/pemeriksaanv3/rawatinap` | Specified | Clinical TBD | Inpatient slice | See inpatient dispositions / PAR-CLN-005 | See PAR-CLN-005 |
+| PAR-CLN-019 | Pemeriksaan | Rawat Inap v2 | Consolidate → PAR-CLN-005 | Observed route `/pemeriksaanv3/rawatinap` | Unspecified | Clinical TBD | Inpatient slice | See inpatient dispositions / PAR-CLN-005 | See PAR-CLN-005 |
 | PAR-CLN-020 | Pemeriksaan | Ambulance | Pending evidence | Menu observed | Unspecified | TBD | TBD | TBD | TBD |
 | PAR-RMIK-001 | RM | Rawat Jalan | Reproduce | Menu observed | Specified | RMIK Department | Outpatient slice | [phase-1/requirements/PAR-RMIK-001-rawat-jalan-rm.md](phase-1/requirements/PAR-RMIK-001-rawat-jalan-rm.md) + [owner-decision pack](phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) | Run 4 current-flow evidence; checklist pending owner decisions |
 | PAR-RMIK-002 | RM | Rawat Inap | Reproduce | Observed route `/rm/rawatinap` | Specified | RMIK Department | Inpatient slice | See inpatient dispositions; detailed FR TBD with RMIK | TBD |
