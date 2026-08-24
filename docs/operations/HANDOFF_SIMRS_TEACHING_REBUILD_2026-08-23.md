@@ -1,8 +1,9 @@
 # Handoff — SIMRS Campus UEU teaching rebuild (outpatient core)
 
 **Audience:** Daniel, facilitators, and any human or agent continuing this work without prior chat history.  
-**Date:** 2026-08-23  
-**Git tip before lifecycle-contract work:** `5e9c43a` on `main` (synthetic/PostgreSQL hardening; lab slice originated in `807bbf2` / PR #48)
+**Date:** 2026-08-23; updated with hosted UAT Run 4 evidence on 2026-08-24<br>
+**Current production baseline:** `c6979de82b6e8b2c518841ad8e72e1d9bf8bd213` on `main` / Vercel deployment `dpl_6U3eC7uFF4A27mS7qoib7DMMywvb`<br>
+**Earlier lifecycle baseline:** `5e9c43a` (synthetic/PostgreSQL hardening; lab slice originated in `807bbf2` / PR #48)<br>
 **Live demo:** https://simrs-campus-ueu-demo.vercel.app  
 **Repo:** https://github.com/danielhappyg/simrs-campus-ueu  
 
@@ -128,9 +129,10 @@ Read bottom-up for “how we got here.” Older Checkpoint 2 / Antrean MVP work 
 | **#46** | `80d6d80` | Align Pendaftaran metadata codes/labels |
 | **#47** | `9fc0b3b` | Fix Simpan HTTP 500 (`SchemaAwareRules`) |
 | **#48** | `807bbf2` | Lab order + laboratorium result teaching slice |
+| **#50** | `c6979de` | Enforce the bounded outpatient lab-result/RM-closure lifecycle contract |
 | docs | `09f4f84`…`315d912` | Facilitator runbook + UAT Runs 1–3 evidence |
 
-**Production lab promote (demo):** `dpl_4BJScnJZXo98j2AF1h7YydJhL3vx` for `807bbf2` — see lab UAT record.
+**Current production deployment (demo):** `dpl_6U3eC7uFF4A27mS7qoib7DMMywvb` for `c6979de…213`; Vercel state `READY`, target `production`, public alias `simrs-campus-ueu-demo.vercel.app`.
 
 ---
 
@@ -142,8 +144,9 @@ Read bottom-up for “how we got here.” Older Checkpoint 2 / Antrean MVP work 
 | --- | --- | --- |
 | Runs 1–2 | [`TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md`](TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md) | PASS after #47 — register metadata, Simpan, cetak, rekap |
 | Run 3 | [`TEACHING_UAT_LAB_SLICE_2026-08-22.md`](TEACHING_UAT_LAB_SLICE_2026-08-22.md) | PASS — HB order + FINAL result on production |
+| Run 4 | [`TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md`](TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md) | **PASS with one partial manual-evidence item** — continuous role-specific journey, lifecycle denials, close, cetak and rekap on `c6979de` |
 
-These records validate separate slices. They do **not** yet prove one continuous, role-switched, actual-UI journey through registration, nursing, physician, lab, RM closure, cetak, rekap, one denied-role check, and reset/cleanup on a single encounter.
+Run 4 proves one continuous role-switched hosted journey on a single synthetic encounter. The active-order blocker passed in the RM UI, but the disabled action meant the manual run did not send a stale/direct close request and therefore did not generate an `active_lab_orders` denial audit. Automated tests remain the evidence for that server rejection. This is an explicit partial manual-evidence boundary, not a product failure. DEC-016 remains **Proposed** and still requires Clinical/Laboratory and RMIK owner review.
 
 ### 4.2 Automated tests (local)
 
@@ -264,6 +267,7 @@ Density honesty: `docs/new-simrs-rebuild/SAHABAT_VS_DEMO_GAP.md` (historical “
 | --- | --- |
 | `docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md` | Runs 1–2 |
 | `docs/operations/TEACHING_UAT_LAB_SLICE_2026-08-22.md` | Run 3 |
+| `docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md` | Run 4 continuous lifecycle evidence and cleanup record |
 | `docs/new-simrs-rebuild/TESTER_NOTES_2026-08-22_CETAK_SEP_REKAP.md` | Scope lock for cetak/SEP |
 
 ### Vendor / assessment (context, not implementation)
@@ -316,26 +320,28 @@ Committed visual oracles for SAHABAT (DEC-014): `docs/new-simrs-rebuild/_evidenc
 
 ---
 
-## 12. Current next work — lifecycle contract and continuous UAT
+## 12. Current next work — owner review, then the next bounded slice
 
-Product-owner approval was recorded on 2026-08-23. Operational-truth stabilization and synthetic/PostgreSQL hardening have landed. Before Radiology, Pharmacy, or another clinical module:
+The bounded lifecycle guard is deployed and continuous hosted UAT Run 4 passed on 2026-08-24. The synthetic evidence encounter was retained; temporary role accounts were disabled, password values made unusable, sessions revoked and temporary credential/session files deleted. Closeout verification returned `active_session_rows=0`, `disabled_account_rows=4` and `preserved_closed_encounter_rows=1`. Global `simulation:reset` was not run because it is not encounter-scoped.
 
-1. Keep DEC-016 **Proposed**: implement the bounded fail-closed teaching guard, but do not call it SAHABAT parity.
-2. Obtain Clinical/Laboratory and RMIK review of the FINAL-only, active-order closure and late-result policy.
-3. Run one fresh continuous, actual-UI, role-specific RJ rehearsal including active-order close denial, FINAL completion, successful RM close, late/duplicate-result denial, wrong-role denial and reset/cleanup evidence.
-4. Preserve the unresolved boundary: preliminary results, amendment, reopen and cancellation are not built.
+Next sequence:
 
-Only then choose the next bounded product slice. Current candidates are structured clinical/RM completeness and a PAR-CLN-007 Radiology requirements pack. Do not implement “Order Rad like Lab” until its workflow and acceptance contract are specified.
+1. Keep DEC-016 **Proposed** and obtain Clinical/Laboratory and RMIK review of the FINAL-only, active-order closure and late-result policy. Run 4 is implementation evidence, not owner acceptance or SAHABAT parity.
+2. Treat the missing manual `active_lab_orders` denial audit honestly: the UI blocker passed; the server rejection is covered by automated tests. Repeat a hosted stale/direct denial only if an explicit acceptance plan requires it.
+3. Specify the next bounded product slice around **structured clinical documentation and RM completeness** before implementation, retaining Indonesian labels, UEU tokens, role-specific authorization and synthetic-only audit evidence.
+4. Draft the **PAR-CLN-007 Radiology requirements pack** after that. Do not implement “Order Rad like Lab” until scheduling, verification, correction and PACS boundaries have an approved workflow and acceptance contract.
+5. Preserve the unresolved lifecycle boundary: preliminary results, amendment, reopen and cancellation remain unbuilt.
 
 ---
 
 ## 13. Handoff checklist for the next owner
 
-- [ ] Clone `main`, confirm tip ≥ `5e9c43a` for the synthetic/PostgreSQL hardening baseline
+- [ ] Clone `main`, confirm the intended production baseline is ≥ `c6979de` (lifecycle contract; synthetic/PostgreSQL hardening is included)
 - [ ] Read this file + facilitator runbook  
 - [ ] Confirm demo `/up` and simulation banner  
 - [ ] Obtain `DEMO_ACCOUNT_PASSWORD` out-of-band  
-- [ ] Rehearse the full RJ arc once; treat Runs 1–3 as slice evidence, not a substitute for continuous role-specific UAT
+- [x] Continuous role-specific RJ UAT Run 4 recorded on 2026-08-24; use its partial manual-evidence note accurately
+- [ ] Obtain Clinical/Laboratory and RMIK owner review of DEC-016
 - [ ] Before schema work: remember Supabase migrate is **manual** on Vercel  
 - [ ] Before validation work: use `SchemaAwareRules` / model classes, never `laravel.table` strings in `Rule::exists`  
 - [ ] Do not restore Antrean MVP; do not wire live BPJS without an explicit new decision  
