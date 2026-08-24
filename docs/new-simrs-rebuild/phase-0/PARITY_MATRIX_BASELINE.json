@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "source": "docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md",
+  "expected_row_count": 268,
+  "categories": [
+    { "legacy_category": "Pendaftaran", "prefix": "REG", "first": 1, "last": 5 },
+    { "legacy_category": "Pemeriksaan", "prefix": "CLN", "first": 1, "last": 20 },
+    { "legacy_category": "RM", "prefix": "RMIK", "first": 1, "last": 7 },
+    { "legacy_category": "Klaim", "prefix": "CLM", "first": 1, "last": 6 },
+    { "legacy_category": "Laporan", "prefix": "RPT", "first": 1, "last": 117 },
+    { "legacy_category": "BPJS", "prefix": "BPJS", "first": 1, "last": 2 },
+    { "legacy_category": "Apotek", "prefix": "PHA", "first": 1, "last": 20 },
+    { "legacy_category": "GF", "prefix": "PWH", "first": 1, "last": 23 },
+    { "legacy_category": "Kasir", "prefix": "FIN", "first": 1, "last": 19 },
+    { "legacy_category": "Manajemen Data", "prefix": "ADM", "first": 1, "last": 46 },
+    { "legacy_category": "IoT", "prefix": "IOT", "first": 1, "last": 1 },
+    { "legacy_category": "Farmasi IBS", "prefix": "ORP", "first": 1, "last": 1 },
+    { "legacy_category": "Help", "prefix": "HLP", "first": 1, "last": 1 }
+  ]
+}
