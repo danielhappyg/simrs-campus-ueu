@@ -53,4 +53,18 @@ class SchemaQualifierTest extends TestCase
         $this->assertNull(SchemaQualifier::primarySchema());
         $this->assertSame('role_user', SchemaQualifier::table('role_user'));
     }
+
+    public function test_configurable_quoted_preview_schema_is_primary(): void
+    {
+        config([
+            'database.default' => 'pgsql',
+            'database.connections.pgsql.search_path' => '"Preview", public',
+            'simulation.synthetic_only' => false,
+            'simulation.mode' => 'LOCAL',
+        ]);
+
+        $this->assertSame('Preview', SchemaQualifier::primarySchema());
+        $this->assertSame('Preview.role_user', SchemaQualifier::table('role_user'));
+        $this->assertSame(['Preview', 'public'], SchemaQualifier::searchPathSchemas());
+    }
 }

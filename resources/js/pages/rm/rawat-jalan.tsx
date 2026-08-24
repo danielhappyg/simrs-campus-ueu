@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,9 @@ type EncounterRow = {
     visit_date: string | null;
     entry_count: number;
     active_lab_order_count: number;
+    completeness_status?:
+        'NOT_REVIEWED' | 'INCOMPLETE' | 'COMPLETE' | 'SIGNED_OFF';
+    blocker_count?: number;
     patient: {
         public_id: string | null;
         medical_record_number: string | null;
@@ -42,7 +45,7 @@ type Props = {
     clinics: ClinicOption[];
     payerOptions: ClinicOption[];
     filters: Filters;
-    canComplete: boolean;
+    canComplete?: boolean;
 };
 
 const payerLabel: Record<string, string> = {
@@ -65,7 +68,6 @@ export default function RmRawatJalan({
     clinics,
     payerOptions,
     filters,
-    canComplete,
 }: Props) {
     const [q, setQ] = useState(filters.q);
     const [clinic, setClinic] = useState(filters.clinic);
@@ -87,22 +89,6 @@ export default function RmRawatJalan({
             },
             { preserveState: true, replace: true },
         );
-    };
-
-    const complete = (publicId: string, activeLabOrderCount: number) => {
-        if (activeLabOrderCount > 0) {
-            return;
-        }
-
-        if (
-            !window.confirm(
-                'Tandai rekam medis selesai dan tutup kunjungan ini?',
-            )
-        ) {
-            return;
-        }
-
-        router.post(`/rm/rawat-jalan/${publicId}/complete`);
     };
 
     return (
@@ -265,7 +251,7 @@ export default function RmRawatJalan({
                                         Penjamin
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Catatan
+                                        Kelengkapan
                                     </th>
                                     <th className="px-2 py-1.5 font-medium" />
                                 </tr>
@@ -320,10 +306,34 @@ export default function RmRawatJalan({
                                                 ] ?? encounter.payer_type}
                                             </td>
                                             <td className="px-2 py-1.5">
-                                                <p>{encounter.entry_count}</p>
+                                                <p className="text-xs font-semibold text-secondary-foreground">
+                                                    {encounter.status ===
+                                                    'CLOSED'
+                                                        ? 'Sudah sign-off'
+                                                        : encounter.completeness_status ===
+                                                            'COMPLETE'
+                                                          ? 'Lengkap'
+                                                          : encounter.completeness_status ===
+                                                              'INCOMPLETE'
+                                                            ? 'Belum lengkap'
+                                                            : 'Belum ditinjau'}
+                                                </p>
+                                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                                    {encounter.entry_count}{' '}
+                                                    sumber klinis
+                                                </p>
+                                                {(encounter.blocker_count ??
+                                                    0) > 0 ? (
+                                                    <p className="mt-0.5 text-xs font-medium text-warning">
+                                                        {
+                                                            encounter.blocker_count
+                                                        }{' '}
+                                                        blocker
+                                                    </p>
+                                                ) : null}
                                                 {encounter.active_lab_order_count >
                                                 0 ? (
-                                                    <p className="mt-0.5 text-xs font-medium text-[#b45309]">
+                                                    <p className="mt-0.5 text-xs font-medium text-warning">
                                                         {
                                                             encounter.active_lab_order_count
                                                         }{' '}
@@ -332,37 +342,15 @@ export default function RmRawatJalan({
                                                 ) : null}
                                             </td>
                                             <td className="max-w-[17rem] px-2 py-1.5 text-right">
-                                                {canComplete ? (
-                                                    <div className="inline-flex flex-col items-end gap-1">
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            disabled={
-                                                                encounter.active_lab_order_count >
-                                                                0
-                                                            }
-                                                            className="h-7 bg-[#1b75bc] hover:bg-[#1665a3]"
-                                                            onClick={() =>
-                                                                complete(
-                                                                    encounter.public_id,
-                                                                    encounter.active_lab_order_count,
-                                                                )
-                                                            }
-                                                        >
-                                                            Selesai RM
-                                                        </Button>
-                                                        {encounter.active_lab_order_count >
-                                                        0 ? (
-                                                            <p className="text-xs leading-tight text-[#b45309]">
-                                                                Belum dapat
-                                                                ditutup: masih
-                                                                ada order
-                                                                laboratorium
-                                                                aktif.
-                                                            </p>
-                                                        ) : null}
-                                                    </div>
-                                                ) : null}
+                                                <Link
+                                                    href={`/rm/rawat-jalan/${encounter.public_id}`}
+                                                    className="inline-flex min-h-11 items-center rounded-md border border-primary/30 bg-primary/5 px-3 text-xs font-semibold text-primary hover:bg-primary/10"
+                                                >
+                                                    {encounter.status ===
+                                                    'CLOSED'
+                                                        ? 'Lihat RM'
+                                                        : 'Tinjau RM'}
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))

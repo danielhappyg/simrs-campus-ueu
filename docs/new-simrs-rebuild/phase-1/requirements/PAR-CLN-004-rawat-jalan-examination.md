@@ -8,7 +8,7 @@
 - Affected actors: nurse, physician/learner, supervisors
 - Evidence: **Observed** screen/route `/pemeriksaan/rawatjalan`; Assesmen (PAR-CLN-001) consolidated into this capability unless ED-specific
 - Target milestone: Phase 3 outpatient slice
-- Owner-decision pack: [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) and [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md) — **Draft; not approved for build**
+- Owner-decision pack: [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md), [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md), and [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md) — **bounded v1 engineering authorized; Clinical acceptance and parity acceptance pending**
 
 ## Business outcome
 

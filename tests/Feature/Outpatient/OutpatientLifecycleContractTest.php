@@ -5,11 +5,13 @@ namespace Tests\Feature\Outpatient;
 use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
+use App\Models\OutpatientClinicalDocument;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Clinical\OutpatientRmCompletenessService;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,14 +46,18 @@ class OutpatientLifecycleContractTest extends TestCase
                 ->where('encounters.0.public_id', $encounter->public_id)
                 ->where('encounters.0.active_lab_order_count', 1));
 
+        $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter);
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
+            'expected_version' => 0, 'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
         $this->actingAs($rmik)
-            ->post(route('rm.rawat-jalan.complete', $encounter))
+            ->post(route('rm.rawat-jalan.signoff', $encounter), ['expected_version' => 1, 'source_fingerprint' => $snapshot['source_fingerprint']])
             ->assertStatus(422);
 
         $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
         $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->fresh()->status);
         $this->assertDatabaseHas('audit_events', [
-            'action' => 'rmik.review.complete',
+            'action' => 'rmik.completeness.signoff',
             'resource_id' => $encounter->public_id,
             'outcome' => 'DENIED',
             'reason' => 'active_lab_orders',
@@ -66,6 +72,7 @@ class OutpatientLifecycleContractTest extends TestCase
         $rmik = $this->userWithRole(RoleCapabilityMatrix::ROLE_RMIK);
         $encounter = $this->encounter($registrar, Encounter::STATUS_READY_FOR_RM);
         $order = $this->labOrder($encounter, $physician);
+        $this->seedCompleteDocuments($encounter, $nurse, $physician);
 
         $this->actingAs($nurse)
             ->post(route('pemeriksaan.laboratorium.results.store', $order), [
@@ -74,9 +81,13 @@ class OutpatientLifecycleContractTest extends TestCase
             ])
             ->assertRedirect(route('pemeriksaan.laboratorium.index'));
 
+        $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter);
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
+            'expected_version' => 0, 'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
         $this->actingAs($rmik)
-            ->post(route('rm.rawat-jalan.complete', $encounter))
-            ->assertRedirect(route('rm.rawat-jalan.index'));
+            ->post(route('rm.rawat-jalan.signoff', $encounter), ['expected_version' => 1, 'source_fingerprint' => $snapshot['source_fingerprint']])
+            ->assertRedirect(route('rm.rawat-jalan.show', $encounter));
 
         $this->assertSame(LabServiceRequest::STATUS_COMPLETED, $order->fresh()->status);
         $this->assertSame(LabDiagnosticResult::STATUS_FINAL, $order->fresh()->result?->status);
@@ -260,6 +271,25 @@ class OutpatientLifecycleContractTest extends TestCase
             'test_code' => 'HB',
             'test_label' => 'Hemoglobin',
             'status' => $status,
+        ]);
+    }
+
+    private function seedCompleteDocuments(Encounter $encounter, User $nurse, User $physician): void
+    {
+        OutpatientClinicalDocument::query()->create([
+            'encounter_id' => $encounter->id, 'author_user_id' => $nurse->id, 'finalized_by_user_id' => $nurse->id,
+            'document_type' => OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT,
+            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION, 'version' => 1,
+            'fields' => ['nursing_assessment' => 'Sintetis'], 'finalized_at' => now(),
+        ]);
+        OutpatientClinicalDocument::query()->create([
+            'encounter_id' => $encounter->id, 'author_user_id' => $physician->id, 'finalized_by_user_id' => $physician->id,
+            'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
+            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION, 'version' => 1,
+            'fields' => ['anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D'],
+            'finalized_at' => now(),
         ]);
     }
 

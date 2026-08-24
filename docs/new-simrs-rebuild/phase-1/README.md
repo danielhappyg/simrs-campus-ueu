@@ -34,16 +34,17 @@ Classify all 268 `PAR-*` rows and specify P0/P1 vertical slices before building 
 
 ## Current owner-decision pack
 
-The next outpatient-depth slice is specified only to the **owner-decision** stage. It is not approved for build and does not change parity acceptance:
+The next outpatient-depth slice has a bounded v1 engineering authorization. Clinical/RMIK acceptance and parity acceptance remain open:
 
 | Artifact | Purpose | Status |
 |---|---|---|
-| [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) | Combined PAR-CLN-004 + PAR-RMIK-001 functional requirements, response sheets and acceptance scenarios | Draft; Clinical and RMIK decisions open |
-| [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md) | Indonesian, UEU-token design handoff for nurse, physician and RMIK desks | Draft; all clinical fields/checklist items marked as owner decisions |
+| [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) | Combined PAR-CLN-004 + PAR-RMIK-001 functional requirements, response sheets and acceptance scenarios | Bounded v1 engineering authorized; broader owner decisions open |
+| [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md) | Indonesian, UEU-token design handoff for nurse, physician and RMIK desks | Bounded v1 engineering authorized; Clinical/RMIK acceptance pending |
+| [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md) | Exact narrow field, lifecycle, RM-review and safety boundary authorized for implementation | Authorized by product owner on 2026-08-24 |
 
 Matrix: [`../PARITY_REQUIREMENTS_MATRIX.md`](../PARITY_REQUIREMENTS_MATRIX.md)  
 UI direction: [`UI_DIRECTION.md`](UI_DIRECTION.md)
 
 ## Next
 
-Obtain the recorded Clinical and RMIK decisions in the pack above before coding structured documentation or RM completeness. Continue Phase 1 residual disposition of non-slice menus with owners and evidence plans in parallel as needed for later phases.
+Implement and verify only the bounded v1 decision above. Obtain the remaining Clinical and RMIK decisions before broadening clinical fields, learner/supervisor behavior, correction/amendment, or RM policy. Continue Phase 1 residual disposition of non-slice menus with owners and evidence plans in parallel as needed for later phases.

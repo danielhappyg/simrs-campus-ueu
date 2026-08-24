@@ -1,10 +1,11 @@
 # Design handoff — Dokumentasi RJ terstruktur + kelengkapan RM
 
-- Status: **Draft untuk keputusan pemilik; belum menjadi spesifikasi klinis yang disetujui**
+- Status: **Implementasi engineering v1 terbatas diotorisasi; acceptance Clinical/RMIK masih pending**
 - Tanggal: 2026-08-24
 - Slice: PAR-CLN-004 + PAR-RMIK-001
 - Pemilik keputusan: Clinical owner (belum dinamai) + RMIK Department
 - Dasar UI: implementasi clean-slate saat ini, `UI_DIRECTION.md`, DEC-013, DEC-014, DEC-015, dan bukti struktural PAR-CLN-004/PAR-RMIK-001
+- Keputusan implementasi: [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md)
 
 ## 1. Batas bukti dan tujuan
 

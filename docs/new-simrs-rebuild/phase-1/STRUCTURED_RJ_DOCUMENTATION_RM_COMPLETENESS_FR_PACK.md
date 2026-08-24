@@ -1,10 +1,11 @@
 # Structured RJ documentation + RM completeness — functional-requirements and owner-decision pack
 
-- Status: **Draft for Clinical and RMIK owner decision; not approved for build**
+- Status: **Bounded v1 engineering authorized; Clinical and RMIK acceptance pending**
 - Date: 2026-08-24
 - Primary parity capabilities: **PAR-CLN-004** and **PAR-RMIK-001**
 - Related decision: **DEC-016 remains Proposed**
 - Environment boundary: **SIMULATION / synthetic-only teaching rebuild**
+- Implementation decision: [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md)
 
 ## 1. Purpose and decision gate
 
@@ -12,7 +13,7 @@ This pack defines the next bounded outpatient slice: structured nursing and medi
 
 It does **not** claim complete SIMRS Sahabat parity, clinical production readiness, or domain acceptance. Run 4 proves that the current synthetic note-to-lab-to-RM-close journey works; it does not prove that the current free-text notes, a proposed structured form, or any completeness checklist matches SAHABAT or professional policy.
 
-No build should begin until the decisions marked **Build gate** in sections 7 and 9–11, the owner questions in section 17, and the decision record in section 18 are resolved by the named owners. Approval of this pack does not change DEC-016 from **Proposed**; DEC-016 requires its own Clinical/Laboratory and RMIK decision.
+The product owner authorized the deliberately narrow v1 engineering boundary recorded in the implementation decision above. That authorization does not resolve the broader **Build gate** questions in sections 7 and 9–11, the owner questions in section 17, or the Clinical/RMIK decision record in section 18. Work outside the recorded v1 fields and mechanics remains blocked. DEC-016 remains **Proposed** and still requires its own Clinical/Laboratory and RMIK decision.
 
 ## 2. Evidence vocabulary
 

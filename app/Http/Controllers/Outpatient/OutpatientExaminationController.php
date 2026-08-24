@@ -7,8 +7,11 @@ use App\Models\Clinic;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\LabServiceRequest;
+use App\Models\OutpatientClinicalDocument;
 use App\Support\Authorization\Capability;
 use App\Support\Clinical\LabTestCatalog;
+use App\Support\Clinical\OutpatientDocumentationDefinition;
+use App\Support\Clinical\OutpatientDocumentationService;
 use App\Support\Clinical\OutpatientLabLifecycle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +23,10 @@ use Inertia\Response;
 
 class OutpatientExaminationController extends Controller
 {
-    public function __construct(private readonly OutpatientLabLifecycle $lifecycle) {}
+    public function __construct(
+        private readonly OutpatientLabLifecycle $lifecycle,
+        private readonly OutpatientDocumentationService $documentationService,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -121,12 +127,22 @@ class OutpatientExaminationController extends Controller
             404,
         );
 
-        $encounter->load(['patient', 'clinicalEntries.author', 'labServiceRequests.requestedBy', 'labServiceRequests.result.enteredBy']);
+        $encounter->load([
+            'patient',
+            'clinicalEntries.author',
+            'outpatientClinicalDocuments.author',
+            'outpatientClinicalDocuments.finalizedBy',
+            'outpatientClinicalDocuments.versions.actor',
+            'labServiceRequests.requestedBy',
+            'labServiceRequests.result.enteredBy',
+        ]);
 
         $user = $request->user();
         assert($user !== null);
+        $canMutate = $encounter->status !== Encounter::STATUS_CLOSED;
 
         return Inertia::render('pemeriksaan/rawat-jalan/show', [
+            'variant' => 'rawat-jalan',
             'encounter' => [
                 'public_id' => $encounter->public_id,
                 'status' => $encounter->status,
@@ -146,17 +162,6 @@ class OutpatientExaminationController extends Controller
                     'sex' => $encounter->patient?->sex,
                     'nik' => $encounter->patient?->nik,
                 ],
-                'entries' => $encounter->clinicalEntries
-                    ->sortBy('created_at')
-                    ->values()
-                    ->map(fn (ClinicalEntry $entry): array => [
-                        'public_id' => $entry->public_id,
-                        'entry_type' => $entry->entry_type,
-                        'body' => $entry->body,
-                        'created_at' => $entry->created_at?->toIso8601String(),
-                        'author_name' => $entry->author?->name,
-                    ])
-                    ->all(),
                 'lab_orders' => $encounter->labServiceRequests
                     ->sortByDesc('requested_at')
                     ->values()
@@ -178,51 +183,67 @@ class OutpatientExaminationController extends Controller
                     ])
                     ->all(),
             ],
-            'labTestOptions' => LabTestCatalog::all(),
-            'canCreateLabOrder' => $user->canCapability(Capability::CLINICAL_ORDER_CREATE),
-            'entryTypeOptions' => [
-                [
-                    'value' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                    'label' => 'Asesmen keperawatan',
-                    'allowed' => $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
-                ],
-                [
-                    'value' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                    'label' => 'Asesmen medis',
-                    'allowed' => $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
-                ],
+            'legacyEntries' => $encounter->clinicalEntries
+                ->sortBy('created_at')
+                ->values()
+                ->map(fn (ClinicalEntry $entry): array => [
+                    'public_id' => $entry->public_id,
+                    'entry_type' => $entry->entry_type,
+                    'body' => $entry->body,
+                    'created_at' => $entry->created_at?->toIso8601String(),
+                    'author_name' => $entry->author?->name,
+                ])
+                ->all(),
+            'documentation' => [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'source_fingerprint' => $this->documentationFingerprint($encounter->outpatientClinicalDocuments->all()),
+                'documents' => $encounter->outpatientClinicalDocuments
+                    ->sortBy('document_type')
+                    ->values()
+                    ->map(fn (OutpatientClinicalDocument $document): array => $this->documentProjection($document))
+                    ->all(),
+                'active_drafts' => $encounter->outpatientClinicalDocuments
+                    ->where('document_state', OutpatientClinicalDocument::STATE_DRAFT)
+                    ->sortBy('document_type')
+                    ->values()
+                    ->map(fn (OutpatientClinicalDocument $document): array => $this->documentProjection($document))
+                    ->all(),
+                'versions' => $this->documentVersionProjections($encounter->outpatientClinicalDocuments),
             ],
-            'canWriteNursing' => $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
-            'canWriteMedical' => $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
+            'permissions' => [
+                'nursing' => [
+                    'can_save_draft' => $canMutate && $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
+                    'can_finalize' => $canMutate && $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
+                ],
+                'medical' => [
+                    'can_save_draft' => $canMutate && $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
+                    'can_finalize' => $canMutate && $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
+                ],
+                'can_create_lab_order' => $canMutate && $user->canCapability(Capability::CLINICAL_ORDER_CREATE),
+            ],
+            'actions' => [
+                'nursing' => [
+                    'save_draft_url' => route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]),
+                    'finalize_url' => route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]),
+                ],
+                'medical' => [
+                    'save_draft_url' => route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
+                    'finalize_url' => route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
+                ],
+                'store_lab_order_url' => route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter),
+            ],
+            'labTestOptions' => LabTestCatalog::all(),
         ]);
     }
 
-    public function storeEntry(Request $request, Encounter $encounter): RedirectResponse
+    public function saveDraft(Request $request, Encounter $encounter, string $documentType): RedirectResponse
     {
-        $validated = $request->validate([
-            'entry_type' => ['required', Rule::in(ClinicalEntry::TYPE_VALUES)],
-            'body' => ['required', 'string', 'max:10000'],
-        ]);
+        return $this->saveDocument($request, $encounter, $documentType, false);
+    }
 
-        $capability = $validated['entry_type'] === ClinicalEntry::TYPE_NURSING_INTAKE
-            ? Capability::CLINICAL_NURSING_WRITE
-            : Capability::CLINICAL_MEDICAL_WRITE;
-
-        Gate::authorize($capability);
-
-        $user = $request->user();
-        assert($user !== null);
-
-        $this->lifecycle->writeClinicalEntry(
-            encounter: $encounter,
-            actor: $user,
-            entryType: $validated['entry_type'],
-            body: $validated['body'],
-        );
-
-        return redirect()
-            ->route('pemeriksaan.rawat-jalan.show', $encounter)
-            ->with('success', 'Catatan klinis disimpan.');
+    public function finalize(Request $request, Encounter $encounter, string $documentType): RedirectResponse
+    {
+        return $this->saveDocument($request, $encounter, $documentType, true);
     }
 
     public function storeLabOrder(Request $request, Encounter $encounter): RedirectResponse
@@ -250,5 +271,103 @@ class OutpatientExaminationController extends Controller
         return redirect()
             ->route('pemeriksaan.rawat-jalan.show', $encounter)
             ->with('success', 'Order lab disimpan.');
+    }
+
+    private function saveDocument(Request $request, Encounter $encounter, string $documentType, bool $finalize): RedirectResponse
+    {
+        abort_unless(in_array($documentType, [
+            OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT,
+            OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
+        ], true), 404);
+
+        Gate::authorize(OutpatientDocumentationDefinition::capability($documentType));
+        $validated = $finalize
+            ? $request->validate([
+                'expected_version' => ['required', 'integer', 'min:1'],
+            ])
+            : $request->validate([
+                'definition_version' => ['required', Rule::in([OutpatientClinicalDocument::DEFINITION_VERSION])],
+                'expected_version' => ['required', 'integer', 'min:0'],
+                'fields' => ['required', 'array'],
+            ]);
+        $user = $request->user();
+        assert($user !== null);
+
+        $this->documentationService->save(
+            encounter: $encounter,
+            actor: $user,
+            documentType: $documentType,
+            fields: $finalize ? null : $validated['fields'],
+            expectedVersion: (int) $validated['expected_version'],
+            finalize: $finalize,
+        );
+
+        return redirect()
+            ->route('pemeriksaan.rawat-jalan.show', $encounter)
+            ->with('success', $finalize ? 'Catatan klinis difinalisasi.' : 'Draf catatan klinis disimpan.');
+    }
+
+    /** @return array<string, mixed> */
+    private function documentProjection(OutpatientClinicalDocument $document): array
+    {
+        return [
+            'public_id' => $document->public_id,
+            'document_type' => $document->document_type,
+            'document_state' => $document->document_state,
+            'definition_version' => $document->definition_version,
+            'version' => $document->version,
+            'fields' => $document->fields,
+            'author_name' => $document->author?->name,
+            'updated_at' => $document->updated_at?->toIso8601String(),
+            'finalized_at' => $document->finalized_at?->toIso8601String(),
+            'finalized_by_name' => $document->finalizedBy?->name,
+        ];
+    }
+
+    /** @param array<int, OutpatientClinicalDocument> $documents */
+    private function documentationFingerprint(array $documents): string
+    {
+        $sources = collect($documents)
+            ->map(fn (OutpatientClinicalDocument $document): string => implode(':', [
+                $document->public_id,
+                $document->definition_version,
+                $document->version,
+                $document->document_state,
+            ]))
+            ->sort()
+            ->implode('|');
+
+        return hash('sha256', $sources);
+    }
+
+    /**
+     * @param  iterable<OutpatientClinicalDocument>  $documents
+     * @return list<array<string, mixed>>
+     */
+    private function documentVersionProjections(iterable $documents): array
+    {
+        $projections = [];
+        foreach ($documents as $document) {
+            foreach ($document->versions as $version) {
+                $projections[] = [
+                    'public_id' => $version->public_id,
+                    'document_type' => $document->document_type,
+                    'version' => $version->version,
+                    'state' => $version->document_state,
+                    'fields' => $version->fields,
+                    'actor_name' => $version->actor?->name,
+                    'created_at' => $version->created_at?->toIso8601String(),
+                    'finalized_at' => $version->finalized_at?->toIso8601String(),
+                ];
+            }
+        }
+
+        usort($projections, static fn (array $left, array $right): int => [
+            $left['document_type'], $left['version'],
+        ] <=> [
+            $right['document_type'], $right['version'],
+        ]);
+
+        return $projections;
     }
 }

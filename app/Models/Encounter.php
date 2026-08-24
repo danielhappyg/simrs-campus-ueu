@@ -144,6 +144,7 @@ class Encounter extends Model
     public const EXAMINATION_STATUSES = [
         self::STATUS_REGISTERED,
         self::STATUS_IN_EXAMINATION,
+        self::STATUS_READY_FOR_RM,
     ];
 
     protected $fillable = [
@@ -232,6 +233,18 @@ class Encounter extends Model
     public function labServiceRequests(): HasMany
     {
         return $this->hasMany(LabServiceRequest::class);
+    }
+
+    /** @return HasMany<OutpatientClinicalDocument, $this> */
+    public function outpatientClinicalDocuments(): HasMany
+    {
+        return $this->hasMany(OutpatientClinicalDocument::class);
+    }
+
+    /** @return HasMany<OutpatientRmCompletenessReview, $this> */
+    public function outpatientRmCompletenessReviews(): HasMany
+    {
+        return $this->hasMany(OutpatientRmCompletenessReview::class);
     }
 
     /**

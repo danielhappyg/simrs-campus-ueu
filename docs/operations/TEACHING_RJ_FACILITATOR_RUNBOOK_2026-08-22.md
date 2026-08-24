@@ -55,9 +55,11 @@ For acceptance evidence, use the role-specific accounts below and keep one encou
 
 **Path:** **Pemeriksaan** → Rawat Jalan → open encounter from worklist
 
-1. Tab **Asesmen** → **Tambah asesmen** → *Asesmen keperawatan* → short synthetic note → **Simpan catatan**.
+1. In **Asesmen keperawatan**, enter a short synthetic assessment.
+2. Select **Simpan draf**; confirm a new attributable version appears.
+3. Select **Finalisasi versi** only after the saved draft is correct.
 
-**Expected:** Status **Dalam pemeriksaan** (`IN_EXAMINATION`).
+**Expected:** Status **Dalam pemeriksaan** (`IN_EXAMINATION`); the nursing document is read-only after Final.
 
 ---
 
@@ -65,9 +67,11 @@ For acceptance evidence, use the role-specific accounts below and keep one encou
 
 Same encounter (log in as physician or continue solo account).
 
-1. Tab **Asesmen** → *Asesmen medis* → synthetic note → **Simpan catatan**.
+1. Complete the required synthetic **Anamnesis**, **Pemeriksaan objektif**, **Asesmen klinis**, and **Rencana pelayanan** fields.
+2. Select **Simpan draf**; confirm a new attributable version appears.
+3. Select **Finalisasi versi** only after the saved draft is correct.
 
-**Expected:** Status **Siap RM** (`READY_FOR_RM`) after medical note.
+**Expected:** Status **Siap RM** (`READY_FOR_RM`) after medical Final; the document is then read-only.
 
 ---
 
@@ -103,11 +107,12 @@ Reopen **Pemeriksaan → Rawat Jalan → encounter → Order Lab**.
 
 **Path:** **RM** → Rawat Jalan
 
-1. Encounter appears in **Siap RM** worklist.
-2. Confirm **Order lab aktif = 0**.
-3. **Complete** / tandai selesai (RM review).
+1. Encounter appears in the RM worklist; select **Tinjau RM**.
+2. Confirm the read-only nursing/medical version history, automatic checklist, source fingerprint, and **Order lab aktif = 0**.
+3. Select **Simpan hasil review**.
+4. When the current review is complete with no blockers, select **Sign-off dan tutup kunjungan** and confirm.
 
-**Expected:** Status **Ditutup** (`CLOSED`); no new clinical writes.
+**Expected:** Status **Ditutup** (`CLOSED`); the row remains available as **Lihat RM**, showing the signed review and version history read-only; no new clinical writes.
 
 If an active lab order remains, the close action must be unavailable and the server must reject a stale/direct request with reason `active_lab_orders`. Resolve it with its one FINAL result; do not cancel or edit rows directly.
 
@@ -143,13 +148,13 @@ If the safe session-scoped reset procedure is not yet available, mark cleanup **
 ```
 REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
      ↑              ↑                ↑
-  Pendaftaran   Nursing note    Medical note
-                                  (+ lab order/result parallel;
-                                   ACTIVE blocks RM close)
-                                        FINAL → COMPLETED → RM close
+  Pendaftaran Nursing document Medical FINAL
+                                 (+ lab order/result parallel;
+                                  incomplete checklist or ACTIVE order blocks sign-off)
+                                       FINAL → COMPLETED → RM sign-off
 ```
 
-Lab orders do **not** change encounter status; notes still drive the spine. An `ACTIVE` lab order is nevertheless a closure guard.
+Lab orders do **not** change encounter status; structured documents drive the spine. An `ACTIVE` lab order is nevertheless a sign-off guard.
 
 ---
 
@@ -157,7 +162,7 @@ Lab orders do **not** change encounter status; notes still drive the spine. An `
 
 | Area | UI |
 | --- | --- |
-| Pemeriksaan tabs | SOAP, Diagnosa, Tindakan, **Order Rad**, Resep (except Order Lab) |
+| Pemeriksaan tabs | Diagnosa, Tindakan, **Order Rad**, Resep (structured documents and Order Lab are live) |
 | Header actions | Cetak / Riwayat EMR / Order / Resep on exam desk |
 | Nav modules | Klaim, BPJS, Apotek → **Soon** |
 | Charges / LIS | Not implemented |
@@ -173,8 +178,9 @@ Lab orders do **not** change encounter status; notes still drive the spine. An `
 | Order Lab tab missing | Old deploy pre-#48 | Confirm production commit ≥ `807bbf2` |
 | Nurse cannot enter lab result | RBAC not seeded | Re-run RBAC sync on Supabase (see PR #48 ops notes) |
 | Laboratorium 404 | Migration not applied | Apply `2026_08_22_001100_create_lab_service_tables` |
+| Structured document or RM review fails because tables are missing | New migration not applied | Apply `2026_08_24_000100_create_outpatient_documentation_tables` from the deployed commit |
 | Empty lab worklist | No ACTIVE orders | Create order from RJ encounter first |
-| RM close disabled/rejected | Encounter still has an ACTIVE lab order | Enter its one FINAL result; never edit/cancel hosted rows directly |
+| RM sign-off disabled/rejected | Review is stale/incomplete or encounter still has an ACTIVE lab order | Save a current review, resolve checklist blockers, and enter the lab order's one FINAL result; never edit/cancel hosted rows directly |
 
 ---
 

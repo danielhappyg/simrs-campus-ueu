@@ -42,22 +42,22 @@ This is the **start-here** pack for the clean-slate teaching SIMRS. It is not li
 ### 2.1 Core RJ teaching arc (primary story)
 
 ```
-Pendaftaran RJ → Pemeriksaan RJ (nurse + physician notes)
+Pendaftaran RJ → Pemeriksaan RJ (structured nursing + medical documents)
               → Order Lab → Laboratorium (one FINAL result)
-              → RM RJ (close only with no ACTIVE lab order)
+              → RM RJ (automatic checklist, review, attributable sign-off)
               → optional Cetak + Rekap
 ```
 
 **Facilitator script (use this in class):**  
 [`docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md`](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md)
 
-**Encounter status spine** (notes drive status; lab does not):
+**Encounter status spine** (structured documents drive status; lab does not):
 
 ```
 REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
      ↑              ↑                ↑            ↑
- Pendaftaran   Nursing note    Medical note   RM complete
-                                  ACTIVE lab order blocks this transition
+ Pendaftaran  Nursing document Medical FINAL  RM sign-off
+                                   Current incomplete checklist or ACTIVE lab order blocks sign-off
 ```
 
 ### 2.2 Routes (auth + simulation middleware)
@@ -68,10 +68,10 @@ REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
 | Cetak | GET | `/pendaftaran/kunjungan/{encounter}/cetak` |
 | Rekap | GET | `/pendaftaran/rekap` |
 | Pemeriksaan RJ | GET | `/pemeriksaan/rawat-jalan`, `/pemeriksaan/rawat-jalan/{encounter}` |
-| Clinical note | POST | `/pemeriksaan/rawat-jalan/{encounter}/entries` |
+| Structured document | POST | `/pemeriksaan/rawat-jalan/{encounter}/documents/{documentType}/draft`, `/pemeriksaan/rawat-jalan/{encounter}/documents/{documentType}/final` |
 | Lab order | POST | `/pemeriksaan/rawat-jalan/{encounter}/lab-orders` |
 | Lab desk | GET/POST | `/pemeriksaan/laboratorium`, `/pemeriksaan/laboratorium/{order}/results` |
-| RM | GET/POST | `/rm/rawat-jalan`, `/rm/rawat-jalan/{encounter}/complete` |
+| RM | GET/POST | `/rm/rawat-jalan`, `/rm/rawat-jalan/{encounter}`, `/rm/rawat-jalan/{encounter}/reviews`, `/rm/rawat-jalan/{encounter}/signoff` |
 
 ### 2.3 Domain tables (Postgres `laravel` schema on demo)
 
@@ -79,7 +79,9 @@ REGISTERED → IN_EXAMINATION → READY_FOR_RM → CLOSED
 | --- | --- |
 | `patients` | Synthetic identity, MRN, wilayah, marital status |
 | `encounters` | Visit + status spine + care_setting |
-| `clinical_entries` | NURSING_INTAKE / MEDICAL_ASSESSMENT |
+| `clinical_entries` | Legacy outpatient notes retained read-only; non-outpatient legacy use remains |
+| `outpatient_clinical_documents` / `outpatient_clinical_document_versions` | Current structured document heads + immutable version history |
+| `outpatient_rm_completeness_reviews` / `outpatient_rm_completeness_items` | Versioned completeness snapshot, checklist items, reviewer and sign-off provenance |
 | `lab_service_requests` | Physician lab orders |
 | `lab_diagnostic_results` | Nurse-entered synthetic results |
 | `clinics` / `doctors` / `clinic_schedules` | Poli → dokter → jadwal |
@@ -103,9 +105,9 @@ Treat these as partial teaching desks in parallel care settings. Automated tests
 | ID | Build availability | Parity acceptance |
 | --- | --- | --- |
 | PAR-REG-003 | Teaching desk available; registration/cetak/rekap slice evidence recorded | **Not accepted** — remains Specified |
-| PAR-CLN-004 | Nursing/medical notes available; many tabs stubbed | **Not accepted** — remains Specified |
+| PAR-CLN-004 | Versioned structured nursing/medical documents available; many broader clinical tabs remain stubbed | **Not accepted** — remains Specified; Clinical owner acceptance unresolved |
 | PAR-CLN-006 | RJ order + worklist + immutable FINAL result available; no tarif/LIS/specimen/preliminary/amendment | **Not accepted** — remains Specified; lifecycle guard is Proposed NEW |
-| PAR-RMIK-001 | Teaching close blocks ACTIVE lab orders | **Not accepted** — remains Specified; RMIK and Clinical/Laboratory approval unresolved |
+| PAR-RMIK-001 | Automatic completeness checklist, durable review, attributable sign-off, and ACTIVE-lab blocker available | **Not accepted** — remains Specified; RMIK and Clinical/Laboratory approval unresolved |
 
 Matrix: [`docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md`](../new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md)
 
@@ -199,7 +201,7 @@ Seeder source: `database/seeders/DemoActorsSeeder.php`
 
 Detail: `docs/new-simrs-rebuild/phase-2/RBAC_MATRIX.md` · code: `app/Support/Authorization/`
 
-Audit actions include: `patient.register`, `clinical.note.write`, `clinical.lab.order.create`, `clinical.lab.result.write`, `rmik.review.complete`.
+Audit actions include: `patient.register`, `clinical.outpatient_document.draft.save`, `clinical.outpatient_document.finalize`, `clinical.lab.order.create`, `clinical.lab.result.write`, `rmik.completeness.review.save`, and `rmik.completeness.signoff`.
 
 ---
 
@@ -209,7 +211,7 @@ Say these honestly in demos and planning:
 
 | Area | Status |
 | --- | --- |
-| Exam tabs SOAP / Diagnosa / Tindakan / **Order Rad** / **Resep** | Stub UI (Order Lab is live) |
+| Exam tabs Diagnosa / Tindakan / **Order Rad** / **Resep** | Stub UI (structured nursing/medical documentation and Order Lab are live) |
 | Exam header Cetak / Riwayat EMR / Order / Resep | Stub |
 | Nav Klaim / BPJS / Apotek | **Soon** placeholders |
 | Production SEP / VClaim / SATUSEHAT | Forbidden on this demo |
@@ -257,8 +259,9 @@ Density honesty: `docs/new-simrs-rebuild/SAHABAT_VS_DEMO_GAP.md` (historical “
 | `docs/new-simrs-rebuild/phase-1/OUTPATIENT_SLICE_DISPOSITIONS.md` | RJ dispositions |
 | `docs/new-simrs-rebuild/phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md` | Registration FR |
 | `docs/new-simrs-rebuild/phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md` | Examination FR |
-| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md` | Draft combined clinical/RMIK owner-decision pack; not approved for build |
-| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md` | Draft Indonesian/UEU implementation handoff; candidate fields/checklist require owner decisions |
+| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md` | Combined clinical/RMIK pack; bounded v1 engineering authorized, broader owner decisions open |
+| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md` | Indonesian/UEU handoff; bounded v1 authorized, Clinical/RMIK acceptance pending |
+| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md` | Product-authorized narrow v1 engineering boundary; Clinical/RMIK acceptance still pending |
 | `docs/new-simrs-rebuild/PENDAFTARAN_SAHABAT_FIELD_MAP.md` | Field map |
 | `docs/new-simrs-rebuild/DELIVERY_ROADMAP.md` | Long-arc roadmap |
 | `docs/new-simrs-rebuild/TESTING_AND_UAT_STRATEGY.md` | Test/UAT program |
@@ -322,7 +325,7 @@ Committed visual oracles for SAHABAT (DEC-014): `docs/new-simrs-rebuild/_evidenc
 
 ---
 
-## 12. Current next work — owner review, then the next bounded slice
+## 12. Current next work — release verification and owner acceptance
 
 The bounded lifecycle guard is deployed and continuous hosted UAT Run 4 passed on 2026-08-24. The synthetic evidence encounter was retained; temporary role accounts were disabled, password values made unusable, sessions revoked and temporary credential/session files deleted. Closeout verification returned `active_session_rows=0`, `disabled_account_rows=4` and `preserved_closed_encounter_rows=1`. Global `simulation:reset` was not run because it is not encounter-scoped.
 
@@ -330,9 +333,10 @@ Next sequence:
 
 1. Keep DEC-016 **Proposed** and obtain Clinical/Laboratory and RMIK review of the FINAL-only, active-order closure and late-result policy. Run 4 is implementation evidence, not owner acceptance or SAHABAT parity.
 2. Treat the missing manual `active_lab_orders` denial audit honestly: the UI blocker passed; the server rejection is covered by automated tests. Repeat a hosted stale/direct denial only if an explicit acceptance plan requires it.
-3. Review and complete the new **structured clinical documentation and RM completeness owner-decision pack**. The FR pack and wireframe are drafted, but exact clinical fields, Draft/Final/supervision policy, RMIK checklist and closure blockers are not approved for build.
-4. Draft the **PAR-CLN-007 Radiology requirements pack** after that. Do not implement “Order Rad like Lab” until scheduling, verification, correction and PACS boundaries have an approved workflow and acceptance contract.
-5. Preserve the unresolved lifecycle boundary: preliminary results, amendment, reopen and cancellation remain unbuilt.
+3. Apply the explicit Supabase migration from the exact pushed commit, deploy that commit, and run a focused hosted UAT for **Structured Outpatient Documentation and RM Completeness v1**: nursing Draft/Final, medical Draft/Final, immutable version history, automatic checklist, review, sign-off, and closed read-only retrieval.
+4. Obtain Clinical and RMIK owner acceptance decisions for the bounded fields, Draft/Final meaning, checklist, and one-person teaching sign-off. Engineering availability alone does not change PAR-CLN-004 or PAR-RMIK-001 to Accepted.
+5. Draft the **PAR-CLN-007 Radiology requirements pack** after the focused UAT and owner review. Do not implement “Order Rad like Lab” until scheduling, verification, correction and PACS boundaries have an approved workflow and acceptance contract.
+6. Preserve the unresolved lifecycle boundary: preliminary results, amendment, reopen and cancellation remain unbuilt.
 
 ---
 
@@ -344,7 +348,10 @@ Next sequence:
 - [ ] Obtain `DEMO_ACCOUNT_PASSWORD` out-of-band  
 - [x] Continuous role-specific RJ UAT Run 4 recorded on 2026-08-24; use its partial manual-evidence note accurately
 - [x] Draft combined PAR-CLN-004 + PAR-RMIK-001 owner-decision pack and wireframe
-- [ ] Obtain Clinical and RMIK decisions recorded in the pack before implementation
+- [x] Record the bounded v1 engineering implementation decision without claiming Clinical/RMIK acceptance
+- [x] Implement and locally verify the bounded Structured Outpatient Documentation and RM Completeness v1 engineering slice
+- [ ] Apply the explicit Supabase migration, deploy the exact pushed commit, and record focused hosted UAT evidence
+- [ ] Obtain Clinical and RMIK decisions before broadening v1 fields/workflows or claiming owner acceptance
 - [ ] Obtain Clinical/Laboratory and RMIK owner review of DEC-016
 - [ ] Before schema work: remember Supabase migrate is **manual** on Vercel  
 - [ ] Before validation work: use `SchemaAwareRules` / model classes, never `laravel.table` strings in `Rule::exists`  

@@ -3,14 +3,15 @@
 namespace Tests\Feature\Outpatient;
 
 use App\Models\Clinic;
-use App\Models\ClinicalEntry;
 use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;
+use App\Models\OutpatientClinicalDocument;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Clinical\OutpatientRmCompletenessService;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -173,7 +174,7 @@ class OutpatientFlowTest extends TestCase
             ->assertSessionHas('error', 'Anda tidak memiliki akses ke modul tersebut.');
     }
 
-    public function test_clinical_entry_requires_capability(): void
+    public function test_structured_clinical_document_requires_capability(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
@@ -189,16 +190,18 @@ class OutpatientFlowTest extends TestCase
         ]);
 
         $this->actingAs($registrar)
-            ->post(route('pemeriksaan.rawat-jalan.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Catatan tidak diizinkan',
+            ->post(route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]), [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => ['nursing_assessment' => 'Catatan tidak diizinkan'],
             ])
             ->assertForbidden();
 
         $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-jalan.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Asesmen keperawatan awal',
+            ->post(route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]), [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => ['nursing_assessment' => 'Asesmen keperawatan awal'],
             ])
             ->assertRedirect(route('pemeriksaan.rawat-jalan.show', $encounter));
 
@@ -206,26 +209,36 @@ class OutpatientFlowTest extends TestCase
         $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->status);
 
         $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-jalan.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                'body' => 'Asesmen medis tidak diizinkan untuk perawat',
+            ->post(route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]), [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => ['anamnesis' => 'Tidak diizinkan'],
             ])
             ->assertForbidden();
 
         $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-jalan.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                'body' => 'Asesmen medis lengkap',
+            ->post(route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]), [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => [
+                    'anamnesis' => 'Anamnesis',
+                    'objective_examination' => 'Pemeriksaan objektif',
+                    'clinical_assessment' => 'Asesmen klinis',
+                    'care_plan' => 'Rencana pelayanan',
+                ],
             ])
+            ->assertRedirect(route('pemeriksaan.rawat-jalan.show', $encounter));
+
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]), ['expected_version' => 1])
             ->assertRedirect(route('pemeriksaan.rawat-jalan.show', $encounter));
 
         $encounter->refresh();
         $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->status);
 
         $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.note.write',
-            'resource_type' => 'encounter',
-            'resource_id' => $encounter->public_id,
+            'action' => 'clinical.medical.finalize',
+            'resource_type' => 'outpatient_clinical_document',
             'outcome' => 'SUCCESS',
         ]);
     }
@@ -243,6 +256,28 @@ class OutpatientFlowTest extends TestCase
             'registered_by_user_id' => $registrar->id,
             'status' => Encounter::STATUS_READY_FOR_RM,
         ]);
+        OutpatientClinicalDocument::query()->create([
+            'encounter_id' => $encounter->id,
+            'author_user_id' => $rmik->id,
+            'finalized_by_user_id' => $rmik->id,
+            'document_type' => OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT,
+            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'version' => 1,
+            'fields' => ['nursing_assessment' => 'Sintetis'],
+            'finalized_at' => now(),
+        ]);
+        OutpatientClinicalDocument::query()->create([
+            'encounter_id' => $encounter->id,
+            'author_user_id' => $rmik->id,
+            'finalized_by_user_id' => $rmik->id,
+            'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
+            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'version' => 1,
+            'fields' => ['anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D'],
+            'finalized_at' => now(),
+        ]);
 
         $this->actingAs($rmik)
             ->get(route('rm.rawat-jalan.index'))
@@ -251,17 +286,20 @@ class OutpatientFlowTest extends TestCase
                 ->component('rm/rawat-jalan')
                 ->has('encounters', 1));
 
+        $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter);
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
+            'expected_version' => 0, 'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
         $this->actingAs($rmik)
-            ->post(route('rm.rawat-jalan.complete', $encounter))
-            ->assertRedirect(route('rm.rawat-jalan.index'));
+            ->post(route('rm.rawat-jalan.signoff', $encounter), ['expected_version' => 1, 'source_fingerprint' => $snapshot['source_fingerprint']])
+            ->assertRedirect(route('rm.rawat-jalan.show', $encounter));
 
         $encounter->refresh();
         $this->assertSame(Encounter::STATUS_CLOSED, $encounter->status);
 
         $this->assertDatabaseHas('audit_events', [
-            'action' => 'rmik.review.complete',
-            'resource_type' => 'encounter',
-            'resource_id' => $encounter->public_id,
+            'action' => 'rmik.completeness.signoff',
+            'resource_type' => 'outpatient_rm_completeness_review',
             'outcome' => 'SUCCESS',
         ]);
     }

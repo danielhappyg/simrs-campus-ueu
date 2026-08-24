@@ -2,7 +2,6 @@
 
 namespace App\Support\Clinical;
 
-use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
@@ -14,58 +13,6 @@ use RuntimeException;
 final class OutpatientLabLifecycle
 {
     public function __construct(private readonly AuditRecorder $auditRecorder) {}
-
-    public function writeClinicalEntry(
-        Encounter $encounter,
-        User $actor,
-        string $entryType,
-        string $body,
-    ): void {
-        try {
-            DB::transaction(function () use ($encounter, $actor, $entryType, $body): void {
-                $lockedEncounter = $this->lockEncounter($encounter);
-
-                if ($lockedEncounter->status === Encounter::STATUS_CLOSED) {
-                    throw new OutpatientLifecycleDenial(
-                        reason: 'encounter_closed',
-                        message: 'Kunjungan sudah ditutup.',
-                    );
-                }
-
-                ClinicalEntry::query()->create([
-                    'encounter_id' => $lockedEncounter->id,
-                    'author_user_id' => $actor->id,
-                    'entry_type' => $entryType,
-                    'body' => $body,
-                ]);
-
-                if ($entryType === ClinicalEntry::TYPE_MEDICAL_ASSESSMENT) {
-                    $lockedEncounter->update(['status' => Encounter::STATUS_READY_FOR_RM]);
-                } elseif ($lockedEncounter->status === Encounter::STATUS_REGISTERED) {
-                    $lockedEncounter->update(['status' => Encounter::STATUS_IN_EXAMINATION]);
-                }
-
-                $this->recordSuccessOrFail(
-                    action: 'clinical.note.write',
-                    resourceType: 'encounter',
-                    resourceId: $lockedEncounter->public_id,
-                    actor: $actor,
-                    metadata: ['entry_type' => $entryType],
-                );
-            });
-        } catch (OutpatientLifecycleDenial $denial) {
-            $this->recordDenialOrFail(
-                action: 'clinical.note.write',
-                resourceType: 'encounter',
-                resourceId: $encounter->public_id,
-                actor: $actor,
-                denial: $denial,
-                metadata: ['entry_type' => $entryType],
-            );
-
-            abort($denial->status, $denial->getMessage());
-        }
-    }
 
     /**
      * @param  array{code: string, label: string}  $test
@@ -206,58 +153,6 @@ final class OutpatientLabLifecycle
         }
     }
 
-    public function closeEncounter(Encounter $encounter, User $actor): void
-    {
-        try {
-            DB::transaction(function () use ($encounter, $actor): void {
-                $lockedEncounter = $this->lockEncounter($encounter);
-
-                abort_unless(
-                    $lockedEncounter->status === Encounter::STATUS_READY_FOR_RM,
-                    422,
-                    'Kunjungan belum siap untuk penutupan RM.',
-                );
-
-                $activeOrderIds = LabServiceRequest::query()
-                    ->where('encounter_id', $lockedEncounter->id)
-                    ->where('status', LabServiceRequest::STATUS_ACTIVE)
-                    ->lockForUpdate()
-                    ->pluck('id');
-
-                if ($activeOrderIds->isNotEmpty()) {
-                    throw new OutpatientLifecycleDenial(
-                        reason: 'active_lab_orders',
-                        message: 'Kunjungan belum dapat ditutup karena masih ada order lab aktif.',
-                        metadata: ['active_lab_order_count' => $activeOrderIds->count()],
-                    );
-                }
-
-                $lockedEncounter->update(['status' => Encounter::STATUS_CLOSED]);
-
-                $this->recordSuccessOrFail(
-                    action: 'rmik.review.complete',
-                    resourceType: 'encounter',
-                    resourceId: $lockedEncounter->public_id,
-                    actor: $actor,
-                    metadata: [
-                        'previous_status' => Encounter::STATUS_READY_FOR_RM,
-                        'new_status' => Encounter::STATUS_CLOSED,
-                    ],
-                );
-            });
-        } catch (OutpatientLifecycleDenial $denial) {
-            $this->recordDenialOrFail(
-                action: 'rmik.review.complete',
-                resourceType: 'encounter',
-                resourceId: $encounter->public_id,
-                actor: $actor,
-                denial: $denial,
-            );
-
-            abort($denial->status, $denial->getMessage());
-        }
-    }
-
     private function lockEncounter(Encounter $encounter): Encounter
     {
         $lockedEncounter = Encounter::query()
@@ -321,20 +216,5 @@ final class OutpatientLabLifecycle
         if ($event === null) {
             throw new RuntimeException("Audit penolakan gagal direkam untuk aksi {$action}.");
         }
-    }
-}
-
-final class OutpatientLifecycleDenial extends RuntimeException
-{
-    /**
-     * @param  array<string, mixed>  $metadata
-     */
-    public function __construct(
-        public readonly string $reason,
-        string $message,
-        public readonly int $status = 422,
-        public readonly array $metadata = [],
-    ) {
-        parent::__construct($message);
     }
 }

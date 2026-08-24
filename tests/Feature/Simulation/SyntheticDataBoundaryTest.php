@@ -6,6 +6,7 @@ use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
+use App\Models\OutpatientClinicalDocument;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
@@ -171,9 +172,10 @@ class SyntheticDataBoundaryTest extends TestCase
             ->get(route('pemeriksaan.rawat-jalan.show', $encounter))
             ->assertNotFound();
         $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-jalan.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                'body' => 'Must not be stored',
+            ->post(route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]), [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => ['anamnesis' => 'Must not be stored'],
             ])
             ->assertNotFound();
         $this->actingAs($physician)
@@ -185,7 +187,10 @@ class SyntheticDataBoundaryTest extends TestCase
             ->get(route('pendaftaran.kunjungan.cetak', $encounter))
             ->assertNotFound();
         $this->actingAs($rmik)
-            ->post(route('rm.rawat-jalan.complete', $encounter))
+            ->post(route('rm.rawat-jalan.signoff', $encounter), [
+                'expected_version' => 1,
+                'source_fingerprint' => str_repeat('a', 64),
+            ])
             ->assertNotFound();
         $this->actingAs($physician)
             ->get(route('pemeriksaan.igd.show', $emergencyEncounter))
@@ -213,6 +218,7 @@ class SyntheticDataBoundaryTest extends TestCase
             ->assertNotFound();
 
         $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertDatabaseCount('outpatient_clinical_documents', 0);
         $this->assertDatabaseCount('lab_diagnostic_results', 0);
         $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
         $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $emergencyEncounter->fresh()->status);

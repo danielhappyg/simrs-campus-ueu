@@ -54,8 +54,10 @@ Route::middleware(['simulation'])->group(function (): void {
             ->name('pemeriksaan.rawat-jalan.index');
         Route::get('/pemeriksaan/rawat-jalan/{encounter}', [OutpatientExaminationController::class, 'show'])
             ->name('pemeriksaan.rawat-jalan.show');
-        Route::post('/pemeriksaan/rawat-jalan/{encounter}/entries', [OutpatientExaminationController::class, 'storeEntry'])
-            ->name('pemeriksaan.rawat-jalan.entries.store');
+        Route::post('/pemeriksaan/rawat-jalan/{encounter}/documents/{documentType}/draft', [OutpatientExaminationController::class, 'saveDraft'])
+            ->name('pemeriksaan.rawat-jalan.documents.draft');
+        Route::post('/pemeriksaan/rawat-jalan/{encounter}/documents/{documentType}/final', [OutpatientExaminationController::class, 'finalize'])
+            ->name('pemeriksaan.rawat-jalan.documents.final');
         Route::post('/pemeriksaan/rawat-jalan/{encounter}/lab-orders', [OutpatientExaminationController::class, 'storeLabOrder'])
             ->name('pemeriksaan.rawat-jalan.lab-orders.store');
 
@@ -83,8 +85,12 @@ Route::middleware(['simulation'])->group(function (): void {
 
         Route::get('/rm/rawat-jalan', [OutpatientRmController::class, 'index'])
             ->name('rm.rawat-jalan.index');
-        Route::post('/rm/rawat-jalan/{encounter}/complete', [OutpatientRmController::class, 'complete'])
-            ->name('rm.rawat-jalan.complete');
+        Route::get('/rm/rawat-jalan/{encounter}', [OutpatientRmController::class, 'show'])
+            ->name('rm.rawat-jalan.show');
+        Route::post('/rm/rawat-jalan/{encounter}/reviews', [OutpatientRmController::class, 'saveReview'])
+            ->name('rm.rawat-jalan.reviews.store');
+        Route::post('/rm/rawat-jalan/{encounter}/signoff', [OutpatientRmController::class, 'signoff'])
+            ->name('rm.rawat-jalan.signoff');
 
         Route::get('/modul/{category}', ModulePlaceholderController::class)
             ->whereIn('category', SimrsModuleCategories::slugs())

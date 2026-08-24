@@ -8,7 +8,7 @@
 - Affected actors: medical record officer, coder, RMIK student, supervisor
 - Evidence: **Observed** menu/route `/rm/rawatjalan`; EMR IPP route reuses similar process_form posts (Observed structural)
 - Target milestone: Phase 3 outpatient slice (after clinical source exists)
-- Owner-decision pack: [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) and [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md) — **Draft; not approved for build**
+- Owner-decision pack: [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md), [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md), and [`../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](../STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md) — **bounded v1 engineering authorized; RMIK acceptance and parity acceptance pending**
 
 ## Business outcome
 
