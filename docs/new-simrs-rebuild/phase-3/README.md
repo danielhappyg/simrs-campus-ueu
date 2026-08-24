@@ -1,7 +1,7 @@
 # Phase 3 — Outpatient vertical slice
 
 **Status:** Teaching slice available; parity acceptance not granted
-**Date:** 2026-08-23
+**Date:** 2026-08-24
 
 This page describes build availability. It does not claim complete SAHABAT parity, clinical production readiness, or acceptance of PAR-REG-003, PAR-CLN-004, PAR-CLN-006, or PAR-RMIK-001. See the separate availability and acceptance ledger in `../PARITY_REQUIREMENTS_MATRIX.md`.
 
@@ -68,6 +68,10 @@ Nav: Pendaftaran / Pemeriksaan / RM point at these dedicated routes (other categ
 - Pharmacy, radiology, charges (lab teaching slice only; no billing/LIS)
 - Preliminary lab results, final-result amendment, encounter reopen and lab-order cancellation
 - Antrean / work-queue MVP modules (do not restore)
+
+## Next specification gate
+
+The next bounded depth slice is **structured outpatient documentation + RM completeness**, not Radiology. Its [functional-requirements/owner-decision pack](../phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) and [wireframe handoff](../phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md) are Draft. Clinical and RMIK owners must decide the field families, Draft/Final and supervision policy, checklist items, applicability and closure blockers before implementation. These drafts do not change PAR-CLN-004/PAR-RMIK-001 acceptance or DEC-016 status.
 
 Facilitator script: `docs/operations/TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md`  
 **Full handoff (start here for other humans/agents):** `docs/operations/HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md`

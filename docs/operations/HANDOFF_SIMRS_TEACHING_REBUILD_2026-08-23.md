@@ -257,6 +257,8 @@ Density honesty: `docs/new-simrs-rebuild/SAHABAT_VS_DEMO_GAP.md` (historical “
 | `docs/new-simrs-rebuild/phase-1/OUTPATIENT_SLICE_DISPOSITIONS.md` | RJ dispositions |
 | `docs/new-simrs-rebuild/phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md` | Registration FR |
 | `docs/new-simrs-rebuild/phase-1/requirements/PAR-CLN-004-rawat-jalan-examination.md` | Examination FR |
+| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md` | Draft combined clinical/RMIK owner-decision pack; not approved for build |
+| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md` | Draft Indonesian/UEU implementation handoff; candidate fields/checklist require owner decisions |
 | `docs/new-simrs-rebuild/PENDAFTARAN_SAHABAT_FIELD_MAP.md` | Field map |
 | `docs/new-simrs-rebuild/DELIVERY_ROADMAP.md` | Long-arc roadmap |
 | `docs/new-simrs-rebuild/TESTING_AND_UAT_STRATEGY.md` | Test/UAT program |
@@ -328,7 +330,7 @@ Next sequence:
 
 1. Keep DEC-016 **Proposed** and obtain Clinical/Laboratory and RMIK review of the FINAL-only, active-order closure and late-result policy. Run 4 is implementation evidence, not owner acceptance or SAHABAT parity.
 2. Treat the missing manual `active_lab_orders` denial audit honestly: the UI blocker passed; the server rejection is covered by automated tests. Repeat a hosted stale/direct denial only if an explicit acceptance plan requires it.
-3. Specify the next bounded product slice around **structured clinical documentation and RM completeness** before implementation, retaining Indonesian labels, UEU tokens, role-specific authorization and synthetic-only audit evidence.
+3. Review and complete the new **structured clinical documentation and RM completeness owner-decision pack**. The FR pack and wireframe are drafted, but exact clinical fields, Draft/Final/supervision policy, RMIK checklist and closure blockers are not approved for build.
 4. Draft the **PAR-CLN-007 Radiology requirements pack** after that. Do not implement “Order Rad like Lab” until scheduling, verification, correction and PACS boundaries have an approved workflow and acceptance contract.
 5. Preserve the unresolved lifecycle boundary: preliminary results, amendment, reopen and cancellation remain unbuilt.
 
@@ -341,6 +343,8 @@ Next sequence:
 - [ ] Confirm demo `/up` and simulation banner  
 - [ ] Obtain `DEMO_ACCOUNT_PASSWORD` out-of-band  
 - [x] Continuous role-specific RJ UAT Run 4 recorded on 2026-08-24; use its partial manual-evidence note accurately
+- [x] Draft combined PAR-CLN-004 + PAR-RMIK-001 owner-decision pack and wireframe
+- [ ] Obtain Clinical and RMIK decisions recorded in the pack before implementation
 - [ ] Obtain Clinical/Laboratory and RMIK owner review of DEC-016
 - [ ] Before schema work: remember Supabase migrate is **manual** on Vercel  
 - [ ] Before validation work: use `SchemaAwareRules` / model classes, never `laravel.table` strings in `Rule::exists`  
