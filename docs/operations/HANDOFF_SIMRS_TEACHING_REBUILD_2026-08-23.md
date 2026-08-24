@@ -1,8 +1,8 @@
 # Handoff — SIMRS Campus UEU teaching rebuild (outpatient core)
 
 **Audience:** Daniel, facilitators, and any human or agent continuing this work without prior chat history.  
-**Date:** 2026-08-23; updated with hosted UAT Run 4 evidence on 2026-08-24<br>
-**Current production baseline:** `c6979de82b6e8b2c518841ad8e72e1d9bf8bd213` on `main` / Vercel deployment `dpl_6U3eC7uFF4A27mS7qoib7DMMywvb`<br>
+**Date:** 2026-08-23; current-truth baseline reconciled on 2026-08-25<br>
+**Current production baseline:** `aabfff562dbe75d022da203f3f44215b055be614` on `main` / Vercel deployment `dpl_2th2jRdhHHof859F3WM9rWt3ZiTf`<br>
 **Earlier lifecycle baseline:** `5e9c43a` (synthetic/PostgreSQL hardening; lab slice originated in `807bbf2` / PR #48)<br>
 **Live demo:** https://simrs-campus-ueu-demo.vercel.app  
 **Repo:** https://github.com/danielhappyg/simrs-campus-ueu  
@@ -133,8 +133,10 @@ Read bottom-up for “how we got here.” Older Checkpoint 2 / Antrean MVP work 
 | **#48** | `807bbf2` | Lab order + laboratorium result teaching slice |
 | **#50** | `c6979de` | Enforce the bounded outpatient lab-result/RM-closure lifecycle contract |
 | docs | `09f4f84`…`315d912` | Facilitator runbook + UAT Runs 1–3 evidence |
+| — | `2596063` | Structured outpatient Draft/Final documents, immutable versions, automatic RM completeness review and attributable sign-off |
+| — | `aabfff5` | Shorten PostgreSQL constraint names for portable hosted migration |
 
-**Current production deployment (demo):** `dpl_6U3eC7uFF4A27mS7qoib7DMMywvb` for `c6979de…213`; Vercel state `READY`, target `production`, public alias `simrs-campus-ueu-demo.vercel.app`.
+**Current production deployment (demo):** `dpl_2th2jRdhHHof859F3WM9rWt3ZiTf` for `aabfff5…b614`; Vercel state `READY`, target `production`, public alias `simrs-campus-ueu-demo.vercel.app`. The Supabase `laravel` schema records migration `2026_08_24_000100_create_outpatient_documentation_tables` in batch 7 and contains all four structured-document/RM tables. See `docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md`.
 
 ---
 
@@ -262,6 +264,7 @@ Density honesty: `docs/new-simrs-rebuild/SAHABAT_VS_DEMO_GAP.md` (historical “
 | `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md` | Combined clinical/RMIK pack; bounded v1 engineering authorized, broader owner decisions open |
 | `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md` | Indonesian/UEU handoff; bounded v1 authorized, Clinical/RMIK acceptance pending |
 | `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md` | Product-authorized narrow v1 engineering boundary; Clinical/RMIK acceptance still pending |
+| `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_RM_OWNER_DECISION_PACK_2026-08-25.md` | Ready-to-record Clinical, Laboratory and RMIK decisions for structured v1 and DEC-016 |
 | `docs/new-simrs-rebuild/PENDAFTARAN_SAHABAT_FIELD_MAP.md` | Field map |
 | `docs/new-simrs-rebuild/DELIVERY_ROADMAP.md` | Long-arc roadmap |
 | `docs/new-simrs-rebuild/TESTING_AND_UAT_STRATEGY.md` | Test/UAT program |
@@ -325,7 +328,7 @@ Committed visual oracles for SAHABAT (DEC-014): `docs/new-simrs-rebuild/_evidenc
 
 ---
 
-## 12. Current next work — release verification and owner acceptance
+## 12. Current next work — focused UAT and owner acceptance
 
 The bounded lifecycle guard is deployed and continuous hosted UAT Run 4 passed on 2026-08-24. The synthetic evidence encounter was retained; temporary role accounts were disabled, password values made unusable, sessions revoked and temporary credential/session files deleted. Closeout verification returned `active_session_rows=0`, `disabled_account_rows=4` and `preserved_closed_encounter_rows=1`. Global `simulation:reset` was not run because it is not encounter-scoped.
 
@@ -333,7 +336,7 @@ Next sequence:
 
 1. Keep DEC-016 **Proposed** and obtain Clinical/Laboratory and RMIK review of the FINAL-only, active-order closure and late-result policy. Run 4 is implementation evidence, not owner acceptance or SAHABAT parity.
 2. Treat the missing manual `active_lab_orders` denial audit honestly: the UI blocker passed; the server rejection is covered by automated tests. Repeat a hosted stale/direct denial only if an explicit acceptance plan requires it.
-3. Apply the explicit Supabase migration from the exact pushed commit, deploy that commit, and run a focused hosted UAT for **Structured Outpatient Documentation and RM Completeness v1**: nursing Draft/Final, medical Draft/Final, immutable version history, automatic checklist, review, sign-off, and closed read-only retrieval.
+3. Deployment and migration for the exact `aabfff5` baseline were verified on 2026-08-25. Run a focused hosted UAT for **Structured Outpatient Documentation and RM Completeness v1**: nursing Draft/Final, medical Draft/Final, immutable version history, automatic checklist, review, sign-off, and closed read-only retrieval.
 4. Obtain Clinical and RMIK owner acceptance decisions for the bounded fields, Draft/Final meaning, checklist, and one-person teaching sign-off. Engineering availability alone does not change PAR-CLN-004 or PAR-RMIK-001 to Accepted.
 5. Draft the **PAR-CLN-007 Radiology requirements pack** after the focused UAT and owner review. Do not implement “Order Rad like Lab” until scheduling, verification, correction and PACS boundaries have an approved workflow and acceptance contract.
 6. Preserve the unresolved lifecycle boundary: preliminary results, amendment, reopen and cancellation remain unbuilt.
@@ -350,7 +353,8 @@ Next sequence:
 - [x] Draft combined PAR-CLN-004 + PAR-RMIK-001 owner-decision pack and wireframe
 - [x] Record the bounded v1 engineering implementation decision without claiming Clinical/RMIK acceptance
 - [x] Implement and locally verify the bounded Structured Outpatient Documentation and RM Completeness v1 engineering slice
-- [ ] Apply the explicit Supabase migration, deploy the exact pushed commit, and record focused hosted UAT evidence
+- [x] Apply and verify the explicit Supabase migration and deploy the exact pushed commit (`aabfff5`; reconciled 2026-08-25)
+- [ ] Record focused hosted Structured RJ/RM v1 UAT evidence
 - [ ] Obtain Clinical and RMIK decisions before broadening v1 fields/workflows or claiming owner acceptance
 - [ ] Obtain Clinical/Laboratory and RMIK owner review of DEC-016
 - [ ] Before schema work: remember Supabase migrate is **manual** on Vercel  
