@@ -12,7 +12,8 @@ class ParityGovernanceValidatorTest < Minitest::Test
   SOURCE_MATRIX = File.join(ROOT, 'docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md')
   SOURCE_BASELINE = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/PARITY_MATRIX_BASELINE.json')
   SOURCE_BATCH_MANIFEST = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json')
-  SOURCE_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json')
+  SOURCE_BATCH_A_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json')
+  SOURCE_BATCH_B_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json')
   SOURCE_RELEASE_INDEX = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md')
 
   def setup
@@ -21,11 +22,13 @@ class ParityGovernanceValidatorTest < Minitest::Test
     @baseline = File.join(@tmpdir, 'baseline.json')
     @batch_manifest = File.join(@tmpdir, 'batch-manifest.json')
     @decision_register = File.join(@tmpdir, 'batch-a-decision-register.json')
+    @batch_b_decision_register = File.join(@tmpdir, 'batch-b-decision-register.json')
     @release_index = File.join(@tmpdir, 'release-index.md')
     FileUtils.cp(SOURCE_MATRIX, @matrix)
     FileUtils.cp(SOURCE_BASELINE, @baseline)
     FileUtils.cp(SOURCE_BATCH_MANIFEST, @batch_manifest)
-    FileUtils.cp(SOURCE_DECISION_REGISTER, @decision_register)
+    FileUtils.cp(SOURCE_BATCH_A_DECISION_REGISTER, @decision_register)
+    FileUtils.cp(SOURCE_BATCH_B_DECISION_REGISTER, @batch_b_decision_register)
     FileUtils.cp(SOURCE_RELEASE_INDEX, @release_index)
   end
 
@@ -39,7 +42,9 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert validator.validate, validator.errors.join("\n")
     assert_equal 268, validator.rows.length
     assert_equal 268, validator.batch_assignments.length
-    assert_equal 20, validator.decision_entries.length
+    assert_equal 28, validator.decision_entries.length
+    assert_equal 20, validator.decision_entries_by_batch.fetch('A').length
+    assert_equal 8, validator.decision_entries_by_batch.fetch('B').length
   end
 
   def test_batch_a_decision_register_rejects_missing_row
@@ -445,6 +450,108 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_error validator, 'consolidation cycle detected: PAR-ADM-001 -> PAR-ADM-002 -> PAR-ADM-001'
   end
 
+  def test_batch_b_decision_register_rejects_missing_row
+    mutate_batch_b_decision_register do |register|
+      register['entries'].reject! { |entry| entry['requirement_id'] == 'PAR-ADM-009' }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'missing Batch B requirement IDs: PAR-ADM-009'
+    assert_error validator, 'expected exactly 8 entries, got 7'
+  end
+
+  def test_batch_b_decision_register_rejects_duplicate_row
+    mutate_batch_b_decision_register do |register|
+      register['entries'] << Marshal.load(Marshal.dump(register['entries'].first))
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'duplicate requirement IDs: PAR-ADM-009'
+    assert_error validator, 'expected exactly 8 entries, got 9'
+  end
+
+  def test_batch_b_decision_register_rejects_unknown_row
+    mutate_batch_b_decision_register do |register|
+      register['entries'].first['requirement_id'] = 'PAR-CLN-001'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'missing Batch B requirement IDs: PAR-ADM-009'
+    assert_error validator, 'unknown Batch B requirement IDs: PAR-CLN-001'
+  end
+
+  def test_batch_b_decision_register_rejects_false_complete_state
+    mutate_batch_b_decision_register { |register| register['register_status'] = 'complete' }
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch B decision register: register_status complete requires every entry to be approved or deferred'
+    assert_error validator, 'Batch B decision register PAR-ADM-009: G0 remains open until decision status is approve or defer'
+  end
+
+  def test_batch_b_decision_register_rejects_omitted_co_owner_dependency
+    mutate_batch_b_decision_register do |register|
+      entry = register['entries'].first
+      entry['appointment_dependencies'].reject! { |dependency| dependency['authority_domain'] == 'security_privacy_data' }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'appointment dependencies must exactly cover co_owners; missing ["security_privacy_data"]'
+  end
+
+  def test_batch_b_structured_approval_artifact_rejects_mismatched_binding
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+      'requirement_id' => 'PAR-REG-001',
+      'subject' => 'approval',
+      'identity' => 'Different Batch B Fixture Owner',
+      'scope' => 'Approve the Batch B fixture-only deferral.',
+      'date' => '2026-08-25',
+      'decision_status' => 'approve',
+      'canonical_disposition' => 'replace',
+      'conditions' => [],
+      'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('batch-b-approval-mismatch.json', artifact, batch: 'B')
+    prepare_batch_b_recorded_defer(reference, digest)
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch B decision register PAR-ADM-009: approval register_id does not match the decision register'
+    assert_error validator, 'approval requirement_id does not match PAR-ADM-009'
+    assert_error validator, 'approval identity does not match the register'
+    assert_error validator, 'approval decision_status does not match the register decision'
+    assert_error validator, 'approval canonical_disposition does not match the register decision'
+  end
+
+  def test_decision_registers_reject_cross_batch_consolidation_cycle
+    mutate_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-ADM-001' }
+      entry['decision'] = approved_consolidation_decision('PAR-REG-001')
+    end
+    mutate_batch_b_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-REG-001' }
+      entry['decision'] = approved_consolidation_decision('PAR-ADM-001')
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'consolidation cycle detected: PAR-ADM-001 -> PAR-REG-001 -> PAR-ADM-001'
+  end
+
   def test_batch_manifest_rejects_missing_and_duplicate_assignments
     mutate_manifest do |manifest|
       manifest['batches']['B'].delete('PAR-REG-001')
@@ -499,6 +606,24 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_error validator, 'Batch A exact set mismatch'
     assert_error validator, 'missing ["PAR-ADM-001"]'
     assert_error validator, 'unexpected ["PAR-REG-001"]'
+  end
+
+  def test_batch_manifest_enforces_batch_b_exact_set_even_when_counts_and_coverage_match
+    mutate_manifest do |manifest|
+      manifest['batches']['B'].delete('PAR-REG-001')
+      manifest['batches']['B'] << 'PAR-ADM-001'
+      manifest['batches']['A'].delete('PAR-ADM-001')
+      manifest['batches']['A'] << 'PAR-REG-001'
+      manifest['batches']['A'].sort!
+      manifest['batches']['B'].sort!
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch B exact set mismatch'
+    assert_error validator, 'missing ["PAR-REG-001"]'
+    assert_error validator, 'unexpected ["PAR-ADM-001"]'
   end
 
   def test_exact_id_set_rejects_missing_unexpected_and_duplicate_ids
@@ -658,7 +783,8 @@ class ParityGovernanceValidatorTest < Minitest::Test
       matrix_path: SOURCE_MATRIX,
       baseline_path: SOURCE_BASELINE,
       batch_manifest_path: SOURCE_BATCH_MANIFEST,
-      decision_register_path: SOURCE_DECISION_REGISTER,
+      decision_register_path: SOURCE_BATCH_A_DECISION_REGISTER,
+      batch_b_decision_register_path: SOURCE_BATCH_B_DECISION_REGISTER,
       release_index_path: SOURCE_RELEASE_INDEX,
       mode: 'integrity'
     )
@@ -670,6 +796,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       baseline_path: @baseline,
       batch_manifest_path: @batch_manifest,
       decision_register_path: @decision_register,
+      batch_b_decision_register_path: @batch_b_decision_register,
       release_index_path: @release_index,
       mode: mode
     )
@@ -701,6 +828,12 @@ class ParityGovernanceValidatorTest < Minitest::Test
     File.write(@decision_register, JSON.pretty_generate(register) + "\n")
   end
 
+  def mutate_batch_b_decision_register
+    register = JSON.parse(File.read(@batch_b_decision_register))
+    yield register
+    File.write(@batch_b_decision_register, JSON.pretty_generate(register) + "\n")
+  end
+
   def prepare_recorded_defer(reference, digest)
     mutate_decision_register do |register|
       entry = register['entries'].first
@@ -718,6 +851,31 @@ class ParityGovernanceValidatorTest < Minitest::Test
         'status' => 'recorded',
         'identity' => 'Fixture Owner',
         'scope' => 'Approve the fixture-only teaching deferral.',
+        'date' => '2026-08-25',
+        'reference' => reference,
+        'artifact_sha256' => digest,
+        'conditions' => []
+      }
+    end
+  end
+
+  def prepare_batch_b_recorded_defer(reference, digest)
+    mutate_batch_b_decision_register do |register|
+      entry = register['entries'].first
+      entry['decision'] = {
+        'status' => 'defer',
+        'canonical_disposition' => 'exclude',
+        'target' => {
+          'kind' => 'exclusion',
+          'reference' => 'Fixture-only Batch B teaching deferral',
+          'exclusions' => ['Fixture-only exclusion.']
+        },
+        'rationale' => 'Fixture-only structured Batch B approval validation.'
+      }
+      entry['approval'] = {
+        'status' => 'recorded',
+        'identity' => 'Batch B Fixture Owner',
+        'scope' => 'Approve the Batch B fixture-only deferral.',
         'date' => '2026-08-25',
         'reference' => reference,
         'artifact_sha256' => digest,
@@ -751,12 +909,16 @@ class ParityGovernanceValidatorTest < Minitest::Test
     }
   end
 
-  def write_json_artifact(filename, artifact)
-    write_raw_artifact(filename, JSON.pretty_generate(artifact) + "\n")
+  def write_json_artifact(filename, artifact, batch: 'A')
+    write_raw_artifact(filename, JSON.pretty_generate(artifact) + "\n", batch: batch)
   end
 
-  def write_raw_artifact(filename, content)
-    directory_name = ParityGovernanceValidator::BATCH_A_EVIDENCE_DIRECTORY
+  def write_raw_artifact(filename, content, batch: 'A')
+    directory_name = if batch == 'A'
+                       ParityGovernanceValidator::BATCH_A_EVIDENCE_DIRECTORY
+                     else
+                       ParityGovernanceValidator::BATCH_B_EVIDENCE_DIRECTORY
+                     end
     directory = File.join(@tmpdir, directory_name)
     FileUtils.mkdir_p(directory)
     path = File.join(directory, filename)
