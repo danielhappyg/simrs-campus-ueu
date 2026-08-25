@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "register_id": "G0-BATCH-A-2026-08-25",
+  "batch": "A",
+  "register_status": "pending",
+  "data_boundary": "synthetic_only",
+  "external_integrations": "disabled",
+  "source_manifest": "docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json",
+  "evidence_directory": "G0_BATCH_A_DECISION_EVIDENCE_2026-08-25",
+  "purpose": "Fail-closed decision register for the exact 20 Batch A requirements. Pending records are proposals for future evidence collection and authorized owner decision, not appointments, approvals, implementation evidence, or parity acceptance.",
+  "entries": [
+    {
+      "requirement_id": "PAR-ADM-001",
+      "batch": "A",
+      "legacy_menu": "Group",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["identity_access", "security_privacy", "operations"],
+      "co_owners": ["product_delivery", "security_privacy_data", "affected_role_owner"],
+      "downstream_impacts": ["role_assignment", "session_authorization", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map a synthetic legacy group to a least-privilege role set and activate it for a synthetic workforce account.", "expected_results": ["The mapped account receives only the approved role permissions.", "The group-to-role change and actor are recorded in audit history."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt self-escalation, then correct an over-broad synthetic group mapping.", "expected_results": ["Self-escalation is denied without changing authorization.", "Correction revokes affected sessions and preserves before-and-after audit values."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve canonical group-to-role migration, least-privilege behavior, and correction outcomes for the synthetic teaching boundary.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical disposition and migration scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Least privilege, session revocation, and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "affected_role_owner", "required_scope": "Role-purpose correctness and affected-user workflow boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-002",
+      "batch": "A",
+      "legacy_menu": "Pengguna",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["identity_access", "workforce", "security_privacy", "operations"],
+      "co_owners": ["product_delivery", "security_privacy_data", "workforce_identity"],
+      "downstream_impacts": ["account_lifecycle", "role_assignment", "active_sessions", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Create, disable, reactivate, and recover a synthetic workforce account with an approved role.", "expected_results": ["Each lifecycle transition produces the intended login and access state.", "Every privileged change is attributable in the audit trail."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Submit a duplicate identifier and attempt a role change from an unauthorized synthetic account.", "expected_results": ["Duplicate or invalid identity input is rejected without a partial account.", "The unauthorized role change is denied and logged."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve workforce account lifecycle, role attribution, recovery, and synthetic access-denial behavior.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical account-administration disposition and lifecycle.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Authentication, role change, recovery, and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "workforce_identity", "required_scope": "Workforce identifier lifecycle and accountable account linkage.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-003",
+      "batch": "A",
+      "legacy_menu": "Settings",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["configuration", "security_privacy", "all_workflow_domains", "integrations"],
+      "co_owners": ["product_delivery", "security_privacy_data", "operations", "affected_domain_owner"],
+      "downstream_impacts": ["runtime_behavior", "secrets_custody", "integration_environment", "rollback", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Approve and activate a versioned low-risk synthetic configuration value with an effective date.", "expected_results": ["Only the reviewed version becomes effective at the intended time.", "The previous version remains available for audit and rollback."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt to store a secret in a general setting and activate a live-integration flag, then roll back a bad synthetic value.", "expected_results": ["Secret material and live-integration activation are blocked.", "Rollback restores the prior value and records requester, approver, and before-and-after state."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve configuration classification, four-eyes controls, rollback, secret isolation, and disabled live-integration boundary.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Configuration categories, canonical target, and effective-date rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Secret isolation, approval separation, and external-integration guard.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "affected_domain_owner", "required_scope": "Downstream correctness for each governed setting class.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Activation, monitoring, rollback, and recovery behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-005",
+      "batch": "A",
+      "legacy_menu": "Menu",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["application_shell", "identity_access", "release_governance"],
+      "co_owners": ["product_delivery", "security_privacy_data", "operations"],
+      "downstream_impacts": ["navigation_visibility", "server_authorization", "release_configuration", "rollback"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Release a reviewed synthetic capability-navigation change for one role.", "expected_results": ["The capability appears only for the intended role after the reviewed release.", "Its server route enforces the same permission as navigation visibility."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Use a hidden deep link from a wrong-role account and roll back an erroneous navigation release.", "expected_results": ["The deep link is denied by server authorization.", "Rollback restores the prior menu and route state with release evidence."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve deployment-controlled navigation, matching server authorization, and rollback behavior.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Capability registry and controlled release scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Role visibility and deep-link authorization equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Controlled release, rollback, and navigation availability.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-006",
+      "batch": "A",
+      "legacy_menu": "Staff Medis",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["workforce", "clinical", "scheduling", "identity_access"],
+      "co_owners": ["product_delivery", "medical_administration", "security_privacy_data"],
+      "downstream_impacts": ["clinician_directory", "unit_assignment", "schedules", "encounter_attribution"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Create and activate a synthetic clinician linked to an account, unit, and schedule.", "expected_results": ["The clinician is selectable only in the assigned active unit and schedule.", "Clinical attribution uses the stable synthetic workforce identifier."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Submit a duplicate credential identifier and deactivate a synthetic clinician with a future schedule.", "expected_results": ["The duplicate is rejected without a partial workforce record.", "Deactivation prevents new scheduling while preserving historical encounter attribution."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve clinician identity, credential/status, unit linkage, schedule effects, and historical attribution rules.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical workforce-directory disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "medical_administration", "required_scope": "Clinician identifiers, credentials, active status, units, and schedules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Account linkage, access boundaries, and attribution controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-008",
+      "batch": "A",
+      "legacy_menu": "Template Tanda Tangan",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["documents", "rmik", "signer_identity", "security_privacy"],
+      "co_owners": ["product_delivery", "rmik", "security_privacy_data"],
+      "downstream_impacts": ["document_rendering", "signature_attribution", "historical_reproduction", "print_reprint"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Version and render a synthetic signature template using a sandbox signer identity.", "expected_results": ["The rendered document records template version and synthetic signer attribution.", "Historical documents remain reproducible from their original version."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt an unauthorized template change and a production-certificate selection, then revoke a sandbox template version.", "expected_results": ["Unauthorized change and production-certificate use are blocked.", "Revocation prevents new use while preserving existing synthetic document evidence."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve document/signature-template versioning and sandbox-only signer behavior; production TTE remains excluded.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical template-registry disposition and synthetic boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Document custody, versioning, reproduction, and reprint requirements.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Signer identity, sandbox certificate boundary, and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-012",
+      "batch": "A",
+      "legacy_menu": "Printer & Service",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["documents", "printing", "operations", "security_privacy"],
+      "co_owners": ["product_delivery", "operations", "affected_document_owner"],
+      "downstream_impacts": ["print_routing", "reprint_attribution", "service_availability", "configuration_rollback"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Route a synthetic document to an approved simulated printer service and perform an attributed reprint.", "expected_results": ["The document reaches only the selected approved simulated endpoint.", "Original print and reprint are separately attributable."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Select an unavailable or unapproved endpoint, then roll back a bad printer configuration.", "expected_results": ["Printing fails safely without losing the document or leaking content.", "Rollback restores the reviewed endpoint and records the configuration change."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve simulated print-service routing, failure fallback, reprint attribution, and configuration rollback.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical print-service disposition and permitted scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Approved simulated endpoints, availability behavior, and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "affected_document_owner", "required_scope": "Document-specific print and reprint outcomes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-013",
+      "batch": "A",
+      "legacy_menu": "Unit & Poliklinik",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["organization_master", "registration", "clinical", "scheduling", "reporting"],
+      "co_owners": ["product_delivery", "registration_admission", "medical_administration", "reporting"],
+      "downstream_impacts": ["unit_hierarchy", "clinic_routing", "staff_schedules", "encounters", "report_dimensions"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Create and activate a synthetic clinic within an approved organization hierarchy and assign a schedule.", "expected_results": ["The clinic is available only under its active parent unit.", "Registration, schedules, encounters, and reports use the same canonical unit code."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Submit a duplicate unit code and retire a clinic that has historical synthetic encounters.", "expected_results": ["The duplicate code is rejected without a partial unit.", "Retirement blocks new use but preserves historical routing and report totals."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve organization hierarchy, unit codes, activation/retirement, and downstream routing reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical organization-master disposition and shared scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Clinic routing and registration availability.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "medical_administration", "required_scope": "Clinical unit hierarchy and schedule use.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Historical unit dimensions and control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-022",
+      "batch": "A",
+      "legacy_menu": "Pekerjaan",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "rmik", "reporting"],
+      "co_owners": ["rmik", "registration_admission", "reporting"],
+      "downstream_impacts": ["demographic_capture", "printed_documents", "historical_records", "report_dimensions"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Add and use a versioned synthetic occupation term in registration and a report.", "expected_results": ["The canonical code is stored and displayed consistently.", "Registration, print output, and report dimension reconcile to the same term version."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Reject an invalid duplicate term, then merge or retire a term used by historical synthetic records.", "expected_results": ["Invalid or duplicate vocabulary input is rejected.", "Historical records retain traceable meaning and current reports reconcile after correction."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve occupation terminology codes, versioning, merge/retire rules, and downstream reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Terminology stewardship and historical meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Capture and correction behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Report dimension meaning and post-correction control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-023",
+      "batch": "A",
+      "legacy_menu": "Pendidikan",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "rmik", "reporting"],
+      "co_owners": ["rmik", "registration_admission", "reporting"],
+      "downstream_impacts": ["demographic_capture", "printed_documents", "historical_records", "report_dimensions"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Add and use a versioned synthetic education term in registration and a report.", "expected_results": ["The canonical code is stored and displayed consistently.", "Registration, print output, and report dimension reconcile to the same term version."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Reject an invalid duplicate term, then merge or retire a term used by historical synthetic records.", "expected_results": ["Invalid or duplicate vocabulary input is rejected.", "Historical records retain traceable meaning and current reports reconcile after correction."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve education terminology codes, versioning, merge/retire rules, and downstream reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Terminology stewardship and historical meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Capture and correction behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Report dimension meaning and post-correction control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-024",
+      "batch": "A",
+      "legacy_menu": "Suku",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "rmik", "privacy", "reporting"],
+      "co_owners": ["rmik", "registration_admission", "security_privacy_data", "reporting"],
+      "downstream_impacts": ["sensitive_demographic_capture", "access_control", "exports", "historical_records", "report_dimensions"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Use an approved versioned synthetic ethnicity term in a privacy-scoped registration flow and authorized aggregate report.", "expected_results": ["The canonical code is captured only where approved and displayed consistently.", "Authorized aggregate output reconciles without exposing unnecessary record-level detail."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt wrong-role viewing or export, then retire a term used by historical synthetic records.", "expected_results": ["Unauthorized viewing and export are denied and audited.", "Historical meaning remains traceable after retirement without recoding records silently."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve ethnicity terminology, sensitivity, access/export controls, teaching use, and historical reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Terminology stewardship and appropriate record meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Sensitive demographic capture and correction behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Sensitivity, access, export, and teaching-use controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Authorized aggregation, dimensions, and disclosure boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-025",
+      "batch": "A",
+      "legacy_menu": "Bahasa",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "communication_support", "accessibility", "reporting"],
+      "co_owners": ["rmik", "registration_admission", "accessibility", "reporting"],
+      "downstream_impacts": ["preferred_language_capture", "communication_support", "accessible_display", "printed_documents", "reports"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Capture a versioned synthetic preferred-language term and display the corresponding communication-support cue.", "expected_results": ["Registration, accessible display, and print output show the same canonical language meaning.", "The communication-support cue is available to the intended synthetic role."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Reject a duplicate language code, then correct a synthetic record from a retired term.", "expected_results": ["Duplicate vocabulary input is rejected.", "Correction is attributable and downstream display/report values reconcile."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve language terminology, communication-support meaning, accessible display, correction, and reporting reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Terminology stewardship and record meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Preferred-language capture and correction behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "accessibility", "required_scope": "Communication-support and accessible-display behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Language dimensions and corrected report values.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-032",
+      "batch": "A",
+      "legacy_menu": "Pasien",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "rmik", "clinical", "billing_claims", "reporting"],
+      "co_owners": ["rmik", "registration_admission", "clinical", "finance_claims", "security_privacy_data"],
+      "downstream_impacts": ["identifier_aliases", "encounters", "documents", "billing_claim_references", "reports", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Match and merge two confirmed duplicate synthetic patient identities while preserving identifier aliases.", "expected_results": ["All linked synthetic encounters, documents, billing references, and reports resolve to the survivor identity.", "The merge records immutable before-and-after values and actor attribution."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt a merge with an identifier collision or stale concurrent version, then unmerge an authorized synthetic merge.", "expected_results": ["Collision or stale-state merge is denied without partial reassignment.", "Authorized unmerge restores valid links and preserves the complete merge/unmerge audit chain."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve identity match, merge/unmerge, alias history, collision/concurrency controls, and cross-domain reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Identity stewardship and merge/unmerge meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Identity capture, match, and correction workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical", "required_scope": "Encounter and clinical-document reference reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Billing and claim reference reconciliation after merge or unmerge.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Identity access, immutable audit, and sensitive-data boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-037",
+      "batch": "A",
+      "legacy_menu": "Log Activity",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["audit", "security_privacy", "all_workflow_domains", "operations"],
+      "co_owners": ["security_privacy_data", "operations", "affected_domain_owner"],
+      "downstream_impacts": ["mutation_attribution", "denial_evidence", "before_after_history", "retention", "authorized_export"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Perform representative authorized synthetic mutations and query their immutable audit events.", "expected_results": ["Each mutation records actor, time, object, outcome, and appropriate before-and-after values.", "Authorized filters return complete events without secrets or unnecessary synthetic clinical detail."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Trigger a wrong-role denial, attempt unauthorized audit export, and test tamper resistance.", "expected_results": ["The denial is recorded without exposing protected content.", "Unauthorized export and audit alteration are blocked and themselves auditable."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve audit event coverage, integrity, retention, redaction, filtering, export authorization, and tamper resistance.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "security_privacy_data", "required_scope": "Audit integrity, redaction, access, export, and retention controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "affected_domain_owner", "required_scope": "Required success, denial, and correction events for each domain.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Audit availability, retention operation, and recovery evidence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-038",
+      "batch": "A",
+      "legacy_menu": "LOG ESIGN",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["documents", "electronic_signature", "rmik", "security_privacy", "integrations"],
+      "co_owners": ["rmik", "security_privacy_data", "operations"],
+      "downstream_impacts": ["signature_request", "signature_result", "revocation", "retry", "audit_redaction"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Correlate a sandbox-only synthetic signature request and result to its document and signer.", "expected_results": ["Request, result, document, and synthetic signer share a traceable correlation identifier.", "The audit view redacts payload data beyond the approved need."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Simulate timeout, retry, revocation, and wrong-role access without a production certificate or endpoint.", "expected_results": ["Retry is bounded and idempotent, and revocation remains traceable.", "Wrong-role access is denied and no production credential or transmission is possible."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve sandbox-only signature correlation, retry/revocation, redaction, and explicit production exclusion.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Document and signature-result custody and correction meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Sandbox identity, redaction, access, and production exclusion.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Sandbox adapter retry, revocation visibility, and recovery behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-040",
+      "batch": "A",
+      "legacy_menu": "Log Bridging",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["integrations", "security_privacy", "operations", "affected_workflow_domain"],
+      "co_owners": ["product_delivery", "security_privacy_data", "operations", "affected_domain_owner"],
+      "downstream_impacts": ["message_history", "correlation", "retry", "dead_letter", "reconciliation", "monitoring"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Record a simulated outbound and inbound message pair with environment label, correlation, and redaction.", "expected_results": ["The immutable history links request, response, workflow object, and synthetic environment.", "Secrets and unnecessary payload fields are absent from the log."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Simulate timeout, bounded retry, dead-letter, manual reconciliation, and wrong-role access.", "expected_results": ["Retries are idempotent and exhausted messages enter a traceable dead-letter state.", "Reconciliation is attributable and wrong-role log access is denied."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve canonical integration-log correlation, redaction, environment labels, retry/dead-letter, and reconciliation behavior.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical integration-log disposition and shared control scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Retry, dead-letter, reconciliation, and monitoring operations.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Redaction, access control, and environment boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "affected_domain_owner", "required_scope": "Workflow-specific message result and reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-044",
+      "batch": "A",
+      "legacy_menu": "Logsatset",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["satusehat_simulation", "integrations", "rmik", "security_privacy", "operations"],
+      "co_owners": ["product_delivery", "rmik", "security_privacy_data", "operations"],
+      "downstream_impacts": ["sandbox_message_history", "care_setting_filter", "redaction", "retry", "reconciliation"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Record a non-transmitting synthetic SatuSehat sandbox event and retrieve it through the intended care-setting filter.", "expected_results": ["The event is labelled synthetic and non-transmitting with no real identifier.", "Filter, correlation, provenance, and redacted payload evidence agree."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Simulate adapter failure, retry/reconciliation, wrong-role access, and attempted live-endpoint configuration.", "expected_results": ["Failure and reconciliation remain traceable without external transmission.", "Wrong-role access and any live endpoint or production credential configuration are blocked."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve a non-transmitting SatuSehat simulation log, care-setting filters, redaction, and no-live-endpoint boundary.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical non-transmitting sandbox-log disposition and exclusions.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Synthetic interoperability event meaning and record correlation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "No-real-identifier, redaction, access, and live-endpoint exclusion.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Simulation adapter failure, retry, and reconciliation behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-045",
+      "batch": "A",
+      "legacy_menu": "logsatsetri",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["satusehat_simulation", "inpatient", "integrations", "rmik", "security_privacy"],
+      "co_owners": ["product_delivery", "rmik", "inpatient_clinical", "security_privacy_data"],
+      "downstream_impacts": ["inpatient_filter", "migration_trace", "sandbox_message_history", "redaction", "reconciliation"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Retrieve synthetic inpatient simulation events from the proposed canonical SatuSehat sandbox log using a preserved migration mapping.", "expected_results": ["The inpatient filter returns only correctly classified synthetic events.", "Legacy-to-canonical mapping is traceable and creates no duplicate log product."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Correct a misclassified synthetic care setting and attempt wrong-role or live-endpoint access.", "expected_results": ["Correction preserves original and corrected classification without orphaning history.", "Wrong-role access and live transmission configuration are blocked."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve inpatient-to-canonical simulation-log mapping, filter correctness, migration trace, and live-integration exclusion.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical consolidation/migration disposition and exclusions.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Interoperability history and migration trace.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Inpatient care-setting classification and correction.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Access, redaction, and no-live-transmission boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-HLP-001",
+      "batch": "A",
+      "legacy_menu": "Manual Book",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["teaching_facilitation", "documentation", "accessibility", "release_governance"],
+      "co_owners": ["rmik", "teaching_facilitation", "operations", "affected_role_owner"],
+      "downstream_impacts": ["role_task_guidance", "release_versioning", "navigation", "download_print", "accessibility"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Open the Indonesian manual for an enabled synthetic role and complete a role-appropriate teaching task.", "expected_results": ["Navigation, content, and task steps match the enabled capability and release SHA.", "The manual renders accessibly and supports the approved download or print path."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Request guidance for a disabled role capability and follow a stale manual link after a simulated release change.", "expected_results": ["Unavailable capability guidance does not imply access or reveal protected workflow details.", "The stale-version path points to the correct current manual while retaining version provenance."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve role-task coverage, Indonesian teaching usability, accessibility, navigation, and release-version provenance.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "rmik", "required_scope": "Manual content correctness, records-workflow meaning, and stewardship.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "teaching_facilitation", "required_scope": "Role-task coverage, walkthrough usability, and classroom boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Release SHA linkage, navigation, download, and print behavior.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "affected_role_owner", "required_scope": "Role-specific task coverage and permission-safe guidance.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-IOT-001",
+      "batch": "A",
+      "legacy_menu": "Temperature",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Canonical evidence normalization and accountable interpretation are pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["iot_simulation", "cold_chain", "operations", "security_privacy", "monitoring"],
+      "co_owners": ["operations", "cold_chain", "security_privacy_data"],
+      "downstream_impacts": ["synthetic_device_master", "temperature_readings", "threshold_alerts", "acknowledgement", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Ingest labelled synthetic temperature readings from a simulated device and trigger an approved threshold alert.", "expected_results": ["Every reading records synthetic provenance, device, location, value, unit, and time.", "Threshold breach creates an attributable alert and acknowledgement path."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Submit stale, malformed, or out-of-range synthetic readings and simulate device outage and wrong-role acknowledgement.", "expected_results": ["Invalid or stale readings are quarantined without changing the accepted series.", "Outage is visible, wrong-role acknowledgement is denied, and no live-device connection is attempted."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve simulation-only device provenance, thresholds, alarms, acknowledgement, invalid/stale handling, and no-live-device boundary.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "cold_chain", "required_scope": "Temperature ranges, alert meaning, and acknowledgement outcome.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Simulated device lifecycle, outage, monitoring, and recovery.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Device trust, role access, audit, and no-live-connectivity boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    }
+  ]
+}

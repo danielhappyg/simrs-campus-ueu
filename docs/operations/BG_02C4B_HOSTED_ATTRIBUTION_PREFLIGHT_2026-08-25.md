@@ -14,9 +14,9 @@ The hosted attribution manifest is also not eligible for generation yet. One leg
 
 | Layer | Read-only observation |
 | --- | --- |
-| Repository | `main` and `origin/main` matched at reviewed merge SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a` |
+| Approved cutover candidate | Exact SHA `5129e31d1077dd340feb6af016151cef64f50b2b`; this contains the reviewed application merge `3a9ad49c67d1c6c56831eb39afa7e5df8501190a` plus the documentation-only final-backup gate correction from PR #67 |
 | Public Vercel alias | `simrs-campus-ueu-demo.vercel.app` still targets production deployment `dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q` from `42ab482de577fe38cef539a74f0b749d64485b19` |
-| Current-main Vercel build | Preview deployment `dpl_9apx2fec75XuF937ueRcRLtyR7SH` is `READY` from exact SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a`; it is not the production target and application routes remain protected by Vercel SSO until authenticated runtime proof is collected |
+| Cutover-candidate Vercel build | Preview deployment `dpl_Bj1s8MgwZMjUxGkajt3B1f6whYAk` is `READY` from exact SHA `5129e31d1077dd340feb6af016151cef64f50b2b`; it is not the production target. Protected runtime proof is recorded in `BG_02C4B3_EXACT_SHA_PREVIEW_BOOT_EVIDENCE_2026-08-25.md` |
 | Supabase project | `simrs-campus-ueu-demo`, `ACTIVE_HEALTHY`, PostgreSQL 17.6, Singapore region |
 | Supabase plan | Free; the project has no database branches and does not receive the automatic daily backups documented for paid plans |
 | Private schema | `laravel`; 31 tables were listed |
@@ -40,7 +40,7 @@ The first three are not all genuinely unapplied:
 - `laravel.patients.marital_status` already exists as nullable `character varying` with no default. It was recorded in Supabase's platform migration history, not Laravel's ledger.
 - all 13 sequence defaults targeted by the qualifier migration resolve to same-owner sequences in the private `laravel` schema, with the expected ID ownership and default dependency. The qualifier was also recorded only in Supabase's platform migration history.
 
-Therefore an unguarded `php artisan migrate --force` from a pre-adoption checkout is not a safe first write: it can attempt to create the existing `audit_events` table and add the existing `marital_status` column before reaching the three intended 25 August migrations. Exact SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a` contains the reviewed fail-closed adoption behavior with automated cross-engine coverage. The foundation and marital-status migrations accept only the observed compatible contracts, while the sequence qualifier proves all 13 ownership/dependency contracts before replaying the same qualified defaults. PostgreSQL rollback for the qualifier is explicitly forward-only. A manual ledger insert remains prohibited.
+Therefore an unguarded `php artisan migrate --force` from a pre-adoption checkout is not a safe first write: it can attempt to create the existing `audit_events` table and add the existing `marital_status` column before reaching the three intended 25 August migrations. Exact cutover SHA `5129e31d1077dd340feb6af016151cef64f50b2b` contains the reviewed fail-closed adoption behavior from application merge `3a9ad49c67d1c6c56831eb39afa7e5df8501190a` with automated cross-engine coverage. The foundation and marital-status migrations accept only the observed compatible contracts, while the sequence qualifier proves all 13 ownership/dependency contracts before replaying the same qualified defaults. PostgreSQL rollback for the qualifier is explicitly forward-only. A manual ledger insert remains prohibited.
 
 ## Audit-attribution state
 
@@ -67,7 +67,7 @@ The advisory must remain visible in release evidence, but the observed grants do
 
 ## Mandatory forward rollout graph
 
-1. Use a separate clean checkout pinned to exact SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a`; record its green multi-engine CI and READY Preview deployment evidence without staging user-owned untracked paths.
+1. Use a separate clean checkout pinned to the single approved cutover SHA `5129e31d1077dd340feb6af016151cef64f50b2b`; record its green multi-engine CI and READY Preview deployment evidence without staging user-owned untracked paths. Do not substitute a later branch head or documentation commit without a new exact-SHA release review and Preview proof.
 2. Obtain authenticated Preview runtime proof for `/up` and application boot without attaching Production database credentials to Preview.
 3. Refresh the Production environment-key review and read-only hosted inventory; require the same database identity, schema/audit counts, structural contracts, and exactly the six reviewed pending migration names recorded above.
 4. Record action-time authorization, named operator/reviewer, short-lived direct database access, encrypted backup destination, and restore target without copying a persistent database password into chat or Git.
@@ -101,5 +101,6 @@ This artifact does not authorize:
 - [BG-02c2 rollout](BG_02C2_AUDIT_ATTRIBUTION_ROLLOUT_2026-08-25.md)
 - [BG-02c3 preflight](BG_02C3_AUDIT_ATTRIBUTION_PREFLIGHT_2026-08-25.md)
 - [BG-02c4a private manifest](BG_02C4A_AUDIT_ATTRIBUTION_MANIFEST_2026-08-25.md)
+- [BG-02c4b3 exact-SHA Preview boot evidence](BG_02C4B3_EXACT_SHA_PREVIEW_BOOT_EVIDENCE_2026-08-25.md)
 - [Vercel + Supabase synthetic demo](VERCEL_SUPABASE_DEMO.md)
 - [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
