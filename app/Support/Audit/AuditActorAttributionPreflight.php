@@ -2,6 +2,7 @@
 
 namespace App\Support\Audit;
 
+use App\Support\CanonicalJson;
 use App\Support\Database\SchemaQualifier;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
@@ -9,8 +10,17 @@ use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Throwable;
 
+/**
+ * @phpstan-type PreflightReport array{schema_version: int, command: string, mode: string, result: string, rows_scanned: int, counts: array<string, int>, blocking_reason_counts: array<string, int>, contract_ready: bool, backfill_ready: bool, root_digest_algorithm: string, root_digest: string}
+ * @phpstan-type ManifestEntry array{locator_hmac: string, source_leaf_hmac: string, target_reference_hmac: string, classification: string, derivation_rule: string, target_type: string}
+ * @phpstan-type DatabaseBinding array{driver: string, engine_version: string, database_target_hmac: string, schema_contract: string, schema_fingerprint: string, migration_count: int, migration_fingerprint: string}
+ * @phpstan-type InternalSnapshot array{report: PreflightReport, entries: list<ManifestEntry>, expected_after_root: string, key_id: string, database_binding: DatabaseBinding|null}
+ * @phpstan-type ManifestSnapshot array{report: PreflightReport, entries: list<ManifestEntry>, expected_after_root: string, key_id: string, database_binding: DatabaseBinding}
+ */
 final class AuditActorAttributionPreflight
 {
+    public const MAX_MANIFEST_ENTRIES = 10000;
+
     public const CURRENT = 'CURRENT';
 
     public const BACKFILLABLE_USER = 'BACKFILLABLE_USER';
@@ -40,6 +50,7 @@ final class AuditActorAttributionPreflight
         'SCHEMA_NOT_EXPANDED',
         'DIGEST_KEY_UNAVAILABLE',
         'EXISTING_TRANSACTION_UNSAFE',
+        'MANIFEST_ENTRY_LIMIT',
         'DATABASE_SCAN_FAILED',
     ];
 
@@ -62,22 +73,31 @@ final class AuditActorAttributionPreflight
         self::ACTOR_REQUIRED_BUT_MISSING,
     ];
 
-    /**
-     * @return array{
-     *   schema_version: int,
-     *   command: string,
-     *   mode: string,
-     *   result: string,
-     *   rows_scanned: int,
-     *   counts: array<string, int>,
-     *   blocking_reason_counts: array<string, int>,
-     *   contract_ready: bool,
-     *   backfill_ready: bool,
-     *   root_digest_algorithm: string,
-     *   root_digest: string
-     * }
-     */
+    /** @return PreflightReport */
     public function scan(): array
+    {
+        return $this->snapshot(false)['report'];
+    }
+
+    /**
+     * Produce the preflight report and reviewed recovery candidates from the
+     * same command-owned repeatable snapshot. Candidate values are keyed
+     * digests only; callers never receive database identifiers or references.
+     *
+     * @return ManifestSnapshot
+     */
+    public function manifestSnapshot(): array
+    {
+        $snapshot = $this->snapshot(true);
+        if ($snapshot['database_binding'] === null) {
+            throw new RuntimeException('DATABASE_SCAN_FAILED');
+        }
+
+        return $snapshot;
+    }
+
+    /** @return InternalSnapshot */
+    private function snapshot(bool $includeManifest): array
     {
         $this->assertPreconditions();
 
@@ -93,12 +113,12 @@ final class AuditActorAttributionPreflight
                 $connection->statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
             }
 
-            return $connection->transaction(function () use ($connection, $key): array {
+            return $connection->transaction(function () use ($connection, $key, $includeManifest): array {
                 if ($connection->getDriverName() === 'pgsql') {
                     $connection->statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
                 }
 
-                return $this->scanWithinSnapshot($connection, $key);
+                return $this->scanWithinSnapshot($connection, $key, $includeManifest);
             }, 1);
         } catch (RuntimeException $exception) {
             if (in_array($exception->getMessage(), self::OPERATIONAL_CODES, true)) {
@@ -138,27 +158,16 @@ final class AuditActorAttributionPreflight
         }
     }
 
-    /**
-     * @return array{
-     *   schema_version: int,
-     *   command: string,
-     *   mode: string,
-     *   result: string,
-     *   rows_scanned: int,
-     *   counts: array<string, int>,
-     *   blocking_reason_counts: array<string, int>,
-     *   contract_ready: bool,
-     *   backfill_ready: bool,
-     *   root_digest_algorithm: string,
-     *   root_digest: string
-     * }
-     */
-    private function scanWithinSnapshot(Connection $connection, string $key): array
+    /** @return InternalSnapshot */
+    private function scanWithinSnapshot(Connection $connection, string $key, bool $includeManifest): array
     {
         $counts = array_fill_keys(self::CLASSIFICATIONS, 0);
         $blockingReasonCounts = array_fill_keys(self::BLOCKING_CODES, 0);
         $digest = hash_init('sha256', HASH_HMAC, $key);
         hash_update($digest, "SIMRS-AUDIT-ACTOR-ATTRIBUTION-PREFLIGHT\0V1\0");
+        $expectedAfterDigest = hash_init('sha256', HASH_HMAC, $key);
+        hash_update($expectedAfterDigest, "SIMRS-AUDIT-ACTOR-ATTRIBUTION-PREFLIGHT\0V1\0");
+        $entries = [];
         $rowsScanned = 0;
         $auditTable = SchemaQualifier::table('audit_events');
         $usersTable = SchemaQualifier::table('users');
@@ -214,6 +223,57 @@ final class AuditActorAttributionPreflight
                 $blockingCode,
             ]);
             hash_update($digest, pack('N', strlen($leaf)).$leaf);
+
+            $afterActorType = $actorType;
+            $afterActorReference = $actorReference;
+            $afterClassification = $classification;
+            $afterBlockingCode = $blockingCode;
+
+            if ($classification === self::BACKFILLABLE_USER) {
+                $afterActorType = AuditActorAttribution::TYPE_USER;
+                $afterActorReference = $resolvedUserPublicId;
+                $afterClassification = self::CURRENT;
+                $afterBlockingCode = null;
+            } elseif ($classification === self::BACKFILLABLE_SERVICE) {
+                $afterActorType = AuditActorAttribution::TYPE_SERVICE;
+                $afterActorReference = $this->legacyBackfillableServiceReference($action);
+                $afterClassification = self::CURRENT;
+                $afterBlockingCode = null;
+            }
+
+            $afterLeaf = $this->frame([
+                $auditId,
+                $action,
+                $actorUserId,
+                $afterActorType,
+                $afterActorReference,
+                $resolvedUserId,
+                $resolvedUserPublicId,
+                $afterClassification,
+                $afterBlockingCode,
+            ]);
+            hash_update($expectedAfterDigest, pack('N', strlen($afterLeaf)).$afterLeaf);
+
+            if ($includeManifest && in_array($classification, [self::BACKFILLABLE_USER, self::BACKFILLABLE_SERVICE], true)) {
+                if (count($entries) >= self::MAX_MANIFEST_ENTRIES) {
+                    throw new RuntimeException('MANIFEST_ENTRY_LIMIT');
+                }
+                $targetType = $classification === self::BACKFILLABLE_USER
+                    ? AuditActorAttribution::TYPE_USER
+                    : AuditActorAttribution::TYPE_SERVICE;
+                $derivationRule = $classification === self::BACKFILLABLE_USER
+                    ? 'USER_FROM_RESTRICTED_FK_RECOVERY_V1'
+                    : 'SERVICE_REBUILD_ADMIN_V1';
+
+                $entries[] = [
+                    'locator_hmac' => $this->keyedValue($key, 'LOCATOR', $this->frame([$auditId])),
+                    'source_leaf_hmac' => $this->keyedValue($key, 'SOURCE_LEAF', $leaf),
+                    'target_reference_hmac' => $this->keyedValue($key, 'TARGET_REFERENCE', $this->frame([$afterActorReference])),
+                    'classification' => $classification,
+                    'derivation_rule' => $derivationRule,
+                    'target_type' => $targetType,
+                ];
+            }
         }
 
         $result = $counts[self::BLOCKING] > 0
@@ -222,7 +282,7 @@ final class AuditActorAttributionPreflight
                 ? 'BACKFILL_REQUIRED'
                 : self::CURRENT);
 
-        return [
+        $report = [
             'schema_version' => 1,
             'command' => 'audit:attribution:preflight',
             'mode' => 'READ_ONLY',
@@ -235,6 +295,267 @@ final class AuditActorAttributionPreflight
             'root_digest_algorithm' => 'hmac-sha256-length-prefixed-v1',
             'root_digest' => hash_final($digest),
         ];
+
+        return [
+            'report' => $report,
+            'entries' => $entries,
+            'expected_after_root' => hash_final($expectedAfterDigest),
+            'key_id' => substr($this->keyedValue($key, 'KEY_ID', 'BG-02C4A'), 0, 24),
+            'database_binding' => $includeManifest ? $this->databaseBinding($connection, $key) : null,
+        ];
+    }
+
+    /** @return DatabaseBinding */
+    private function databaseBinding(Connection $connection, string $key): array
+    {
+        $driver = $connection->getDriverName();
+        $version = match ($driver) {
+            'sqlite' => (string) ($connection->selectOne('select sqlite_version() as version')->version ?? ''),
+            'pgsql' => (string) ($connection->selectOne("select current_setting('server_version') as version")->version ?? ''),
+            'mysql' => (string) ($connection->selectOne('select version() as version')->version ?? ''),
+            default => throw new RuntimeException('UNSUPPORTED_DRIVER'),
+        };
+
+        $schema = $connection->getSchemaBuilder();
+        $schemaEvidence = [];
+        foreach (['audit_events', 'users'] as $table) {
+            $qualified = SchemaQualifier::table($table);
+            $schemaEvidence[$table] = [
+                'columns' => $schema->getColumns($qualified),
+                'indexes' => $schema->getIndexes($qualified),
+                'foreign_keys' => $schema->getForeignKeys($qualified),
+            ];
+        }
+        $this->assertAttributionSchemaContract($connection, $schemaEvidence);
+
+        $migrations = $connection->table(SchemaQualifier::table('migrations'))
+            ->orderBy('migration')
+            ->get(['migration', 'batch'])
+            ->map(fn (object $row): array => [(string) $row->migration, (int) $row->batch])
+            ->all();
+        $connectionConfig = $connection->getConfig();
+        $targetMaterial = CanonicalJson::encode([
+            'driver' => $driver,
+            'host' => $connectionConfig['host'] ?? null,
+            'port' => $connectionConfig['port'] ?? null,
+            'database' => $connectionConfig['database'] ?? null,
+            'schema' => SchemaQualifier::primarySchema(),
+        ]);
+
+        return [
+            'driver' => $driver,
+            'engine_version' => $version,
+            'database_target_hmac' => hash_hmac('sha256', "SIMRS-DATABASE-TARGET\0V1\0".$targetMaterial, $key),
+            'schema_contract' => 'audit-attribution-expanded-v1',
+            'schema_fingerprint' => hash('sha256', CanonicalJson::encode($schemaEvidence)),
+            'migration_count' => count($migrations),
+            'migration_fingerprint' => hash('sha256', CanonicalJson::encode(['migrations' => $migrations])),
+        ];
+    }
+
+    /** @param array<string, array<string, mixed>> $schemaEvidence */
+    private function assertAttributionSchemaContract(Connection $connection, array $schemaEvidence): void
+    {
+        $audit = $schemaEvidence['audit_events'];
+        $users = $schemaEvidence['users'];
+        $driver = $connection->getDriverName();
+        $actorUser = $this->columnDefinition($audit['columns'] ?? null, 'actor_user_id');
+        $userId = $this->columnDefinition($users['columns'] ?? null, 'id');
+        $actorType = $this->columnDefinition($audit['columns'] ?? null, 'actor_type');
+        $actorReference = $this->columnDefinition($audit['columns'] ?? null, 'actor_reference');
+        $publicId = $this->columnDefinition($users['columns'] ?? null, 'public_id');
+        $idTypesMatch = $actorUser !== null && $userId !== null
+            && ($actorUser['nullable'] ?? null) === true
+            && $this->normalizedColumnType($actorUser) !== null
+            && $this->normalizedColumnType($actorUser) === $this->normalizedColumnType($userId);
+        $expandedStringColumnsMatch = $this->stringColumnMatches($actorType, true, 16, $driver)
+            && $this->stringColumnMatches($actorReference, true, 255, $driver);
+        $publicIdMatches = $this->stringColumnMatches($publicId, false, 26, $driver);
+        $attributionIndexExists = $this->hasIndex(
+            $audit['indexes'] ?? null,
+            ['actor_type', 'actor_reference'],
+        );
+        $publicIdUnique = $this->hasGloballyEnforcedPublicIdUniqueness($connection);
+        $restrictiveActorForeignKey = $this->hasRestrictiveActorForeignKey(
+            $audit['foreign_keys'] ?? null,
+            $this->expectedForeignSchema($connection),
+        );
+
+        if (! $idTypesMatch || ! $expandedStringColumnsMatch || ! $publicIdMatches || ! $attributionIndexExists
+            || ! $publicIdUnique || ! $restrictiveActorForeignKey) {
+            throw new RuntimeException('SCHEMA_NOT_EXPANDED');
+        }
+    }
+
+    /** @return array<string, mixed>|null */
+    private function columnDefinition(mixed $columns, string $name): ?array
+    {
+        if (! is_array($columns)) {
+            return null;
+        }
+        foreach ($columns as $column) {
+            if (is_array($column) && ($column['name'] ?? null) === $name) {
+                return $column;
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed>|null $column */
+    private function stringColumnMatches(?array $column, bool $nullable, int $length, string $driver): bool
+    {
+        if ($column === null || ($column['nullable'] ?? null) !== $nullable) {
+            return false;
+        }
+        $typeName = is_string($column['type_name'] ?? null)
+            ? strtolower($column['type_name'])
+            : null;
+        $type = $this->normalizedColumnType($column);
+        if (! in_array($typeName, ['bpchar', 'char', 'varchar'], true) || $type === null) {
+            return false;
+        }
+        if ($driver === 'sqlite') {
+            return in_array($type, ['char', 'varchar'], true);
+        }
+
+        return preg_match('/\A(?:char|character|varchar|character varying)\('.$length.'\)\z/', $type) === 1;
+    }
+
+    /** @param array<string, mixed> $column */
+    private function normalizedColumnType(array $column): ?string
+    {
+        if (! is_string($column['type'] ?? null)) {
+            return null;
+        }
+
+        return strtolower(trim(preg_replace('/\s+/', ' ', $column['type']) ?? ''));
+    }
+
+    /** @param list<string> $columns */
+    private function hasIndex(mixed $indexes, array $columns, ?bool $unique = null): bool
+    {
+        if (! is_array($indexes)) {
+            return false;
+        }
+        foreach ($indexes as $index) {
+            if (is_array($index) && ($index['columns'] ?? null) === $columns
+                && ($unique === null || ($index['unique'] ?? null) === $unique)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasRestrictiveActorForeignKey(mixed $foreignKeys, string $expectedSchema): bool
+    {
+        if (! is_array($foreignKeys)) {
+            return false;
+        }
+        $qualifiedUsers = SchemaQualifier::table('users');
+        foreach ($foreignKeys as $foreign) {
+            if (! is_array($foreign)) {
+                continue;
+            }
+            $onDelete = strtolower(trim(is_string($foreign['on_delete'] ?? null) ? $foreign['on_delete'] : ''));
+            if (($foreign['columns'] ?? null) === ['actor_user_id']
+                && in_array($foreign['foreign_table'] ?? null, ['users', $qualifiedUsers], true)
+                && ($foreign['foreign_schema'] ?? null) === $expectedSchema
+                && ($foreign['foreign_columns'] ?? null) === ['id']
+                && in_array($onDelete, ['restrict', 'no action'], true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function expectedForeignSchema(Connection $connection): string
+    {
+        return match ($connection->getDriverName()) {
+            'pgsql' => SchemaQualifier::primarySchema() ?? 'public',
+            'mysql' => $connection->getDatabaseName(),
+            'sqlite' => 'main',
+            default => throw new RuntimeException('UNSUPPORTED_DRIVER'),
+        };
+    }
+
+    private function hasGloballyEnforcedPublicIdUniqueness(Connection $connection): bool
+    {
+        return match ($connection->getDriverName()) {
+            'pgsql' => $this->postgresPublicIdUniqueness($connection),
+            'mysql' => $this->mysqlPublicIdUniqueness($connection),
+            'sqlite' => $this->sqlitePublicIdUniqueness($connection),
+            default => throw new RuntimeException('UNSUPPORTED_DRIVER'),
+        };
+    }
+
+    private function postgresPublicIdUniqueness(Connection $connection): bool
+    {
+        $schema = SchemaQualifier::primarySchema() ?? 'public';
+        $match = $connection->selectOne(<<<'SQL'
+            select exists (
+                select 1
+                from pg_constraint c
+                join pg_class t on t.oid = c.conrelid
+                join pg_namespace n on n.oid = t.relnamespace
+                join pg_index i on i.indexrelid = c.conindid
+                where n.nspname = ?
+                  and t.relname = 'users'
+                  and c.conname = 'users_public_id_unique'
+                  and c.contype = 'u'
+                  and c.convalidated
+                  and i.indisunique
+                  and i.indisvalid
+                  and i.indisready
+                  and i.indpred is null
+                  and i.indexprs is null
+                  and array_length(c.conkey, 1) = 1
+                  and c.conkey[1] = (
+                      select a.attnum
+                      from pg_attribute a
+                      where a.attrelid = t.oid and a.attname = 'public_id' and not a.attisdropped
+                  )
+            ) as matches
+            SQL, [$schema]);
+
+        return filter_var($match->matches ?? false, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    private function mysqlPublicIdUniqueness(Connection $connection): bool
+    {
+        $match = $connection->selectOne(<<<'SQL'
+            select count(*) as matches
+            from (
+                select index_name
+                from information_schema.statistics
+                where table_schema = ?
+                  and table_name = 'users'
+                  and index_name = 'users_public_id_unique'
+                group by index_name
+                having max(non_unique) = 0
+                   and count(*) = 1
+                   and max(case when column_name = 'public_id' and seq_in_index = 1 then 1 else 0 end) = 1
+            ) as enforced_unique
+            SQL, [$connection->getDatabaseName()]);
+
+        return (int) ($match->matches ?? 0) === 1;
+    }
+
+    private function sqlitePublicIdUniqueness(Connection $connection): bool
+    {
+        $index = $connection->selectOne(<<<'SQL'
+            select "unique" as is_unique, partial
+            from pragma_index_list('users')
+            where name = 'users_public_id_unique'
+            SQL);
+        if ((int) ($index->is_unique ?? 0) !== 1 || (int) ($index->partial ?? 1) !== 0) {
+            return false;
+        }
+        $columns = $connection->select("select name from pragma_index_info('users_public_id_unique') order by seqno");
+
+        return array_map(fn (object $column): mixed => $column->name ?? null, $columns) === ['public_id'];
     }
 
     /** @return array{string, string|null} */
@@ -365,5 +686,10 @@ final class AuditActorAttributionPreflight
         }
 
         return $framed;
+    }
+
+    private function keyedValue(string $key, string $purpose, string $value): string
+    {
+        return hash_hmac('sha256', "SIMRS-AUDIT-ACTOR-ATTRIBUTION-MANIFEST\0V1\0{$purpose}\0".$value, $key);
     }
 }
