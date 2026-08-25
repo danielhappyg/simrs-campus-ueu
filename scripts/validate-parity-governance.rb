@@ -145,6 +145,15 @@ class ParityGovernanceValidator
     PAR-ORP-001
   ].freeze
 
+  EXPECTED_BATCH_E_IDS = %w[
+    PAR-ADM-017 PAR-ADM-020 PAR-ADM-029 PAR-ADM-030 PAR-ADM-042
+    PAR-PHA-001 PAR-PHA-002 PAR-PHA-003 PAR-PHA-004 PAR-PHA-005 PAR-PHA-006 PAR-PHA-007 PAR-PHA-008 PAR-PHA-009 PAR-PHA-010
+    PAR-PHA-011 PAR-PHA-012 PAR-PHA-013 PAR-PHA-014 PAR-PHA-015 PAR-PHA-016 PAR-PHA-017 PAR-PHA-018 PAR-PHA-019 PAR-PHA-020
+    PAR-PWH-001 PAR-PWH-002 PAR-PWH-003 PAR-PWH-004 PAR-PWH-005 PAR-PWH-006 PAR-PWH-007 PAR-PWH-008 PAR-PWH-009 PAR-PWH-010
+    PAR-PWH-011 PAR-PWH-012 PAR-PWH-013 PAR-PWH-014 PAR-PWH-015 PAR-PWH-016 PAR-PWH-017 PAR-PWH-018 PAR-PWH-019 PAR-PWH-020
+    PAR-PWH-021 PAR-PWH-022 PAR-PWH-023
+  ].freeze
+
   BATCH_A_REGISTER_SCHEMA_VERSION = 1
   BATCH_A_REGISTER_ID = 'G0-BATCH-A-2026-08-25'
   BATCH_A_EVIDENCE_DIRECTORY = 'G0_BATCH_A_DECISION_EVIDENCE_2026-08-25'
@@ -154,11 +163,15 @@ class ParityGovernanceValidator
   BATCH_C_EVIDENCE_DIRECTORY = 'G0_BATCH_C_DECISION_EVIDENCE_2026-08-25'
   BATCH_D_REGISTER_ID = 'G0-BATCH-D-2026-08-25'
   BATCH_D_EVIDENCE_DIRECTORY = 'G0_BATCH_D_DECISION_EVIDENCE_2026-08-25'
+  BATCH_E_REGISTER_ID = 'G0-BATCH-E-2026-08-25'
+  BATCH_E_EVIDENCE_DIRECTORY = 'G0_BATCH_E_DECISION_EVIDENCE_2026-08-25'
+  BATCH_E_SOURCE_REVISION = '36c309cd734f78716ae8ee146a08c2129beedbd9'
   DECISION_REGISTER_CONFIGS = {
     'A' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('A'), expected_ids: EXPECTED_BATCH_A_IDS, register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }.freeze,
     'B' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('B'), expected_ids: EXPECTED_BATCH_B_IDS, register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }.freeze,
     'C' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('C'), expected_ids: EXPECTED_BATCH_C_IDS, register_id: BATCH_C_REGISTER_ID, evidence_directory: BATCH_C_EVIDENCE_DIRECTORY }.freeze,
-    'D' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('D'), expected_ids: EXPECTED_BATCH_D_IDS, register_id: BATCH_D_REGISTER_ID, evidence_directory: BATCH_D_EVIDENCE_DIRECTORY }.freeze
+    'D' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('D'), expected_ids: EXPECTED_BATCH_D_IDS, register_id: BATCH_D_REGISTER_ID, evidence_directory: BATCH_D_EVIDENCE_DIRECTORY }.freeze,
+    'E' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('E'), expected_ids: EXPECTED_BATCH_E_IDS, register_id: BATCH_E_REGISTER_ID, evidence_directory: BATCH_E_EVIDENCE_DIRECTORY }.freeze
   }.transform_values(&:freeze).freeze
   BATCH_C_REQUIRED_AUTHORITIES = {
     'PAR-ADM-004' => %w[product_delivery clinical_governance rmik quality_analytics security_privacy_data],
@@ -251,8 +264,8 @@ class ParityGovernanceValidator
     ['batch_gate', 'B', %w[patient encounter admission identity]],
     ['batch_gate', 'C', %w[clinical_state clinical_authority rmik_record amendment]]
   ].map(&:freeze).freeze
-  FOUR_SCENARIO_BATCHES = %w[C D].freeze
-  AUTHORITY_BOUND_BATCHES = %w[C D].freeze
+  FOUR_SCENARIO_BATCHES = %w[C D E].freeze
+  AUTHORITY_BOUND_BATCHES = %w[C D E].freeze
   FOUR_SCENARIO_NAMES = %w[normal denial correction_or_amendment dependency_outage].freeze
   BATCH_D_CAPABILITY_KINDS = {
     'PAR-ADM-014' => 'diagnostic_master', 'PAR-ADM-015' => 'diagnostic_master',
@@ -318,6 +331,265 @@ class ParityGovernanceValidator
     'PAR-CLN-018' => 'mortuary_custody_release', 'PAR-CLN-020' => 'ambulance_dispatch_handoff',
     'PAR-ORP-001' => 'ibs_pharmacy_stock_boundary'
   }.freeze
+  BATCH_E_FAMILY_MEMBERS = {
+    'E1' => %w[PAR-ADM-017 PAR-ADM-020 PAR-ADM-029 PAR-ADM-030 PAR-ADM-042 PAR-PWH-001],
+    'E2' => %w[PAR-PHA-001 PAR-PHA-002 PAR-PHA-003 PAR-PHA-004 PAR-PHA-015 PAR-PHA-016 PAR-PHA-017],
+    'E3' => %w[PAR-PHA-005 PAR-PHA-011 PAR-PHA-012 PAR-PHA-013 PAR-PHA-014 PAR-PHA-019],
+    'E4' => %w[PAR-PHA-006 PAR-PHA-007 PAR-PHA-008 PAR-PHA-009 PAR-PHA-010 PAR-PHA-018 PAR-PHA-020],
+    'E5' => %w[PAR-PWH-002 PAR-PWH-005 PAR-PWH-009 PAR-PWH-012 PAR-PWH-017],
+    'E6' => %w[PAR-PWH-013 PAR-PWH-018 PAR-PWH-021],
+    'E7' => %w[PAR-PWH-003 PAR-PWH-006 PAR-PWH-008 PAR-PWH-016],
+    'E8' => %w[PAR-PWH-004 PAR-PWH-007 PAR-PWH-010 PAR-PWH-011 PAR-PWH-014 PAR-PWH-015 PAR-PWH-019 PAR-PWH-020 PAR-PWH-023],
+    'E9' => %w[PAR-PWH-022]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_FAMILY_AUTHORITIES = {
+    'E1' => { lead: 'pharmacy_master_data', co_owners: %w[product_delivery pharmacy_master_data pharmacy warehouse_stock clinical_governance finance_claims procurement security_privacy_data] },
+    'E2' => { lead: 'pharmacy', co_owners: %w[product_delivery pharmacy clinical_ordering clinical_governance warehouse_stock finance_claims rmik security_privacy_data] },
+    'E3' => { lead: 'pharmacy_operations', co_owners: %w[product_delivery pharmacy_operations pharmacy warehouse_stock finance_claims rmik security_privacy_data] },
+    'E4' => { lead: 'pharmacy_inventory_control', co_owners: %w[product_delivery pharmacy_inventory_control pharmacy warehouse_stock finance_claims reporting security_privacy_data] },
+    'E5' => { lead: 'procurement', co_owners: %w[product_delivery procurement warehouse_stock pharmacy finance_claims security_privacy_data] },
+    'E6' => { lead: 'warehouse_stock', co_owners: %w[product_delivery warehouse_stock pharmacy clinical_governance finance_claims security_privacy_data] },
+    'E7' => { lead: 'warehouse_stock', co_owners: %w[product_delivery warehouse_stock pharmacy unit_operations finance_claims security_privacy_data] },
+    'E8' => { lead: 'inventory_control', co_owners: %w[product_delivery inventory_control warehouse_stock pharmacy finance_claims security_privacy_data operations_recovery] },
+    'E9' => { lead: 'blood_bank', co_owners: %w[product_delivery blood_bank transfusion_clinical warehouse_stock clinical_governance finance_claims security_privacy_data operations_recovery] }
+  }.transform_values { |policy| { lead: policy.fetch(:lead).freeze, co_owners: policy.fetch(:co_owners).freeze }.freeze }.freeze
+  BATCH_E_FAMILY_HAZARDS = {
+    'E1' => %w[versioned_master duplicate_code invalid_unit destructive_master_edit],
+    'E2' => %w[wrong_context duplicate_dispense expired_or_quarantined_issue duplicate_charge],
+    'E3' => %w[one_sided_issue_or_return negative_stock duplicate_movement charge_divergence],
+    'E4' => %w[projection_drift stale_balance structural_capture_only period_mismatch],
+    'E5' => %w[unapproved_supplier duplicate_receipt lot_expiry_missing valuation_or_ap_divergence],
+    'E6' => %w[replenishment_drift expired_or_quarantined_issue fefo_violation buffer_miscalculation],
+    'E7' => %w[one_sided_transfer destination_mismatch duplicate_movement unit_return_divergence],
+    'E8' => %w[history_edit_or_delete negative_stock period_reopen duplicate_correction],
+    'E9' => %w[blood_stock_medicine_substitution compatibility_bypass custody_gap expired_or_quarantined_issue]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_ROW_HAZARDS = {
+    'PAR-ADM-017' => %w[supplier_master_duplicate_or_unapproved],
+    'PAR-ADM-020' => %w[discount_overlap_or_unauthorized],
+    'PAR-ADM-029' => %w[monitor_semantics_unknown],
+    'PAR-ADM-030' => %w[depot_identity_or_scope_mismatch],
+    'PAR-ADM-042' => %w[package_component_version_or_duplicate_charge],
+    'PAR-PHA-001' => %w[emergency_dispense_wrong_encounter],
+    'PAR-PHA-002' => %w[outpatient_dispense_duplicate_charge],
+    'PAR-PHA-003' => %w[inpatient_dispense_wrong_admission],
+    'PAR-PHA-004' => %w[external_patient_identity_or_charge_gap],
+    'PAR-PHA-005' => %w[pharmacy_transfer_one_sided_posting],
+    'PAR-PHA-006' => %w[pharmacy_count_period_or_mode_confusion],
+    'PAR-PHA-007' => %w[pharmacy_stock_position_projection_drift],
+    'PAR-PHA-008' => %w[pharmacy_distribution_projection_duplicate],
+    'PAR-PHA-009' => %w[pharmacy_receipt_projection_drift],
+    'PAR-PHA-010' => %w[pharmacy_usage_charge_divergence],
+    'PAR-PHA-011' => %w[outpatient_issue_wrong_context],
+    'PAR-PHA-012' => %w[external_issue_identity_or_charge_gap],
+    'PAR-PHA-013' => %w[inpatient_issue_wrong_admission],
+    'PAR-PHA-014' => %w[pharmacy_unit_return_wrong_origin],
+    'PAR-PHA-015' => %w[prescription_history_missing_reversal_link],
+    'PAR-PHA-016' => %w[outpatient_trolley_semantics_unknown],
+    'PAR-PHA-017' => %w[inpatient_trolley_semantics_unknown],
+    'PAR-PHA-018' => %w[patient_return_projection_duplicate],
+    'PAR-PHA-019' => %w[generic_issue_orp_interface_ambiguity],
+    'PAR-PHA-020' => %w[pharmacy_stock_card_missing_compensation],
+    'PAR-PWH-001' => %w[medicine_master_lot_unit_mapping_drift],
+    'PAR-PWH-002' => %w[receipt_variant_equivalence_unknown],
+    'PAR-PWH-003' => %w[warehouse_transfer_one_sided_posting],
+    'PAR-PWH-004' => %w[periodic_count_mode_confusion],
+    'PAR-PWH-005' => %w[supplier_return_without_receipt_link],
+    'PAR-PWH-006' => %w[unit_return_wrong_origin],
+    'PAR-PWH-007' => %w[warehouse_stock_position_projection_drift],
+    'PAR-PWH-008' => %w[warehouse_distribution_projection_duplicate],
+    'PAR-PWH-009' => %w[warehouse_receipt_projection_drift],
+    'PAR-PWH-010' => %w[perpetual_report_missing_correction],
+    'PAR-PWH-011' => %w[stock_card_missing_correction_link],
+    'PAR-PWH-012' => %w[receipt_variant_equivalence_unknown],
+    'PAR-PWH-013' => %w[expired_item_issue_or_quarantine_bypass],
+    'PAR-PWH-014' => %w[append_only_correction_no_mutation],
+    'PAR-PWH-015' => %w[stocktake_report_period_mismatch],
+    'PAR-PWH-016' => %w[inter_depot_transfer_one_sided_posting],
+    'PAR-PWH-017' => %w[purchase_order_supplier_or_approval_bypass],
+    'PAR-PWH-018' => %w[buffer_report_stale_projection],
+    'PAR-PWH-019' => %w[per_item_perpetual_report_reconciliation_gap],
+    'PAR-PWH-020' => %w[per_item_perpetual_view_reconciliation_gap],
+    'PAR-PWH-021' => %w[buffer_replenishment_duplicate_order],
+    'PAR-PWH-022' => %w[blood_stock_exception_not_medicine_stock compatibility_and_custody_required],
+    'PAR-PWH-023' => %w[initial_count_repeated_baseline]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_ROW_CAPABILITY_FOCUS = {
+    'PAR-ADM-017' => 'supplier_master_approval_versioning', 'PAR-ADM-020' => 'pharmacy_discount_precedence_authorization',
+    'PAR-ADM-029' => 'pharmacy_monitor_semantics_discovery', 'PAR-ADM-030' => 'depot_identity_scope_mapping',
+    'PAR-ADM-042' => 'medicine_package_component_versioning', 'PAR-PHA-001' => 'emergency_dispensing',
+    'PAR-PHA-002' => 'outpatient_dispensing', 'PAR-PHA-003' => 'inpatient_dispensing',
+    'PAR-PHA-004' => 'external_patient_dispensing', 'PAR-PHA-005' => 'pharmacy_distribution_transfer',
+    'PAR-PHA-006' => 'pharmacy_periodic_stock_count', 'PAR-PHA-007' => 'pharmacy_stock_position_projection',
+    'PAR-PHA-008' => 'pharmacy_distribution_projection', 'PAR-PHA-009' => 'pharmacy_receipt_projection',
+    'PAR-PHA-010' => 'pharmacy_usage_projection', 'PAR-PHA-011' => 'outpatient_issue_ledger',
+    'PAR-PHA-012' => 'external_issue_ledger', 'PAR-PHA-013' => 'inpatient_issue_ledger',
+    'PAR-PHA-014' => 'pharmacy_unit_return', 'PAR-PHA-015' => 'prescription_history_projection',
+    'PAR-PHA-016' => 'outpatient_trolley_semantics', 'PAR-PHA-017' => 'inpatient_trolley_semantics',
+    'PAR-PHA-018' => 'patient_return_projection', 'PAR-PHA-019' => 'generic_issue_orp_boundary',
+    'PAR-PHA-020' => 'pharmacy_stock_card_projection', 'PAR-PWH-001' => 'medicine_master_lot_unit_mapping',
+    'PAR-PWH-002' => 'warehouse_receipt_variant_one', 'PAR-PWH-003' => 'warehouse_distribution_transfer',
+    'PAR-PWH-004' => 'warehouse_periodic_stock_count', 'PAR-PWH-005' => 'supplier_return',
+    'PAR-PWH-006' => 'warehouse_unit_return', 'PAR-PWH-007' => 'warehouse_stock_position_projection',
+    'PAR-PWH-008' => 'warehouse_distribution_projection', 'PAR-PWH-009' => 'warehouse_receipt_projection',
+    'PAR-PWH-010' => 'warehouse_perpetual_projection', 'PAR-PWH-011' => 'warehouse_stock_card_projection',
+    'PAR-PWH-012' => 'warehouse_receipt_variant_two', 'PAR-PWH-013' => 'expired_medicine_quarantine',
+    'PAR-PWH-014' => 'append_only_stock_correction_reversal', 'PAR-PWH-015' => 'warehouse_stocktake_projection',
+    'PAR-PWH-016' => 'inter_depot_distribution_transfer', 'PAR-PWH-017' => 'purchase_order_approval',
+    'PAR-PWH-018' => 'buffer_stock_projection', 'PAR-PWH-019' => 'per_item_perpetual_report',
+    'PAR-PWH-020' => 'per_item_perpetual_view', 'PAR-PWH-021' => 'buffer_stock_replenishment',
+    'PAR-PWH-022' => 'blood_stock_compatibility_custody', 'PAR-PWH-023' => 'initial_stock_count_baseline'
+  }.freeze
+  BATCH_E_ROW_LIFECYCLES = {
+    'PAR-ADM-017' => %w[supplier_version_draft validate_supplier_approval supplier_version_effective supplier_code_unique],
+    'PAR-ADM-020' => %w[discount_rule_draft authorize_discount_precedence discount_rule_effective one_discount_path],
+    'PAR-ADM-029' => %w[monitor_semantics_unmapped perform_authority_mapping monitor_semantics_reviewed no_stock_mutation],
+    'PAR-ADM-030' => %w[depot_scope_draft validate_depot_identity depot_scope_effective location_scope_unique],
+    'PAR-ADM-042' => %w[package_version_draft validate_package_components package_version_effective components_version_pinned],
+    'PAR-PHA-001' => %w[emergency_prescription_authorized dispense_fefo_to_emergency_encounter emergency_dispense_reconciled single_emergency_charge],
+    'PAR-PHA-002' => %w[outpatient_prescription_authorized dispense_fefo_to_outpatient_encounter outpatient_dispense_reconciled single_outpatient_charge],
+    'PAR-PHA-003' => %w[inpatient_prescription_authorized dispense_fefo_to_inpatient_admission inpatient_dispense_reconciled single_inpatient_charge],
+    'PAR-PHA-004' => %w[external_prescription_authorized dispense_fefo_to_external_identity external_dispense_reconciled external_identity_attributed],
+    'PAR-PHA-005' => %w[pharmacy_transfer_authorized post_paired_pharmacy_transfer pharmacy_transfer_reconciled source_destination_balanced],
+    'PAR-PHA-006' => %w[pharmacy_count_period_open post_periodic_count_compensation pharmacy_count_period_closed variance_compensated],
+    'PAR-PHA-007' => %w[pharmacy_stock_ledger_posted project_pharmacy_stock_position pharmacy_stock_projection_reconciled projection_equals_ledger],
+    'PAR-PHA-008' => %w[pharmacy_transfer_ledger_posted project_pharmacy_distribution pharmacy_distribution_projection_reconciled transfer_projection_unique],
+    'PAR-PHA-009' => %w[pharmacy_receipt_ledger_posted project_pharmacy_receipts pharmacy_receipt_projection_reconciled receipt_projection_unique],
+    'PAR-PHA-010' => %w[pharmacy_issue_ledger_posted project_pharmacy_usage pharmacy_usage_projection_reconciled usage_charge_reconciled],
+    'PAR-PHA-011' => %w[outpatient_issue_authorized post_outpatient_issue outpatient_issue_reconciled outpatient_context_bound],
+    'PAR-PHA-012' => %w[external_issue_authorized post_external_issue external_issue_reconciled external_identity_bound],
+    'PAR-PHA-013' => %w[inpatient_issue_authorized post_inpatient_issue inpatient_issue_reconciled admission_context_bound],
+    'PAR-PHA-014' => %w[pharmacy_unit_return_authorized post_paired_pharmacy_unit_return pharmacy_unit_return_reconciled return_origin_bound],
+    'PAR-PHA-015' => %w[prescription_ledger_posted project_prescription_history prescription_history_reconciled reversals_linked],
+    'PAR-PHA-016' => %w[outpatient_trolley_unmapped deny_until_trolley_mapping outpatient_trolley_no_movement semantics_remain_unknown],
+    'PAR-PHA-017' => %w[inpatient_trolley_unmapped deny_until_trolley_mapping inpatient_trolley_no_movement semantics_remain_unknown],
+    'PAR-PHA-018' => %w[patient_return_ledger_posted project_patient_returns patient_return_projection_reconciled return_projection_unique],
+    'PAR-PHA-019' => %w[orp_issue_request_authorized post_orp_issue_boundary orp_issue_reconciled orp_charge_single],
+    'PAR-PHA-020' => %w[pharmacy_movement_ledger_posted project_pharmacy_stock_card pharmacy_stock_card_reconciled corrections_linked],
+    'PAR-PWH-001' => %w[medicine_version_draft validate_lot_unit_mapping medicine_version_effective lot_unit_mapping_pinned],
+    'PAR-PWH-002' => %w[warehouse_receipt_variant_one_authorized post_supplier_receipt_variant_one receipt_variant_one_reconciled supplier_lot_value_bound],
+    'PAR-PWH-003' => %w[warehouse_transfer_authorized post_paired_warehouse_transfer warehouse_transfer_reconciled source_destination_balanced],
+    'PAR-PWH-004' => %w[warehouse_count_period_open post_periodic_count_compensation warehouse_count_period_closed variance_compensated],
+    'PAR-PWH-005' => %w[supplier_return_authorized post_supplier_return supplier_return_reconciled source_receipt_linked],
+    'PAR-PWH-006' => %w[warehouse_unit_return_authorized post_paired_warehouse_unit_return warehouse_unit_return_reconciled return_origin_bound],
+    'PAR-PWH-007' => %w[warehouse_stock_ledger_posted project_warehouse_stock_position warehouse_stock_projection_reconciled projection_equals_ledger],
+    'PAR-PWH-008' => %w[warehouse_transfer_ledger_posted project_warehouse_distribution warehouse_distribution_projection_reconciled transfer_projection_unique],
+    'PAR-PWH-009' => %w[warehouse_receipt_ledger_posted project_warehouse_receipts warehouse_receipt_projection_reconciled receipt_projection_unique],
+    'PAR-PWH-010' => %w[warehouse_movement_ledger_posted project_warehouse_perpetual warehouse_perpetual_reconciled corrections_linked],
+    'PAR-PWH-011' => %w[warehouse_movement_ledger_posted project_warehouse_stock_card warehouse_stock_card_reconciled corrections_linked],
+    'PAR-PWH-012' => %w[warehouse_receipt_variant_two_authorized post_supplier_receipt_variant_two receipt_variant_two_reconciled variant_equivalence_pending],
+    'PAR-PWH-013' => %w[lot_expiry_evaluated quarantine_expired_lot expired_lot_quarantined no_expired_issue],
+    'PAR-PWH-014' => %w[posted_ledger_event request_append_only_correction compensating_event_reconciled prior_event_immutable],
+    'PAR-PWH-015' => %w[stocktake_ledger_posted project_stocktake_report stocktake_report_reconciled period_bound],
+    'PAR-PWH-016' => %w[inter_depot_transfer_authorized post_paired_inter_depot_transfer inter_depot_transfer_reconciled source_destination_balanced],
+    'PAR-PWH-017' => %w[purchase_request_approved authorize_purchase_order purchase_order_issued supplier_approval_bound],
+    'PAR-PWH-018' => %w[buffer_ledger_posted project_buffer_stock_report buffer_report_reconciled cutoff_bound],
+    'PAR-PWH-019' => %w[item_movement_ledger_posted project_item_perpetual_report item_perpetual_report_reconciled item_totals_balanced],
+    'PAR-PWH-020' => %w[item_movement_ledger_posted project_item_perpetual_view item_perpetual_view_reconciled item_totals_balanced],
+    'PAR-PWH-021' => %w[buffer_threshold_effective calculate_replenishment_order replenishment_order_authorized duplicate_order_prevented],
+    'PAR-PWH-022' => %w[blood_unit_compatible reserve_compatible_blood_unit blood_unit_custody_reconciled compatibility_custody_preserved],
+    'PAR-PWH-023' => %w[initial_count_not_recorded post_initial_count_baseline initial_count_baseline_closed baseline_posted_once]
+  }.transform_values do |values|
+    { pre_state: values[0].freeze, transition: values[1].freeze, post_state: values[2].freeze, assertion: values[3].freeze }.freeze
+  end.freeze
+  BATCH_E_CONSOLIDATION_GROUPS = {
+    'E-C01' => %w[PAR-PHA-001 PAR-PHA-002 PAR-PHA-003 PAR-PHA-004],
+    'E-C02' => %w[PAR-PHA-011 PAR-PHA-012 PAR-PHA-013 PAR-PHA-019],
+    'E-C03' => %w[PAR-PHA-005 PAR-PWH-003 PAR-PWH-016],
+    'E-C04' => %w[PAR-PHA-014 PAR-PWH-006],
+    'E-C05' => %w[PAR-PHA-006 PAR-PWH-004 PAR-PWH-023],
+    'E-C06' => %w[PAR-PHA-007 PAR-PWH-007],
+    'E-C07' => %w[PAR-PHA-008 PAR-PWH-008],
+    'E-C08' => %w[PAR-PHA-009 PAR-PWH-009],
+    'E-C09' => %w[PAR-PHA-020 PAR-PWH-010 PAR-PWH-011 PAR-PWH-019 PAR-PWH-020],
+    'E-C10' => %w[PAR-PWH-002 PAR-PWH-012],
+    'E-C11' => %w[PAR-PWH-014]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_CONSOLIDATION_MAPPING_CONTRACTS = {
+    'E-C01' => { fields: %w[legacy_requirement_id dispensing_setting encounter_context prescription_id item lot expiry quantity charge_reference idempotency_key], states: %w[prescribed authorized dispensed returned cancelled reconciled] },
+    'E-C02' => { fields: %w[legacy_requirement_id issue_context request_id source_location destination_location item lot expiry quantity charge_reference idempotency_key], states: %w[requested authorized issued returned cancelled reconciled] },
+    'E-C03' => { fields: %w[legacy_requirement_id transfer_id source_location destination_location item lot expiry quantity valuation period idempotency_key], states: %w[requested authorized source_posted destination_posted received returned cancelled reconciled] },
+    'E-C04' => { fields: %w[legacy_requirement_id return_id source_location destination_location item lot expiry quantity reason period idempotency_key], states: %w[requested authorized returned received rejected cancelled reconciled] },
+    'E-C05' => { fields: %w[legacy_requirement_id count_mode count_id location item lot expiry book_quantity counted_quantity variance_quantity period idempotency_key], states: %w[opened counted variance_reviewed compensated closed] },
+    'E-C06' => { fields: %w[legacy_requirement_id projection_id location item lot expiry quantity period ledger_event_id], states: %w[ledger_posted projected reconciled] },
+    'E-C07' => { fields: %w[legacy_requirement_id projection_id source_location destination_location item lot expiry quantity period ledger_event_id], states: %w[ledger_posted projected reconciled] },
+    'E-C08' => { fields: %w[legacy_requirement_id projection_id receipt_id supplier item lot expiry quantity valuation period ledger_event_id], states: %w[ledger_posted projected reconciled] },
+    'E-C09' => { fields: %w[legacy_requirement_id ledger_event_id location item lot expiry quantity valuation period correction_reference idempotency_key], states: %w[posted corrected reversed reconciled] },
+    'E-C10' => { fields: %w[legacy_requirement_id receipt_variant purchase_order_id receipt_id supplier item lot expiry quantity valuation period idempotency_key], states: %w[ordered received accepted rejected returned reconciled] },
+    'E-C11' => { fields: %w[legacy_requirement_id ledger_event_id correction_reference actor reason period idempotency_key], states: %w[posted corrected reversed reconciled] }
+  }.transform_values { |contract| { fields: contract.fetch(:fields).freeze, states: contract.fetch(:states).freeze }.freeze }.freeze
+  BATCH_E_LEDGER_INVARIANTS = %w[immutable_ledger append_only_compensation no_edit_or_delete_history no_negative_stock no_duplicate_movement no_duplicate_charge no_one_sided_transfer no_expired_issue no_quarantined_issue idempotent_reconciliation].freeze
+  BATCH_E_MOVEMENT_CONTRACT_KEYS = %w[source_destination_pair lot expiry fefo valuation period idempotency reconciliation].freeze
+  BATCH_E_FAMILY_MOVEMENT_CONTRACTS = {
+    'E1' => [false, false, false, false, false, true, true, true],
+    'E2' => [true, true, true, true, true, true, true, true],
+    'E3' => [true, true, true, true, true, true, true, true],
+    'E4' => [false, true, true, false, true, true, true, true],
+    'E5' => [true, true, true, true, true, true, true, true],
+    'E6' => [true, true, true, true, true, true, true, true],
+    'E7' => [true, true, true, true, true, true, true, true],
+    'E8' => [true, true, true, true, true, true, true, true],
+    'E9' => [true, true, true, true, true, true, true, true]
+  }.transform_values { |values| BATCH_E_MOVEMENT_CONTRACT_KEYS.zip(values).to_h.freeze }.freeze
+  BATCH_E_FAMILY_CONTROL_TOTALS = {
+    'E1' => %w[active_master_count version_count],
+    'E2' => %w[prescribed_quantity dispensed_quantity returned_quantity stock_delta charge_delta],
+    'E3' => %w[source_delta destination_delta returned_quantity charge_delta],
+    'E4' => %w[opening_balance movement_total closing_balance projection_total],
+    'E5' => %w[ordered_quantity received_quantity accepted_quantity rejected_quantity inventory_value ap_value],
+    'E6' => %w[reorder_quantity available_quantity quarantined_quantity expired_quantity],
+    'E7' => %w[source_delta destination_delta unit_return_quantity],
+    'E8' => %w[book_quantity counted_quantity variance_quantity compensation_total closing_balance],
+    'E9' => %w[compatible_units reserved_units simulated_issued_units returned_units quarantined_units]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_FAMILY_RECONCILIATION_EQUATIONS = {
+    'E1' => %w[active_master_lte_version_count],
+    'E2' => %w[prescribed_gte_dispensed stock_delta_equals_returns_minus_dispense charge_delta_equals_dispense_minus_returns],
+    'E3' => %w[source_plus_destination_zero transfer_charge_zero],
+    'E4' => %w[opening_plus_movements_equals_closing projection_equals_closing],
+    'E5' => %w[accepted_plus_rejected_equals_received received_lte_ordered inventory_value_equals_ap_value],
+    'E6' => %w[replenishment_totals_nonnegative],
+    'E7' => %w[source_plus_destination_zero unit_return_nonnegative],
+    'E8' => %w[book_plus_variance_equals_counted compensation_equals_variance closing_equals_counted],
+    'E9' => %w[reserved_lte_compatible issued_returned_quarantined_lte_compatible]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_LEDGER_KINDS = %w[source_ledger destination_ledger finance_ledger reporting_projection].freeze
+  BATCH_E_INTEGRATION_MODES = %w[none non_transmitting_simulation simulated_adapter].freeze
+  BATCH_E_PROHIBITED_TARGETS = %w[BPJS SATUSEHAT eRx supplier AP accounting device printer].freeze
+  BATCH_E_EVIDENCE_BASES = %w[behavioral_execution signed_operating_procedure reconciled_ledger user_interview structural_capture].freeze
+  BATCH_E_RECONCILIATION_ARTIFACT_TYPE = 'g0_batch_e_reconciliation'
+  BATCH_E_CONSOLIDATION_ARTIFACT_TYPE = 'g0_batch_e_consolidation_mapping'
+  BATCH_E_GATE_ARTIFACT_TYPE = 'g0_batch_e_gate_resolution'
+  BATCH_E_GATE_STATUSES = %w[pending resolved deferred].freeze
+  BATCH_E_D_INTERFACE_IDS = %w[PAR-PHA-005 PAR-PHA-014 PAR-PHA-019 PAR-PWH-003 PAR-PWH-006 PAR-PWH-016 PAR-PWH-022].freeze
+  BATCH_E_GATE_SCOPES = {
+    'C' => %w[medication order encounter rmik],
+    'D' => %w[orp request issue return charge],
+    'F' => %w[charge valuation claim accounting],
+    'G' => %w[report projection reconciliation control_total]
+  }.transform_values(&:freeze).freeze
+  BATCH_E_GATE_AUTHORITIES = { 'C' => 'clinical_governance', 'D' => 'pharmacy', 'F' => 'finance_claims', 'G' => 'reporting' }.freeze
+  BATCH_E_RECONCILIATION_STATUSES = %w[pending complete].freeze
+  BATCH_E_CONSOLIDATION_STATUSES = %w[pending complete not_applicable].freeze
+  BATCH_E_FAMILY_POLICY_KEYS = %w[family_id members lead_authority_domain co_owners inherited_hazards movement_contract reconciliation_control_totals].freeze
+  BATCH_E_SCENARIO_KEYS = %w[status data_class description expected_results family_contract row_hazard_assertions lifecycle_pre_state lifecycle_transition lifecycle_post_state capability_assertions preconditions actions assertions].freeze
+  BATCH_E_BOUNDARY_KEYS = %w[mode endpoint credential_state outbound_network delivery_state prohibited_targets notes].freeze
+  BATCH_E_GATE_KEYS = %w[direction batch scope status resolution defer_authority_domain resolution_reference resolution_artifact_sha256].freeze
+  BATCH_E_RECONCILIATION_KEYS = %w[status control_totals receipt_reference receipt_artifact_sha256].freeze
+  BATCH_E_CONSOLIDATION_KEYS = %w[candidate_id status terminal_target_requirement_id artifact_reference artifact_sha256].freeze
+  BATCH_E_ENTRY_KEYS = %w[requirement_id batch legacy_menu family_id availability_state lead_authority_domain evidence decision affected_domains co_owners downstream_impacts synthetic_scenarios accountable_owner appointment_dependencies gate_authority_appointments dependency_gates integration_boundary ledger_invariants movement_contract reconciliation_contract consolidation_mapping approval row_hazards].freeze
+  BATCH_E_REGISTER_KEYS = %w[schema_version register_id batch register_status data_boundary external_integrations source_manifest source_manifest_sha256 source_revision evidence_directory purpose family_policies entries].freeze
+  BATCH_E_EVIDENCE_RECORD_KEYS = %w[evidence_class evidence_basis date source reference interpreter confidence artifact_reference artifact_sha256 note].freeze
+  BATCH_E_DECISION_KEYS = %w[status canonical_disposition target rationale].freeze
+  BATCH_E_TARGET_KEYS = %w[kind reference exclusions].freeze
+  BATCH_E_OWNER_KEYS = %w[appointment_status identity authority_domain required_scope appointed_scope appointment_date appointment_reference artifact_sha256].freeze
+  BATCH_E_APPOINTMENT_KEYS = %w[authority_domain required_scope status identity date reference artifact_sha256].freeze
+  BATCH_E_APPROVAL_KEYS = %w[status identity authority_domain scope date reference artifact_sha256 conditions].freeze
+  BATCH_E_GATE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject direction batch scope status resolution identity authority_domain upstream_requirement_id upstream_approval_reference upstream_approval_sha256 upstream_source_id upstream_source_sha256 exclusions date reviewer].freeze
+  BATCH_E_RECONCILIATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id family_id synthetic_only period_start period_end cutoff_at event_count ledger_receipts control_totals control_values equations differences idempotency_key date author_identity reviewer].freeze
+  BATCH_E_LEDGER_RECEIPT_ARTIFACT_TYPE = 'g0_batch_e_ledger_receipt'
+  BATCH_E_LEDGER_RECEIPT_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id ledger_kind synthetic_only period_start period_end cutoff_at event_count control_values ledger_digest idempotency_key date author_identity reviewer].freeze
+  BATCH_E_CONSOLIDATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id candidate_id members target_requirement_id member_impacts mapped_fields mapped_states exclusions date author_identity reviewer].freeze
   GOVERNANCE_ARTIFACT_TYPE = 'g0_parity_governance_attestation'
   EVIDENCE_ARTIFACT_TYPE = 'g0_parity_evidence'
   ARTIFACT_SCHEMA_VERSION = 1
@@ -351,7 +623,7 @@ class ParityGovernanceValidator
 
   attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
@@ -360,7 +632,8 @@ class ParityGovernanceValidator
       'A' => File.expand_path(decision_register_path),
       'B' => File.expand_path(batch_b_decision_register_path),
       'C' => File.expand_path(batch_c_decision_register_path),
-      'D' => File.expand_path(batch_d_decision_register_path)
+      'D' => File.expand_path(batch_d_decision_register_path),
+      'E' => File.expand_path(batch_e_decision_register_path)
     }
     @decision_register_paths = DECISION_REGISTER_CONFIGS.keys.to_h do |batch|
       [batch, supplied_register_paths.fetch(batch)]
@@ -544,6 +817,13 @@ class ParityGovernanceValidator
     unless register['evidence_directory'] == config[:evidence_directory]
       errors << "#{prefix}: evidence_directory must be #{config[:evidence_directory]}"
     end
+    if batch == 'E'
+      validate_closed_object(register, BATCH_E_REGISTER_KEYS, prefix)
+      errors << "#{prefix}: source_revision must be #{BATCH_E_SOURCE_REVISION}" unless register['source_revision'] == BATCH_E_SOURCE_REVISION
+      actual_manifest_sha = Digest::SHA256.file(@batch_manifest_path).hexdigest if File.file?(@batch_manifest_path)
+      errors << "#{prefix}: source_manifest_sha256 must match the loaded manifest" unless actual_manifest_sha && register['source_manifest_sha256'] == actual_manifest_sha
+      validate_batch_e_family_policies(register['family_policies'])
+    end
 
     entries = register['entries']
     unless entries.is_a?(Array)
@@ -631,6 +911,7 @@ class ParityGovernanceValidator
     validate_nonempty_string_array(entry['downstream_impacts'], "#{decision_register_label} #{label}: downstream_impacts")
     validate_strict_batch_authorities(entry, label) if AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
     validate_batch_d_controls(entry, label) if @active_decision_context[:batch] == 'D'
+    validate_batch_e_controls(entry, label) if @active_decision_context[:batch] == 'E'
 
     scenarios = entry['synthetic_scenarios']
     if !scenarios.is_a?(Hash)
@@ -657,10 +938,17 @@ class ParityGovernanceValidator
   end
 
   def validate_strict_batch_authorities(entry, label)
-    required_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_REQUIRED_AUTHORITIES : BATCH_D_REQUIRED_AUTHORITIES
-    lead_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_LEAD_AUTHORITIES : BATCH_D_LEAD_AUTHORITIES
-    expected_authorities = required_authorities[label]
-    expected_lead = lead_authorities[label]
+    if @active_decision_context[:batch] == 'E'
+      family = batch_e_family_for(label)
+      authority_policy = BATCH_E_FAMILY_AUTHORITIES[family]
+      expected_authorities = authority_policy && authority_policy[:co_owners]
+      expected_lead = authority_policy && authority_policy[:lead]
+    else
+      required_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_REQUIRED_AUTHORITIES : BATCH_D_REQUIRED_AUTHORITIES
+      lead_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_LEAD_AUTHORITIES : BATCH_D_LEAD_AUTHORITIES
+      expected_authorities = required_authorities[label]
+      expected_lead = lead_authorities[label]
+    end
     unless expected_authorities && expected_lead
       errors << "#{decision_register_label} #{label}: required authority policy is missing"
       return
@@ -678,6 +966,428 @@ class ParityGovernanceValidator
     owner = entry['accountable_owner']
     unless owner.is_a?(Hash) && owner['authority_domain'] == expected_lead
       errors << "#{decision_register_label} #{label}: accountable owner authority_domain must match lead authority #{expected_lead}"
+    end
+  end
+
+  def batch_e_family_for(requirement_id)
+    BATCH_E_FAMILY_MEMBERS.find { |_family, members| members.include?(requirement_id) }&.first
+  end
+
+  def batch_e_row_hazards(requirement_id)
+    family = batch_e_family_for(requirement_id)
+    return [] unless family
+
+    [*BATCH_E_FAMILY_HAZARDS.fetch(family), *BATCH_E_ROW_HAZARDS.fetch(requirement_id)]
+  end
+
+  def batch_e_expected_family_policy(family)
+    authority = BATCH_E_FAMILY_AUTHORITIES.fetch(family)
+    {
+      'family_id' => family,
+      'members' => BATCH_E_FAMILY_MEMBERS.fetch(family),
+      'lead_authority_domain' => authority.fetch(:lead),
+      'co_owners' => authority.fetch(:co_owners),
+      'inherited_hazards' => BATCH_E_FAMILY_HAZARDS.fetch(family),
+      'movement_contract' => BATCH_E_FAMILY_MOVEMENT_CONTRACTS.fetch(family),
+      'reconciliation_control_totals' => BATCH_E_FAMILY_CONTROL_TOTALS.fetch(family)
+    }
+  end
+
+  def validate_batch_e_family_policies(policies)
+    prefix = 'Batch E decision register: family_policies'
+    unless policies.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    expected_families = BATCH_E_FAMILY_MEMBERS.keys
+    actual_families = policies.each_with_object([]) { |policy, values| values << policy['family_id'] if policy.is_a?(Hash) }
+    errors << "#{prefix} must contain exactly #{expected_families.join(', ')} in frozen order" unless actual_families == expected_families
+    policies.each_with_index do |policy, index|
+      unless policy.is_a?(Hash)
+        errors << "#{prefix}[#{index}] must be an object"
+        next
+      end
+      family = policy['family_id']
+      expected = BATCH_E_FAMILY_MEMBERS.key?(family) ? batch_e_expected_family_policy(family) : nil
+      validate_closed_object(policy, BATCH_E_FAMILY_POLICY_KEYS, "#{prefix}[#{index}]")
+      errors << "#{prefix}[#{index}] is not a frozen Batch E family" unless expected
+      errors << "#{prefix}[#{index}] must exactly match the frozen family policy" if expected && policy != expected
+    end
+    members = policies.flat_map { |policy| policy.is_a?(Hash) && policy['members'].is_a?(Array) ? policy['members'] : [] }
+    errors << "#{prefix} must partition the exact 48 Batch E IDs without duplicates" unless members == BATCH_E_FAMILY_MEMBERS.values.flatten && members.uniq.length == EXPECTED_BATCH_E_IDS.length
+  end
+
+  def validate_batch_e_controls(entry, label)
+    validate_closed_object(entry, BATCH_E_ENTRY_KEYS, "#{decision_register_label} #{label}")
+    family = batch_e_family_for(label)
+    unless family
+      errors << "#{decision_register_label} #{label}: Batch E family policy is missing"
+      return
+    end
+    errors << "#{decision_register_label} #{label}: family_id must be #{family}" unless entry['family_id'] == family
+    errors << "#{decision_register_label} #{label}: availability_state must remain Soon" unless entry['availability_state'] == 'Soon'
+    Array(entry['evidence']).each_with_index { |record, index| validate_closed_object(record, BATCH_E_EVIDENCE_RECORD_KEYS, "#{decision_register_label} #{label}: evidence[#{index}]") if record.is_a?(Hash) }
+    validate_closed_object(entry['decision'], BATCH_E_DECISION_KEYS, "#{decision_register_label} #{label}: decision") if entry['decision'].is_a?(Hash)
+    validate_closed_object(entry.dig('decision', 'target'), BATCH_E_TARGET_KEYS, "#{decision_register_label} #{label}: decision target") if entry.dig('decision', 'target').is_a?(Hash)
+    validate_closed_object(entry['accountable_owner'], BATCH_E_OWNER_KEYS, "#{decision_register_label} #{label}: accountable_owner") if entry['accountable_owner'].is_a?(Hash)
+    Array(entry['appointment_dependencies']).each_with_index { |record, index| validate_closed_object(record, BATCH_E_APPOINTMENT_KEYS, "#{decision_register_label} #{label}: appointment_dependencies[#{index}]") if record.is_a?(Hash) }
+    validate_batch_e_gate_authority_appointments(entry['gate_authority_appointments'], entry['co_owners'], label)
+    validate_closed_object(entry['approval'], BATCH_E_APPROVAL_KEYS, "#{decision_register_label} #{label}: approval") if entry['approval'].is_a?(Hash)
+    errors << "#{decision_register_label} #{label}: affected_domains must exactly match the frozen co-owner authorities" unless entry['affected_domains'] == BATCH_E_FAMILY_AUTHORITIES.fetch(family).fetch(:co_owners)
+    expected_hazards = batch_e_row_hazards(label)
+    errors << "#{decision_register_label} #{label}: row_hazards must exactly inherit family hazards plus the row traceability hazard" unless entry['row_hazards'] == expected_hazards
+    errors << "#{decision_register_label} #{label}: ledger_invariants must exactly match the immutable Batch E ledger policy" unless entry['ledger_invariants'] == BATCH_E_LEDGER_INVARIANTS
+    errors << "#{decision_register_label} #{label}: movement_contract must exactly match family #{family}" unless entry['movement_contract'] == BATCH_E_FAMILY_MOVEMENT_CONTRACTS.fetch(family)
+    validate_batch_e_dependency_gates(entry['dependency_gates'], entry, label)
+    validate_batch_e_integration_boundary(entry['integration_boundary'], label)
+    validate_batch_e_reconciliation(entry['reconciliation_contract'], family, label)
+    validate_batch_e_consolidation(entry['consolidation_mapping'], entry['decision'], label)
+    validate_batch_e_append_only_correction(entry, label) if label == 'PAR-PWH-014'
+  end
+
+  def validate_batch_e_gate_authority_appointments(appointments, co_owners, label)
+    expected_domains = %w[finance_claims reporting].reject { |domain| Array(co_owners).include?(domain) }
+    unless appointments.is_a?(Array)
+      errors << "#{decision_register_label} #{label}: gate_authority_appointments must be an array"
+      return
+    end
+    domains = appointments.select { |record| record.is_a?(Hash) }.map { |record| record['authority_domain'] }
+    errors << "#{decision_register_label} #{label}: gate_authority_appointments must exactly cover external F/G gate authorities #{expected_domains.inspect}" unless domains == expected_domains
+    appointments.each_with_index do |record, index|
+      prefix = "#{decision_register_label} #{label}: gate_authority_appointments[#{index}]"
+      unless record.is_a?(Hash)
+        errors << "#{prefix} must be an object"
+        next
+      end
+      validate_closed_object(record, BATCH_E_APPOINTMENT_KEYS, prefix)
+      errors << "#{prefix} required_scope must bind forward-gate deferral authority" unless nonempty_string?(record['required_scope'])
+      status = record['status']
+      errors << "#{prefix} invalid status #{status.inspect}" unless APPOINTMENT_STATUSES.include?(status)
+      if status == 'pending'
+        %w[identity date reference artifact_sha256].each { |key| errors << "#{prefix} pending #{key} must be null" unless record[key].nil? }
+      elsif status == 'appointed'
+        errors << "#{prefix} identity must be non-placeholder" unless nonempty_string?(record['identity']) && !record['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+        errors << "#{prefix} date must be YYYY-MM-DD" unless iso_date?(record['date'])
+        validate_governance_artifact(reference: record['reference'], expected_sha256: record['artifact_sha256'], label: "#{prefix} appointment", requirement_id: label, subject: 'appointment_dependency', record: record)
+      end
+    end
+  end
+
+  def batch_e_expected_gates(label)
+    batches = ['C']
+    batches << 'D' if BATCH_E_D_INTERFACE_IDS.include?(label)
+    batches.concat(%w[F G])
+    batches.map do |batch|
+      {
+        'direction' => %w[C D].include?(batch) ? 'upstream' : 'forward',
+        'batch' => batch,
+        'scope' => BATCH_E_GATE_SCOPES.fetch(batch)
+      }
+    end
+  end
+
+  def validate_batch_e_dependency_gates(gates, entry, label)
+    unless gates.is_a?(Array)
+      errors << "#{decision_register_label} #{label}: dependency_gates must be an array"
+      return
+    end
+    expected = batch_e_expected_gates(label)
+    actual = []
+    gates.each_with_index do |gate, index|
+      prefix = "#{decision_register_label} #{label}: dependency_gates[#{index}]"
+      unless gate.is_a?(Hash)
+        errors << "#{prefix} must be an object"
+        next
+      end
+      validate_closed_object(gate, BATCH_E_GATE_KEYS, prefix)
+      actual << gate.slice('direction', 'batch', 'scope')
+      status = gate['status']
+      errors << "#{prefix} invalid status #{status.inspect}" unless BATCH_E_GATE_STATUSES.include?(status)
+      if status == 'pending'
+        %w[resolution defer_authority_domain resolution_reference resolution_artifact_sha256].each do |key|
+          errors << "#{prefix} pending #{key} must be null" unless gate[key].nil?
+        end
+      elsif status == 'resolved'
+        errors << "#{prefix} resolved gate requires a non-empty resolution" unless nonempty_string?(gate['resolution'])
+        errors << "#{prefix} resolved defer_authority_domain must be null" unless gate['defer_authority_domain'].nil?
+        validate_batch_e_gate_artifact(gate, entry, label, prefix)
+      elsif status == 'deferred'
+        expected_authority = BATCH_E_GATE_AUTHORITIES[gate['batch']]
+        errors << "#{prefix} only forward Batch F/G gates may be authority-deferred" unless gate['direction'] == 'forward' && %w[F G].include?(gate['batch'])
+        errors << "#{prefix} defer_authority_domain must be #{expected_authority}" unless gate['defer_authority_domain'] == expected_authority
+        errors << "#{prefix} deferred gate requires a non-empty resolution" unless nonempty_string?(gate['resolution'])
+        exclusions = entry.dig('decision', 'target', 'exclusions')
+        missing = Array(gate['scope']).reject { |term| Array(exclusions).any? { |item| item.downcase.include?(term.downcase) } }
+        errors << "#{prefix} authority deferral requires explicit decision exclusions for #{missing.join(', ')}" unless missing.empty?
+        validate_batch_e_gate_artifact(gate, entry, label, prefix)
+      end
+    end
+    errors << "#{decision_register_label} #{label}: dependency_gates must exactly match the frozen C/D/F/G policy" unless actual == expected
+  end
+
+  def validate_batch_e_gate_artifact(gate, entry, requirement_id, label)
+    artifact = load_structured_json_artifact(gate['resolution_reference'], gate['resolution_artifact_sha256'], "#{label} resolution")
+    return unless artifact
+    validate_closed_object(artifact, BATCH_E_GATE_ARTIFACT_KEYS, "#{label} resolution")
+    errors << "#{label} resolution artifact_type must be #{BATCH_E_GATE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_E_GATE_ARTIFACT_TYPE
+    errors << "#{label} resolution schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} resolution register_id does not match Batch E" unless artifact['register_id'] == BATCH_E_REGISTER_ID
+    errors << "#{label} resolution requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
+    errors << "#{label} resolution subject must be dependency_gate" unless artifact['subject'] == 'dependency_gate'
+    %w[direction batch scope status resolution].each { |key| errors << "#{label} resolution #{key} does not match the register" unless artifact[key] == gate[key] }
+    expected_authority = BATCH_E_GATE_AUTHORITIES[gate['batch']]
+    errors << "#{label} resolution authority_domain must be #{expected_authority}" unless artifact['authority_domain'] == expected_authority
+    errors << "#{label} resolution identity must be non-placeholder" unless nonempty_string?(artifact['identity']) && !artifact['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    source_path = %w[C D].include?(gate['batch']) ? @decision_register_paths[gate['batch']] : @batch_manifest_path
+    source_id = %w[C D].include?(gate['batch']) ? DECISION_REGISTER_CONFIGS.fetch(gate['batch'])[:register_id] : "G0_PARITY_BATCH_MANIFEST.json#batch-#{gate['batch']}"
+    source_sha = Digest::SHA256.file(source_path).hexdigest if source_path && File.file?(source_path)
+    errors << "#{label} resolution upstream_source_id does not match the loaded governance source" unless artifact['upstream_source_id'] == source_id
+    errors << "#{label} resolution upstream_source_sha256 does not match the loaded governance source" unless source_sha && artifact['upstream_source_sha256'] == source_sha
+    if %w[C D].include?(gate['batch'])
+      source_entries = @decision_entries_by_batch.fetch(gate['batch'], [])
+      unless gate['status'] == 'resolved' && @decision_register_statuses[gate['batch']] == 'complete' && source_entries.all? { |candidate| %w[approve defer].include?(candidate.dig('decision', 'status')) }
+        errors << "#{label} cannot resolve Batch #{gate['batch']} while its loaded register is incomplete"
+      end
+      authority_entries = source_entries.select do |candidate|
+        candidate['lead_authority_domain'] == expected_authority &&
+          candidate.dig('accountable_owner', 'appointment_status') == 'appointed' &&
+          candidate.dig('approval', 'status') == 'recorded' &&
+          candidate.dig('decision', 'status') == 'approve' &&
+          %w[reproduce replace].include?(candidate.dig('decision', 'canonical_disposition'))
+      end
+      authority_entry = authority_entries.find { |candidate| candidate['requirement_id'] == artifact['upstream_requirement_id'] }
+      unless authority_entry
+        errors << "#{label} must bind an approved, non-excluded upstream requirement led by appointed #{expected_authority} authority"
+      else
+        errors << "#{label} resolution identity must match the upstream accountable owner" unless artifact['identity'] == authority_entry.dig('accountable_owner', 'identity')
+        errors << "#{label} upstream_approval_reference must match the upstream approval" unless artifact['upstream_approval_reference'] == authority_entry.dig('approval', 'reference')
+        errors << "#{label} upstream_approval_sha256 must match the upstream approval" unless artifact['upstream_approval_sha256'] == authority_entry.dig('approval', 'artifact_sha256')
+      end
+    elsif gate['status'] == 'resolved'
+      errors << "#{label} unresolved forward Batch #{gate['batch']} cannot be claimed resolved without its registered governance source"
+    else
+      authority_records = [*Array(entry['appointment_dependencies']), *Array(entry['gate_authority_appointments'])]
+      authority_record = authority_records.find { |record| record.is_a?(Hash) && record['authority_domain'] == expected_authority }
+      unless authority_record&.dig('status') == 'appointed'
+        errors << "#{label} forward-gate deferral requires an appointed #{expected_authority} authority"
+      end
+      errors << "#{label} resolution identity must match the appointed forward-gate authority" unless authority_record.is_a?(Hash) && artifact['identity'] == authority_record['identity']
+      errors << "#{label} upstream_requirement_id must be null for a forward batch deferral" unless artifact['upstream_requirement_id'].nil?
+      errors << "#{label} upstream_approval_reference must be null for a forward batch deferral" unless artifact['upstream_approval_reference'].nil?
+      errors << "#{label} upstream_approval_sha256 must be null for a forward batch deferral" unless artifact['upstream_approval_sha256'].nil?
+    end
+    expected_exclusions = gate['status'] == 'deferred' ? gate['scope'] : []
+    errors << "#{label} resolution exclusions must exactly match the deferred scope" unless artifact['exclusions'] == expected_exclusions
+    errors << "#{label} resolution date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['identity'], "#{label} resolution")
+  end
+
+  def validate_batch_e_integration_boundary(boundary, label)
+    prefix = "#{decision_register_label} #{label}: integration_boundary"
+    unless boundary.is_a?(Hash)
+      errors << "#{prefix} must be an object"
+      return
+    end
+    validate_closed_object(boundary, BATCH_E_BOUNDARY_KEYS, prefix)
+    errors << "#{prefix} mode must be synthetic-only" unless BATCH_E_INTEGRATION_MODES.include?(boundary['mode'])
+    errors << "#{prefix} endpoint must be null" unless boundary['endpoint'].nil?
+    errors << "#{prefix} credential_state must be absent" unless boundary['credential_state'] == 'absent'
+    errors << "#{prefix} outbound_network must be false" unless boundary['outbound_network'] == false
+    errors << "#{prefix} delivery_state must be NOT_SENT" unless boundary['delivery_state'] == 'NOT_SENT'
+    errors << "#{prefix} prohibited_targets must exactly name every forbidden live boundary" unless boundary['prohibited_targets'] == BATCH_E_PROHIBITED_TARGETS
+    errors << "#{prefix} notes must explicitly keep Apotek/GF Soon and synthetic-only" unless nonempty_string?(boundary['notes']) && boundary['notes'].include?('Soon') && boundary['notes'].downcase.include?('synthetic')
+  end
+
+  def validate_batch_e_reconciliation(control, family, label)
+    prefix = "#{decision_register_label} #{label}: reconciliation_contract"
+    unless control.is_a?(Hash)
+      errors << "#{prefix} must be an object"
+      return
+    end
+    validate_closed_object(control, BATCH_E_RECONCILIATION_KEYS, prefix)
+    errors << "#{prefix} control_totals must exactly match family #{family}" unless control['control_totals'] == BATCH_E_FAMILY_CONTROL_TOTALS.fetch(family)
+    errors << "#{prefix} invalid status #{control['status'].inspect}" unless BATCH_E_RECONCILIATION_STATUSES.include?(control['status'])
+    if control['status'] == 'pending'
+      errors << "#{prefix} pending receipt_reference must be null" unless control['receipt_reference'].nil?
+      errors << "#{prefix} pending receipt_artifact_sha256 must be null" unless control['receipt_artifact_sha256'].nil?
+    elsif control['status'] == 'complete'
+      validate_batch_e_reconciliation_artifact(control, family, label)
+    end
+  end
+
+  def validate_batch_e_reconciliation_artifact(control, family, requirement_id)
+    label = "#{decision_register_label} #{requirement_id}: reconciliation artifact"
+    artifact = load_structured_json_artifact(control['receipt_reference'], control['receipt_artifact_sha256'], label)
+    return unless artifact
+    validate_closed_object(artifact, BATCH_E_RECONCILIATION_ARTIFACT_KEYS, label)
+    errors << "#{label} artifact_type must be #{BATCH_E_RECONCILIATION_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_E_RECONCILIATION_ARTIFACT_TYPE
+    errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} register_id does not match Batch E" unless artifact['register_id'] == BATCH_E_REGISTER_ID
+    errors << "#{label} requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
+    errors << "#{label} family_id must be #{family}" unless artifact['family_id'] == family
+    errors << "#{label} must be synthetic_only" unless artifact['synthetic_only'] == true
+    errors << "#{label} control_totals do not match the register" unless artifact['control_totals'] == control['control_totals']
+    errors << "#{label} period_start must be YYYY-MM-DD" unless iso_date?(artifact['period_start'])
+    errors << "#{label} period_end must be YYYY-MM-DD" unless iso_date?(artifact['period_end'])
+    errors << "#{label} cutoff_at must be an ISO-8601 timestamp" unless iso_datetime?(artifact['cutoff_at'])
+    if iso_date?(artifact['period_start']) && iso_date?(artifact['period_end']) && artifact['period_start'] > artifact['period_end']
+      errors << "#{label} period_start must not be after period_end"
+    end
+    errors << "#{label} event_count must be a positive integer" unless artifact['event_count'].is_a?(Integer) && artifact['event_count'].positive?
+    values = artifact['control_values']
+    valid_values = values.is_a?(Hash) && values.keys == control['control_totals'] && values.values.all? { |value| value.is_a?(Integer) }
+    errors << "#{label} control_values must exactly bind every family control total to integer quantities/minor units" unless valid_values
+    if valid_values
+      signed_keys = %w[stock_delta charge_delta source_delta destination_delta movement_total variance_quantity compensation_total]
+      invalid_negative = values.select { |key, value| value.negative? && !signed_keys.include?(key) }.keys
+      errors << "#{label} non-delta quantities and minor-unit values must be nonnegative: #{invalid_negative.join(', ')}" unless invalid_negative.empty?
+      validate_batch_e_reconciliation_equations(family, values, artifact['equations'], label)
+    end
+    differences = artifact['differences']
+    equations = BATCH_E_FAMILY_RECONCILIATION_EQUATIONS.fetch(family)
+    errors << "#{label} differences must be a closed all-zero equation result object" unless differences.is_a?(Hash) && differences.keys == equations && differences.values.all? { |value| value == 0 }
+    validate_batch_e_ledger_receipts(artifact['ledger_receipts'], artifact, requirement_id, label)
+    errors << "#{label} idempotency_key must be non-empty" unless nonempty_string?(artifact['idempotency_key'])
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+  end
+
+  def validate_batch_e_reconciliation_equations(family, values, equations, label)
+    expected = BATCH_E_FAMILY_RECONCILIATION_EQUATIONS.fetch(family)
+    errors << "#{label} equations must exactly match the frozen family reconciliation rules" unless equations == expected
+    v = ->(key) { values.fetch(key) }
+    valid = case family
+            when 'E1' then v.call('active_master_count') >= 0 && v.call('active_master_count') <= v.call('version_count')
+            when 'E2'
+              v.call('prescribed_quantity') >= v.call('dispensed_quantity') &&
+                v.call('stock_delta') == v.call('returned_quantity') - v.call('dispensed_quantity') &&
+                v.call('charge_delta') == v.call('dispensed_quantity') - v.call('returned_quantity')
+            when 'E3' then v.call('source_delta') + v.call('destination_delta') == 0 && v.call('returned_quantity') >= 0 && v.call('charge_delta').zero?
+            when 'E4' then v.call('opening_balance') + v.call('movement_total') == v.call('closing_balance') && v.call('projection_total') == v.call('closing_balance')
+            when 'E5'
+              v.call('accepted_quantity') + v.call('rejected_quantity') == v.call('received_quantity') &&
+                v.call('received_quantity') <= v.call('ordered_quantity') && v.call('inventory_value') == v.call('ap_value')
+            when 'E6' then values.values.all? { |value| value >= 0 }
+            when 'E7' then v.call('source_delta') + v.call('destination_delta') == 0 && v.call('unit_return_quantity') >= 0
+            when 'E8'
+              v.call('book_quantity') + v.call('variance_quantity') == v.call('counted_quantity') &&
+                v.call('compensation_total') == v.call('variance_quantity') && v.call('closing_balance') == v.call('counted_quantity')
+            when 'E9'
+              v.call('reserved_units') <= v.call('compatible_units') &&
+                v.call('simulated_issued_units') + v.call('returned_units') + v.call('quarantined_units') <= v.call('compatible_units')
+            end
+    errors << "#{label} control_values do not satisfy the frozen family reconciliation equations" unless valid
+  end
+
+  def validate_batch_e_ledger_receipts(receipts, reconciliation, requirement_id, label)
+    unless receipts.is_a?(Array) && receipts.length == BATCH_E_LEDGER_KINDS.length
+      errors << "#{label} ledger_receipts must contain exactly source, destination, finance, and reporting receipts"
+      return
+    end
+    kinds = receipts.map { |receipt| receipt['ledger_kind'] if receipt.is_a?(Hash) }
+    errors << "#{label} ledger_receipts must follow the frozen ledger-kind order" unless kinds == BATCH_E_LEDGER_KINDS
+    digests = []
+    receipts.each_with_index do |descriptor, index|
+      prefix = "#{label} ledger_receipts[#{index}]"
+      unless descriptor.is_a?(Hash)
+        errors << "#{prefix} must be an object"
+        next
+      end
+      validate_closed_object(descriptor, %w[ledger_kind reference sha256], prefix)
+      receipt = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], prefix)
+      next unless receipt
+      validate_closed_object(receipt, BATCH_E_LEDGER_RECEIPT_ARTIFACT_KEYS, prefix)
+      errors << "#{prefix} artifact_type must be #{BATCH_E_LEDGER_RECEIPT_ARTIFACT_TYPE}" unless receipt['artifact_type'] == BATCH_E_LEDGER_RECEIPT_ARTIFACT_TYPE
+      errors << "#{prefix} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless receipt['schema_version'] == ARTIFACT_SCHEMA_VERSION
+      errors << "#{prefix} register_id does not match Batch E" unless receipt['register_id'] == BATCH_E_REGISTER_ID
+      errors << "#{prefix} requirement_id does not match #{requirement_id}" unless receipt['requirement_id'] == requirement_id
+      errors << "#{prefix} ledger_kind does not match the descriptor" unless receipt['ledger_kind'] == descriptor['ledger_kind']
+      errors << "#{prefix} must be synthetic_only" unless receipt['synthetic_only'] == true
+      %w[period_start period_end cutoff_at event_count control_values idempotency_key].each do |key|
+        errors << "#{prefix} #{key} does not match the reconciliation artifact" unless receipt[key] == reconciliation[key]
+      end
+      errors << "#{prefix} ledger_digest must be SHA-256" unless receipt['ledger_digest'].is_a?(String) && receipt['ledger_digest'].match?(/\A[0-9a-f]{64}\z/i)
+      digests << receipt['ledger_digest'] if receipt['ledger_digest'].is_a?(String)
+      errors << "#{prefix} date must be YYYY-MM-DD" unless iso_date?(receipt['date'])
+      errors << "#{prefix} author_identity must be non-placeholder" unless nonempty_string?(receipt['author_identity']) && !receipt['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+      validate_artifact_reviewer(receipt['reviewer'], receipt['author_identity'], prefix)
+    end
+    errors << "#{label} ledger receipt digests must be distinct across all four ledgers/projections" unless digests.length == BATCH_E_LEDGER_KINDS.length && digests.uniq.length == digests.length
+  end
+
+  def batch_e_candidate_for(label)
+    BATCH_E_CONSOLIDATION_GROUPS.find { |_candidate, members| members.include?(label) }&.first
+  end
+
+  def validate_batch_e_consolidation(control, decision, label)
+    prefix = "#{decision_register_label} #{label}: consolidation_mapping"
+    unless control.is_a?(Hash)
+      errors << "#{prefix} must be an object"
+      return
+    end
+    validate_closed_object(control, BATCH_E_CONSOLIDATION_KEYS, prefix)
+    expected_candidate = batch_e_candidate_for(label)
+    errors << "#{prefix} candidate_id must be #{expected_candidate.inspect}" unless control['candidate_id'] == expected_candidate
+    errors << "#{prefix} invalid status #{control['status'].inspect}" unless BATCH_E_CONSOLIDATION_STATUSES.include?(control['status'])
+    if control['status'] == 'pending' || control['status'] == 'not_applicable'
+      errors << "#{prefix} terminal_target_requirement_id must be null" unless control['terminal_target_requirement_id'].nil?
+      errors << "#{prefix} artifact_reference must be null" unless control['artifact_reference'].nil?
+      errors << "#{prefix} artifact_sha256 must be null" unless control['artifact_sha256'].nil?
+      errors << "#{prefix} non-candidates must be not_applicable" if expected_candidate.nil? && control['status'] != 'not_applicable'
+      errors << "#{prefix} candidates must remain pending until mapped" if expected_candidate && control['status'] == 'not_applicable'
+    elsif control['status'] == 'complete'
+      errors << "#{prefix} cannot be complete for a non-candidate" unless expected_candidate
+      errors << "#{prefix} terminal_target_requirement_id must be non-empty" unless nonempty_string?(control['terminal_target_requirement_id'])
+      validate_batch_e_consolidation_artifact(control, label, expected_candidate) if expected_candidate
+    end
+    if decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+      errors << "#{prefix} consolidation decision requires a complete mapping" unless expected_candidate && control['status'] == 'complete'
+    end
+  end
+
+  def validate_batch_e_consolidation_artifact(control, requirement_id, candidate)
+    label = "#{decision_register_label} #{requirement_id}: consolidation artifact"
+    artifact = load_structured_json_artifact(control['artifact_reference'], control['artifact_sha256'], label)
+    return unless artifact
+    validate_closed_object(artifact, BATCH_E_CONSOLIDATION_ARTIFACT_KEYS, label)
+    errors << "#{label} artifact_type must be #{BATCH_E_CONSOLIDATION_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_E_CONSOLIDATION_ARTIFACT_TYPE
+    errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} register_id does not match Batch E" unless artifact['register_id'] == BATCH_E_REGISTER_ID
+    errors << "#{label} candidate_id must be #{candidate}" unless artifact['candidate_id'] == candidate
+    members = BATCH_E_CONSOLIDATION_GROUPS.fetch(candidate)
+    errors << "#{label} members must exactly preserve every audited candidate ID" unless artifact['members'] == members
+    impacts = artifact['member_impacts']
+    valid_impacts = impacts.is_a?(Hash) && impacts.keys == members && impacts.values.all? { |values| values.is_a?(Array) && !values.empty? && values.all? { |value| nonempty_string?(value) } }
+    errors << "#{label} member_impacts must retain every member with substantive impacts" unless valid_impacts
+    errors << "#{label} target_requirement_id must match the shared terminal target" unless artifact['target_requirement_id'] == control['terminal_target_requirement_id']
+    %w[mapped_fields mapped_states].each { |key| validate_nonempty_string_array(artifact[key], "#{label} #{key}") }
+    mapping_contract = BATCH_E_CONSOLIDATION_MAPPING_CONTRACTS.fetch(candidate)
+    errors << "#{label} mapped_fields must exactly match the frozen candidate contract" unless artifact['mapped_fields'] == mapping_contract.fetch(:fields)
+    errors << "#{label} mapped_states must exactly match the frozen candidate contract" unless artifact['mapped_states'] == mapping_contract.fetch(:states)
+    errors << "#{label} exclusions must be an array" unless artifact['exclusions'].is_a?(Array) && artifact['exclusions'].all? { |value| nonempty_string?(value) }
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+  end
+
+  def validate_batch_e_append_only_correction(entry, label)
+    hazards = entry['row_hazards']
+    errors << "#{decision_register_label} #{label}: Edit Transaksi must remain an append-only correction/reversal candidate" unless hazards.is_a?(Array) && hazards.include?('append_only_correction_no_mutation')
+    decision = entry['decision']
+    return unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status'])
+    if decision['status'] == 'approve'
+      unless decision['canonical_disposition'] == 'replace' && decision.dig('target', 'kind') == 'capability' && decision.dig('target', 'reference') == 'append_only_stock_correction_reversal'
+        errors << "#{decision_register_label} #{label}: approval may only replace Edit Transaksi with append_only_stock_correction_reversal"
+      end
+      exclusions = Array(decision.dig('target', 'exclusions')).map(&:downcase)
+      required_exclusions = ['edit history', 'delete history', 'overwrite history', 'in-place mutation']
+      missing = required_exclusions.reject { |required| exclusions.any? { |item| item.include?(required) } }
+      errors << "#{decision_register_label} #{label}: approval must explicitly exclude edit, delete, overwrite, and in-place mutation of history" unless missing.empty?
+      mapping = entry['consolidation_mapping']
+      unless mapping.is_a?(Hash) && mapping['status'] == 'complete' && mapping['terminal_target_requirement_id'] == 'append_only_stock_correction_reversal'
+        errors << "#{decision_register_label} #{label}: approval requires a complete C11 mapping to append_only_stock_correction_reversal"
+      end
     end
   end
 
@@ -791,7 +1501,8 @@ class ParityGovernanceValidator
 
     if dependency['dependency_kind'] == 'batch_gate'
       upstream_config = DECISION_REGISTER_CONFIGS[upstream_batch]
-      if upstream_config
+      manifest_bound_forward_deferral = upstream_batch == 'E' && dependency['status'] == 'deferred'
+      if upstream_config && !manifest_bound_forward_deferral
         upstream_path = @decision_register_paths[upstream_batch]
         upstream_source_id = upstream_config[:register_id]
       else
@@ -958,7 +1669,7 @@ class ParityGovernanceValidator
       %w[date source reference interpreter artifact_reference artifact_sha256].each do |key|
         errors << "#{decision_register_label} #{label}: pending evidence #{key} must be null" unless record[key].nil?
       end
-      if @active_decision_context[:batch] == 'D' && !record['evidence_basis'].nil?
+      if %w[D E].include?(@active_decision_context[:batch]) && !record['evidence_basis'].nil?
         errors << "#{decision_register_label} #{label}: pending evidence evidence_basis must be null"
       end
       errors << "#{decision_register_label} #{label}: pending evidence confidence must be pending" unless confidence == 'pending'
@@ -974,6 +1685,8 @@ class ParityGovernanceValidator
       errors << "#{decision_register_label} #{label}: non-pending evidence confidence cannot be pending"
     end
     if @active_decision_context[:batch] == 'D' && !BATCH_D_EVIDENCE_BASES.include?(record['evidence_basis'])
+      errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
+    elsif @active_decision_context[:batch] == 'E' && !BATCH_E_EVIDENCE_BASES.include?(record['evidence_basis'])
       errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
     end
     validate_evidence_artifact(record, label, index)
@@ -1077,6 +1790,56 @@ class ParityGovernanceValidator
 
     detect_decision_register_consolidation_cycles(graph, register_edges)
     validate_batch_d_terminal_consolidations(entries_by_batch.fetch('D', []))
+    validate_batch_e_consolidation_decisions(entries_by_batch.fetch('E', []))
+  end
+
+  def validate_batch_e_consolidation_decisions(entries)
+    by_id = entries.to_h { |entry| [entry['requirement_id'], entry] }
+    active_candidates = {}
+    entries.each do |entry|
+      decision = entry['decision'] if entry.is_a?(Hash)
+      next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+
+      source = entry['requirement_id']
+      candidate = batch_e_candidate_for(source)
+      members = candidate && BATCH_E_CONSOLIDATION_GROUPS[candidate]
+      target = decision.dig('target', 'reference')
+      unless members && members.length > 1 && members.include?(target) && target != source
+        errors << "Batch E decision register #{source}: consolidation is allowed only within its frozen multi-member audit candidate"
+        next
+      end
+      if active_candidates.key?(candidate) && active_candidates[candidate] != target
+        errors << "Batch E decision register #{source}: candidate #{candidate} cannot consolidate to conflicting terminal targets"
+      else
+        active_candidates[candidate] = target
+      end
+      target_decision = by_id.dig(target, 'decision')
+      unless target_decision.is_a?(Hash) && %w[approve defer].include?(target_decision['status']) && target_decision['canonical_disposition'] != 'consolidate'
+        errors << "Batch E decision register #{source}: consolidation target #{target} must have a resolved non-consolidation decision"
+      end
+    end
+    active_candidates.each do |candidate, target|
+      members = BATCH_E_CONSOLIDATION_GROUPS.fetch(candidate)
+      coherent_decisions = members.all? do |member|
+        decision = by_id.dig(member, 'decision')
+        if member == target
+          decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] != 'consolidate'
+        else
+          decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) &&
+            decision['canonical_disposition'] == 'consolidate' && decision.dig('target', 'reference') == target
+        end
+      end
+      errors << "Batch E decision register candidate #{candidate}: every non-terminal member must resolve to the one terminal target #{target}" unless coherent_decisions
+      controls = members.map { |member| by_id.dig(member, 'consolidation_mapping') }
+      unless controls.all? { |control| control.is_a?(Hash) && control['status'] == 'complete' && control['terminal_target_requirement_id'] == target }
+        errors << "Batch E decision register candidate #{candidate}: every member must share one complete mapping to terminal target #{target}"
+        next
+      end
+      references = controls.map { |control| [control['artifact_reference'], control['artifact_sha256']] }
+      unless references.uniq.length == 1
+        errors << "Batch E decision register candidate #{candidate}: every member must bind the same consolidation artifact and SHA-256"
+      end
+    end
   end
 
   def validate_batch_d_terminal_consolidations(entries)
@@ -1150,6 +1913,16 @@ class ParityGovernanceValidator
     errors << "#{decision_register_label} #{label}: synthetic scenario #{name} data_class must be synthetic" unless scenario['data_class'] == 'synthetic'
     errors << "#{decision_register_label} #{label}: synthetic scenario #{name} description must be a non-empty string" unless nonempty_string?(scenario['description'])
     validate_nonempty_string_array(scenario['expected_results'], "#{decision_register_label} #{label}: synthetic scenario #{name} expected_results")
+    if @active_decision_context[:batch] == 'E'
+      validate_closed_object(scenario, BATCH_E_SCENARIO_KEYS, "#{decision_register_label} #{label}: synthetic scenario #{name}")
+      return unless batch_e_family_for(label)
+
+      expected = batch_e_required_scenario_contract(label, name)
+      expected.each do |key, value|
+        errors << "#{decision_register_label} #{label}: synthetic scenario #{name} #{key} must exactly match the frozen family and row contract" unless scenario[key] == value
+      end
+      return
+    end
     return unless @active_decision_context[:batch] == 'D'
 
     validate_closed_object(scenario, %w[status data_class description expected_results required_behaviors preconditions actions assertions], "#{decision_register_label} #{label}: synthetic scenario #{name}")
@@ -1174,6 +1947,39 @@ class ParityGovernanceValidator
         errors << "#{decision_register_label} #{label}: ready synthetic scenario #{name} requires at least two substantive expected results"
       end
     end
+  end
+
+  def batch_e_required_scenario_contract(label, name)
+    family = batch_e_family_for(label)
+    focus = BATCH_E_ROW_CAPABILITY_FOCUS.fetch(label)
+    lifecycle = BATCH_E_ROW_LIFECYCLES.fetch(label)
+    hazards = batch_e_row_hazards(label)
+    family_hazards = BATCH_E_FAMILY_HAZARDS.fetch(family)
+    intent = {
+      'normal' => 'complete one authorized synthetic flow and reconcile every applicable ledger projection',
+      'denial' => 'reject an unauthorized, unsafe, duplicated, expired, quarantined, or negative-stock attempt without partial state',
+      'correction_or_amendment' => 'append one attributed compensating correction while preserving immutable history and control totals',
+      'dependency_outage' => 'fail closed during an unavailable C/D/F/G dependency and retry idempotently without outbound delivery'
+    }.fetch(name)
+    expected_results = {
+      'normal' => ["#{label} records one synthetic idempotent outcome for family #{family}.", 'Source, destination, finance, and reporting control totals reconcile wherever the family contract marks them applicable.'],
+      'denial' => ["#{label} creates no partial stock movement, dispense, receipt, charge, or projection.", 'The denial is attributable and inventory never becomes negative or issues an expired/quarantined lot.'],
+      'correction_or_amendment' => ["#{label} preserves the prior ledger event and appends one linked compensating event.", 'The correction has an actor, reason, period, idempotency key, and one reconciled set of control totals.'],
+      'dependency_outage' => ["#{label} remains NOT_SENT with no live endpoint, credential, or outbound request.", 'Retry is idempotent and produces neither a duplicate movement nor a duplicate charge after dependency recovery.']
+    }.fetch(name)
+    {
+      'description' => "For #{label} #{focus} in #{family}, #{intent}.",
+      'expected_results' => expected_results,
+      'family_contract' => ["#{family}:#{name}", "#{focus}:#{name}", *family_hazards],
+      'row_hazard_assertions' => hazards,
+      'lifecycle_pre_state' => lifecycle.fetch(:pre_state),
+      'lifecycle_transition' => lifecycle.fetch(:transition),
+      'lifecycle_post_state' => lifecycle.fetch(:post_state),
+      'capability_assertions' => [lifecycle.fetch(:assertion), "#{focus}:#{name}:#{lifecycle.fetch(:post_state)}"],
+      'preconditions' => ['synthetic_only', 'availability:Soon', "#{label}:authorized_role", "#{family}:eligible_context", lifecycle.fetch(:pre_state)],
+      'actions' => [lifecycle.fetch(:transition), "#{focus}:#{name}:#{lifecycle.fetch(:transition)}"],
+      'assertions' => [lifecycle.fetch(:post_state), lifecycle.fetch(:assertion), *BATCH_E_LEDGER_INVARIANTS, *hazards]
+    }
   end
 
   def batch_d_required_scenario_behaviors(label, name)
@@ -1395,6 +2201,21 @@ class ParityGovernanceValidator
       end
 
     end
+    if @active_decision_context[:batch] == 'E'
+      substantive = evidence.is_a?(Array) && evidence.any? do |record|
+        record.is_a?(Hash) && %w[O M I].include?(record['evidence_class']) && %w[behavioral_execution signed_operating_procedure reconciled_ledger].include?(record['evidence_basis'])
+      end
+      errors << "#{decision_register_label} #{label}: G0 requires behavioral or reconciled O/M/I evidence; structural capture alone cannot prove behavior" unless substantive
+
+      gates = entry['dependency_gates']
+      unless gates.is_a?(Array) && !gates.empty? && gates.all? { |gate| gate.is_a?(Hash) && %w[resolved deferred].include?(gate['status']) }
+        errors << "#{decision_register_label} #{label}: G0 requires every C/D/F/G dependency gate resolved or validly authority-deferred"
+      end
+      reconciliation = entry['reconciliation_contract']
+      if decision_status == 'approve' && !(reconciliation.is_a?(Hash) && reconciliation['status'] == 'complete')
+        errors << "#{decision_register_label} #{label}: approval requires a complete synthetic cross-ledger reconciliation receipt"
+      end
+    end
   end
 
   def validate_governance_artifact(reference:, expected_sha256:, label:, requirement_id:, subject:, record:, decision: nil)
@@ -1442,7 +2263,7 @@ class ParityGovernanceValidator
     artifact = load_structured_json_artifact(record['artifact_reference'], record['artifact_sha256'], label)
     return unless artifact
 
-    expected_keys = @active_decision_context[:batch] == 'D' ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
+    expected_keys = %w[D E].include?(@active_decision_context[:batch]) ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
     validate_closed_object(artifact, expected_keys, label)
     errors << "#{label} artifact_type must be #{EVIDENCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == EVIDENCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
@@ -1451,7 +2272,7 @@ class ParityGovernanceValidator
     %w[evidence_class date source reference interpreter confidence].each do |key|
       errors << "#{label} #{key} does not match the register" unless artifact[key] == record[key]
     end
-    if @active_decision_context[:batch] == 'D'
+    if %w[D E].include?(@active_decision_context[:batch])
       errors << "#{label} evidence_basis does not match the register" unless artifact['evidence_basis'] == record['evidence_basis']
     end
     validate_artifact_reviewer(artifact['reviewer'], artifact['interpreter'], label)
@@ -1570,6 +2391,15 @@ class ParityGovernanceValidator
     return false unless nonempty_string?(value)
 
     Date.iso8601(value)
+    true
+  rescue ArgumentError
+    false
+  end
+
+  def iso_datetime?(value)
+    return false unless nonempty_string?(value)
+
+    DateTime.iso8601(value)
     true
   rescue ArgumentError
     false
@@ -2140,6 +2970,7 @@ if $PROGRAM_NAME == __FILE__
     batch_b_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json',
     batch_c_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json',
     batch_d_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json',
+    batch_e_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -2153,6 +2984,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--batch-b-decision-register PATH', 'Batch B G0 decision register JSON path') { |value| options[:batch_b_decision_register] = value }
     opts.on('--batch-c-decision-register PATH', 'Batch C G0 decision register JSON path') { |value| options[:batch_c_decision_register] = value }
     opts.on('--batch-d-decision-register PATH', 'Batch D G0 decision register JSON path') { |value| options[:batch_d_decision_register] = value }
+    opts.on('--batch-e-decision-register PATH', 'Batch E G0 decision register JSON path') { |value| options[:batch_e_decision_register] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -2172,6 +3004,7 @@ if $PROGRAM_NAME == __FILE__
     batch_b_decision_register_path: options[:batch_b_decision_register],
     batch_c_decision_register_path: options[:batch_c_decision_register],
     batch_d_decision_register_path: options[:batch_d_decision_register],
+    batch_e_decision_register_path: options[:batch_e_decision_register],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )
