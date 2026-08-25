@@ -17,6 +17,7 @@
 - BG-02c1 atomic success auditing: outpatient, emergency, and inpatient registration plus emergency and inpatient clinical-note writes roll back their domain mutation with HTTP 503 when required audit evidence cannot be stored
 - BG-02c2 actor-attribution expansion: new ordinary-audit rows capture a finite `USER` or `SERVICE` identity reference, attributed users cannot be physically deleted, and account containment remains status-based
 - BG-02c3 read-only attribution preflight: schema-qualified streaming classifies legacy rows without payload disclosure or identity inference and produces deterministic, keyed readiness evidence
+- BG-02c4a private attribution manifest: exact-root/clean-source generation and offline verification bind reviewed recovery candidates as expiring keyed evidence; no apply/backfill executor exists
 
 ## Not in this phase
 
@@ -24,12 +25,13 @@
 - Patient/Encounter policies beyond capability gates
 - Cohort/unit-scoped authorization
 - Database-level immutability and raw SQL/DB-role protection for `audit_events` remain deferred. BG-02b closes normal Eloquent creation and adds an application architecture check, but it does not claim protection from a database credential that can issue raw writes.
-- Hosted execution of the legacy-attribution preflight, reviewed backfill, and a later non-null contraction remain deferred. BG-02c2 intentionally keeps the new snapshot columns nullable for rollout compatibility, and BG-02c3 never infers a missing historical actor.
+- Hosted execution of the legacy-attribution preflight, durable USER recovery provenance, reviewed manifest apply/backfill, and a later non-null contraction remain deferred. BG-02c2 intentionally keeps the new snapshot columns nullable for rollout compatibility; BG-02c3 never infers a missing historical actor; BG-02c4a generates/verifies private evidence only.
 - Complete denial auditing for the five BG-02c1 mutation routes remains outside this atomic-success slice; existing authorization and validation denial behavior is unchanged.
 - A G1-accepted long-term break-glass control. The current permanent `is_system_administrator` bypass remains runtime truth; [ADR-017](ADR-017-TIME-BOUND-SCOPED-BREAK-GLASS.md) and the [G1 acceptance contract](G1_BREAK_GLASS_ACCEPTANCE_CONTRACT.md) are proposed and not owner-approved.
 
 BG-02c2 rollout remains governed by the [audit-attribution rollout runbook](../../operations/BG_02C2_AUDIT_ATTRIBUTION_ROLLOUT_2026-08-25.md).
 BG-02c3 execution remains governed by the [read-only attribution-preflight runbook](../../operations/BG_02C3_AUDIT_ATTRIBUTION_PREFLIGHT_2026-08-25.md).
+BG-02c4a manifest custody remains governed by the [private attribution-manifest runbook](../../operations/BG_02C4A_AUDIT_ATTRIBUTION_MANIFEST_2026-08-25.md).
 
 ## Evidence
 
