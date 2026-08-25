@@ -123,6 +123,28 @@ class ParityGovernanceValidator
     PAR-RMIK-007
   ].freeze
 
+  EXPECTED_BATCH_D_IDS = %w[
+    PAR-ADM-014
+    PAR-ADM-015
+    PAR-ADM-041
+    PAR-ADM-043
+    PAR-CLN-006
+    PAR-CLN-007
+    PAR-CLN-008
+    PAR-CLN-009
+    PAR-CLN-010
+    PAR-CLN-011
+    PAR-CLN-012
+    PAR-CLN-013
+    PAR-CLN-014
+    PAR-CLN-015
+    PAR-CLN-016
+    PAR-CLN-017
+    PAR-CLN-018
+    PAR-CLN-020
+    PAR-ORP-001
+  ].freeze
+
   BATCH_A_REGISTER_SCHEMA_VERSION = 1
   BATCH_A_REGISTER_ID = 'G0-BATCH-A-2026-08-25'
   BATCH_A_EVIDENCE_DIRECTORY = 'G0_BATCH_A_DECISION_EVIDENCE_2026-08-25'
@@ -130,10 +152,13 @@ class ParityGovernanceValidator
   BATCH_B_EVIDENCE_DIRECTORY = 'G0_BATCH_B_DECISION_EVIDENCE_2026-08-25'
   BATCH_C_REGISTER_ID = 'G0-BATCH-C-2026-08-25'
   BATCH_C_EVIDENCE_DIRECTORY = 'G0_BATCH_C_DECISION_EVIDENCE_2026-08-25'
+  BATCH_D_REGISTER_ID = 'G0-BATCH-D-2026-08-25'
+  BATCH_D_EVIDENCE_DIRECTORY = 'G0_BATCH_D_DECISION_EVIDENCE_2026-08-25'
   DECISION_REGISTER_CONFIGS = {
     'A' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('A'), expected_ids: EXPECTED_BATCH_A_IDS, register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }.freeze,
     'B' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('B'), expected_ids: EXPECTED_BATCH_B_IDS, register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }.freeze,
-    'C' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('C'), expected_ids: EXPECTED_BATCH_C_IDS, register_id: BATCH_C_REGISTER_ID, evidence_directory: BATCH_C_EVIDENCE_DIRECTORY }.freeze
+    'C' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('C'), expected_ids: EXPECTED_BATCH_C_IDS, register_id: BATCH_C_REGISTER_ID, evidence_directory: BATCH_C_EVIDENCE_DIRECTORY }.freeze,
+    'D' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('D'), expected_ids: EXPECTED_BATCH_D_IDS, register_id: BATCH_D_REGISTER_ID, evidence_directory: BATCH_D_EVIDENCE_DIRECTORY }.freeze
   }.transform_values(&:freeze).freeze
   BATCH_C_REQUIRED_AUTHORITIES = {
     'PAR-ADM-004' => %w[product_delivery clinical_governance rmik quality_analytics security_privacy_data],
@@ -167,7 +192,132 @@ class ParityGovernanceValidator
     'PAR-RMIK-001' => 'rmik', 'PAR-RMIK-002' => 'rmik', 'PAR-RMIK-004' => 'rmik',
     'PAR-RMIK-006' => 'rmik', 'PAR-RMIK-007' => 'rmik'
   }.freeze
-  BATCH_C_SCENARIO_NAMES = %w[normal denial correction_or_amendment dependency_outage].freeze
+  BATCH_D_REQUIRED_AUTHORITIES = {
+    'PAR-ADM-014' => %w[product_delivery clinical_ordering laboratory rmik finance_claims security_privacy_data data_migration],
+    'PAR-ADM-015' => %w[product_delivery clinical_ordering radiology rmik finance_claims security_privacy_data data_migration],
+    'PAR-ADM-041' => %w[product_delivery surgery_anesthesia theatre_operations rmik pharmacy warehouse_stock finance_claims security_privacy_data data_migration],
+    'PAR-ADM-043' => %w[product_delivery clinical_ordering laboratory anatomical_pathology microbiology rmik security_privacy_data],
+    'PAR-CLN-006' => %w[product_delivery clinical_ordering nursing laboratory rmik finance_claims security_privacy_data],
+    'PAR-CLN-007' => %w[product_delivery clinical_ordering radiology rmik finance_claims security_privacy_data operations_recovery],
+    'PAR-CLN-008' => %w[product_delivery clinical_ordering nursing nutrition_dietetics rmik finance_claims security_privacy_data],
+    'PAR-CLN-009' => %w[product_delivery clinical_ordering nursing surgery_anesthesia theatre_operations rmik anatomical_pathology blood_bank pharmacy warehouse_stock finance_claims security_privacy_data],
+    'PAR-CLN-010' => %w[product_delivery clinical_ordering nursing surgery_anesthesia theatre_operations rmik anatomical_pathology blood_bank pharmacy warehouse_stock finance_claims security_privacy_data data_migration],
+    'PAR-CLN-011' => %w[product_delivery clinical_ordering rehabilitation_medicine nursing rmik finance_claims security_privacy_data],
+    'PAR-CLN-012' => %w[product_delivery clinical_ordering rehabilitation_medicine nursing rmik finance_claims security_privacy_data data_migration],
+    'PAR-CLN-013' => %w[product_delivery clinical_ordering rehabilitation_medicine speech_therapy rmik finance_claims security_privacy_data],
+    'PAR-CLN-014' => %w[product_delivery clinical_ordering rehabilitation_medicine occupational_therapy rmik finance_claims security_privacy_data],
+    'PAR-CLN-015' => %w[product_delivery clinical_ordering laboratory anatomical_pathology rmik finance_claims security_privacy_data operations_recovery],
+    'PAR-CLN-016' => %w[product_delivery clinical_ordering laboratory microbiology rmik finance_claims security_privacy_data operations_recovery],
+    'PAR-CLN-017' => %w[product_delivery clinical_ordering nursing blood_bank transfusion_clinical rmik warehouse_stock finance_claims security_privacy_data],
+    'PAR-CLN-018' => %w[product_delivery registration_admission mortuary_operations rmik finance_claims security_privacy_data operations_recovery],
+    'PAR-CLN-020' => %w[product_delivery clinical_ordering nursing registration_admission ambulance_transport rmik finance_claims security_privacy_data operations_recovery],
+    'PAR-ORP-001' => %w[product_delivery surgery_anesthesia theatre_operations nursing pharmacy warehouse_stock rmik finance_claims security_privacy_data]
+  }.transform_values(&:freeze).freeze
+  BATCH_D_LEAD_AUTHORITIES = {
+    'PAR-ADM-014' => 'laboratory', 'PAR-ADM-015' => 'radiology',
+    'PAR-ADM-041' => 'theatre_operations', 'PAR-ADM-043' => 'laboratory',
+    'PAR-CLN-006' => 'laboratory', 'PAR-CLN-007' => 'radiology',
+    'PAR-CLN-008' => 'nutrition_dietetics', 'PAR-CLN-009' => 'surgery_anesthesia',
+    'PAR-CLN-010' => 'surgery_anesthesia', 'PAR-CLN-011' => 'rehabilitation_medicine',
+    'PAR-CLN-012' => 'rehabilitation_medicine', 'PAR-CLN-013' => 'speech_therapy',
+    'PAR-CLN-014' => 'occupational_therapy', 'PAR-CLN-015' => 'anatomical_pathology',
+    'PAR-CLN-016' => 'microbiology', 'PAR-CLN-017' => 'blood_bank',
+    'PAR-CLN-018' => 'mortuary_operations', 'PAR-CLN-020' => 'ambulance_transport',
+    'PAR-ORP-001' => 'pharmacy'
+  }.freeze
+  BATCH_D_REQUIRED_UPSTREAM_DEPENDENCIES = {
+    'PAR-ADM-014' => [['batch_gate', 'C', %w[clinical_ordering rmik finance security]]],
+    'PAR-ADM-015' => [['batch_gate', 'C', %w[clinical_ordering rmik finance security]]],
+    'PAR-ADM-041' => [['batch_gate', 'C', %w[encounter clinical_documentation rmik security]]],
+    'PAR-ADM-043' => [['batch_gate', 'C', %w[clinical_ordering rmik security]]],
+    'PAR-CLN-006' => [['requirement', 'PAR-ADM-014', %w[examination order result lifecycle]], ['requirement', 'PAR-ADM-043', %w[specimen label custody rejection]]],
+    'PAR-CLN-007' => [['requirement', 'PAR-ADM-015', %w[examination order result correction]]],
+    'PAR-CLN-008' => [['requirement', 'PAR-CLN-005', %w[encounter diet_order delivery cancellation]]],
+    'PAR-CLN-009' => [['requirement', 'PAR-ADM-041', %w[schedule procedure cancellation correction]]],
+    'PAR-CLN-010' => [['requirement', 'PAR-ADM-041', %w[schedule procedure cancellation correction]], ['requirement', 'PAR-CLN-009', %w[field state lifecycle exclusion]]],
+    'PAR-CLN-011' => [['requirement', 'PAR-REG-003', %w[encounter appointment authorization correction]]],
+    'PAR-CLN-012' => [['requirement', 'PAR-CLN-011', %w[field state lifecycle exclusion]]],
+    'PAR-CLN-013' => [['requirement', 'PAR-CLN-011', %w[referral session result correction]]],
+    'PAR-CLN-014' => [['requirement', 'PAR-CLN-011', %w[referral session result correction]]],
+    'PAR-CLN-015' => [['requirement', 'PAR-ADM-014', %w[examination order result lifecycle]], ['requirement', 'PAR-ADM-043', %w[specimen custody result amendment]]],
+    'PAR-CLN-016' => [['requirement', 'PAR-ADM-014', %w[examination order result lifecycle]], ['requirement', 'PAR-ADM-043', %w[specimen custody result amendment]]],
+    'PAR-CLN-017' => [['requirement', 'PAR-ADM-043', %w[specimen custody compatibility traceability]]],
+    'PAR-CLN-018' => [['requirement', 'PAR-RMIK-004', %w[identity custody release retention]]],
+    'PAR-CLN-020' => [['requirement', 'PAR-REG-002', %w[encounter dispatch handoff cancellation]]],
+    'PAR-ORP-001' => [['batch_gate', 'E', %w[stock issue return lot charge]]]
+  }.transform_values(&:freeze).freeze
+  BATCH_D_SHARED_A_FOUNDATION = ['batch_gate', 'A', %w[identity access audit configuration]].freeze
+  BATCH_D_SERVICE_FOUNDATIONS = [
+    ['batch_gate', 'B', %w[patient encounter admission identity]],
+    ['batch_gate', 'C', %w[clinical_state clinical_authority rmik_record amendment]]
+  ].map(&:freeze).freeze
+  FOUR_SCENARIO_BATCHES = %w[C D].freeze
+  AUTHORITY_BOUND_BATCHES = %w[C D].freeze
+  FOUR_SCENARIO_NAMES = %w[normal denial correction_or_amendment dependency_outage].freeze
+  BATCH_D_CAPABILITY_KINDS = {
+    'PAR-ADM-014' => 'diagnostic_master', 'PAR-ADM-015' => 'diagnostic_master',
+    'PAR-ADM-041' => 'procedure_master', 'PAR-ADM-043' => 'specimen_master',
+    'PAR-CLN-006' => 'diagnostic_service', 'PAR-CLN-007' => 'diagnostic_service',
+    'PAR-CLN-008' => 'ancillary_service', 'PAR-CLN-009' => 'procedure_service',
+    'PAR-CLN-010' => 'consolidation_candidate', 'PAR-CLN-011' => 'therapy_service',
+    'PAR-CLN-012' => 'consolidation_candidate', 'PAR-CLN-013' => 'therapy_service',
+    'PAR-CLN-014' => 'therapy_service', 'PAR-CLN-015' => 'diagnostic_service',
+    'PAR-CLN-016' => 'diagnostic_service', 'PAR-CLN-017' => 'blood_bank_service',
+    'PAR-CLN-018' => 'mortuary_service', 'PAR-CLN-020' => 'transport_service',
+    'PAR-ORP-001' => 'pharmacy_boundary'
+  }.freeze
+  BATCH_D_LIFECYCLE_MAPPING_REQUIRED_IDS = EXPECTED_BATCH_D_IDS.freeze
+  BATCH_D_INTEGRATION_MODES = %w[none non_transmitting_simulation simulated_adapter].freeze
+  BATCH_D_EVIDENCE_BASES = %w[observed_behavior signed_document implementation_verified user_interview route_or_menu].freeze
+  UPSTREAM_DEPENDENCY_KINDS = %w[requirement batch_gate].freeze
+  UPSTREAM_DEPENDENCY_STATUSES = %w[pending resolved deferred].freeze
+  LIFECYCLE_MAPPING_STATUSES = %w[pending complete not_applicable].freeze
+  LIFECYCLE_ARTIFACT_TYPE = 'g0_batch_d_lifecycle'
+  MAPPING_ARTIFACT_TYPE = 'g0_batch_d_mapping'
+  UPSTREAM_RESOLUTION_ARTIFACT_TYPE = 'g0_batch_d_upstream_resolution'
+  BATCH_GATE_AUTHORITIES = { 'A' => 'security_privacy_data', 'B' => 'registration_admission', 'C' => 'rmik', 'E' => 'pharmacy' }.freeze
+  BATCH_D_LIFECYCLE_STATES = {
+    'diagnostic_master' => %w[draft effective retired merged],
+    'procedure_master' => %w[draft effective retired merged],
+    'specimen_master' => %w[draft effective retired merged],
+    'diagnostic_service' => %w[ordered accepted performed verified final cancelled amended],
+    'ancillary_service' => %w[requested accepted fulfilled cancelled amended],
+    'procedure_service' => %w[scheduled readiness started completed recovery cancelled amended],
+    'consolidation_candidate' => %w[legacy_identified mapped verified migrated retired],
+    'therapy_service' => %w[referred scheduled in_progress completed cancelled amended],
+    'blood_bank_service' => %w[requested specimen_received compatible reserved simulated_issued returned reaction_reviewed cancelled reconciled],
+    'mortuary_service' => %w[identified received in_custody release_authorized released amended],
+    'transport_service' => %w[requested triaged dispatched handoff completed cancelled amended],
+    'pharmacy_boundary' => %w[requested authorized simulated_issue used returned wasted cancelled reconciled]
+  }.transform_values(&:freeze).freeze
+  BATCH_D_LIFECYCLE_TRANSITIONS = {
+    'diagnostic_master' => %w[draft->effective effective->retired effective->merged],
+    'procedure_master' => %w[draft->effective effective->retired effective->merged],
+    'specimen_master' => %w[draft->effective effective->retired effective->merged],
+    'diagnostic_service' => %w[ordered->accepted ordered->cancelled accepted->performed accepted->cancelled performed->verified verified->final final->amended],
+    'ancillary_service' => %w[requested->accepted requested->cancelled accepted->fulfilled accepted->cancelled fulfilled->amended],
+    'procedure_service' => %w[scheduled->readiness scheduled->cancelled readiness->started readiness->cancelled started->completed completed->recovery completed->amended recovery->amended],
+    'consolidation_candidate' => %w[legacy_identified->mapped mapped->verified verified->migrated migrated->retired],
+    'therapy_service' => %w[referred->scheduled referred->cancelled scheduled->in_progress scheduled->cancelled in_progress->completed completed->amended],
+    'blood_bank_service' => %w[requested->specimen_received requested->cancelled specimen_received->compatible compatible->reserved reserved->simulated_issued reserved->cancelled simulated_issued->returned simulated_issued->reaction_reviewed simulated_issued->reconciled returned->reconciled reaction_reviewed->reconciled],
+    'mortuary_service' => %w[identified->received received->in_custody in_custody->release_authorized release_authorized->released received->amended in_custody->amended released->amended],
+    'transport_service' => %w[requested->triaged requested->cancelled triaged->dispatched triaged->cancelled dispatched->handoff dispatched->cancelled handoff->completed completed->amended],
+    'pharmacy_boundary' => %w[requested->authorized requested->cancelled authorized->simulated_issue authorized->cancelled simulated_issue->used simulated_issue->returned simulated_issue->wasted used->reconciled returned->reconciled wasted->reconciled]
+  }.transform_values(&:freeze).freeze
+  BATCH_D_COMMON_CORRECTION_RULES = %w[prior_state_immutable reason_required authorized_actor single_reconciliation].freeze
+  BATCH_D_MAPPING_FIELDS = %w[identity authority timestamps status audit].freeze
+  BATCH_D_SCENARIO_FOCUS = {
+    'PAR-ADM-014' => 'laboratory_examination_master', 'PAR-ADM-015' => 'radiology_examination_master',
+    'PAR-ADM-041' => 'ibs_procedure_group', 'PAR-ADM-043' => 'specimen_custody_master',
+    'PAR-CLN-006' => 'laboratory_specimen_result', 'PAR-CLN-007' => 'radiology_acquisition_report',
+    'PAR-CLN-008' => 'nutrition_diet_delivery', 'PAR-CLN-009' => 'operation_readiness_recovery',
+    'PAR-CLN-010' => 'operation_v3_mapping', 'PAR-CLN-011' => 'rehabilitation_referral_session',
+    'PAR-CLN-012' => 'rehabilitation_v2_mapping', 'PAR-CLN-013' => 'speech_therapy_session',
+    'PAR-CLN-014' => 'occupational_therapy_session', 'PAR-CLN-015' => 'pathology_specimen_report',
+    'PAR-CLN-016' => 'microbiology_culture_susceptibility', 'PAR-CLN-017' => 'blood_compatibility_traceability',
+    'PAR-CLN-018' => 'mortuary_custody_release', 'PAR-CLN-020' => 'ambulance_dispatch_handoff',
+    'PAR-ORP-001' => 'ibs_pharmacy_stock_boundary'
+  }.freeze
   GOVERNANCE_ARTIFACT_TYPE = 'g0_parity_governance_attestation'
   EVIDENCE_ARTIFACT_TYPE = 'g0_parity_evidence'
   ARTIFACT_SCHEMA_VERSION = 1
@@ -187,8 +337,12 @@ class ParityGovernanceValidator
     'appointment_dependency' => %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date reviewer],
     'approval' => %w[artifact_type schema_version register_id requirement_id subject identity scope date decision_status canonical_disposition conditions reviewer]
   }.freeze
-  BATCH_C_APPROVAL_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date decision_status canonical_disposition conditions reviewer].freeze
+  AUTHORITY_BOUND_APPROVAL_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date decision_status canonical_disposition conditions reviewer].freeze
   EVIDENCE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id evidence_class date source reference interpreter confidence reviewer].freeze
+  BATCH_D_EVIDENCE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id evidence_class evidence_basis date source reference interpreter confidence reviewer].freeze
+  LIFECYCLE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id lifecycle_states lifecycle_transitions correction_rules date author_identity reviewer].freeze
+  MAPPING_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id target_reference coverage_status mapped_fields mapped_states unmapped_items exclusions date author_identity reviewer].freeze
+  UPSTREAM_RESOLUTION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject dependency_kind dependency_reference scope status resolution identity authority_domain upstream_batch upstream_source_id upstream_source_sha256 upstream_decision_status upstream_approval_sha256 date reviewer].freeze
 
   PAR_ID_PATTERN = /\APAR-[A-Z0-9]+-\d{3}\z/.freeze
   REL_ID_PATTERN = /\AREL-(\d{8})-(\d{2})\z/.freeze
@@ -197,7 +351,7 @@ class ParityGovernanceValidator
 
   attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
@@ -205,7 +359,8 @@ class ParityGovernanceValidator
     supplied_register_paths = {
       'A' => File.expand_path(decision_register_path),
       'B' => File.expand_path(batch_b_decision_register_path),
-      'C' => File.expand_path(batch_c_decision_register_path)
+      'C' => File.expand_path(batch_c_decision_register_path),
+      'D' => File.expand_path(batch_d_decision_register_path)
     }
     @decision_register_paths = DECISION_REGISTER_CONFIGS.keys.to_h do |batch|
       [batch, supplied_register_paths.fetch(batch)]
@@ -214,6 +369,7 @@ class ParityGovernanceValidator
     @batch_assignments = {}
     @decision_entries = []
     @decision_entries_by_batch = {}
+    @decision_register_statuses = {}
     @errors = []
     @rows = []
     @release_rows = []
@@ -362,6 +518,7 @@ class ParityGovernanceValidator
       evidence_directory: config[:evidence_directory]
     }
     prefix = decision_register_label
+    @decision_register_statuses[batch] = register['register_status']
 
     unless register['schema_version'] == BATCH_A_REGISTER_SCHEMA_VERSION
       errors << "#{prefix}: schema_version must be #{BATCH_A_REGISTER_SCHEMA_VERSION}"
@@ -472,14 +629,15 @@ class ParityGovernanceValidator
     validate_nonempty_string_array(entry['affected_domains'], "#{decision_register_label} #{label}: affected_domains")
     validate_nonempty_string_array(entry['co_owners'], "#{decision_register_label} #{label}: co_owners")
     validate_nonempty_string_array(entry['downstream_impacts'], "#{decision_register_label} #{label}: downstream_impacts")
-    validate_batch_c_authorities(entry, label) if @active_decision_context[:batch] == 'C'
+    validate_strict_batch_authorities(entry, label) if AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
+    validate_batch_d_controls(entry, label) if @active_decision_context[:batch] == 'D'
 
     scenarios = entry['synthetic_scenarios']
     if !scenarios.is_a?(Hash)
       errors << "#{decision_register_label} #{label}: synthetic_scenarios must be an object"
     else
-      scenario_names = @active_decision_context[:batch] == 'C' ? BATCH_C_SCENARIO_NAMES : %w[normal denial_or_correction]
-      if @active_decision_context[:batch] == 'C' && scenarios.keys.sort != scenario_names.sort
+      scenario_names = FOUR_SCENARIO_BATCHES.include?(@active_decision_context[:batch]) ? FOUR_SCENARIO_NAMES : %w[normal denial_or_correction]
+      if FOUR_SCENARIO_BATCHES.include?(@active_decision_context[:batch]) && scenarios.keys.sort != scenario_names.sort
         errors << "#{decision_register_label} #{label}: synthetic_scenarios must contain exactly #{scenario_names.join(', ')}"
       end
       scenario_names.each { |name| validate_decision_scenario(scenarios[name], label, name) }
@@ -498,9 +656,11 @@ class ParityGovernanceValidator
     validate_decision_g0_resolution(entry, label) if @mode == 'g0'
   end
 
-  def validate_batch_c_authorities(entry, label)
-    expected_authorities = BATCH_C_REQUIRED_AUTHORITIES[label]
-    expected_lead = BATCH_C_LEAD_AUTHORITIES[label]
+  def validate_strict_batch_authorities(entry, label)
+    required_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_REQUIRED_AUTHORITIES : BATCH_D_REQUIRED_AUTHORITIES
+    lead_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_LEAD_AUTHORITIES : BATCH_D_LEAD_AUTHORITIES
+    expected_authorities = required_authorities[label]
+    expected_lead = lead_authorities[label]
     unless expected_authorities && expected_lead
       errors << "#{decision_register_label} #{label}: required authority policy is missing"
       return
@@ -519,6 +679,264 @@ class ParityGovernanceValidator
     unless owner.is_a?(Hash) && owner['authority_domain'] == expected_lead
       errors << "#{decision_register_label} #{label}: accountable owner authority_domain must match lead authority #{expected_lead}"
     end
+  end
+
+  def validate_batch_d_controls(entry, label)
+    unless entry['capability_kind'] == BATCH_D_CAPABILITY_KINDS[label]
+      errors << "#{decision_register_label} #{label}: capability_kind must be #{BATCH_D_CAPABILITY_KINDS[label]}"
+    end
+    validate_batch_d_upstream_dependencies(entry['upstream_requirement_dependencies'], entry['co_owners'], label)
+    validate_batch_d_integration_boundary(entry['integration_boundary'], label)
+    validate_batch_d_lifecycle_mapping(entry['lifecycle_mapping'], entry['decision'], label)
+    validate_batch_d_orp_boundary(entry, label) if label == 'PAR-ORP-001'
+  end
+
+  def validate_batch_d_orp_boundary(entry, label)
+    decision = entry['decision']
+    return unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status'])
+
+    upstream = entry['upstream_requirement_dependencies']
+    batch_gate = upstream&.find { |dependency| dependency.is_a?(Hash) && dependency['dependency_kind'] == 'batch_gate' && dependency['reference'] == 'E' }
+    if batch_gate&.dig('status') == 'resolved'
+      errors << "#{decision_register_label} #{label}: Batch E stock semantics cannot be marked resolved before Batch E governance is registered"
+    elsif batch_gate&.dig('status') == 'deferred'
+      unless batch_gate['defer_authority_domain'] == 'pharmacy'
+        errors << "#{decision_register_label} #{label}: Batch E stock-semantics deferral requires pharmacy authority"
+      end
+      exclusion_text = decision.dig('target', 'exclusions').is_a?(Array) ? decision.dig('target', 'exclusions').join(' ').downcase : ''
+      missing_semantics = %w[stock issue return lot charge].reject { |term| exclusion_text.include?(term) }
+      unless missing_semantics.empty?
+        errors << "#{decision_register_label} #{label}: Batch E deferral must explicitly exclude stock, issue, return, lot and charge semantics"
+      end
+    end
+  end
+
+  def validate_batch_d_upstream_dependencies(dependencies, co_owners, label)
+    expected = [BATCH_D_SHARED_A_FOUNDATION]
+    expected += BATCH_D_SERVICE_FOUNDATIONS if label.start_with?('PAR-CLN-') || label == 'PAR-ORP-001'
+    expected += BATCH_D_REQUIRED_UPSTREAM_DEPENDENCIES.fetch(label, [])
+    unless dependencies.is_a?(Array) && !dependencies.empty?
+      errors << "#{decision_register_label} #{label}: upstream_requirement_dependencies must be a non-empty array"
+      return
+    end
+
+    actual = []
+    dependencies.each_with_index do |dependency, index|
+      prefix = "#{decision_register_label} #{label}: upstream_requirement_dependencies[#{index}]"
+      unless dependency.is_a?(Hash)
+        errors << "#{prefix} must be an object"
+        next
+      end
+      validate_closed_object(dependency, %w[dependency_kind reference scope status resolution defer_authority_domain resolution_reference resolution_artifact_sha256], prefix)
+      kind = dependency['dependency_kind']
+      status = dependency['status']
+      errors << "#{prefix} invalid dependency_kind #{kind.inspect}" unless UPSTREAM_DEPENDENCY_KINDS.include?(kind)
+      errors << "#{prefix} reference must be a non-empty string" unless nonempty_string?(dependency['reference'])
+      validate_nonempty_string_array(dependency['scope'], "#{prefix} scope")
+      errors << "#{prefix} invalid status #{status.inspect}" unless UPSTREAM_DEPENDENCY_STATUSES.include?(status)
+      actual << [kind, dependency['reference'], dependency['scope']] if nonempty_string?(kind) && nonempty_string?(dependency['reference']) && dependency['scope'].is_a?(Array)
+
+      if status == 'pending'
+        errors << "#{prefix} pending resolution must be null" unless dependency['resolution'].nil?
+        errors << "#{prefix} pending defer_authority_domain must be null" unless dependency['defer_authority_domain'].nil?
+        errors << "#{prefix} pending resolution_reference must be null" unless dependency['resolution_reference'].nil?
+        errors << "#{prefix} pending resolution_artifact_sha256 must be null" unless dependency['resolution_artifact_sha256'].nil?
+      elsif status == 'resolved'
+        errors << "#{prefix} resolved dependency requires a non-empty resolution" unless nonempty_string?(dependency['resolution'])
+        errors << "#{prefix} resolved defer_authority_domain must be null" unless dependency['defer_authority_domain'].nil?
+        validate_batch_d_upstream_resolution_artifact(dependency, label, prefix)
+      elsif status == 'deferred'
+        errors << "#{prefix} deferred dependency requires a non-empty resolution" unless nonempty_string?(dependency['resolution'])
+        authority = dependency['defer_authority_domain']
+        if kind == 'batch_gate' && dependency['reference'] != 'E'
+          errors << "#{prefix} prior-batch foundation gates cannot be deferred inside Batch D"
+        else
+          expected_authority = BATCH_D_LEAD_AUTHORITIES[label]
+          unless nonempty_string?(authority) && authority == expected_authority && co_owners.is_a?(Array) && co_owners.include?(authority)
+            errors << "#{prefix} deferred dependency requires the frozen lead authority #{expected_authority}"
+          end
+        end
+        validate_batch_d_upstream_resolution_artifact(dependency, label, prefix)
+      end
+
+      if kind == 'batch_gate' && !EXPECTED_BATCH_COUNTS.key?(dependency['reference'])
+        errors << "#{prefix} batch_gate reference must be a known batch"
+      elsif kind == 'requirement' && !(dependency['reference'].is_a?(String) && dependency['reference'].match?(PAR_ID_PATTERN))
+        errors << "#{prefix} requirement reference must be a PAR ID"
+      end
+    end
+
+    unless expected && actual == expected
+      errors << "#{decision_register_label} #{label}: upstream dependencies must exactly match the frozen Batch D dependency policy"
+    end
+  end
+
+  def validate_batch_d_upstream_resolution_artifact(dependency, requirement_id, label)
+    artifact = load_structured_json_artifact(dependency['resolution_reference'], dependency['resolution_artifact_sha256'], "#{label} resolution")
+    return unless artifact
+
+    validate_closed_object(artifact, UPSTREAM_RESOLUTION_ARTIFACT_KEYS, "#{label} resolution")
+    errors << "#{label} resolution artifact_type must be #{UPSTREAM_RESOLUTION_ARTIFACT_TYPE}" unless artifact['artifact_type'] == UPSTREAM_RESOLUTION_ARTIFACT_TYPE
+    errors << "#{label} resolution schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} resolution register_id does not match the decision register" unless artifact['register_id'] == @active_decision_context[:register_id]
+    errors << "#{label} resolution requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
+    errors << "#{label} resolution subject must be upstream_requirement_dependency" unless artifact['subject'] == 'upstream_requirement_dependency'
+    errors << "#{label} resolution dependency_kind does not match the register" unless artifact['dependency_kind'] == dependency['dependency_kind']
+    errors << "#{label} resolution dependency_reference does not match the register" unless artifact['dependency_reference'] == dependency['reference']
+    errors << "#{label} resolution scope does not match the register" unless artifact['scope'] == dependency['scope']
+    errors << "#{label} resolution status does not match the register" unless artifact['status'] == dependency['status']
+    errors << "#{label} resolution text does not match the register" unless artifact['resolution'] == dependency['resolution']
+    upstream_batch = dependency['dependency_kind'] == 'batch_gate' ? dependency['reference'] : @batch_assignments[dependency['reference']]
+    errors << "#{label} resolution upstream_batch does not match #{upstream_batch}" unless artifact['upstream_batch'] == upstream_batch
+
+    if dependency['dependency_kind'] == 'batch_gate'
+      upstream_config = DECISION_REGISTER_CONFIGS[upstream_batch]
+      if upstream_config
+        upstream_path = @decision_register_paths[upstream_batch]
+        upstream_source_id = upstream_config[:register_id]
+      else
+        upstream_path = @batch_manifest_path
+        upstream_source_id = 'G0_PARITY_BATCH_MANIFEST.json#batch-E'
+      end
+      actual_source_sha = Digest::SHA256.file(upstream_path).hexdigest if upstream_path && File.file?(upstream_path)
+      errors << "#{label} resolution upstream_source_id does not match the loaded governance source" unless artifact['upstream_source_id'] == upstream_source_id
+      errors << "#{label} resolution upstream_source_sha256 does not match the loaded governance source" unless actual_source_sha && artifact['upstream_source_sha256'] == actual_source_sha
+      expected_authority = BATCH_GATE_AUTHORITIES[dependency['reference']]
+      unless upstream_batch == 'E' && dependency['status'] == 'deferred'
+        upstream_entries = @decision_entries_by_batch.fetch(upstream_batch, [])
+        unless @decision_register_statuses[upstream_batch] == 'complete' && !upstream_entries.empty? && upstream_entries.all? { |entry| %w[approve defer].include?(entry.dig('decision', 'status')) }
+          errors << "#{label} resolution cannot close Batch #{upstream_batch} while its loaded decision register is incomplete"
+        end
+      end
+      errors << "#{label} resolution upstream_decision_status must be null for a batch gate" unless artifact['upstream_decision_status'].nil?
+      errors << "#{label} resolution upstream_approval_sha256 must be null for a batch gate" unless artifact['upstream_approval_sha256'].nil?
+    else
+      upstream_entry = @decision_entries.find { |candidate| candidate['requirement_id'] == dependency['reference'] }
+      upstream_decision_status = upstream_entry.dig('decision', 'status') if upstream_entry.is_a?(Hash)
+      upstream_owner = upstream_entry['accountable_owner'] if upstream_entry.is_a?(Hash)
+      upstream_approval = upstream_entry['approval'] if upstream_entry.is_a?(Hash)
+      if dependency['status'] == 'deferred'
+        source_entry = @decision_entries.find { |candidate| candidate['requirement_id'] == requirement_id }
+        source_owner = source_entry['accountable_owner'] if source_entry.is_a?(Hash)
+        source_approval = source_entry['approval'] if source_entry.is_a?(Hash)
+        expected_authority = BATCH_D_LEAD_AUTHORITIES[requirement_id]
+        unless source_owner&.dig('appointment_status') == 'appointed' && source_approval&.dig('status') == 'recorded'
+          errors << "#{label} deferral requires the source D accountable owner and approval to be complete"
+        end
+        errors << "#{label} resolution identity must match the source D accountable owner" unless source_owner.is_a?(Hash) && artifact['identity'] == source_owner['identity']
+        errors << "#{label} resolution upstream_decision_status must match the source deferral decision" unless artifact['upstream_decision_status'] == source_entry&.dig('decision', 'status')
+        errors << "#{label} resolution upstream_approval_sha256 must match the source approval" unless source_approval.is_a?(Hash) && artifact['upstream_approval_sha256'] == source_approval['artifact_sha256']
+        errors << "#{label} resolution upstream_source_id must match the source approval reference" unless source_approval.is_a?(Hash) && artifact['upstream_source_id'] == source_approval['reference']
+        errors << "#{label} resolution upstream_source_sha256 must match the source approval" unless source_approval.is_a?(Hash) && artifact['upstream_source_sha256'] == source_approval['artifact_sha256']
+      else
+        expected_authority = upstream_owner['authority_domain'] if upstream_owner.is_a?(Hash)
+        unless %w[approve defer].include?(upstream_decision_status) && upstream_owner&.dig('appointment_status') == 'appointed' && upstream_approval&.dig('status') == 'recorded'
+          errors << "#{label} resolution cannot close requirement #{dependency['reference']} before its decision, owner and approval are complete"
+        end
+        errors << "#{label} resolution identity must match the referenced accountable owner" unless upstream_owner.is_a?(Hash) && artifact['identity'] == upstream_owner['identity']
+        errors << "#{label} resolution upstream_decision_status does not match the referenced decision" unless artifact['upstream_decision_status'] == upstream_decision_status
+        errors << "#{label} resolution upstream_approval_sha256 does not match the referenced approval" unless upstream_approval.is_a?(Hash) && artifact['upstream_approval_sha256'] == upstream_approval['artifact_sha256']
+        errors << "#{label} resolution upstream_source_id must match the referenced approval" unless upstream_approval.is_a?(Hash) && artifact['upstream_source_id'] == upstream_approval['reference']
+        errors << "#{label} resolution upstream_source_sha256 must match the referenced approval" unless upstream_approval.is_a?(Hash) && artifact['upstream_source_sha256'] == upstream_approval['artifact_sha256']
+      end
+    end
+    errors << "#{label} resolution authority_domain must be #{expected_authority}" unless artifact['authority_domain'] == expected_authority
+    if dependency['status'] == 'deferred' && dependency['defer_authority_domain'] != artifact['authority_domain']
+      errors << "#{label} resolution authority_domain does not match defer_authority_domain"
+    end
+    errors << "#{label} resolution identity must be a non-placeholder string" unless nonempty_string?(artifact['identity']) && !artifact['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    errors << "#{label} resolution date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['identity'], "#{label} resolution")
+  end
+
+  def validate_batch_d_integration_boundary(boundary, label)
+    prefix = "#{decision_register_label} #{label}: integration_boundary"
+    return unless validate_closed_object(boundary, %w[mode outbound_network live_endpoints credentials notes], prefix)
+
+    errors << "#{prefix} invalid mode #{boundary['mode'].inspect}" unless BATCH_D_INTEGRATION_MODES.include?(boundary['mode'])
+    errors << "#{prefix} outbound_network must be false" unless boundary['outbound_network'] == false
+    errors << "#{prefix} live_endpoints must be false" unless boundary['live_endpoints'] == false
+    errors << "#{prefix} credentials must be false" unless boundary['credentials'] == false
+    errors << "#{prefix} notes must state the synthetic boundary" unless nonempty_string?(boundary['notes']) && boundary['notes'].match?(/synthetic|non-transmitting|no outbound/i)
+  end
+
+  def validate_batch_d_lifecycle_mapping(control, decision, label)
+    prefix = "#{decision_register_label} #{label}: lifecycle_mapping"
+    return unless validate_closed_object(control, %w[status lifecycle_artifact_reference lifecycle_artifact_sha256 mapping_artifact_reference mapping_artifact_sha256 terminal_target_requirement_id], prefix)
+
+    status = control['status']
+    errors << "#{prefix} invalid status #{status.inspect}" unless LIFECYCLE_MAPPING_STATUSES.include?(status)
+    if %w[pending not_applicable].include?(status)
+      %w[lifecycle_artifact_reference lifecycle_artifact_sha256 mapping_artifact_reference mapping_artifact_sha256 terminal_target_requirement_id].each do |key|
+        errors << "#{prefix} #{status} #{key} must be null" unless control[key].nil?
+      end
+    elsif status == 'complete'
+      validate_batch_d_specialized_artifact(control['lifecycle_artifact_reference'], control['lifecycle_artifact_sha256'], label, 'lifecycle', decision)
+      validate_batch_d_specialized_artifact(control['mapping_artifact_reference'], control['mapping_artifact_sha256'], label, 'mapping', decision)
+      errors << "#{prefix} terminal_target_requirement_id must be a PAR ID" unless control['terminal_target_requirement_id'].is_a?(String) && control['terminal_target_requirement_id'].match?(PAR_ID_PATTERN)
+    end
+
+    decision_status = decision['status'] if decision.is_a?(Hash)
+    disposition = decision['canonical_disposition'] if decision.is_a?(Hash)
+    requires_artifacts = BATCH_D_LIFECYCLE_MAPPING_REQUIRED_IDS.include?(label) && (decision_status == 'approve' || disposition == 'consolidate')
+    errors << "#{prefix} diagnostic/procedure approval or consolidation requires complete lifecycle and mapping artifacts" if requires_artifacts && status != 'complete'
+    if status == 'complete' && decision.is_a?(Hash)
+      expected_terminal = case disposition
+                          when 'reproduce', 'replace' then label
+                          when 'consolidate' then decision.dig('target', 'reference')
+                          end
+      if expected_terminal
+        errors << "#{prefix} terminal_target_requirement_id must be #{expected_terminal}" unless control['terminal_target_requirement_id'] == expected_terminal
+      elsif %w[retire exclude pending].include?(disposition)
+        errors << "#{prefix} must not be complete for an excluded, retired, deferred or pending capability"
+      end
+    end
+  end
+
+  def validate_batch_d_specialized_artifact(reference, digest, requirement_id, kind, decision)
+    label = "#{decision_register_label} #{requirement_id}: #{kind} artifact"
+    artifact = load_structured_json_artifact(reference, digest, label)
+    return unless artifact
+
+    expected_keys = kind == 'lifecycle' ? LIFECYCLE_ARTIFACT_KEYS : MAPPING_ARTIFACT_KEYS
+    validate_closed_object(artifact, expected_keys, label)
+    expected_type = kind == 'lifecycle' ? LIFECYCLE_ARTIFACT_TYPE : MAPPING_ARTIFACT_TYPE
+    errors << "#{label} artifact_type must be #{expected_type}" unless artifact['artifact_type'] == expected_type
+    errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} register_id does not match the decision register" unless artifact['register_id'] == @active_decision_context[:register_id]
+    errors << "#{label} requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
+    %w[date author_identity].each { |key| errors << "#{label} #{key} must be a non-empty string" unless nonempty_string?(artifact[key]) }
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    if kind == 'lifecycle'
+      %w[lifecycle_states lifecycle_transitions correction_rules].each { |key| validate_nonempty_string_array(artifact[key], "#{label} #{key}") }
+      capability_kind = BATCH_D_CAPABILITY_KINDS[requirement_id]
+      required_states = BATCH_D_LIFECYCLE_STATES.fetch(capability_kind)
+      required_transitions = BATCH_D_LIFECYCLE_TRANSITIONS.fetch(capability_kind)
+      missing_states = required_states - Array(artifact['lifecycle_states'])
+      missing_transitions = required_transitions - Array(artifact['lifecycle_transitions'])
+      missing_corrections = BATCH_D_COMMON_CORRECTION_RULES - Array(artifact['correction_rules'])
+      errors << "#{label} missing capability lifecycle states: #{missing_states.join(', ')}" unless missing_states.empty?
+      errors << "#{label} missing capability lifecycle transitions: #{missing_transitions.join(', ')}" unless missing_transitions.empty?
+      errors << "#{label} missing correction safeguards: #{missing_corrections.join(', ')}" unless missing_corrections.empty?
+      errors << "#{label} lifecycle_states must exactly match the frozen capability policy" unless artifact['lifecycle_states'] == required_states
+      errors << "#{label} lifecycle_transitions must exactly match the frozen capability policy" unless artifact['lifecycle_transitions'] == required_transitions
+      errors << "#{label} correction_rules must exactly match the frozen safeguards" unless artifact['correction_rules'] == BATCH_D_COMMON_CORRECTION_RULES
+    else
+      %w[mapped_fields mapped_states].each { |key| validate_nonempty_string_array(artifact[key], "#{label} #{key}") }
+      errors << "#{label} coverage_status must be complete" unless artifact['coverage_status'] == 'complete'
+      errors << "#{label} unmapped_items must be an empty array" unless artifact['unmapped_items'] == []
+      errors << "#{label} exclusions must be an array" unless artifact['exclusions'].is_a?(Array) && artifact['exclusions'].all? { |item| nonempty_string?(item) }
+      capability_kind = BATCH_D_CAPABILITY_KINDS[requirement_id]
+      missing_fields = BATCH_D_MAPPING_FIELDS - Array(artifact['mapped_fields'])
+      missing_states = BATCH_D_LIFECYCLE_STATES.fetch(capability_kind) - Array(artifact['mapped_states'])
+      errors << "#{label} missing required mapping fields: #{missing_fields.join(', ')}" unless missing_fields.empty?
+      errors << "#{label} missing required mapped states: #{missing_states.join(', ')}" unless missing_states.empty?
+      errors << "#{label} mapped_fields must exactly match the frozen mapping policy" unless artifact['mapped_fields'] == BATCH_D_MAPPING_FIELDS
+      errors << "#{label} mapped_states must exactly match the frozen capability states" unless artifact['mapped_states'] == BATCH_D_LIFECYCLE_STATES.fetch(capability_kind)
+      target_reference = decision.dig('target', 'reference') if decision.is_a?(Hash)
+      errors << "#{label} target_reference does not match the register decision" unless artifact['target_reference'] == target_reference
+    end
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
   end
 
   def validate_decision_evidence(record, label, index)
@@ -540,6 +958,9 @@ class ParityGovernanceValidator
       %w[date source reference interpreter artifact_reference artifact_sha256].each do |key|
         errors << "#{decision_register_label} #{label}: pending evidence #{key} must be null" unless record[key].nil?
       end
+      if @active_decision_context[:batch] == 'D' && !record['evidence_basis'].nil?
+        errors << "#{decision_register_label} #{label}: pending evidence evidence_basis must be null"
+      end
       errors << "#{decision_register_label} #{label}: pending evidence confidence must be pending" unless confidence == 'pending'
       errors << "#{decision_register_label} #{label}: pending evidence note must explain the gap" unless nonempty_string?(record['note'])
       return
@@ -551,6 +972,9 @@ class ParityGovernanceValidator
     end
     if confidence == 'pending'
       errors << "#{decision_register_label} #{label}: non-pending evidence confidence cannot be pending"
+    end
+    if @active_decision_context[:batch] == 'D' && !BATCH_D_EVIDENCE_BASES.include?(record['evidence_basis'])
+      errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
     end
     validate_evidence_artifact(record, label, index)
   end
@@ -652,6 +1076,37 @@ class ParityGovernanceValidator
     end
 
     detect_decision_register_consolidation_cycles(graph, register_edges)
+    validate_batch_d_terminal_consolidations(entries_by_batch.fetch('D', []))
+  end
+
+  def validate_batch_d_terminal_consolidations(entries)
+    by_id = entries.to_h { |entry| [entry['requirement_id'], entry] }
+    allowed = { 'PAR-CLN-010' => 'PAR-CLN-009', 'PAR-CLN-012' => 'PAR-CLN-011' }
+    entries.each do |entry|
+      decision = entry['decision'] if entry.is_a?(Hash)
+      next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+      source = entry['requirement_id']
+      target = decision.dig('target', 'reference')
+      unless allowed[source] == target
+        errors << "Batch D decision register #{source}: consolidation is allowed only for PAR-CLN-010 -> PAR-CLN-009 or PAR-CLN-012 -> PAR-CLN-011"
+      end
+    end
+    allowed.each do |source, required_target|
+      entry = by_id[source]
+      decision = entry['decision'] if entry.is_a?(Hash)
+      next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+
+      target = decision.dig('target', 'reference')
+      errors << "Batch D decision register #{source}: consolidation target must be #{required_target}" unless target == required_target
+      control = entry['lifecycle_mapping']
+      unless control.is_a?(Hash) && control['status'] == 'complete' && control['terminal_target_requirement_id'] == required_target
+        errors << "Batch D decision register #{source}: consolidation requires complete mapping to terminal target #{required_target}"
+      end
+      target_decision = by_id.dig(required_target, 'decision')
+      unless target_decision.is_a?(Hash) && %w[approve defer].include?(target_decision['status']) && target_decision['canonical_disposition'] != 'consolidate'
+        errors << "Batch D decision register #{source}: terminal target #{required_target} must have a resolved non-consolidation decision"
+      end
+    end
   end
 
   def detect_decision_register_consolidation_cycles(graph, register_edges)
@@ -695,6 +1150,53 @@ class ParityGovernanceValidator
     errors << "#{decision_register_label} #{label}: synthetic scenario #{name} data_class must be synthetic" unless scenario['data_class'] == 'synthetic'
     errors << "#{decision_register_label} #{label}: synthetic scenario #{name} description must be a non-empty string" unless nonempty_string?(scenario['description'])
     validate_nonempty_string_array(scenario['expected_results'], "#{decision_register_label} #{label}: synthetic scenario #{name} expected_results")
+    return unless @active_decision_context[:batch] == 'D'
+
+    validate_closed_object(scenario, %w[status data_class description expected_results required_behaviors preconditions actions assertions], "#{decision_register_label} #{label}: synthetic scenario #{name}")
+    expected_behaviors = batch_d_required_scenario_behaviors(label, name)
+    unless scenario['required_behaviors'] == expected_behaviors
+      errors << "#{decision_register_label} #{label}: synthetic scenario #{name} required_behaviors must exactly match #{expected_behaviors.inspect}"
+    end
+    return unless BATCH_D_CAPABILITY_KINDS.key?(label)
+
+    expected_contract = batch_d_required_scenario_contract(label, name)
+    %w[preconditions actions assertions].each do |key|
+      unless scenario[key] == expected_contract.fetch(key)
+        errors << "#{decision_register_label} #{label}: synthetic scenario #{name} #{key} must exactly match the frozen per-ID contract"
+      end
+    end
+    if scenario['status'] == 'ready'
+      unless scenario['description'].is_a?(String) && scenario['description'].strip.length >= 40
+        errors << "#{decision_register_label} #{label}: ready synthetic scenario #{name} description must contain at least 40 characters"
+      end
+      results = scenario['expected_results']
+      unless results.is_a?(Array) && results.length >= 2 && results.all? { |result| result.is_a?(String) && result.strip.length >= 10 }
+        errors << "#{decision_register_label} #{label}: ready synthetic scenario #{name} requires at least two substantive expected results"
+      end
+    end
+  end
+
+  def batch_d_required_scenario_behaviors(label, name)
+    capability_kind = BATCH_D_CAPABILITY_KINDS[label]
+    return [] unless capability_kind
+    common = {
+      'normal' => %w[authorized_happy_path single_reconciled_result],
+      'denial' => %w[invalid_or_unauthorized no_partial_state],
+      'correction_or_amendment' => %w[prior_state_immutable reason_and_actor_attributed single_reconciliation],
+      'dependency_outage' => %w[dependency_unavailable fail_closed idempotent_retry]
+    }.fetch(name)
+    focus = BATCH_D_SCENARIO_FOCUS.fetch(label)
+    ["#{label}:#{name}", "#{focus}:#{name}", *common]
+  end
+
+  def batch_d_required_scenario_contract(label, name)
+    focus = BATCH_D_SCENARIO_FOCUS.fetch(label)
+    behaviors = batch_d_required_scenario_behaviors(label, name)
+    {
+      'preconditions' => ['synthetic_only', "#{focus}:eligible_context", "#{label}:authorized_role"],
+      'actions' => ["#{label}:#{name}:execute"],
+      'assertions' => ["#{focus}:#{name}:assert", *behaviors.drop(2)]
+    }
   end
 
   def validate_accountable_owner(owner, label)
@@ -801,7 +1303,7 @@ class ParityGovernanceValidator
 
     if status == 'pending'
       pending_keys = %w[identity scope date reference artifact_sha256]
-      pending_keys << 'authority_domain' if @active_decision_context[:batch] == 'C'
+      pending_keys << 'authority_domain' if AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
       pending_keys.each do |key|
         errors << "#{decision_register_label} #{label}: pending approval #{key} must be null" unless approval[key].nil?
       end
@@ -819,7 +1321,7 @@ class ParityGovernanceValidator
     if nonempty_string?(approval['identity']) && approval['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
       errors << "#{decision_register_label} #{label}: approval identity must not be a placeholder"
     end
-    if @active_decision_context[:batch] == 'C'
+    if AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
       unless nonempty_string?(approval['authority_domain'])
         errors << "#{decision_register_label} #{label}: approval authority_domain must be a non-empty string"
       end
@@ -874,10 +1376,24 @@ class ParityGovernanceValidator
       errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires a recorded approval"
     end
     scenarios = entry['synthetic_scenarios']
-    scenario_names = @active_decision_context[:batch] == 'C' ? BATCH_C_SCENARIO_NAMES : %w[normal denial_or_correction]
+    scenario_names = FOUR_SCENARIO_BATCHES.include?(@active_decision_context[:batch]) ? FOUR_SCENARIO_NAMES : %w[normal denial_or_correction]
     unless scenarios.is_a?(Hash) && scenario_names.all? { |name| scenarios[name].is_a?(Hash) && scenarios[name]['status'] == 'ready' }
-      scenario_description = @active_decision_context[:batch] == 'C' ? scenario_names.join(', ') : 'normal and denial/correction'
+      scenario_description = FOUR_SCENARIO_BATCHES.include?(@active_decision_context[:batch]) ? scenario_names.join(', ') : 'normal and denial/correction'
       errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires ready #{scenario_description} scenarios"
+    end
+    if @active_decision_context[:batch] == 'D'
+      upstream = entry['upstream_requirement_dependencies']
+      unless upstream.is_a?(Array) && !upstream.empty? && upstream.all? { |dependency| dependency.is_a?(Hash) && %w[resolved deferred].include?(dependency['status']) }
+        errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires every structured upstream dependency resolved or authority-deferred"
+      end
+
+      if BATCH_D_LIFECYCLE_MAPPING_REQUIRED_IDS.include?(label) && decision_status == 'approve'
+        substantive = evidence.is_a?(Array) && evidence.any? do |record|
+          record.is_a?(Hash) && %w[O M I].include?(record['evidence_class']) && record['evidence_basis'] != 'route_or_menu'
+        end
+        errors << "#{decision_register_label} #{label}: diagnostic/procedure approval requires O/M/I evidence beyond route or menu observation" unless substantive
+      end
+
     end
   end
 
@@ -885,8 +1401,8 @@ class ParityGovernanceValidator
     artifact = load_structured_json_artifact(reference, expected_sha256, label)
     return unless artifact
 
-    expected_keys = if subject == 'approval' && @active_decision_context[:batch] == 'C'
-                      BATCH_C_APPROVAL_ARTIFACT_KEYS
+    expected_keys = if subject == 'approval' && AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
+                      AUTHORITY_BOUND_APPROVAL_ARTIFACT_KEYS
                     else
                       GOVERNANCE_ARTIFACT_KEYS.fetch(subject)
                     end
@@ -908,7 +1424,7 @@ class ParityGovernanceValidator
       errors << "#{label} scope does not match required_scope" unless artifact['scope'] == record['required_scope']
       errors << "#{label} date does not match the appointment date" unless artifact['date'] == record['date']
     when 'approval'
-      if @active_decision_context[:batch] == 'C'
+      if AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
         errors << "#{label} authority_domain does not match the register" unless artifact['authority_domain'] == record['authority_domain']
       end
       errors << "#{label} scope does not match the register" unless artifact['scope'] == record['scope']
@@ -926,13 +1442,17 @@ class ParityGovernanceValidator
     artifact = load_structured_json_artifact(record['artifact_reference'], record['artifact_sha256'], label)
     return unless artifact
 
-    validate_closed_object(artifact, EVIDENCE_ARTIFACT_KEYS, label)
+    expected_keys = @active_decision_context[:batch] == 'D' ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
+    validate_closed_object(artifact, expected_keys, label)
     errors << "#{label} artifact_type must be #{EVIDENCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == EVIDENCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
     errors << "#{label} register_id does not match the decision register" unless artifact['register_id'] == @active_decision_context[:register_id]
     errors << "#{label} requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
     %w[evidence_class date source reference interpreter confidence].each do |key|
       errors << "#{label} #{key} does not match the register" unless artifact[key] == record[key]
+    end
+    if @active_decision_context[:batch] == 'D'
+      errors << "#{label} evidence_basis does not match the register" unless artifact['evidence_basis'] == record['evidence_basis']
     end
     validate_artifact_reviewer(artifact['reviewer'], artifact['interpreter'], label)
   end
@@ -1619,6 +2139,7 @@ if $PROGRAM_NAME == __FILE__
     decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json',
     batch_b_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json',
     batch_c_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json',
+    batch_d_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -1631,6 +2152,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--decision-register PATH', 'Batch A G0 decision register JSON path') { |value| options[:decision_register] = value }
     opts.on('--batch-b-decision-register PATH', 'Batch B G0 decision register JSON path') { |value| options[:batch_b_decision_register] = value }
     opts.on('--batch-c-decision-register PATH', 'Batch C G0 decision register JSON path') { |value| options[:batch_c_decision_register] = value }
+    opts.on('--batch-d-decision-register PATH', 'Batch D G0 decision register JSON path') { |value| options[:batch_d_decision_register] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -1649,6 +2171,7 @@ if $PROGRAM_NAME == __FILE__
     decision_register_path: options[:decision_register],
     batch_b_decision_register_path: options[:batch_b_decision_register],
     batch_c_decision_register_path: options[:batch_c_decision_register],
+    batch_d_decision_register_path: options[:batch_d_decision_register],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )

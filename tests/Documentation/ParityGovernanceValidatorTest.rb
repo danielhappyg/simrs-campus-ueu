@@ -15,6 +15,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
   SOURCE_BATCH_A_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_B_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_C_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json')
+  SOURCE_BATCH_D_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json')
   SOURCE_RELEASE_INDEX = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md')
 
   def setup
@@ -25,6 +26,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     @decision_register = File.join(@tmpdir, 'batch-a-decision-register.json')
     @batch_b_decision_register = File.join(@tmpdir, 'batch-b-decision-register.json')
     @batch_c_decision_register = File.join(@tmpdir, 'batch-c-decision-register.json')
+    @batch_d_decision_register = File.join(@tmpdir, 'batch-d-decision-register.json')
     @release_index = File.join(@tmpdir, 'release-index.md')
     FileUtils.cp(SOURCE_MATRIX, @matrix)
     FileUtils.cp(SOURCE_BASELINE, @baseline)
@@ -32,6 +34,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     FileUtils.cp(SOURCE_BATCH_A_DECISION_REGISTER, @decision_register)
     FileUtils.cp(SOURCE_BATCH_B_DECISION_REGISTER, @batch_b_decision_register)
     FileUtils.cp(SOURCE_BATCH_C_DECISION_REGISTER, @batch_c_decision_register)
+    FileUtils.cp(SOURCE_BATCH_D_DECISION_REGISTER, @batch_d_decision_register)
     FileUtils.cp(SOURCE_RELEASE_INDEX, @release_index)
   end
 
@@ -45,10 +48,11 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert validator.validate, validator.errors.join("\n")
     assert_equal 268, validator.rows.length
     assert_equal 268, validator.batch_assignments.length
-    assert_equal 47, validator.decision_entries.length
+    assert_equal 66, validator.decision_entries.length
     assert_equal 20, validator.decision_entries_by_batch.fetch('A').length
     assert_equal 8, validator.decision_entries_by_batch.fetch('B').length
     assert_equal 19, validator.decision_entries_by_batch.fetch('C').length
+    assert_equal 19, validator.decision_entries_by_batch.fetch('D').length
   end
 
   def test_batch_a_decision_register_rejects_missing_row
@@ -747,6 +751,422 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_error validator, 'consolidation cycle detected: PAR-CLN-001 -> PAR-CLN-004 -> PAR-CLN-001'
   end
 
+  def test_batch_d_decision_register_rejects_missing_duplicate_and_unknown_rows
+    mutate_batch_d_decision_register do |register|
+      register['entries'].reject! { |entry| entry['requirement_id'] == 'PAR-ADM-014' }
+      duplicate = Marshal.load(Marshal.dump(register['entries'].first))
+      register['entries'] << duplicate
+      register['entries'].last['requirement_id'] = 'PAR-CLN-019'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'missing Batch D requirement IDs: PAR-ADM-014'
+    assert_error validator, 'unknown Batch D requirement IDs: PAR-CLN-019'
+  end
+
+  def test_batch_d_decision_register_rejects_false_complete_state
+    mutate_batch_d_decision_register { |register| register['register_status'] = 'complete' }
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'register_status complete requires every entry to be approved or deferred'
+    assert_error validator, 'G0 remains open until decision status is approve or defer'
+  end
+
+  def test_batch_d_rejects_changed_authority_set_lead_and_capability_kind
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].first
+      entry['co_owners'].reverse!
+      entry['lead_authority_domain'] = 'product_delivery'
+      entry['accountable_owner']['authority_domain'] = 'product_delivery'
+      entry['capability_kind'] = 'menu'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'co_owners must exactly match required authorities'
+    assert_error validator, 'lead_authority_domain must be laboratory'
+    assert_error validator, 'capability_kind must be diagnostic_master'
+  end
+
+  def test_batch_d_rejects_missing_scenario_and_free_text_in_place_of_upstream_dependency
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-CLN-006' }
+      entry['synthetic_scenarios'].delete('dependency_outage')
+      entry['upstream_requirement_dependencies'] = []
+      entry['downstream_impacts'] << 'Batch A, B and C are ready according to prose.'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'synthetic_scenarios must contain exactly normal, denial, correction_or_amendment, dependency_outage'
+    assert_error validator, 'upstream_requirement_dependencies must be a non-empty array'
+  end
+
+  def test_batch_d_rejects_generic_ready_scenarios_without_frozen_behavior_coverage
+    mutate_batch_d_decision_register do |register|
+      register['entries'].first['synthetic_scenarios'].each_value do |scenario|
+        scenario['status'] = 'ready'
+        scenario['description'] = 'x'
+        scenario['expected_results'] = ['x']
+        scenario['required_behaviors'] = ['x']
+      end
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'synthetic scenario normal required_behaviors must exactly match'
+    assert_error validator, 'synthetic scenario denial required_behaviors must exactly match'
+    assert_error validator, 'synthetic scenario correction_or_amendment required_behaviors must exactly match'
+    assert_error validator, 'synthetic scenario dependency_outage required_behaviors must exactly match'
+  end
+
+  def test_batch_d_rejects_x_prose_even_when_per_id_behavior_tokens_are_preserved
+    mutate_batch_d_decision_register do |register|
+      register['entries'].first['synthetic_scenarios'].each_value do |scenario|
+        scenario['status'] = 'ready'
+        scenario['description'] = 'x'
+        scenario['expected_results'] = ['x']
+      end
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'ready synthetic scenario normal description must contain at least 40 characters'
+    assert_error validator, 'ready synthetic scenario normal requires at least two substantive expected results'
+  end
+
+  def test_batch_d_rejects_generic_structured_assertions_even_with_long_prose
+    mutate_batch_d_decision_register do |register|
+      scenario = register['entries'].first['synthetic_scenarios']['normal']
+      scenario['status'] = 'ready'
+      scenario['description'] = 'A long but generic fixture description that contains no executable domain semantics.'
+      scenario['expected_results'] = ['A long generic expected result that says nothing.', 'Another generic expected result that says nothing.']
+      scenario['assertions'] = ['x']
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'synthetic scenario normal assertions must exactly match the frozen per-ID contract'
+  end
+
+  def test_batch_d_rejects_omitted_shared_a_b_c_foundation_and_co_owner_appointment
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-CLN-006' }
+      entry['upstream_requirement_dependencies'].reject! { |dependency| %w[A B C].include?(dependency['reference']) }
+      entry['appointment_dependencies'].reject! { |dependency| dependency['authority_domain'] == 'laboratory' }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'upstream dependencies must exactly match the frozen Batch D dependency policy'
+    assert_error validator, 'appointment dependencies must exactly cover co_owners; missing ["laboratory"]'
+  end
+
+  def test_batch_d_rejects_live_integration_boundary
+    mutate_batch_d_decision_register do |register|
+      boundary = register['entries'].first['integration_boundary']
+      boundary['mode'] = 'live_adapter'
+      boundary['outbound_network'] = true
+      boundary['live_endpoints'] = true
+      boundary['credentials'] = true
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'integration_boundary invalid mode "live_adapter"'
+    assert_error validator, 'integration_boundary outbound_network must be false'
+    assert_error validator, 'integration_boundary live_endpoints must be false'
+    assert_error validator, 'integration_boundary credentials must be false'
+  end
+
+  def test_batch_d_diagnostic_approval_rejects_u_only_route_evidence_and_missing_lifecycle_mapping
+    mutate_batch_d_decision_register do |register|
+      register['register_status'] = 'complete'
+      entry = register['entries'].first
+      entry['decision'] = {
+        'status' => 'approve', 'canonical_disposition' => 'reproduce',
+        'target' => { 'kind' => 'capability', 'reference' => 'Synthetic laboratory master', 'exclusions' => [] },
+        'rationale' => 'Fixture-only invalid approval.'
+      }
+      entry['evidence'].first['evidence_class'] = 'U'
+      entry['evidence'].first['evidence_basis'] = 'route_or_menu'
+      entry['evidence'].first['confidence'] = 'low'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'diagnostic/procedure approval or consolidation requires complete lifecycle and mapping artifacts'
+    assert_error validator, 'diagnostic/procedure approval requires O/M/I evidence beyond route or menu observation'
+  end
+
+  def test_batch_d_rejects_unapproved_consolidation_and_unresolved_allowed_terminal_target
+    mutate_batch_d_decision_register do |register|
+      register['entries'].find { |entry| entry['requirement_id'] == 'PAR-CLN-006' }['decision'] = approved_consolidation_decision('PAR-ADM-014')
+      register['entries'].find { |entry| entry['requirement_id'] == 'PAR-CLN-010' }['decision'] = approved_consolidation_decision('PAR-CLN-009')
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'consolidation is allowed only for PAR-CLN-010 -> PAR-CLN-009 or PAR-CLN-012 -> PAR-CLN-011'
+    assert_error validator, 'PAR-CLN-010: terminal target PAR-CLN-009 must have a resolved non-consolidation decision'
+  end
+
+  def test_batch_d_consolidation_cycle_is_detected_even_when_an_edge_is_unsupported
+    mutate_batch_d_decision_register do |register|
+      register['entries'].find { |entry| entry['requirement_id'] == 'PAR-CLN-009' }['decision'] = approved_consolidation_decision('PAR-CLN-010')
+      register['entries'].find { |entry| entry['requirement_id'] == 'PAR-CLN-010' }['decision'] = approved_consolidation_decision('PAR-CLN-009')
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'consolidation cycle detected: PAR-CLN-009 -> PAR-CLN-010 -> PAR-CLN-009'
+  end
+
+  def test_batch_d_orp_batch_e_gate_cannot_claim_resolution_or_stock_readiness
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-ORP-001' }
+      gate = entry['upstream_requirement_dependencies'].find { |dependency| dependency['reference'] == 'E' }
+      gate['status'] = 'resolved'
+      gate['resolution'] = 'Menu label observed.'
+      entry['decision'] = {
+        'status' => 'defer', 'canonical_disposition' => 'exclude',
+        'target' => { 'kind' => 'exclusion', 'reference' => 'Fixture', 'exclusions' => ['No production use.'] },
+        'rationale' => 'Fixture-only invalid stock readiness claim.'
+      }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch E stock semantics cannot be marked resolved before Batch E governance is registered'
+  end
+
+  def test_batch_d_orp_authority_deferral_requires_pharmacy_and_explicit_semantic_exclusions
+    mutate_batch_d_decision_register do |register|
+      register['register_status'] = 'complete'
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-ORP-001' }
+      entry['upstream_requirement_dependencies'].each do |dependency|
+        dependency['status'] = 'deferred'
+        dependency['resolution'] = 'Fixture-only dependency deferral.'
+        dependency['defer_authority_domain'] = dependency['reference'] == 'E' ? 'warehouse_stock' : 'pharmacy'
+      end
+      entry['decision'] = {
+        'status' => 'defer', 'canonical_disposition' => 'exclude',
+        'target' => { 'kind' => 'exclusion', 'reference' => 'Fixture', 'exclusions' => ['No stock readiness.'] },
+        'rationale' => 'Fixture-only invalid Batch E deferral.'
+      }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch E stock-semantics deferral requires pharmacy authority'
+    assert_error validator, 'Batch E deferral must explicitly exclude stock, issue, return, lot and charge semantics'
+  end
+
+  def test_batch_d_orp_accepts_signed_manifest_bound_batch_e_deferral_without_claiming_e_ready
+    prepare_resolved_batch_d_entry('PAR-ORP-001')
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-ORP-001' }
+      gate = entry['upstream_requirement_dependencies'].find { |dependency| dependency['reference'] == 'E' }
+      gate['status'] = 'deferred'
+      gate['resolution'] = 'Batch E stock semantics are explicitly excluded from this fixture-only decision.'
+      gate['defer_authority_domain'] = 'pharmacy'
+      artifact = {
+        'artifact_type' => ParityGovernanceValidator::UPSTREAM_RESOLUTION_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+        'requirement_id' => 'PAR-ORP-001',
+        'subject' => 'upstream_requirement_dependency',
+        'dependency_kind' => 'batch_gate', 'dependency_reference' => 'E', 'scope' => gate['scope'],
+        'status' => 'deferred', 'resolution' => gate['resolution'],
+        'identity' => entry.dig('accountable_owner', 'identity'), 'authority_domain' => 'pharmacy',
+        'upstream_batch' => 'E', 'upstream_source_id' => 'G0_PARITY_BATCH_MANIFEST.json#batch-E',
+        'upstream_source_sha256' => Digest::SHA256.file(@batch_manifest).hexdigest,
+        'upstream_decision_status' => nil, 'upstream_approval_sha256' => nil,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      reference, digest = write_json_artifact('par_orp_001_batch_e_deferral.json', artifact, batch: 'D')
+      gate['resolution_reference'] = reference
+      gate['resolution_artifact_sha256'] = digest
+    end
+
+    validator = fixture_validator
+
+    assert validator.validate, validator.errors.join("\n")
+    g0_validator = fixture_validator(mode: 'g0')
+    refute g0_validator.validate
+    matching = g0_validator.errors.select { |error| error.start_with?('Batch D decision register PAR-ORP-001') }
+    assert_equal 1, matching.length, matching.join("\n")
+    assert_includes matching.first, 'requires every structured upstream dependency resolved or authority-deferred'
+  end
+
+  def test_batch_d_requirement_dependency_accepts_source_lead_signed_deferral_without_claiming_target_ready
+    prepare_resolved_batch_d_entry('PAR-CLN-006')
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-CLN-006' }
+      entry['upstream_requirement_dependencies'].select { |dependency| dependency['dependency_kind'] == 'requirement' }.each_with_index do |dependency, index|
+        dependency['status'] = 'deferred'
+        dependency['resolution'] = 'Fixture-only source-lead deferral; the referenced master is not claimed ready.'
+        dependency['defer_authority_domain'] = 'laboratory'
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::UPSTREAM_RESOLUTION_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+          'requirement_id' => 'PAR-CLN-006', 'subject' => 'upstream_requirement_dependency',
+          'dependency_kind' => 'requirement', 'dependency_reference' => dependency['reference'],
+          'scope' => dependency['scope'], 'status' => 'deferred', 'resolution' => dependency['resolution'],
+          'identity' => entry.dig('accountable_owner', 'identity'), 'authority_domain' => 'laboratory',
+          'upstream_batch' => 'D', 'upstream_source_id' => entry.dig('approval', 'reference'),
+          'upstream_source_sha256' => entry.dig('approval', 'artifact_sha256'),
+          'upstream_decision_status' => 'defer', 'upstream_approval_sha256' => entry.dig('approval', 'artifact_sha256'),
+          'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("par_cln_006_requirement_deferral_#{index}.json", artifact, batch: 'D')
+        dependency['resolution_reference'] = reference
+        dependency['resolution_artifact_sha256'] = digest
+      end
+    end
+
+    validator = fixture_validator
+
+    assert validator.validate, validator.errors.join("\n")
+    g0_validator = fixture_validator(mode: 'g0')
+    refute g0_validator.validate
+    matching = g0_validator.errors.select { |error| error.start_with?('Batch D decision register PAR-CLN-006') }
+    assert_equal 1, matching.length, matching.join("\n")
+    assert_includes matching.first, 'requires every structured upstream dependency resolved or authority-deferred'
+  end
+
+  def test_batch_d_entry_passes_closed_artifact_and_authority_contract_but_g0_keeps_upstream_open
+    prepare_resolved_batch_d_entry
+
+    integrity_validator = fixture_validator
+    assert integrity_validator.validate, integrity_validator.errors.join("\n")
+
+    g0_validator = fixture_validator(mode: 'g0')
+    refute g0_validator.validate
+    matching = g0_validator.errors.select { |error| error.start_with?('Batch D decision register PAR-ADM-014') }
+    assert_equal 1, matching.length, matching.join("\n")
+    assert_includes matching.first, 'requires every structured upstream dependency resolved or authority-deferred'
+  end
+
+  def test_batch_d_evidence_artifact_binds_evidence_basis
+    prepare_resolved_batch_d_entry
+    mutate_batch_d_decision_register do |register|
+      register['entries'].first['evidence'].first['evidence_basis'] = 'user_interview'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'evidence_basis does not match the register'
+  end
+
+  def test_batch_d_recorded_approval_binds_owner_identity_and_lead_authority
+    prepare_resolved_batch_d_entry
+    mutate_batch_d_decision_register do |register|
+      approval = register['entries'].first['approval']
+      approval['identity'] = 'Different Fixture Approver'
+      approval['authority_domain'] = 'product_delivery'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'approval authority_domain must match lead authority laboratory'
+    assert_error validator, 'approval identity must exactly match the appointed accountable owner'
+    assert_error validator, 'approval identity does not match the register'
+    assert_error validator, 'approval authority_domain does not match the register'
+  end
+
+  def test_batch_d_lifecycle_and_mapping_reject_unrelated_structured_artifact
+    prepare_resolved_batch_d_entry
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].first
+      evidence = entry['evidence'].first
+      entry['decision'] = {
+        'status' => 'approve', 'canonical_disposition' => 'reproduce',
+        'target' => { 'kind' => 'capability', 'reference' => 'Synthetic laboratory master', 'exclusions' => [] },
+        'rationale' => 'Fixture-only artifact-binding test.'
+      }
+      entry['lifecycle_mapping'] = {
+        'status' => 'complete',
+        'lifecycle_artifact_reference' => evidence['artifact_reference'],
+        'lifecycle_artifact_sha256' => evidence['artifact_sha256'],
+        'mapping_artifact_reference' => evidence['artifact_reference'],
+        'mapping_artifact_sha256' => evidence['artifact_sha256'],
+        'terminal_target_requirement_id' => 'PAR-ADM-015'
+      }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'lifecycle artifact artifact_type must be g0_batch_d_lifecycle'
+    assert_error validator, 'mapping artifact artifact_type must be g0_batch_d_mapping'
+    assert_error validator, 'terminal_target_requirement_id must be PAR-ADM-014'
+  end
+
+  def test_batch_d_lifecycle_and_mapping_reject_semantically_empty_artifacts
+    prepare_resolved_batch_d_entry
+    lifecycle_artifact = {
+      'artifact_type' => ParityGovernanceValidator::LIFECYCLE_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+      'requirement_id' => 'PAR-ADM-014',
+      'lifecycle_states' => ['x'], 'lifecycle_transitions' => ['x'], 'correction_rules' => ['x'],
+      'date' => '2026-08-25', 'author_identity' => 'Fixture Lifecycle Author', 'reviewer' => valid_reviewer
+    }
+    mapping_artifact = {
+      'artifact_type' => ParityGovernanceValidator::MAPPING_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+      'requirement_id' => 'PAR-ADM-014', 'target_reference' => 'Synthetic laboratory master',
+      'coverage_status' => 'complete', 'mapped_fields' => ['x'], 'mapped_states' => ['x'],
+      'unmapped_items' => [], 'exclusions' => [], 'date' => '2026-08-25',
+      'author_identity' => 'Fixture Mapping Author', 'reviewer' => valid_reviewer
+    }
+    lifecycle_reference, lifecycle_digest = write_json_artifact('batch_d_empty_lifecycle.json', lifecycle_artifact, batch: 'D')
+    mapping_reference, mapping_digest = write_json_artifact('batch_d_empty_mapping.json', mapping_artifact, batch: 'D')
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].first
+      entry['decision'] = {
+        'status' => 'approve', 'canonical_disposition' => 'reproduce',
+        'target' => { 'kind' => 'capability', 'reference' => 'Synthetic laboratory master', 'exclusions' => [] },
+        'rationale' => 'Fixture-only semantic coverage test.'
+      }
+      entry['lifecycle_mapping'] = {
+        'status' => 'complete', 'lifecycle_artifact_reference' => lifecycle_reference,
+        'lifecycle_artifact_sha256' => lifecycle_digest, 'mapping_artifact_reference' => mapping_reference,
+        'mapping_artifact_sha256' => mapping_digest, 'terminal_target_requirement_id' => 'PAR-ADM-014'
+      }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'lifecycle artifact missing capability lifecycle states'
+    assert_error validator, 'lifecycle artifact missing capability lifecycle transitions'
+    assert_error validator, 'lifecycle artifact missing correction safeguards'
+    assert_error validator, 'mapping artifact missing required mapping fields'
+    assert_error validator, 'mapping artifact missing required mapped states'
+  end
+
   def test_batch_manifest_rejects_missing_and_duplicate_assignments
     mutate_manifest do |manifest|
       manifest['batches']['B'].delete('PAR-REG-001')
@@ -999,6 +1419,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       decision_register_path: SOURCE_BATCH_A_DECISION_REGISTER,
       batch_b_decision_register_path: SOURCE_BATCH_B_DECISION_REGISTER,
       batch_c_decision_register_path: SOURCE_BATCH_C_DECISION_REGISTER,
+      batch_d_decision_register_path: SOURCE_BATCH_D_DECISION_REGISTER,
       release_index_path: SOURCE_RELEASE_INDEX,
       mode: 'integrity'
     )
@@ -1012,6 +1433,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       decision_register_path: @decision_register,
       batch_b_decision_register_path: @batch_b_decision_register,
       batch_c_decision_register_path: @batch_c_decision_register,
+      batch_d_decision_register_path: @batch_d_decision_register,
       release_index_path: @release_index,
       mode: mode
     )
@@ -1053,6 +1475,12 @@ class ParityGovernanceValidatorTest < Minitest::Test
     register = JSON.parse(File.read(@batch_c_decision_register))
     yield register
     File.write(@batch_c_decision_register, JSON.pretty_generate(register) + "\n")
+  end
+
+  def mutate_batch_d_decision_register
+    register = JSON.parse(File.read(@batch_d_decision_register))
+    yield register
+    File.write(@batch_d_decision_register, JSON.pretty_generate(register) + "\n")
   end
 
   def prepare_recorded_defer(reference, digest)
@@ -1235,6 +1663,131 @@ class ParityGovernanceValidatorTest < Minitest::Test
     end
   end
 
+  def prepare_resolved_batch_d_entry(requirement_id = 'PAR-ADM-014')
+    mutate_batch_d_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      filename_prefix = requirement_id.downcase.tr('-', '_')
+      lead_authority = entry['lead_authority_domain']
+      owner_identity = "Fixture Batch D #{requirement_id} Owner"
+      owner_scope = entry.dig('accountable_owner', 'required_scope')
+
+      evidence = {
+        'evidence_class' => 'O',
+        'evidence_basis' => 'observed_behavior',
+        'date' => '2026-08-25',
+        'source' => 'Synthetic fixture observation',
+        'reference' => "FIX-D-EVIDENCE-#{requirement_id}",
+        'interpreter' => 'Fixture Batch D Evidence Interpreter',
+        'confidence' => 'high'
+      }
+      evidence_artifact = {
+        'artifact_type' => ParityGovernanceValidator::EVIDENCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+        'requirement_id' => requirement_id,
+        'evidence_class' => evidence['evidence_class'],
+        'evidence_basis' => evidence['evidence_basis'],
+        'date' => evidence['date'],
+        'source' => evidence['source'],
+        'reference' => evidence['reference'],
+        'interpreter' => evidence['interpreter'],
+        'confidence' => evidence['confidence'],
+        'reviewer' => valid_reviewer
+      }
+      evidence_reference, evidence_digest = write_json_artifact("#{filename_prefix}_evidence.json", evidence_artifact, batch: 'D')
+      evidence['note'] = 'Synthetic fixture evidence used only to exercise the Batch D contract.'
+      evidence['artifact_reference'] = evidence_reference
+      evidence['artifact_sha256'] = evidence_digest
+      entry['evidence'] = [evidence]
+
+      entry['decision'] = {
+        'status' => 'defer',
+        'canonical_disposition' => 'exclude',
+        'target' => {
+          'kind' => 'exclusion',
+          'reference' => 'Fixture-only Batch D deferral',
+          'exclusions' => ['Production and real-patient use remain excluded; stock, issue, return, lot and charge semantics are excluded.']
+        },
+        'rationale' => 'Synthetic fixture decision used only to prove the Batch D validator contract.'
+      }
+      entry['synthetic_scenarios'].each_value { |scenario| scenario['status'] = 'ready' }
+
+      owner_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+        'requirement_id' => requirement_id,
+        'subject' => 'accountable_owner',
+        'identity' => owner_identity,
+        'authority_domain' => lead_authority,
+        'scope' => owner_scope,
+        'date' => '2026-08-25',
+        'reviewer' => valid_reviewer
+      }
+      owner_reference, owner_digest = write_json_artifact("#{filename_prefix}_owner.json", owner_artifact, batch: 'D')
+      entry['accountable_owner'] = {
+        'identity' => owner_identity,
+        'authority_domain' => lead_authority,
+        'required_scope' => owner_scope,
+        'appointed_scope' => owner_scope,
+        'appointment_status' => 'appointed',
+        'appointment_date' => '2026-08-25',
+        'appointment_reference' => owner_reference,
+        'artifact_sha256' => owner_digest
+      }
+
+      entry['appointment_dependencies'].each_with_index do |dependency, index|
+        identity = "Fixture #{dependency['authority_domain']} owner"
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+          'requirement_id' => requirement_id,
+          'subject' => 'appointment_dependency',
+          'identity' => identity,
+          'authority_domain' => dependency['authority_domain'],
+          'scope' => dependency['required_scope'],
+          'date' => '2026-08-25',
+          'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{filename_prefix}_dependency_#{index}.json", artifact, batch: 'D')
+        dependency['status'] = 'appointed'
+        dependency['identity'] = identity
+        dependency['date'] = '2026-08-25'
+        dependency['reference'] = reference
+        dependency['artifact_sha256'] = digest
+      end
+
+      approval_scope = "Approve fixture-only Batch D deferral for #{requirement_id}."
+      approval_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+        'requirement_id' => requirement_id,
+        'subject' => 'approval',
+        'identity' => owner_identity,
+        'authority_domain' => lead_authority,
+        'scope' => approval_scope,
+        'date' => '2026-08-25',
+        'decision_status' => 'defer',
+        'canonical_disposition' => 'exclude',
+        'conditions' => [],
+        'reviewer' => valid_reviewer
+      }
+      approval_reference, approval_digest = write_json_artifact("#{filename_prefix}_approval.json", approval_artifact, batch: 'D')
+      entry['approval'] = {
+        'status' => 'recorded',
+        'identity' => owner_identity,
+        'authority_domain' => lead_authority,
+        'scope' => approval_scope,
+        'date' => '2026-08-25',
+        'reference' => approval_reference,
+        'artifact_sha256' => approval_digest,
+        'conditions' => []
+      }
+    end
+  end
+
   def valid_approval_artifact
     {
       'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
@@ -1268,7 +1821,8 @@ class ParityGovernanceValidatorTest < Minitest::Test
     directory_name = {
       'A' => ParityGovernanceValidator::BATCH_A_EVIDENCE_DIRECTORY,
       'B' => ParityGovernanceValidator::BATCH_B_EVIDENCE_DIRECTORY,
-      'C' => ParityGovernanceValidator::BATCH_C_EVIDENCE_DIRECTORY
+      'C' => ParityGovernanceValidator::BATCH_C_EVIDENCE_DIRECTORY,
+      'D' => ParityGovernanceValidator::BATCH_D_EVIDENCE_DIRECTORY
     }.fetch(batch)
     directory = File.join(@tmpdir, directory_name)
     FileUtils.mkdir_p(directory)
