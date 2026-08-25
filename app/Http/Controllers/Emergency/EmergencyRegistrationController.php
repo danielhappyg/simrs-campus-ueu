@@ -282,27 +282,29 @@ class EmergencyRegistrationController extends Controller
 
             $created->setRelation('patient', $patient);
 
+            $event = $this->auditRecorder->record(
+                action: 'patient.register',
+                resourceType: 'encounter',
+                resourceId: $created->public_id,
+                actor: $user,
+                outcome: 'SUCCESS',
+                metadata: [
+                    'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
+                    'patient_public_id' => $created->patient?->public_id,
+                    'clinic_name' => $created->clinic_name,
+                    'doctor_name' => $created->doctor_name,
+                    'schedule_label' => $created->schedule_label,
+                    'payer_type' => $created->payer_type,
+                    'case_type' => $created->case_type,
+                    'accident_type' => $created->accident_type,
+                    'queue_number' => $created->queue_number,
+                ],
+            );
+
+            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+
             return $created;
         });
-
-        $this->auditRecorder->record(
-            action: 'patient.register',
-            resourceType: 'encounter',
-            resourceId: $encounter->public_id,
-            actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
-                'patient_public_id' => $encounter->patient?->public_id,
-                'clinic_name' => $encounter->clinic_name,
-                'doctor_name' => $encounter->doctor_name,
-                'schedule_label' => $encounter->schedule_label,
-                'payer_type' => $encounter->payer_type,
-                'case_type' => $encounter->case_type,
-                'accident_type' => $encounter->accident_type,
-                'queue_number' => $encounter->queue_number,
-            ],
-        );
 
         return redirect()
             ->route('pendaftaran.igd.index')

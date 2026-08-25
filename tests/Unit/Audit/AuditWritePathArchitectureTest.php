@@ -50,9 +50,9 @@ class AuditWritePathArchitectureTest extends TestCase
         $this->assertSame(['Support/Audit/AuditRecorder.php'], $queryCreateCallers);
     }
 
-    public function test_five_existing_mutation_callers_remain_explicitly_classified_as_best_effort_non_atomic(): void
+    public function test_five_legacy_mutation_callers_fail_closed_inside_their_transactions(): void
     {
-        $bestEffortCallers = [
+        $atomicCallers = [
             'Http/Controllers/Emergency/EmergencyExaminationController.php',
             'Http/Controllers/Emergency/EmergencyRegistrationController.php',
             'Http/Controllers/Inpatient/InpatientExaminationController.php',
@@ -60,10 +60,11 @@ class AuditWritePathArchitectureTest extends TestCase
             'Http/Controllers/Outpatient/OutpatientRegistrationController.php',
         ];
 
-        foreach ($bestEffortCallers as $relativePath) {
+        foreach ($atomicCallers as $relativePath) {
             $contents = file_get_contents(app_path($relativePath));
             $this->assertIsString($contents);
             $this->assertStringContainsString('$this->auditRecorder->record(', $contents);
+            $this->assertStringContainsString('abort_if($event === null, 503', $contents);
         }
     }
 }

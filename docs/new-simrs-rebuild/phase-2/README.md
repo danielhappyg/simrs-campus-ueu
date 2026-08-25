@@ -14,6 +14,7 @@
 - `php artisan simulation:reset {--force}` via `SyntheticResetService`; audit and security-ledger evidence is always preserved
 - BG-02 foundation: strict, semantically idempotent security-ledger/outbox records plus database immutability guards for the five BG-01 fact tables; no authorization path consumes these records yet
 - BG-02b ordinary-audit contracts: the 15 registered action families are validated at the `AuditEvent` Eloquent creating boundary, unsafe/secret-like payloads are rejected, and print output fails closed when its audit cannot be stored
+- BG-02c1 atomic success auditing: outpatient, emergency, and inpatient registration plus emergency and inpatient clinical-note writes roll back their domain mutation with HTTP 503 when required audit evidence cannot be stored
 
 ## Not in this phase
 
@@ -22,7 +23,7 @@
 - Cohort/unit-scoped authorization
 - Database-level immutability and raw SQL/DB-role protection for `audit_events` remain deferred. BG-02b closes normal Eloquent creation and adds an application architecture check, but it does not claim protection from a database credential that can issue raw writes.
 - Durable actor attribution after user deletion remains deferred because the current `actor_user_id` foreign key uses `nullOnDelete`; BG-02b does not preserve an immutable actor snapshot for that case.
-- Atomic audit conversion remains deferred for five legacy mutation paths: outpatient, emergency, and inpatient registration plus emergency and inpatient clinical-note writes. They still treat a null audit result as best-effort; BG-02b does not claim complete audit evidence for those mutations.
+- Complete denial auditing for the five BG-02c1 mutation routes remains outside this atomic-success slice; existing authorization and validation denial behavior is unchanged.
 - A G1-accepted long-term break-glass control. The current permanent `is_system_administrator` bypass remains runtime truth; [ADR-017](ADR-017-TIME-BOUND-SCOPED-BREAK-GLASS.md) and the [G1 acceptance contract](G1_BREAK_GLASS_ACCEPTANCE_CONTRACT.md) are proposed and not owner-approved.
 
 ## Evidence

@@ -7,12 +7,15 @@ use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use Database\Seeders\InpatientMastersSeeder;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Mockery;
+use Mockery\CompositeExpectation;
 use Tests\TestCase;
 
 class InpatientFlowTest extends TestCase
@@ -28,6 +31,7 @@ class InpatientFlowTest extends TestCase
     }
 
     /**
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function registrationPayload(array $overrides = []): array
@@ -90,6 +94,24 @@ class InpatientFlowTest extends TestCase
                 ->has('wards', 3)
                 ->where('todaysEncounters.0.patient.full_name', 'Pasien RI Sintetis')
                 ->where('todaysEncounters.0.bed_code', $ward['beds'][0]));
+    }
+
+    public function test_inpatient_registration_rolls_back_when_audit_write_fails(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $recorder = Mockery::mock(AuditRecorder::class);
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
+        $this->app->instance(AuditRecorder::class, $recorder);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-inap.store'), $this->registrationPayload())
+            ->assertStatus(503);
+
+        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien RI Sintetis']);
+        $this->assertDatabaseCount('encounters', 0);
+        $this->assertDatabaseCount('audit_events', 0);
     }
 
     public function test_second_admit_same_bed_blocked_while_first_open(): void
@@ -169,6 +191,37 @@ class InpatientFlowTest extends TestCase
             'resource_id' => $encounter->public_id,
             'outcome' => 'SUCCESS',
         ]);
+    }
+
+    public function test_inpatient_clinical_note_rolls_back_when_audit_write_fails(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-inap.store'), $this->registrationPayload())
+            ->assertRedirect(route('pendaftaran.rawat-inap.index'));
+
+        $encounter = Encounter::query()
+            ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
+            ->firstOrFail();
+
+        $recorder = Mockery::mock(AuditRecorder::class);
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
+        $this->app->instance(AuditRecorder::class, $recorder);
+
+        $this->actingAs($nurse)
+            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
+                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
+                'body' => 'Catatan yang wajib dibatalkan',
+            ])
+            ->assertStatus(503);
+
+        $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
+        $this->assertDatabaseMissing('audit_events', ['action' => 'clinical.note.write']);
     }
 
     public function test_non_registrar_forbidden_on_inpatient_store(): void

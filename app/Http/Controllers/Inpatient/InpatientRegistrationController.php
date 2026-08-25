@@ -245,26 +245,28 @@ class InpatientRegistrationController extends Controller
 
             $created->setRelation('patient', $patient);
 
+            $event = $this->auditRecorder->record(
+                action: 'patient.register',
+                resourceType: 'encounter',
+                resourceId: $created->public_id,
+                actor: $user,
+                outcome: 'SUCCESS',
+                metadata: [
+                    'care_setting' => Encounter::CARE_SETTING_INPATIENT,
+                    'patient_public_id' => $created->patient?->public_id,
+                    'ward_name' => $created->ward_name,
+                    'ward_class' => $created->ward_class,
+                    'bed_code' => $created->bed_code,
+                    'continue_from' => $created->continue_from,
+                    'payer_type' => $created->payer_type,
+                    'queue_number' => $created->queue_number,
+                ],
+            );
+
+            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+
             return $created;
         });
-
-        $this->auditRecorder->record(
-            action: 'patient.register',
-            resourceType: 'encounter',
-            resourceId: $encounter->public_id,
-            actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                'patient_public_id' => $encounter->patient?->public_id,
-                'ward_name' => $encounter->ward_name,
-                'ward_class' => $encounter->ward_class,
-                'bed_code' => $encounter->bed_code,
-                'continue_from' => $encounter->continue_from,
-                'payer_type' => $encounter->payer_type,
-                'queue_number' => $encounter->queue_number,
-            ],
-        );
 
         return redirect()
             ->route('pendaftaran.rawat-inap.index')

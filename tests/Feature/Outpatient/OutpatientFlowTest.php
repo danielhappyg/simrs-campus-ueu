@@ -10,12 +10,15 @@ use App\Models\OutpatientClinicalDocument;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use App\Support\Clinical\OutpatientRmCompletenessService;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Mockery;
+use Mockery\CompositeExpectation;
 use Tests\TestCase;
 
 class OutpatientFlowTest extends TestCase
@@ -47,6 +50,7 @@ class OutpatientFlowTest extends TestCase
     }
 
     /**
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function registrationPayload(array $overrides = []): array
@@ -119,6 +123,24 @@ class OutpatientFlowTest extends TestCase
                 ->has('clinics')
                 ->where('todaysEncounters.0.patient.full_name', 'Pasien Sintetis Satu')
                 ->where('todaysEncounters.0.queue_number', 1));
+    }
+
+    public function test_outpatient_registration_rolls_back_when_audit_write_fails(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $recorder = Mockery::mock(AuditRecorder::class);
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
+        $this->app->instance(AuditRecorder::class, $recorder);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload())
+            ->assertStatus(503);
+
+        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien Sintetis Satu']);
+        $this->assertDatabaseCount('encounters', 0);
+        $this->assertDatabaseCount('audit_events', 0);
     }
 
     public function test_registrar_cannot_save_free_text_ethnicity(): void
