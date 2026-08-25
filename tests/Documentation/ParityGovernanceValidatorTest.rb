@@ -17,6 +17,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
   SOURCE_BATCH_C_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_D_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_E_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json')
+  SOURCE_BATCH_F_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json')
   SOURCE_RELEASE_INDEX = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md')
 
   def setup
@@ -29,6 +30,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     @batch_c_decision_register = File.join(@tmpdir, 'batch-c-decision-register.json')
     @batch_d_decision_register = File.join(@tmpdir, 'batch-d-decision-register.json')
     @batch_e_decision_register = File.join(@tmpdir, 'batch-e-decision-register.json')
+    @batch_f_decision_register = File.join(@tmpdir, 'batch-f-decision-register.json')
     @release_index = File.join(@tmpdir, 'release-index.md')
     FileUtils.cp(SOURCE_MATRIX, @matrix)
     FileUtils.cp(SOURCE_BASELINE, @baseline)
@@ -38,6 +40,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     FileUtils.cp(SOURCE_BATCH_C_DECISION_REGISTER, @batch_c_decision_register)
     FileUtils.cp(SOURCE_BATCH_D_DECISION_REGISTER, @batch_d_decision_register)
     FileUtils.cp(SOURCE_BATCH_E_DECISION_REGISTER, @batch_e_decision_register)
+    FileUtils.cp(SOURCE_BATCH_F_DECISION_REGISTER, @batch_f_decision_register)
     FileUtils.cp(SOURCE_RELEASE_INDEX, @release_index)
   end
 
@@ -51,12 +54,13 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert validator.validate, validator.errors.join("\n")
     assert_equal 268, validator.rows.length
     assert_equal 268, validator.batch_assignments.length
-    assert_equal 114, validator.decision_entries.length
+    assert_equal 148, validator.decision_entries.length
     assert_equal 20, validator.decision_entries_by_batch.fetch('A').length
     assert_equal 8, validator.decision_entries_by_batch.fetch('B').length
     assert_equal 19, validator.decision_entries_by_batch.fetch('C').length
     assert_equal 19, validator.decision_entries_by_batch.fetch('D').length
     assert_equal 48, validator.decision_entries_by_batch.fetch('E').length
+    assert_equal 34, validator.decision_entries_by_batch.fetch('F').length
   end
 
   def test_batch_a_decision_register_rejects_missing_row
@@ -1573,6 +1577,359 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_error validator, 'control_values do not satisfy the frozen family reconciliation equations'
   end
 
+  def test_batch_f_decision_register_rejects_missing_duplicate_unknown_rows
+    mutate_batch_f_decision_register do |register|
+      register['entries'].reject! { |entry| entry['requirement_id'] == 'PAR-ADM-011' }
+      duplicate = Marshal.load(Marshal.dump(register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-016' }))
+      register['entries'] << duplicate
+      register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-018' }['requirement_id'] = 'PAR-ORP-001'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'duplicate requirement IDs: PAR-ADM-016'
+    assert_error validator, 'missing Batch F requirement IDs: PAR-ADM-011, PAR-ADM-018'
+    assert_error validator, 'unknown Batch F requirement IDs: PAR-ORP-001'
+  end
+
+  def test_shared_registry_fails_closed_when_batch_f_register_is_omitted
+    FileUtils.rm(@batch_f_decision_register)
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch F decision register: file not found:'
+    assert_error validator, 'expected exactly 34 entries, got 0'
+  end
+
+  def test_batch_f_rejects_family_authority_lifecycle_and_scenario_drift
+    mutate_batch_f_decision_register do |register|
+      register['family_policies'].first['lead_authority_domain'] = 'product_delivery'
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-ADM-011' }
+      entry['co_owners'].delete('security_privacy_data')
+      entry['lifecycle_contract']['transition'] = 'generic_update'
+      entry['synthetic_scenarios']['normal']['contract_ref'] = 'generic'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'must exactly match frozen family F1'
+    assert_error validator, 'co_owners must exactly match required authorities'
+    assert_error validator, 'lifecycle_contract must exactly match the substantive per-ID state transition'
+    assert_error validator, 'contract_ref must exactly match the frozen per-ID lifecycle and hazard contract'
+  end
+
+  def test_batch_f_rejects_false_complete_and_unbound_approval
+    mutate_batch_f_decision_register do |register|
+      register['register_status'] = 'complete'
+      entry = register['entries'].first
+      entry['approval'].merge!(
+        'status' => 'recorded', 'identity' => 'False Approver', 'authority_domain' => 'product_delivery',
+        'scope' => 'False approval.', 'date' => '2026-08-25', 'reference' => 'missing.json',
+        'artifact_sha256' => '0' * 64
+      )
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'register_status complete requires every entry to be approved or deferred'
+    assert_error validator, 'recorded approval cannot accompany a pending decision'
+    assert_error validator, 'approval authority_domain must match lead authority finance_master'
+    assert_error validator, 'approval identity must exactly match the appointed accountable owner'
+  end
+
+  def test_batch_f_rejects_live_boundary_and_projection_writeback
+    mutate_batch_f_decision_register do |register|
+      boundary = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-BPJS-001' }['integration_boundary']
+      boundary['endpoint'] = 'https://example.invalid/vclaim'
+      boundary['credential_state'] = 'present'
+      boundary['outbound_network'] = true
+      boundary['delivery_state'] = 'SENT'
+      projection = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-006' }
+      projection['write_contract']['owned_ledgers'] = ['reporting_projection']
+      projection['write_contract']['projection_write_access'] = true
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'endpoint must be null'
+    assert_error validator, 'credential_state must be absent'
+    assert_error validator, 'outbound_network must be false'
+    assert_error validator, 'delivery_state must be NOT_SENT'
+    assert_error validator, 'projection-only capability cannot own or write any source ledger'
+  end
+
+  def test_batch_f_rejects_non_applicable_reconciliation_profile
+    mutate_batch_f_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-FIN-011' }
+      entry['reconciliation_contract']['profile_id'] = 'bill_version'
+      entry['reconciliation_contract']['control_totals'] = ParityGovernanceValidator::BATCH_F_RECONCILIATION_PROFILES.fetch('bill_version').fetch(:control_totals)
+      entry['reconciliation_contract']['equations'] = ParityGovernanceValidator::BATCH_F_RECONCILIATION_PROFILES.fetch('bill_version').fetch(:equations)
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'PAR-FIN-011: reconciliation_contract profile_id must be receivable'
+    assert_error validator, 'control_totals must exactly match the applicable per-ID totals'
+  end
+
+  def test_batch_f_reconciliation_rejects_self_declared_zero_differences
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_F_RECONCILIATION_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+      'requirement_id' => 'PAR-FIN-012', 'family_id' => 'F3', 'profile_id' => 'settlement',
+      'synthetic_only' => true, 'currency' => 'IDR', 'minor_unit' => 1,
+      'period_start' => '2026-08-01', 'period_end' => '2026-08-25', 'period_timezone' => 'Asia/Jakarta',
+      'cutoff_at' => '2026-08-25T23:59:59+07:00',
+      'late_posting_policy' => 'append_to_open_period_with_prior_period_reference', 'event_count' => 1,
+      'ledger_receipts' => [],
+      'control_values' => { 'receipt_total' => 100, 'refund_total' => 0, 'reversed_receipt_total' => 0, 'net_settlement_total' => 50, 'accepted_deposit_total' => 50 },
+      'equations' => ParityGovernanceValidator::BATCH_F_RECONCILIATION_PROFILES.fetch('settlement').fetch(:equations),
+      'differences' => { 'settlement_difference' => 0, 'deposit_difference' => 0 },
+      'idempotency_key' => 'FIX-FIN-012-01', 'date' => '2026-08-25', 'author_identity' => 'Fixture Finance Author', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('fin_012_bad_reconciliation.json', artifact, batch: 'F')
+    mutate_batch_f_decision_register do |register|
+      control = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-012' }['reconciliation_contract']
+      control['status'] = 'complete'
+      control['receipt_reference'] = reference
+      control['receipt_artifact_sha256'] = digest
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'differences must exactly bind every frozen equation and all equal zero'
+    assert_error validator, 'ledger_receipts must contain exactly the applicable settlement ledgers'
+  end
+
+  def test_batch_f_gate_resolution_rejects_incomplete_register_and_missing_source_bindings
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+      'requirement_id' => 'PAR-ADM-011', 'subject' => 'dependency_gate', 'direction' => 'upstream', 'batch' => 'A',
+      'scope' => ParityGovernanceValidator::BATCH_F_GATE_SCOPES.fetch('A'), 'status' => 'resolved',
+      'resolution' => 'Fixture false resolution.', 'identity' => 'Fixture Gate Author', 'authority_domain' => 'product_delivery',
+      'source_register_id' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+      'source_register_sha256' => Digest::SHA256.file(@decision_register).hexdigest,
+      'source_bindings' => [], 'deferral_bindings' => [], 'exclusions' => [],
+      'date' => '2026-08-25', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('adm_011_bad_gate.json', artifact, batch: 'F')
+    mutate_batch_f_decision_register do |register|
+      gate = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-011' }['dependency_gates'].first
+      gate['status'] = 'resolved'
+      gate['resolution'] = artifact['resolution']
+      gate['resolution_reference'] = reference
+      gate['resolution_artifact_sha256'] = digest
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'cannot resolve while Batch A register_status is not complete'
+    assert_error validator, 'source_bindings must exactly follow the frozen dependency ID order'
+  end
+
+  def test_batch_f_rejects_intra_dependency_and_consolidation_cycle
+    mutate_batch_f_decision_register do |register|
+      adm = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-011' }
+      adm['intra_batch_dependencies'] = [{
+        'requirement_id' => 'PAR-FIN-001',
+        'scope' => ['outpatient_bill_version_issued', 'tariff_version_draft'],
+        'status' => 'pending', 'resolution_reference' => nil, 'resolution_artifact_sha256' => nil
+      }]
+      fin_one = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-001' }
+      fin_two = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-002' }
+      fin_one['decision'] = approved_consolidation_decision('PAR-FIN-002')
+      fin_two['decision'] = approved_consolidation_decision('PAR-FIN-001')
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'dependency/consolidation cycle detected:'
+    assert_error validator, 'consolidation cycle detected:'
+  end
+
+  def test_batch_f_consolidation_totals_are_candidate_applicability_union
+    expected = ParityGovernanceValidator::BATCH_F_RECONCILIATION_PROFILES.fetch('settlement').fetch(:control_totals)
+    actual = ParityGovernanceValidator::BATCH_F_CONSOLIDATION_MAPPING_CONTRACTS.fetch('F-C06').fetch(:control_totals)
+
+    assert_equal expected, actual
+    refute_includes actual, 'submitted_claim_total'
+    refute_includes actual, 'journal_debit_total'
+  end
+
+  def test_batch_f_g0_remains_open_on_pending_proposal
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'Batch F decision register PAR-ADM-011: G0 remains open until decision status is approve or defer'
+    assert_error validator, 'Batch F decision register PAR-RMIK-005: G0 remains open until decision status is approve or defer'
+  end
+
+  def test_batch_f_dependency_outage_contract_closes_idempotency_and_ambiguous_ack_paths
+    register = JSON.parse(File.read(@batch_f_decision_register))
+
+    register['entries'].each do |entry|
+      results = entry.dig('synthetic_scenarios', 'dependency_outage', 'expected_results')
+      assert_includes results, 'The same idempotency key with the same payload returns the same synthetic outcome without a second event.'
+      assert_includes results, 'The same idempotency key with a different payload is rejected as a conflict before any mutation.'
+      assert_includes results, 'An ambiguous acknowledgement is quarantined until reconciliation proves the prior attempt outcome.'
+    end
+  end
+
+  def test_batch_f_rejects_unbound_or_under_scoped_batch_e_deferral
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+      'requirement_id' => 'PAR-FIN-001', 'subject' => 'dependency_gate', 'direction' => 'upstream', 'batch' => 'E',
+      'scope' => ParityGovernanceValidator::BATCH_F_GATE_SCOPES.fetch('E'), 'status' => 'deferred',
+      'resolution' => 'Unsafe fixture deferral without pharmacy and finance authority.',
+      'identity' => 'Fixture Product Author', 'authority_domain' => 'product_delivery',
+      'source_register_id' => ParityGovernanceValidator::BATCH_E_REGISTER_ID,
+      'source_register_sha256' => Digest::SHA256.file(@batch_e_decision_register).hexdigest,
+      'source_bindings' => [], 'deferral_bindings' => [], 'exclusions' => ['no_live_delivery'],
+      'date' => '2026-08-25', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('fin_001_bad_e_deferral.json', artifact, batch: 'F')
+    mutate_batch_f_decision_register do |register|
+      gate = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-001' }['dependency_gates'].find { |candidate| candidate['batch'] == 'E' }
+      gate.merge!(
+        'status' => 'deferred', 'resolution' => artifact['resolution'],
+        'defer_authority_domain' => 'pharmacy_gf_and_finance_accounting',
+        'resolution_reference' => reference, 'resolution_artifact_sha256' => digest
+      )
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'deferral_bindings must exactly follow appointed authorities ["pharmacy_gf", "finance_accounting"]'
+    assert_error validator, 'deferred E gate identity/domain must bind pharmacy_gf first approval'
+    assert_error validator, 'deferred E exclusions must exactly exclude medication charges, stock valuation, pharmacy claim completeness, and live delivery'
+    assert_error validator, 'requires matching decision target exclusions for medication, stock valuation, charge-credit, and claim completeness'
+  end
+
+  def test_batch_f_accepts_authority_bound_scoped_batch_e_deferral_in_integrity_mode
+    prepare_batch_f_scoped_e_deferral('PAR-FIN-001')
+
+    validator = fixture_validator
+
+    assert validator.validate, validator.errors.join("\n")
+  end
+
+  def test_batch_f_scoped_batch_e_deferral_requires_each_signed_domain_approval
+    prepare_batch_f_scoped_e_deferral('PAR-FIN-001')
+    register = JSON.parse(File.read(@batch_f_decision_register))
+    gate = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-001' }['dependency_gates'].find { |candidate| candidate['batch'] == 'E' }
+    path = File.join(@tmpdir, gate['resolution_reference'])
+    artifact = JSON.parse(File.read(path))
+    artifact['deferral_bindings'].last.delete('approval_reference')
+    File.write(path, JSON.pretty_generate(artifact) + "\n")
+    gate['resolution_artifact_sha256'] = Digest::SHA256.file(path).hexdigest
+    File.write(@batch_f_decision_register, JSON.pretty_generate(register) + "\n")
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'deferral_bindings[1] missing fields: approval_reference'
+  end
+
+  def test_batch_f_projection_or_monitor_cannot_approve_while_batch_g_is_deferred
+    prepare_batch_f_approved_entry('PAR-FIN-004', disposition: 'reproduce', target: 'fixture_cashier_projection')
+    mutate_batch_f_decision_register do |register|
+      gate = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-FIN-004' }['dependency_gates'].find { |candidate| candidate['batch'] == 'G' }
+      gate.merge!(
+        'status' => 'deferred', 'resolution' => 'Unsafe projection approval while G is excluded.',
+        'defer_authority_domain' => 'reporting', 'resolution_reference' => 'missing.json',
+        'resolution_artifact_sha256' => '0' * 64
+      )
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'projection/monitor capability must remain defer/exclude with the exact G no-readiness exclusions while Batch G is deferred'
+  end
+
+  def test_batch_f_fully_resolved_entry_passes_every_closed_g0_contract
+    prepare_fully_resolved_batch_f_entry('PAR-ADM-016')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    resolved_entry_errors = validator.errors.select { |error| error.include?('Batch F decision register PAR-ADM-016') }
+    assert_empty resolved_entry_errors, resolved_entry_errors.join("\n")
+    assert_error validator, 'Batch F decision register PAR-ADM-011: G0 remains open until decision status is approve or defer'
+  end
+
+  def test_batch_f_complex_e_intra_and_multiledger_entry_passes_closed_g0_contract
+    prepare_complex_batch_f_g0_entry
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    complex_entry_errors = validator.errors.select { |error| error.include?('Batch F decision register PAR-FIN-001') }
+    assert_empty complex_entry_errors, complex_entry_errors.join("\n")
+  end
+
+  def test_batch_f_accepts_closed_intra_dependency_artifact_in_integrity_mode
+    prepare_batch_f_approved_entry('PAR-ADM-018', disposition: 'reproduce', target: 'fixture_component_group_capability')
+    target = JSON.parse(File.read(@batch_f_decision_register))['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-018' }
+    dependency_artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_F_INTRA_DEPENDENCY_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+      'source_requirement_id' => 'PAR-ADM-019', 'target_requirement_id' => 'PAR-ADM-018',
+      'scope' => ParityGovernanceValidator::BATCH_F_INTRA_BATCH_DEPENDENCIES.fetch('PAR-ADM-019').map { |id| id == 'PAR-ADM-018' ? ['component_group_effective', 'cost_component_draft'] : nil }.compact.first,
+      'status' => 'resolved', 'identity' => target.dig('accountable_owner', 'identity'),
+      'authority_domain' => target['lead_authority_domain'], 'target_decision_status' => 'approve',
+      'target_disposition' => 'reproduce', 'target_approval_reference' => target.dig('approval', 'reference'),
+      'target_approval_sha256' => target.dig('approval', 'artifact_sha256'),
+      'date' => '2026-08-25', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('adm_019_valid_intra_dependency.json', dependency_artifact, batch: 'F')
+    mutate_batch_f_decision_register do |register|
+      dependency = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-019' }['intra_batch_dependencies'].first
+      dependency.merge!('status' => 'resolved', 'resolution_reference' => reference, 'resolution_artifact_sha256' => digest)
+    end
+
+    validator = fixture_validator
+
+    assert validator.validate, validator.errors.join("\n")
+  end
+
+  def test_batch_f_accepts_one_shared_candidate_mapping_in_integrity_mode
+    prepare_batch_f_coherent_consolidation_candidate_f_c01
+
+    validator = fixture_validator
+
+    assert validator.validate, validator.errors.join("\n")
+  end
+
+  def test_batch_f_consolidation_rejects_deferred_or_excluded_terminal_target
+    prepare_batch_f_approved_entry('PAR-FIN-001', disposition: 'consolidate', target: 'PAR-FIN-002')
+    prepare_batch_f_approved_entry(
+      'PAR-FIN-002', status: 'defer', disposition: 'exclude',
+      target: 'Excluded billing surface', exclusions: ['Fixture target is excluded.']
+    )
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'terminal target PAR-FIN-002 must have an approved reproduce/replace decision'
+  end
+
   def test_batch_manifest_rejects_missing_and_duplicate_assignments
     mutate_manifest do |manifest|
       manifest['batches']['B'].delete('PAR-REG-001')
@@ -1827,6 +2184,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       batch_c_decision_register_path: SOURCE_BATCH_C_DECISION_REGISTER,
       batch_d_decision_register_path: SOURCE_BATCH_D_DECISION_REGISTER,
       batch_e_decision_register_path: SOURCE_BATCH_E_DECISION_REGISTER,
+      batch_f_decision_register_path: SOURCE_BATCH_F_DECISION_REGISTER,
       release_index_path: SOURCE_RELEASE_INDEX,
       mode: 'integrity'
     )
@@ -1842,6 +2200,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       batch_c_decision_register_path: @batch_c_decision_register,
       batch_d_decision_register_path: @batch_d_decision_register,
       batch_e_decision_register_path: @batch_e_decision_register,
+      batch_f_decision_register_path: @batch_f_decision_register,
       release_index_path: @release_index,
       mode: mode
     )
@@ -1895,6 +2254,12 @@ class ParityGovernanceValidatorTest < Minitest::Test
     register = JSON.parse(File.read(@batch_e_decision_register))
     yield register
     File.write(@batch_e_decision_register, JSON.pretty_generate(register) + "\n")
+  end
+
+  def mutate_batch_f_decision_register
+    register = JSON.parse(File.read(@batch_f_decision_register))
+    yield register
+    File.write(@batch_f_decision_register, JSON.pretty_generate(register) + "\n")
   end
 
   def prepare_recorded_defer(reference, digest)
@@ -2488,6 +2853,634 @@ class ParityGovernanceValidatorTest < Minitest::Test
     end
   end
 
+  def prepare_batch_f_approved_entry(requirement_id, status: 'approve', disposition:, target:, exclusions: [])
+    mutate_batch_f_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      lead = entry.fetch('lead_authority_domain')
+      prefix = requirement_id.downcase.tr('-', '_')
+      owner_identity = "Fixture Batch F #{requirement_id} Owner"
+      owner_scope = entry.dig('accountable_owner', 'required_scope')
+
+      target_kind = case disposition
+                    when 'reproduce', 'replace' then 'capability'
+                    when 'consolidate' then 'consolidation_target'
+                    else 'exclusion'
+                    end
+      entry['decision'] = {
+        'status' => status, 'canonical_disposition' => disposition,
+        'target' => { 'kind' => target_kind, 'reference' => target, 'exclusions' => exclusions },
+        'rationale' => "Fixture-only #{status} decision proving the closed Batch F artifact contract."
+      }
+
+      owner_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'accountable_owner',
+        'identity' => owner_identity, 'authority_domain' => lead, 'scope' => owner_scope,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      owner_reference, owner_digest = write_json_artifact("#{prefix}_f_owner.json", owner_artifact, batch: 'F')
+      entry['accountable_owner'].merge!(
+        'appointment_status' => 'appointed', 'identity' => owner_identity, 'appointed_scope' => owner_scope,
+        'appointment_date' => '2026-08-25', 'appointment_reference' => owner_reference,
+        'artifact_sha256' => owner_digest
+      )
+
+      approval_scope = "Approve fixture-only Batch F #{status} decision for #{requirement_id}."
+      approval_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'approval',
+        'identity' => owner_identity, 'authority_domain' => lead, 'scope' => approval_scope,
+        'date' => '2026-08-25', 'decision_status' => status,
+        'canonical_disposition' => disposition, 'conditions' => [], 'reviewer' => valid_reviewer
+      }
+      approval_reference, approval_digest = write_json_artifact("#{prefix}_f_approval.json", approval_artifact, batch: 'F')
+      entry['approval'].merge!(
+        'status' => 'recorded', 'identity' => owner_identity, 'authority_domain' => lead,
+        'scope' => approval_scope, 'date' => '2026-08-25', 'reference' => approval_reference,
+        'artifact_sha256' => approval_digest, 'conditions' => []
+      )
+    end
+  end
+
+  def prepare_batch_f_scoped_e_deferral(requirement_id)
+    exclusions = [
+      'Medication readiness remains excluded.',
+      'Stock valuation readiness remains excluded.',
+      'Medication charge-credit completeness remains excluded.',
+      'Pharmacy claim completeness remains excluded.'
+    ]
+    prepare_batch_f_approved_entry(
+      requirement_id, status: 'defer', disposition: 'exclude',
+      target: 'Scoped Batch E pharmacy and GF exclusion', exclusions: exclusions
+    )
+
+    mutate_batch_f_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      prefix = requirement_id.downcase.tr('-', '_')
+      %w[pharmacy_gf finance_accounting].each do |domain|
+        appointment = entry['gate_authority_appointments'].find { |candidate| candidate['authority_domain'] == domain }
+        identity = "Fixture #{domain} E Deferral Authority"
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'appointment_dependency',
+          'identity' => identity, 'authority_domain' => domain, 'scope' => appointment['required_scope'],
+          'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_#{domain}_gate_appointment.json", artifact, batch: 'F')
+        appointment.merge!(
+          'status' => 'appointed', 'identity' => identity, 'date' => '2026-08-25',
+          'reference' => reference, 'artifact_sha256' => digest
+        )
+      end
+
+      gate = entry['dependency_gates'].find { |candidate| candidate['batch'] == 'E' }
+      resolution = 'Authority-scoped synthetic deferral; no medication, stock valuation, pharmacy claim, or live-delivery readiness is claimed.'
+      exclusions = %w[no_medication_charge_readiness no_stock_valuation_readiness no_pharmacy_claim_completeness no_live_delivery]
+      bindings = %w[pharmacy_gf finance_accounting].map do |domain|
+        appointment = entry['gate_authority_appointments'].find { |candidate| candidate['authority_domain'] == domain }
+        approval_artifact = {
+          'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'gate_deferral_approval',
+          'batch' => 'E', 'scope' => gate['scope'], 'status' => 'deferred',
+          'resolution' => resolution, 'exclusions' => exclusions,
+          'identity' => appointment['identity'], 'authority_domain' => domain,
+          'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        approval_reference, approval_digest = write_json_artifact("#{prefix}_#{domain}_signed_e_deferral.json", approval_artifact, batch: 'F')
+        {
+          'authority_domain' => domain, 'identity' => appointment['identity'],
+          'appointment_reference' => appointment['reference'], 'appointment_sha256' => appointment['artifact_sha256'],
+          'approval_reference' => approval_reference, 'approval_sha256' => approval_digest
+        }
+      end
+      artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'dependency_gate',
+        'direction' => 'upstream', 'batch' => 'E', 'scope' => gate['scope'], 'status' => 'deferred',
+        'resolution' => resolution, 'identity' => bindings.first['identity'], 'authority_domain' => 'pharmacy_gf',
+        'source_register_id' => ParityGovernanceValidator::BATCH_E_REGISTER_ID,
+        'source_register_sha256' => Digest::SHA256.file(@batch_e_decision_register).hexdigest,
+        'source_bindings' => [], 'deferral_bindings' => bindings, 'exclusions' => exclusions,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      reference, digest = write_json_artifact("#{prefix}_valid_e_deferral.json", artifact, batch: 'F')
+      gate.merge!(
+        'status' => 'deferred', 'resolution' => resolution,
+        'defer_authority_domain' => 'pharmacy_gf_and_finance_accounting',
+        'resolution_reference' => reference, 'resolution_artifact_sha256' => digest
+      )
+    end
+  end
+
+  def prepare_fully_resolved_batch_f_entry(requirement_id)
+    source_ids = %w[PAR-ADM-003 PAR-ADM-037]
+    mutate_decision_register do |register|
+      register['register_status'] = 'complete'
+      register['entries'].each do |entry|
+        entry['decision'] = {
+          'status' => 'defer', 'canonical_disposition' => 'exclude',
+          'target' => {
+            'kind' => 'exclusion', 'reference' => 'Fixture-only unresolved Batch A scope',
+            'exclusions' => ['No operational readiness is asserted by this synthetic fixture.']
+          },
+          'rationale' => 'Fixture-only terminal state used to exercise a downstream gate without claiming Batch A readiness.'
+        }
+      end
+      source_ids.each do |source_id|
+        entry = register['entries'].find { |candidate| candidate['requirement_id'] == source_id }
+        prefix = source_id.downcase.tr('-', '_')
+        owner_identity = "Fixture Batch A #{source_id} Security Owner"
+        owner_scope = entry.dig('accountable_owner', 'required_scope')
+        entry['decision'] = {
+          'status' => 'approve', 'canonical_disposition' => 'reproduce',
+          'target' => { 'kind' => 'capability', 'reference' => "fixture_#{prefix}_foundation", 'exclusions' => [] },
+          'rationale' => 'Fixture-only approved reproduce decision for exact downstream source binding.'
+        }
+        owner_artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+          'requirement_id' => source_id, 'subject' => 'accountable_owner',
+          'identity' => owner_identity, 'authority_domain' => 'security_privacy_data',
+          'scope' => owner_scope, 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        owner_reference, owner_digest = write_json_artifact("#{prefix}_f_gate_owner.json", owner_artifact, batch: 'A')
+        entry['accountable_owner'].merge!(
+          'appointment_status' => 'appointed', 'identity' => owner_identity,
+          'authority_domain' => 'security_privacy_data', 'appointed_scope' => owner_scope,
+          'appointment_date' => '2026-08-25', 'appointment_reference' => owner_reference,
+          'artifact_sha256' => owner_digest
+        )
+        approval_scope = "Approve fixture-only #{source_id} source binding."
+        approval_artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+          'requirement_id' => source_id, 'subject' => 'approval', 'identity' => owner_identity,
+          'scope' => approval_scope, 'date' => '2026-08-25', 'decision_status' => 'approve',
+          'canonical_disposition' => 'reproduce', 'conditions' => [], 'reviewer' => valid_reviewer
+        }
+        approval_reference, approval_digest = write_json_artifact("#{prefix}_f_gate_approval.json", approval_artifact, batch: 'A')
+        entry['approval'].merge!(
+          'status' => 'recorded', 'identity' => owner_identity, 'scope' => approval_scope,
+          'date' => '2026-08-25', 'reference' => approval_reference,
+          'artifact_sha256' => approval_digest, 'conditions' => []
+        )
+      end
+    end
+
+    prepare_batch_f_approved_entry(requirement_id, disposition: 'reproduce', target: 'fixture_bank_mapping_capability')
+    source_register = JSON.parse(File.read(@decision_register))
+    source_sha = Digest::SHA256.file(@decision_register).hexdigest
+    mutate_batch_f_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      prefix = requirement_id.downcase.tr('-', '_')
+
+      evidence_record = {
+        'evidence_class' => 'O', 'evidence_basis' => 'behavioral_execution',
+        'date' => '2026-08-25', 'source' => 'Deterministic synthetic finance fixture',
+        'reference' => 'FIX-F-BANK-MAPPING-OBSERVATION-01',
+        'interpreter' => 'Fixture Batch F Evidence Interpreter', 'confidence' => 'high'
+      }
+      evidence_artifact = {
+        'artifact_type' => ParityGovernanceValidator::EVIDENCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id
+      }.merge(evidence_record).merge('reviewer' => valid_reviewer)
+      evidence_reference, evidence_digest = write_json_artifact("#{prefix}_resolved_evidence.json", evidence_artifact, batch: 'F')
+      entry['evidence'] = [evidence_record.merge(
+        'artifact_reference' => evidence_reference, 'artifact_sha256' => evidence_digest,
+        'note' => 'Synthetic behavioral fixture used only to prove the fail-closed Batch F validator path.'
+      )]
+      entry['synthetic_scenarios'].each_value { |scenario| scenario['status'] = 'ready' }
+
+      entry['appointment_dependencies'].each_with_index do |appointment, index|
+        identity = "Fixture #{requirement_id} #{appointment['authority_domain']} Authority"
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'appointment_dependency',
+          'identity' => identity, 'authority_domain' => appointment['authority_domain'],
+          'scope' => appointment['required_scope'], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_resolved_appointment_#{index}.json", artifact, batch: 'F')
+        appointment.merge!(
+          'status' => 'appointed', 'identity' => identity, 'date' => '2026-08-25',
+          'reference' => reference, 'artifact_sha256' => digest
+        )
+      end
+
+      reporting = entry['gate_authority_appointments'].find { |appointment| appointment['authority_domain'] == 'reporting' }
+      reporting_identity = "Fixture #{requirement_id} Reporting Gate Authority"
+      reporting_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'appointment_dependency',
+        'identity' => reporting_identity, 'authority_domain' => 'reporting',
+        'scope' => reporting['required_scope'], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      reporting_reference, reporting_digest = write_json_artifact("#{prefix}_reporting_gate_appointment.json", reporting_artifact, batch: 'F')
+      reporting.merge!(
+        'status' => 'appointed', 'identity' => reporting_identity, 'date' => '2026-08-25',
+        'reference' => reporting_reference, 'artifact_sha256' => reporting_digest
+      )
+
+      a_gate = entry['dependency_gates'].find { |gate| gate['batch'] == 'A' }
+      source_bindings = source_ids.map do |source_id|
+        source = source_register['entries'].find { |candidate| candidate['requirement_id'] == source_id }
+        {
+          'requirement_id' => source_id, 'lead_authority_domain' => source.dig('accountable_owner', 'authority_domain'),
+          'owner_identity' => source.dig('accountable_owner', 'identity'),
+          'approval_reference' => source.dig('approval', 'reference'),
+          'approval_sha256' => source.dig('approval', 'artifact_sha256')
+        }
+      end
+      a_resolution = 'Resolve the exact synthetic identity, access, audit, and configuration foundation against appointed Batch A source owners.'
+      a_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'dependency_gate',
+        'direction' => 'upstream', 'batch' => 'A', 'scope' => a_gate['scope'], 'status' => 'resolved',
+        'resolution' => a_resolution, 'identity' => source_bindings.first['owner_identity'],
+        'authority_domain' => source_bindings.first['lead_authority_domain'],
+        'source_register_id' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+        'source_register_sha256' => source_sha, 'source_bindings' => source_bindings,
+        'deferral_bindings' => [], 'exclusions' => [], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      a_reference, a_digest = write_json_artifact("#{prefix}_resolved_a_gate.json", a_artifact, batch: 'F')
+      a_gate.merge!(
+        'status' => 'resolved', 'resolution' => a_resolution, 'defer_authority_domain' => nil,
+        'resolution_reference' => a_reference, 'resolution_artifact_sha256' => a_digest
+      )
+
+      g_gate = entry['dependency_gates'].find { |gate| gate['batch'] == 'G' }
+      g_resolution = 'Defer the unavailable Batch G projection and export gate without claiming reporting or financial truth readiness.'
+      g_exclusions = %w[no_g_readiness no_reporting_export no_financial_truth no_live_delivery]
+      g_approval_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'gate_deferral_approval',
+        'batch' => 'G', 'scope' => g_gate['scope'], 'status' => 'deferred',
+        'resolution' => g_resolution, 'exclusions' => g_exclusions,
+        'identity' => reporting_identity, 'authority_domain' => 'reporting',
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      g_approval_reference, g_approval_digest = write_json_artifact("#{prefix}_reporting_signed_g_deferral.json", g_approval_artifact, batch: 'F')
+      g_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'dependency_gate',
+        'direction' => 'forward', 'batch' => 'G', 'scope' => g_gate['scope'], 'status' => 'deferred',
+        'resolution' => g_resolution, 'identity' => reporting_identity, 'authority_domain' => 'reporting',
+        'source_register_id' => 'G0_PARITY_BATCH_MANIFEST.json#batch-G',
+        'source_register_sha256' => Digest::SHA256.file(@batch_manifest).hexdigest,
+        'source_bindings' => [],
+        'deferral_bindings' => [{
+          'authority_domain' => 'reporting', 'identity' => reporting_identity,
+          'appointment_reference' => reporting_reference, 'appointment_sha256' => reporting_digest,
+          'approval_reference' => g_approval_reference, 'approval_sha256' => g_approval_digest
+        }],
+        'exclusions' => g_exclusions,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      g_reference, g_digest = write_json_artifact("#{prefix}_deferred_g_gate.json", g_artifact, batch: 'F')
+      g_gate.merge!(
+        'status' => 'deferred', 'resolution' => g_resolution, 'defer_authority_domain' => 'reporting',
+        'resolution_reference' => g_reference, 'resolution_artifact_sha256' => g_digest
+      )
+
+      control_values = {
+        'active_master_count' => 1, 'effective_version_count' => 1,
+        'invalid_overlap_count' => 0, 'correction_event_count' => 1
+      }
+      common_receipt = {
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'profile_id' => 'master_version',
+        'synthetic_only' => true, 'currency' => 'IDR', 'minor_unit' => 1,
+        'period_start' => '2026-08-01', 'period_end' => '2026-08-25',
+        'period_timezone' => 'Asia/Jakarta', 'cutoff_at' => '2026-08-25T23:59:59+07:00',
+        'late_posting_policy' => 'append_to_open_period_with_prior_period_reference',
+        'event_count' => 1, 'control_values' => control_values,
+        'idempotency_key' => 'FIX-F-ADM-016-RECON-01', 'date' => '2026-08-25',
+        'author_identity' => 'Fixture Batch F Ledger Author', 'reviewer' => valid_reviewer
+      }
+      receipt_artifact = common_receipt.merge(
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_LEDGER_RECEIPT_ARTIFACT_TYPE,
+        'ledger_kind' => 'finance_master_ledger',
+        'ledger_digest' => Digest::SHA256.hexdigest('fixture-adm-016-finance-master-ledger')
+      )
+      ledger_reference, ledger_digest = write_json_artifact("#{prefix}_finance_master_receipt.json", receipt_artifact, batch: 'F')
+      reconciliation_artifact = common_receipt.merge(
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_RECONCILIATION_ARTIFACT_TYPE,
+        'family_id' => 'F1',
+        'ledger_receipts' => [{ 'ledger_kind' => 'finance_master_ledger', 'reference' => ledger_reference, 'sha256' => ledger_digest }],
+        'equations' => ['invalid_overlap_count=0'],
+        'differences' => { 'master_overlap_difference' => 0 }
+      )
+      reconciliation_reference, reconciliation_digest = write_json_artifact("#{prefix}_reconciliation.json", reconciliation_artifact, batch: 'F')
+      entry['reconciliation_contract'].merge!(
+        'status' => 'complete', 'receipt_reference' => reconciliation_reference,
+        'receipt_artifact_sha256' => reconciliation_digest
+      )
+    end
+  end
+
+  def prepare_batch_f_upstream_sources(batch, source_ids)
+    path = {
+      'A' => @decision_register, 'B' => @batch_b_decision_register,
+      'C' => @batch_c_decision_register, 'D' => @batch_d_decision_register
+    }.fetch(batch)
+    register_id = {
+      'A' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+      'B' => ParityGovernanceValidator::BATCH_B_REGISTER_ID,
+      'C' => ParityGovernanceValidator::BATCH_C_REGISTER_ID,
+      'D' => ParityGovernanceValidator::BATCH_D_REGISTER_ID
+    }.fetch(batch)
+    register = JSON.parse(File.read(path))
+    register['register_status'] = 'complete'
+    register['entries'].each do |entry|
+      entry['decision'] = {
+        'status' => 'defer', 'canonical_disposition' => 'exclude',
+        'target' => {
+          'kind' => 'exclusion', 'reference' => "Fixture-only terminal Batch #{batch} scope",
+          'exclusions' => ['No operational readiness is asserted by this synthetic fixture.']
+        },
+        'rationale' => "Fixture-only terminal Batch #{batch} state used to exercise an exact downstream binding."
+      }
+    end
+    source_ids.each do |source_id|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == source_id }
+      prefix = source_id.downcase.tr('-', '_')
+      lead = entry['lead_authority_domain'] || (batch == 'B' ? 'registration_admission' : 'security_privacy_data')
+      owner_identity = "Fixture Batch #{batch} #{source_id} Owner"
+      owner_scope = entry.dig('accountable_owner', 'required_scope')
+      entry['decision'] = {
+        'status' => 'approve', 'canonical_disposition' => 'reproduce',
+        'target' => { 'kind' => 'capability', 'reference' => "fixture_#{prefix}_source", 'exclusions' => [] },
+        'rationale' => "Fixture-only approved Batch #{batch} source for exact downstream binding."
+      }
+      owner_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => register_id, 'requirement_id' => source_id, 'subject' => 'accountable_owner',
+        'identity' => owner_identity, 'authority_domain' => lead, 'scope' => owner_scope,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      owner_reference, owner_digest = write_json_artifact("#{prefix}_f_complex_owner.json", owner_artifact, batch: batch)
+      entry['accountable_owner'].merge!(
+        'appointment_status' => 'appointed', 'identity' => owner_identity, 'authority_domain' => lead,
+        'appointed_scope' => owner_scope, 'appointment_date' => '2026-08-25',
+        'appointment_reference' => owner_reference, 'artifact_sha256' => owner_digest
+      )
+      approval_scope = "Approve fixture-only #{source_id} downstream source binding."
+      approval_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => register_id, 'requirement_id' => source_id, 'subject' => 'approval',
+        'identity' => owner_identity, 'scope' => approval_scope, 'date' => '2026-08-25',
+        'decision_status' => 'approve', 'canonical_disposition' => 'reproduce',
+        'conditions' => [], 'reviewer' => valid_reviewer
+      }
+      approval_artifact['authority_domain'] = lead if %w[C D].include?(batch)
+      approval_reference, approval_digest = write_json_artifact("#{prefix}_f_complex_approval.json", approval_artifact, batch: batch)
+      entry['approval'].merge!(
+        'status' => 'recorded', 'identity' => owner_identity, 'scope' => approval_scope,
+        'date' => '2026-08-25', 'reference' => approval_reference,
+        'artifact_sha256' => approval_digest, 'conditions' => []
+      )
+      entry['approval']['authority_domain'] = lead if %w[C D].include?(batch)
+    end
+    File.write(path, JSON.pretty_generate(register) + "\n")
+    [register, Digest::SHA256.file(path).hexdigest]
+  end
+
+  def prepare_complex_batch_f_g0_entry
+    requirement_id = 'PAR-FIN-001'
+    gate_sources = ParityGovernanceValidator::BATCH_F_GATE_PROFILES.fetch('billing')
+    upstream = %w[A B C D].to_h do |batch|
+      [batch, prepare_batch_f_upstream_sources(batch, gate_sources.fetch(batch))]
+    end
+    %w[PAR-ADM-011 PAR-ADM-018 PAR-ADM-019].each do |target_id|
+      prepare_batch_f_approved_entry(target_id, disposition: 'reproduce', target: "fixture_#{target_id.downcase.tr('-', '_')}_capability")
+    end
+    prepare_batch_f_scoped_e_deferral(requirement_id)
+
+    mutate_batch_f_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      prefix = requirement_id.downcase.tr('-', '_')
+      evidence = {
+        'evidence_class' => 'O', 'evidence_basis' => 'reconciled_ledger',
+        'date' => '2026-08-25', 'source' => 'Deterministic synthetic bill reconciliation fixture',
+        'reference' => 'FIX-F-FIN-001-RECONCILED-LEDGER-01',
+        'interpreter' => 'Fixture Batch F Bill Interpreter', 'confidence' => 'high'
+      }
+      evidence_artifact = {
+        'artifact_type' => ParityGovernanceValidator::EVIDENCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id
+      }.merge(evidence).merge('reviewer' => valid_reviewer)
+      evidence_reference, evidence_digest = write_json_artifact("#{prefix}_complex_evidence.json", evidence_artifact, batch: 'F')
+      entry['evidence'] = [evidence.merge(
+        'artifact_reference' => evidence_reference, 'artifact_sha256' => evidence_digest,
+        'note' => 'Synthetic reconciled-ledger fixture; no operational or external readiness is claimed.'
+      )]
+      entry['synthetic_scenarios'].each_value { |scenario| scenario['status'] = 'ready' }
+
+      entry['appointment_dependencies'].each_with_index do |appointment, index|
+        identity = "Fixture #{requirement_id} #{appointment['authority_domain']} Authority"
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'appointment_dependency',
+          'identity' => identity, 'authority_domain' => appointment['authority_domain'],
+          'scope' => appointment['required_scope'], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_complex_appointment_#{index}.json", artifact, batch: 'F')
+        appointment.merge!('status' => 'appointed', 'identity' => identity, 'date' => '2026-08-25', 'reference' => reference, 'artifact_sha256' => digest)
+      end
+
+      reporting = entry['gate_authority_appointments'].find { |appointment| appointment['authority_domain'] == 'reporting' }
+      reporting_identity = 'Fixture FIN-001 Reporting Gate Authority'
+      reporting_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'appointment_dependency',
+        'identity' => reporting_identity, 'authority_domain' => 'reporting',
+        'scope' => reporting['required_scope'], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      reporting_reference, reporting_digest = write_json_artifact("#{prefix}_complex_reporting_appointment.json", reporting_artifact, batch: 'F')
+      reporting.merge!('status' => 'appointed', 'identity' => reporting_identity, 'date' => '2026-08-25', 'reference' => reporting_reference, 'artifact_sha256' => reporting_digest)
+
+      %w[A B C D].each do |batch|
+        gate = entry['dependency_gates'].find { |candidate| candidate['batch'] == batch }
+        source_register, source_sha = upstream.fetch(batch)
+        bindings = gate['source_requirement_ids'].map do |source_id|
+          source = source_register['entries'].find { |candidate| candidate['requirement_id'] == source_id }
+          {
+            'requirement_id' => source_id,
+            'lead_authority_domain' => source['lead_authority_domain'] || source.dig('accountable_owner', 'authority_domain'),
+            'owner_identity' => source.dig('accountable_owner', 'identity'),
+            'approval_reference' => source.dig('approval', 'reference'),
+            'approval_sha256' => source.dig('approval', 'artifact_sha256')
+          }
+        end
+        resolution = "Resolve exact synthetic Batch #{batch} source decisions for #{requirement_id}."
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'dependency_gate',
+          'direction' => 'upstream', 'batch' => batch, 'scope' => gate['scope'], 'status' => 'resolved',
+          'resolution' => resolution, 'identity' => bindings.first['owner_identity'],
+          'authority_domain' => bindings.first['lead_authority_domain'],
+          'source_register_id' => { 'A' => ParityGovernanceValidator::BATCH_A_REGISTER_ID, 'B' => ParityGovernanceValidator::BATCH_B_REGISTER_ID, 'C' => ParityGovernanceValidator::BATCH_C_REGISTER_ID, 'D' => ParityGovernanceValidator::BATCH_D_REGISTER_ID }.fetch(batch),
+          'source_register_sha256' => source_sha, 'source_bindings' => bindings,
+          'deferral_bindings' => [], 'exclusions' => [], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_complex_#{batch.downcase}_gate.json", artifact, batch: 'F')
+        gate.merge!('status' => 'resolved', 'resolution' => resolution, 'defer_authority_domain' => nil, 'resolution_reference' => reference, 'resolution_artifact_sha256' => digest)
+      end
+
+      entry['intra_batch_dependencies'].each_with_index do |dependency, index|
+        target = register['entries'].find { |candidate| candidate['requirement_id'] == dependency['requirement_id'] }
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::BATCH_F_INTRA_DEPENDENCY_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+          'source_requirement_id' => requirement_id, 'target_requirement_id' => target['requirement_id'],
+          'scope' => dependency['scope'], 'status' => 'resolved',
+          'identity' => target.dig('accountable_owner', 'identity'), 'authority_domain' => target['lead_authority_domain'],
+          'target_decision_status' => 'approve', 'target_disposition' => target.dig('decision', 'canonical_disposition'),
+          'target_approval_reference' => target.dig('approval', 'reference'),
+          'target_approval_sha256' => target.dig('approval', 'artifact_sha256'),
+          'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_complex_intra_#{index}.json", artifact, batch: 'F')
+        dependency.merge!('status' => 'resolved', 'resolution_reference' => reference, 'resolution_artifact_sha256' => digest)
+      end
+
+      g_gate = entry['dependency_gates'].find { |candidate| candidate['batch'] == 'G' }
+      g_resolution = 'Defer unavailable G reporting without claiming export, financial truth, or live-delivery readiness.'
+      g_approval = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'gate_deferral_approval',
+        'batch' => 'G', 'scope' => g_gate['scope'], 'status' => 'deferred', 'resolution' => g_resolution,
+        'exclusions' => ParityGovernanceValidator::BATCH_F_G_DEFERRAL_EXCLUSIONS,
+        'identity' => reporting_identity, 'authority_domain' => 'reporting',
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      g_approval_reference, g_approval_digest = write_json_artifact("#{prefix}_complex_g_approval.json", g_approval, batch: 'F')
+      g_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_GATE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'dependency_gate',
+        'direction' => 'forward', 'batch' => 'G', 'scope' => g_gate['scope'], 'status' => 'deferred',
+        'resolution' => g_resolution, 'identity' => reporting_identity, 'authority_domain' => 'reporting',
+        'source_register_id' => 'G0_PARITY_BATCH_MANIFEST.json#batch-G',
+        'source_register_sha256' => Digest::SHA256.file(@batch_manifest).hexdigest,
+        'source_bindings' => [], 'deferral_bindings' => [{
+          'authority_domain' => 'reporting', 'identity' => reporting_identity,
+          'appointment_reference' => reporting_reference, 'appointment_sha256' => reporting_digest,
+          'approval_reference' => g_approval_reference, 'approval_sha256' => g_approval_digest
+        }],
+        'exclusions' => ParityGovernanceValidator::BATCH_F_G_DEFERRAL_EXCLUSIONS,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      g_reference, g_digest = write_json_artifact("#{prefix}_complex_g_gate.json", g_artifact, batch: 'F')
+      g_gate.merge!('status' => 'deferred', 'resolution' => g_resolution, 'defer_authority_domain' => 'reporting', 'resolution_reference' => g_reference, 'resolution_artifact_sha256' => g_digest)
+
+      values = {
+        'gross_charge_total' => 1000, 'approved_discount_total' => 100, 'tax_fee_total' => 50,
+        'debit_adjustment_total' => 20, 'credit_adjustment_total' => 30,
+        'reversal_total' => 40, 'net_bill_total' => 900
+      }
+      common = {
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+        'requirement_id' => requirement_id, 'profile_id' => 'bill_version', 'synthetic_only' => true,
+        'currency' => 'IDR', 'minor_unit' => 1, 'period_start' => '2026-08-01', 'period_end' => '2026-08-25',
+        'period_timezone' => 'Asia/Jakarta', 'cutoff_at' => '2026-08-25T23:59:59+07:00',
+        'late_posting_policy' => 'append_to_open_period_with_prior_period_reference',
+        'event_count' => 4, 'control_values' => values, 'idempotency_key' => 'FIX-F-FIN-001-COMPLEX-01',
+        'date' => '2026-08-25', 'author_identity' => 'Fixture FIN-001 Ledger Author', 'reviewer' => valid_reviewer
+      }
+      ledgers = ParityGovernanceValidator::BATCH_F_RECONCILIATION_PROFILES.fetch('bill_version').fetch(:ledgers)
+      descriptors = ledgers.each_with_index.map do |ledger, index|
+        receipt = common.merge(
+          'artifact_type' => ParityGovernanceValidator::BATCH_F_LEDGER_RECEIPT_ARTIFACT_TYPE,
+          'ledger_kind' => ledger, 'ledger_digest' => Digest::SHA256.hexdigest("fixture-fin-001-#{ledger}-#{index}")
+        )
+        reference, digest = write_json_artifact("#{prefix}_complex_receipt_#{index}.json", receipt, batch: 'F')
+        { 'ledger_kind' => ledger, 'reference' => reference, 'sha256' => digest }
+      end
+      reconciliation = common.merge(
+        'artifact_type' => ParityGovernanceValidator::BATCH_F_RECONCILIATION_ARTIFACT_TYPE,
+        'family_id' => 'F2', 'ledger_receipts' => descriptors,
+        'equations' => ParityGovernanceValidator::BATCH_F_RECONCILIATION_PROFILES.fetch('bill_version').fetch(:equations),
+        'differences' => { 'bill_difference' => 0 }
+      )
+      reference, digest = write_json_artifact("#{prefix}_complex_reconciliation.json", reconciliation, batch: 'F')
+      entry['reconciliation_contract'].merge!('status' => 'complete', 'receipt_reference' => reference, 'receipt_artifact_sha256' => digest)
+    end
+  end
+
+  def prepare_batch_f_coherent_consolidation_candidate_f_c01
+    prepare_batch_f_approved_entry('PAR-ADM-018', disposition: 'reproduce', target: 'fixture_component_group_capability')
+    prepare_batch_f_approved_entry('PAR-ADM-019', disposition: 'consolidate', target: 'PAR-ADM-018')
+    mapping = ParityGovernanceValidator::BATCH_F_CONSOLIDATION_MAPPING_CONTRACTS.fetch('F-C01')
+    members = ParityGovernanceValidator::BATCH_F_CONSOLIDATION_GROUPS.fetch('F-C01')
+    target_entry = JSON.parse(File.read(@batch_f_decision_register))['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-018' }
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_F_CONSOLIDATION_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_F_REGISTER_ID,
+      'candidate_id' => 'F-C01', 'members' => members, 'target_requirement_id' => 'PAR-ADM-018',
+      'terminal_owner_identity' => target_entry.dig('accountable_owner', 'identity'),
+      'terminal_authority_domain' => target_entry['lead_authority_domain'],
+      'terminal_approval_reference' => target_entry.dig('approval', 'reference'),
+      'terminal_approval_sha256' => target_entry.dig('approval', 'artifact_sha256'),
+      'member_impacts' => members.to_h { |member| [member, ["Preserve #{member} role, state, audit, and lineage in the shared component capability."]] },
+      'mapped_fields' => mapping.fetch(:fields), 'mapped_states' => mapping.fetch(:states),
+      'mapped_control_totals' => mapping.fetch(:control_totals),
+      'lineage_preserved' => true, 'authorities_preserved' => true,
+      'exclusions' => ['No business equivalence beyond this fixture contract is asserted.'],
+      'date' => '2026-08-25', 'author_identity' => 'Fixture Batch F Mapping Author', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('f_c01_shared_mapping.json', artifact, batch: 'F')
+    mutate_batch_f_decision_register do |register|
+      members.each do |requirement_id|
+        entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+        entry['consolidation_mapping'].merge!(
+          'status' => 'complete', 'terminal_target_requirement_id' => 'PAR-ADM-018',
+          'artifact_reference' => reference, 'artifact_sha256' => digest
+        )
+      end
+    end
+  end
+
   def valid_approval_artifact
     {
       'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
@@ -2523,7 +3516,8 @@ class ParityGovernanceValidatorTest < Minitest::Test
       'B' => ParityGovernanceValidator::BATCH_B_EVIDENCE_DIRECTORY,
       'C' => ParityGovernanceValidator::BATCH_C_EVIDENCE_DIRECTORY,
       'D' => ParityGovernanceValidator::BATCH_D_EVIDENCE_DIRECTORY,
-      'E' => ParityGovernanceValidator::BATCH_E_EVIDENCE_DIRECTORY
+      'E' => ParityGovernanceValidator::BATCH_E_EVIDENCE_DIRECTORY,
+      'F' => ParityGovernanceValidator::BATCH_F_EVIDENCE_DIRECTORY
     }.fetch(batch)
     directory = File.join(@tmpdir, directory_name)
     FileUtils.mkdir_p(directory)
