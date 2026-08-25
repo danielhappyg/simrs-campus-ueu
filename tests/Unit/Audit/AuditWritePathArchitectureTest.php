@@ -10,6 +10,9 @@ class AuditWritePathArchitectureTest extends TestCase
     public function test_application_audit_writes_use_only_the_model_validated_recorder_path(): void
     {
         $queryCreateCallers = [];
+        $readOnlyRawAuditQueryCallers = [
+            'Support/Audit/AuditActorAttributionPreflight.php',
+        ];
         $forbiddenPatterns = [
             'AuditEvent::create(',
             'AuditEvent::forceCreate(',
@@ -33,6 +36,11 @@ class AuditWritePathArchitectureTest extends TestCase
             $relativePath = $file->getRelativePathname();
 
             foreach ($forbiddenPatterns as $pattern) {
+                if (str_contains($pattern, "table('audit_events')")
+                    && in_array($relativePath, $readOnlyRawAuditQueryCallers, true)) {
+                    continue;
+                }
+
                 $this->assertStringNotContainsString($pattern, $contents, "Forbidden audit write found in {$relativePath}.");
             }
 
@@ -48,6 +56,23 @@ class AuditWritePathArchitectureTest extends TestCase
         }
 
         $this->assertSame(['Support/Audit/AuditRecorder.php'], $queryCreateCallers);
+    }
+
+    public function test_attribution_preflight_raw_audit_path_remains_read_only(): void
+    {
+        $contents = file_get_contents(app_path('Support/Audit/AuditActorAttributionPreflight.php'));
+        $this->assertIsString($contents);
+        $this->assertStringContainsString("SchemaQualifier::table('audit_events')", $contents);
+        $this->assertStringContainsString('->select([', $contents);
+        $this->assertStringContainsString('->lazyById(', $contents);
+
+        foreach (['->insert(', '->update(', '->delete(', '->upsert(', '->truncate('] as $mutation) {
+            $this->assertStringNotContainsString(
+                $mutation,
+                $contents,
+                'The attribution preflight must remain a read-only raw audit-table path.',
+            );
+        }
     }
 
     public function test_five_legacy_mutation_callers_fail_closed_inside_their_transactions(): void
