@@ -18,6 +18,7 @@
 - BG-02c2 actor-attribution expansion: new ordinary-audit rows capture a finite `USER` or `SERVICE` identity reference, attributed users cannot be physically deleted, and account containment remains status-based
 - BG-02c3 read-only attribution preflight: schema-qualified streaming classifies legacy rows without payload disclosure or identity inference and produces deterministic, keyed readiness evidence
 - BG-02c4a private attribution manifest: exact-root/clean-source generation and offline verification bind reviewed recovery candidates as expiring keyed evidence; no apply/backfill executor exists
+- BG-02c4b hosted preflight evidence: exact Vercel/Supabase release inventory identified migration-ledger drift, the mandatory Free-plan logical-backup gate, and one actor-provenance blocker; migration and promotion remain held
 
 ## Not in this phase
 
@@ -32,6 +33,7 @@
 BG-02c2 rollout remains governed by the [audit-attribution rollout runbook](../../operations/BG_02C2_AUDIT_ATTRIBUTION_ROLLOUT_2026-08-25.md).
 BG-02c3 execution remains governed by the [read-only attribution-preflight runbook](../../operations/BG_02C3_AUDIT_ATTRIBUTION_PREFLIGHT_2026-08-25.md).
 BG-02c4a manifest custody remains governed by the [private attribution-manifest runbook](../../operations/BG_02C4A_AUDIT_ATTRIBUTION_MANIFEST_2026-08-25.md).
+BG-02c4b hosted release ordering remains governed by the [hosted attribution-preflight evidence](../../operations/BG_02C4B_HOSTED_ATTRIBUTION_PREFLIGHT_2026-08-25.md).
 
 ## Evidence
 

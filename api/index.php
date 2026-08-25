@@ -42,6 +42,8 @@ $setDefaultEnvironment('VIEW_COMPILED_PATH', $runtimeRoot.'/framework/views');
 $setDefaultEnvironment('LOG_CHANNEL', 'stderr');
 $setDefaultEnvironment('APP_ENV', 'production');
 $setDefaultEnvironment('APP_DEBUG', 'false');
+$setDefaultEnvironment('APP_MAINTENANCE_DRIVER', 'cache');
+$setDefaultEnvironment('APP_MAINTENANCE_STORE', 'database');
 $setDefaultEnvironment('SESSION_SECURE_COOKIE', 'true');
 
 if (getenv('APP_URL') === false) {

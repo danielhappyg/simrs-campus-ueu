@@ -20,8 +20,13 @@ use LogicException;
  * @property string $action
  * @property string $resource_type
  * @property string|null $resource_id
+ * @property string|null $resource_version
  * @property string $outcome
+ * @property string|null $reason
  * @property CarbonImmutable $recorded_at
+ * @property string|null $request_correlation_id
+ * @property string|null $ip_hash
+ * @property string|null $user_agent
  * @property array<string, mixed>|null $metadata
  * @property-read User|null $actor
  */
