@@ -90,11 +90,24 @@ class ParityGovernanceValidator
     PAR-IOT-001
   ].freeze
 
+  EXPECTED_BATCH_B_IDS = %w[
+    PAR-ADM-009
+    PAR-ADM-010
+    PAR-ADM-033
+    PAR-REG-001
+    PAR-REG-002
+    PAR-REG-003
+    PAR-REG-004
+    PAR-REG-005
+  ].freeze
+
   BATCH_A_REGISTER_SCHEMA_VERSION = 1
   BATCH_A_REGISTER_ID = 'G0-BATCH-A-2026-08-25'
   BATCH_A_EVIDENCE_DIRECTORY = 'G0_BATCH_A_DECISION_EVIDENCE_2026-08-25'
-  GOVERNANCE_ARTIFACT_TYPE = 'g0_batch_a_governance_attestation'
-  EVIDENCE_ARTIFACT_TYPE = 'g0_batch_a_evidence'
+  BATCH_B_REGISTER_ID = 'G0-BATCH-B-2026-08-25'
+  BATCH_B_EVIDENCE_DIRECTORY = 'G0_BATCH_B_DECISION_EVIDENCE_2026-08-25'
+  GOVERNANCE_ARTIFACT_TYPE = 'g0_parity_governance_attestation'
+  EVIDENCE_ARTIFACT_TYPE = 'g0_parity_evidence'
   ARTIFACT_SCHEMA_VERSION = 1
   EVIDENCE_CLASSES = %w[O M I U P].freeze
   EVIDENCE_CONFIDENCES = %w[pending low medium high].freeze
@@ -119,17 +132,21 @@ class ParityGovernanceValidator
   PLACEHOLDER_OWNER_PATTERN = /(?:\bTBD\b|\bunknown\b|\bunassigned\b|\bpending\b|to[ _-]?be[ _-]?assigned|replace[ _-]?with|\bN\/?A\b)/i.freeze
   EVIDENCE_PLACEHOLDER_PATTERN = /(?:\bpending\b|not (?:committed|pushed|deployed|verified)|filled at commit|updated after push|\bunknown\b|\bTBD\b|\bN\/?A\b)/i.freeze
 
-  attr_reader :batch_assignments, :decision_entries, :errors, :rows, :release_rows
+  attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
     @batch_manifest_path = File.expand_path(batch_manifest_path)
-    @decision_register_path = File.expand_path(decision_register_path)
+    @decision_register_paths = {
+      'A' => File.expand_path(decision_register_path),
+      'B' => File.expand_path(batch_b_decision_register_path)
+    }
     @mode = mode
     @batch_assignments = {}
     @decision_entries = []
+    @decision_entries_by_batch = {}
     @errors = []
     @rows = []
     @release_rows = []
@@ -143,7 +160,10 @@ class ParityGovernanceValidator
 
     baseline = load_baseline
     manifest = load_batch_manifest
-    decision_register = load_batch_a_decision_register
+    decision_registers = {
+      'A' => load_decision_register('A'),
+      'B' => load_decision_register('B')
+    }
     parse_matrix
     parse_release_index
 
@@ -152,7 +172,10 @@ class ParityGovernanceValidator
     validate_exact_id_set(baseline)
     validate_categories_and_prefixes(baseline)
     validate_batch_manifest(baseline, manifest)
-    validate_batch_a_decision_register(baseline, manifest, decision_register)
+    decision_registers.each do |batch, register|
+      @decision_entries_by_batch[batch] = validate_decision_register(baseline, manifest, register, batch)
+    end
+    validate_decision_register_consolidation_graph(@decision_entries_by_batch, baseline['expected'])
     validate_vocabularies
     validate_owners
     validate_consolidations
@@ -242,95 +265,119 @@ class ParityGovernanceValidator
     {}
   end
 
-  def load_batch_a_decision_register
-    unless File.file?(@decision_register_path)
-      errors << "Batch A decision register: file not found: #{@decision_register_path}"
+  def decision_register_config(batch)
+    case batch
+    when 'A'
+      { register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }
+    when 'B'
+      { register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }
+    else
+      raise ArgumentError, "unsupported decision-register batch #{batch.inspect}"
+    end
+  end
+
+  def decision_register_label
+    "Batch #{@active_decision_context[:batch]} decision register"
+  end
+
+  def load_decision_register(batch)
+    path = @decision_register_paths.fetch(batch)
+    unless File.file?(path)
+      errors << "Batch #{batch} decision register: file not found: #{path}"
       return {}
     end
 
-    JSON.parse(File.read(@decision_register_path))
+    JSON.parse(File.read(path))
   rescue JSON::ParserError => e
-    errors << "Batch A decision register: invalid JSON: #{e.message}"
+    errors << "Batch #{batch} decision register: invalid JSON: #{e.message}"
     {}
   rescue SystemCallError => e
-    errors << "Batch A decision register: cannot read file: #{e.message}"
+    errors << "Batch #{batch} decision register: cannot read file: #{e.message}"
     {}
   end
 
-  def validate_batch_a_decision_register(baseline, manifest, register)
+  def validate_decision_register(baseline, manifest, register, batch)
+    config = decision_register_config(batch)
+    @active_decision_context = {
+      batch: batch,
+      register_id: register['register_id'],
+      register_path: @decision_register_paths.fetch(batch),
+      evidence_directory: config[:evidence_directory]
+    }
+    prefix = decision_register_label
+
     unless register['schema_version'] == BATCH_A_REGISTER_SCHEMA_VERSION
-      errors << "Batch A decision register: schema_version must be #{BATCH_A_REGISTER_SCHEMA_VERSION}"
+      errors << "#{prefix}: schema_version must be #{BATCH_A_REGISTER_SCHEMA_VERSION}"
     end
-    unless register['register_id'] == BATCH_A_REGISTER_ID
-      errors << "Batch A decision register: register_id must be #{BATCH_A_REGISTER_ID}"
+    unless register['register_id'] == config[:register_id]
+      errors << "#{prefix}: register_id must be #{config[:register_id]}"
     end
-    @batch_a_register_id = register['register_id']
-    unless register['batch'] == 'A'
-      errors << 'Batch A decision register: batch must be A'
+    unless register['batch'] == batch
+      errors << "#{prefix}: batch must be #{batch}"
     end
     unless register['register_status'].is_a?(String) && REGISTER_STATUSES.include?(register['register_status'])
-      errors << "Batch A decision register: invalid register_status #{register['register_status'].inspect}"
+      errors << "#{prefix}: invalid register_status #{register['register_status'].inspect}"
     end
     unless register['data_boundary'] == 'synthetic_only'
-      errors << 'Batch A decision register: data_boundary must be synthetic_only'
+      errors << "#{prefix}: data_boundary must be synthetic_only"
     end
     unless register['external_integrations'] == 'disabled'
-      errors << 'Batch A decision register: external_integrations must be disabled'
+      errors << "#{prefix}: external_integrations must be disabled"
     end
     unless register['source_manifest'] == 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json'
-      errors << 'Batch A decision register: source_manifest must reference the canonical G0 batch manifest'
+      errors << "#{prefix}: source_manifest must reference the canonical G0 batch manifest"
     end
-    unless register['evidence_directory'] == BATCH_A_EVIDENCE_DIRECTORY
-      errors << "Batch A decision register: evidence_directory must be #{BATCH_A_EVIDENCE_DIRECTORY}"
+    unless register['evidence_directory'] == config[:evidence_directory]
+      errors << "#{prefix}: evidence_directory must be #{config[:evidence_directory]}"
     end
 
     entries = register['entries']
     unless entries.is_a?(Array)
-      errors << 'Batch A decision register: entries must be an array'
-      return
+      errors << "#{prefix}: entries must be an array"
+      return []
     end
-    @decision_entries = entries.select { |entry| entry.is_a?(Hash) }
+    valid_entries = entries.select { |entry| entry.is_a?(Hash) }
+    @decision_entries.concat(valid_entries)
 
     batches = manifest['batches']
-    expected_ids = batches.is_a?(Hash) && batches['A'].is_a?(Array) ? batches['A'] : []
+    expected_ids = batches.is_a?(Hash) && batches[batch].is_a?(Array) ? batches[batch] : []
     actual_ids = entries.each_with_object([]) do |entry, ids|
       ids << entry['requirement_id'] if entry.is_a?(Hash)
     end
     invalid_entries = entries.each_index.reject { |index| entries[index].is_a?(Hash) }
-    invalid_entries.each { |index| errors << "Batch A decision register entry #{index}: must be an object" }
+    invalid_entries.each { |index| errors << "#{prefix} entry #{index}: must be an object" }
 
     invalid_ids = actual_ids.reject { |id| id.is_a?(String) && id.match?(PAR_ID_PATTERN) }.uniq
-    errors << "Batch A decision register: invalid requirement IDs: #{invalid_ids.map(&:inspect).join(', ')}" unless invalid_ids.empty?
+    errors << "#{prefix}: invalid requirement IDs: #{invalid_ids.map(&:inspect).join(', ')}" unless invalid_ids.empty?
 
     string_ids = actual_ids.select { |id| id.is_a?(String) }
     duplicates = string_ids.group_by { |id| id }.select { |_id, values| values.length > 1 }.keys.sort
-    errors << "Batch A decision register: duplicate requirement IDs: #{duplicates.join(', ')}" unless duplicates.empty?
+    errors << "#{prefix}: duplicate requirement IDs: #{duplicates.join(', ')}" unless duplicates.empty?
 
     missing = expected_ids - actual_ids
     unknown = string_ids - expected_ids
-    errors << "Batch A decision register: missing Batch A requirement IDs: #{missing.sort.join(', ')}" unless missing.empty?
-    errors << "Batch A decision register: unknown Batch A requirement IDs: #{unknown.sort.join(', ')}" unless unknown.empty?
-    if entries.length != EXPECTED_BATCH_COUNTS['A']
-      errors << "Batch A decision register: expected exactly #{EXPECTED_BATCH_COUNTS['A']} entries, got #{entries.length}"
+    errors << "#{prefix}: missing Batch #{batch} requirement IDs: #{missing.sort.join(', ')}" unless missing.empty?
+    errors << "#{prefix}: unknown Batch #{batch} requirement IDs: #{unknown.sort.join(', ')}" unless unknown.empty?
+    if entries.length != EXPECTED_BATCH_COUNTS[batch]
+      errors << "#{prefix}: expected exactly #{EXPECTED_BATCH_COUNTS[batch]} entries, got #{entries.length}"
     end
     if entries.length == expected_ids.length && actual_ids != expected_ids
-      errors << 'Batch A decision register: entries must follow the canonical Batch A manifest order'
+      errors << "#{prefix}: entries must follow the canonical Batch #{batch} manifest order"
     end
 
     entries.each_with_index do |entry, index|
       next unless entry.is_a?(Hash)
 
-      validate_batch_a_entry(entry, index, baseline['expected'])
+      validate_decision_entry(entry, index, baseline['expected'])
     end
-    validate_batch_a_consolidation_graph(entries, baseline['expected'])
 
-    return unless register['register_status'] == 'complete'
+    return valid_entries unless register['register_status'] == 'complete'
 
     unresolved = entries.select do |entry|
       decision = entry['decision'] if entry.is_a?(Hash)
       !decision.is_a?(Hash) || !%w[approve defer].include?(decision['status'])
     end
-    errors << 'Batch A decision register: register_status complete requires every entry to be approved or deferred' unless unresolved.empty?
+    errors << "#{prefix}: register_status complete requires every entry to be approved or deferred" unless unresolved.empty?
 
     # Integrity mode must not accept a self-declared complete register whose
     # decisions lack the evidence, appointments, approvals, or ready scenarios
@@ -341,116 +388,117 @@ class ParityGovernanceValidator
 
         id = entry['requirement_id']
         label = id.is_a?(String) && !id.empty? ? id : "entry #{index}"
-        validate_batch_a_g0_resolution(entry, label)
+        validate_decision_g0_resolution(entry, label)
       end
     end
+    valid_entries
   end
 
-  def validate_batch_a_entry(entry, index, known_requirements)
+  def validate_decision_entry(entry, index, known_requirements)
     id = entry['requirement_id']
     label = id.is_a?(String) && !id.empty? ? id : "entry #{index}"
 
-    errors << "Batch A decision register #{label}: batch must be A" unless entry['batch'] == 'A'
-    errors << "Batch A decision register #{label}: legacy_menu must be a non-empty string" unless nonempty_string?(entry['legacy_menu'])
+    errors << "#{decision_register_label} #{label}: batch must be #{@active_decision_context[:batch]}" unless entry['batch'] == @active_decision_context[:batch]
+    errors << "#{decision_register_label} #{label}: legacy_menu must be a non-empty string" unless nonempty_string?(entry['legacy_menu'])
 
     evidence = entry['evidence']
     if !evidence.is_a?(Array) || evidence.empty?
-      errors << "Batch A decision register #{label}: evidence must be a non-empty array"
+      errors << "#{decision_register_label} #{label}: evidence must be a non-empty array"
     else
-      evidence.each_with_index { |record, evidence_index| validate_batch_a_evidence(record, label, evidence_index) }
+      evidence.each_with_index { |record, evidence_index| validate_decision_evidence(record, label, evidence_index) }
     end
 
     decision = entry['decision']
-    validate_batch_a_decision(decision, label, known_requirements)
+    validate_register_decision(decision, label, known_requirements)
 
-    validate_nonempty_string_array(entry['affected_domains'], "Batch A decision register #{label}: affected_domains")
-    validate_nonempty_string_array(entry['co_owners'], "Batch A decision register #{label}: co_owners")
-    validate_nonempty_string_array(entry['downstream_impacts'], "Batch A decision register #{label}: downstream_impacts")
+    validate_nonempty_string_array(entry['affected_domains'], "#{decision_register_label} #{label}: affected_domains")
+    validate_nonempty_string_array(entry['co_owners'], "#{decision_register_label} #{label}: co_owners")
+    validate_nonempty_string_array(entry['downstream_impacts'], "#{decision_register_label} #{label}: downstream_impacts")
 
     scenarios = entry['synthetic_scenarios']
     if !scenarios.is_a?(Hash)
-      errors << "Batch A decision register #{label}: synthetic_scenarios must be an object"
+      errors << "#{decision_register_label} #{label}: synthetic_scenarios must be an object"
     else
-      validate_batch_a_scenario(scenarios['normal'], label, 'normal')
-      validate_batch_a_scenario(scenarios['denial_or_correction'], label, 'denial_or_correction')
+      validate_decision_scenario(scenarios['normal'], label, 'normal')
+      validate_decision_scenario(scenarios['denial_or_correction'], label, 'denial_or_correction')
     end
 
     validate_accountable_owner(entry['accountable_owner'], label)
     validate_appointment_dependencies(entry['appointment_dependencies'], entry['co_owners'], label)
-    validate_batch_a_approval(entry['approval'], label, decision)
+    validate_decision_approval(entry['approval'], label, decision)
 
-    validate_batch_a_g0_resolution(entry, label) if @mode == 'g0'
+    validate_decision_g0_resolution(entry, label) if @mode == 'g0'
   end
 
-  def validate_batch_a_evidence(record, label, index)
+  def validate_decision_evidence(record, label, index)
     unless record.is_a?(Hash)
-      errors << "Batch A decision register #{label}: evidence[#{index}] must be an object"
+      errors << "#{decision_register_label} #{label}: evidence[#{index}] must be an object"
       return
     end
 
     evidence_class = record['evidence_class']
     confidence = record['confidence']
     unless EVIDENCE_CLASSES.include?(evidence_class)
-      errors << "Batch A decision register #{label}: invalid evidence_class #{evidence_class.inspect}"
+      errors << "#{decision_register_label} #{label}: invalid evidence_class #{evidence_class.inspect}"
     end
     unless EVIDENCE_CONFIDENCES.include?(confidence)
-      errors << "Batch A decision register #{label}: invalid evidence confidence #{confidence.inspect}"
+      errors << "#{decision_register_label} #{label}: invalid evidence confidence #{confidence.inspect}"
     end
 
     if evidence_class == 'P'
       %w[date source reference interpreter artifact_reference artifact_sha256].each do |key|
-        errors << "Batch A decision register #{label}: pending evidence #{key} must be null" unless record[key].nil?
+        errors << "#{decision_register_label} #{label}: pending evidence #{key} must be null" unless record[key].nil?
       end
-      errors << "Batch A decision register #{label}: pending evidence confidence must be pending" unless confidence == 'pending'
-      errors << "Batch A decision register #{label}: pending evidence note must explain the gap" unless nonempty_string?(record['note'])
+      errors << "#{decision_register_label} #{label}: pending evidence confidence must be pending" unless confidence == 'pending'
+      errors << "#{decision_register_label} #{label}: pending evidence note must explain the gap" unless nonempty_string?(record['note'])
       return
     end
 
-    errors << "Batch A decision register #{label}: evidence date must be YYYY-MM-DD" unless iso_date?(record['date'])
+    errors << "#{decision_register_label} #{label}: evidence date must be YYYY-MM-DD" unless iso_date?(record['date'])
     %w[source reference interpreter].each do |key|
-      errors << "Batch A decision register #{label}: evidence #{key} must be a non-empty string" unless nonempty_string?(record[key])
+      errors << "#{decision_register_label} #{label}: evidence #{key} must be a non-empty string" unless nonempty_string?(record[key])
     end
     if confidence == 'pending'
-      errors << "Batch A decision register #{label}: non-pending evidence confidence cannot be pending"
+      errors << "#{decision_register_label} #{label}: non-pending evidence confidence cannot be pending"
     end
     validate_evidence_artifact(record, label, index)
   end
 
-  def validate_batch_a_decision(decision, label, known_requirements)
+  def validate_register_decision(decision, label, known_requirements)
     unless decision.is_a?(Hash)
-      errors << "Batch A decision register #{label}: decision must be an object"
+      errors << "#{decision_register_label} #{label}: decision must be an object"
       return
     end
 
     status = decision['status']
     disposition = decision['canonical_disposition']
-    errors << "Batch A decision register #{label}: invalid decision status #{status.inspect}" unless DECISION_STATUSES.include?(status)
+    errors << "#{decision_register_label} #{label}: invalid decision status #{status.inspect}" unless DECISION_STATUSES.include?(status)
     unless CANONICAL_DISPOSITIONS.include?(disposition)
-      errors << "Batch A decision register #{label}: invalid canonical_disposition #{disposition.inspect}"
+      errors << "#{decision_register_label} #{label}: invalid canonical_disposition #{disposition.inspect}"
     end
 
     target = decision['target']
     unless target.is_a?(Hash)
-      errors << "Batch A decision register #{label}: decision target must be an object"
+      errors << "#{decision_register_label} #{label}: decision target must be an object"
       return
     end
 
     kind = target['kind']
-    errors << "Batch A decision register #{label}: invalid target kind #{kind.inspect}" unless TARGET_KINDS.include?(kind)
+    errors << "#{decision_register_label} #{label}: invalid target kind #{kind.inspect}" unless TARGET_KINDS.include?(kind)
     unless target['exclusions'].is_a?(Array) && target['exclusions'].all? { |value| nonempty_string?(value) }
-      errors << "Batch A decision register #{label}: target exclusions must be an array of non-empty strings"
+      errors << "#{decision_register_label} #{label}: target exclusions must be an array of non-empty strings"
     end
 
     if status == 'pending'
-      errors << "Batch A decision register #{label}: pending decision must keep canonical_disposition pending" unless disposition == 'pending'
-      errors << "Batch A decision register #{label}: pending decision must keep target kind pending" unless kind == 'pending'
-      errors << "Batch A decision register #{label}: pending decision target reference must be null" unless target['reference'].nil?
-      errors << "Batch A decision register #{label}: pending decision exclusions must be empty" unless target['exclusions'] == []
-      errors << "Batch A decision register #{label}: pending decision rationale must be null" unless decision['rationale'].nil?
+      errors << "#{decision_register_label} #{label}: pending decision must keep canonical_disposition pending" unless disposition == 'pending'
+      errors << "#{decision_register_label} #{label}: pending decision must keep target kind pending" unless kind == 'pending'
+      errors << "#{decision_register_label} #{label}: pending decision target reference must be null" unless target['reference'].nil?
+      errors << "#{decision_register_label} #{label}: pending decision exclusions must be empty" unless target['exclusions'] == []
+      errors << "#{decision_register_label} #{label}: pending decision rationale must be null" unless decision['rationale'].nil?
       return
     end
 
-    errors << "Batch A decision register #{label}: non-pending decision rationale must be a non-empty string" unless nonempty_string?(decision['rationale'])
+    errors << "#{decision_register_label} #{label}: non-pending decision rationale must be a non-empty string" unless nonempty_string?(decision['rationale'])
     validate_canonical_target(disposition, target, label, known_requirements) if %w[approve defer].include?(status)
   end
 
@@ -461,22 +509,22 @@ class ParityGovernanceValidator
 
     case disposition
     when 'reproduce', 'replace'
-      errors << "Batch A decision register #{label}: #{disposition} requires a capability target" unless kind == 'capability' && nonempty_string?(reference)
+      errors << "#{decision_register_label} #{label}: #{disposition} requires a capability target" unless kind == 'capability' && nonempty_string?(reference)
     when 'consolidate'
       unless kind == 'consolidation_target' && nonempty_string?(reference) && known_requirements.key?(reference)
-        errors << "Batch A decision register #{label}: consolidate requires a known PAR consolidation target"
+        errors << "#{decision_register_label} #{label}: consolidate requires a known PAR consolidation target"
       end
-      errors << "Batch A decision register #{label}: consolidation cannot target itself" if reference == label
+      errors << "#{decision_register_label} #{label}: consolidation cannot target itself" if reference == label
     when 'retire', 'exclude'
       unless kind == 'exclusion' && nonempty_string?(reference) && exclusions.is_a?(Array) && !exclusions.empty?
-        errors << "Batch A decision register #{label}: #{disposition} requires an exclusion target and explicit exclusions"
+        errors << "#{decision_register_label} #{label}: #{disposition} requires an exclusion target and explicit exclusions"
       end
     else
-      errors << "Batch A decision register #{label}: approved or deferred decision cannot keep canonical_disposition pending"
+      errors << "#{decision_register_label} #{label}: approved or deferred decision cannot keep canonical_disposition pending"
     end
   end
 
-  def validate_batch_a_consolidation_graph(entries, known_requirements)
+  def validate_decision_register_consolidation_graph(entries_by_batch, known_requirements)
     graph = Hash.new { |hash, key| hash[key] = [] }
     register_edges = {}
 
@@ -492,28 +540,30 @@ class ParityGovernanceValidator
       end
     end
 
-    entries.each do |entry|
-      next unless entry.is_a?(Hash)
+    entries_by_batch.each_value do |entries|
+      entries.each do |entry|
+        next unless entry.is_a?(Hash)
 
-      decision = entry['decision']
-      next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status'])
-      next unless decision['canonical_disposition'] == 'consolidate'
+        decision = entry['decision']
+        next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status'])
+        next unless decision['canonical_disposition'] == 'consolidate'
 
-      target = decision['target']
-      next unless target.is_a?(Hash) && target['kind'] == 'consolidation_target'
+        target = decision['target']
+        next unless target.is_a?(Hash) && target['kind'] == 'consolidation_target'
 
-      source = entry['requirement_id']
-      reference = target['reference']
-      next unless known_requirements.key?(source) && known_requirements.key?(reference)
+        source = entry['requirement_id']
+        reference = target['reference']
+        next unless known_requirements.key?(source) && known_requirements.key?(reference)
 
-      graph[source] << reference
-      register_edges[[source, reference]] = true
+        graph[source] << reference
+        register_edges[[source, reference]] = true
+      end
     end
 
-    detect_batch_a_consolidation_cycles(graph, register_edges)
+    detect_decision_register_consolidation_cycles(graph, register_edges)
   end
 
-  def detect_batch_a_consolidation_cycles(graph, register_edges)
+  def detect_decision_register_consolidation_cycles(graph, register_edges)
     state = {}
     stack = []
     reported = {}
@@ -529,7 +579,7 @@ class ParityGovernanceValidator
 
           key = cycle[0...-1].sort.join('|')
           unless reported[key]
-            errors << "Batch A decision register: consolidation cycle detected: #{cycle.join(' -> ')}"
+            errors << "G0 decision registers: consolidation cycle detected: #{cycle.join(' -> ')}"
             reported[key] = true
           end
         elsif state[target].nil?
@@ -543,48 +593,48 @@ class ParityGovernanceValidator
     graph.keys.each { |node| visit.call(node) if state[node].nil? }
   end
 
-  def validate_batch_a_scenario(scenario, label, name)
+  def validate_decision_scenario(scenario, label, name)
     unless scenario.is_a?(Hash)
-      errors << "Batch A decision register #{label}: synthetic scenario #{name} must be an object"
+      errors << "#{decision_register_label} #{label}: synthetic scenario #{name} must be an object"
       return
     end
 
     status = scenario['status']
-    errors << "Batch A decision register #{label}: invalid synthetic scenario status #{status.inspect}" unless SCENARIO_STATUSES.include?(status)
-    errors << "Batch A decision register #{label}: synthetic scenario #{name} data_class must be synthetic" unless scenario['data_class'] == 'synthetic'
-    errors << "Batch A decision register #{label}: synthetic scenario #{name} description must be a non-empty string" unless nonempty_string?(scenario['description'])
-    validate_nonempty_string_array(scenario['expected_results'], "Batch A decision register #{label}: synthetic scenario #{name} expected_results")
+    errors << "#{decision_register_label} #{label}: invalid synthetic scenario status #{status.inspect}" unless SCENARIO_STATUSES.include?(status)
+    errors << "#{decision_register_label} #{label}: synthetic scenario #{name} data_class must be synthetic" unless scenario['data_class'] == 'synthetic'
+    errors << "#{decision_register_label} #{label}: synthetic scenario #{name} description must be a non-empty string" unless nonempty_string?(scenario['description'])
+    validate_nonempty_string_array(scenario['expected_results'], "#{decision_register_label} #{label}: synthetic scenario #{name} expected_results")
   end
 
   def validate_accountable_owner(owner, label)
     unless owner.is_a?(Hash)
-      errors << "Batch A decision register #{label}: accountable_owner must be an object"
+      errors << "#{decision_register_label} #{label}: accountable_owner must be an object"
       return
     end
 
     status = owner['appointment_status']
-    errors << "Batch A decision register #{label}: invalid accountable owner appointment_status #{status.inspect}" unless APPOINTMENT_STATUSES.include?(status)
-    errors << "Batch A decision register #{label}: accountable owner required_scope must be a non-empty string" unless nonempty_string?(owner['required_scope'])
+    errors << "#{decision_register_label} #{label}: invalid accountable owner appointment_status #{status.inspect}" unless APPOINTMENT_STATUSES.include?(status)
+    errors << "#{decision_register_label} #{label}: accountable owner required_scope must be a non-empty string" unless nonempty_string?(owner['required_scope'])
 
     if status == 'pending'
       %w[identity appointed_scope appointment_date appointment_reference artifact_sha256].each do |key|
-        errors << "Batch A decision register #{label}: pending accountable owner #{key} must be null" unless owner[key].nil?
+        errors << "#{decision_register_label} #{label}: pending accountable owner #{key} must be null" unless owner[key].nil?
       end
     elsif status == 'appointed'
       %w[identity appointed_scope appointment_reference].each do |key|
-        errors << "Batch A decision register #{label}: appointed accountable owner #{key} must be a non-empty string" unless nonempty_string?(owner[key])
+        errors << "#{decision_register_label} #{label}: appointed accountable owner #{key} must be a non-empty string" unless nonempty_string?(owner[key])
       end
       if nonempty_string?(owner['identity']) && owner['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
-        errors << "Batch A decision register #{label}: appointed accountable owner identity must not be a placeholder"
+        errors << "#{decision_register_label} #{label}: appointed accountable owner identity must not be a placeholder"
       end
       unless owner['appointed_scope'] == owner['required_scope']
-        errors << "Batch A decision register #{label}: appointed_scope must exactly match required_scope"
+        errors << "#{decision_register_label} #{label}: appointed_scope must exactly match required_scope"
       end
-      errors << "Batch A decision register #{label}: accountable owner appointment_date must be YYYY-MM-DD" unless iso_date?(owner['appointment_date'])
+      errors << "#{decision_register_label} #{label}: accountable owner appointment_date must be YYYY-MM-DD" unless iso_date?(owner['appointment_date'])
       validate_governance_artifact(
         reference: owner['appointment_reference'],
         expected_sha256: owner['artifact_sha256'],
-        label: "Batch A decision register #{label}: accountable owner appointment",
+        label: "#{decision_register_label} #{label}: accountable owner appointment",
         requirement_id: label,
         subject: 'accountable_owner',
         record: owner
@@ -594,17 +644,17 @@ class ParityGovernanceValidator
 
   def validate_appointment_dependencies(dependencies, co_owners, label)
     if !dependencies.is_a?(Array) || dependencies.empty?
-      errors << "Batch A decision register #{label}: appointment_dependencies must be a non-empty array"
+      errors << "#{decision_register_label} #{label}: appointment_dependencies must be a non-empty array"
       return
     end
 
     dependencies.each_with_index do |dependency, index|
       unless dependency.is_a?(Hash)
-        errors << "Batch A decision register #{label}: appointment_dependencies[#{index}] must be an object"
+        errors << "#{decision_register_label} #{label}: appointment_dependencies[#{index}] must be an object"
         next
       end
 
-      prefix = "Batch A decision register #{label}: appointment_dependencies[#{index}]"
+      prefix = "#{decision_register_label} #{label}: appointment_dependencies[#{index}]"
       errors << "#{prefix} authority_domain must be a non-empty string" unless nonempty_string?(dependency['authority_domain'])
       errors << "#{prefix} required_scope must be a non-empty string" unless nonempty_string?(dependency['required_scope'])
       status = dependency['status']
@@ -635,54 +685,54 @@ class ParityGovernanceValidator
     domains = dependencies.select { |dependency| dependency.is_a?(Hash) && nonempty_string?(dependency['authority_domain']) }
       .map { |dependency| dependency['authority_domain'] }
     duplicates = domains.group_by { |domain| domain }.select { |_domain, values| values.length > 1 }.keys.sort
-    errors << "Batch A decision register #{label}: appointment dependency authority_domain values must be unique: #{duplicates.join(', ')}" unless duplicates.empty?
+    errors << "#{decision_register_label} #{label}: appointment dependency authority_domain values must be unique: #{duplicates.join(', ')}" unless duplicates.empty?
 
     return unless co_owners.is_a?(Array) && co_owners.all? { |domain| nonempty_string?(domain) }
 
     missing = co_owners - domains
     unexpected = domains - co_owners
     unless missing.empty? && unexpected.empty?
-      errors << "Batch A decision register #{label}: appointment dependencies must exactly cover co_owners; missing #{missing.sort.inspect}; unexpected #{unexpected.sort.inspect}"
+      errors << "#{decision_register_label} #{label}: appointment dependencies must exactly cover co_owners; missing #{missing.sort.inspect}; unexpected #{unexpected.sort.inspect}"
     end
   end
 
-  def validate_batch_a_approval(approval, label, decision)
+  def validate_decision_approval(approval, label, decision)
     unless approval.is_a?(Hash)
-      errors << "Batch A decision register #{label}: approval must be an object"
+      errors << "#{decision_register_label} #{label}: approval must be an object"
       return
     end
 
     status = approval['status']
-    errors << "Batch A decision register #{label}: invalid approval status #{status.inspect}" unless APPROVAL_STATUSES.include?(status)
+    errors << "#{decision_register_label} #{label}: invalid approval status #{status.inspect}" unless APPROVAL_STATUSES.include?(status)
     unless approval['conditions'].is_a?(Array) && approval['conditions'].all? { |value| nonempty_string?(value) }
-      errors << "Batch A decision register #{label}: approval conditions must be an array of non-empty strings"
+      errors << "#{decision_register_label} #{label}: approval conditions must be an array of non-empty strings"
     end
 
     if status == 'pending'
       %w[identity scope date reference artifact_sha256].each do |key|
-        errors << "Batch A decision register #{label}: pending approval #{key} must be null" unless approval[key].nil?
+        errors << "#{decision_register_label} #{label}: pending approval #{key} must be null" unless approval[key].nil?
       end
-      errors << "Batch A decision register #{label}: pending approval conditions must be empty" unless approval['conditions'] == []
+      errors << "#{decision_register_label} #{label}: pending approval conditions must be empty" unless approval['conditions'] == []
       if decision.is_a?(Hash) && decision['status'] != 'pending'
-        errors << "Batch A decision register #{label}: non-pending decision requires recorded approval"
+        errors << "#{decision_register_label} #{label}: non-pending decision requires recorded approval"
       end
       return
     end
 
     if !decision.is_a?(Hash) || decision['status'] == 'pending'
-      errors << "Batch A decision register #{label}: recorded approval cannot accompany a pending decision"
+      errors << "#{decision_register_label} #{label}: recorded approval cannot accompany a pending decision"
     end
-    errors << "Batch A decision register #{label}: approval identity must be a non-empty string" unless nonempty_string?(approval['identity'])
+    errors << "#{decision_register_label} #{label}: approval identity must be a non-empty string" unless nonempty_string?(approval['identity'])
     if nonempty_string?(approval['identity']) && approval['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
-      errors << "Batch A decision register #{label}: approval identity must not be a placeholder"
+      errors << "#{decision_register_label} #{label}: approval identity must not be a placeholder"
     end
-    errors << "Batch A decision register #{label}: approval scope must be a non-empty string" unless nonempty_string?(approval['scope'])
-    errors << "Batch A decision register #{label}: approval date must be YYYY-MM-DD" unless iso_date?(approval['date'])
-    errors << "Batch A decision register #{label}: approval reference must be a non-empty string" unless nonempty_string?(approval['reference'])
+    errors << "#{decision_register_label} #{label}: approval scope must be a non-empty string" unless nonempty_string?(approval['scope'])
+    errors << "#{decision_register_label} #{label}: approval date must be YYYY-MM-DD" unless iso_date?(approval['date'])
+    errors << "#{decision_register_label} #{label}: approval reference must be a non-empty string" unless nonempty_string?(approval['reference'])
     validate_governance_artifact(
       reference: approval['reference'],
       expected_sha256: approval['artifact_sha256'],
-      label: "Batch A decision register #{label}: approval",
+      label: "#{decision_register_label} #{label}: approval",
       requirement_id: label,
       subject: 'approval',
       record: approval,
@@ -690,33 +740,33 @@ class ParityGovernanceValidator
     )
   end
 
-  def validate_batch_a_g0_resolution(entry, label)
+  def validate_decision_g0_resolution(entry, label)
     decision = entry['decision']
     decision_status = decision['status'] if decision.is_a?(Hash)
     unless %w[approve defer].include?(decision_status)
-      errors << "Batch A decision register #{label}: G0 remains open until decision status is approve or defer"
+      errors << "#{decision_register_label} #{label}: G0 remains open until decision status is approve or defer"
       return
     end
 
     evidence = entry['evidence']
     unless evidence.is_a?(Array) && evidence.any? { |record| record.is_a?(Hash) && EVIDENCE_CLASSES[0...-1].include?(record['evidence_class']) }
-      errors << "Batch A decision register #{label}: G0-approved/deferred entry requires non-pending evidence"
+      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires non-pending evidence"
     end
     owner = entry['accountable_owner']
     unless owner.is_a?(Hash) && owner['appointment_status'] == 'appointed'
-      errors << "Batch A decision register #{label}: G0-approved/deferred entry requires an appointed accountable owner"
+      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires an appointed accountable owner"
     end
     dependencies = entry['appointment_dependencies']
     unless dependencies.is_a?(Array) && !dependencies.empty? && dependencies.all? { |dependency| dependency.is_a?(Hash) && dependency['status'] == 'appointed' }
-      errors << "Batch A decision register #{label}: G0-approved/deferred entry requires all appointment dependencies"
+      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires all appointment dependencies"
     end
     approval = entry['approval']
     unless approval.is_a?(Hash) && approval['status'] == 'recorded'
-      errors << "Batch A decision register #{label}: G0-approved/deferred entry requires a recorded approval"
+      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires a recorded approval"
     end
     scenarios = entry['synthetic_scenarios']
     unless scenarios.is_a?(Hash) && %w[normal denial_or_correction].all? { |name| scenarios[name].is_a?(Hash) && scenarios[name]['status'] == 'ready' }
-      errors << "Batch A decision register #{label}: G0-approved/deferred entry requires ready normal and denial/correction scenarios"
+      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires ready normal and denial/correction scenarios"
     end
   end
 
@@ -728,7 +778,7 @@ class ParityGovernanceValidator
     validate_closed_object(artifact, expected_keys, label)
     errors << "#{label} artifact_type must be #{GOVERNANCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == GOVERNANCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
-    errors << "#{label} register_id does not match the decision register" unless artifact['register_id'] == @batch_a_register_id
+    errors << "#{label} register_id does not match the decision register" unless artifact['register_id'] == @active_decision_context[:register_id]
     errors << "#{label} requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
     errors << "#{label} subject does not match #{subject}" unless artifact['subject'] == subject
     errors << "#{label} identity does not match the register" unless artifact['identity'] == record['identity']
@@ -753,14 +803,14 @@ class ParityGovernanceValidator
   end
 
   def validate_evidence_artifact(record, requirement_id, index)
-    label = "Batch A decision register #{requirement_id}: evidence[#{index}]"
+    label = "#{decision_register_label} #{requirement_id}: evidence[#{index}]"
     artifact = load_structured_json_artifact(record['artifact_reference'], record['artifact_sha256'], label)
     return unless artifact
 
     validate_closed_object(artifact, EVIDENCE_ARTIFACT_KEYS, label)
     errors << "#{label} artifact_type must be #{EVIDENCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == EVIDENCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
-    errors << "#{label} register_id does not match the decision register" unless artifact['register_id'] == @batch_a_register_id
+    errors << "#{label} register_id does not match the decision register" unless artifact['register_id'] == @active_decision_context[:register_id]
     errors << "#{label} requirement_id does not match #{requirement_id}" unless artifact['requirement_id'] == requirement_id
     %w[evidence_class date source reference interpreter confidence].each do |key|
       errors << "#{label} #{key} does not match the register" unless artifact[key] == record[key]
@@ -808,8 +858,8 @@ class ParityGovernanceValidator
       return
     end
 
-    register_directory = File.realpath(File.dirname(@decision_register_path))
-    evidence_root = File.expand_path(BATCH_A_EVIDENCE_DIRECTORY, register_directory)
+    register_directory = File.realpath(File.dirname(@active_decision_context[:register_path]))
+    evidence_root = File.expand_path(@active_decision_context[:evidence_directory], register_directory)
     path = File.expand_path(reference, register_directory)
     allowed_prefix = "#{evidence_root}#{File::SEPARATOR}"
     unless path.start_with?(allowed_prefix)
@@ -947,11 +997,16 @@ class ParityGovernanceValidator
     assignment_count = occurrences.values.map(&:length).inject(0, :+)
     errors << "batch manifest: expected exactly 268 assignments, got #{assignment_count}" if assignment_count != 268
 
-    batch_a_ids = batches['A'].is_a?(Array) ? batches['A'].sort : []
-    missing_from_a = EXPECTED_BATCH_A_IDS - batch_a_ids
-    unexpected_in_a = batch_a_ids - EXPECTED_BATCH_A_IDS
-    unless missing_from_a.empty? && unexpected_in_a.empty?
-      errors << "batch manifest: Batch A exact set mismatch; missing #{missing_from_a.sort.inspect}; unexpected #{unexpected_in_a.sort.inspect}"
+    {
+      'A' => EXPECTED_BATCH_A_IDS,
+      'B' => EXPECTED_BATCH_B_IDS
+    }.each do |batch, expected_exact_ids|
+      actual_ids = batches[batch].is_a?(Array) ? batches[batch].sort : []
+      missing_from_batch = expected_exact_ids - actual_ids
+      unexpected_in_batch = actual_ids - expected_exact_ids
+      unless missing_from_batch.empty? && unexpected_in_batch.empty?
+        errors << "batch manifest: Batch #{batch} exact set mismatch; missing #{missing_from_batch.sort.inspect}; unexpected #{unexpected_in_batch.sort.inspect}"
+      end
     end
   end
 
@@ -1445,6 +1500,7 @@ if $PROGRAM_NAME == __FILE__
     baseline: 'docs/new-simrs-rebuild/phase-0/PARITY_MATRIX_BASELINE.json',
     batch_manifest: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json',
     decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json',
+    batch_b_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -1455,6 +1511,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--baseline PATH', 'immutable matrix baseline JSON path') { |value| options[:baseline] = value }
     opts.on('--batch-manifest PATH', 'deterministic G0 batch manifest JSON path') { |value| options[:batch_manifest] = value }
     opts.on('--decision-register PATH', 'Batch A G0 decision register JSON path') { |value| options[:decision_register] = value }
+    opts.on('--batch-b-decision-register PATH', 'Batch B G0 decision register JSON path') { |value| options[:batch_b_decision_register] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -1471,12 +1528,14 @@ if $PROGRAM_NAME == __FILE__
     baseline_path: options[:baseline],
     batch_manifest_path: options[:batch_manifest],
     decision_register_path: options[:decision_register],
+    batch_b_decision_register_path: options[:batch_b_decision_register],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )
 
   if validator.validate
-    puts "Parity governance #{options[:mode]} validation passed: #{validator.rows.length} requirements, #{validator.batch_assignments.length} batch assignments, #{validator.decision_entries.length} Batch A decisions, #{validator.release_rows.length} release evidence rows"
+    batch_counts = validator.decision_entries_by_batch.sort.map { |batch, entries| "#{batch}=#{entries.length}" }.join(', ')
+    puts "Parity governance #{options[:mode]} validation passed: #{validator.rows.length} requirements, #{validator.batch_assignments.length} batch assignments, #{validator.decision_entries.length} governed decisions (#{batch_counts}), #{validator.release_rows.length} release evidence rows"
   else
     warn "Parity governance #{options[:mode]} validation failed (#{validator.errors.length} errors):"
     validator.errors.each { |error| warn "- #{error}" }

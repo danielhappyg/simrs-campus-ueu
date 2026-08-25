@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "register_id": "G0-BATCH-B-2026-08-25",
+  "batch": "B",
+  "register_status": "pending",
+  "data_boundary": "synthetic_only",
+  "external_integrations": "disabled",
+  "source_manifest": "docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json",
+  "evidence_directory": "G0_BATCH_B_DECISION_EVIDENCE_2026-08-25",
+  "purpose": "Fail-closed decision register for the exact eight Batch B patient-access and encounter-master requirements. Existing matrix dispositions remain unapproved candidates; these records do not claim evidence normalization, appointment, approval, implementation equivalence, or parity acceptance.",
+  "entries": [
+    {
+      "requirement_id": "PAR-ADM-009",
+      "batch": "B",
+      "legacy_menu": "Bangsal",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritatively reviewed ward, room and bed-master evidence is pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["registration", "inpatient", "facility_bed", "rmik", "finance_claims", "reporting", "security_privacy"],
+      "co_owners": ["product_delivery", "registration_admission", "facility_bed_management", "inpatient_clinical", "rmik", "finance_claims", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["bed_capacity", "bed_assignment", "transfer_and_discharge", "encounter_location_history", "room_charges", "occupancy_reports", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Create an active synthetic ward, room and bed hierarchy, then allocate an available bed during a synthetic inpatient admission.", "expected_results": ["The hierarchy, capacity and active status are consistent in registration and inpatient context.", "The allocation creates one attributable occupancy interval and reconciles with availability, charges and reports."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt duplicate bed coding, allocation of an occupied bed, and retirement of a location with an active synthetic stay; then correct an erroneous bed assignment.", "expected_results": ["Invalid, conflicting or unsafe state changes are denied without partial occupancy changes.", "Authorized correction preserves the original and corrected location history and reconciles downstream charge and occupancy totals."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve ward/room/bed hierarchy, capacity and status rules, allocation corrections, and all synthetic inpatient downstream effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical master-data disposition and bounded teaching scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Bed selection, admission and correction workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "facility_bed_management", "required_scope": "Ward, room, bed, capacity, availability and retirement rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Clinical location continuity and transfer/discharge consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Encounter location history and record attribution.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Class/location charge and claim-reference reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Occupancy, availability and historical control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Master-data change authorization and audit boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-010",
+      "batch": "B",
+      "legacy_menu": "Data Cara Bayar",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritatively reviewed payment-method master evidence is pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["registration", "patient_encounter", "finance", "claims", "cashier", "rmik", "reporting", "security_privacy"],
+      "co_owners": ["product_delivery", "registration_admission", "finance_claims", "cashier_revenue", "rmik", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["payer_selection", "eligibility_simulation", "tariff_context", "billing_routing", "claim_classification", "receipt_output", "financial_reports"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Activate a versioned synthetic payment method and select it during a permitted synthetic registration.", "expected_results": ["The encounter stores the canonical payment-method version and intended payer context.", "Billing, claim-simulation, receipt and report dimensions reconcile without contacting any live payer service."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Select an inactive or incompatible payment method, attempt a wrong-role master change, then correct the payment method before and after a simulated charge exists.", "expected_results": ["Inactive, incompatible and unauthorized actions are denied without partial financial state.", "Authorized correction follows owner-approved timing rules and preserves before-and-after billing, claim and audit reconciliation."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve payment-method codes, versions, encounter compatibility, correction timing and finance/claim/report consequences in simulation only.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical disposition and teaching boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Payer selection and encounter correction workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Payer mapping, charge, claim-simulation and correction effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "cashier_revenue", "required_scope": "Receipt, settlement and revenue-routing effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Encounter payer attribution and historical record meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Payer dimensions and financial/encounter control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Master change authorization, audit and external-service isolation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-033",
+      "batch": "B",
+      "legacy_menu": "Kelas",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritatively reviewed encounter or accommodation class evidence is pending." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["registration", "facility_bed", "inpatient", "finance", "claims", "cashier", "reporting"],
+      "co_owners": ["product_delivery", "registration_admission", "facility_bed_management", "inpatient_clinical", "finance_claims", "cashier_revenue", "reporting"],
+      "downstream_impacts": ["class_selection", "bed_eligibility", "tariff_context", "payer_entitlement", "class_change_history", "charges", "reports"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Activate a versioned synthetic encounter/accommodation class and use it for an eligible synthetic inpatient admission.", "expected_results": ["Class, eligible room/bed and payer context are consistent at admission.", "Tariff context, charges and class-based reports use the same canonical class version."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt an ineligible or inactive class selection, then correct or change class during an active synthetic stay.", "expected_results": ["Invalid selection is denied without changing bed or financial state.", "Authorized class correction/change records effective intervals and reconciles bed eligibility, charges, payer context and reporting."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve class codes, eligibility, effective dating, class-change correction and downstream bed/finance/claim/report behavior.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical class-master disposition and bounded scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Class selection and correction workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "facility_bed_management", "required_scope": "Class-to-room/bed eligibility and availability.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Class change effect on active inpatient context.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Tariff, payer entitlement, claim and correction consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "cashier_revenue", "required_scope": "Charge and settlement consequences of class changes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Class dimensions and effective-period control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-REG-001",
+      "batch": "B",
+      "legacy_menu": "Rawat Inap",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Observed-route and teaching-build material has not yet been normalized through an authoritative reviewed evidence artifact." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "inpatient", "facility_bed", "rmik", "finance_claims", "reporting", "security_privacy"],
+      "co_owners": ["product_delivery", "registration_admission", "patient_identity", "inpatient_clinical", "facility_bed_management", "rmik", "finance_claims", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["patient_and_episode_identity", "bed_occupancy", "clinical_handoff", "medical_record_context", "charges_and_claims", "census_reports", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Register a known synthetic patient for inpatient care using active unit, class, payer and available-bed masters, then hand off the created episode.", "expected_results": ["Exactly one inpatient episode and one occupancy interval are created with attributable registrar action.", "Patient, episode, location, clinical queue, RM, finance/claim simulation and census views reconcile to the same identifiers and state."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt duplicate active admission, occupied/ineligible bed allocation and wrong-role registration; then correct payer, class, location or cancel an erroneous admission under owner-approved timing rules.", "expected_results": ["Invalid or unauthorized attempts create no partial episode, occupancy or charge.", "Authorized correction/cancellation preserves prior values, releases or changes capacity exactly once, and reconciles clinical, RM, finance and report state."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve inpatient registration inputs, duplicate prevention, admission/correction/cancellation states, bed effects and every cross-domain handoff.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical inpatient registration disposition and teaching scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Registration, correction, cancellation and duplicate-prevention outcomes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "patient_identity", "required_scope": "Patient matching, identifiers and identity-correction boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Clinical handoff and episode-openability consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "facility_bed_management", "required_scope": "Bed eligibility, occupancy, transfer and release effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Episode/RM identity, documentation context and correction history.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Payer, charge and claim-simulation effects and reversals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Admission, occupancy and census control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Registrar authorization, sensitive data, audit and synthetic-only boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-REG-002",
+      "batch": "B",
+      "legacy_menu": "IGD",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Observed-route and teaching-build material has not yet been normalized through an authoritative reviewed evidence artifact." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "emergency_clinical", "rmik", "finance_claims", "reporting", "security_privacy"],
+      "co_owners": ["product_delivery", "registration_admission", "patient_identity", "emergency_clinical", "rmik", "finance_claims", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["emergency_episode_identity", "arrival_and_queue_state", "clinical_handoff", "medical_record_context", "charges_and_claims", "igd_register", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Register a known or provisionally identified synthetic patient for an ED episode, capture approved arrival context, and hand off to the synthetic ED queue.", "expected_results": ["Exactly one attributable ED episode is created without implying an unapproved clinical triage rule.", "Episode, queue, RM, finance/claim simulation and IGD register views reconcile to the same synthetic identifiers and state."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt duplicate open ED registration, invalid identity/payer input and wrong-role access; then correct identity or arrival context or cancel an erroneous synthetic episode.", "expected_results": ["Invalid and unauthorized attempts create no partial episode or downstream financial state.", "Authorized correction/cancellation preserves original values and reconciles queue, RM, finance/claim simulation and report state without inventing clinical disposition rules."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve ED registration identity, arrival, duplicate, correction and cancellation outcomes plus clinical/RM/finance/report handoffs.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical ED registration disposition and synthetic boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "ED registration, correction, cancellation and duplicate prevention.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "patient_identity", "required_scope": "Known/provisional identity and later correction rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "emergency_clinical", "required_scope": "ED handoff, queue/openability and clinical boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "ED episode/RM identity and correction history.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Payer, charge and claim-simulation consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "IGD register and encounter control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Registrar access, sensitive data, audit and synthetic-only controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-REG-003",
+      "batch": "B",
+      "legacy_menu": "Rawat Jalan",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Observed-route, automated-test and hosted-UAT material has not yet been normalized through an authoritative reviewed evidence artifact." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["patient_identity", "registration", "outpatient_clinical", "scheduling", "rmik", "finance_claims", "reporting", "security_privacy"],
+      "co_owners": ["product_delivery", "registration_admission", "patient_identity", "outpatient_clinical", "scheduling", "rmik", "finance_claims", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["outpatient_episode_identity", "clinic_and_schedule", "queue_state", "clinical_handoff", "medical_record_context", "charges_and_claims", "outpatient_register", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Register a known synthetic patient for an active outpatient clinic and schedule or approved walk-in path, then hand off the episode to the synthetic queue.", "expected_results": ["Exactly one attributable outpatient episode and queue item are created for the selected clinic/time context.", "Patient, schedule, queue, clinical, RM, finance/claim simulation and outpatient-register views reconcile to the same identifiers and state."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt duplicate clinic/day registration, inactive clinic or schedule selection and wrong-role access; then correct clinic, schedule, payer or cancel an erroneous episode.", "expected_results": ["Invalid and unauthorized attempts create no partial episode, queue item or charge.", "Authorized correction/cancellation preserves history and reconciles schedule capacity, queue, RM, finance/claim simulation and report state."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve outpatient identity, clinic/schedule, duplicate, correction and cancellation outcomes plus all downstream handoffs.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical outpatient registration disposition and teaching scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Outpatient registration, correction, cancellation and duplicate prevention.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "patient_identity", "required_scope": "Patient matching, identifier use and correction boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "outpatient_clinical", "required_scope": "Clinical handoff and episode-openability consequence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "scheduling", "required_scope": "Clinic/session availability, capacity and correction effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Outpatient episode/RM identity and correction history.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Payer, charge and claim-simulation consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Outpatient register and encounter control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Registrar access, sensitive data, audit and synthetic-only controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-REG-004",
+      "batch": "B",
+      "legacy_menu": "Display Admisi",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "The external legacy destination was not opened and no authoritatively reviewed business-display evidence is recorded." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["registration", "patient_flow", "security_privacy", "teaching_facilitation", "operations", "accessibility"],
+      "co_owners": ["product_delivery", "registration_admission", "patient_flow", "security_privacy_data", "teaching_facilitation", "operations", "accessibility"],
+      "downstream_impacts": ["queue_visibility", "identifier_minimization", "public_access_boundary", "stale_state", "display_availability", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Display a minimized synthetic admission/queue status set for an authorized teaching location using non-identifying display labels.", "expected_results": ["Only approved synthetic fields and current states are visible for the intended location.", "The display uses authenticated or otherwise owner-approved safe access, accessible rendering and traceable release/configuration provenance."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Attempt public or wrong-location access, inject a real-looking identifier, and correct a stale or cancelled synthetic queue item.", "expected_results": ["Unauthorized access and prohibited identifier content are blocked without disclosure.", "Correction removes or updates stale display state while preserving source encounter and audit history."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve the admission-display business need, minimized fields, audience/access, freshness/correction and explicit prohibition on insecure or real-data patterns.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Candidate replacement/exclusion decision and teaching scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Display state meaning and source encounter corrections.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "patient_flow", "required_scope": "Queue/admission visibility, location and freshness outcomes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Minimization, access, identifier and public-boundary controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "teaching_facilitation", "required_scope": "Classroom purpose and learner-facing display boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "operations", "required_scope": "Availability, configuration, release provenance and stale-state recovery.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "accessibility", "required_scope": "Accessible display and non-color-only status communication.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-REG-005",
+      "batch": "B",
+      "legacy_menu": "Rawat Jalan v2",
+      "evidence": [
+        { "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "The existing consolidation candidate has no authoritative reviewed evidence or owner approval in this register." }
+      ],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["registration", "outpatient_clinical", "patient_identity", "rmik", "finance_claims", "reporting", "security_privacy", "data_migration"],
+      "co_owners": ["product_delivery", "registration_admission", "outpatient_clinical", "patient_identity", "rmik", "finance_claims", "reporting", "security_privacy_data", "data_migration"],
+      "downstream_impacts": ["duplicate_workflow_retirement", "field_and_rule_mapping", "historical_trace", "queue_and_encounter_identity", "charges_and_claims", "reports", "deep_links"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map a representative synthetic Rawat Jalan v2 input and outcome to the proposed canonical outpatient registration path without creating a second episode.", "expected_results": ["Every required field, state and downstream effect has an explicit mapped, excluded or unresolved result for owner decision.", "If consolidation is approved later, one canonical episode, queue item and audit chain result with a retained migration trace."] },
+        "denial_or_correction": { "status": "draft", "data_class": "synthetic", "description": "Present an unmapped or conflicting v2 rule, use a retired v2 deep link, and correct an erroneous migration mapping.", "expected_results": ["Unmapped/conflicting behavior blocks consolidation approval and retired deep links cannot create an episode.", "Authorized mapping correction preserves original mapping evidence and reconciles patient, encounter, queue, RM, finance/claim and report outcomes."] }
+      },
+      "accountable_owner": { "identity": null, "required_scope": "Approve or reject consolidation only after complete v2-to-canonical field/rule/state mapping, exclusions, migration trace and downstream reconciliation.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical consolidation/retirement decision and residual-risk conditions.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "registration_admission", "required_scope": "Field, rule, state and correction equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "outpatient_clinical", "required_scope": "Clinical handoff and encounter-openability equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "patient_identity", "required_scope": "Patient matching and identifier migration boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Episode/RM identity, historical trace and correction evidence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Payer, charge and claim-simulation equivalence and reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Outpatient control totals before and after migration.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Access, deep-link retirement, audit and synthetic-data controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "data_migration", "required_scope": "Mapping completeness, idempotency, traceability and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    }
+  ]
+}
