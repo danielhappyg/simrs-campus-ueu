@@ -4,6 +4,8 @@ Status: product owner confirmed for now; RMIK Department named; remaining roles 
 Updated: 2026-08-21  
 Authority: DEC-001 (confirmed), DEC-011 (RMIK Department)
 
+Authority allocation: [G0 authority map](G0_AUTHORITY_MAP_2026-08-25.md) — **28 Daniel-led rows and 240 professional/domain-led rows**. “Led” identifies the valid decision lead; it does not remove required co-approval or mean that a candidate/interim owner has been appointed or that a row has been approved.
+
 ## How to use
 
 - Roles may be combined in a small campus team, but approvals must stay distinct.
@@ -57,6 +59,8 @@ Authority: DEC-001 (confirmed), DEC-011 (RMIK Department)
 ## Open appointment actions
 
 Ready-to-record appointment form: [`G0_OWNER_APPOINTMENT_PACK_2026-08-25.md`](G0_OWNER_APPOINTMENT_PACK_2026-08-25.md).
+
+Full row-count, co-approval and T0 → A–G sequencing: [`G0_AUTHORITY_MAP_2026-08-25.md`](G0_AUTHORITY_MAP_2026-08-25.md).
 
 1. Record a named contact person inside RMIK Department when available.
 2. Prefer a distinct UEU executive sponsor when institutional process allows.

@@ -1,0 +1,53 @@
+# G0 Batch A shared-controls proposal — 2026-08-25
+
+**Status:** PROPOSAL ONLY — NOT OWNER-APPROVED
+**Gate effect:** none; G0 remains open
+**Scope:** the exact 20 Batch A IDs in [`G0_PARITY_BATCH_MANIFEST.json`](G0_PARITY_BATCH_MANIFEST.json)
+
+This pack proposes decision-ready dispositions and acceptance evidence. It does not appoint an owner, change the parity matrix, prove implementation, or authorize real data, production devices, production electronic-signature certificates, or live BPJS/VClaim/SATUSEHAT endpoints. Owner candidates below must accept a recorded appointment under the [`G0 owner appointment pack`](G0_OWNER_APPOINTMENT_PACK_2026-08-25.md) before any proposal becomes a G0 decision.
+
+## Evidence boundary
+
+- `O-structural`: legacy menu/route/form or table structure was observed; no save, rule, permission, correction or downstream result was proven.
+- `I-related`: current rebuild code implements a related target capability; this is not proof of legacy equivalence or owner acceptance.
+- `U`: the legacy destination returned an error/forbidden response or could not be retrieved.
+- The local `docs/legacy-visual-field-capture/` working material is not yet a tracked or owner-approved source. Its structural observations must be normalized and retained before they are cited as canonical evidence.
+- The current Manajemen Data, IoT and Help routes in the rebuild are category placeholders, not accepted implementations of these rows.
+
+## Proposal table
+
+| PAR ID | Current evidence strength | Proposed disposition | Canonical target / explicit exclusion | Accountable-owner candidate — appointment not claimed | Dependencies | Required acceptance evidence |
+|---|---|---|---|---|---|---|
+| PAR-ADM-001 | O-structural + I-related RBAC | Consolidate → PAR-ADM-002 | Identity/RBAC administration; preserve group-to-role migration. | Daniel Happy Putra, interim security/product candidate | Users, roles, sessions, audit | Owner-approved group mapping; create/change/retire; least privilege; self-escalation denial; session revocation; before/after audit. |
+| PAR-ADM-002 | O-structural + I-related User/RBAC | Reproduce | Canonical workforce/user-account administration. | Daniel Happy Putra, interim security/product candidate | Workforce identity, RBAC, sessions | Create, disable/reactivate and recover; attributable role changes; duplicate/invalid input; wrong-role denial; audit and session revocation. |
+| PAR-ADM-003 | O-structural, rich metadata; privacy-gated | Replace | Scoped, versioned configuration registry. Exclude embedded secrets and direct live-integration actions. | Daniel Happy Putra, interim product/operations candidate; affected domain co-owners required | Every domain, secrets custody, integration hub | Classify every setting; effective dates/version/rollback; four-eyes approval for high-risk changes; secret isolation; sandbox/live guard; wrong-role and audit evidence. |
+| PAR-ADM-005 | O-structural + I-related code-defined navigation | Replace | Deployment-controlled capability/navigation registry; no unrestricted runtime menu editor. | Daniel Happy Putra, architecture/security candidate | RBAC, application shell, release process | Role-visible menu and matching server route; denied deep links; controlled change/review; rollback and audit evidence. |
+| PAR-ADM-006 | O-structural + I-related doctors/schedules | Reproduce | Workforce/clinician directory linked to accounts, units and schedules. | Daniel Happy Putra, data-steward candidate; named medical/HR delegate required | IAM, unit/clinic master, scheduling | Identifier/credential/status rules; create/edit/deactivate; duplicate detection; schedule/encounter effects; denial and audit evidence. |
+| PAR-ADM-008 | O-structural | Replace | Versioned document/signature-template registry. Production TTE certificate use remains excluded. | RMIK Department candidate custodian; named delegate and security co-owner required | Document/print service, signer identity, sandbox adapter | Template version/render/sign/revoke/reprint; signer attribution; historical reproducibility; denial/audit; proof no production certificate or endpoint. |
+| PAR-ADM-012 | O-structural | Replace | Controlled document/print-service configuration with safe fallback. | Daniel Happy Putra, operations candidate | Document service, approved printers, monitoring | Endpoint validation; print/reprint attribution; unavailable-printer path; wrong-role denial; configuration rollback and audit. |
+| PAR-ADM-013 | O-structural + I-related clinics/doctors/schedules | Reproduce | Organization, unit and clinic master. | Daniel Happy Putra, interim registration/data candidate; medical-admin co-owner required | Workforce, scheduling, encounters, reports | Hierarchy and code rules; activation/retirement; duplicate/invalid cases; routing/schedule/report reconciliation; denial/audit. |
+| PAR-ADM-022 | O-structural + I-related teaching vocabulary | Replace | Governed demographic terminology registry: occupation. | RMIK Department candidate data custodian; named delegate and Registration co-owner required | Patient identity, print, reports | Code/version mapping; merge/retire without historical corruption; invalid/wrong-role paths; patient, print and report consistency. |
+| PAR-ADM-023 | O-structural + I-related teaching vocabulary | Replace | Governed demographic terminology registry: education. | RMIK Department candidate data custodian; named delegate and Registration co-owner required | Patient identity, print, reports | Same master-data controls as PAR-ADM-022, including version and downstream reconciliation. |
+| PAR-ADM-024 | O-structural + I-related teaching vocabulary | Replace | Governed demographic terminology registry: ethnicity, with privacy controls. | RMIK Department candidate data custodian; named delegate, Registration and privacy co-owners required | Patient identity, privacy, reports | PAR-ADM-022 controls plus approved sensitivity, access, export and teaching-use rules. |
+| PAR-ADM-025 | O-structural + I-related teaching vocabulary | Replace | Governed demographic terminology registry: language/communication. | RMIK Department candidate data custodian; named delegate, Registration and accessibility co-owners required | Patient identity, communication support, reports | PAR-ADM-022 controls plus verified communication-support and accessible-display behavior. |
+| PAR-ADM-032 | O-structural + I-related Patient model; merge unbuilt | Reproduce | Patient identity stewardship with merge/unmerge and identifier-alias history. | RMIK Department candidate custodian; named delegate and Registration co-owner required | Patient identity, encounters, documents, billing/report references | Match/merge/unmerge; identifier collision and concurrency; all linked records preserved; wrong-role denial; immutable before/after audit and reconciliation. |
+| PAR-ADM-037 | U legacy route + I-related current audit subsystem | Replace | Immutable canonical audit viewer. | Daniel Happy Putra, interim security candidate; institutional reviewer still required | All mutations/denials, IAM, retention | Complete success/denial coverage; before/after integrity; filters/export authorization; retention; tamper resistance; no secret or unnecessary synthetic clinical detail. |
+| PAR-ADM-038 | O-structural | Replace | Electronic-signature adapter/audit view, sandbox-only. | Daniel Happy Putra, interim security candidate; RMIK co-owner required | Documents, signer identity, integration hub | Signature request/result/revocation correlation; redaction; retry/failure; denial/audit; explicit proof production certificates/endpoints are absent. |
+| PAR-ADM-040 | O-structural | Replace | Canonical integration message, retry and reconciliation log. | Daniel Happy Putra, interim integration/security candidate | Integration hub, correlation/idempotency, monitoring | Immutable/redacted message history; environment label; timeout/retry/dead-letter/reconcile paths; wrong-role denial; no secrets or unnecessary data. |
+| PAR-ADM-044 | U: observed route ended at forbidden response | Replace (sandbox only) | One non-transmitting SatuSehat sandbox log with care-setting filter. Live endpoint excluded. | Daniel Happy Putra, interim integration/security candidate; RMIK co-owner required | Sandbox adapter, PAR-ADM-040, audit | Sandbox provenance and payload redaction; success/failure/retry/reconcile; role denial; no production credentials, identifiers or transmission. |
+| PAR-ADM-045 | U: observed route ended at forbidden response | Consolidate → PAR-ADM-044 | Same canonical sandbox log; retain inpatient filter and migration trace, not a second log product. | Daniel Happy Putra, interim integration/security candidate; RMIK co-owner required | PAR-ADM-044 | Owner-approved RI/RJ mapping; no orphaned history; filter correctness; same sandbox/redaction/denial evidence as PAR-ADM-044. |
+| PAR-IOT-001 | U: legacy route produced an error page | Replace (simulation only) | Synthetic Device/IoT temperature gateway. Production device connectivity excluded. | Daniel Happy Putra, interim operations/security candidate; affected cold-chain owner required | Device master, locations, monitoring, audit | Synthetic device/readings provenance; threshold/alarm/acknowledgement; stale/outage/invalid-reading paths; RBAC/audit; explicit no-live-device proof. |
+| PAR-HLP-001 | U: legacy PDF navigation aborted | Replace | Versioned in-app Indonesian manuals tied to enabled roles and release SHA. | RMIK Department candidate teaching owner; named delegate and Daniel Happy Putra operations co-owner required | Release/version, enabled workflows, accessibility | Role-task coverage; working navigation/download/print; accessible rendering; release/version provenance; walkthrough with facilitator and affected users. |
+
+## Decision requirements
+
+For each row, record `approve`, `revise`, `defer`, or `reject`, the accountable owner identity and authority, date, decision reference, affected co-owners and conditions. Only an approved decision may update the [`parity requirements matrix`](../PARITY_REQUIREMENTS_MATRIX.md). A proposal, code path, automated test or deployed placeholder cannot move a row to `Specified` or `Accepted` by itself.
+
+## References
+
+- [`G0 parity-control baseline`](G0_PARITY_CONTROL_BASELINE_2026-08-25.md)
+- [`G0 deterministic batch manifest`](G0_PARITY_BATCH_MANIFEST.json)
+- [`Owners and RACI`](OWNERS_AND_RACI.md)
+- [`Reference architecture`](../REFERENCE_ARCHITECTURE.md)
+- [`Requirements governance`](../REQUIREMENTS_GOVERNANCE.md)
+- [`Vendor full menu taxonomy`](../../vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md)
