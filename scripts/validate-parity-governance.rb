@@ -56,18 +56,53 @@ class ParityGovernanceValidator
     'release_evidence_id'
   ].freeze
 
+  EXPECTED_BATCH_COUNTS = {
+    'A' => 20,
+    'B' => 8,
+    'C' => 19,
+    'D' => 19,
+    'E' => 48,
+    'F' => 34,
+    'G' => 120
+  }.freeze
+
+  EXPECTED_BATCH_A_IDS = %w[
+    PAR-ADM-001
+    PAR-ADM-002
+    PAR-ADM-003
+    PAR-ADM-005
+    PAR-ADM-006
+    PAR-ADM-008
+    PAR-ADM-012
+    PAR-ADM-013
+    PAR-ADM-022
+    PAR-ADM-023
+    PAR-ADM-024
+    PAR-ADM-025
+    PAR-ADM-032
+    PAR-ADM-037
+    PAR-ADM-038
+    PAR-ADM-040
+    PAR-ADM-044
+    PAR-ADM-045
+    PAR-HLP-001
+    PAR-IOT-001
+  ].freeze
+
   PAR_ID_PATTERN = /\APAR-[A-Z0-9]+-\d{3}\z/.freeze
   REL_ID_PATTERN = /\AREL-(\d{8})-(\d{2})\z/.freeze
   PLACEHOLDER_OWNER_PATTERN = /(?:\bTBD\b|\bunknown\b|\bunassigned\b|\bpending\b|to[ _-]?be[ _-]?assigned|replace[ _-]?with|\bN\/?A\b)/i.freeze
   EVIDENCE_PLACEHOLDER_PATTERN = /(?:\bpending\b|not (?:committed|pushed|deployed|verified)|filled at commit|updated after push|\bunknown\b|\bTBD\b|\bN\/?A\b)/i.freeze
 
-  attr_reader :errors, :rows, :release_rows
+  attr_reader :batch_assignments, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
+    @batch_manifest_path = File.expand_path(batch_manifest_path)
     @mode = mode
+    @batch_assignments = {}
     @errors = []
     @rows = []
     @release_rows = []
@@ -80,6 +115,7 @@ class ParityGovernanceValidator
     end
 
     baseline = load_baseline
+    manifest = load_batch_manifest
     parse_matrix
     parse_release_index
 
@@ -87,6 +123,7 @@ class ParityGovernanceValidator
     validate_matrix_shape_and_cells
     validate_exact_id_set(baseline)
     validate_categories_and_prefixes(baseline)
+    validate_batch_manifest(baseline, manifest)
     validate_vocabularies
     validate_owners
     validate_consolidations
@@ -159,6 +196,90 @@ class ParityGovernanceValidator
 
   def empty_baseline
     { 'expected' => {} }
+  end
+
+  def load_batch_manifest
+    unless File.file?(@batch_manifest_path)
+      errors << "batch manifest: file not found: #{@batch_manifest_path}"
+      return {}
+    end
+
+    JSON.parse(File.read(@batch_manifest_path))
+  rescue JSON::ParserError => e
+    errors << "batch manifest: invalid JSON: #{e.message}"
+    {}
+  rescue SystemCallError => e
+    errors << "batch manifest: cannot read file: #{e.message}"
+    {}
+  end
+
+  def validate_batch_manifest(baseline, manifest)
+    unless manifest['schema_version'] == 1
+      errors << 'batch manifest: schema_version must be 1'
+    end
+    unless manifest['dependency_order'] == EXPECTED_BATCH_COUNTS.keys
+      errors << "batch manifest: dependency_order must be #{EXPECTED_BATCH_COUNTS.keys.inspect}"
+    end
+    unless manifest['expected_counts'] == EXPECTED_BATCH_COUNTS
+      errors << "batch manifest: expected_counts must be #{EXPECTED_BATCH_COUNTS.inspect}"
+    end
+
+    batches = manifest['batches']
+    unless batches.is_a?(Hash)
+      errors << 'batch manifest: batches must be an object'
+      return
+    end
+
+    actual_batch_keys = batches.keys.sort
+    expected_batch_keys = EXPECTED_BATCH_COUNTS.keys
+    missing_batches = expected_batch_keys - actual_batch_keys
+    unexpected_batches = actual_batch_keys - expected_batch_keys
+    errors << "batch manifest: missing batches: #{missing_batches.join(', ')}" unless missing_batches.empty?
+    errors << "batch manifest: invalid batches: #{unexpected_batches.join(', ')}" unless unexpected_batches.empty?
+
+    occurrences = Hash.new { |hash, key| hash[key] = [] }
+    expected_batch_keys.each do |batch|
+      ids = batches[batch]
+      unless ids.is_a?(Array) && ids.all? { |id| id.is_a?(String) }
+        errors << "batch manifest: batch #{batch} must be an array of requirement IDs"
+        next
+      end
+
+      errors << "batch manifest: batch #{batch} IDs must be sorted" if ids != ids.sort
+      if ids.length != EXPECTED_BATCH_COUNTS[batch]
+        errors << "batch manifest: batch #{batch} must contain exactly #{EXPECTED_BATCH_COUNTS[batch]} IDs, got #{ids.length}"
+      end
+
+      ids.each do |id|
+        occurrences[id] << batch
+        @batch_assignments[id] = batch unless @batch_assignments.key?(id)
+      end
+    end
+
+    all_ids = occurrences.keys
+    invalid_ids = all_ids.reject { |id| id.match?(PAR_ID_PATTERN) }.sort
+    errors << "batch manifest: invalid requirement IDs: #{invalid_ids.join(', ')}" unless invalid_ids.empty?
+
+    duplicates = occurrences.select { |_id, assigned_batches| assigned_batches.length > 1 }
+    unless duplicates.empty?
+      rendered = duplicates.keys.sort.map { |id| "#{id} (#{duplicates[id].join(', ')})" }
+      errors << "batch manifest: requirement IDs assigned more than once: #{rendered.join('; ')}"
+    end
+
+    expected_ids = baseline['expected'].keys
+    missing = expected_ids - all_ids
+    unexpected = all_ids - expected_ids
+    errors << "batch manifest: missing baseline requirement IDs: #{missing.sort.join(', ')}" unless missing.empty?
+    errors << "batch manifest: unexpected requirement IDs: #{unexpected.sort.join(', ')}" unless unexpected.empty?
+    assignment_count = occurrences.values.map(&:length).inject(0, :+)
+    errors << "batch manifest: expected exactly 268 assignments, got #{assignment_count}" if assignment_count != 268
+
+    batch_a_ids = batches['A'].is_a?(Array) ? batches['A'].sort : []
+    missing_from_a = EXPECTED_BATCH_A_IDS - batch_a_ids
+    unexpected_in_a = batch_a_ids - EXPECTED_BATCH_A_IDS
+    unless missing_from_a.empty? && unexpected_in_a.empty?
+      errors << "batch manifest: Batch A exact set mismatch; missing #{missing_from_a.sort.inspect}; unexpected #{unexpected_in_a.sort.inspect}"
+    end
   end
 
   def parse_matrix
@@ -649,6 +770,7 @@ if $PROGRAM_NAME == __FILE__
     mode: 'integrity',
     matrix: 'docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md',
     baseline: 'docs/new-simrs-rebuild/phase-0/PARITY_MATRIX_BASELINE.json',
+    batch_manifest: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -657,6 +779,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--mode MODE', %w[integrity g0], 'integrity (default) or g0') { |value| options[:mode] = value }
     opts.on('--matrix PATH', 'parity matrix Markdown path') { |value| options[:matrix] = value }
     opts.on('--baseline PATH', 'immutable matrix baseline JSON path') { |value| options[:baseline] = value }
+    opts.on('--batch-manifest PATH', 'deterministic G0 batch manifest JSON path') { |value| options[:batch_manifest] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -671,12 +794,13 @@ if $PROGRAM_NAME == __FILE__
   validator = ParityGovernanceValidator.new(
     matrix_path: options[:matrix],
     baseline_path: options[:baseline],
+    batch_manifest_path: options[:batch_manifest],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )
 
   if validator.validate
-    puts "Parity governance #{options[:mode]} validation passed: #{validator.rows.length} requirements, #{validator.release_rows.length} release evidence rows"
+    puts "Parity governance #{options[:mode]} validation passed: #{validator.rows.length} requirements, #{validator.batch_assignments.length} batch assignments, #{validator.release_rows.length} release evidence rows"
   else
     warn "Parity governance #{options[:mode]} validation failed (#{validator.errors.length} errors):"
     validator.errors.each { |error| warn "- #{error}" }

@@ -10,15 +10,18 @@ class ParityGovernanceValidatorTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   SOURCE_MATRIX = File.join(ROOT, 'docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md')
   SOURCE_BASELINE = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/PARITY_MATRIX_BASELINE.json')
+  SOURCE_BATCH_MANIFEST = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json')
   SOURCE_RELEASE_INDEX = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md')
 
   def setup
     @tmpdir = Dir.mktmpdir('parity-governance')
     @matrix = File.join(@tmpdir, 'matrix.md')
     @baseline = File.join(@tmpdir, 'baseline.json')
+    @batch_manifest = File.join(@tmpdir, 'batch-manifest.json')
     @release_index = File.join(@tmpdir, 'release-index.md')
     FileUtils.cp(SOURCE_MATRIX, @matrix)
     FileUtils.cp(SOURCE_BASELINE, @baseline)
+    FileUtils.cp(SOURCE_BATCH_MANIFEST, @batch_manifest)
     FileUtils.cp(SOURCE_RELEASE_INDEX, @release_index)
   end
 
@@ -31,6 +34,63 @@ class ParityGovernanceValidatorTest < Minitest::Test
 
     assert validator.validate, validator.errors.join("\n")
     assert_equal 268, validator.rows.length
+    assert_equal 268, validator.batch_assignments.length
+  end
+
+  def test_batch_manifest_rejects_missing_and_duplicate_assignments
+    mutate_manifest do |manifest|
+      manifest['batches']['B'].delete('PAR-REG-001')
+      manifest['batches']['B'] << 'PAR-REG-002'
+      manifest['batches']['B'].sort!
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'requirement IDs assigned more than once: PAR-REG-002 (B, B)'
+    assert_error validator, 'missing baseline requirement IDs: PAR-REG-001'
+  end
+
+  def test_batch_manifest_rejects_invalid_batch_and_wrong_count
+    mutate_manifest do |manifest|
+      manifest['batches']['H'] = manifest['batches'].delete('G')
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'missing batches: G'
+    assert_error validator, 'invalid batches: H'
+  end
+
+  def test_batch_manifest_rejects_wrong_exact_count
+    mutate_manifest do |manifest|
+      manifest['batches']['G'].pop
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'batch G must contain exactly 120 IDs, got 119'
+    assert_error validator, 'expected exactly 268 assignments, got 267'
+  end
+
+  def test_batch_manifest_enforces_batch_a_exact_set_even_when_counts_and_coverage_match
+    mutate_manifest do |manifest|
+      manifest['batches']['A'].delete('PAR-ADM-001')
+      manifest['batches']['A'] << 'PAR-REG-001'
+      manifest['batches']['B'].delete('PAR-REG-001')
+      manifest['batches']['B'] << 'PAR-ADM-001'
+      manifest['batches']['A'].sort!
+      manifest['batches']['B'].sort!
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch A exact set mismatch'
+    assert_error validator, 'missing ["PAR-ADM-001"]'
+    assert_error validator, 'unexpected ["PAR-REG-001"]'
   end
 
   def test_exact_id_set_rejects_missing_unexpected_and_duplicate_ids
@@ -189,6 +249,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     ParityGovernanceValidator.new(
       matrix_path: SOURCE_MATRIX,
       baseline_path: SOURCE_BASELINE,
+      batch_manifest_path: SOURCE_BATCH_MANIFEST,
       release_index_path: SOURCE_RELEASE_INDEX,
       mode: 'integrity'
     )
@@ -198,6 +259,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     ParityGovernanceValidator.new(
       matrix_path: @matrix,
       baseline_path: @baseline,
+      batch_manifest_path: @batch_manifest,
       release_index_path: @release_index,
       mode: mode
     )
@@ -215,6 +277,12 @@ class ParityGovernanceValidatorTest < Minitest::Test
     yield cells
     lines[index] = "| #{cells.join(' | ')} |\n"
     File.write(@matrix, lines.join)
+  end
+
+  def mutate_manifest
+    manifest = JSON.parse(File.read(@batch_manifest))
+    yield manifest
+    File.write(@batch_manifest, JSON.pretty_generate(manifest) + "\n")
   end
 
   def prepare_valid_accepted_fixture

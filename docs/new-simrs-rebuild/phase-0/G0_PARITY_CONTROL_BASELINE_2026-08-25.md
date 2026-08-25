@@ -14,6 +14,8 @@ The canonical matrix and vendor menu taxonomy reconcile one-for-one:
 - every row has the declared ten semantic columns; and
 - category, menu order, identifier family, and assessed taxonomy agree.
 
+The deterministic [`G0 parity batch manifest`](G0_PARITY_BATCH_MANIFEST.json) additionally assigns every canonical PAR ID to exactly one dependency batch and enforces the counts `A=20`, `B=8`, `C=19`, `D=19`, `E=48`, `F=34`, and `G=120`. This is sequencing metadata, not an owner-approved disposition.
+
 This proves inventory integrity only. It does not prove business behaviour, owner approval, implementation, or parity acceptance.
 
 ## Decision-readiness snapshot
@@ -45,11 +47,11 @@ Every disposition therefore requires either:
 
 ## Dependency-safe decision batches
 
-Every requirement belongs to exactly one batch.
+Every requirement belongs to exactly one batch as enumerated in [`G0_PARITY_BATCH_MANIFEST.json`](G0_PARITY_BATCH_MANIFEST.json). The category `Manajemen Data` is not synonymous with Batch A: 18 ADM rows plus IOT-001 and HLP-001 form Batch A, while the other 28 ADM masters are assigned to their dependent B–G domains.
 
 | Batch | Requirement groups | Count | Primary decision outcome |
 | --- | --- | ---: | --- |
-| A. Shared governance and controls | ADM controls/identity/audit/configuration, IOT-001, HLP-001 | 20 | Canonical identity, RBAC, audit, configuration, integration-log, documentation and safe IoT boundaries |
+| A. Shared governance and controls | Exact 20-ID set in the manifest: 18 ADM controls/identity/audit/configuration rows, IOT-001 and HLP-001 | 20 | Canonical identity, RBAC, audit, configuration, integration-log, documentation and safe IoT boundaries; proposals are in [`G0_BATCH_A_SHARED_CONTROLS_PROPOSAL_2026-08-25.md`](G0_BATCH_A_SHARED_CONTROLS_PROPOSAL_2026-08-25.md) |
 | B. Patient access and encounter masters | REG-001–005; ward/class/payer encounter masters | 8 | Canonical RJ/IGD/RI registration, correction, cancellation, queue and encounter outcomes |
 | C. Core care and record completion | Core CLN/RMIK documentation, completeness, filing and EMR masters | 19 | One clinical-documentation and RM-completion model replacing parallel generations |
 | D. Diagnostics, allied care, blood and surgery | CLN-006–018/020, ORP-001, diagnostic/surgery masters | 19 | Order, service, specimen, result, verification, correction, release, acknowledgement and surgery boundaries |
@@ -104,6 +106,8 @@ G0 does not require all 268 capabilities to be implemented. Implementation and G
 ## References
 
 - `docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md`
+- `docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json`
+- `docs/new-simrs-rebuild/phase-0/G0_BATCH_A_SHARED_CONTROLS_PROPOSAL_2026-08-25.md`
 - `docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md`
 - `docs/vendor-simrs-assessment-2026-08-21/FULL_SIMRS_WORKFLOW_MODEL.md`
 - `docs/new-simrs-rebuild/DELIVERY_ROADMAP.md`

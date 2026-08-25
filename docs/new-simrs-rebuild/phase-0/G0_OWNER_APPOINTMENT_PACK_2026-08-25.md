@@ -10,6 +10,10 @@ The parity register currently has 252 rows whose Business owner field still cont
 
 A domain owner approves intended workflow outcomes and acceptance criteria within their authority. Cross-domain consequences require co-approval from the receiving owner; for example, a Clinical owner cannot alone approve stock valuation or financial posting.
 
+The [G0 authority map](G0_AUTHORITY_MAP_2026-08-25.md) assigns every row to a decision batch: **28 rows are Daniel-led** through shared-control and patient/encounter responsibilities, while **240 rows require a professional/domain lead**. Daniel-led is not Daniel-only: affected clinical, RMIK, stock, financial, privacy or integration consequences still require their owners.
+
+Appointments and approvals are separate events. A blank candidate, an interim cover, or an organizational owner without a delegate must not be represented as a named appointment. Naming an owner also does not approve any matrix disposition.
+
 ## Appointment register
 
 | Authority domain | Minimum decision scope | Current authority | Named person/unit | Appointment evidence/date | Status |
@@ -59,15 +63,29 @@ Use the recorded appointments with:
 
 ## Appointment-to-batch mapping
 
-| G0 batch | Lead owners | Required co-owners |
-| --- | --- | --- |
-| A Shared controls | Product, security/data, operations | All affected role owners |
-| B Patient/encounter | Registration/admission | Clinical, RMIK, finance/payer |
-| C Core care/RMIK | Clinical, Nursing, RMIK | Registration, Laboratory, security/data |
-| D Diagnostics/allied/surgery | Laboratory/Radiology/allied/surgery | Clinical, RMIK, Pharmacy/GF, Finance |
-| E Pharmacy/warehouse | Pharmacy and GF | Clinical, Finance, security/data |
-| F Claims/BPJS/revenue | RMIK/coding, claims, Finance | Clinical, Pharmacy/GF, security/data |
-| G Reports/public health | RMIK/report owner plus each source-domain owner | Security/privacy, product sponsor |
+| G0 batch | Rows | Lead owners | Required co-owners |
+| --- | ---: | --- | --- |
+| A Shared controls | 20 | Product, security/data, operations | All affected role/teaching owners; sponsor for material risk or exclusion |
+| B Patient/encounter | 8 | Registration/admission | Clinical, RMIK, finance/payer; security/data for identity/access |
+| C Core care/RMIK | 19 | Clinical, Nursing, RMIK | Product, Registration, Laboratory, security/data |
+| D Diagnostics/allied/surgery | 19 | Laboratory/Radiology/allied/surgery | Product, Clinical, RMIK, Pharmacy/GF, Finance; security/data where applicable |
+| E Pharmacy/warehouse | 48 | Pharmacy and GF | Product, Clinical, Finance, security/data |
+| F Claims/BPJS/revenue | 34 | RMIK/coding, claims, Finance | Product, Clinical, Pharmacy/GF, security/data |
+| G Reports/public health | 120 | RMIK/report owner plus each source-domain owner | Product sponsor and security/privacy |
+| **Total** | **268** | **28 Daniel-led / 240 professional-domain-led** | Cross-domain effects always retain their owner |
+
+## Practical appointment order
+
+1. **T0:** record the Outpatient Clinical owner, Laboratory owner and named RMIK delegate, then use the appointments for the focused evidence review and decisions.
+2. **A:** confirm product/operations and security/data authority plus affected role owners.
+3. **B:** confirm Registration/admission and its Clinical/RMIK/finance/security co-owners.
+4. **C:** record Clinical, Nursing and RMIK authority for the core care/RM model.
+5. **D:** add Laboratory, Radiology, allied, blood and surgery/service authorities.
+6. **E:** add Pharmacy and GF/warehouse authorities.
+7. **F:** add claims/BPJS-simulation and Finance/cashier authorities.
+8. **G:** name the reporting coordinator and source-domain owner for each report.
+
+Appointments may be collected in parallel, but parity decisions follow `A → B → C → D → E → F → G`. See the authority map for limits and minimum approval rules.
 
 ## Product-owner action record
 
@@ -83,8 +101,9 @@ Use the recorded appointments with:
 
 ## References
 
-- `docs/new-simrs-rebuild/phase-0/OWNERS_AND_RACI.md`
-- `docs/new-simrs-rebuild/phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md`
-- `docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_RM_OWNER_DECISION_PACK_2026-08-25.md`
-- `docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md`
-- `docs/new-simrs-rebuild/DELIVERY_ROADMAP.md`
+- [G0 authority map](G0_AUTHORITY_MAP_2026-08-25.md)
+- [Owners and RACI](OWNERS_AND_RACI.md)
+- [G0 parity-control baseline](G0_PARITY_CONTROL_BASELINE_2026-08-25.md)
+- [Structured RJ/RM owner decision pack](../phase-1/STRUCTURED_RJ_RM_OWNER_DECISION_PACK_2026-08-25.md)
+- [Parity requirements matrix](../PARITY_REQUIREMENTS_MATRIX.md)
+- [Delivery roadmap](../DELIVERY_ROADMAP.md)
