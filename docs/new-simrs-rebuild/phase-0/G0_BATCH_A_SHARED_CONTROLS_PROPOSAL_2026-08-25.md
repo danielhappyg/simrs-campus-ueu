@@ -3,6 +3,9 @@
 **Status:** PROPOSAL ONLY — NOT OWNER-APPROVED
 **Gate effect:** none; G0 remains open
 **Scope:** the exact 20 Batch A IDs in [`G0_PARITY_BATCH_MANIFEST.json`](G0_PARITY_BATCH_MANIFEST.json)
+**Machine-verifiable state:** [`G0_BATCH_A_DECISION_REGISTER_2026-08-25.json`](G0_BATCH_A_DECISION_REGISTER_2026-08-25.json); every current decision, appointment and approval remains explicitly pending
+
+Future non-pending evidence, appointments and approvals must reference their exact closed-schema JSON attestation under `G0_BATCH_A_DECISION_EVIDENCE_2026-08-25/`, with a matching SHA-256 and independent reviewer verification. Each `co_owners` authority must have exactly one appointment dependency, and consolidation decisions must remain acyclic across the register and matrix.
 
 This pack proposes decision-ready dispositions and acceptance evidence. It does not appoint an owner, change the parity matrix, prove implementation, or authorize real data, production devices, production electronic-signature certificates, or live BPJS/VClaim/SATUSEHAT endpoints. Owner candidates below must accept a recorded appointment under the [`G0 owner appointment pack`](G0_OWNER_APPOINTMENT_PACK_2026-08-25.md) before any proposal becomes a G0 decision.
 
@@ -47,6 +50,7 @@ For each row, record `approve`, `revise`, `defer`, or `reject`, the accountable 
 
 - [`G0 parity-control baseline`](G0_PARITY_CONTROL_BASELINE_2026-08-25.md)
 - [`G0 deterministic batch manifest`](G0_PARITY_BATCH_MANIFEST.json)
+- [`G0 Batch A decision register`](G0_BATCH_A_DECISION_REGISTER_2026-08-25.json)
 - [`Owners and RACI`](OWNERS_AND_RACI.md)
 - [`Reference architecture`](../REFERENCE_ARCHITECTURE.md)
 - [`Requirements governance`](../REQUIREMENTS_GOVERNANCE.md)
