@@ -14,9 +14,9 @@ The hosted attribution manifest is also not eligible for generation yet. One leg
 
 | Layer | Read-only observation |
 | --- | --- |
-| Repository | `main` and `origin/main` matched at `d1d72f989332ad47cad8344b544d92049f48df35` |
+| Repository | `main` and `origin/main` matched at reviewed merge SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a` |
 | Public Vercel alias | `simrs-campus-ueu-demo.vercel.app` still targets production deployment `dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q` from `42ab482de577fe38cef539a74f0b749d64485b19` |
-| Current-main Vercel build | Preview deployment `dpl_8hX4Tcmx5QwXrB67iBkXQkvUAmwc` is `READY` from `d1d72f989332ad47cad8344b544d92049f48df35`; it is not the production target |
+| Current-main Vercel build | Preview deployment `dpl_9apx2fec75XuF937ueRcRLtyR7SH` is `READY` from exact SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a`; it is not the production target and application routes remain protected by Vercel SSO until authenticated runtime proof is collected |
 | Supabase project | `simrs-campus-ueu-demo`, `ACTIVE_HEALTHY`, PostgreSQL 17.6, Singapore region |
 | Supabase plan | Free; the project has no database branches and does not receive the automatic daily backups documented for paid plans |
 | Private schema | `laravel`; 31 tables were listed |
@@ -40,7 +40,7 @@ The first three are not all genuinely unapplied:
 - `laravel.patients.marital_status` already exists as nullable `character varying` with no default. It was recorded in Supabase's platform migration history, not Laravel's ledger.
 - all 13 sequence defaults targeted by the qualifier migration resolve to same-owner sequences in the private `laravel` schema, with the expected ID ownership and default dependency. The qualifier was also recorded only in Supabase's platform migration history.
 
-Therefore `php artisan migrate --force` at `d1d72f9` is not a safe first write: it can attempt to create the existing `audit_events` table and add the existing `marital_status` column before reaching the three intended 25 August migrations. The reviewed source migrations now provide fail-closed adoption behavior with automated cross-engine coverage. The foundation and marital-status migrations accept only the observed compatible contracts, while the sequence qualifier proves all 13 ownership/dependency contracts before replaying the same qualified defaults. PostgreSQL rollback for the qualifier is explicitly forward-only. A manual ledger insert remains prohibited.
+Therefore an unguarded `php artisan migrate --force` from a pre-adoption checkout is not a safe first write: it can attempt to create the existing `audit_events` table and add the existing `marital_status` column before reaching the three intended 25 August migrations. Exact SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a` contains the reviewed fail-closed adoption behavior with automated cross-engine coverage. The foundation and marital-status migrations accept only the observed compatible contracts, while the sequence qualifier proves all 13 ownership/dependency contracts before replaying the same qualified defaults. PostgreSQL rollback for the qualifier is explicitly forward-only. A manual ledger insert remains prohibited.
 
 ## Audit-attribution state
 
@@ -67,16 +67,19 @@ The advisory must remain visible in release evidence, but the observed grants do
 
 ## Mandatory forward rollout graph
 
-1. Merge reviewed migration-adoption safety and shared Vercel maintenance-driver changes; record the new exact release SHA and rerun the full multi-engine gate.
-2. Obtain short-lived direct database access without copying a persistent database password into chat or Git.
-3. Create an encrypted logical backup of the retained synthetic database and prove it can be read or restored in an isolated target. Supabase Free has no automatic daily restore point to substitute for this step.
-4. Activate the database-backed Laravel maintenance marker, promote the exact release in drained mode, verify `/up` is 200 and `/login` is 503, then wait longer than Vercel's configured 60-second function maximum and prove no old writer remains in flight.
-5. From the exact reviewed checkout, run `migrate:status`; require exactly the six reviewed pending names recorded above: two safe historical adoptions, one verified idempotent qualifier replay, and the three 25 August migrations.
-6. Run `migrate --force` once. The six names should be recorded together in the next batch. Do not retry an ambiguous result automatically.
-7. Verify the new tables, triggers, nullable attribution columns, index, restrictive same-schema foreign key, Laravel ledger, and application/Supabase migration fingerprints.
-8. Run `audit:attribution:preflight --json` once and retain only the value-free summary. The expected blocker means manifest generation remains prohibited pending provenance review.
-9. Confirm that the already promoted drained deployment's full source SHA exactly matches the migrated release, then remove the shared maintenance marker and perform public, permitted-role, denied-role, and synthetic-only smoke checks.
-10. Keep writers open only after release SHA, schema, audit persistence, and rollback/forward-recovery evidence reconcile; reactivate the shared marker on any failed gate.
+1. Use a separate clean checkout pinned to exact SHA `3a9ad49c67d1c6c56831eb39afa7e5df8501190a`; record its green multi-engine CI and READY Preview deployment evidence without staging user-owned untracked paths.
+2. Obtain authenticated Preview runtime proof for `/up` and application boot without attaching Production database credentials to Preview.
+3. Refresh the Production environment-key review and read-only hosted inventory; require the same database identity, schema/audit counts, structural contracts, and exactly the six reviewed pending migration names recorded above.
+4. Record action-time authorization, named operator/reviewer, short-lived direct database access, encrypted backup destination, and restore target without copying a persistent database password into chat or Git.
+5. Create an encrypted logical backup of the retained synthetic database, checksum it, and prove it can be restored and queried in an isolated PostgreSQL 17 target. Supabase Free has no automatic daily restore point to substitute for this step.
+6. Activate the database-backed Laravel maintenance marker, promote the exact release in drained mode, record the resulting Production deployment ID and source SHA, verify `/up` is 200 and `/login` is 503, then wait longer than Vercel's configured 60-second function maximum plus an observation margin and prove no old writer remains in flight.
+7. While the shared marker remains active, take a final encrypted logical backup after the completed writer drain, record its checksum, and independently restore/query that final backup in an isolated PostgreSQL 17 target. Do not migrate if this post-drain restore proof fails or is ambiguous.
+8. From the exact reviewed checkout, run `migrate:status`; require exactly the six reviewed pending names recorded above: two safe historical adoptions, one verified idempotent qualifier replay, and the three 25 August migrations.
+9. Run `migrate --force` once. The six names should be recorded together in the next batch. Do not retry an ambiguous result automatically.
+10. Verify the new tables, triggers, nullable attribution columns, index, restrictive same-schema foreign key, all 13 sequence contracts, preserved audit evidence, Laravel ledger, and application/Supabase migration fingerprints.
+11. Run `audit:attribution:preflight --json` once and retain only the value-free summary. The expected blocker means manifest generation remains prohibited pending provenance review.
+12. Confirm that the promoted drained deployment's full source SHA exactly matches the migrated release, then remove the shared maintenance marker and perform public, permitted-role, denied-role, and synthetic-only smoke checks, including one successful audited write and one denied write.
+13. Keep writers open only after release SHA, schema, audit persistence, temporary-access revocation, and rollback/forward-recovery evidence reconcile; reactivate the shared marker on any failed gate.
 
 If a pre-commit migration step fails, preserve the database and investigate. If completion is ambiguous after a connection failure, do not rerun; inspect the ledger and schema first. Once new ordinary-audit rows are written, a code rollback to the old writer is not an acceptable normal recovery path because it can create rows without the new actor snapshot. Prefer a reviewed forward correction.
 
