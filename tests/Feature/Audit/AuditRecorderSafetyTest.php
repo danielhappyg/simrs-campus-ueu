@@ -3,6 +3,7 @@
 namespace Tests\Feature\Audit;
 
 use App\Models\User;
+use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Audit\InvalidAuditEvent;
@@ -38,6 +39,8 @@ class AuditRecorderSafetyTest extends TestCase
         );
 
         $this->assertNotNull($event);
+        $this->assertSame(AuditActorAttribution::TYPE_USER, $event->actor_type);
+        $this->assertSame($actor->public_id, $event->actor_reference);
         $this->assertSame($correlationId, $event->request_correlation_id);
         $this->assertSame(64, strlen((string) $event->user_agent));
         $this->assertNotSame($request->userAgent(), $event->user_agent);
@@ -58,6 +61,46 @@ class AuditRecorderSafetyTest extends TestCase
 
         $this->assertNull($event);
         $this->assertDatabaseCount('audit_events', 0);
+    }
+
+    public function test_registered_service_event_is_persisted_with_an_exact_service_reference(): void
+    {
+        $event = $this->recorder()->record(
+            action: 'teaching.reset.started',
+            resourceType: 'simulation',
+            resourceId: 'synthetic-reset',
+            outcome: 'SUCCESS',
+            reason: 'simulation_reset',
+            metadata: ['boundary' => 'synthetic_patient_graph', 'evidence_preserved' => true],
+            includeRequestFingerprint: false,
+        );
+
+        $this->assertNotNull($event);
+        $this->assertNull($event->actor_user_id);
+        $this->assertSame(AuditActorAttribution::TYPE_SERVICE, $event->actor_type);
+        $this->assertSame(AuditActorAttribution::SYNTHETIC_RESET_SERVICE, $event->actor_reference);
+    }
+
+    public function test_user_reference_is_an_event_time_snapshot(): void
+    {
+        $actor = User::factory()->create();
+        $originalReference = $actor->public_id;
+        $event = $this->recorder()->record(
+            action: 'authorization.denied',
+            resourceType: 'http_route',
+            resourceId: 'synthetic.protected.route',
+            actor: $actor,
+            outcome: 'DENIED',
+            reason: 'authorization_check_failed',
+            metadata: ['http_method' => 'GET', 'http_status' => 403],
+            includeRequestFingerprint: false,
+        );
+
+        $this->assertNotNull($event);
+        $actor->forceFill(['public_id' => (string) Str::ulid()])->save();
+
+        $this->assertSame($originalReference, $event->fresh()->actor_reference);
+        $this->assertNotSame($actor->fresh()->public_id, $event->fresh()->actor_reference);
     }
 
     public function test_unknown_event_tuple_is_rejected_before_insert(): void
@@ -143,6 +186,8 @@ class AuditRecorderSafetyTest extends TestCase
         $actor = User::factory()->create();
         $attributes = [
             'actor_user_id' => $actor->id,
+            'actor_type' => AuditActorAttribution::TYPE_USER,
+            'actor_reference' => $actor->public_id,
             'action' => 'authorization.denied',
             'resource_type' => 'http_route',
             'resource_id' => 'synthetic.protected.route',
@@ -158,12 +203,36 @@ class AuditRecorderSafetyTest extends TestCase
 
     public function test_direct_eloquent_creation_cannot_bypass_the_validated_recording_boundary(): void
     {
+        $actor = User::factory()->create();
+
         $this->expectException(InvalidAuditEvent::class);
 
         AuditEvent::query()->create([
+            'actor_user_id' => $actor->id,
+            'actor_type' => AuditActorAttribution::TYPE_USER,
+            'actor_reference' => $actor->public_id,
             'action' => 'unregistered.direct.insert',
             'resource_type' => 'test',
             'outcome' => 'SUCCESS',
+        ]);
+    }
+
+    public function test_direct_eloquent_creation_rejects_mismatched_user_attribution(): void
+    {
+        $actor = User::factory()->create();
+
+        $this->expectException(InvalidAuditEvent::class);
+
+        AuditEvent::query()->create([
+            'actor_user_id' => $actor->id,
+            'actor_type' => AuditActorAttribution::TYPE_USER,
+            'actor_reference' => '01J00000000000000000000000',
+            'action' => 'authorization.denied',
+            'resource_type' => 'http_route',
+            'resource_id' => 'synthetic.protected.route',
+            'outcome' => 'DENIED',
+            'reason' => 'authorization_check_failed',
+            'metadata' => ['http_method' => 'GET', 'http_status' => 403],
         ]);
     }
 

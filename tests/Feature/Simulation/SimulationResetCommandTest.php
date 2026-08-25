@@ -10,6 +10,7 @@ use App\Models\Patient;
 use App\Models\SecurityLedgerEntry;
 use App\Models\SecurityLedgerOutbox;
 use App\Models\User;
+use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Simulation\SyntheticResetService;
@@ -144,6 +145,9 @@ class SimulationResetCommandTest extends TestCase
 
         $this->assertCount(2, $resetEvents);
         $resetEvents->each(function (AuditEvent $event): void {
+            $this->assertNull($event->actor_user_id);
+            $this->assertSame(AuditActorAttribution::TYPE_SERVICE, $event->actor_type);
+            $this->assertSame(AuditActorAttribution::SYNTHETIC_RESET_SERVICE, $event->actor_reference);
             $this->assertArrayNotHasKey('purge_audit', $event->metadata ?? []);
             $this->assertTrue($event->metadata['evidence_preserved']);
         });
