@@ -35,6 +35,8 @@ Appointments and approvals are separate events. A blank candidate, an interim co
 | Operations/recovery | Deployment, backup/restore, rollback, monitoring and support | Daniel Happy Putra, interim | | | Interim |
 | Teaching/facilitation | Classroom scenarios, learner boundaries and usability | RMIK Department | Named delegate: | | Organizational owner confirmed |
 
+Privileged-access requester, approver, subject, security reviewer and dual recovery-custodian appointments are recorded separately in the [G1 privileged-access authority appointment pack](G1_PRIVILEGED_ACCESS_AUTHORITY_APPOINTMENT_PACK_2026-08-25.md). This link does not imply that any appointment or G1 approval exists.
+
 ## Required appointment statement
 
 For each named owner, retain a statement equivalent to:

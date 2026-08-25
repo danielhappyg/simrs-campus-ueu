@@ -18,9 +18,12 @@
 - Clinical/domain tables and outpatient UI (Phase 3)
 - Patient/Encounter policies beyond capability gates
 - Cohort/unit-scoped authorization
+- A G1-accepted long-term break-glass control. The current permanent `is_system_administrator` bypass remains runtime truth; [ADR-017](ADR-017-TIME-BOUND-SCOPED-BREAK-GLASS.md) and the [G1 acceptance contract](G1_BREAK_GLASS_ACCEPTANCE_CONTRACT.md) are proposed and not owner-approved.
 
 ## Evidence
 
 - `tests/Feature/Authorization/RoleCapabilityDenialTest.php`
 - `tests/Feature/Simulation/SimulationResetCommandTest.php`
 - Matrix: [RBAC_MATRIX.md](./RBAC_MATRIX.md)
+- Proposed G1 design: [ADR-017 — time-bound scoped break-glass](ADR-017-TIME-BOUND-SCOPED-BREAK-GLASS.md)
+- Proposed G1 gate: [break-glass acceptance contract](G1_BREAK_GLASS_ACCEPTANCE_CONTRACT.md)
