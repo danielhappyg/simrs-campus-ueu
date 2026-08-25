@@ -18,6 +18,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
   SOURCE_BATCH_D_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_E_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_F_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json')
+  SOURCE_BATCH_G_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json')
   SOURCE_RELEASE_INDEX = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md')
 
   def setup
@@ -31,6 +32,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     @batch_d_decision_register = File.join(@tmpdir, 'batch-d-decision-register.json')
     @batch_e_decision_register = File.join(@tmpdir, 'batch-e-decision-register.json')
     @batch_f_decision_register = File.join(@tmpdir, 'batch-f-decision-register.json')
+    @batch_g_decision_register = File.join(@tmpdir, 'batch-g-decision-register.json')
     @release_index = File.join(@tmpdir, 'release-index.md')
     FileUtils.cp(SOURCE_MATRIX, @matrix)
     FileUtils.cp(SOURCE_BASELINE, @baseline)
@@ -41,6 +43,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
     FileUtils.cp(SOURCE_BATCH_D_DECISION_REGISTER, @batch_d_decision_register)
     FileUtils.cp(SOURCE_BATCH_E_DECISION_REGISTER, @batch_e_decision_register)
     FileUtils.cp(SOURCE_BATCH_F_DECISION_REGISTER, @batch_f_decision_register)
+    FileUtils.cp(SOURCE_BATCH_G_DECISION_REGISTER, @batch_g_decision_register)
     FileUtils.cp(SOURCE_RELEASE_INDEX, @release_index)
   end
 
@@ -54,13 +57,14 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert validator.validate, validator.errors.join("\n")
     assert_equal 268, validator.rows.length
     assert_equal 268, validator.batch_assignments.length
-    assert_equal 148, validator.decision_entries.length
+    assert_equal 268, validator.decision_entries.length
     assert_equal 20, validator.decision_entries_by_batch.fetch('A').length
     assert_equal 8, validator.decision_entries_by_batch.fetch('B').length
     assert_equal 19, validator.decision_entries_by_batch.fetch('C').length
     assert_equal 19, validator.decision_entries_by_batch.fetch('D').length
     assert_equal 48, validator.decision_entries_by_batch.fetch('E').length
     assert_equal 34, validator.decision_entries_by_batch.fetch('F').length
+    assert_equal 120, validator.decision_entries_by_batch.fetch('G').length
   end
 
   def test_batch_a_decision_register_rejects_missing_row
@@ -1930,6 +1934,657 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_error validator, 'terminal target PAR-FIN-002 must have an approved reproduce/replace decision'
   end
 
+  def test_batch_g_decision_register_rejects_missing_duplicate_and_unknown_rows
+    mutate_batch_g_decision_register do |register|
+      register['entries'].reject! { |entry| entry['requirement_id'] == 'PAR-ADM-007' }
+      register['entries'] << Marshal.load(Marshal.dump(register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-001' }))
+      register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-002' }['requirement_id'] = 'PAR-RPT-118'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'duplicate requirement IDs: PAR-RPT-001'
+    assert_error validator, 'missing Batch G requirement IDs: PAR-ADM-007, PAR-RPT-002'
+    assert_error validator, 'unknown Batch G requirement IDs: PAR-RPT-118'
+  end
+
+  def test_shared_registry_fails_closed_when_batch_g_register_is_omitted
+    FileUtils.rm(@batch_g_decision_register)
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch G decision register: file not found:'
+    assert_error validator, 'expected exactly 120 entries, got 0'
+  end
+
+  def test_batch_g_rejects_family_kind_authority_source_and_scenario_drift
+    mutate_batch_g_decision_register do |register|
+      register['family_policies'].first['lead_authority_domain'] = 'product_delivery'
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-012' }
+      entry['family_id'] = 'G1'
+      entry['capability_kind'] = 'operational_projection'
+      entry['co_owners'].delete('laboratory')
+      entry['source_dependencies'].delete_at(0)
+      entry['synthetic_scenarios']['normal']['contract_ref'] = 'generic'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'must exactly match the frozen G1 authority and membership policy'
+    assert_error validator, 'PAR-RPT-012: family_id must be G2'
+    assert_error validator, 'PAR-RPT-012: capability_kind must be read_only_laboratory_register_projection'
+    assert_error validator, 'co_owners must exactly match required authorities'
+    assert_error validator, 'source_dependencies must exactly bind the applicability-specific approved A-F source lineage'
+    assert_error validator, 'contract_ref must exactly match the per-ID definition, access, reconciliation and failure contract'
+  end
+
+  def test_batch_g_freezes_exact_semantics_for_all_families_and_three_master_kinds
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    by_id = register['entries'].to_h { |entry| [entry['requirement_id'], entry] }
+
+    assert_equal 'not_applicable', by_id['PAR-ADM-007'].dig('reconciliation_contract', 'status')
+    assert_equal 'target_definition', by_id['PAR-ADM-007'].dig('definition_contract', 'dimension')
+    assert_equal 'infectious_disease_reference', by_id['PAR-ADM-031'].dig('definition_contract', 'dimension')
+    assert_equal 'unresolved_owner_definition', by_id['PAR-ADM-035'].dig('definition_contract', 'semantic_status')
+    assert_equal ['PAR-CLN-006'], by_id['PAR-RPT-012']['source_dependencies'].select { |source| source['batch'] == 'D' }.map { |source| source['requirement_id'] }
+    assert_equal ['PAR-CLN-007'], by_id['PAR-RPT-014']['source_dependencies'].select { |source| source['batch'] == 'D' }.map { |source| source['requirement_id'] }
+    assert_equal ['PAR-CLN-009'], by_id['PAR-RPT-018']['source_dependencies'].select { |source| source['batch'] == 'D' }.map { |source| source['requirement_id'] }
+    assert_equal 'coded_cancer_case_registry', by_id['PAR-RPT-015'].dig('definition_contract', 'capability_focus')
+    assert_equal 'coded_cancer_case', by_id['PAR-RPT-015'].dig('definition_contract', 'dimension')
+    assert_equal({ 'cancer_cohort' => 'approved_coded_cancer_case', 'cancer_code_set_version' => 'authority_approved_required' }, by_id['PAR-RPT-015'].dig('definition_contract', 'fixed_parameter_values'))
+    assert_equal %w[B C], by_id['PAR-RPT-015']['source_dependencies'].map { |source| source['batch'] }.uniq.select { |batch| %w[B C].include?(batch) }
+    assert_equal 'one_row_per_inpatient_transfer_event_version', by_id['PAR-RPT-024'].dig('definition_contract', 'grain')
+    assert_includes by_id['PAR-RPT-024'].dig('definition_contract', 'distinct_key'), 'source_ward_id+target_ward_id+transfer_state'
+    assert_equal 'source_ward+target_ward+transfer_state', by_id['PAR-RPT-024'].dig('definition_contract', 'fixed_parameter_values', 'required_transfer_fields')
+    assert_equal 'one_row_per_active_admission_ward_room_assignment_as_of', by_id['PAR-RPT-107'].dig('definition_contract', 'grain')
+    assert_equal 'ward_id+room_id', by_id['PAR-RPT-107'].dig('definition_contract', 'fixed_parameter_values', 'required_dimensions')
+    assert_equal 'one_row_per_askes_death_episode_and_disposition_version', by_id['PAR-RPT-041'].dig('definition_contract', 'grain')
+    assert_equal 'ASKES', by_id['PAR-RPT-041'].dig('definition_contract', 'fixed_parameter_values', 'payer_class')
+    assert by_id['PAR-RPT-041']['source_dependencies'].any? { |source| source['source_entity'] == 'payer_class_version' }
+    assert_equal 'unresolved_owner_definition', by_id['PAR-RPT-115'].dig('definition_contract', 'semantic_status')
+    assert_equal 'duplicate_mortality_route_scope_unresolved', by_id['PAR-RPT-115'].dig('definition_contract', 'dimension')
+    assert_empty by_id['PAR-RPT-115']['source_dependencies'].select { |source| source['batch'] == 'F' }
+    assert_equal 'active_admission_bed_as_of', by_id['PAR-RPT-116'].dig('definition_contract', 'dimension')
+    assert_empty by_id['PAR-RPT-116']['source_dependencies'].select { |source| source['batch'] == 'F' }
+    assert_empty by_id['PAR-RPT-045']['source_dependencies'].select { |source| source['batch'] == 'F' }
+    assert by_id['PAR-RPT-045']['source_dependencies'].any? { |source| source['source_entity'] == 'payer_class_version' }
+    assert_equal 'record_completeness_checklist_item', by_id['PAR-RPT-022'].dig('definition_contract', 'dimension')
+    assert_equal 'record_completeness_checklist_item', by_id['PAR-RPT-030'].dig('definition_contract', 'dimension')
+    assert_equal 'record_completeness_summary', by_id['PAR-RPT-031'].dig('definition_contract', 'dimension')
+    assert_equal 'record_completeness_summary', by_id['PAR-RPT-032'].dig('definition_contract', 'dimension')
+    assert_equal 'coded_ispa_case', by_id['PAR-RPT-054'].dig('definition_contract', 'dimension')
+    assert_empty by_id['PAR-RPT-054']['source_dependencies'].select { |source| source['batch'] == 'D' }
+    assert_equal 'provider_activity', by_id['PAR-RPT-057'].dig('definition_contract', 'dimension')
+    assert_equal 'outpatient', by_id['PAR-RPT-057'].dig('definition_contract', 'care_setting')
+    assert_equal 'provider_activity', by_id['PAR-RPT-060'].dig('definition_contract', 'dimension')
+    assert_equal 'inpatient', by_id['PAR-RPT-060'].dig('definition_contract', 'care_setting')
+    assert_equal 'outgoing_referral_disposition', by_id['PAR-RPT-102'].dig('definition_contract', 'dimension')
+    assert_equal 'against_medical_advice_discharge_by_provider', by_id['PAR-RPT-111'].dig('definition_contract', 'dimension')
+    assert_equal 'discharge_indication_by_room_class', by_id['PAR-RPT-112'].dig('definition_contract', 'dimension')
+    assert_equal 'discharge_indication_by_room', by_id['PAR-RPT-113'].dig('definition_contract', 'dimension')
+    assert_equal 'against_medical_advice_discharge_reason', by_id['PAR-RPT-114'].dig('definition_contract', 'dimension')
+    semantic_digests = register['entries'].map { |entry| entry.dig('definition_contract', 'semantic_digest') }
+    assert_equal 120, semantic_digests.uniq.length
+
+    drift_ids = %w[PAR-ADM-007 PAR-ADM-031 PAR-ADM-035 PAR-RPT-005 PAR-RPT-012 PAR-RPT-062 PAR-RPT-115]
+    mutate_batch_g_decision_register do |decision_register|
+      drift_ids.each do |requirement_id|
+        entry = decision_register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+        entry['definition_contract']['semantic_focus'] = 'generic family report'
+      end
+    end
+    validator = fixture_validator
+
+    refute validator.validate
+    drift_ids.each do |requirement_id|
+      assert validator.errors.any? { |error| error.include?(requirement_id) && error.include?('definition_contract must exactly match the frozen per-ID report/master semantics') }, requirement_id
+    end
+  end
+
+  def test_batch_g_exact_semantic_mapping_has_no_generic_fallback_and_rejects_representative_drift
+    expected_ids = ParityGovernanceValidator.const_get(:EXPECTED_BATCH_G_IDS)
+    mapping = ParityGovernanceValidator::BATCH_G_ROW_SEMANTIC_MAPPING
+    specs = ParityGovernanceValidator::BATCH_G_ROW_SEMANTIC_SPECS
+
+    assert_equal expected_ids, mapping.keys
+    assert_equal expected_ids, specs.keys
+    specs.each do |requirement_id, spec|
+      refute_match(/generic|placeholder|unspecified/i, spec.fetch(:capability_focus), requirement_id)
+      assert ParityGovernanceValidator::BATCH_G_SEMANTIC_TEMPLATES.key?(spec.fetch(:semantic_type)), requirement_id
+      assert_equal spec.fetch(:fixed_parameter_values).keys, spec.fetch(:fixed_parameter_values).keys & spec.fetch(:parameters), requirement_id
+      assert_equal spec.fetch(:sources).length, spec.fetch(:source_roles).length, requirement_id
+    end
+
+    mutate_batch_g_decision_register do |register|
+      by_id = register['entries'].to_h { |entry| [entry['requirement_id'], entry] }
+      by_id['PAR-RPT-015']['definition_contract']['numerator'] = 'generic_cancer_count'
+      by_id['PAR-RPT-024']['definition_contract']['grain'] = 'one_row_per_encounter'
+      by_id['PAR-RPT-107']['definition_contract']['fixed_parameter_values']['required_dimensions'] = 'ward_only'
+      by_id['PAR-RPT-041']['definition_contract']['source_roles'].reject! { |role| role['source_key'] == 'B_PAYER' }
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    %w[PAR-RPT-015 PAR-RPT-024 PAR-RPT-107 PAR-RPT-041].each do |requirement_id|
+      assert validator.errors.any? { |error| error.include?(requirement_id) && error.include?('definition_contract must exactly match the frozen per-ID report/master semantics') }, requirement_id
+    end
+  end
+
+  def test_batch_g_rejects_unavailable_source_reported_as_zero_and_complete
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-005')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-005' }
+    reconciliation_path = File.join(@tmpdir, entry.dig('reconciliation_contract', 'receipt_reference'))
+    reconciliation = JSON.parse(File.read(reconciliation_path))
+    descriptor = reconciliation['source_exports'].find { |candidate| candidate['control_role'] == 'authoritative_measure' }
+    source_path = File.join(@tmpdir, descriptor['reference'])
+    source = JSON.parse(File.read(source_path))
+    source['rows'].first.merge!('value' => 0, 'state' => 'unavailable')
+    source['source_root_sha256'] = Digest::SHA256.hexdigest(JSON.generate(source['rows']))
+    File.write(source_path, JSON.pretty_generate(source) + "\n")
+    descriptor['sha256'] = Digest::SHA256.file(source_path).hexdigest
+    File.write(reconciliation_path, JSON.pretty_generate(reconciliation) + "\n")
+    entry['reconciliation_contract']['receipt_artifact_sha256'] = Digest::SHA256.file(reconciliation_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval('PAR-RPT-005')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'totals/counts must be independently recomputed from canonical source and output rows'
+    assert_error validator, 'unavailable/unknown/not-collected/not-applicable/suppressed rows force partial or blocked non-exportable output'
+  end
+
+  def test_batch_g_rejects_suppressed_output_reported_as_complete_and_exportable
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-005')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-005' }
+    reconciliation_path = File.join(@tmpdir, entry.dig('reconciliation_contract', 'receipt_reference'))
+    reconciliation = JSON.parse(File.read(reconciliation_path))
+    output_path = File.join(@tmpdir, reconciliation.dig('report_output', 'reference'))
+    output = JSON.parse(File.read(output_path))
+    output['rows'].first.merge!('value' => 0, 'state' => 'suppressed')
+    output['output_sha256'] = Digest::SHA256.hexdigest(JSON.generate(output['rows']))
+    File.write(output_path, JSON.pretty_generate(output) + "\n")
+    reconciliation['report_output']['sha256'] = Digest::SHA256.file(output_path).hexdigest
+    File.write(reconciliation_path, JSON.pretty_generate(reconciliation) + "\n")
+    entry['reconciliation_contract']['receipt_artifact_sha256'] = Digest::SHA256.file(reconciliation_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval('PAR-RPT-005')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'unavailable/unknown/not-collected/not-applicable/suppressed rows force partial or blocked non-exportable output'
+  end
+
+  def test_batch_g_rejects_unbound_parameter_rerun_access_and_audit_receipts
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-005')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-005' }
+    reconciliation_path = File.join(@tmpdir, entry.dig('reconciliation_contract', 'receipt_reference'))
+    reconciliation = JSON.parse(File.read(reconciliation_path))
+
+    parameter_path = File.join(@tmpdir, reconciliation.dig('parameter_descriptor', 'reference'))
+    parameter = JSON.parse(File.read(parameter_path))
+    parameter['parameter_values'][parameter['parameter_values'].keys.first] = 'format-valid-but-unbound'
+    File.write(parameter_path, JSON.pretty_generate(parameter) + "\n")
+    reconciliation['parameter_descriptor']['sha256'] = Digest::SHA256.file(parameter_path).hexdigest
+
+    rerun_path = File.join(@tmpdir, reconciliation.dig('rerun_receipt', 'reference'))
+    rerun = JSON.parse(File.read(rerun_path))
+    rerun['source_roots'] = []
+    File.write(rerun_path, JSON.pretty_generate(rerun) + "\n")
+    reconciliation['rerun_receipt']['sha256'] = Digest::SHA256.file(rerun_path).hexdigest
+
+    access_path = File.join(@tmpdir, reconciliation.dig('access_receipt', 'reference'))
+    access = JSON.parse(File.read(access_path))
+    access['identity'] = 'Fixture Unappointed Exporter'
+    File.write(access_path, JSON.pretty_generate(access) + "\n")
+    reconciliation['access_receipt']['sha256'] = Digest::SHA256.file(access_path).hexdigest
+
+    audit_path = File.join(@tmpdir, reconciliation.dig('audit_receipt', 'reference'))
+    audit = JSON.parse(File.read(audit_path))
+    audit['events'].first['event_id'] = 'ARBITRARY-UNROOTED-AUDIT-ID'
+    audit['audit_root_sha256'] = Digest::SHA256.hexdigest(JSON.generate(audit['events']))
+    File.write(audit_path, JSON.pretty_generate(audit) + "\n")
+    reconciliation['audit_receipt']['sha256'] = Digest::SHA256.file(audit_path).hexdigest
+
+    File.write(reconciliation_path, JSON.pretty_generate(reconciliation) + "\n")
+    entry['reconciliation_contract']['receipt_artifact_sha256'] = Digest::SHA256.file(reconciliation_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval('PAR-RPT-005')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'canonical_parameter_sha256 must be recomputable from the exact parameter payload'
+    assert_error validator, 'must bind the same definition, parameter payload, snapshot, source roots and cutoff'
+    assert_error validator, 'identity must bind the appointed security/privacy/export authority'
+    assert_error validator, 'event IDs must exactly match the output receipt'
+  end
+
+  def test_batch_g_rejects_rehashed_parameter_payload_that_changes_a_frozen_semantic_dimension
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-005')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-005' }
+    reconciliation_path = File.join(@tmpdir, entry.dig('reconciliation_contract', 'receipt_reference'))
+    reconciliation = JSON.parse(File.read(reconciliation_path))
+    parameter_path = File.join(@tmpdir, reconciliation.dig('parameter_descriptor', 'reference'))
+    parameter = JSON.parse(File.read(parameter_path))
+    parameter['parameter_values']['patient_cohort'] = 'generic_all_patients'
+    parameter['canonical_parameter_sha256'] = Digest::SHA256.hexdigest(JSON.generate(parameter['parameter_values']))
+    File.write(parameter_path, JSON.pretty_generate(parameter) + "\n")
+    reconciliation['parameter_descriptor']['sha256'] = Digest::SHA256.file(parameter_path).hexdigest
+    File.write(reconciliation_path, JSON.pretty_generate(reconciliation) + "\n")
+    entry['reconciliation_contract']['receipt_artifact_sha256'] = Digest::SHA256.file(reconciliation_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval('PAR-RPT-005')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'parameter_values.patient_cohort must bind frozen semantic value registered_synthetic_patients'
+  end
+
+  def test_batch_g_rejects_missing_authority_signature_and_mismatched_control_digest
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-012')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-012' }
+    approval_path = File.join(@tmpdir, entry.dig('approval', 'reference'))
+    approval = JSON.parse(File.read(approval_path))
+    approval['definition_sha256'] = '0' * 64
+    product_binding = approval['authority_bindings'].find { |binding| binding['authority_domain'] == 'product_delivery' }
+    source_binding = approval['authority_bindings'].find { |binding| binding['authority_domain'] == 'laboratory' }
+    source_binding.merge!(
+      'identity' => product_binding['identity'],
+      'appointment_reference' => product_binding['appointment_reference'],
+      'appointment_sha256' => product_binding['appointment_sha256']
+    )
+    approval['authority_bindings'].delete(product_binding)
+    File.write(approval_path, JSON.pretty_generate(approval) + "\n")
+    entry['approval']['artifact_sha256'] = Digest::SHA256.file(approval_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'definition_sha256 must exactly match the approved control manifest'
+    assert_error validator, 'authority_bindings must exactly cover product/business decision authority, the report/formula lead, every source domain and security/privacy/export authority; product cannot substitute for another domain'
+    assert_error validator, 'must bind the exact appointed authority identity and appointment SHA'
+  end
+
+  def test_batch_g_rejects_false_complete_and_unbound_product_approval
+    mutate_batch_g_decision_register do |register|
+      register['register_status'] = 'complete'
+      entry = register['entries'].first
+      entry['approval'].merge!(
+        'status' => 'recorded', 'identity' => 'Fixture Product Approver', 'authority_domain' => 'product_delivery',
+        'scope' => 'False Batch G approval.', 'date' => '2026-08-25', 'reference' => 'missing.json',
+        'artifact_sha256' => '0' * 64
+      )
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'register_status complete requires every entry to be approved or deferred'
+    assert_error validator, 'recorded approval cannot accompany a pending decision'
+    assert_error validator, 'approval authority_domain must match lead authority management_reporting'
+    assert_error validator, 'approval identity must exactly match the appointed accountable owner'
+  end
+
+  def test_batch_g_rejects_report_writeback_target_as_actual_and_live_transmission
+    mutate_batch_g_decision_register do |register|
+      report = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-001' }
+      report['definition_contract']['write_semantics'] = 'write_source_facts'
+      report['output_boundary'].merge!(
+        'endpoint' => 'https://example.invalid/sirs', 'credential_state' => 'present',
+        'outbound_network' => true, 'delivery_state' => 'SENT', 'watermark' => nil
+      )
+      target = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-007' }
+      target['definition_contract']['write_semantics'] = 'overwrite_actual_outcome'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'definition_contract must exactly match the frozen per-ID report/master semantics'
+    assert_error validator, 'report projection must never write source facts'
+    assert_error validator, 'management target master must never be represented as actual outcome'
+    assert_error validator, 'must exactly match the synthetic local NOT_SENT boundary'
+    assert_error validator, 'endpoint must be null, credentials absent, outbound false, delivery NOT_SENT'
+  end
+
+  def test_batch_g_rejects_join_multiplication_null_to_zero_and_period_overwrite
+    mutate_batch_g_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-026' }
+      definition = entry['definition_contract']
+      definition['join_contract']['unbounded_many_to_many'] = true
+      definition['join_contract']['dedup_rule'] = 'count source lines after fan-out'
+      definition['null_policy'] = ['numeric_zero']
+      definition['period_close_policy'] = 'overwrite_closed_output'
+      definition['correction_restatement_policy'] = 'edit_prior_output'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'definition_contract must exactly match the frozen per-ID report/master semantics'
+  end
+
+  def test_batch_g_rejects_stale_statutory_definition_and_compliance_claim
+    mutate_batch_g_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-062' }
+      entry['statutory_definition'].merge!(
+        'status' => 'complete', 'standard_identifier' => 'RL-LEGACY', 'standard_version' => 'unknown',
+        'effective_date' => 'not-a-date', 'definition_source' => 'legacy menu label',
+        'authority_reference' => 'missing.json', 'authority_artifact_sha256' => '0' * 64
+      )
+      entry['output_boundary']['transmission_claim'] = 'CURRENT_COMPLIANT_SUBMITTED_ACCEPTED'
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'must exactly match the synthetic local NOT_SENT boundary'
+    assert_error validator, 'statutory_definition authority signed artifact must remain inside the decision-register evidence directory'
+  end
+
+  def test_batch_g_rejects_self_attested_unrooted_reconciliation
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_G_RECONCILIATION_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+      'requirement_id' => 'PAR-RPT-005',
+      'definition_sha256' => Digest::SHA256.hexdigest('unrelated-definition'),
+      'parameter_sha256' => Digest::SHA256.hexdigest('parameters'),
+      'snapshot_id' => 'SYN-G-SNAPSHOT-UNROOTED', 'cutoff_at' => '2026-08-25T23:59:59+07:00',
+      'period_state' => 'closed', 'source_exports' => [], 'report_output' => {},
+      'control_values' => ParityGovernanceValidator::BATCH_G_CONTROL_TOTALS.to_h { |key| [key, 0] },
+      'equation' => ParityGovernanceValidator::BATCH_G_RECONCILIATION_EQUATION,
+      'difference' => 0, 'sampled_lineage' => [],
+      'deterministic_rerun_output_sha256' => Digest::SHA256.hexdigest('arbitrary-output'),
+      'late_event_policy' => 'overwrite', 'author_identity' => 'Self Attesting Author',
+      'reviewer' => {
+        'identity' => 'Self Attesting Author', 'verification_method' => 'signed_document_review',
+        'verification_reference' => 'SELF-REVIEW'
+      }
+    }
+    reference, digest = write_json_artifact('rpt_005_unrooted_reconciliation.json', artifact, batch: 'G')
+    mutate_batch_g_decision_register do |register|
+      control = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-005' }['reconciliation_contract']
+      control.merge!('status' => 'complete', 'receipt_reference' => reference, 'receipt_artifact_sha256' => digest)
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'definition_sha256 must bind the frozen per-ID definition'
+    assert_error validator, 'source_exports must bind every applicability-specific source exactly once'
+    assert_error validator, 'sampled lineage must positively trace rooted source keys to rooted report keys'
+    assert_error validator, 'reviewer identity must be distinct from the subject'
+  end
+
+  def test_batch_g_rejects_dependency_and_consolidation_cycle
+    mutate_batch_g_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-033' }
+      entry['decision'] = approved_consolidation_decision('PAR-RPT-034')
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'Batch G decision register dependency/consolidation cycle detected:'
+  end
+
+  def test_batch_g_source_resolution_rejects_mismatched_par_and_unapproved_source
+    dependency = JSON.parse(File.read(@batch_g_decision_register))['entries']
+      .find { |entry| entry['requirement_id'] == 'PAR-RPT-005' }['source_dependencies'].first
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_G_SOURCE_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+      'requirement_id' => 'PAR-RPT-005', 'subject' => 'source_dependency',
+      'source_batch' => dependency['batch'], 'source_requirement_id' => 'PAR-ADM-037',
+      'source_entity' => dependency['source_entity'], 'source_owner_authority' => dependency['source_owner_authority'],
+      'source_register_id' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+      'source_register_sha256' => Digest::SHA256.file(@decision_register).hexdigest,
+      'source_owner_identity' => 'Fixture Product Substitute',
+      'source_approval_reference' => nil, 'source_approval_sha256' => nil,
+      'status' => 'resolved', 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('rpt_005_mismatched_source.json', artifact, batch: 'G')
+    mutate_batch_g_decision_register do |register|
+      source = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-005' }['source_dependencies'].first
+      source.merge!('status' => 'resolved', 'resolution_reference' => reference, 'resolution_artifact_sha256' => digest)
+    end
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'source_requirement_id does not match the register dependency'
+    assert_error validator, 'cannot resolve while Batch A register_status is not complete'
+    assert_error validator, 'source requirement must be approved reproduce/replace; defer/exclude cannot support a complete report'
+    assert_error validator, 'source_owner_identity must bind the appointed exact source-domain authority; product or another domain cannot substitute'
+  end
+
+  def test_batch_g_accepts_one_shared_coherent_candidate_mapping
+    prepare_batch_g_coherent_candidate_g_c01
+
+    validator = fixture_validator
+
+    refute validator.validate
+    mapping_errors = validator.errors.select do |error|
+      error.include?('consolidation_mapping') || error.include?('candidate G-C01') || error.include?('terminal target')
+    end
+    assert_empty mapping_errors, mapping_errors.join("\n")
+  end
+
+  def test_batch_g_rejects_consolidation_without_exact_care_setting_and_member_lineage
+    prepare_batch_g_coherent_candidate_g_c01
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    member = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-001' }
+    artifact_path = File.join(@tmpdir, member.dig('consolidation_mapping', 'artifact_reference'))
+    artifact = JSON.parse(File.read(artifact_path))
+    artifact['declared_parameters'] = { 'generic_mode' => %w[a b] }
+    artifact['member_mappings']['PAR-RPT-002']['source_requirement_ids'] = []
+    File.write(artifact_path, JSON.pretty_generate(artifact) + "\n")
+    digest = Digest::SHA256.file(artifact_path).hexdigest
+    register['entries'].each do |entry|
+      next unless %w[PAR-RPT-001 PAR-RPT-002].include?(entry['requirement_id'])
+
+      entry['consolidation_mapping']['artifact_sha256'] = digest
+    end
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'declared_parameters must enumerate every differing cohort, care-setting, dimension or version'
+    assert_error validator, 'member_mappings[PAR-RPT-002] must exactly bind semantic parameters, definition, source lineage, controls, authorities and recorded member approval'
+  end
+
+  def test_batch_g_consolidation_rejects_deferred_excluded_terminal_target
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-001', status: 'approve', disposition: 'consolidate', target_kind: 'consolidation_target',
+      target_reference: 'PAR-RPT-002'
+    )
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-002', status: 'defer', disposition: 'exclude', target_kind: 'exclusion',
+      target_reference: 'fixture excluded terminal', exclusions: ['fixture excluded terminal']
+    )
+
+    validator = fixture_validator
+
+    refute validator.validate
+    assert_error validator, 'terminal target PAR-RPT-002 must be approved reproduce/replace'
+  end
+
+  def test_batch_g_g0_remains_open_on_honest_pending_proposal
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'Batch G decision register PAR-ADM-007: G0 remains open until decision status is approve or defer'
+    assert_error validator, 'Batch G decision register PAR-RPT-117: G0 remains open until decision status is approve or defer'
+  end
+
+  def test_batch_g_fully_resolved_operational_report_passes_closed_g0_contract
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-005')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    row_errors = validator.errors.select { |error| error.include?('Batch G decision register PAR-RPT-005') }
+    assert_empty row_errors, row_errors.join("\n")
+  end
+
+  def test_batch_g_fully_resolved_clinical_multisource_report_passes_closed_g0_contract
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-012')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    row_errors = validator.errors.select { |error| error.include?('Batch G decision register PAR-RPT-012') }
+    assert_empty row_errors, row_errors.join("\n")
+  end
+
+  def test_batch_g_statutory_legacy_only_defer_path_passes_without_compliance_claim
+    prepare_batch_g_deferred_statutory_entry('PAR-RPT-062')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    row_errors = validator.errors.select { |error| error.include?('Batch G decision register PAR-RPT-062') }
+    assert_empty row_errors, row_errors.join("\n")
+  end
+
+  def test_batch_g_current_statutory_resolution_requires_and_accepts_independent_domain_signatures
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-041')
+    complete_batch_g_statutory_definition('PAR-RPT-041')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    row_errors = validator.errors.select { |error| error.include?('Batch G decision register PAR-RPT-041') }
+    assert_empty row_errors, row_errors.join("\n")
+  end
+
+  def test_batch_g_rejects_current_statutory_metadata_without_signed_formula_and_sources
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-041')
+    complete_batch_g_statutory_definition('PAR-RPT-041')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-041' }
+    statutory_path = File.join(@tmpdir, entry.dig('statutory_definition', 'authority_reference'))
+    statutory = JSON.parse(File.read(statutory_path))
+    statutory.delete('report_definition_reference')
+    statutory.delete('report_definition_sha256')
+    File.write(statutory_path, JSON.pretty_generate(statutory) + "\n")
+    entry['statutory_definition']['authority_artifact_sha256'] = Digest::SHA256.file(statutory_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval('PAR-RPT-041')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'statutory_definition authority missing fields: report_definition_reference, report_definition_sha256'
+    assert_error validator, 'statutory_definition authority report_definition must reference an existing signed artifact'
+  end
+
+  def test_batch_g_unresolved_statutory_indicator_cannot_be_approved_from_legacy_label
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-062', status: 'approve', disposition: 'reproduce', target_kind: 'capability',
+      target_reference: 'generic_rl_3_1_projection'
+    )
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'unresolved legacy/variant/statutory semantics cannot be approved reproduce/replace until the frozen per-ID semantic spec itself is authority-resolved'
+  end
+
+  def test_batch_g_hai_count_contract_keeps_unresolved_denominator_fail_closed
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    %w[PAR-RPT-046 PAR-RPT-049].each do |requirement_id|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      assert_equal 'defined_count_denominator_unresolved', entry.dig('definition_contract', 'semantic_status')
+      assert_equal 'unresolved_until_approved_exposure_population_definition', entry.dig('definition_contract', 'denominator')
+    end
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-046', status: 'approve', disposition: 'reproduce', target_kind: 'capability',
+      target_reference: 'hai_count_with_unresolved_denominator'
+    )
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'defined count with unresolved denominator cannot be approved reproduce/replace until the denominator population and rate semantics are authority-resolved'
+  end
+
+  def test_batch_g_management_target_contract_keeps_target_distinct_from_actual
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    target = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-ADM-007' }
+
+    assert_equal 'effective_dated_target_master', target['capability_kind']
+    assert_equal 'append_versioned_target_only_never_actual', target.dig('definition_contract', 'write_semantics')
+    assert_includes target.dig('definition_contract', 'distinct_key'), 'effective_period'
+  end
+
+  def test_batch_g_fully_resolved_target_master_passes_without_report_reconciliation
+    prepare_fully_resolved_batch_g_entry('PAR-ADM-007')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    row_errors = validator.errors.select { |error| error.include?('Batch G decision register PAR-ADM-007') }
+    assert_empty row_errors, row_errors.join("\n")
+  end
+
+  def test_batch_g_unresolved_legacy_variant_cannot_be_approved_with_generic_definition
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-020', status: 'approve', disposition: 'reproduce', target_kind: 'capability',
+      target_reference: 'generic_jhp_projection'
+    )
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    assert_error validator, 'unresolved legacy/variant/statutory semantics cannot be approved reproduce/replace until the frozen per-ID semantic spec itself is authority-resolved'
+  end
+
+  def test_batch_g_accepts_append_only_late_event_restatement_with_prior_output
+    prepare_fully_resolved_batch_g_entry('PAR-RPT-005')
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == 'PAR-RPT-005' }
+    reconciliation_path = File.join(@tmpdir, entry.dig('reconciliation_contract', 'receipt_reference'))
+    reconciliation = JSON.parse(File.read(reconciliation_path))
+    current_output_path = File.join(@tmpdir, reconciliation.dig('report_output', 'reference'))
+    prior_output = JSON.parse(File.read(current_output_path))
+    prior_output['snapshot_id'] = 'SYN-G-SNAPSHOT-PAR-RPT-005-PRIOR'
+    prior_output['rows'].first['value'] -= 1
+    prior_output['output_sha256'] = Digest::SHA256.hexdigest(JSON.generate(prior_output['rows']))
+    prior_reference, prior_digest = write_json_artifact('par_rpt_005_prior_output.json', prior_output, batch: 'G')
+    reconciliation.merge!(
+      'period_state' => 'restated', 'prior_output_reference' => prior_reference,
+      'prior_output_sha256' => prior_digest,
+      'restatement_reason' => 'Late synthetic encounter event appended after the prior period output was closed.'
+    )
+    File.write(reconciliation_path, JSON.pretty_generate(reconciliation) + "\n")
+    entry['reconciliation_contract']['receipt_artifact_sha256'] = Digest::SHA256.file(reconciliation_path).hexdigest
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval('PAR-RPT-005')
+
+    validator = fixture_validator(mode: 'g0')
+
+    refute validator.validate
+    row_errors = validator.errors.select { |error| error.include?('Batch G decision register PAR-RPT-005') }
+    assert_empty row_errors, row_errors.join("\n")
+  end
+
   def test_batch_manifest_rejects_missing_and_duplicate_assignments
     mutate_manifest do |manifest|
       manifest['batches']['B'].delete('PAR-REG-001')
@@ -2185,6 +2840,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       batch_d_decision_register_path: SOURCE_BATCH_D_DECISION_REGISTER,
       batch_e_decision_register_path: SOURCE_BATCH_E_DECISION_REGISTER,
       batch_f_decision_register_path: SOURCE_BATCH_F_DECISION_REGISTER,
+      batch_g_decision_register_path: SOURCE_BATCH_G_DECISION_REGISTER,
       release_index_path: SOURCE_RELEASE_INDEX,
       mode: 'integrity'
     )
@@ -2201,6 +2857,7 @@ class ParityGovernanceValidatorTest < Minitest::Test
       batch_d_decision_register_path: @batch_d_decision_register,
       batch_e_decision_register_path: @batch_e_decision_register,
       batch_f_decision_register_path: @batch_f_decision_register,
+      batch_g_decision_register_path: @batch_g_decision_register,
       release_index_path: @release_index,
       mode: mode
     )
@@ -2260,6 +2917,12 @@ class ParityGovernanceValidatorTest < Minitest::Test
     register = JSON.parse(File.read(@batch_f_decision_register))
     yield register
     File.write(@batch_f_decision_register, JSON.pretty_generate(register) + "\n")
+  end
+
+  def mutate_batch_g_decision_register
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    yield register
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
   end
 
   def prepare_recorded_defer(reference, digest)
@@ -3481,6 +4144,520 @@ class ParityGovernanceValidatorTest < Minitest::Test
     end
   end
 
+  def prepare_batch_g_governed_entry(requirement_id, status:, disposition:, target_kind:, target_reference:, exclusions: [])
+    mutate_batch_g_decision_register do |register|
+      entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      prefix = requirement_id.downcase.tr('-', '_')
+      lead = entry['lead_authority_domain']
+      owner_identity = "Fixture Batch G #{requirement_id} Lead Owner"
+      owner_scope = entry.dig('accountable_owner', 'required_scope')
+      entry['decision'] = {
+        'status' => status,
+        'canonical_disposition' => disposition,
+        'target' => { 'kind' => target_kind, 'reference' => target_reference, 'exclusions' => exclusions },
+        'rationale' => 'Fixture-only synthetic Batch G decision proving the closed governance contract without operational claims.'
+      }
+
+      evidence_record = {
+        'evidence_class' => 'O', 'evidence_basis' => 'independent_output_verification',
+        'date' => '2026-08-25', 'source' => 'Deterministic rooted synthetic Batch G fixture',
+        'reference' => "FIX-G-EVIDENCE-#{requirement_id}",
+        'interpreter' => "Fixture Batch G #{requirement_id} Evidence Interpreter", 'confidence' => 'high'
+      }
+      evidence_artifact = {
+        'artifact_type' => ParityGovernanceValidator::EVIDENCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id
+      }.merge(evidence_record).merge('reviewer' => valid_reviewer)
+      evidence_reference, evidence_digest = write_json_artifact("#{prefix}_evidence.json", evidence_artifact, batch: 'G')
+      entry['evidence'] = [evidence_record.merge(
+        'artifact_reference' => evidence_reference, 'artifact_sha256' => evidence_digest,
+        'note' => 'Fixture-only rooted synthetic evidence; no production, compliance, or live transmission claim.'
+      )]
+      entry['synthetic_scenarios'].each_value { |scenario| scenario['status'] = 'ready' }
+
+      owner_artifact = {
+        'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'accountable_owner',
+        'identity' => owner_identity, 'authority_domain' => lead,
+        'scope' => owner_scope, 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      owner_reference, owner_digest = write_json_artifact("#{prefix}_owner.json", owner_artifact, batch: 'G')
+      entry['accountable_owner'].merge!(
+        'appointment_status' => 'appointed', 'identity' => owner_identity,
+        'appointed_scope' => owner_scope, 'appointment_date' => '2026-08-25',
+        'appointment_reference' => owner_reference, 'artifact_sha256' => owner_digest
+      )
+
+      entry['appointment_dependencies'].each_with_index do |appointment, index|
+        identity = "Fixture #{requirement_id} #{appointment['authority_domain']} Authority"
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'appointment_dependency',
+          'identity' => identity, 'authority_domain' => appointment['authority_domain'],
+          'scope' => appointment['required_scope'], 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_appointment_#{index}.json", artifact, batch: 'G')
+        appointment.merge!(
+          'status' => 'appointed', 'identity' => identity, 'date' => '2026-08-25',
+          'reference' => reference, 'artifact_sha256' => digest
+        )
+      end
+
+      approval_scope = "Approve fixture-only #{status}/#{disposition} decision for #{requirement_id}."
+      entry['approval'].merge!(
+        'status' => 'recorded', 'identity' => owner_identity, 'authority_domain' => lead,
+        'scope' => approval_scope, 'date' => '2026-08-25', 'reference' => nil,
+        'artifact_sha256' => nil, 'conditions' => []
+      )
+    end
+    refresh_batch_g_control_approval(requirement_id)
+  end
+
+  def refresh_batch_g_control_approval(requirement_id)
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+    prefix = requirement_id.downcase.tr('-', '_')
+    manifest = {
+      'requirement_id' => requirement_id,
+      'decision_status' => entry.dig('decision', 'status'),
+      'canonical_disposition' => entry.dig('decision', 'canonical_disposition'),
+      'definition_sha256' => Digest::SHA256.hexdigest(JSON.generate(entry['definition_contract'])),
+      'source_resolution_sha256s' => entry['source_dependencies'].map { |dependency| dependency['resolution_artifact_sha256'] },
+      'intra_resolution_sha256s' => entry['intra_batch_dependencies'].map { |dependency| dependency['resolution_artifact_sha256'] },
+      'reconciliation_sha256' => entry.dig('reconciliation_contract', 'receipt_artifact_sha256'),
+      'output_boundary_sha256' => Digest::SHA256.hexdigest(JSON.generate(entry['output_boundary'])),
+      'statutory_definition_sha256' => entry.dig('statutory_definition', 'authority_artifact_sha256')
+    }
+    manifest_sha = Digest::SHA256.hexdigest(JSON.generate(manifest))
+    required_domains = entry['co_owners']
+    bindings = required_domains.each_with_index.map do |domain, index|
+      if domain == entry['lead_authority_domain']
+        identity = entry.dig('accountable_owner', 'identity')
+        appointment_reference = entry.dig('accountable_owner', 'appointment_reference')
+        appointment_sha = entry.dig('accountable_owner', 'artifact_sha256')
+      else
+        appointment = entry['appointment_dependencies'].find { |candidate| candidate['authority_domain'] == domain }
+        identity = appointment['identity']
+        appointment_reference = appointment['reference']
+        appointment_sha = appointment['artifact_sha256']
+      end
+      authority_approval = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_AUTHORITY_APPROVAL_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'control_authority_approval',
+        'authority_domain' => domain, 'identity' => identity,
+        'control_manifest_sha256' => manifest_sha,
+        'decision_status' => entry.dig('decision', 'status'),
+        'canonical_disposition' => entry.dig('decision', 'canonical_disposition'),
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      approval_reference, approval_sha = write_json_artifact("#{prefix}_control_authority_#{index}.json", authority_approval, batch: 'G')
+      {
+        'authority_domain' => domain, 'identity' => identity,
+        'appointment_reference' => appointment_reference, 'appointment_sha256' => appointment_sha,
+        'approval_reference' => approval_reference, 'approval_sha256' => approval_sha
+      }
+    end
+    approval_artifact = {
+      'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+      'requirement_id' => requirement_id, 'subject' => 'approval',
+      'identity' => entry.dig('accountable_owner', 'identity'),
+      'authority_domain' => entry['lead_authority_domain'],
+      'scope' => entry.dig('approval', 'scope'), 'date' => entry.dig('approval', 'date'),
+      'decision_status' => entry.dig('decision', 'status'),
+      'canonical_disposition' => entry.dig('decision', 'canonical_disposition'),
+      'conditions' => entry.dig('approval', 'conditions'),
+      'control_manifest_sha256' => manifest_sha,
+      'definition_sha256' => manifest['definition_sha256'],
+      'source_resolution_sha256s' => manifest['source_resolution_sha256s'],
+      'intra_resolution_sha256s' => manifest['intra_resolution_sha256s'],
+      'reconciliation_sha256' => manifest['reconciliation_sha256'],
+      'output_boundary_sha256' => manifest['output_boundary_sha256'],
+      'statutory_definition_sha256' => manifest['statutory_definition_sha256'],
+      'authority_bindings' => bindings, 'reviewer' => valid_reviewer
+    }
+    approval_reference, approval_sha = write_json_artifact("#{prefix}_approval.json", approval_artifact, batch: 'G')
+    entry['approval']['reference'] = approval_reference
+    entry['approval']['artifact_sha256'] = approval_sha
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+  end
+
+  def prepare_fully_resolved_batch_g_entry(requirement_id)
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+    sources_by_batch = entry['source_dependencies'].group_by { |source| source['batch'] }
+    sources_by_batch.each do |batch, dependencies|
+      prepare_batch_f_upstream_sources(batch, dependencies.map { |dependency| dependency['requirement_id'] })
+    end
+    prepare_batch_g_governed_entry(
+      requirement_id, status: 'approve', disposition: 'reproduce', target_kind: 'capability',
+      target_reference: "fixture_#{requirement_id.downcase.tr('-', '_')}_read_only_projection"
+    )
+
+    source_register_paths = {
+      'A' => @decision_register, 'B' => @batch_b_decision_register,
+      'C' => @batch_c_decision_register, 'D' => @batch_d_decision_register,
+      'E' => @batch_e_decision_register, 'F' => @batch_f_decision_register
+    }
+    source_register_ids = {
+      'A' => ParityGovernanceValidator::BATCH_A_REGISTER_ID,
+      'B' => ParityGovernanceValidator::BATCH_B_REGISTER_ID,
+      'C' => ParityGovernanceValidator::BATCH_C_REGISTER_ID,
+      'D' => ParityGovernanceValidator::BATCH_D_REGISTER_ID,
+      'E' => ParityGovernanceValidator::BATCH_E_REGISTER_ID,
+      'F' => ParityGovernanceValidator::BATCH_F_REGISTER_ID
+    }
+    mutate_batch_g_decision_register do |decision_register|
+      resolved_entry = decision_register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+      prefix = requirement_id.downcase.tr('-', '_')
+      resolved_entry['source_dependencies'].each_with_index do |dependency, index|
+        batch = dependency['batch']
+        source_path = source_register_paths.fetch(batch)
+        source_register = JSON.parse(File.read(source_path))
+        source_entry = source_register['entries'].find { |candidate| candidate['requirement_id'] == dependency['requirement_id'] }
+        owner_identity = source_entry.dig('accountable_owner', 'identity')
+        artifact = {
+          'artifact_type' => ParityGovernanceValidator::BATCH_G_SOURCE_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+          'requirement_id' => requirement_id, 'subject' => 'source_dependency',
+          'source_batch' => batch, 'source_requirement_id' => dependency['requirement_id'],
+          'source_entity' => dependency['source_entity'],
+          'source_owner_authority' => dependency['source_owner_authority'],
+          'source_register_id' => source_register_ids.fetch(batch),
+          'source_register_sha256' => Digest::SHA256.file(source_path).hexdigest,
+          'source_owner_identity' => owner_identity,
+          'source_approval_reference' => source_entry.dig('approval', 'reference'),
+          'source_approval_sha256' => source_entry.dig('approval', 'artifact_sha256'),
+          'status' => 'resolved', 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_source_resolution_#{index}.json", artifact, batch: 'G')
+        dependency.merge!('status' => 'resolved', 'resolution_reference' => reference, 'resolution_artifact_sha256' => digest)
+      end
+
+      semantic_type = ParityGovernanceValidator::BATCH_G_ROW_SEMANTIC_TYPE.fetch(requirement_id)
+      semantic = ParityGovernanceValidator::BATCH_G_ROW_SEMANTIC_SPECS.fetch(requirement_id)
+      next unless semantic.fetch(:reconciliation)
+
+      source_roles = semantic.fetch(:source_roles)
+      snapshot_id = "SYN-G-SNAPSHOT-#{requirement_id}"
+      definition_sha = Digest::SHA256.hexdigest(JSON.generate(resolved_entry['definition_contract']))
+      parameter_values = resolved_entry.dig('definition_contract', 'parameters').to_h do |parameter|
+        value = case parameter
+                when 'period_start' then '2026-08-01'
+                when 'period_end' then '2026-08-25'
+                when 'organization_scope' then 'SYN-UEU'
+                when 'authorized_cohort' then 'SYN-UEU'
+                when 'definition_version' then resolved_entry.dig('definition_contract', 'definition_version')
+                else semantic.fetch(:fixed_parameter_values).fetch(parameter, "fixture-#{parameter}")
+                end
+        [parameter, value]
+      end
+      parameter_sha = Digest::SHA256.hexdigest(JSON.generate(parameter_values))
+      parameter_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_PARAMETER_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'parameter_values' => parameter_values,
+        'canonical_parameter_sha256' => parameter_sha, 'date' => '2026-08-25',
+        'author_identity' => 'Fixture Batch G Parameter Author', 'reviewer' => valid_reviewer
+      }
+      parameter_reference, parameter_digest = write_json_artifact("#{prefix}_parameters.json", parameter_artifact, batch: 'G')
+      descriptors = []
+      source_exports = []
+      resolved_entry['source_dependencies'].each_with_index do |dependency, index|
+        measure = source_roles.fetch(index).fetch(:role) == 'authoritative_measure'
+        row = {
+          'synthetic_id' => "SYN-G-SRC-#{index}",
+          'distinct_key' => "SYN-KEY-#{index}",
+          'value' => measure ? 5 : 0,
+          'state' => measure ? 'known_numeric' : 'numeric_zero',
+          'included' => true, 'exclusion_reason' => nil,
+          'source_version' => "fixture-source-v1/#{dependency['requirement_id']}"
+        }
+        source_export = {
+          'artifact_type' => ParityGovernanceValidator::BATCH_G_SOURCE_EXPORT_ARTIFACT_TYPE,
+          'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+          'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+          'requirement_id' => requirement_id, 'source_batch' => dependency['batch'],
+          'source_requirement_id' => dependency['requirement_id'], 'source_entity' => dependency['source_entity'],
+          'control_role' => measure ? 'authoritative_measure' : 'lineage_context',
+          'snapshot_id' => snapshot_id, 'canonical_export_id' => "SYN-G-EXPORT-#{requirement_id}-#{index}",
+          'rows' => [row], 'source_root_sha256' => Digest::SHA256.hexdigest(JSON.generate([row])),
+          'author_identity' => 'Fixture Batch G Source Export Author', 'date' => '2026-08-25',
+          'reviewer' => valid_reviewer
+        }
+        reference, digest = write_json_artifact("#{prefix}_source_export_#{index}.json", source_export, batch: 'G')
+        descriptors << {
+          'source_batch' => dependency['batch'], 'source_requirement_id' => dependency['requirement_id'],
+          'source_entity' => dependency['source_entity'], 'control_role' => source_export['control_role'],
+          'reference' => reference, 'sha256' => digest
+        }
+        source_exports << source_export
+      end
+      measure_total = source_exports.select { |source_export| source_export['control_role'] == 'authoritative_measure' }.sum { |source_export| source_export['rows'].sum { |row| row['value'] } }
+      output_row = {
+        'synthetic_id' => "SYN-G-OUT-#{requirement_id}", 'distinct_key' => 'SYN-REPORT-KEY-1',
+        'value' => measure_total, 'state' => measure_total.zero? ? 'numeric_zero' : 'known_numeric',
+        'included' => true, 'exclusion_reason' => nil, 'source_version' => 'rooted_source_aggregation:v1'
+      }
+      output = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_OUTPUT_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'snapshot_id' => snapshot_id,
+        'definition_sha256' => definition_sha, 'parameter_sha256' => parameter_sha,
+        'rows' => [output_row], 'output_sha256' => Digest::SHA256.hexdigest(JSON.generate([output_row])),
+        'watermark' => resolved_entry.dig('output_boundary', 'watermark'), 'exportable' => true,
+        'access_scope' => %w[fixture_reporting_role SYN-UEU],
+        'export_reason' => 'Fixture-only deterministic Batch G governance verification.',
+        'audit_event_ids' => { 'view' => 'SYN-AUDIT-VIEW-1', 'run' => 'SYN-AUDIT-RUN-1', 'export' => 'SYN-AUDIT-EXPORT-1' },
+        'retention_class' => 'synthetic_governance_evidence_pending_policy',
+        'masked' => true, 'small_cell_suppression_applied' => true,
+        'author_identity' => 'Fixture Batch G Output Author', 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      output_reference, output_digest = write_json_artifact("#{prefix}_output.json", output, batch: 'G')
+      rerun_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_RERUN_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'execution_id' => "SYN-G-RERUN-#{requirement_id}-02",
+        'definition_sha256' => definition_sha, 'parameter_sha256' => parameter_sha,
+        'snapshot_id' => snapshot_id, 'source_roots' => source_exports.map { |source_export| source_export['source_root_sha256'] },
+        'cutoff_at' => '2026-08-25T23:59:59+07:00', 'rows' => output['rows'],
+        'output_sha256' => output['output_sha256'], 'author_identity' => 'Fixture Batch G Independent Rerun Author',
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      rerun_reference, rerun_digest = write_json_artifact("#{prefix}_rerun.json", rerun_artifact, batch: 'G')
+      security = resolved_entry['appointment_dependencies'].find { |appointment| appointment['authority_domain'] == 'security_privacy_data' }
+      access_payload = {
+        'role' => 'synthetic_report_security_verifier', 'cohort_scope' => ['SYN-UEU'],
+        'permitted_fields' => %w[synthetic_id distinct_key aggregate_value state source_version],
+        'prohibited_fields' => %w[real_patient_identifier direct_identifier credential live_endpoint],
+        'watermark' => output['watermark'], 'retention_class' => output['retention_class'],
+        'masked' => output['masked'], 'small_cell_suppression_applied' => output['small_cell_suppression_applied']
+      }
+      access_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_ACCESS_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'identity' => security['identity'],
+        'export_reason' => output['export_reason'], 'output_sha256' => output['output_sha256'],
+        'policy_sha256' => Digest::SHA256.hexdigest(JSON.generate(access_payload)),
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }.merge(access_payload)
+      access_reference, access_digest = write_json_artifact("#{prefix}_access.json", access_artifact, batch: 'G')
+      audit_events = %w[view run export].map do |event_type|
+        {
+          'event_type' => event_type, 'event_id' => output.dig('audit_event_ids', event_type),
+          'actor_identity' => security['identity'], 'role' => access_artifact['role'],
+          'cohort_scope' => access_artifact['cohort_scope'], 'occurred_at' => '2026-08-25T10:00:00+07:00',
+          'outcome' => 'allowed', 'reason' => output['export_reason'], 'output_sha256' => output['output_sha256']
+        }
+      end
+      audit_artifact = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_AUDIT_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'output_sha256' => output['output_sha256'],
+        'events' => audit_events, 'audit_root_sha256' => Digest::SHA256.hexdigest(JSON.generate(audit_events)),
+        'author_identity' => 'Fixture Batch G Audit Author', 'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }
+      audit_reference, audit_digest = write_json_artifact("#{prefix}_audit.json", audit_artifact, batch: 'G')
+      measure_export = source_exports.find { |source_export| source_export['control_role'] == 'authoritative_measure' }
+      control_values = {
+        'authoritative_source_total' => measure_total, 'documented_exclusion_total' => 0,
+        'approved_adjustment_total' => 0, 'report_total' => measure_total,
+        'source_row_count' => source_exports.length, 'report_row_count' => 1,
+        'distinct_key_count' => 1, 'duplicate_join_count' => 0,
+        'traced_sample_count' => 1, 'missing_source_count' => 0, 'null_state_count' => 0
+      }
+      reconciliation = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_RECONCILIATION_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'definition_sha256' => definition_sha,
+        'parameter_descriptor' => { 'reference' => parameter_reference, 'sha256' => parameter_digest }, 'snapshot_id' => snapshot_id,
+        'cutoff_at' => '2026-08-25T23:59:59+07:00', 'period_state' => 'closed',
+        'prior_output_reference' => nil, 'prior_output_sha256' => nil, 'restatement_reason' => nil,
+        'source_exports' => descriptors,
+        'report_output' => { 'reference' => output_reference, 'sha256' => output_digest },
+        'rerun_receipt' => { 'reference' => rerun_reference, 'sha256' => rerun_digest },
+        'access_receipt' => { 'reference' => access_reference, 'sha256' => access_digest },
+        'audit_receipt' => { 'reference' => audit_reference, 'sha256' => audit_digest },
+        'control_values' => control_values,
+        'equation' => ParityGovernanceValidator::BATCH_G_RECONCILIATION_EQUATION,
+        'difference' => 0,
+        'sampled_lineage' => [{
+          'report_distinct_key' => output_row['distinct_key'],
+          'source_batch' => measure_export['source_batch'],
+          'source_requirement_id' => measure_export['source_requirement_id'],
+          'source_distinct_key' => measure_export['rows'].first['distinct_key'],
+          'source_root_sha256' => measure_export['source_root_sha256']
+        }],
+        'late_event_policy' => 'append_linked_restatement_never_overwrite_closed_output',
+        'author_identity' => 'Fixture Batch G Reconciliation Author', 'reviewer' => valid_reviewer
+      }
+      reconciliation_reference, reconciliation_digest = write_json_artifact("#{prefix}_reconciliation.json", reconciliation, batch: 'G')
+      resolved_entry['reconciliation_contract'].merge!(
+        'status' => 'complete', 'receipt_reference' => reconciliation_reference,
+        'receipt_artifact_sha256' => reconciliation_digest
+      )
+    end
+    refresh_batch_g_control_approval(requirement_id)
+  end
+
+  def prepare_batch_g_deferred_statutory_entry(requirement_id)
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+    pending_sources = entry['source_dependencies'].map { |dependency| "missing_source:#{dependency['batch']}:#{dependency['requirement_id']}" }
+    pending_intra = entry['intra_batch_dependencies'].map { |dependency| "missing_intra_g:#{dependency['requirement_id']}" }
+    exclusions = [*ParityGovernanceValidator::BATCH_G_DEFERRAL_BASE_EXCLUSIONS, *pending_sources, *pending_intra]
+    prepare_batch_g_governed_entry(
+      requirement_id, status: 'defer', disposition: 'exclude', target_kind: 'exclusion',
+      target_reference: 'legacy statutory label retained only as non-exportable synthetic proposal', exclusions: exclusions
+    )
+  end
+
+  def complete_batch_g_statutory_definition(requirement_id)
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    entry = register['entries'].find { |candidate| candidate['requirement_id'] == requirement_id }
+    prefix = requirement_id.downcase.tr('-', '_')
+    definition = {
+      'standard_identifier' => "CURRENT-SYNTHETIC-STANDARD-#{requirement_id}",
+      'standard_version' => '2026-fixture-v1',
+      'effective_date' => '2026-08-25',
+      'definition_source' => "FIXTURE-SIGNED-CURRENT-DEFINITION-#{requirement_id}"
+    }
+    frozen_definition = entry['definition_contract']
+    semantic_type = ParityGovernanceValidator::BATCH_G_ROW_SEMANTIC_TYPE.fetch(requirement_id)
+    semantic_spec = ParityGovernanceValidator::BATCH_G_ROW_SEMANTIC_SPECS.fetch(requirement_id)
+    semantic_digest = Digest::SHA256.hexdigest(JSON.generate(semantic_spec))
+    source_bindings = entry['source_dependencies'].map do |dependency|
+      {
+        'batch' => dependency['batch'], 'requirement_id' => dependency['requirement_id'],
+        'source_entity' => dependency['source_entity'], 'source_owner_authority' => dependency['source_owner_authority'],
+        'resolution_reference' => dependency['resolution_reference'],
+        'resolution_sha256' => dependency['resolution_artifact_sha256']
+      }
+    end
+    report_definition = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_G_SIGNED_REPORT_DEFINITION_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+      'requirement_id' => requirement_id, 'subject' => 'signed_current_report_definition',
+      'semantic_digest' => semantic_digest,
+      'definition_sha256' => Digest::SHA256.hexdigest(JSON.generate(frozen_definition)),
+      'grain' => frozen_definition['grain'], 'distinct_key' => frozen_definition['distinct_key'],
+      'numerator' => frozen_definition['numerator'], 'denominator' => frozen_definition['denominator'],
+      'inclusions' => frozen_definition['inclusions'], 'exclusions' => frozen_definition['exclusions'],
+      'parameters' => frozen_definition['parameters'], 'source_bindings' => source_bindings,
+      'period_basis' => frozen_definition.slice('time_basis', 'timezone', 'cutoff_policy', 'period_close_policy'),
+      'date' => '2026-08-25', 'author_identity' => 'Fixture Signed Report Definition Author',
+      'reviewer' => valid_reviewer
+    }.merge(definition)
+    report_definition_reference, report_definition_sha = write_json_artifact("#{prefix}_signed_report_definition.json", report_definition, batch: 'G')
+    domains = entry['co_owners']
+    bindings = domains.each_with_index.map do |domain, index|
+      appointment = entry['appointment_dependencies'].find { |candidate| candidate['authority_domain'] == domain }
+      approval = {
+        'artifact_type' => ParityGovernanceValidator::BATCH_G_STATUTORY_APPROVAL_ARTIFACT_TYPE,
+        'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+        'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+        'requirement_id' => requirement_id, 'subject' => 'current_statutory_definition_approval',
+        'authority_domain' => domain, 'identity' => appointment['identity'],
+        'report_definition_sha256' => report_definition_sha,
+        'date' => '2026-08-25', 'reviewer' => valid_reviewer
+      }.merge(definition)
+      reference, digest = write_json_artifact("#{prefix}_statutory_approval_#{index}.json", approval, batch: 'G')
+      {
+        'authority_domain' => domain, 'identity' => appointment['identity'],
+        'appointment_reference' => appointment['reference'], 'appointment_sha256' => appointment['artifact_sha256'],
+        'approval_reference' => reference, 'approval_sha256' => digest
+      }
+    end
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_G_STATUTORY_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+      'requirement_id' => requirement_id, 'subject' => 'current_statutory_definition',
+      'legacy_simulation_only' => true,
+      'report_definition_reference' => report_definition_reference,
+      'report_definition_sha256' => report_definition_sha,
+      'authority_bindings' => bindings,
+      'date' => '2026-08-25', 'author_identity' => 'Fixture Statutory Definition Custodian',
+      'reviewer' => valid_reviewer
+    }.merge(definition)
+    reference, digest = write_json_artifact("#{prefix}_statutory_definition.json", artifact, batch: 'G')
+    entry['statutory_definition'].merge!(
+      'status' => 'complete', 'standard_identifier' => definition['standard_identifier'],
+      'standard_version' => definition['standard_version'], 'effective_date' => definition['effective_date'],
+      'definition_source' => definition['definition_source'], 'authority_reference' => reference,
+      'authority_artifact_sha256' => digest
+    )
+    File.write(@batch_g_decision_register, JSON.pretty_generate(register) + "\n")
+    refresh_batch_g_control_approval(requirement_id)
+  end
+
+  def prepare_batch_g_coherent_candidate_g_c01
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-001', status: 'approve', disposition: 'reproduce', target_kind: 'capability',
+      target_reference: 'fixture_parameterized_clinical_report_projection'
+    )
+    prepare_batch_g_governed_entry(
+      'PAR-RPT-002', status: 'approve', disposition: 'consolidate', target_kind: 'consolidation_target',
+      target_reference: 'PAR-RPT-001'
+    )
+    register = JSON.parse(File.read(@batch_g_decision_register))
+    target = register['entries'].find { |entry| entry['requirement_id'] == 'PAR-RPT-001' }
+    members = ParityGovernanceValidator::BATCH_G_CONSOLIDATION_GROUPS.fetch('G-C01')
+    parameter_policy = ParityGovernanceValidator::BATCH_G_CONSOLIDATION_PARAMETER_POLICIES.fetch('G-C01')
+    member_mappings = members.to_h do |member|
+      member_entry = register['entries'].find { |entry| entry['requirement_id'] == member }
+      [member, {
+        'semantic_parameter_values' => parameter_policy.fetch('member_values').fetch(member),
+        'definition_sha256' => Digest::SHA256.hexdigest(JSON.generate(member_entry['definition_contract'])),
+        'source_requirement_ids' => member_entry['source_dependencies'].map { |source| source['requirement_id'] },
+        'mapped_control_totals' => ParityGovernanceValidator::BATCH_G_CONTROL_TOTALS,
+        'authority_domains' => member_entry['co_owners'],
+        'approval_reference' => member_entry.dig('approval', 'reference'),
+        'approval_sha256' => member_entry.dig('approval', 'artifact_sha256')
+      }]
+    end
+    artifact = {
+      'artifact_type' => ParityGovernanceValidator::BATCH_G_CONSOLIDATION_ARTIFACT_TYPE,
+      'schema_version' => ParityGovernanceValidator::ARTIFACT_SCHEMA_VERSION,
+      'register_id' => ParityGovernanceValidator::BATCH_G_REGISTER_ID,
+      'candidate_id' => 'G-C01', 'members' => members, 'target_requirement_id' => 'PAR-RPT-001',
+      'terminal_owner_identity' => target.dig('accountable_owner', 'identity'),
+      'terminal_authority_domain' => target['lead_authority_domain'],
+      'terminal_approval_reference' => target.dig('approval', 'reference'),
+      'terminal_approval_sha256' => target.dig('approval', 'artifact_sha256'),
+      'declared_parameters' => parameter_policy.fetch('declared_parameters'),
+      'member_mappings' => member_mappings,
+      'date' => '2026-08-25', 'author_identity' => 'Fixture Batch G Mapping Author', 'reviewer' => valid_reviewer
+    }
+    reference, digest = write_json_artifact('g_c01_shared_mapping.json', artifact, batch: 'G')
+    mutate_batch_g_decision_register do |decision_register|
+      members.each do |requirement_id|
+        control = decision_register['entries'].find { |entry| entry['requirement_id'] == requirement_id }['consolidation_mapping']
+        control.merge!(
+          'status' => 'complete', 'terminal_target_requirement_id' => 'PAR-RPT-001',
+          'artifact_reference' => reference, 'artifact_sha256' => digest
+        )
+      end
+    end
+  end
+
   def valid_approval_artifact
     {
       'artifact_type' => ParityGovernanceValidator::GOVERNANCE_ARTIFACT_TYPE,
@@ -3517,7 +4694,8 @@ class ParityGovernanceValidatorTest < Minitest::Test
       'C' => ParityGovernanceValidator::BATCH_C_EVIDENCE_DIRECTORY,
       'D' => ParityGovernanceValidator::BATCH_D_EVIDENCE_DIRECTORY,
       'E' => ParityGovernanceValidator::BATCH_E_EVIDENCE_DIRECTORY,
-      'F' => ParityGovernanceValidator::BATCH_F_EVIDENCE_DIRECTORY
+      'F' => ParityGovernanceValidator::BATCH_F_EVIDENCE_DIRECTORY,
+      'G' => ParityGovernanceValidator::BATCH_G_EVIDENCE_DIRECTORY
     }.fetch(batch)
     directory = File.join(@tmpdir, directory_name)
     FileUtils.mkdir_p(directory)

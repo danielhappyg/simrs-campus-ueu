@@ -163,6 +163,11 @@ class ParityGovernanceValidator
     PAR-RMIK-003 PAR-RMIK-005
   ].freeze
 
+  EXPECTED_BATCH_G_IDS = [
+    'PAR-ADM-007', 'PAR-ADM-031', 'PAR-ADM-035',
+    *(1..117).map { |number| format('PAR-RPT-%03d', number) }
+  ].freeze
+
   BATCH_A_REGISTER_SCHEMA_VERSION = 1
   BATCH_A_REGISTER_ID = 'G0-BATCH-A-2026-08-25'
   BATCH_A_EVIDENCE_DIRECTORY = 'G0_BATCH_A_DECISION_EVIDENCE_2026-08-25'
@@ -178,13 +183,17 @@ class ParityGovernanceValidator
   BATCH_F_REGISTER_ID = 'G0-BATCH-F-2026-08-25'
   BATCH_F_EVIDENCE_DIRECTORY = 'G0_BATCH_F_DECISION_EVIDENCE_2026-08-25'
   BATCH_F_SOURCE_REVISION = 'e3cd84d94be2768cbc597cfe5cb277f973c2f2b4'
+  BATCH_G_REGISTER_ID = 'G0-BATCH-G-2026-08-25'
+  BATCH_G_EVIDENCE_DIRECTORY = 'G0_BATCH_G_DECISION_EVIDENCE_2026-08-25'
+  BATCH_G_SOURCE_REVISION = '9347940e61e68a07662d5b96da9132a55421bb59'
   DECISION_REGISTER_CONFIGS = {
     'A' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('A'), expected_ids: EXPECTED_BATCH_A_IDS, register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }.freeze,
     'B' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('B'), expected_ids: EXPECTED_BATCH_B_IDS, register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }.freeze,
     'C' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('C'), expected_ids: EXPECTED_BATCH_C_IDS, register_id: BATCH_C_REGISTER_ID, evidence_directory: BATCH_C_EVIDENCE_DIRECTORY }.freeze,
     'D' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('D'), expected_ids: EXPECTED_BATCH_D_IDS, register_id: BATCH_D_REGISTER_ID, evidence_directory: BATCH_D_EVIDENCE_DIRECTORY }.freeze,
     'E' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('E'), expected_ids: EXPECTED_BATCH_E_IDS, register_id: BATCH_E_REGISTER_ID, evidence_directory: BATCH_E_EVIDENCE_DIRECTORY }.freeze,
-    'F' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('F'), expected_ids: EXPECTED_BATCH_F_IDS, register_id: BATCH_F_REGISTER_ID, evidence_directory: BATCH_F_EVIDENCE_DIRECTORY }.freeze
+    'F' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('F'), expected_ids: EXPECTED_BATCH_F_IDS, register_id: BATCH_F_REGISTER_ID, evidence_directory: BATCH_F_EVIDENCE_DIRECTORY }.freeze,
+    'G' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('G'), expected_ids: EXPECTED_BATCH_G_IDS, register_id: BATCH_G_REGISTER_ID, evidence_directory: BATCH_G_EVIDENCE_DIRECTORY }.freeze
   }.transform_values(&:freeze).freeze
   BATCH_C_REQUIRED_AUTHORITIES = {
     'PAR-ADM-004' => %w[product_delivery clinical_governance rmik quality_analytics security_privacy_data],
@@ -277,8 +286,8 @@ class ParityGovernanceValidator
     ['batch_gate', 'B', %w[patient encounter admission identity]],
     ['batch_gate', 'C', %w[clinical_state clinical_authority rmik_record amendment]]
   ].map(&:freeze).freeze
-  FOUR_SCENARIO_BATCHES = %w[C D E F].freeze
-  AUTHORITY_BOUND_BATCHES = %w[C D E F].freeze
+  FOUR_SCENARIO_BATCHES = %w[C D E F G].freeze
+  AUTHORITY_BOUND_BATCHES = %w[C D E F G].freeze
   FOUR_SCENARIO_NAMES = %w[normal denial correction_or_amendment dependency_outage].freeze
   BATCH_D_CAPABILITY_KINDS = {
     'PAR-ADM-014' => 'diagnostic_master', 'PAR-ADM-015' => 'diagnostic_master',
@@ -868,6 +877,7 @@ class ParityGovernanceValidator
   BATCH_F_INTEGRATION_MODES = %w[none non_transmitting_simulation].freeze
   BATCH_F_PROHIBITED_TARGETS = %w[BPJS VClaim Antrol Aplicares E-Klaim iDRG SATUSEHAT payment_bank accounting_ERP live_endpoint device printer].freeze
   BATCH_F_EVIDENCE_BASES = %w[behavioral_execution signed_finance_policy reconciled_ledger integration_sandbox_result user_interview structural_capture].freeze
+  BATCH_G_EVIDENCE_BASES = %w[behavioral_execution signed_reporting_policy reconciled_ledger independent_output_verification user_interview structural_capture].freeze
   BATCH_F_REGISTER_KEYS = %w[schema_version register_id batch register_status data_boundary external_integrations source_manifest source_manifest_sha256 source_revision evidence_directory purpose availability_state family_policies ledger_ownership entries].freeze
   BATCH_F_FAMILY_POLICY_KEYS = %w[family_id members lead_authority_domain co_owners inherited_hazards].freeze
   BATCH_F_ENTRY_KEYS = %w[requirement_id batch legacy_menu family_id availability_state lead_authority_domain lifecycle_contract evidence decision affected_domains co_owners downstream_impacts synthetic_scenarios accountable_owner appointment_dependencies gate_authority_appointments dependency_gates intra_batch_dependencies integration_boundary ledger_invariants write_contract reconciliation_contract consolidation_mapping approval row_hazards].freeze
@@ -899,6 +909,339 @@ class ParityGovernanceValidator
   BATCH_F_RECONCILIATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id family_id profile_id synthetic_only currency minor_unit period_start period_end period_timezone cutoff_at late_posting_policy event_count ledger_receipts control_values equations differences idempotency_key date author_identity reviewer].freeze
   BATCH_F_LEDGER_RECEIPT_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id profile_id ledger_kind synthetic_only currency minor_unit period_start period_end period_timezone cutoff_at late_posting_policy event_count control_values ledger_digest idempotency_key date author_identity reviewer].freeze
   BATCH_F_CONSOLIDATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id candidate_id members target_requirement_id terminal_owner_identity terminal_authority_domain terminal_approval_reference terminal_approval_sha256 member_impacts mapped_fields mapped_states mapped_control_totals lineage_preserved authorities_preserved exclusions date author_identity reviewer].freeze
+
+  BATCH_G_FAMILY_MEMBERS = {
+    'G1' => [*%w[PAR-RPT-005 PAR-RPT-006 PAR-RPT-007 PAR-RPT-008 PAR-RPT-009 PAR-RPT-010 PAR-RPT-011 PAR-RPT-013 PAR-RPT-016 PAR-RPT-017 PAR-RPT-018 PAR-RPT-019 PAR-RPT-020 PAR-RPT-022 PAR-RPT-023 PAR-RPT-024 PAR-RPT-025 PAR-RPT-042 PAR-RPT-050 PAR-RPT-051 PAR-RPT-052], *(96..107).map { |n| format('PAR-RPT-%03d', n) }],
+    'G2' => [*(1..4).map { |n| format('PAR-RPT-%03d', n) }, *%w[PAR-RPT-012 PAR-RPT-014 PAR-RPT-015], *(26..40).map { |n| format('PAR-RPT-%03d', n) }, *(46..49).map { |n| format('PAR-RPT-%03d', n) }, *(53..61).map { |n| format('PAR-RPT-%03d', n) }, 'PAR-RPT-117'],
+    'G3' => [*%w[PAR-ADM-031 PAR-ADM-035 PAR-RPT-021 PAR-RPT-041 PAR-RPT-043 PAR-RPT-044], *(62..95).map { |n| format('PAR-RPT-%03d', n) }],
+    'G4' => [*%w[PAR-ADM-007 PAR-RPT-045], *(108..116).map { |n| format('PAR-RPT-%03d', n) }]
+  }.transform_values(&:freeze).freeze
+  BATCH_G_FAMILY_POLICY = {
+    'G1' => { lead: 'reporting_quality', mandatory: %w[product_delivery reporting_quality security_privacy_data operations facility_bed_management], description: 'patient access, encounter, census and operational flow' },
+    'G2' => { lead: 'rmik_reporting', mandatory: %w[product_delivery rmik_reporting security_privacy_data operations quality_patient_safety nursing_governance], description: 'clinical, RMIK, nursing and service quality' },
+    'G3' => { lead: 'public_health_reporting', mandatory: %w[product_delivery public_health_reporting statutory_sponsor security_privacy_data operations], description: 'legacy statutory, public-health and special outcome' },
+    'G4' => { lead: 'management_reporting', mandatory: %w[product_delivery management_reporting management_target_owner security_privacy_data operations finance_accounting], description: 'management, finance, payer and inpatient outcome' }
+  }.transform_values(&:freeze).freeze
+  BATCH_G_SOURCE_SPECS = {
+    'A_CONFIG' => { batch: 'A', id: 'PAR-ADM-003', entity: 'configuration_version', authority: 'security_privacy_data' },
+    'A_AUDIT' => { batch: 'A', id: 'PAR-ADM-037', entity: 'immutable_audit_event', authority: 'security_privacy_data' },
+    'B_PAYER' => { batch: 'B', id: 'PAR-ADM-010', entity: 'payer_class_version', authority: 'registration_admission' },
+    'B_BED' => { batch: 'B', id: 'PAR-ADM-033', entity: 'admission_bed_state', authority: 'registration_admission' },
+    'B_ACTIVE_ADMISSION' => { batch: 'B', id: 'PAR-REG-001', entity: 'active_inpatient_admission_as_of_version', authority: 'registration_admission' },
+    'B_DISCHARGE' => { batch: 'B', id: 'PAR-REG-001', entity: 'finalized_inpatient_discharge_state', authority: 'registration_admission' },
+    'B_RI' => { batch: 'B', id: 'PAR-REG-001', entity: 'inpatient_encounter_version', authority: 'registration_admission' },
+    'B_RJ' => { batch: 'B', id: 'PAR-REG-002', entity: 'outpatient_encounter_version', authority: 'registration_admission' },
+    'B_IGD' => { batch: 'B', id: 'PAR-REG-003', entity: 'emergency_encounter_version', authority: 'registration_admission' },
+    'B_OUTGOING_REFERRAL' => { batch: 'B', id: 'PAR-REG-003', entity: 'outgoing_referral_encounter_version', authority: 'registration_admission' },
+    'C_RJ' => { batch: 'C', id: 'PAR-CLN-004', entity: 'final_outpatient_record_version', authority: 'outpatient_clinical' },
+    'C_RI' => { batch: 'C', id: 'PAR-CLN-005', entity: 'final_inpatient_record_version', authority: 'inpatient_clinical' },
+    'C_DEATH' => { batch: 'C', id: 'PAR-CLN-005', entity: 'approved_death_disposition_version', authority: 'inpatient_clinical' },
+    'C_PROVIDER_RJ' => { batch: 'C', id: 'PAR-CLN-004', entity: 'approved_outpatient_provider_assignment_version', authority: 'outpatient_clinical' },
+    'C_PROVIDER_RI' => { batch: 'C', id: 'PAR-CLN-005', entity: 'approved_inpatient_provider_assignment_version', authority: 'inpatient_clinical' },
+    'C_DISPOSITION_RI' => { batch: 'C', id: 'PAR-CLN-005', entity: 'approved_discharge_disposition_reason_version', authority: 'inpatient_clinical' },
+    'C_REFERRAL' => { batch: 'C', id: 'PAR-CLN-004', entity: 'approved_outgoing_referral_disposition_version', authority: 'outpatient_clinical' },
+    'C_RMIK_RJ' => { batch: 'C', id: 'PAR-RMIK-001', entity: 'approved_outpatient_coding_version', authority: 'rmik' },
+    'C_RMIK_RI' => { batch: 'C', id: 'PAR-RMIK-002', entity: 'approved_inpatient_coding_version', authority: 'rmik' },
+    'D_LAB' => { batch: 'D', id: 'PAR-CLN-006', entity: 'verified_laboratory_result_version', authority: 'laboratory' },
+    'D_RAD' => { batch: 'D', id: 'PAR-CLN-007', entity: 'verified_radiology_result_version', authority: 'radiology' },
+    'D_SURGERY' => { batch: 'D', id: 'PAR-CLN-009', entity: 'completed_procedure_version', authority: 'surgery_anesthesia' },
+    'E_RX' => { batch: 'E', id: 'PAR-PHA-002', entity: 'prescription_order_version', authority: 'pharmacy' },
+    'E_DISPENSE' => { batch: 'E', id: 'PAR-PHA-003', entity: 'dispense_return_ledger', authority: 'pharmacy' },
+    'F_RJ_BILL' => { batch: 'F', id: 'PAR-FIN-001', entity: 'outpatient_bill_version', authority: 'cashier_revenue' },
+    'F_RI_BILL' => { batch: 'F', id: 'PAR-FIN-002', entity: 'inpatient_bill_version', authority: 'cashier_revenue' },
+    'F_RJ_CLAIM' => { batch: 'F', id: 'PAR-CLM-001', entity: 'outpatient_claim_version', authority: 'rmik_coding' },
+    'F_RI_CLAIM' => { batch: 'F', id: 'PAR-CLM-002', entity: 'inpatient_claim_version', authority: 'rmik_coding' }
+  }.transform_values(&:freeze).freeze
+  BATCH_G_SEMANTIC_TEMPLATES = {
+    'target_master' => { status: 'defined', care_setting: 'outpatient_management', dimension: 'target_definition', grain: 'target_metric_per_period_and_organization_unit', key: 'target_definition_id+effective_period+organization_unit_id+target_metric+target_unit', numerator: 'approved_target_value', denominator: 'not_applicable', parameters: %w[effective_period organization_unit_id target_metric target_unit definition_version], sources: %w[A_CONFIG A_AUDIT], measures: [], reconciliation: false },
+    'disease_reference_master' => { status: 'defined', care_setting: 'cross_setting', dimension: 'infectious_disease_reference', grain: 'disease_reference_version', key: 'disease_reference_id+disease_code+version', numerator: 'not_applicable', denominator: 'not_applicable', parameters: %w[effective_date disease_classification terminology_version definition_version], sources: %w[A_CONFIG A_AUDIT], measures: [], reconciliation: false },
+    'w2_reference_master' => { status: 'unresolved_owner_definition', care_setting: 'public_health', dimension: 'w2_form_reference', grain: 'w2_form_definition_version_and_field_indicator', key: 'form_definition_id+field_or_indicator_id+version', numerator: 'not_applicable', denominator: 'not_applicable', parameters: %w[standard_identifier standard_version effective_period field_or_indicator definition_version], sources: %w[A_CONFIG A_AUDIT], measures: [], reconciliation: false },
+    'outpatient_coded_diagnosis' => { status: 'defined', care_setting: 'outpatient', dimension: 'coded_diagnosis', grain: 'one_row_per_approved_diagnosis_per_outpatient_encounter', key: 'outpatient_encounter_id+approved_diagnosis_id+coding_version', numerator: 'distinct_outpatient_encounters_with_approved_diagnosis', denominator: 'eligible_final_outpatient_encounters', parameters: %w[period_start period_end care_setting diagnosis_group organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_RJ C_RMIK_RJ], measures: %w[PAR-RMIK-001], reconciliation: true },
+    'inpatient_coded_diagnosis' => { status: 'defined', care_setting: 'inpatient', dimension: 'coded_diagnosis', grain: 'one_row_per_approved_diagnosis_per_inpatient_encounter', key: 'inpatient_encounter_id+approved_diagnosis_id+coding_version', numerator: 'distinct_inpatient_encounters_with_approved_diagnosis', denominator: 'eligible_final_inpatient_encounters', parameters: %w[period_start period_end care_setting diagnosis_group organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI C_RI C_RMIK_RI], measures: %w[PAR-RMIK-002], reconciliation: true },
+    'outpatient_coded_procedure' => { status: 'defined', care_setting: 'outpatient', dimension: 'coded_procedure', grain: 'one_row_per_approved_procedure_per_outpatient_encounter', key: 'outpatient_encounter_id+approved_procedure_id+coding_version', numerator: 'distinct_outpatient_encounters_with_approved_procedure', denominator: 'eligible_final_outpatient_encounters', parameters: %w[period_start period_end care_setting procedure_group organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_RJ C_RMIK_RJ], measures: %w[PAR-RMIK-001], reconciliation: true },
+    'inpatient_coded_procedure' => { status: 'defined', care_setting: 'inpatient', dimension: 'coded_procedure', grain: 'one_row_per_approved_procedure_per_inpatient_encounter', key: 'inpatient_encounter_id+approved_procedure_id+coding_version', numerator: 'distinct_inpatient_encounters_with_approved_procedure', denominator: 'eligible_final_inpatient_encounters', parameters: %w[period_start period_end care_setting procedure_group organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI C_RI C_RMIK_RI D_SURGERY], measures: %w[PAR-RMIK-002 PAR-CLN-009], reconciliation: true },
+    'patient_cohort' => { status: 'defined', care_setting: 'cross_setting', dimension: 'patient_cohort', grain: 'one_row_per_synthetic_patient', key: 'synthetic_patient_id', numerator: 'distinct_synthetic_patients_meeting_declared_cohort', denominator: 'eligible_synthetic_patient_registry', parameters: %w[period_start period_end encounter_scope organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD], measures: %w[PAR-REG-001 PAR-REG-002 PAR-REG-003], reconciliation: true },
+    'outpatient_encounter' => { status: 'defined', care_setting: 'outpatient', dimension: 'encounter_flow', grain: 'one_row_per_outpatient_encounter', key: 'outpatient_encounter_id', numerator: 'distinct_eligible_outpatient_encounters', denominator: 'eligible_outpatient_encounter_snapshot', parameters: %w[period_start period_end care_setting clinic_id payer_class provider_id organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_RJ], measures: %w[PAR-REG-002], reconciliation: true },
+    'inpatient_encounter' => { status: 'defined', care_setting: 'inpatient', dimension: 'encounter_flow', grain: 'one_row_per_inpatient_encounter', key: 'inpatient_encounter_id', numerator: 'distinct_eligible_inpatient_encounters', denominator: 'eligible_inpatient_encounter_snapshot', parameters: %w[period_start period_end care_setting ward_id room_class discharge_disposition organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_BED B_RI C_RI], measures: %w[PAR-REG-001], reconciliation: true },
+    'emergency_encounter' => { status: 'defined', care_setting: 'emergency', dimension: 'emergency_flow', grain: 'one_row_per_emergency_encounter', key: 'emergency_encounter_id', numerator: 'distinct_eligible_emergency_encounters', denominator: 'eligible_emergency_encounter_snapshot', parameters: %w[period_start period_end care_setting triage_state disposition payer_class organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_IGD C_RJ], measures: %w[PAR-REG-003], reconciliation: true },
+    'prescription_monitor' => { status: 'defined', care_setting: 'cross_setting', dimension: 'prescription_dispense_status', grain: 'one_row_per_prescription_order_version', key: 'prescription_order_id+version', numerator: 'distinct_prescription_orders_by_dispense_return_status', denominator: 'eligible_prescription_orders', parameters: %w[period_start period_end care_setting dispense_status organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI E_RX E_DISPENSE], measures: %w[PAR-PHA-002 PAR-PHA-003], reconciliation: true },
+    'wait_time' => { status: 'defined', care_setting: 'cross_setting', dimension: 'elapsed_time', grain: 'one_row_per_encounter_or_document_milestone_pair', key: 'encounter_or_document_id+start_milestone+end_milestone', numerator: 'sum_elapsed_minutes_for_valid_milestone_pairs', denominator: 'eligible_events_with_both_authoritative_milestones', parameters: %w[period_start period_end care_setting milestone_pair delay_threshold_minutes organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI], measures: %w[PAR-CLN-004 PAR-CLN-005], reconciliation: true },
+    'last_visit' => { status: 'defined', care_setting: 'cross_setting', dimension: 'latest_qualifying_encounter', grain: 'one_row_per_synthetic_patient', key: 'synthetic_patient_id', numerator: 'maximum_qualifying_encounter_event_time', denominator: 'not_applicable', parameters: %w[synthetic_patient_id care_setting lookback_start lookback_end organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD], measures: %w[PAR-REG-001 PAR-REG-002 PAR-REG-003], reconciliation: true },
+    'laboratory_register' => { status: 'defined', care_setting: 'cross_setting', dimension: 'laboratory_order_specimen_result', grain: 'one_row_per_laboratory_order_specimen_result_version', key: 'laboratory_order_id+specimen_id+result_version', numerator: 'distinct_verified_laboratory_results', denominator: 'eligible_laboratory_orders', parameters: %w[period_start period_end care_setting laboratory_service result_status organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI D_LAB], measures: %w[PAR-CLN-006], reconciliation: true },
+    'radiology_register' => { status: 'defined', care_setting: 'cross_setting', dimension: 'radiology_order_result_report', grain: 'one_row_per_radiology_order_report_version', key: 'radiology_order_id+report_version', numerator: 'distinct_verified_radiology_reports', denominator: 'eligible_radiology_orders', parameters: %w[period_start period_end care_setting radiology_service report_status organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI D_RAD], measures: %w[PAR-CLN-007], reconciliation: true },
+    'surgery_register' => { status: 'defined', care_setting: 'inpatient_theatre', dimension: 'surgery_theatre_procedure', grain: 'one_row_per_surgical_procedure_version', key: 'procedure_id+theatre_session_id+procedure_version', numerator: 'distinct_completed_or_cancelled_surgical_procedures_by_state', denominator: 'eligible_surgery_theatre_orders', parameters: %w[period_start period_end care_setting theatre procedure_state organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI C_RI D_SURGERY], measures: %w[PAR-CLN-009], reconciliation: true },
+    'mortality' => { status: 'defined', care_setting: 'cross_setting', dimension: 'death_disposition', grain: 'one_row_per_death_or_doa_disposition_event', key: 'encounter_id+death_disposition_version', numerator: 'distinct_encounters_with_approved_death_or_doa_disposition', denominator: 'eligible_discharged_or_emergency_encounters', parameters: %w[period_start period_end care_setting death_disposition organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE B_IGD C_DEATH], measures: %w[PAR-REG-001 PAR-REG-003 PAR-CLN-005], reconciliation: true },
+    'current_inpatient_census' => { status: 'defined', care_setting: 'inpatient', dimension: 'active_admission_bed_as_of', grain: 'one_row_per_active_admission_as_of_cutoff', key: 'inpatient_encounter_id+bed_assignment_version+as_of', numerator: 'distinct_active_inpatient_admissions_as_of_cutoff', denominator: 'eligible_admission_bed_snapshot_as_of_cutoff', parameters: %w[as_of care_setting ward room_class organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_BED B_ACTIVE_ADMISSION], measures: %w[PAR-ADM-033 PAR-REG-001], reconciliation: true },
+    'payer_dimension_analysis' => { status: 'defined', care_setting: 'cross_setting', dimension: 'encounter_payer_class', grain: 'one_row_per_encounter_and_payer_class_version', key: 'encounter_id+payer_class_version', numerator: 'distinct_eligible_encounters_by_payer_class', denominator: 'eligible_encounters_when_share_is_requested', parameters: %w[period_start period_end care_setting payer_class output_measure organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_PAYER B_RI B_RJ B_IGD], measures: %w[PAR-REG-001 PAR-REG-002 PAR-REG-003], reconciliation: true },
+    'clinical_record_quality' => { status: 'defined', care_setting: 'cross_setting', dimension: 'record_quality_state', grain: 'one_row_per_record_version_and_quality_rule', key: 'record_id+record_version+quality_rule_id', numerator: 'records_passing_or_failing_declared_quality_rule', denominator: 'eligible_final_record_versions', parameters: %w[period_start period_end care_setting quality_rule organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ C_RJ C_RI C_RMIK_RJ C_RMIK_RI], measures: %w[PAR-CLN-004 PAR-CLN-005], reconciliation: true },
+    'referral' => { status: 'defined', care_setting: 'cross_setting', dimension: 'referral_state', grain: 'one_row_per_referral_version', key: 'referral_id+version', numerator: 'distinct_referrals_by_direction_and_state', denominator: 'eligible_referral_versions', parameters: %w[period_start period_end care_setting referral_direction referral_state organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI], measures: %w[PAR-REG-001 PAR-REG-002 PAR-REG-003], reconciliation: true },
+    'clinical_event' => { status: 'defined', care_setting: 'cross_setting', dimension: 'clinical_event_state', grain: 'one_row_per_clinical_event_version', key: 'encounter_id+clinical_event_id+version', numerator: 'distinct_approved_clinical_events_by_declared_state', denominator: 'eligible_final_encounter_records', parameters: %w[period_start period_end care_setting clinical_event_type organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI], measures: %w[PAR-CLN-004 PAR-CLN-005], reconciliation: true },
+    'infection_incident' => { status: 'defined_count_denominator_unresolved', care_setting: 'cross_setting', dimension: 'infection_surveillance_state', grain: 'one_row_per_infection_surveillance_event_version', key: 'infection_case_id+event_version', numerator: 'distinct_recorded_infection_surveillance_cases', denominator: 'unresolved_until_approved_exposure_population_definition', parameters: %w[period_start period_end care_setting unit_id infection_category event_state organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ C_RJ C_RI], measures: %w[PAR-CLN-004 PAR-CLN-005], reconciliation: true },
+    'patient_safety_incident' => { status: 'defined', care_setting: 'cross_setting', dimension: 'patient_safety_incident_state', grain: 'one_row_per_patient_safety_incident_version', key: 'incident_id+incident_version', numerator: 'distinct_recorded_patient_safety_incidents_by_type_and_status', denominator: 'not_applicable', parameters: %w[period_start period_end unit_id incident_type severity status organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI], measures: %w[PAR-CLN-004 PAR-CLN-005], reconciliation: true },
+    'filing_custody' => { status: 'defined', care_setting: 'cross_setting', dimension: 'rmik_filing_custody_state', grain: 'one_row_per_record_and_filing_event_version', key: 'record_id+filing_event_id+filing_version', numerator: 'distinct_filing_events_by_location_and_status', denominator: 'eligible_records_when_completion_rate_is_requested', parameters: %w[period_start period_end filing_location filing_status organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT C_RMIK_RJ C_RMIK_RI], measures: %w[PAR-RMIK-001 PAR-RMIK-002], reconciliation: true },
+    'cppt_document' => { status: 'defined', care_setting: 'cross_setting', dimension: 'cppt_document_completion_signoff', grain: 'one_row_per_cppt_document_version', key: 'encounter_id+cppt_document_id+version', numerator: 'distinct_cppt_documents_by_completion_and_signoff_state', denominator: 'eligible_cppt_document_versions', parameters: %w[period_start period_end care_setting author_id completion_status organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ C_RJ C_RI], measures: %w[PAR-CLN-004 PAR-CLN-005], reconciliation: true },
+    'inpatient_record_completeness_detail' => { status: 'defined', care_setting: 'inpatient', dimension: 'record_completeness_checklist_item', grain: 'one_row_per_inpatient_record_version_and_completeness_item', key: 'inpatient_record_id+record_version+checklist_item_id', numerator: 'completed_required_inpatient_record_checklist_items', denominator: 'eligible_required_inpatient_record_checklist_items', parameters: %w[period_start period_end care_setting checklist_version organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI C_RI], measures: %w[PAR-CLN-005], reconciliation: true },
+    'outpatient_record_completeness_detail' => { status: 'defined', care_setting: 'outpatient', dimension: 'record_completeness_checklist_item', grain: 'one_row_per_outpatient_record_version_and_completeness_item', key: 'outpatient_record_id+record_version+checklist_item_id', numerator: 'completed_required_outpatient_record_checklist_items', denominator: 'eligible_required_outpatient_record_checklist_items', parameters: %w[period_start period_end care_setting checklist_version organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_RJ], measures: %w[PAR-CLN-004], reconciliation: true },
+    'outpatient_record_completeness_summary' => { status: 'defined', care_setting: 'outpatient', dimension: 'record_completeness_summary', grain: 'one_row_per_outpatient_record_version', key: 'outpatient_record_id+record_version', numerator: 'eligible_outpatient_records_with_all_required_items_complete', denominator: 'eligible_final_outpatient_records', parameters: %w[period_start period_end care_setting checklist_version organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_RJ], measures: %w[PAR-CLN-004], reconciliation: true },
+    'inpatient_record_completeness_summary' => { status: 'defined', care_setting: 'inpatient', dimension: 'record_completeness_summary', grain: 'one_row_per_inpatient_record_version', key: 'inpatient_record_id+record_version', numerator: 'eligible_inpatient_records_with_all_required_items_complete', denominator: 'eligible_final_inpatient_records', parameters: %w[period_start period_end care_setting checklist_version organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI C_RI], measures: %w[PAR-CLN-005], reconciliation: true },
+    'respiratory_disease_recap' => { status: 'defined', care_setting: 'cross_setting', dimension: 'coded_ispa_case', grain: 'one_row_per_encounter_with_approved_ispa_diagnosis_version', key: 'encounter_id+approved_ispa_diagnosis_id+coding_version', numerator: 'distinct_encounters_with_approved_ispa_diagnosis', denominator: 'eligible_final_encounters_with_approved_diagnosis', parameters: %w[period_start period_end care_setting ispa_code_set_version organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RMIK_RJ C_RMIK_RI], measures: %w[PAR-RMIK-001 PAR-RMIK-002], reconciliation: true },
+    'outpatient_provider_activity' => { status: 'defined', care_setting: 'outpatient', dimension: 'provider_activity', grain: 'one_row_per_outpatient_encounter_and_approved_provider_assignment', key: 'outpatient_encounter_id+provider_assignment_version', numerator: 'distinct_outpatient_encounters_by_approved_provider', denominator: 'eligible_final_outpatient_encounters', parameters: %w[period_start period_end care_setting provider_id organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_PROVIDER_RJ], measures: %w[PAR-REG-002 PAR-CLN-004], reconciliation: true },
+    'inpatient_provider_activity' => { status: 'defined', care_setting: 'inpatient', dimension: 'provider_activity', grain: 'one_row_per_inpatient_encounter_and_approved_provider_assignment', key: 'inpatient_encounter_id+provider_assignment_version', numerator: 'distinct_inpatient_encounters_by_approved_provider', denominator: 'eligible_final_inpatient_encounters', parameters: %w[period_start period_end care_setting provider_id organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI C_PROVIDER_RI], measures: %w[PAR-REG-001 PAR-CLN-005], reconciliation: true },
+    'emergency_provider_activity' => { status: 'defined', care_setting: 'emergency', dimension: 'emergency_provider_activity', grain: 'one_row_per_emergency_encounter_and_approved_provider_assignment', key: 'emergency_encounter_id+provider_assignment_version', numerator: 'distinct_emergency_encounters_by_approved_provider', denominator: 'eligible_final_emergency_encounters', parameters: %w[period_start period_end provider_id provider_type emergency_unit organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_IGD C_PROVIDER_RJ], measures: %w[PAR-REG-003 PAR-CLN-004], reconciliation: true },
+    'outgoing_referral' => { status: 'defined', care_setting: 'emergency', dimension: 'outgoing_referral_disposition', grain: 'one_row_per_outgoing_referral_version', key: 'encounter_id+outgoing_referral_version', numerator: 'distinct_encounters_with_approved_outgoing_referral', denominator: 'eligible_emergency_encounters_with_final_disposition', parameters: %w[period_start period_end care_setting referral_destination organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_OUTGOING_REFERRAL C_REFERRAL], measures: %w[PAR-REG-003 PAR-CLN-004], reconciliation: true },
+    'aps_discharge_by_provider' => { status: 'defined', care_setting: 'inpatient', dimension: 'against_medical_advice_discharge_by_provider', grain: 'one_row_per_aps_discharge_and_approved_provider', key: 'inpatient_encounter_id+discharge_disposition_version+provider_assignment_version', numerator: 'distinct_aps_discharges_by_approved_provider', denominator: 'eligible_final_inpatient_discharges', parameters: %w[period_start period_end care_setting provider_id organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE C_DISPOSITION_RI C_PROVIDER_RI], measures: %w[PAR-REG-001 PAR-CLN-005], reconciliation: true },
+    'discharge_indication_by_class' => { status: 'defined', care_setting: 'inpatient', dimension: 'discharge_indication_by_room_class', grain: 'one_row_per_final_discharge_and_room_class_version', key: 'inpatient_encounter_id+discharge_disposition_version+room_class_version', numerator: 'distinct_final_discharges_by_indication_and_room_class', denominator: 'eligible_final_inpatient_discharges', parameters: %w[period_start period_end care_setting discharge_indication room_class organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE B_BED C_DISPOSITION_RI], measures: %w[PAR-REG-001 PAR-CLN-005], reconciliation: true },
+    'discharge_indication_by_room' => { status: 'defined', care_setting: 'inpatient', dimension: 'discharge_indication_by_room', grain: 'one_row_per_final_discharge_and_room_version', key: 'inpatient_encounter_id+discharge_disposition_version+room_assignment_version', numerator: 'distinct_final_discharges_by_indication_and_room', denominator: 'eligible_final_inpatient_discharges', parameters: %w[period_start period_end care_setting discharge_indication room_id organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE B_BED C_DISPOSITION_RI], measures: %w[PAR-REG-001 PAR-CLN-005], reconciliation: true },
+    'aps_discharge_reason' => { status: 'defined', care_setting: 'inpatient', dimension: 'against_medical_advice_discharge_reason', grain: 'one_row_per_aps_discharge_reason_version', key: 'inpatient_encounter_id+aps_reason_version', numerator: 'distinct_aps_discharges_by_approved_reason', denominator: 'eligible_final_aps_discharges', parameters: %w[period_start period_end care_setting aps_reason organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE C_DISPOSITION_RI], measures: %w[PAR-REG-001 PAR-CLN-005], reconciliation: true },
+    'cancer_case_registry' => { status: 'defined', care_setting: 'cross_setting', dimension: 'coded_cancer_case', grain: 'one_row_per_encounter_and_approved_cancer_diagnosis_version', key: 'encounter_id+approved_cancer_diagnosis_id+coding_version', numerator: 'distinct_encounters_with_approved_cancer_diagnosis', denominator: 'eligible_final_encounters_in_declared_cancer_cohort', parameters: %w[period_start period_end care_setting cancer_cohort cancer_code_set_version organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RMIK_RJ C_RMIK_RI], measures: %w[PAR-RMIK-001 PAR-RMIK-002], reconciliation: true },
+    'registration_encounter_register' => { status: 'defined', care_setting: 'cross_setting', dimension: 'registration_encounter_state', grain: 'one_row_per_registration_encounter_version', key: 'encounter_id+registration_version', numerator: 'distinct_registered_encounters_by_declared_state', denominator: 'eligible_registration_encounter_versions', parameters: %w[period_start period_end care_setting registration_state organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD], measures: %w[PAR-REG-001 PAR-REG-002 PAR-REG-003], reconciliation: true },
+    'inpatient_transfer_event' => { status: 'defined', care_setting: 'inpatient', dimension: 'bed_ward_transfer_event', grain: 'one_row_per_inpatient_transfer_event_version', key: 'inpatient_encounter_id+transfer_event_id+source_ward_id+target_ward_id+transfer_state+transfer_version', numerator: 'distinct_approved_inpatient_transfer_events_by_source_target_ward_and_state', denominator: 'eligible_active_inpatient_encounters_for_transfer', parameters: %w[period_start period_end care_setting source_ward_id target_ward_id transfer_state organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_BED B_RI C_RI], measures: %w[PAR-ADM-033 PAR-REG-001], reconciliation: true },
+    'inpatient_discharge_event' => { status: 'defined', care_setting: 'inpatient', dimension: 'final_discharge_event', grain: 'one_row_per_final_inpatient_discharge_version', key: 'inpatient_encounter_id+discharge_disposition_version', numerator: 'distinct_final_inpatient_discharges_by_disposition', denominator: 'eligible_admitted_inpatient_encounters', parameters: %w[period_start period_end care_setting discharge_disposition organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE C_DISPOSITION_RI], measures: %w[PAR-REG-001 PAR-CLN-005], reconciliation: true },
+    'askes_mortality' => { status: 'defined', care_setting: 'cross_setting', dimension: 'askes_death_disposition', grain: 'one_row_per_askes_death_episode_and_disposition_version', key: 'encounter_id+payer_class_version+death_disposition_version', numerator: 'distinct_askes_encounters_with_approved_death_or_doa_disposition', denominator: 'eligible_askes_discharged_or_emergency_encounters', parameters: %w[period_start period_end care_setting payer_class death_disposition organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_PAYER B_DISCHARGE B_IGD C_DEATH], measures: %w[PAR-REG-001 PAR-REG-003 PAR-CLN-005], reconciliation: true },
+    'inpatient_ward_room_census' => { status: 'defined', care_setting: 'inpatient', dimension: 'active_admission_by_ward_room', grain: 'one_row_per_active_admission_ward_room_assignment_as_of', key: 'inpatient_encounter_id+ward_id+room_id+bed_assignment_version+as_of', numerator: 'distinct_active_inpatient_admissions_by_ward_and_room_as_of_cutoff', denominator: 'eligible_active_admission_bed_snapshot_as_of_cutoff', parameters: %w[as_of care_setting ward_id room_id organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_BED B_ACTIVE_ADMISSION], measures: %w[PAR-ADM-033 PAR-REG-001], reconciliation: true },
+    'statutory_indicator_unresolved' => { status: 'unresolved_owner_definition', care_setting: 'statutory', dimension: 'legacy_statutory_indicator', grain: 'blocked_until_current_definition', key: 'blocked_until_current_definition', numerator: 'unresolved_current_authority_formula', denominator: 'unresolved_current_authority_population', parameters: %w[standard_identifier standard_version effective_date reporting_period organization_scope definition_version], sources: %w[A_CONFIG A_AUDIT], measures: [], reconciliation: true },
+    'patient_distribution_unresolved' => { status: 'unresolved_owner_definition', care_setting: 'cross_setting', dimension: 'patient_distribution_scope_unresolved', grain: 'blocked_until_patient_or_encounter_grain_and_distribution_dimension_are_approved', key: 'blocked_until_patient_or_encounter_distinct_key_is_approved', numerator: 'unresolved_patient_or_encounter_distribution_measure', denominator: 'unresolved_distribution_population', parameters: %w[owner_definition_reference distribution_dimension period_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_BED B_RI B_RJ B_IGD C_RJ C_RI], measures: [], reconciliation: true },
+    'period_utilisation_unresolved' => { status: 'unresolved_owner_definition', care_setting: 'cross_setting', dimension: 'period_metric_and_route_scope_unresolved', grain: 'blocked_until_metric_setting_and_period_grain_are_approved', key: 'blocked_until_authoritative_encounter_or_event_key_is_approved', numerator: 'unresolved_period_aggregate_measure', denominator: 'unresolved_eligible_population', parameters: %w[owner_definition_reference time_bucket care_setting metric route_scope definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ B_IGD C_RJ C_RI], measures: [], reconciliation: true },
+    'new_returning_rule_unresolved' => { status: 'unresolved_owner_definition', care_setting: 'outpatient', dimension: 'new_returning_patient_rule_unresolved', grain: 'blocked_until_new_returning_rule_and_provider_encounter_grain_are_approved', key: 'blocked_until_patient_history_and_encounter_key_are_approved', numerator: 'unresolved_new_returning_provider_activity_measure', denominator: 'unresolved_eligible_outpatient_population', parameters: %w[owner_definition_reference new_returning_rule provider_id clinic_id definition_version], sources: %w[A_CONFIG A_AUDIT B_RJ C_PROVIDER_RJ], measures: [], reconciliation: true },
+    'provider_duplicate_unresolved' => { status: 'unresolved_owner_definition', care_setting: 'cross_setting', dimension: 'duplicate_provider_route_scope_unresolved', grain: 'blocked_until_provider_route_and_care_setting_grain_are_approved', key: 'blocked_until_provider_assignment_and_encounter_key_are_approved', numerator: 'unresolved_provider_activity_measure', denominator: 'unresolved_eligible_encounter_population', parameters: %w[owner_definition_reference route_mapping_reference care_setting provider_id definition_version], sources: %w[A_CONFIG A_AUDIT B_RI B_RJ C_PROVIDER_RJ C_PROVIDER_RI], measures: [], reconciliation: true },
+    'mortality_duplicate_unresolved' => { status: 'unresolved_owner_definition', care_setting: 'cross_setting', dimension: 'duplicate_mortality_route_scope_unresolved', grain: 'blocked_until_death_episode_route_and_scope_are_approved', key: 'blocked_until_death_event_or_episode_key_is_approved', numerator: 'unresolved_recorded_death_measure', denominator: 'unresolved_mortality_population', parameters: %w[owner_definition_reference route_mapping_reference care_setting death_classification definition_version], sources: %w[A_CONFIG A_AUDIT B_DISCHARGE B_IGD C_DEATH], measures: [], reconciliation: true },
+    'unresolved_variant' => { status: 'unresolved_owner_definition', care_setting: 'unknown', dimension: 'legacy_variant_or_duplicate', grain: 'blocked_until_owner_mapping', key: 'blocked_until_owner_mapping', numerator: 'unresolved_owner_formula', denominator: 'unresolved_owner_population', parameters: %w[owner_definition_reference variant_mapping_reference definition_version], sources: %w[A_CONFIG A_AUDIT], measures: [], reconciliation: true }
+  }.transform_values(&:freeze).freeze
+  BATCH_G_STATUTORY_FORM_CODES = {
+    'PAR-RPT-062' => 'RL-3.1', 'PAR-RPT-063' => 'RL-3.2', 'PAR-RPT-064' => 'RL-3.3', 'PAR-RPT-065' => 'RL-3.4',
+    'PAR-RPT-066' => 'RL-3.5', 'PAR-RPT-067' => 'RL-3.6', 'PAR-RPT-068' => 'RL-3.7', 'PAR-RPT-069' => 'RL-3.8',
+    'PAR-RPT-070' => 'RL-3.9', 'PAR-RPT-071' => 'RL-3.11', 'PAR-RPT-072' => 'RL-3.10', 'PAR-RPT-073' => 'RL-3.12',
+    'PAR-RPT-074' => 'RL-3.13', 'PAR-RPT-075' => 'RL-3.14', 'PAR-RPT-076' => 'RL-3.15', 'PAR-RPT-077' => 'RL-3.16',
+    'PAR-RPT-078' => 'RL-3.17', 'PAR-RPT-079' => 'RL-3.18', 'PAR-RPT-080' => 'RL-3.19', 'PAR-RPT-081' => 'RL-4.1',
+    'PAR-RPT-082' => 'RL-4.2', 'PAR-RPT-083' => 'RL-4.3', 'PAR-RPT-084' => 'RL-5.1', 'PAR-RPT-085' => 'RL-5.2',
+    'PAR-RPT-086' => 'RL-5.3', 'PAR-RPT-087' => 'RL-4A', 'PAR-RPT-088' => 'RL-4B', 'PAR-RPT-089' => 'RL-4A-SEBAB',
+    'PAR-RPT-090' => 'RL-4B-SEBAB', 'PAR-RPT-091' => 'RL-5.4', 'PAR-RPT-092' => 'STP-RS-RJ',
+    'PAR-RPT-093' => 'STP-RS-RI', 'PAR-RPT-094' => 'STPRS-RI2', 'PAR-RPT-095' => 'STPRS-RJ2'
+  }.freeze
+  BATCH_G_ROW_SEMANTIC_MAPPING = {
+    'PAR-ADM-007' => ['target_master', 'outpatient_management_target_definition', { 'care_setting' => 'outpatient', 'value_role' => 'target_never_actual' }],
+    'PAR-ADM-031' => ['disease_reference_master', 'communicable_disease_reference', { 'reference_scope' => 'communicable_disease' }],
+    'PAR-ADM-035' => ['w2_reference_master', 'w2_form_reference_unresolved', { 'legacy_form_code' => 'W2', 'definition_state' => 'unresolved' }],
+    'PAR-RPT-001' => ['outpatient_coded_diagnosis', 'top_ten_outpatient_diagnoses', { 'care_setting' => 'outpatient', 'rank_limit' => '10' }],
+    'PAR-RPT-002' => ['inpatient_coded_diagnosis', 'top_ten_inpatient_diagnoses', { 'care_setting' => 'inpatient', 'rank_limit' => '10' }],
+    'PAR-RPT-003' => ['outpatient_coded_procedure', 'top_ten_outpatient_procedures', { 'care_setting' => 'outpatient', 'rank_limit' => '10' }],
+    'PAR-RPT-004' => ['inpatient_coded_procedure', 'top_ten_inpatient_procedures', { 'care_setting' => 'inpatient', 'rank_limit' => '10' }],
+    'PAR-RPT-005' => ['patient_cohort', 'synthetic_patient_registry_cohort', { 'patient_cohort' => 'registered_synthetic_patients' }],
+    'PAR-RPT-006' => ['inpatient_encounter', 'inpatient_visit_count', { 'care_setting' => 'inpatient', 'aggregation_dimension' => 'visit' }],
+    'PAR-RPT-007' => ['outpatient_encounter', 'outpatient_visit_count', { 'care_setting' => 'outpatient', 'aggregation_dimension' => 'visit' }],
+    'PAR-RPT-008' => ['unresolved_variant', 'ambiguous_trend_definition', { 'definition_state' => 'unresolved', 'legacy_label' => 'Trend' }],
+    'PAR-RPT-009' => ['prescription_monitor', 'prescription_dispense_monitor', { 'output_mode' => 'detail' }],
+    'PAR-RPT-010' => ['unresolved_variant', 'ambiguous_time_measure_definition', { 'definition_state' => 'unresolved', 'legacy_label' => 'Waktu' }],
+    'PAR-RPT-011' => ['last_visit', 'latest_qualifying_patient_visit', { 'encounter_selector' => 'latest_qualifying' }],
+    'PAR-RPT-012' => ['laboratory_register', 'laboratory_order_specimen_result_register', { 'diagnostic_domain' => 'laboratory' }],
+    'PAR-RPT-013' => ['emergency_encounter', 'emergency_encounter_register', { 'care_setting' => 'emergency', 'output_mode' => 'register' }],
+    'PAR-RPT-014' => ['radiology_register', 'radiology_order_report_register', { 'diagnostic_domain' => 'radiology' }],
+    'PAR-RPT-015' => ['cancer_case_registry', 'coded_cancer_case_registry', { 'cancer_cohort' => 'approved_coded_cancer_case', 'cancer_code_set_version' => 'authority_approved_required' }],
+    'PAR-RPT-016' => ['outpatient_encounter', 'outpatient_encounter_register', { 'care_setting' => 'outpatient', 'output_mode' => 'register' }],
+    'PAR-RPT-017' => ['inpatient_encounter', 'inpatient_encounter_register', { 'care_setting' => 'inpatient', 'output_mode' => 'register' }],
+    'PAR-RPT-018' => ['surgery_register', 'surgery_theatre_procedure_register', { 'care_setting' => 'inpatient_theatre', 'output_mode' => 'register' }],
+    'PAR-RPT-019' => ['registration_encounter_register', 'cross_setting_registration_register', { 'registration_scope' => 'all_encounter_settings' }],
+    'PAR-RPT-020' => ['unresolved_variant', 'jhp_definition_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'JHP' }],
+    'PAR-RPT-021' => ['statutory_indicator_unresolved', 'w2_report_formula_unresolved', { 'legacy_form_code' => 'W2', 'definition_state' => 'unresolved' }],
+    'PAR-RPT-022' => ['inpatient_record_completeness_detail', 'inpatient_quantitative_record_completeness', { 'care_setting' => 'inpatient', 'output_mode' => 'checklist_detail' }],
+    'PAR-RPT-023' => ['inpatient_encounter', 'inpatient_admission_event', { 'care_setting' => 'inpatient', 'encounter_event' => 'admission' }],
+    'PAR-RPT-024' => ['inpatient_transfer_event', 'inpatient_source_target_ward_transfer', { 'care_setting' => 'inpatient', 'required_transfer_fields' => 'source_ward+target_ward+transfer_state' }],
+    'PAR-RPT-025' => ['inpatient_discharge_event', 'final_inpatient_discharge_event', { 'care_setting' => 'inpatient', 'encounter_event' => 'discharge' }],
+    'PAR-RPT-026' => ['outpatient_coded_diagnosis', 'outpatient_noncommunicable_disease_cohort', { 'care_setting' => 'outpatient', 'diagnosis_cohort' => 'noncommunicable_disease', 'definition_variant' => 'base' }],
+    'PAR-RPT-027' => ['unresolved_variant', 'outpatient_ptm_v2_mapping_unresolved', { 'care_setting' => 'outpatient', 'definition_variant' => 'v2_unresolved' }],
+    'PAR-RPT-028' => ['inpatient_coded_diagnosis', 'inpatient_noncommunicable_disease_cohort', { 'care_setting' => 'inpatient', 'diagnosis_cohort' => 'noncommunicable_disease', 'definition_variant' => 'base' }],
+    'PAR-RPT-029' => ['unresolved_variant', 'inpatient_ptm_v2_mapping_unresolved', { 'care_setting' => 'inpatient', 'definition_variant' => 'v2_unresolved' }],
+    'PAR-RPT-030' => ['outpatient_record_completeness_detail', 'outpatient_quantitative_record_completeness', { 'care_setting' => 'outpatient', 'output_mode' => 'checklist_detail' }],
+    'PAR-RPT-031' => ['outpatient_record_completeness_summary', 'outpatient_completeness_summary', { 'care_setting' => 'outpatient', 'output_mode' => 'summary' }],
+    'PAR-RPT-032' => ['inpatient_record_completeness_summary', 'inpatient_completeness_summary', { 'care_setting' => 'inpatient', 'output_mode' => 'summary' }],
+    'PAR-RPT-033' => ['wait_time', 'documentation_completion_delay_detail', { 'milestone_pair' => 'record_opened_to_completion', 'output_mode' => 'detail' }],
+    'PAR-RPT-034' => ['wait_time', 'documentation_completion_delay_summary', { 'milestone_pair' => 'record_opened_to_completion', 'output_mode' => 'summary' }],
+    'PAR-RPT-035' => ['clinical_record_quality', 'nursing_note_completeness', { 'record_component' => 'nursing_note' }],
+    'PAR-RPT-036' => ['clinical_record_quality', 'nursing_resume_completeness', { 'record_component' => 'nursing_resume' }],
+    'PAR-RPT-037' => ['clinical_record_quality', 'medical_record_completeness', { 'record_component' => 'medical_record' }],
+    'PAR-RPT-038' => ['referral', 'referring_source_activity', { 'referral_direction' => 'incoming', 'aggregation_dimension' => 'referrer' }],
+    'PAR-RPT-039' => ['clinical_event', 'outpatient_immunization_event', { 'care_setting' => 'outpatient', 'clinical_event_type' => 'immunization' }],
+    'PAR-RPT-040' => ['mortality', 'clinical_mortality_episode', { 'death_scope' => 'general_clinical', 'payer_filter' => 'all' }],
+    'PAR-RPT-041' => ['askes_mortality', 'askes_mortality_episode', { 'payer_class' => 'ASKES', 'death_scope' => 'askes_episode' }],
+    'PAR-RPT-042' => ['current_inpatient_census', 'currently_treated_inpatient_census', { 'care_setting' => 'inpatient', 'census_state' => 'active_as_of' }],
+    'PAR-RPT-043' => ['mortality', 'external_payer_mortality_episode', { 'death_scope' => 'external', 'payer_filter' => 'external' }],
+    'PAR-RPT-044' => ['clinical_event', 'inpatient_immunization_event', { 'care_setting' => 'inpatient', 'clinical_event_type' => 'immunization' }],
+    'PAR-RPT-045' => ['payer_dimension_analysis', 'payment_method_encounter_projection', { 'payer_dimension' => 'payment_method', 'output_measure' => 'distinct_encounter_count' }],
+    'PAR-RPT-046' => ['infection_incident', 'hai_summary', { 'event_type' => 'healthcare_associated_infection', 'output_mode' => 'summary', 'definition_variant' => 'base' }],
+    'PAR-RPT-047' => ['unresolved_variant', 'hai_summary_v2_mapping_unresolved', { 'event_type' => 'healthcare_associated_infection', 'definition_variant' => 'v2_unresolved' }],
+    'PAR-RPT-048' => ['patient_safety_incident', 'patient_safety_incident_register', { 'event_type' => 'patient_safety_incident', 'output_mode' => 'register' }],
+    'PAR-RPT-049' => ['infection_incident', 'hai_event_register', { 'event_type' => 'healthcare_associated_infection', 'output_mode' => 'register' }],
+    'PAR-RPT-050' => ['patient_distribution_unresolved', 'patient_distribution_grain_and_dimension_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Sebaran Pasien' }],
+    'PAR-RPT-051' => ['referral', 'outgoing_referral_detail', { 'referral_direction' => 'outgoing', 'output_mode' => 'detail' }],
+    'PAR-RPT-052' => ['referral', 'outgoing_referral_summary', { 'referral_direction' => 'outgoing', 'output_mode' => 'summary' }],
+    'PAR-RPT-053' => ['filing_custody', 'rmik_filing_custody_register', { 'record_component' => 'filing_custody', 'output_mode' => 'register' }],
+    'PAR-RPT-054' => ['respiratory_disease_recap', 'coded_ispa_case_recap', { 'diagnosis_cohort' => 'ISPA', 'output_mode' => 'summary' }],
+    'PAR-RPT-055' => ['cppt_document', 'cppt_completion_and_signoff_projection', { 'record_component' => 'CPPT', 'quality_program' => 'eKin' }],
+    'PAR-RPT-056' => ['outpatient_coded_diagnosis', 'outpatient_disease_projection', { 'care_setting' => 'outpatient', 'aggregation_dimension' => 'diagnosis' }],
+    'PAR-RPT-057' => ['outpatient_provider_activity', 'outpatient_doctor_activity', { 'care_setting' => 'outpatient', 'provider_dimension' => 'doctor' }],
+    'PAR-RPT-058' => ['inpatient_coded_diagnosis', 'inpatient_disease_projection', { 'care_setting' => 'inpatient', 'aggregation_dimension' => 'diagnosis' }],
+    'PAR-RPT-059' => ['outpatient_coded_procedure', 'outpatient_procedure_projection', { 'care_setting' => 'outpatient', 'aggregation_dimension' => 'procedure' }],
+    'PAR-RPT-060' => ['inpatient_provider_activity', 'inpatient_doctor_activity', { 'care_setting' => 'inpatient', 'provider_dimension' => 'doctor' }],
+    'PAR-RPT-061' => ['inpatient_coded_procedure', 'inpatient_procedure_projection', { 'care_setting' => 'inpatient', 'aggregation_dimension' => 'procedure' }],
+    'PAR-RPT-096' => ['period_utilisation_unresolved', 'per_day_metric_and_scope_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Per Hari', 'time_bucket' => 'day' }],
+    'PAR-RPT-097' => ['period_utilisation_unresolved', 'first_per_month_metric_and_scope_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Per Bulan', 'time_bucket' => 'month', 'route_variant' => 'first' }],
+    'PAR-RPT-098' => ['outpatient_encounter', 'outpatient_visits_by_clinic', { 'care_setting' => 'outpatient', 'aggregation_dimension' => 'clinic' }],
+    'PAR-RPT-099' => ['outpatient_provider_activity', 'outpatient_visits_by_doctor', { 'care_setting' => 'outpatient', 'provider_dimension' => 'doctor' }],
+    'PAR-RPT-100' => ['new_returning_rule_unresolved', 'new_returning_patient_rule_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Per Dokter Baru-Lama' }],
+    'PAR-RPT-101' => ['mortality', 'doa_dos_mortality_episode', { 'death_scope' => 'DOA_or_DOS', 'care_setting' => 'emergency' }],
+    'PAR-RPT-102' => ['outgoing_referral', 'emergency_outgoing_referral', { 'care_setting' => 'emergency', 'referral_direction' => 'outgoing' }],
+    'PAR-RPT-103' => ['emergency_encounter', 'traffic_accident_emergency_encounter', { 'care_setting' => 'emergency', 'encounter_cohort' => 'traffic_accident' }],
+    'PAR-RPT-104' => ['emergency_provider_activity', 'general_practitioner_emergency_activity', { 'care_setting' => 'emergency', 'provider_type' => 'general_practitioner' }],
+    'PAR-RPT-105' => ['emergency_provider_activity', 'emergency_doctor_activity', { 'care_setting' => 'emergency', 'provider_type' => 'emergency_doctor' }],
+    'PAR-RPT-106' => ['period_utilisation_unresolved', 'second_per_month_metric_and_scope_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Per Bulan', 'time_bucket' => 'month', 'route_variant' => 'second' }],
+    'PAR-RPT-107' => ['inpatient_ward_room_census', 'active_inpatient_census_by_ward_room', { 'care_setting' => 'inpatient', 'required_dimensions' => 'ward_id+room_id' }],
+    'PAR-RPT-108' => ['current_inpatient_census', 'active_inpatient_census_by_class', { 'care_setting' => 'inpatient', 'aggregation_dimension' => 'room_class' }],
+    'PAR-RPT-109' => ['inpatient_provider_activity', 'inpatient_activity_by_specialty', { 'care_setting' => 'inpatient', 'provider_dimension' => 'specialty' }],
+    'PAR-RPT-110' => ['provider_duplicate_unresolved', 'second_per_doctor_route_scope_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Per Dokter', 'route_variant' => 'second' }],
+    'PAR-RPT-111' => ['aps_discharge_by_provider', 'aps_discharges_by_doctor', { 'care_setting' => 'inpatient', 'discharge_disposition' => 'APS', 'provider_dimension' => 'doctor' }],
+    'PAR-RPT-112' => ['discharge_indication_by_class', 'discharge_indication_by_room_class', { 'care_setting' => 'inpatient', 'aggregation_dimension' => 'room_class' }],
+    'PAR-RPT-113' => ['discharge_indication_by_room', 'discharge_indication_by_room', { 'care_setting' => 'inpatient', 'aggregation_dimension' => 'room' }],
+    'PAR-RPT-114' => ['aps_discharge_reason', 'aps_discharge_reason_summary', { 'care_setting' => 'inpatient', 'discharge_disposition' => 'APS', 'aggregation_dimension' => 'reason' }],
+    'PAR-RPT-115' => ['mortality_duplicate_unresolved', 'second_mortality_route_scope_unresolved', { 'definition_state' => 'unresolved', 'legacy_label' => 'Kematian', 'route_variant' => 'second' }],
+    'PAR-RPT-116' => ['current_inpatient_census', 'current_inpatient_status', { 'care_setting' => 'inpatient', 'census_state' => 'active_as_of' }],
+    'PAR-RPT-117' => ['prescription_monitor', 'prescription_monitor_summary', { 'output_mode' => 'summary' }]
+  }.merge(
+    BATCH_G_STATUTORY_FORM_CODES.to_h do |requirement_id, form_code|
+      [requirement_id, ['statutory_indicator_unresolved', "#{form_code.downcase.gsub(/[^a-z0-9]+/, '_')}_formula_unresolved", { 'legacy_form_code' => form_code, 'definition_state' => 'unresolved' }]]
+    end
+  ).then { |mapping| EXPECTED_BATCH_G_IDS.to_h { |requirement_id| [requirement_id, mapping.fetch(requirement_id)] } }.freeze
+  BATCH_G_ROW_SEMANTIC_TYPE = BATCH_G_ROW_SEMANTIC_MAPPING.to_h { |requirement_id, mapping| [requirement_id, mapping.fetch(0)] }.freeze
+  BATCH_G_ROW_SEMANTIC_SPECS = EXPECTED_BATCH_G_IDS.to_h do |requirement_id|
+    semantic_type, capability_focus, fixed_parameter_values = BATCH_G_ROW_SEMANTIC_MAPPING.fetch(requirement_id)
+    template = BATCH_G_SEMANTIC_TEMPLATES.fetch(semantic_type)
+    exact_parameters = [*template.fetch(:parameters), *fixed_parameter_values.keys].uniq.freeze
+    source_roles = template.fetch(:sources).map do |source_key|
+      source = BATCH_G_SOURCE_SPECS.fetch(source_key)
+      { source_key: source_key, batch: source.fetch(:batch), requirement_id: source.fetch(:id), entity: source.fetch(:entity), role: template.fetch(:measures).include?(source.fetch(:id)) ? 'authoritative_measure' : 'lineage_context' }.freeze
+    end.freeze
+    exact_spec = template.merge(
+      requirement_id: requirement_id,
+      semantic_type: semantic_type,
+      semantic_contract_id: "G-SEMANTIC-#{requirement_id}",
+      capability_focus: capability_focus,
+      fixed_parameter_values: fixed_parameter_values.freeze,
+      parameters: exact_parameters,
+      source_roles: source_roles,
+      inclusions: ["#{capability_focus}:eligible_population", "#{template.fetch(:care_setting)}:source_version_effective_at_cutoff"].freeze,
+      exclusions: ['real_patient_identifiers', 'unavailable_required_source', "#{capability_focus}:outside_declared_population"].freeze,
+      time_basis: template.fetch(:parameters).include?('as_of') ? 'effective_state_as_of_cutoff_then_recorded_time' : 'event_time_then_effective_time_then_recorded_time',
+      cutoff_policy: template.fetch(:parameters).include?('as_of') ? 'inclusive_as_of_cutoff_with_late_state_in_linked_restatement' : 'inclusive_cutoff_with_late_events_in_append_only_restatement',
+      period_close_policy: 'closed_output_is_immutable_and_late_events_create_linked_new_version'
+    ).freeze
+    [requirement_id, exact_spec]
+  end.freeze
+  BATCH_G_INTRA_BATCH_DEPENDENCIES = EXPECTED_BATCH_G_IDS.to_h { |id| [id, []] }.merge(
+    'PAR-RPT-021' => %w[PAR-ADM-031 PAR-ADM-035], 'PAR-RPT-034' => %w[PAR-RPT-033],
+    'PAR-RPT-027' => %w[PAR-RPT-026], 'PAR-RPT-029' => %w[PAR-RPT-028],
+    'PAR-RPT-047' => %w[PAR-RPT-046], 'PAR-RPT-049' => %w[PAR-RPT-048],
+    'PAR-RPT-052' => %w[PAR-RPT-051], 'PAR-RPT-106' => %w[PAR-RPT-097],
+    'PAR-RPT-110' => %w[PAR-RPT-099], 'PAR-RPT-115' => %w[PAR-RPT-040],
+    'PAR-RPT-117' => %w[PAR-RPT-009]
+  ).transform_values(&:freeze).freeze
+  BATCH_G_CONSOLIDATION_GROUPS = {
+    'G-C01' => %w[PAR-RPT-001 PAR-RPT-002], 'G-C02' => %w[PAR-RPT-003 PAR-RPT-004],
+    'G-C03A' => %w[PAR-RPT-026 PAR-RPT-027], 'G-C03B' => %w[PAR-RPT-028 PAR-RPT-029],
+    'G-C04' => %w[PAR-RPT-033 PAR-RPT-034], 'G-C05' => %w[PAR-RPT-046 PAR-RPT-047]
+  }.transform_values(&:freeze).freeze
+  BATCH_G_CONSOLIDATION_PARAMETER_POLICIES = {
+    'G-C01' => {
+      'declared_parameters' => { 'care_setting' => %w[outpatient inpatient] },
+      'member_values' => { 'PAR-RPT-001' => { 'care_setting' => 'outpatient' }, 'PAR-RPT-002' => { 'care_setting' => 'inpatient' } }
+    },
+    'G-C02' => {
+      'declared_parameters' => { 'care_setting' => %w[outpatient inpatient] },
+      'member_values' => { 'PAR-RPT-003' => { 'care_setting' => 'outpatient' }, 'PAR-RPT-004' => { 'care_setting' => 'inpatient' } }
+    },
+    'G-C03A' => {
+      'declared_parameters' => { 'care_setting' => %w[outpatient], 'definition_variant' => %w[base v2] },
+      'member_values' => { 'PAR-RPT-026' => { 'care_setting' => 'outpatient', 'definition_variant' => 'base' }, 'PAR-RPT-027' => { 'care_setting' => 'outpatient', 'definition_variant' => 'v2' } }
+    },
+    'G-C03B' => {
+      'declared_parameters' => { 'care_setting' => %w[inpatient], 'definition_variant' => %w[base v2] },
+      'member_values' => { 'PAR-RPT-028' => { 'care_setting' => 'inpatient', 'definition_variant' => 'base' }, 'PAR-RPT-029' => { 'care_setting' => 'inpatient', 'definition_variant' => 'v2' } }
+    },
+    'G-C04' => {
+      'declared_parameters' => { 'output_mode' => %w[detail summary] },
+      'member_values' => { 'PAR-RPT-033' => { 'output_mode' => 'detail' }, 'PAR-RPT-034' => { 'output_mode' => 'summary' } }
+    },
+    'G-C05' => {
+      'declared_parameters' => { 'definition_variant' => %w[base v2] },
+      'member_values' => { 'PAR-RPT-046' => { 'definition_variant' => 'base' }, 'PAR-RPT-047' => { 'definition_variant' => 'v2' } }
+    }
+  }.freeze
+  BATCH_G_STATUTORY_IDS = BATCH_G_FAMILY_MEMBERS.fetch('G3')
+  BATCH_G_PROJECTION_IDS = EXPECTED_BATCH_G_IDS.grep(/PAR-RPT-/).freeze
+  BATCH_G_CAPABILITY_KINDS = EXPECTED_BATCH_G_IDS.to_h do |id|
+    kind = if id == 'PAR-ADM-007' then 'effective_dated_target_master'
+           elsif id == 'PAR-ADM-031' then 'surveillance_reference_master'
+           elsif id == 'PAR-ADM-035' then 'versioned_statutory_reference'
+           else "read_only_#{BATCH_G_ROW_SEMANTIC_TYPE.fetch(id)}_projection"
+           end
+    [id, kind]
+  end.freeze
+  BATCH_G_NULL_TOKENS = %w[unknown not_collected not_applicable unavailable suppressed numeric_zero].freeze
+  BATCH_G_VALUE_STATES = ['known_numeric', *BATCH_G_NULL_TOKENS].freeze
+  BATCH_G_PROHIBITED_TARGETS = %w[BPJS VClaim SATUSEHAT E-Klaim iDRG LIS PACS accounting_ERP SIRS public_health statutory_submission live_endpoint].freeze
+  BATCH_G_CONTROL_TOTALS = %w[authoritative_source_total documented_exclusion_total approved_adjustment_total report_total source_row_count report_row_count distinct_key_count duplicate_join_count traced_sample_count missing_source_count null_state_count].freeze
+  BATCH_G_RECONCILIATION_EQUATION = 'report_total-authoritative_source_total+documented_exclusion_total-approved_adjustment_total=0'
+  BATCH_G_DEFERRAL_BASE_EXCLUSIONS = %w[not_report_ready not_exportable not_current_compliance not_transmitted].freeze
+  BATCH_G_REGISTER_KEYS = %w[schema_version register_id batch register_status data_boundary external_integrations source_manifest source_manifest_sha256 source_revision evidence_directory purpose availability_state family_policies consolidation_candidates entries].freeze
+  BATCH_G_FAMILY_POLICY_KEYS = %w[family_id members lead_authority_domain mandatory_authorities description].freeze
+  BATCH_G_ENTRY_KEYS = %w[requirement_id batch legacy_menu family_id availability_state capability_kind lead_authority_domain definition_contract evidence decision affected_domains co_owners downstream_impacts synthetic_scenarios accountable_owner appointment_dependencies source_dependencies intra_batch_dependencies output_boundary reconciliation_contract statutory_definition consolidation_mapping approval].freeze
+  BATCH_G_DEFINITION_KEYS = %w[semantic_status semantic_digest semantic_focus capability_focus care_setting dimension fixed_parameter_values source_roles requires_reconciliation purpose intended_users sensitivity report_class grain distinct_key numerator denominator inclusions exclusions parameters source_fields transformations terminology_version time_basis timezone cutoff_policy period_close_policy freshness_policy null_policy suppression_masking_policy layout_export_policy retention_policy definition_version join_contract snapshot_policy correction_restatement_policy incomplete_source_behavior write_semantics].freeze
+  BATCH_G_JOIN_KEYS = %w[allowed_cardinalities dedup_rule aggregation_rule unbounded_many_to_many].freeze
+  BATCH_G_SCENARIO_KEYS = %w[status data_class description expected_results contract_ref].freeze
+  BATCH_G_SOURCE_DEPENDENCY_KEYS = %w[batch requirement_id source_entity source_owner_authority status resolution_reference resolution_artifact_sha256].freeze
+  BATCH_G_INTRA_DEPENDENCY_KEYS = %w[requirement_id status resolution_reference resolution_artifact_sha256].freeze
+  BATCH_G_BOUNDARY_KEYS = %w[mode endpoint credential_state outbound_network delivery_state export_mode watermark audit_events retention_policy prohibited_targets transmission_claim].freeze
+  BATCH_G_RECONCILIATION_KEYS = %w[status profile_id equation control_totals receipt_reference receipt_artifact_sha256].freeze
+  BATCH_G_STATUTORY_KEYS = %w[status legacy_simulation_only standard_identifier standard_version effective_date definition_source authority_reference authority_artifact_sha256].freeze
+  BATCH_G_CONSOLIDATION_KEYS = %w[candidate_id status terminal_target_requirement_id artifact_reference artifact_sha256].freeze
+  BATCH_G_SOURCE_ARTIFACT_TYPE = 'g0_batch_g_source_resolution'
+  BATCH_G_INTRA_ARTIFACT_TYPE = 'g0_batch_g_intra_resolution'
+  BATCH_G_RECONCILIATION_ARTIFACT_TYPE = 'g0_batch_g_reconciliation'
+  BATCH_G_SOURCE_EXPORT_ARTIFACT_TYPE = 'g0_batch_g_source_export'
+  BATCH_G_OUTPUT_ARTIFACT_TYPE = 'g0_batch_g_output'
+  BATCH_G_STATUTORY_ARTIFACT_TYPE = 'g0_batch_g_statutory_definition'
+  BATCH_G_STATUTORY_APPROVAL_ARTIFACT_TYPE = 'g0_batch_g_statutory_approval'
+  BATCH_G_CONSOLIDATION_ARTIFACT_TYPE = 'g0_batch_g_consolidation_mapping'
+  BATCH_G_SOURCE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject source_batch source_requirement_id source_entity source_owner_authority source_register_id source_register_sha256 source_owner_identity source_approval_reference source_approval_sha256 status date reviewer].freeze
+  BATCH_G_INTRA_ARTIFACT_KEYS = %w[artifact_type schema_version register_id source_requirement_id target_requirement_id target_owner_identity target_authority_domain target_approval_reference target_approval_sha256 target_decision_status target_disposition status date reviewer].freeze
+  BATCH_G_RECONCILIATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id definition_sha256 parameter_descriptor snapshot_id cutoff_at period_state prior_output_reference prior_output_sha256 restatement_reason source_exports report_output rerun_receipt access_receipt audit_receipt control_values equation difference sampled_lineage late_event_policy author_identity reviewer].freeze
+  BATCH_G_ARTIFACT_DESCRIPTOR_KEYS = %w[reference sha256].freeze
+  BATCH_G_EXPORT_DESCRIPTOR_KEYS = %w[source_batch source_requirement_id source_entity control_role reference sha256].freeze
+  BATCH_G_OUTPUT_DESCRIPTOR_KEYS = %w[reference sha256].freeze
+  BATCH_G_SOURCE_EXPORT_KEYS = %w[artifact_type schema_version register_id requirement_id source_batch source_requirement_id source_entity control_role snapshot_id canonical_export_id rows source_root_sha256 author_identity date reviewer].freeze
+  BATCH_G_OUTPUT_KEYS = %w[artifact_type schema_version register_id requirement_id snapshot_id definition_sha256 parameter_sha256 rows output_sha256 watermark exportable access_scope export_reason audit_event_ids retention_class masked small_cell_suppression_applied author_identity date reviewer].freeze
+  BATCH_G_SYNTHETIC_ROW_KEYS = %w[synthetic_id distinct_key value state included exclusion_reason source_version].freeze
+  BATCH_G_LINEAGE_SAMPLE_KEYS = %w[report_distinct_key source_batch source_requirement_id source_distinct_key source_root_sha256].freeze
+  BATCH_G_STATUTORY_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject legacy_simulation_only standard_identifier standard_version effective_date definition_source report_definition_reference report_definition_sha256 authority_bindings date author_identity reviewer].freeze
+  BATCH_G_STATUTORY_BINDING_KEYS = %w[authority_domain identity appointment_reference appointment_sha256 approval_reference approval_sha256].freeze
+  BATCH_G_STATUTORY_APPROVAL_KEYS = %w[artifact_type schema_version register_id requirement_id subject authority_domain identity standard_identifier standard_version effective_date definition_source report_definition_sha256 date reviewer].freeze
+  BATCH_G_SIGNED_REPORT_DEFINITION_ARTIFACT_TYPE = 'g0_batch_g_signed_report_definition'
+  BATCH_G_SIGNED_REPORT_DEFINITION_KEYS = %w[artifact_type schema_version register_id requirement_id subject semantic_digest definition_sha256 grain distinct_key numerator denominator inclusions exclusions parameters source_bindings period_basis standard_identifier standard_version effective_date definition_source date author_identity reviewer].freeze
+  BATCH_G_SIGNED_REPORT_SOURCE_BINDING_KEYS = %w[batch requirement_id source_entity source_owner_authority resolution_reference resolution_sha256].freeze
+  BATCH_G_SIGNED_REPORT_PERIOD_KEYS = %w[time_basis timezone cutoff_policy period_close_policy].freeze
+  BATCH_G_CONSOLIDATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id candidate_id members target_requirement_id terminal_owner_identity terminal_authority_domain terminal_approval_reference terminal_approval_sha256 declared_parameters member_mappings date author_identity reviewer].freeze
+  BATCH_G_CONSOLIDATION_MEMBER_MAPPING_KEYS = %w[semantic_parameter_values definition_sha256 source_requirement_ids mapped_control_totals authority_domains approval_reference approval_sha256].freeze
+  BATCH_G_PARAMETER_ARTIFACT_TYPE = 'g0_batch_g_canonical_parameters'
+  BATCH_G_RERUN_ARTIFACT_TYPE = 'g0_batch_g_deterministic_rerun'
+  BATCH_G_ACCESS_ARTIFACT_TYPE = 'g0_batch_g_access_export_receipt'
+  BATCH_G_AUDIT_ARTIFACT_TYPE = 'g0_batch_g_audit_receipt'
+  BATCH_G_AUTHORITY_APPROVAL_ARTIFACT_TYPE = 'g0_batch_g_control_authority_approval'
+  BATCH_G_PARAMETER_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id parameter_values canonical_parameter_sha256 date author_identity reviewer].freeze
+  BATCH_G_RERUN_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id execution_id definition_sha256 parameter_sha256 snapshot_id source_roots cutoff_at rows output_sha256 author_identity date reviewer].freeze
+  BATCH_G_ACCESS_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id identity role cohort_scope permitted_fields prohibited_fields export_reason output_sha256 watermark retention_class masked small_cell_suppression_applied policy_sha256 date reviewer].freeze
+  BATCH_G_AUDIT_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id output_sha256 events audit_root_sha256 author_identity date reviewer].freeze
+  BATCH_G_AUDIT_EVENT_KEYS = %w[event_type event_id actor_identity role cohort_scope occurred_at outcome reason output_sha256].freeze
+  BATCH_G_APPROVAL_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date decision_status canonical_disposition conditions control_manifest_sha256 definition_sha256 source_resolution_sha256s intra_resolution_sha256s reconciliation_sha256 output_boundary_sha256 statutory_definition_sha256 authority_bindings reviewer].freeze
+  BATCH_G_CONTROL_APPROVAL_BINDING_KEYS = %w[authority_domain identity appointment_reference appointment_sha256 approval_reference approval_sha256].freeze
+  BATCH_G_AUTHORITY_APPROVAL_KEYS = %w[artifact_type schema_version register_id requirement_id subject authority_domain identity control_manifest_sha256 decision_status canonical_disposition date reviewer].freeze
   GOVERNANCE_ARTIFACT_TYPE = 'g0_parity_governance_attestation'
   EVIDENCE_ARTIFACT_TYPE = 'g0_parity_evidence'
   ARTIFACT_SCHEMA_VERSION = 1
@@ -932,7 +1275,7 @@ class ParityGovernanceValidator
 
   attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', batch_f_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', batch_f_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json', batch_g_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
@@ -943,7 +1286,8 @@ class ParityGovernanceValidator
       'C' => File.expand_path(batch_c_decision_register_path),
       'D' => File.expand_path(batch_d_decision_register_path),
       'E' => File.expand_path(batch_e_decision_register_path),
-      'F' => File.expand_path(batch_f_decision_register_path)
+      'F' => File.expand_path(batch_f_decision_register_path),
+      'G' => File.expand_path(batch_g_decision_register_path)
     }
     @decision_register_paths = DECISION_REGISTER_CONFIGS.keys.to_h do |batch|
       [batch, supplied_register_paths.fetch(batch)]
@@ -1142,6 +1486,15 @@ class ParityGovernanceValidator
       errors << "#{prefix}: ledger_ownership must exactly freeze one writer per ledger and a read-only reporting projection" unless register['ledger_ownership'] == BATCH_F_LEDGER_OWNERSHIP
       validate_batch_f_family_policies(register['family_policies'])
       validate_batch_f_frozen_dependency_policy
+    elsif batch == 'G'
+      validate_closed_object(register, BATCH_G_REGISTER_KEYS, prefix)
+      errors << "#{prefix}: source_revision must be #{BATCH_G_SOURCE_REVISION}" unless register['source_revision'] == BATCH_G_SOURCE_REVISION
+      actual_manifest_sha = Digest::SHA256.file(@batch_manifest_path).hexdigest if File.file?(@batch_manifest_path)
+      errors << "#{prefix}: source_manifest_sha256 must match the loaded manifest" unless actual_manifest_sha && register['source_manifest_sha256'] == actual_manifest_sha
+      errors << "#{prefix}: availability_state must be Soon" unless register['availability_state'] == 'Soon'
+      validate_batch_g_family_policies(register['family_policies'])
+      errors << "#{prefix}: consolidation_candidates must exactly match the frozen candidate graph" unless register['consolidation_candidates'] == BATCH_G_CONSOLIDATION_GROUPS
+      validate_batch_g_frozen_graph
     end
 
     entries = register['entries']
@@ -1232,6 +1585,7 @@ class ParityGovernanceValidator
     validate_batch_d_controls(entry, label) if @active_decision_context[:batch] == 'D'
     validate_batch_e_controls(entry, label) if @active_decision_context[:batch] == 'E'
     validate_batch_f_controls(entry, label) if @active_decision_context[:batch] == 'F'
+    validate_batch_g_controls(entry, label) if @active_decision_context[:batch] == 'G'
 
     scenarios = entry['synthetic_scenarios']
     if !scenarios.is_a?(Hash)
@@ -1268,6 +1622,10 @@ class ParityGovernanceValidator
       authority_policy = BATCH_F_FAMILY_AUTHORITIES[family]
       expected_authorities = authority_policy && authority_policy[:co_owners]
       expected_lead = authority_policy && authority_policy[:lead]
+    elsif @active_decision_context[:batch] == 'G'
+      expected_authorities = batch_g_required_authorities(label)
+      family = batch_g_family_for(label)
+      expected_lead = family && BATCH_G_FAMILY_POLICY.dig(family, :lead)
     else
       required_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_REQUIRED_AUTHORITIES : BATCH_D_REQUIRED_AUTHORITIES
       lead_authorities = @active_decision_context[:batch] == 'C' ? BATCH_C_LEAD_AUTHORITIES : BATCH_D_LEAD_AUTHORITIES
@@ -2362,6 +2720,937 @@ class ParityGovernanceValidator
     validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
   end
 
+  def batch_g_family_for(requirement_id)
+    BATCH_G_FAMILY_MEMBERS.find { |_family, members| members.include?(requirement_id) }&.first
+  end
+
+  def batch_g_menu_for(requirement_id)
+    row = rows.find { |candidate| candidate[:cells].length == MATRIX_COLUMNS.length && candidate[:cells][0] == requirement_id }
+    row && row[:cells][2]
+  end
+
+  def batch_g_expected_family_policy(family)
+    policy = BATCH_G_FAMILY_POLICY.fetch(family)
+    {
+      'family_id' => family,
+      'members' => BATCH_G_FAMILY_MEMBERS.fetch(family),
+      'lead_authority_domain' => policy.fetch(:lead),
+      'mandatory_authorities' => policy.fetch(:mandatory),
+      'description' => policy.fetch(:description)
+    }
+  end
+
+  def validate_batch_g_family_policies(policies)
+    prefix = 'Batch G decision register: family_policies'
+    unless policies.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    actual = policies.each_with_object([]) { |policy, values| values << policy['family_id'] if policy.is_a?(Hash) }
+    expected = BATCH_G_FAMILY_MEMBERS.keys
+    errors << "#{prefix} must follow exact G1/G2/G3/G4 order" unless actual == expected
+    policies.each_with_index do |policy, index|
+      label = "#{prefix}[#{index}]"
+      validate_closed_object(policy, BATCH_G_FAMILY_POLICY_KEYS, label)
+      family = policy['family_id'] if policy.is_a?(Hash)
+      errors << "#{label} is not a frozen Batch G family" unless BATCH_G_FAMILY_MEMBERS.key?(family)
+      if BATCH_G_FAMILY_MEMBERS.key?(family) && policy != batch_g_expected_family_policy(family)
+        errors << "#{label} must exactly match the frozen #{family} authority and membership policy"
+      end
+    end
+    members = policies.flat_map { |policy| policy.is_a?(Hash) && policy['members'].is_a?(Array) ? policy['members'] : [] }
+    unless members == BATCH_G_FAMILY_MEMBERS.values.flatten && members.uniq.length == EXPECTED_BATCH_G_IDS.length
+      errors << "#{prefix} must partition the exact 120 Batch G IDs without duplicates"
+    end
+  end
+
+  def validate_batch_g_frozen_graph
+    unless BATCH_G_ROW_SEMANTIC_MAPPING.keys == EXPECTED_BATCH_G_IDS && BATCH_G_ROW_SEMANTIC_SPECS.keys == EXPECTED_BATCH_G_IDS && BATCH_G_ROW_SEMANTIC_SPECS.all? { |requirement_id, spec| spec[:requirement_id] == requirement_id && spec[:semantic_contract_id] == "G-SEMANTIC-#{requirement_id}" }
+      errors << 'Batch G frozen per-ID semantic registry must cover all 120 IDs with exact row-bound contracts in manifest order'
+    end
+    required_semantic_fields = %i[requirement_id semantic_type semantic_contract_id capability_focus status care_setting dimension grain key numerator denominator parameters fixed_parameter_values sources source_roles measures reconciliation inclusions exclusions time_basis cutoff_policy period_close_policy]
+    BATCH_G_ROW_SEMANTIC_SPECS.each do |requirement_id, spec|
+      missing_fields = required_semantic_fields.reject { |field| spec.key?(field) }
+      errors << "Batch G frozen semantic spec #{requirement_id} is missing substantive fields: #{missing_fields.join(', ')}" unless missing_fields.empty?
+      mapping = BATCH_G_ROW_SEMANTIC_MAPPING[requirement_id]
+      next unless mapping && missing_fields.empty?
+
+      semantic_type, capability_focus, fixed_values = mapping
+      errors << "Batch G frozen semantic spec #{requirement_id} must resolve its exact non-generic semantic group and capability focus" unless BATCH_G_SEMANTIC_TEMPLATES.key?(semantic_type) && spec[:semantic_type] == semantic_type && spec[:capability_focus] == capability_focus && nonempty_string?(capability_focus) && !capability_focus.match?(/generic|placeholder|unspecified/i)
+      errors << "Batch G frozen semantic spec #{requirement_id} fixed parameters must be nonempty, declared, and exactly mapped" unless spec[:fixed_parameter_values] == fixed_values && fixed_values.is_a?(Hash) && fixed_values.keys.all? { |key| spec[:parameters].include?(key) } && fixed_values.values.all? { |value| nonempty_string?(value) }
+      expected_roles = spec[:sources].map { |source_key| BATCH_G_SOURCE_SPECS.fetch(source_key).slice(:batch, :id, :entity) }
+      actual_roles = spec[:source_roles].map { |role| { batch: role[:batch], id: role[:requirement_id], entity: role[:entity] } }
+      errors << "Batch G frozen semantic spec #{requirement_id} source roles must exactly bind every declared source entity" unless actual_roles == expected_roles
+      errors << "Batch G frozen semantic spec #{requirement_id} must declare closed eligibility/exclusion and time/close semantics" unless spec[:inclusions].is_a?(Array) && !spec[:inclusions].empty? && spec[:exclusions].is_a?(Array) && !spec[:exclusions].empty? && nonempty_string?(spec[:time_basis]) && nonempty_string?(spec[:cutoff_policy]) && nonempty_string?(spec[:period_close_policy])
+      unresolved = spec[:status] == 'unresolved_owner_definition'
+      if unresolved && requirement_id.start_with?('PAR-RPT-')
+        errors << "Batch G unresolved semantic spec #{requirement_id} must remain formula/source blocked until authority definition" unless spec[:grain].start_with?('blocked_') && spec[:key].start_with?('blocked_') && spec[:numerator].match?(/unresolved/) && spec[:denominator].match?(/unresolved/)
+      elsif spec[:grain].match?(/generic|blocked/) || spec[:key].match?(/generic|blocked/) || spec[:numerator].match?(/generic|unresolved/) || (spec[:denominator].match?(/generic|unresolved/) && spec[:status] != 'defined_count_denominator_unresolved')
+        errors << "Batch G defined semantic spec #{requirement_id} cannot use a generic or unresolved grain/formula fallback"
+      end
+    end
+    semantic_contract_ids = BATCH_G_ROW_SEMANTIC_SPECS.values.map { |spec| spec[:semantic_contract_id] }
+    errors << 'Batch G frozen per-ID semantic contract IDs must be unique' unless semantic_contract_ids.uniq.length == EXPECTED_BATCH_G_IDS.length
+    substantive_digests = BATCH_G_ROW_SEMANTIC_SPECS.values.map do |spec|
+      Digest::SHA256.hexdigest(JSON.generate(spec.reject { |field, _value| %i[requirement_id semantic_contract_id].include?(field) }))
+    end
+    errors << 'Batch G semantic exactness must come from substantive focus/dimension/source/parameter differences, not PAR ID wrappers' unless substantive_digests.uniq.length == EXPECTED_BATCH_G_IDS.length
+    unless BATCH_G_INTRA_BATCH_DEPENDENCIES.keys == EXPECTED_BATCH_G_IDS
+      errors << 'Batch G frozen intra-dependency policy must cover the exact 120 IDs in manifest order'
+    end
+    unknown = BATCH_G_INTRA_BATCH_DEPENDENCIES.values.flatten - EXPECTED_BATCH_G_IDS
+    errors << "Batch G frozen intra-dependency policy contains unknown IDs: #{unknown.uniq.join(', ')}" unless unknown.empty?
+    self_edges = BATCH_G_INTRA_BATCH_DEPENDENCIES.select { |source, targets| targets.include?(source) }.keys
+    errors << "Batch G frozen intra-dependency policy contains self-dependencies: #{self_edges.join(', ')}" unless self_edges.empty?
+    cycle = batch_f_dependency_cycle(BATCH_G_INTRA_BATCH_DEPENDENCIES)
+    errors << "Batch G frozen intra-dependency policy contains a cycle: #{cycle.join(' -> ')}" if cycle
+
+    candidate_members = BATCH_G_CONSOLIDATION_GROUPS.values.flatten
+    unknown_candidates = candidate_members - EXPECTED_BATCH_G_IDS
+    errors << "Batch G frozen consolidation candidates contain unknown IDs: #{unknown_candidates.uniq.join(', ')}" unless unknown_candidates.empty?
+    duplicates = candidate_members.group_by(&:itself).select { |_id, values| values.length > 1 }.keys
+    errors << "Batch G frozen consolidation candidates overlap: #{duplicates.join(', ')}" unless duplicates.empty?
+    unless BATCH_G_CONSOLIDATION_PARAMETER_POLICIES.keys == BATCH_G_CONSOLIDATION_GROUPS.keys
+      errors << 'Batch G frozen consolidation semantic policies must cover every candidate exactly once'
+    end
+    BATCH_G_CONSOLIDATION_GROUPS.each do |candidate, members|
+      policy = BATCH_G_CONSOLIDATION_PARAMETER_POLICIES[candidate]
+      unless policy.is_a?(Hash) && policy.dig('member_values')&.keys == members
+        errors << "Batch G frozen consolidation #{candidate} semantic policy must map every member in manifest order"
+      end
+    end
+  end
+
+  def batch_g_required_authorities(requirement_id)
+    return nil unless BATCH_G_ROW_SEMANTIC_TYPE.key?(requirement_id)
+
+    family = batch_g_family_for(requirement_id)
+    semantic = batch_g_semantic_spec(requirement_id)
+    return nil unless family && semantic
+
+    source_authorities = semantic.fetch(:sources).map { |key| BATCH_G_SOURCE_SPECS.fetch(key).fetch(:authority) }
+    [*BATCH_G_FAMILY_POLICY.fetch(family).fetch(:mandatory), *source_authorities].uniq
+  end
+
+  def batch_g_semantic_type(requirement_id)
+    BATCH_G_ROW_SEMANTIC_TYPE.fetch(requirement_id)
+  end
+
+  def batch_g_semantic_spec(requirement_id)
+    BATCH_G_ROW_SEMANTIC_SPECS.fetch(requirement_id)
+  end
+
+  def batch_g_semantic_status(requirement_id)
+    return 'pending_current_standard' if BATCH_G_STATUTORY_IDS.include?(requirement_id) && BATCH_G_PROJECTION_IDS.include?(requirement_id)
+
+    batch_g_semantic_spec(requirement_id).fetch(:status)
+  end
+
+  def batch_g_semantic_digest(requirement_id)
+    Digest::SHA256.hexdigest(JSON.generate(batch_g_semantic_spec(requirement_id)))
+  end
+
+  def batch_g_reconciliation_profile_id(requirement_id)
+    "#{batch_g_semantic_type(requirement_id)}:#{requirement_id}"
+  end
+
+  def batch_g_control_manifest(entry)
+    {
+      'requirement_id' => entry['requirement_id'],
+      'decision_status' => entry.dig('decision', 'status'),
+      'canonical_disposition' => entry.dig('decision', 'canonical_disposition'),
+      'definition_sha256' => Digest::SHA256.hexdigest(JSON.generate(entry['definition_contract'])),
+      'source_resolution_sha256s' => Array(entry['source_dependencies']).map { |dependency| dependency['resolution_artifact_sha256'] },
+      'intra_resolution_sha256s' => Array(entry['intra_batch_dependencies']).map { |dependency| dependency['resolution_artifact_sha256'] },
+      'reconciliation_sha256' => entry.dig('reconciliation_contract', 'receipt_artifact_sha256'),
+      'output_boundary_sha256' => Digest::SHA256.hexdigest(JSON.generate(entry['output_boundary'])),
+      'statutory_definition_sha256' => entry.dig('statutory_definition', 'authority_artifact_sha256')
+    }
+  end
+
+  def batch_g_control_manifest_sha256(entry)
+    Digest::SHA256.hexdigest(JSON.generate(batch_g_control_manifest(entry)))
+  end
+
+  def batch_g_expected_source_dependencies(requirement_id)
+    batch_g_semantic_spec(requirement_id).fetch(:sources).map do |key|
+      source = BATCH_G_SOURCE_SPECS.fetch(key)
+      {
+        'batch' => source.fetch(:batch),
+        'requirement_id' => source.fetch(:id),
+        'source_entity' => source.fetch(:entity),
+        'source_owner_authority' => source.fetch(:authority)
+      }
+    end
+  end
+
+  def batch_g_definition_contract(requirement_id)
+    kind = BATCH_G_CAPABILITY_KINDS.fetch(requirement_id)
+    family = batch_g_family_for(requirement_id)
+    menu = batch_g_menu_for(requirement_id) || requirement_id
+    semantic_type = batch_g_semantic_type(requirement_id)
+    semantic = batch_g_semantic_spec(requirement_id)
+    source_dependencies = batch_g_expected_source_dependencies(requirement_id)
+    report_class, write_semantics = case kind
+                                    when 'effective_dated_target_master'
+                                      ['target_master', 'append_versioned_target_only_never_actual']
+                                    when 'surveillance_reference_master'
+                                      ['reference_master', 'append_versioned_reference_only_never_observation']
+                                    when 'versioned_statutory_reference'
+                                      ['reference_master', 'append_versioned_form_only_never_submission']
+                                    else
+                                      [kind, 'read_only_projection_no_source_writeback']
+                                    end
+    semantic_focus = "#{requirement_id}|#{menu}|#{semantic_type}|#{semantic.fetch(:capability_focus)}|#{semantic.fetch(:care_setting)}|#{semantic.fetch(:dimension)}"
+    {
+      'semantic_status' => batch_g_semantic_status(requirement_id),
+      'semantic_digest' => batch_g_semantic_digest(requirement_id),
+      'semantic_focus' => semantic_focus,
+      'capability_focus' => semantic.fetch(:capability_focus),
+      'care_setting' => semantic.fetch(:care_setting),
+      'dimension' => semantic.fetch(:dimension),
+      'fixed_parameter_values' => semantic.fetch(:fixed_parameter_values),
+      'source_roles' => semantic.fetch(:source_roles).map do |role|
+        {
+          'source_key' => role.fetch(:source_key), 'batch' => role.fetch(:batch),
+          'requirement_id' => role.fetch(:requirement_id), 'entity' => role.fetch(:entity),
+          'role' => role.fetch(:role)
+        }
+      end,
+      'requires_reconciliation' => semantic.fetch(:reconciliation),
+      'purpose' => "#{requirement_id} #{menu}: #{BATCH_G_FAMILY_POLICY.fetch(family).fetch(:description)}",
+      'intended_users' => [BATCH_G_FAMILY_POLICY.fetch(family).fetch(:lead), 'authorized_source_domain_owner'],
+      'sensitivity' => BATCH_G_STATUTORY_IDS.include?(requirement_id) ? 'restricted_legacy_statutory_simulation' : 'restricted_synthetic_health_information',
+      'report_class' => report_class,
+      'grain' => semantic.fetch(:grain),
+      'distinct_key' => semantic.fetch(:key),
+      'numerator' => semantic.fetch(:numerator),
+      'denominator' => semantic.fetch(:denominator),
+      'inclusions' => semantic.fetch(:inclusions),
+      'exclusions' => semantic.fetch(:exclusions),
+      'parameters' => semantic.fetch(:parameters),
+      'source_fields' => source_dependencies.map { |source| "#{source['source_entity']}.authoritative_id/version/state/effective_at/recorded_at" },
+      'transformations' => ["deduplicate #{semantic.fetch(:key)} before aggregation", 'aggregate one-to-many children before joining parent grain', 'preserve unknown/not_collected/not_applicable/unavailable/suppressed separately from numeric_zero'],
+      'terminology_version' => 'pending_authority_approved_version',
+      'time_basis' => semantic.fetch(:time_basis),
+      'timezone' => 'Asia/Jakarta (+07:00)',
+      'cutoff_policy' => semantic.fetch(:cutoff_policy),
+      'period_close_policy' => semantic.fetch(:period_close_policy),
+      'freshness_policy' => 'snapshot_freshness_and_missing_source_age_are_visible',
+      'null_policy' => BATCH_G_NULL_TOKENS,
+      'suppression_masking_policy' => 'minimum_necessary_fields_role_scope_masking_and_small_cell_suppression',
+      'layout_export_policy' => 'local_synthetic_watermarked_export_only_with_reason_digest_and_audit',
+      'retention_policy' => 'pending_security_and_records_authority_approval',
+      'definition_version' => "proposal-2026-08-25/#{requirement_id}",
+      'join_contract' => {
+        'allowed_cardinalities' => %w[one_to_one one_to_many many_to_one],
+        'dedup_rule' => "count distinct #{semantic.fetch(:key)}; source line counts remain separate",
+        'aggregation_rule' => 'aggregate one-to-many children to declared grain before parent join; bridge keys must be unique',
+        'unbounded_many_to_many' => false
+      },
+      'snapshot_policy' => 'definition_sha256+parameter_sha256+source_roots+cutoff deterministically bind immutable output_sha256',
+      'correction_restatement_policy' => 'append correction or linked restatement; never overwrite source facts or closed output',
+      'incomplete_source_behavior' => 'blocked_or_partial_with_missing_source_diagnostics_and_non_exportable_output',
+      'write_semantics' => write_semantics
+    }
+  end
+
+  def batch_g_required_scenario_contract(requirement_id, name)
+    definition = batch_g_definition_contract(requirement_id)
+    focus = "#{requirement_id}:#{definition['report_class']}:#{definition['grain']}:#{definition['distinct_key']}"
+    description, expected = case name
+                            when 'normal'
+                              ["Run #{focus} from the frozen synthetic snapshot using safe joins, declared NULL semantics, RBAC, watermarking and independent reconciliation.",
+                               ["Deterministic output preserves #{definition['distinct_key']} without join multiplication or source writeback.", 'Independent rooted control equation equals zero and view/run/export audit events are immutable.']]
+                            when 'denial'
+                              ["Deny an unauthorized cohort, direct-identifier export, watermark removal, invalid parameter or ambiguous duplicate run for #{focus}.",
+                               ['No output is exported or transmitted; denial reason and attempted scope are audited.', 'The same idempotency key and payload returns one result; a different payload is rejected and ambiguous acknowledgement is quarantined.']]
+                            when 'correction_or_amendment'
+                              ["Apply a source correction, definition amendment or late event to #{focus} after period close without editing prior source or report versions.",
+                               ['A linked append-only restatement records prior output digest, reason, cutoff and changed source roots.', 'Prior closed output remains reproducible and unknown, unavailable, suppressed and numeric zero remain distinct.']]
+                            when 'dependency_outage'
+                              ["Remove one required source or authority-approved definition while executing #{focus} and expose the dependency failure.",
+                               ['Run is blocked or explicitly partial with missing-source diagnostics and a non-exportable watermarked output.', 'No silent omission, null-to-zero coercion, compliance claim, source writeback or outbound transmission occurs.']]
+                            else
+                              ['', []]
+                            end
+    {
+      'description' => description,
+      'expected_results' => expected,
+      'contract_ref' => Digest::SHA256.hexdigest(JSON.generate([requirement_id, name, definition]))
+    }
+  end
+
+  def batch_g_expected_boundary(requirement_id)
+    {
+      'mode' => BATCH_G_PROJECTION_IDS.include?(requirement_id) ? 'local_synthetic_projection' : 'versioned_synthetic_master',
+      'endpoint' => nil,
+      'credential_state' => 'absent',
+      'outbound_network' => false,
+      'delivery_state' => 'NOT_SENT',
+      'export_mode' => 'local_synthetic_watermarked_only',
+      'watermark' => 'SIMULASI - DATA SINTETIS - NOT_SENT',
+      'audit_events' => %w[view run export denial],
+      'retention_policy' => 'pending_security_and_records_authority_approval',
+      'prohibited_targets' => BATCH_G_PROHIBITED_TARGETS,
+      'transmission_claim' => 'legacy_simulation_only_not_submitted'
+    }
+  end
+
+  def batch_g_candidate_for(requirement_id)
+    BATCH_G_CONSOLIDATION_GROUPS.find { |_candidate, members| members.include?(requirement_id) }&.first
+  end
+
+  def batch_g_expected_consolidation_member_mapping(requirement_id)
+    entry = @decision_entries.find { |candidate| candidate['batch'] == 'G' && candidate['requirement_id'] == requirement_id }
+    {
+      'semantic_parameter_values' => BATCH_G_CONSOLIDATION_PARAMETER_POLICIES.fetch(batch_g_candidate_for(requirement_id)).fetch('member_values').fetch(requirement_id),
+      'definition_sha256' => Digest::SHA256.hexdigest(JSON.generate(batch_g_definition_contract(requirement_id))),
+      'source_requirement_ids' => batch_g_expected_source_dependencies(requirement_id).map { |source| source['requirement_id'] },
+      'mapped_control_totals' => batch_g_semantic_spec(requirement_id).fetch(:reconciliation) ? BATCH_G_CONTROL_TOTALS : [],
+      'authority_domains' => batch_g_required_authorities(requirement_id),
+      'approval_reference' => entry&.dig('approval', 'reference'),
+      'approval_sha256' => entry&.dig('approval', 'artifact_sha256')
+    }
+  end
+
+  def validate_batch_g_controls(entry, label)
+    prefix = "#{decision_register_label} #{label}"
+    validate_closed_object(entry, BATCH_G_ENTRY_KEYS, prefix)
+    return unless EXPECTED_BATCH_G_IDS.include?(label)
+
+    family = batch_g_family_for(label)
+    errors << "#{prefix}: family_id must be #{family}" unless entry['family_id'] == family
+    errors << "#{prefix}: availability_state must remain Soon" unless entry['availability_state'] == 'Soon'
+    errors << "#{prefix}: capability_kind must be #{BATCH_G_CAPABILITY_KINDS.fetch(label)}" unless entry['capability_kind'] == BATCH_G_CAPABILITY_KINDS.fetch(label)
+    errors << "#{prefix}: legacy_menu must exactly match the frozen parity matrix label" unless entry['legacy_menu'] == batch_g_menu_for(label)
+    Array(entry['evidence']).each_with_index { |record, index| validate_closed_object(record, BATCH_F_EVIDENCE_RECORD_KEYS, "#{prefix}: evidence[#{index}]") if record.is_a?(Hash) }
+    validate_closed_object(entry['decision'], BATCH_F_DECISION_KEYS, "#{prefix}: decision") if entry['decision'].is_a?(Hash)
+    validate_closed_object(entry.dig('decision', 'target'), BATCH_F_TARGET_KEYS, "#{prefix}: decision target") if entry.dig('decision', 'target').is_a?(Hash)
+    validate_closed_object(entry['accountable_owner'], BATCH_F_OWNER_KEYS, "#{prefix}: accountable_owner") if entry['accountable_owner'].is_a?(Hash)
+    Array(entry['appointment_dependencies']).each_with_index { |record, index| validate_closed_object(record, BATCH_F_APPOINTMENT_KEYS, "#{prefix}: appointment_dependencies[#{index}]") if record.is_a?(Hash) }
+    validate_closed_object(entry['approval'], BATCH_F_APPROVAL_KEYS, "#{prefix}: approval") if entry['approval'].is_a?(Hash)
+    expected_authorities = batch_g_required_authorities(label)
+    errors << "#{prefix}: affected_domains must exactly match every reporting and source authority" unless entry['affected_domains'] == expected_authorities
+    appointed = Array(entry['appointment_dependencies']).select { |appointment| appointment.is_a?(Hash) && appointment['status'] == 'appointed' }
+    duplicate_identities = appointed.map { |appointment| appointment['identity'] }.compact.group_by(&:itself).select { |_identity, values| values.length > 1 }.keys
+    errors << "#{prefix}: appointed authority identities must be unique across Batch G domains" unless duplicate_identities.empty?
+    product_identity = appointed.find { |appointment| appointment['authority_domain'] == 'product_delivery' }&.dig('identity')
+    if nonempty_string?(product_identity) && product_identity == entry.dig('accountable_owner', 'identity')
+      errors << "#{prefix}: product_delivery identity cannot substitute for the non-product accountable lead"
+    end
+    errors << "#{prefix}: definition_contract must exactly match the frozen per-ID report/master semantics" unless entry['definition_contract'] == batch_g_definition_contract(label)
+    if BATCH_G_PROJECTION_IDS.include?(label) && entry.dig('definition_contract', 'write_semantics') != 'read_only_projection_no_source_writeback'
+      errors << "#{prefix}: report projection must never write source facts"
+    end
+    if label == 'PAR-ADM-007' && entry.dig('definition_contract', 'write_semantics') != 'append_versioned_target_only_never_actual'
+      errors << "#{prefix}: management target master must never be represented as actual outcome"
+    end
+    validate_batch_g_source_dependencies(entry['source_dependencies'], label)
+    validate_batch_g_intra_dependencies(entry['intra_batch_dependencies'], label)
+    validate_batch_g_boundary(entry['output_boundary'], label)
+    validate_batch_g_reconciliation(entry['reconciliation_contract'], label)
+    validate_batch_g_statutory(entry['statutory_definition'], entry, label)
+    validate_batch_g_consolidation(entry['consolidation_mapping'], entry['decision'], label)
+    validate_batch_g_decision_readiness(entry, label)
+  end
+
+  def validate_batch_g_decision_readiness(entry, requirement_id)
+    decision = entry['decision']
+    return unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status'])
+
+    prefix = "#{decision_register_label} #{requirement_id}"
+    evidence = entry['evidence']
+    substantive = evidence.is_a?(Array) && evidence.any? do |record|
+      record.is_a?(Hash) && %w[O M I].include?(record['evidence_class']) && BATCH_G_EVIDENCE_BASES[0..3].include?(record['evidence_basis'])
+    end
+    errors << "#{prefix}: recorded Batch G decision requires substantive O/M/I evidence" unless substantive
+    scenarios = entry['synthetic_scenarios']
+    errors << "#{prefix}: recorded Batch G decision requires all four frozen scenarios ready" unless scenarios.is_a?(Hash) && FOUR_SCENARIO_NAMES.all? { |name| scenarios.dig(name, 'status') == 'ready' }
+    appointments = entry['appointment_dependencies']
+    errors << "#{prefix}: recorded Batch G decision requires every reporting and source authority appointed" unless appointments.is_a?(Array) && appointments.all? { |appointment| appointment.is_a?(Hash) && appointment['status'] == 'appointed' }
+
+    sources = entry['source_dependencies']
+    intra = entry['intra_batch_dependencies']
+    if decision['status'] == 'approve'
+      semantic_status = batch_g_semantic_status(requirement_id)
+      semantic_type = batch_g_semantic_type(requirement_id)
+      if semantic_status == 'unresolved_owner_definition' || %w[unresolved_variant statutory_indicator_unresolved].include?(semantic_type)
+        errors << "#{prefix}: unresolved legacy/variant/statutory semantics cannot be approved reproduce/replace until the frozen per-ID semantic spec itself is authority-resolved"
+      elsif semantic_status == 'defined_count_denominator_unresolved'
+        errors << "#{prefix}: defined count with unresolved denominator cannot be approved reproduce/replace until the denominator population and rate semantics are authority-resolved"
+      elsif semantic_status == 'pending_current_standard' && entry.dig('statutory_definition', 'status') != 'complete'
+        errors << "#{prefix}: pending current-standard semantics cannot be approved reproduce/replace without an exact signed report definition"
+      end
+      errors << "#{prefix}: approval requires every exact A-F source resolved" unless sources.is_a?(Array) && !sources.empty? && sources.all? { |dependency| dependency.is_a?(Hash) && dependency['status'] == 'resolved' }
+      errors << "#{prefix}: approval requires every intra-G dependency resolved" unless intra.is_a?(Array) && intra.all? { |dependency| dependency.is_a?(Hash) && dependency['status'] == 'resolved' }
+      expected_reconciliation_status = batch_g_semantic_spec(requirement_id).fetch(:reconciliation) ? 'complete' : 'not_applicable'
+      errors << "#{prefix}: approval requires the exact reconciliation applicability state #{expected_reconciliation_status}" unless entry.dig('reconciliation_contract', 'status') == expected_reconciliation_status
+      if BATCH_G_STATUTORY_IDS.include?(requirement_id)
+        errors << "#{prefix}: statutory/public-health approval requires a complete current signed definition" unless entry.dig('statutory_definition', 'status') == 'complete'
+      end
+    else
+      pending_sources = Array(sources).select { |dependency| dependency.is_a?(Hash) && dependency['status'] != 'resolved' }
+      pending_intra = Array(intra).select { |dependency| dependency.is_a?(Hash) && dependency['status'] != 'resolved' }
+      expected_exclusions = [
+        *BATCH_G_DEFERRAL_BASE_EXCLUSIONS,
+        *pending_sources.map { |dependency| "missing_source:#{dependency['batch']}:#{dependency['requirement_id']}" },
+        *pending_intra.map { |dependency| "missing_intra_g:#{dependency['requirement_id']}" }
+      ]
+      safe = decision['canonical_disposition'] == 'exclude' && decision.dig('target', 'kind') == 'exclusion' && decision.dig('target', 'exclusions') == expected_exclusions
+      errors << "#{prefix}: deferral must exactly exclude report/export/compliance/transmission and every unresolved source" unless safe
+    end
+  end
+
+  def validate_batch_g_source_dependencies(dependencies, requirement_id)
+    prefix = "#{decision_register_label} #{requirement_id}: source_dependencies"
+    unless dependencies.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    expected = batch_g_expected_source_dependencies(requirement_id)
+    actual = dependencies.each_with_object([]) { |dependency, values| values << dependency.slice('batch', 'requirement_id', 'source_entity', 'source_owner_authority') if dependency.is_a?(Hash) }
+    errors << "#{prefix} must exactly bind the applicability-specific approved A-F source lineage" unless actual == expected
+    dependencies.each_with_index do |dependency, index|
+      label = "#{prefix}[#{index}]"
+      validate_closed_object(dependency, BATCH_G_SOURCE_DEPENDENCY_KEYS, label)
+      next unless dependency.is_a?(Hash)
+
+      status = dependency['status']
+      errors << "#{label} status must be pending or resolved" unless %w[pending resolved].include?(status)
+      if status == 'pending'
+        %w[resolution_reference resolution_artifact_sha256].each { |key| errors << "#{label} pending #{key} must be null" unless dependency[key].nil? }
+      elsif status == 'resolved'
+        validate_batch_g_source_resolution_artifact(dependency, requirement_id, label)
+      end
+    end
+  end
+
+  def validate_batch_g_source_resolution_artifact(dependency, requirement_id, label)
+    artifact = load_structured_json_artifact(dependency['resolution_reference'], dependency['resolution_artifact_sha256'], "#{label} resolution")
+    return unless artifact
+
+    artifact_label = "#{label} resolution"
+    validate_closed_object(artifact, BATCH_G_SOURCE_ARTIFACT_KEYS, artifact_label)
+    errors << "#{artifact_label} artifact_type/schema_version/register_id must match Batch G" unless artifact['artifact_type'] == BATCH_G_SOURCE_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID
+    errors << "#{artifact_label} requirement_id/subject/status must bind this source dependency" unless artifact['requirement_id'] == requirement_id && artifact['subject'] == 'source_dependency' && artifact['status'] == 'resolved'
+    %w[batch requirement_id source_entity source_owner_authority].zip(%w[source_batch source_requirement_id source_entity source_owner_authority]).each do |dependency_key, artifact_key|
+      errors << "#{artifact_label} #{artifact_key} does not match the register dependency" unless artifact[artifact_key] == dependency[dependency_key]
+    end
+    source_batch = dependency['batch']
+    source_config = DECISION_REGISTER_CONFIGS[source_batch]
+    source_path = @decision_register_paths[source_batch]
+    source_sha = Digest::SHA256.file(source_path).hexdigest if source_path && File.file?(source_path)
+    errors << "#{artifact_label} source_register_id must bind Batch #{source_batch}" unless source_config && artifact['source_register_id'] == source_config[:register_id]
+    errors << "#{artifact_label} source_register_sha256 must match the loaded Batch #{source_batch} register" unless source_sha && artifact['source_register_sha256'] == source_sha
+    unless @decision_register_statuses[source_batch] == 'complete'
+      errors << "#{artifact_label} cannot resolve while Batch #{source_batch} register_status is not complete"
+    end
+    source_entry = @decision_entries_by_batch.fetch(source_batch, []).find { |entry| entry['requirement_id'] == dependency['requirement_id'] }
+    decision = source_entry && source_entry['decision']
+    unless decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+      errors << "#{artifact_label} source requirement must be approved reproduce/replace; defer/exclude cannot support a complete report"
+    end
+    source_authorities = Array(source_entry && source_entry['co_owners'])
+    errors << "#{artifact_label} source_owner_authority is not an affected authority on the source row" unless source_authorities.include?(dependency['source_owner_authority'])
+    owner = source_entry && source_entry['accountable_owner']
+    authority_appointment = Array(source_entry && source_entry['appointment_dependencies']).find do |appointment|
+      appointment.is_a?(Hash) && appointment['authority_domain'] == dependency['source_owner_authority'] && appointment['status'] == 'appointed'
+    end
+    appointed_authority_identity = if owner.is_a?(Hash) && owner['appointment_status'] == 'appointed' && owner['authority_domain'] == dependency['source_owner_authority']
+                                     owner['identity']
+                                   else
+                                     authority_appointment && authority_appointment['identity']
+                                   end
+    unless nonempty_string?(appointed_authority_identity) && artifact['source_owner_identity'] == appointed_authority_identity
+      errors << "#{artifact_label} source_owner_identity must bind the appointed exact source-domain authority; product or another domain cannot substitute"
+    end
+    approval = source_entry && source_entry['approval']
+    unless approval.is_a?(Hash) && approval['status'] == 'recorded' && artifact['source_approval_reference'] == approval['reference'] && artifact['source_approval_sha256'] == approval['artifact_sha256']
+      errors << "#{artifact_label} source approval reference/SHA must bind the recorded source approval"
+    end
+    errors << "#{artifact_label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['source_owner_identity'], artifact_label)
+  end
+
+  def validate_batch_g_intra_dependencies(dependencies, requirement_id)
+    prefix = "#{decision_register_label} #{requirement_id}: intra_batch_dependencies"
+    unless dependencies.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    expected_ids = BATCH_G_INTRA_BATCH_DEPENDENCIES.fetch(requirement_id)
+    actual_ids = dependencies.each_with_object([]) { |dependency, values| values << dependency['requirement_id'] if dependency.is_a?(Hash) }
+    errors << "#{prefix} must exactly match the frozen intra-G DAG" unless actual_ids == expected_ids
+    dependencies.each_with_index do |dependency, index|
+      label = "#{prefix}[#{index}]"
+      validate_closed_object(dependency, BATCH_G_INTRA_DEPENDENCY_KEYS, label)
+      next unless dependency.is_a?(Hash)
+
+      status = dependency['status']
+      errors << "#{label} status must be pending or resolved" unless %w[pending resolved].include?(status)
+      if status == 'pending'
+        %w[resolution_reference resolution_artifact_sha256].each { |key| errors << "#{label} pending #{key} must be null" unless dependency[key].nil? }
+      elsif status == 'resolved'
+        validate_batch_g_intra_artifact(dependency, requirement_id, label)
+      end
+    end
+  end
+
+  def validate_batch_g_intra_artifact(dependency, source_id, label)
+    artifact = load_structured_json_artifact(dependency['resolution_reference'], dependency['resolution_artifact_sha256'], "#{label} resolution")
+    return unless artifact
+
+    artifact_label = "#{label} resolution"
+    validate_closed_object(artifact, BATCH_G_INTRA_ARTIFACT_KEYS, artifact_label)
+    errors << "#{artifact_label} type/schema/register must match Batch G" unless artifact['artifact_type'] == BATCH_G_INTRA_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID
+    errors << "#{artifact_label} source/target/status must match the register edge" unless artifact['source_requirement_id'] == source_id && artifact['target_requirement_id'] == dependency['requirement_id'] && artifact['status'] == 'resolved'
+    target = @decision_entries.find { |entry| entry['batch'] == 'G' && entry['requirement_id'] == dependency['requirement_id'] }
+    decision = target && target['decision']
+    unless decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+      errors << "#{artifact_label} target must be approved reproduce/replace"
+    end
+    errors << "#{artifact_label} target decision fields must bind the target" unless decision.is_a?(Hash) && artifact['target_decision_status'] == decision['status'] && artifact['target_disposition'] == decision['canonical_disposition']
+    owner = target && target['accountable_owner']
+    unless owner.is_a?(Hash) && owner['appointment_status'] == 'appointed' && artifact['target_owner_identity'] == owner['identity'] && artifact['target_authority_domain'] == target['lead_authority_domain']
+      errors << "#{artifact_label} target owner/domain must bind its appointed lead"
+    end
+    approval = target && target['approval']
+    unless approval.is_a?(Hash) && approval['status'] == 'recorded' && artifact['target_approval_reference'] == approval['reference'] && artifact['target_approval_sha256'] == approval['artifact_sha256']
+      errors << "#{artifact_label} target approval reference/SHA must bind the recorded approval"
+    end
+    errors << "#{artifact_label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['target_owner_identity'], artifact_label)
+  end
+
+  def validate_batch_g_boundary(boundary, requirement_id)
+    label = "#{decision_register_label} #{requirement_id}: output_boundary"
+    validate_closed_object(boundary, BATCH_G_BOUNDARY_KEYS, label)
+    return unless boundary.is_a?(Hash)
+
+    errors << "#{label} must exactly match the synthetic local NOT_SENT boundary" unless boundary == batch_g_expected_boundary(requirement_id)
+    errors << "#{label} endpoint must be null, credentials absent, outbound false, delivery NOT_SENT" unless boundary['endpoint'].nil? && boundary['credential_state'] == 'absent' && boundary['outbound_network'] == false && boundary['delivery_state'] == 'NOT_SENT'
+  end
+
+  def validate_batch_g_reconciliation(control, requirement_id)
+    label = "#{decision_register_label} #{requirement_id}: reconciliation_contract"
+    validate_closed_object(control, BATCH_G_RECONCILIATION_KEYS, label)
+    return unless control.is_a?(Hash)
+
+    errors << "#{label} profile_id must bind the exact per-ID semantic profile" unless control['profile_id'] == batch_g_reconciliation_profile_id(requirement_id)
+    requires_reconciliation = batch_g_semantic_spec(requirement_id).fetch(:reconciliation)
+    allowed_statuses = requires_reconciliation ? %w[pending complete] : %w[not_applicable]
+    errors << "#{label} status must be #{allowed_statuses.join(' or ')}" unless allowed_statuses.include?(control['status'])
+    if control['status'] == 'not_applicable'
+      errors << "#{label} master/reference capability must not claim a report reconciliation equation" unless control['equation'].nil? && control['control_totals'] == [] && control['receipt_reference'].nil? && control['receipt_artifact_sha256'].nil?
+    else
+      errors << "#{label} equation must be the frozen independently recomputed equation" unless control['equation'] == BATCH_G_RECONCILIATION_EQUATION
+      errors << "#{label} control_totals must exactly match the frozen control set" unless control['control_totals'] == BATCH_G_CONTROL_TOTALS
+    end
+    if control['status'] == 'pending'
+      errors << "#{label} pending receipt_reference must be null" unless control['receipt_reference'].nil?
+      errors << "#{label} pending receipt_artifact_sha256 must be null" unless control['receipt_artifact_sha256'].nil?
+    elsif control['status'] == 'complete'
+      validate_batch_g_reconciliation_artifact(control, requirement_id, label)
+    end
+  end
+
+  def validate_batch_g_statutory(control, entry, requirement_id)
+    label = "#{decision_register_label} #{requirement_id}: statutory_definition"
+    validate_closed_object(control, BATCH_G_STATUTORY_KEYS, label)
+    return unless control.is_a?(Hash)
+
+    statutory = BATCH_G_STATUTORY_IDS.include?(requirement_id)
+    expected_statuses = statutory ? %w[pending complete] : %w[not_applicable]
+    errors << "#{label} status must be #{expected_statuses.join(' or ')}" unless expected_statuses.include?(control['status'])
+    errors << "#{label} legacy_simulation_only must be #{statutory}" unless control['legacy_simulation_only'] == statutory
+    if control['status'] == 'pending'
+      %w[standard_identifier standard_version effective_date definition_source authority_reference authority_artifact_sha256].each { |key| errors << "#{label} pending #{key} must be null" unless control[key].nil? }
+      decision = entry['decision']
+      if decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+        errors << "#{label} legacy statutory/public-health capability cannot be approved without a current signed definition"
+      end
+    elsif control['status'] == 'not_applicable'
+      %w[standard_identifier standard_version effective_date definition_source authority_reference authority_artifact_sha256].each { |key| errors << "#{label} non-statutory #{key} must be null" unless control[key].nil? }
+    elsif control['status'] == 'complete'
+      validate_batch_g_statutory_artifact(control, entry, requirement_id, label)
+    end
+  end
+
+  def validate_batch_g_consolidation(control, decision, requirement_id)
+    label = "#{decision_register_label} #{requirement_id}: consolidation_mapping"
+    validate_closed_object(control, BATCH_G_CONSOLIDATION_KEYS, label)
+    return unless control.is_a?(Hash)
+
+    candidate = batch_g_candidate_for(requirement_id)
+    errors << "#{label} candidate_id must be #{candidate.inspect}" unless control['candidate_id'] == candidate
+    allowed_statuses = candidate ? %w[pending complete] : %w[not_applicable]
+    errors << "#{label} status must be #{allowed_statuses.join(' or ')}" unless allowed_statuses.include?(control['status'])
+    if %w[pending not_applicable].include?(control['status'])
+      %w[terminal_target_requirement_id artifact_reference artifact_sha256].each { |key| errors << "#{label} #{key} must be null before mapping completion" unless control[key].nil? }
+    elsif control['status'] == 'complete'
+      validate_batch_g_consolidation_artifact(control, requirement_id, candidate, label)
+    end
+    if decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+      errors << "#{label} consolidation requires a complete frozen candidate mapping" unless candidate && control['status'] == 'complete'
+    end
+  end
+
+  def validate_batch_g_reconciliation_artifact(control, requirement_id, label)
+    artifact = load_structured_json_artifact(control['receipt_reference'], control['receipt_artifact_sha256'], "#{label} receipt")
+    return unless artifact
+
+    artifact_label = "#{label} receipt"
+    validate_closed_object(artifact, BATCH_G_RECONCILIATION_ARTIFACT_KEYS, artifact_label)
+    errors << "#{artifact_label} type/schema/register/requirement must bind Batch G" unless artifact['artifact_type'] == BATCH_G_RECONCILIATION_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id
+    definition_sha = Digest::SHA256.hexdigest(JSON.generate(batch_g_definition_contract(requirement_id)))
+    errors << "#{artifact_label} definition_sha256 must bind the frozen per-ID definition" unless artifact['definition_sha256'] == definition_sha
+    parameter_artifact = validate_batch_g_parameter_artifact(artifact['parameter_descriptor'], requirement_id, "#{artifact_label} parameter_descriptor")
+    parameter_sha = parameter_artifact && parameter_artifact['canonical_parameter_sha256']
+    errors << "#{artifact_label} snapshot_id must be a non-placeholder synthetic snapshot" unless nonempty_string?(artifact['snapshot_id']) && artifact['snapshot_id'].start_with?('SYN-G-SNAPSHOT-')
+    errors << "#{artifact_label} cutoff_at must use +07:00" unless nonempty_string?(artifact['cutoff_at']) && artifact['cutoff_at'].end_with?('+07:00')
+    errors << "#{artifact_label} period_state must be open, closed or restated" unless %w[open closed restated].include?(artifact['period_state'])
+    prior_output = nil
+    if artifact['period_state'] == 'restated'
+      prior_output = load_structured_json_artifact(artifact['prior_output_reference'], artifact['prior_output_sha256'], "#{artifact_label} prior_output")
+      errors << "#{artifact_label} restatement_reason must be substantive" unless nonempty_string?(artifact['restatement_reason']) && artifact['restatement_reason'].length >= 20
+      if prior_output
+        validate_closed_object(prior_output, BATCH_G_OUTPUT_KEYS, "#{artifact_label} prior_output")
+        errors << "#{artifact_label} prior output must bind the same requirement" unless prior_output['requirement_id'] == requirement_id
+        prior_rows_sha = Digest::SHA256.hexdigest(JSON.generate(prior_output['rows'])) if prior_output['rows'].is_a?(Array)
+        errors << "#{artifact_label} prior output digest must remain independently recomputable and watermarked" unless prior_rows_sha && prior_output['output_sha256'] == prior_rows_sha && prior_output['watermark'] == batch_g_expected_boundary(requirement_id)['watermark']
+      end
+    else
+      errors << "#{artifact_label} non-restatement prior_output_reference must be null" unless artifact['prior_output_reference'].nil?
+      errors << "#{artifact_label} non-restatement prior_output_sha256 must be null" unless artifact['prior_output_sha256'].nil?
+      errors << "#{artifact_label} non-restatement restatement_reason must be null" unless artifact['restatement_reason'].nil?
+    end
+    expected_sources = batch_g_expected_source_dependencies(requirement_id)
+    descriptors = artifact['source_exports']
+    actual_sources = Array(descriptors).each_with_object([]) { |descriptor, values| values << descriptor.slice('source_batch', 'source_requirement_id', 'source_entity') if descriptor.is_a?(Hash) }
+    expected_source_ids = expected_sources.map { |source| { 'source_batch' => source['batch'], 'source_requirement_id' => source['requirement_id'], 'source_entity' => source['source_entity'] } }
+    errors << "#{artifact_label} source_exports must bind every applicability-specific source exactly once" unless descriptors.is_a?(Array) && actual_sources == expected_source_ids
+    source_authors = []
+    loaded_source_exports = []
+    Array(descriptors).each_with_index do |descriptor, index|
+      descriptor_label = "#{artifact_label} source_exports[#{index}]"
+      validate_closed_object(descriptor, BATCH_G_EXPORT_DESCRIPTOR_KEYS, descriptor_label)
+      next unless descriptor.is_a?(Hash)
+
+      expected = expected_sources[index]
+      expected_role = batch_g_semantic_spec(requirement_id).fetch(:source_roles).fetch(index).fetch(:role)
+      errors << "#{descriptor_label} control_role must be #{expected_role}" unless descriptor['control_role'] == expected_role
+      source_export = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], descriptor_label)
+      next unless source_export
+      validate_closed_object(source_export, BATCH_G_SOURCE_EXPORT_KEYS, descriptor_label)
+      errors << "#{descriptor_label} type/schema/register/requirement must bind Batch G" unless source_export['artifact_type'] == BATCH_G_SOURCE_EXPORT_ARTIFACT_TYPE && source_export['schema_version'] == ARTIFACT_SCHEMA_VERSION && source_export['register_id'] == BATCH_G_REGISTER_ID && source_export['requirement_id'] == requirement_id
+      if expected
+        errors << "#{descriptor_label} source lineage fields must match the descriptor and register" unless source_export['source_batch'] == expected['batch'] && source_export['source_requirement_id'] == expected['requirement_id'] && source_export['source_entity'] == expected['source_entity']
+      end
+      errors << "#{descriptor_label} control_role/snapshot must match the receipt" unless source_export['control_role'] == descriptor['control_role'] && source_export['snapshot_id'] == artifact['snapshot_id']
+      rows_value = source_export['rows']
+      valid_rows = rows_value.is_a?(Array) && !rows_value.empty? && rows_value.all? do |row|
+        validate_closed_object(row, BATCH_G_SYNTHETIC_ROW_KEYS, "#{descriptor_label} row")
+        row.is_a?(Hash) && nonempty_string?(row['synthetic_id']) && row['synthetic_id'].start_with?('SYN-') && nonempty_string?(row['distinct_key']) && row['distinct_key'].start_with?('SYN-') &&
+          row['value'].is_a?(Integer) && BATCH_G_VALUE_STATES.include?(row['state']) &&
+          (row['state'] == 'known_numeric' || row['value'].zero?) && [true, false].include?(row['included']) && nonempty_string?(row['source_version'])
+      end
+      errors << "#{descriptor_label} rows must be non-empty closed synthetic rows with explicit NULL state" unless valid_rows
+      computed_root = Digest::SHA256.hexdigest(JSON.generate(rows_value)) if rows_value.is_a?(Array)
+      errors << "#{descriptor_label} source_root_sha256 must be independently recomputable from canonical rows" unless computed_root && source_export['source_root_sha256'] == computed_root
+      errors << "#{descriptor_label} canonical_export_id must be non-placeholder" unless nonempty_string?(source_export['canonical_export_id'])
+      errors << "#{descriptor_label} date must be YYYY-MM-DD" unless iso_date?(source_export['date'])
+      errors << "#{descriptor_label} author_identity must be non-placeholder" unless nonempty_string?(source_export['author_identity']) && !source_export['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+      validate_artifact_reviewer(source_export['reviewer'], source_export['author_identity'], descriptor_label)
+      source_authors << source_export['author_identity'] if nonempty_string?(source_export['author_identity'])
+      loaded_source_exports << source_export
+    end
+
+    output_descriptor = artifact['report_output']
+    validate_closed_object(output_descriptor, BATCH_G_OUTPUT_DESCRIPTOR_KEYS, "#{artifact_label} report_output")
+    output = output_descriptor.is_a?(Hash) ? load_structured_json_artifact(output_descriptor['reference'], output_descriptor['sha256'], "#{artifact_label} report_output") : nil
+    if output
+      validate_closed_object(output, BATCH_G_OUTPUT_KEYS, "#{artifact_label} report_output")
+      errors << "#{artifact_label} output type/schema/register/requirement must bind Batch G" unless output['artifact_type'] == BATCH_G_OUTPUT_ARTIFACT_TYPE && output['schema_version'] == ARTIFACT_SCHEMA_VERSION && output['register_id'] == BATCH_G_REGISTER_ID && output['requirement_id'] == requirement_id
+      errors << "#{artifact_label} output snapshot/definition/parameters must match rooted receipt artifacts" unless output['snapshot_id'] == artifact['snapshot_id'] && output['definition_sha256'] == artifact['definition_sha256'] && output['parameter_sha256'] == parameter_sha
+      errors << "#{artifact_label} output watermark must match local synthetic boundary" unless output['watermark'] == batch_g_expected_boundary(requirement_id)['watermark']
+      errors << "#{artifact_label} output must be exportable only when no source is missing" unless [true, false].include?(output['exportable'])
+      errors << "#{artifact_label} output access_scope must be a nonempty closed cohort/role scope without wildcard" unless output['access_scope'].is_a?(Array) && !output['access_scope'].empty? && output['access_scope'].all? { |scope| nonempty_string?(scope) && scope != '*' }
+      errors << "#{artifact_label} output export_reason must be non-placeholder" unless nonempty_string?(output['export_reason'])
+      audit_ids = output['audit_event_ids']
+      errors << "#{artifact_label} output audit_event_ids must bind view/run/export audit events" unless audit_ids.is_a?(Hash) && audit_ids.keys == %w[view run export] && audit_ids.values.all? { |value| nonempty_string?(value) }
+      errors << "#{artifact_label} output retention_class must remain synthetic governance evidence pending policy" unless output['retention_class'] == 'synthetic_governance_evidence_pending_policy'
+      errors << "#{artifact_label} output masked and small_cell_suppression_applied must be explicit booleans" unless [true, false].include?(output['masked']) && [true, false].include?(output['small_cell_suppression_applied'])
+      output_rows_valid = output['rows'].is_a?(Array) && !output['rows'].empty? && output['rows'].all? do |row|
+        validate_closed_object(row, BATCH_G_SYNTHETIC_ROW_KEYS, "#{artifact_label} report_output row")
+        row.is_a?(Hash) && nonempty_string?(row['synthetic_id']) && row['synthetic_id'].start_with?('SYN-') && nonempty_string?(row['distinct_key']) && row['distinct_key'].start_with?('SYN-') &&
+          row['value'].is_a?(Integer) && BATCH_G_VALUE_STATES.include?(row['state']) &&
+          (row['state'] == 'known_numeric' || row['value'].zero?) && [true, false].include?(row['included']) && nonempty_string?(row['source_version'])
+      end
+      errors << "#{artifact_label} output rows must be non-empty closed synthetic rows" unless output_rows_valid
+      computed_output = Digest::SHA256.hexdigest(JSON.generate(output['rows'])) if output['rows'].is_a?(Array)
+      errors << "#{artifact_label} output_sha256 must be independently recomputable from canonical rows" unless computed_output && output['output_sha256'] == computed_output
+      errors << "#{artifact_label} output date must be YYYY-MM-DD" unless iso_date?(output['date'])
+      validate_artifact_reviewer(output['reviewer'], output['author_identity'], "#{artifact_label} report_output")
+    end
+    if prior_output && output
+      errors << "#{artifact_label} restatement must create a new immutable output digest" unless prior_output['output_sha256'] != output['output_sha256']
+    end
+    validate_batch_g_rerun_artifact(artifact['rerun_receipt'], requirement_id, artifact, loaded_source_exports, output, parameter_sha, "#{artifact_label} rerun_receipt")
+    access_artifact = validate_batch_g_access_artifact(artifact['access_receipt'], requirement_id, output, "#{artifact_label} access_receipt")
+    validate_batch_g_audit_artifact(artifact['audit_receipt'], requirement_id, output, access_artifact, "#{artifact_label} audit_receipt")
+    values = artifact['control_values']
+    valid_values = values.is_a?(Hash) && values.keys == BATCH_G_CONTROL_TOTALS && values.values.all? { |value| value.is_a?(Integer) && value >= 0 }
+    errors << "#{artifact_label} control_values must be exact nonnegative integer rooted totals" unless valid_values
+    if valid_values
+      expected_difference = values['report_total'] - values['authoritative_source_total'] + values['documented_exclusion_total'] - values['approved_adjustment_total']
+      errors << "#{artifact_label} equation must match the frozen reconciliation equation" unless artifact['equation'] == BATCH_G_RECONCILIATION_EQUATION
+      errors << "#{artifact_label} difference must be independently recomputed and zero" unless artifact['difference'] == expected_difference && expected_difference.zero?
+      errors << "#{artifact_label} duplicate_join_count, missing_source_count and null_state_count must be zero for a complete/exportable receipt" unless values['duplicate_join_count'].zero? && values['missing_source_count'].zero? && values['null_state_count'].zero?
+      lineage_valid = artifact['sampled_lineage'].is_a?(Array) && artifact['sampled_lineage'].length == values['traced_sample_count'] && values['traced_sample_count'].positive? && artifact['sampled_lineage'].all? do |sample|
+        validate_closed_object(sample, BATCH_G_LINEAGE_SAMPLE_KEYS, "#{artifact_label} sampled_lineage")
+        next false unless sample.is_a?(Hash)
+
+        source_export = loaded_source_exports.find do |candidate|
+          candidate['source_batch'] == sample['source_batch'] && candidate['source_requirement_id'] == sample['source_requirement_id'] && candidate['source_root_sha256'] == sample['source_root_sha256']
+        end
+        source_key_exists = source_export && Array(source_export['rows']).any? { |row| row['distinct_key'] == sample['source_distinct_key'] }
+        report_key_exists = output && Array(output['rows']).any? { |row| row['distinct_key'] == sample['report_distinct_key'] }
+        source_key_exists && report_key_exists
+      end
+      errors << "#{artifact_label} sampled lineage must positively trace rooted source keys to rooted report keys" unless lineage_valid
+      source_rows = loaded_source_exports.flat_map { |source_export| Array(source_export['rows']) }
+      report_rows = output ? Array(output['rows']) : []
+      measure_exports = loaded_source_exports.select { |source_export| source_export['control_role'] == 'authoritative_measure' }
+      measure_rows = measure_exports.flat_map { |source_export| Array(source_export['rows']) }
+      rooted_source_total = measure_rows.sum { |row| row['value'].is_a?(Integer) ? row['value'] : 0 }
+      rooted_exclusion_total = measure_rows.select { |row| row['included'] == false }.sum { |row| row['value'].is_a?(Integer) ? row['value'] : 0 }
+      rooted_report_total = report_rows.select { |row| row['included'] == true }.sum { |row| row['value'].is_a?(Integer) ? row['value'] : 0 }
+      rooted_adjustment_total = report_rows.select { |row| row['included'] == true && row['source_version'].to_s.start_with?('approved_adjustment:') }.sum { |row| row['value'].is_a?(Integer) ? row['value'] : 0 }
+      rooted_distinct_count = report_rows.select { |row| row['included'] == true }.map { |row| row['distinct_key'] }.uniq.length
+      rooted_duplicate_count = report_rows.select { |row| row['included'] == true }.length - rooted_distinct_count
+      source_null_count = source_rows.count { |row| !%w[known_numeric numeric_zero].include?(row['state']) }
+      output_null_count = report_rows.count { |row| !%w[known_numeric numeric_zero].include?(row['state']) }
+      rooted_missing_count = loaded_source_exports.count do |source_export|
+        Array(source_export['rows']).empty? || Array(source_export['rows']).any? { |row| !%w[known_numeric numeric_zero].include?(row['state']) }
+      end
+      rooted_controls = values['authoritative_source_total'] == rooted_source_total && values['documented_exclusion_total'] == rooted_exclusion_total && values['approved_adjustment_total'] == rooted_adjustment_total &&
+        values['report_total'] == rooted_report_total && values['source_row_count'] == source_rows.length && values['report_row_count'] == report_rows.length &&
+        values['distinct_key_count'] == rooted_distinct_count && values['duplicate_join_count'] == rooted_duplicate_count &&
+        values['missing_source_count'] == rooted_missing_count && values['null_state_count'] == source_null_count + output_null_count
+      errors << "#{artifact_label} totals/counts must be independently recomputed from canonical source and output rows" unless rooted_controls
+      errors << "#{artifact_label} unavailable/unknown/not-collected/not-applicable/suppressed rows force partial or blocked non-exportable output" unless rooted_missing_count.zero? && source_null_count.zero? && output_null_count.zero?
+      errors << "#{artifact_label} complete output must be exportable" if output && output['exportable'] != true
+    end
+    errors << "#{artifact_label} late_event_policy must require linked append-only restatement" unless artifact['late_event_policy'] == 'append_linked_restatement_never_overwrite_closed_output'
+    errors << "#{artifact_label} author_identity must be non-placeholder and distinct from every source writer" unless nonempty_string?(artifact['author_identity']) && !source_authors.include?(artifact['author_identity'])
+    errors << "#{artifact_label} author_identity must be distinct from output author" if output && artifact['author_identity'] == output['author_identity']
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], artifact_label)
+    errors << "#{artifact_label} independent reviewer must be distinct from every source writer" if artifact['reviewer'].is_a?(Hash) && source_authors.include?(artifact['reviewer']['identity'])
+  end
+
+  def validate_batch_g_parameter_artifact(descriptor, requirement_id, label)
+    validate_closed_object(descriptor, BATCH_G_ARTIFACT_DESCRIPTOR_KEYS, label)
+    return unless descriptor.is_a?(Hash)
+
+    artifact = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], label)
+    return unless artifact
+    validate_closed_object(artifact, BATCH_G_PARAMETER_ARTIFACT_KEYS, label)
+    errors << "#{label} type/schema/register/requirement must bind Batch G" unless artifact['artifact_type'] == BATCH_G_PARAMETER_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id
+    values = artifact['parameter_values']
+    expected_keys = batch_g_definition_contract(requirement_id)['parameters']
+    valid_values = values.is_a?(Hash) && values.keys == expected_keys && values.values.all? { |value| nonempty_string?(value) }
+    errors << "#{label} parameter_values must exactly bind every frozen per-ID parameter in order" unless valid_values
+    fixed_values = batch_g_semantic_spec(requirement_id).fetch(:fixed_parameter_values)
+    fixed_values.each do |parameter, expected_value|
+      errors << "#{label} parameter_values.#{parameter} must bind frozen semantic value #{expected_value}" unless values.is_a?(Hash) && values[parameter] == expected_value
+    end
+    computed = Digest::SHA256.hexdigest(JSON.generate(values)) if values.is_a?(Hash)
+    errors << "#{label} canonical_parameter_sha256 must be recomputable from the exact parameter payload" unless computed && artifact['canonical_parameter_sha256'] == computed
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+    artifact
+  end
+
+  def validate_batch_g_rerun_artifact(descriptor, requirement_id, reconciliation, source_exports, output, parameter_sha, label)
+    validate_closed_object(descriptor, BATCH_G_ARTIFACT_DESCRIPTOR_KEYS, label)
+    return unless descriptor.is_a?(Hash)
+
+    artifact = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], label)
+    return unless artifact
+    validate_closed_object(artifact, BATCH_G_RERUN_ARTIFACT_KEYS, label)
+    errors << "#{label} type/schema/register/requirement must bind a second Batch G execution" unless artifact['artifact_type'] == BATCH_G_RERUN_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id
+    source_roots = source_exports.map { |source_export| source_export['source_root_sha256'] }
+    errors << "#{label} must bind the same definition, parameter payload, snapshot, source roots and cutoff" unless artifact['definition_sha256'] == reconciliation['definition_sha256'] && artifact['parameter_sha256'] == parameter_sha && artifact['snapshot_id'] == reconciliation['snapshot_id'] && artifact['source_roots'] == source_roots && artifact['cutoff_at'] == reconciliation['cutoff_at']
+    errors << "#{label} execution_id must identify an independent second execution" unless nonempty_string?(artifact['execution_id']) && artifact['execution_id'].start_with?('SYN-G-RERUN-')
+    rerun_sha = Digest::SHA256.hexdigest(JSON.generate(artifact['rows'])) if artifact['rows'].is_a?(Array)
+    errors << "#{label} rows/output_sha256 must be independently recomputable and equal the primary rooted output" unless rerun_sha && artifact['output_sha256'] == rerun_sha && output && artifact['output_sha256'] == output['output_sha256'] && artifact['rows'] == output['rows']
+    errors << "#{label} author must be distinct from primary output author" unless output && nonempty_string?(artifact['author_identity']) && artifact['author_identity'] != output['author_identity']
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+  end
+
+  def validate_batch_g_access_artifact(descriptor, requirement_id, output, label)
+    validate_closed_object(descriptor, BATCH_G_ARTIFACT_DESCRIPTOR_KEYS, label)
+    return unless descriptor.is_a?(Hash)
+
+    artifact = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], label)
+    return unless artifact
+    validate_closed_object(artifact, BATCH_G_ACCESS_ARTIFACT_KEYS, label)
+    errors << "#{label} type/schema/register/requirement must bind Batch G access/export" unless artifact['artifact_type'] == BATCH_G_ACCESS_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id
+    entry = @decision_entries.find { |candidate| candidate['batch'] == 'G' && candidate['requirement_id'] == requirement_id }
+    security = Array(entry && entry['appointment_dependencies']).find { |appointment| appointment.is_a?(Hash) && appointment['authority_domain'] == 'security_privacy_data' }
+    errors << "#{label} identity must bind the appointed security/privacy/export authority" unless security && security['status'] == 'appointed' && artifact['identity'] == security['identity']
+    errors << "#{label} role/cohort must be closed synthetic scopes" unless artifact['role'] == 'synthetic_report_security_verifier' && artifact['cohort_scope'] == ['SYN-UEU']
+    expected_permitted = %w[synthetic_id distinct_key aggregate_value state source_version]
+    errors << "#{label} permitted/prohibited fields must enforce minimum necessary synthetic export" unless artifact['permitted_fields'] == expected_permitted && artifact['prohibited_fields'] == %w[real_patient_identifier direct_identifier credential live_endpoint]
+    errors << "#{label} output digest/watermark/export reason/retention/masking must bind the rooted output" unless output && artifact['output_sha256'] == output['output_sha256'] && artifact['watermark'] == output['watermark'] && artifact['export_reason'] == output['export_reason'] && artifact['retention_class'] == output['retention_class'] && artifact['masked'] == output['masked'] && artifact['small_cell_suppression_applied'] == output['small_cell_suppression_applied']
+    policy_payload = artifact.slice('role', 'cohort_scope', 'permitted_fields', 'prohibited_fields', 'watermark', 'retention_class', 'masked', 'small_cell_suppression_applied')
+    errors << "#{label} policy_sha256 must be recomputable from the closed access policy" unless artifact['policy_sha256'] == Digest::SHA256.hexdigest(JSON.generate(policy_payload))
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['identity'], label)
+    artifact
+  end
+
+  def validate_batch_g_audit_artifact(descriptor, requirement_id, output, access_artifact, label)
+    validate_closed_object(descriptor, BATCH_G_ARTIFACT_DESCRIPTOR_KEYS, label)
+    return unless descriptor.is_a?(Hash)
+
+    artifact = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], label)
+    return unless artifact
+    validate_closed_object(artifact, BATCH_G_AUDIT_ARTIFACT_KEYS, label)
+    errors << "#{label} type/schema/register/requirement must bind Batch G audit" unless artifact['artifact_type'] == BATCH_G_AUDIT_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id
+    events = artifact['events']
+    valid_events = events.is_a?(Array) && events.map { |event| event['event_type'] if event.is_a?(Hash) } == %w[view run export] && events.all? do |event|
+      validate_closed_object(event, BATCH_G_AUDIT_EVENT_KEYS, "#{label} event")
+      event.is_a?(Hash) && nonempty_string?(event['event_id']) && event['cohort_scope'] == ['SYN-UEU'] && access_artifact && event['actor_identity'] == access_artifact['identity'] && event['role'] == access_artifact['role'] && nonempty_string?(event['occurred_at']) && event['occurred_at'].end_with?('+07:00') && event['outcome'] == 'allowed' && nonempty_string?(event['reason']) && output && event['output_sha256'] == output['output_sha256']
+    end
+    errors << "#{label} events must exactly root allowed view/run/export actions to actor, role, cohort, timestamp, reason and output" unless valid_events
+    errors << "#{label} output_sha256 must bind the rooted output" unless output && artifact['output_sha256'] == output['output_sha256']
+    errors << "#{label} audit_root_sha256 must be recomputable from exact events" unless events.is_a?(Array) && artifact['audit_root_sha256'] == Digest::SHA256.hexdigest(JSON.generate(events))
+    output_audit_ids = output && output['audit_event_ids']
+    errors << "#{label} event IDs must exactly match the output receipt" unless valid_events && output_audit_ids.is_a?(Hash) && events.to_h { |event| [event['event_type'], event['event_id']] } == output_audit_ids
+    errors << "#{label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+  end
+
+  def validate_batch_g_statutory_artifact(control, entry, requirement_id, label)
+    artifact = load_structured_json_artifact(control['authority_reference'], control['authority_artifact_sha256'], "#{label} authority")
+    return unless artifact
+
+    artifact_label = "#{label} authority"
+    validate_closed_object(artifact, BATCH_G_STATUTORY_ARTIFACT_KEYS, artifact_label)
+    errors << "#{artifact_label} type/schema/register/requirement/subject must bind Batch G" unless artifact['artifact_type'] == BATCH_G_STATUTORY_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id && artifact['subject'] == 'current_statutory_definition'
+    errors << "#{artifact_label} legacy_simulation_only must remain true" unless artifact['legacy_simulation_only'] == true
+    %w[standard_identifier standard_version effective_date definition_source].each { |key| errors << "#{artifact_label} #{key} must match the register" unless artifact[key] == control[key] }
+    %w[standard_identifier standard_version definition_source].each do |key|
+      value = artifact[key]
+      errors << "#{artifact_label} #{key} must be a substantive current authority value" unless nonempty_string?(value) && value.length >= 5 && !value.match?(/\b(?:tbd|unknown|legacy|menu label)\b/i)
+    end
+    errors << "#{artifact_label} effective_date must be YYYY-MM-DD" unless iso_date?(artifact['effective_date'])
+    validate_batch_g_signed_report_definition(artifact, control, entry, requirement_id, artifact_label)
+    expected_domains = batch_g_required_authorities(requirement_id)
+    bindings = artifact['authority_bindings']
+    actual_domains = Array(bindings).each_with_object([]) { |binding, values| values << binding['authority_domain'] if binding.is_a?(Hash) }
+    errors << "#{artifact_label} authority_bindings must exactly cover reporting, sponsor, security and every source authority" unless bindings.is_a?(Array) && actual_domains == expected_domains
+    Array(bindings).each_with_index do |binding, index|
+      binding_label = "#{artifact_label} authority_bindings[#{index}]"
+      validate_closed_object(binding, BATCH_G_STATUTORY_BINDING_KEYS, binding_label)
+      next unless binding.is_a?(Hash)
+      appointment = Array(entry['appointment_dependencies']).find { |candidate| candidate.is_a?(Hash) && candidate['authority_domain'] == binding['authority_domain'] }
+      unless appointment && appointment['status'] == 'appointed' && binding['identity'] == appointment['identity'] && binding['appointment_reference'] == appointment['reference'] && binding['appointment_sha256'] == appointment['artifact_sha256']
+        errors << "#{binding_label} must bind the appointed authority identity and SHA"
+      end
+      approval = load_structured_json_artifact(binding['approval_reference'], binding['approval_sha256'], "#{binding_label} approval")
+      next unless approval
+      validate_closed_object(approval, BATCH_G_STATUTORY_APPROVAL_KEYS, "#{binding_label} approval")
+      errors << "#{binding_label} signed approval must bind this authority, identity, current definition and exact report-definition SHA" unless approval['artifact_type'] == BATCH_G_STATUTORY_APPROVAL_ARTIFACT_TYPE && approval['schema_version'] == ARTIFACT_SCHEMA_VERSION && approval['register_id'] == BATCH_G_REGISTER_ID && approval['requirement_id'] == requirement_id && approval['subject'] == 'current_statutory_definition_approval' && approval['authority_domain'] == binding['authority_domain'] && approval['identity'] == binding['identity'] && %w[standard_identifier standard_version effective_date definition_source].all? { |key| approval[key] == control[key] } && approval['report_definition_sha256'] == artifact['report_definition_sha256']
+      errors << "#{binding_label} approval date must be YYYY-MM-DD" unless iso_date?(approval['date'])
+      validate_artifact_reviewer(approval['reviewer'], approval['identity'], "#{binding_label} approval")
+    end
+    errors << "#{artifact_label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{artifact_label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], artifact_label)
+  end
+
+  def validate_batch_g_signed_report_definition(statutory_artifact, control, entry, requirement_id, label)
+    artifact = load_structured_json_artifact(statutory_artifact['report_definition_reference'], statutory_artifact['report_definition_sha256'], "#{label} report_definition")
+    return unless artifact
+
+    definition_label = "#{label} report_definition"
+    validate_closed_object(artifact, BATCH_G_SIGNED_REPORT_DEFINITION_KEYS, definition_label)
+    expected_definition = batch_g_definition_contract(requirement_id)
+    expected_definition_sha = Digest::SHA256.hexdigest(JSON.generate(expected_definition))
+    errors << "#{definition_label} type/schema/register/requirement/subject must bind the exact Batch G report definition" unless artifact['artifact_type'] == BATCH_G_SIGNED_REPORT_DEFINITION_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['requirement_id'] == requirement_id && artifact['subject'] == 'signed_current_report_definition'
+    errors << "#{definition_label} semantic_digest and definition_sha256 must bind the frozen exact per-ID semantic spec" unless artifact['semantic_digest'] == batch_g_semantic_digest(requirement_id) && artifact['definition_sha256'] == expected_definition_sha
+    %w[grain distinct_key numerator denominator inclusions exclusions parameters].each do |key|
+      errors << "#{definition_label} #{key} must exactly match the frozen per-ID formula contract" unless artifact[key] == expected_definition[key]
+    end
+    expected_period = expected_definition.slice('time_basis', 'timezone', 'cutoff_policy', 'period_close_policy')
+    validate_closed_object(artifact['period_basis'], BATCH_G_SIGNED_REPORT_PERIOD_KEYS, "#{definition_label} period_basis")
+    errors << "#{definition_label} period_basis must bind exact event/effective/recorded time, timezone, cutoff and close semantics" unless artifact['period_basis'] == expected_period
+    %w[standard_identifier standard_version effective_date definition_source].each do |key|
+      errors << "#{definition_label} #{key} must match the current statutory control" unless artifact[key] == control[key]
+    end
+    expected_sources = Array(entry['source_dependencies']).map do |dependency|
+      {
+        'batch' => dependency['batch'], 'requirement_id' => dependency['requirement_id'],
+        'source_entity' => dependency['source_entity'], 'source_owner_authority' => dependency['source_owner_authority'],
+        'resolution_reference' => dependency['resolution_reference'], 'resolution_sha256' => dependency['resolution_artifact_sha256']
+      }
+    end
+    bindings = artifact['source_bindings']
+    errors << "#{definition_label} source_bindings must exactly bind every resolved applicability-specific source and resolution SHA" unless bindings == expected_sources && expected_sources.all? { |binding| nonempty_string?(binding['resolution_reference']) && binding['resolution_sha256'].to_s.match?(/\A[0-9a-f]{64}\z/i) }
+    Array(bindings).each_with_index { |binding, index| validate_closed_object(binding, BATCH_G_SIGNED_REPORT_SOURCE_BINDING_KEYS, "#{definition_label} source_bindings[#{index}]") }
+    errors << "#{definition_label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{definition_label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], definition_label)
+    artifact
+  end
+
+  def validate_batch_g_consolidation_artifact(control, requirement_id, candidate, label)
+    artifact = load_structured_json_artifact(control['artifact_reference'], control['artifact_sha256'], "#{label} artifact")
+    return unless artifact
+
+    artifact_label = "#{label} artifact"
+    validate_closed_object(artifact, BATCH_G_CONSOLIDATION_ARTIFACT_KEYS, artifact_label)
+    errors << "#{artifact_label} type/schema/register/candidate must bind Batch G" unless artifact['artifact_type'] == BATCH_G_CONSOLIDATION_ARTIFACT_TYPE && artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_G_REGISTER_ID && artifact['candidate_id'] == candidate
+    members = BATCH_G_CONSOLIDATION_GROUPS.fetch(candidate)
+    errors << "#{artifact_label} members must exactly retain all candidate PAR IDs" unless artifact['members'] == members
+    errors << "#{artifact_label} target must match the shared register target" unless artifact['target_requirement_id'] == control['terminal_target_requirement_id'] && members.include?(artifact['target_requirement_id'])
+    target = @decision_entries.find { |entry| entry['batch'] == 'G' && entry['requirement_id'] == artifact['target_requirement_id'] }
+    decision = target && target['decision']
+    errors << "#{artifact_label} terminal target must be approved reproduce/replace" unless decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+    owner = target && target['accountable_owner']
+    errors << "#{artifact_label} terminal owner identity/domain must bind the appointed target lead" unless owner.is_a?(Hash) && owner['appointment_status'] == 'appointed' && artifact['terminal_owner_identity'] == owner['identity'] && artifact['terminal_authority_domain'] == target['lead_authority_domain']
+    approval = target && target['approval']
+    errors << "#{artifact_label} terminal approval reference/SHA must bind target approval" unless approval.is_a?(Hash) && approval['status'] == 'recorded' && artifact['terminal_approval_reference'] == approval['reference'] && artifact['terminal_approval_sha256'] == approval['artifact_sha256']
+    policy = BATCH_G_CONSOLIDATION_PARAMETER_POLICIES.fetch(candidate)
+    errors << "#{artifact_label} declared_parameters must enumerate every differing cohort, care-setting, dimension or version" unless artifact['declared_parameters'] == policy.fetch('declared_parameters')
+    mappings = artifact['member_mappings']
+    errors << "#{artifact_label} member_mappings must exactly preserve every candidate member" unless mappings.is_a?(Hash) && mappings.keys == members
+    Array(members).each do |member|
+      mapping = mappings.is_a?(Hash) ? mappings[member] : nil
+      mapping_label = "#{artifact_label} member_mappings[#{member}]"
+      validate_closed_object(mapping, BATCH_G_CONSOLIDATION_MEMBER_MAPPING_KEYS, mapping_label)
+      next unless mapping.is_a?(Hash)
+
+      expected_mapping = batch_g_expected_consolidation_member_mapping(member)
+      errors << "#{mapping_label} must exactly bind semantic parameters, definition, source lineage, controls, authorities and recorded member approval" unless mapping == expected_mapping
+      member_entry = @decision_entries.find { |entry| entry['batch'] == 'G' && entry['requirement_id'] == member }
+      member_decision = member_entry && member_entry['decision']
+      member_approval = member_entry && member_entry['approval']
+      unless member_decision.is_a?(Hash) && %w[approve defer].include?(member_decision['status']) && member_approval.is_a?(Hash) && member_approval['status'] == 'recorded'
+        errors << "#{mapping_label} cannot preserve authority without a recorded member decision approval"
+      end
+    end
+    errors << "#{artifact_label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{artifact_label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], artifact_label)
+  end
+
   def validate_batch_d_controls(entry, label)
     unless entry['capability_kind'] == BATCH_D_CAPABILITY_KINDS[label]
       errors << "#{decision_register_label} #{label}: capability_kind must be #{BATCH_D_CAPABILITY_KINDS[label]}"
@@ -2640,7 +3929,7 @@ class ParityGovernanceValidator
       %w[date source reference interpreter artifact_reference artifact_sha256].each do |key|
         errors << "#{decision_register_label} #{label}: pending evidence #{key} must be null" unless record[key].nil?
       end
-      if %w[D E F].include?(@active_decision_context[:batch]) && !record['evidence_basis'].nil?
+      if %w[D E F G].include?(@active_decision_context[:batch]) && !record['evidence_basis'].nil?
         errors << "#{decision_register_label} #{label}: pending evidence evidence_basis must be null"
       end
       errors << "#{decision_register_label} #{label}: pending evidence confidence must be pending" unless confidence == 'pending'
@@ -2660,6 +3949,8 @@ class ParityGovernanceValidator
     elsif @active_decision_context[:batch] == 'E' && !BATCH_E_EVIDENCE_BASES.include?(record['evidence_basis'])
       errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
     elsif @active_decision_context[:batch] == 'F' && !BATCH_F_EVIDENCE_BASES.include?(record['evidence_basis'])
+      errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
+    elsif @active_decision_context[:batch] == 'G' && !BATCH_G_EVIDENCE_BASES.include?(record['evidence_basis'])
       errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
     end
     validate_evidence_artifact(record, label, index)
@@ -2766,6 +4057,72 @@ class ParityGovernanceValidator
     validate_batch_e_consolidation_decisions(entries_by_batch.fetch('E', []))
     validate_batch_f_consolidation_decisions(entries_by_batch.fetch('F', []))
     validate_batch_f_actual_dependency_graph(entries_by_batch.fetch('F', []))
+    validate_batch_g_consolidation_decisions(entries_by_batch.fetch('G', []))
+    validate_batch_g_actual_dependency_graph(entries_by_batch.fetch('G', []))
+  end
+
+  def validate_batch_g_consolidation_decisions(entries)
+    by_id = entries.to_h { |entry| [entry['requirement_id'], entry] }
+    active = {}
+    entries.each do |entry|
+      decision = entry['decision'] if entry.is_a?(Hash)
+      next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+
+      source = entry['requirement_id']
+      candidate = batch_g_candidate_for(source)
+      members = candidate && BATCH_G_CONSOLIDATION_GROUPS[candidate]
+      target = decision.dig('target', 'reference')
+      unless members && members.include?(target) && target != source
+        errors << "Batch G decision register #{source}: consolidation is allowed only inside its frozen candidate"
+        next
+      end
+      if active.key?(candidate) && active[candidate] != target
+        errors << "Batch G decision register #{source}: candidate #{candidate} cannot use conflicting terminal targets"
+      else
+        active[candidate] = target
+      end
+      target_decision = by_id.dig(target, 'decision')
+      unless target_decision.is_a?(Hash) && target_decision['status'] == 'approve' && %w[reproduce replace].include?(target_decision['canonical_disposition'])
+        errors << "Batch G decision register #{source}: terminal target #{target} must be approved reproduce/replace"
+      end
+    end
+    active.each do |candidate, target|
+      members = BATCH_G_CONSOLIDATION_GROUPS.fetch(candidate)
+      coherent = members.all? do |member|
+        decision = by_id.dig(member, 'decision')
+        if member == target
+          decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+        else
+          decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate' && decision.dig('target', 'reference') == target
+        end
+      end
+      errors << "Batch G decision register candidate #{candidate}: every non-terminal member must resolve to one approved terminal target #{target}" unless coherent
+      controls = members.map { |member| by_id.dig(member, 'consolidation_mapping') }
+      unless controls.all? { |control| control.is_a?(Hash) && control['status'] == 'complete' && control['terminal_target_requirement_id'] == target }
+        errors << "Batch G decision register candidate #{candidate}: every member must share one complete mapping to #{target}"
+        next
+      end
+      references = controls.map { |control| [control['artifact_reference'], control['artifact_sha256']] }
+      errors << "Batch G decision register candidate #{candidate}: every member must bind the same mapping artifact and SHA-256" unless references.uniq.length == 1
+    end
+  end
+
+  def validate_batch_g_actual_dependency_graph(entries)
+    graph = {}
+    entries.each do |entry|
+      next unless entry.is_a?(Hash) && nonempty_string?(entry['requirement_id'])
+
+      source = entry['requirement_id']
+      targets = Array(entry['intra_batch_dependencies']).each_with_object([]) { |dependency, values| values << dependency['requirement_id'] if dependency.is_a?(Hash) }
+      decision = entry['decision']
+      if decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+        target = decision.dig('target', 'reference')
+        targets << target if EXPECTED_BATCH_G_IDS.include?(target)
+      end
+      graph[source] = targets
+    end
+    cycle = batch_f_dependency_cycle(graph)
+    errors << "Batch G decision register dependency/consolidation cycle detected: #{cycle.join(' -> ')}" if cycle
   end
 
   def validate_batch_e_consolidation_decisions(entries)
@@ -2959,6 +4316,16 @@ class ParityGovernanceValidator
       expected = batch_f_required_scenario_contract(label, name)
       expected.each do |key, value|
         errors << "#{decision_register_label} #{label}: synthetic scenario #{name} #{key} must exactly match the frozen per-ID lifecycle and hazard contract" unless scenario[key] == value
+      end
+      return
+    end
+    if @active_decision_context[:batch] == 'G'
+      validate_closed_object(scenario, BATCH_G_SCENARIO_KEYS, "#{decision_register_label} #{label}: synthetic scenario #{name}")
+      return unless EXPECTED_BATCH_G_IDS.include?(label)
+
+      expected = batch_g_required_scenario_contract(label, name)
+      expected.each do |key, value|
+        errors << "#{decision_register_label} #{label}: synthetic scenario #{name} #{key} must exactly match the per-ID definition, access, reconciliation and failure contract" unless scenario[key] == value
       end
       return
     end
@@ -3318,13 +4685,49 @@ class ParityGovernanceValidator
         errors << "#{decision_register_label} #{label}: approval requires a complete applicability-specific integer minor-unit reconciliation"
       end
     end
+    if @active_decision_context[:batch] == 'G'
+      substantive = evidence.is_a?(Array) && evidence.any? do |record|
+        record.is_a?(Hash) && %w[O M I].include?(record['evidence_class']) && %w[behavioral_execution signed_reporting_policy reconciled_ledger independent_output_verification].include?(record['evidence_basis'])
+      end
+      errors << "#{decision_register_label} #{label}: G0 requires behavioral, signed-policy, reconciled or independently verified O/M/I evidence" unless substantive
+      source_dependencies = entry['source_dependencies']
+      intra_dependencies = entry['intra_batch_dependencies']
+      if decision_status == 'approve'
+        unless source_dependencies.is_a?(Array) && !source_dependencies.empty? && source_dependencies.all? { |dependency| dependency.is_a?(Hash) && dependency['status'] == 'resolved' }
+          errors << "#{decision_register_label} #{label}: approval requires every applicability-specific A-F source binding resolved against an approved source row"
+        end
+        unless intra_dependencies.is_a?(Array) && intra_dependencies.all? { |dependency| dependency.is_a?(Hash) && dependency['status'] == 'resolved' }
+          errors << "#{decision_register_label} #{label}: approval requires every intra-G dependency resolved against an approved target"
+        end
+        reconciliation = entry['reconciliation_contract']
+        expected_reconciliation_status = batch_g_semantic_spec(label).fetch(:reconciliation) ? 'complete' : 'not_applicable'
+        errors << "#{decision_register_label} #{label}: approval requires reconciliation status #{expected_reconciliation_status} for its frozen capability kind" unless reconciliation.is_a?(Hash) && reconciliation['status'] == expected_reconciliation_status
+        if BATCH_G_STATUTORY_IDS.include?(label)
+          statutory = entry['statutory_definition']
+          errors << "#{decision_register_label} #{label}: statutory/public-health approval requires a current signed definition and sponsor/source/security approvals" unless statutory.is_a?(Hash) && statutory['status'] == 'complete'
+        end
+      elsif decision_status == 'defer'
+        pending_sources = Array(source_dependencies).select { |dependency| dependency.is_a?(Hash) && dependency['status'] != 'resolved' }
+        pending_intra = Array(intra_dependencies).select { |dependency| dependency.is_a?(Hash) && dependency['status'] != 'resolved' }
+        required_exclusions = [
+          *BATCH_G_DEFERRAL_BASE_EXCLUSIONS,
+          *pending_sources.map { |dependency| "missing_source:#{dependency['batch']}:#{dependency['requirement_id']}" },
+          *pending_intra.map { |dependency| "missing_intra_g:#{dependency['requirement_id']}" }
+        ]
+        decision = entry['decision']
+        safe = decision['canonical_disposition'] == 'exclude' && decision.dig('target', 'kind') == 'exclusion' && decision.dig('target', 'exclusions') == required_exclusions
+        errors << "#{decision_register_label} #{label}: deferred source or definition readiness requires exact exclude/no-export/no-compliance/missing-source scope" unless safe
+      end
+    end
   end
 
   def validate_governance_artifact(reference:, expected_sha256:, label:, requirement_id:, subject:, record:, decision: nil)
     artifact = load_structured_json_artifact(reference, expected_sha256, label)
     return unless artifact
 
-    expected_keys = if subject == 'approval' && AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
+    expected_keys = if subject == 'approval' && @active_decision_context[:batch] == 'G'
+                      BATCH_G_APPROVAL_ARTIFACT_KEYS
+                    elsif subject == 'approval' && AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
                       AUTHORITY_BOUND_APPROVAL_ARTIFACT_KEYS
                     else
                       GOVERNANCE_ARTIFACT_KEYS.fetch(subject)
@@ -3355,9 +4758,77 @@ class ParityGovernanceValidator
       errors << "#{label} decision_status does not match the register decision" unless decision.is_a?(Hash) && artifact['decision_status'] == decision['status']
       errors << "#{label} canonical_disposition does not match the register decision" unless decision.is_a?(Hash) && artifact['canonical_disposition'] == decision['canonical_disposition']
       errors << "#{label} conditions do not match the register" unless artifact['conditions'] == record['conditions']
+      validate_batch_g_control_approval_artifact(artifact, requirement_id, label) if @active_decision_context[:batch] == 'G'
     end
 
     validate_artifact_reviewer(artifact['reviewer'], artifact['identity'], label)
+  end
+
+  def validate_batch_g_control_approval_artifact(artifact, requirement_id, label)
+    entry = @decision_entries.find { |candidate| candidate['batch'] == 'G' && candidate['requirement_id'] == requirement_id }
+    unless entry
+      errors << "#{label} cannot bind controls without the exact Batch G register entry"
+      return
+    end
+
+    manifest = batch_g_control_manifest(entry)
+    errors << "#{label} control_manifest_sha256 must bind the exact definition, source/intra resolutions, reconciliation, boundary/access/export and statutory definition" unless artifact['control_manifest_sha256'] == Digest::SHA256.hexdigest(JSON.generate(manifest))
+    %w[definition_sha256 source_resolution_sha256s intra_resolution_sha256s reconciliation_sha256 output_boundary_sha256 statutory_definition_sha256].each do |key|
+      errors << "#{label} #{key} must exactly match the approved control manifest" unless artifact[key] == manifest[key]
+    end
+
+    required_domains = batch_g_required_authorities(requirement_id)
+    bindings = artifact['authority_bindings']
+    actual_domains = Array(bindings).map { |binding| binding['authority_domain'] if binding.is_a?(Hash) }
+    errors << "#{label} authority_bindings must exactly cover product/business decision authority, the report/formula lead, every source domain and security/privacy/export authority; product cannot substitute for another domain" unless bindings.is_a?(Array) && actual_domains == required_domains
+    binding_identities = Array(bindings).map { |binding| binding['identity'] if binding.is_a?(Hash) }.compact
+    errors << "#{label} authority signatures must use distinct appointed identities for independent domains" unless binding_identities.uniq.length == binding_identities.length
+    Array(bindings).each_with_index do |binding, index|
+      binding_label = "#{label} authority_bindings[#{index}]"
+      validate_closed_object(binding, BATCH_G_CONTROL_APPROVAL_BINDING_KEYS, binding_label)
+      next unless binding.is_a?(Hash)
+
+      domain = binding['authority_domain']
+      expected_identity = nil
+      expected_reference = nil
+      expected_sha = nil
+      if domain == entry['lead_authority_domain']
+        owner = entry['accountable_owner']
+        if owner.is_a?(Hash) && owner['appointment_status'] == 'appointed'
+          expected_identity = owner['identity']
+          expected_reference = owner['appointment_reference']
+          expected_sha = owner['artifact_sha256']
+        end
+      else
+        appointment = Array(entry['appointment_dependencies']).find do |candidate|
+          candidate.is_a?(Hash) && candidate['authority_domain'] == domain && candidate['status'] == 'appointed'
+        end
+        if appointment
+          expected_identity = appointment['identity']
+          expected_reference = appointment['reference']
+          expected_sha = appointment['artifact_sha256']
+        end
+      end
+      unless nonempty_string?(expected_identity) && binding['identity'] == expected_identity && binding['appointment_reference'] == expected_reference && binding['appointment_sha256'] == expected_sha
+        errors << "#{binding_label} must bind the exact appointed authority identity and appointment SHA"
+      end
+
+      approval = load_structured_json_artifact(binding['approval_reference'], binding['approval_sha256'], "#{binding_label} signed approval")
+      next unless approval
+
+      approval_label = "#{binding_label} signed approval"
+      validate_closed_object(approval, BATCH_G_AUTHORITY_APPROVAL_KEYS, approval_label)
+      valid = approval['artifact_type'] == BATCH_G_AUTHORITY_APPROVAL_ARTIFACT_TYPE &&
+        approval['schema_version'] == ARTIFACT_SCHEMA_VERSION && approval['register_id'] == BATCH_G_REGISTER_ID &&
+        approval['requirement_id'] == requirement_id && approval['subject'] == 'control_authority_approval' &&
+        approval['authority_domain'] == domain && approval['identity'] == binding['identity'] &&
+        approval['control_manifest_sha256'] == artifact['control_manifest_sha256'] &&
+        approval['decision_status'] == artifact['decision_status'] && approval['canonical_disposition'] == artifact['canonical_disposition'] &&
+        approval['date'] == artifact['date']
+      errors << "#{approval_label} must independently sign the exact control manifest and decision within its appointed authority" unless valid
+      errors << "#{approval_label} date must be YYYY-MM-DD" unless iso_date?(approval['date'])
+      validate_artifact_reviewer(approval['reviewer'], approval['identity'], approval_label)
+    end
   end
 
   def validate_evidence_artifact(record, requirement_id, index)
@@ -3365,7 +4836,7 @@ class ParityGovernanceValidator
     artifact = load_structured_json_artifact(record['artifact_reference'], record['artifact_sha256'], label)
     return unless artifact
 
-    expected_keys = %w[D E F].include?(@active_decision_context[:batch]) ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
+    expected_keys = %w[D E F G].include?(@active_decision_context[:batch]) ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
     validate_closed_object(artifact, expected_keys, label)
     errors << "#{label} artifact_type must be #{EVIDENCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == EVIDENCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
@@ -3374,7 +4845,7 @@ class ParityGovernanceValidator
     %w[evidence_class date source reference interpreter confidence].each do |key|
       errors << "#{label} #{key} does not match the register" unless artifact[key] == record[key]
     end
-    if %w[D E F].include?(@active_decision_context[:batch])
+    if %w[D E F G].include?(@active_decision_context[:batch])
       errors << "#{label} evidence_basis does not match the register" unless artifact['evidence_basis'] == record['evidence_basis']
     end
     validate_artifact_reviewer(artifact['reviewer'], artifact['interpreter'], label)
@@ -4074,6 +5545,7 @@ if $PROGRAM_NAME == __FILE__
     batch_d_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json',
     batch_e_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json',
     batch_f_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json',
+    batch_g_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -4089,6 +5561,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--batch-d-decision-register PATH', 'Batch D G0 decision register JSON path') { |value| options[:batch_d_decision_register] = value }
     opts.on('--batch-e-decision-register PATH', 'Batch E G0 decision register JSON path') { |value| options[:batch_e_decision_register] = value }
     opts.on('--batch-f-decision-register PATH', 'Batch F G0 decision register JSON path') { |value| options[:batch_f_decision_register] = value }
+    opts.on('--batch-g-decision-register PATH', 'Batch G G0 decision register JSON path') { |value| options[:batch_g_decision_register] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -4110,6 +5583,7 @@ if $PROGRAM_NAME == __FILE__
     batch_d_decision_register_path: options[:batch_d_decision_register],
     batch_e_decision_register_path: options[:batch_e_decision_register],
     batch_f_decision_register_path: options[:batch_f_decision_register],
+    batch_g_decision_register_path: options[:batch_g_decision_register],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )
