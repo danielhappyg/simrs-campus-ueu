@@ -9,9 +9,8 @@ use Illuminate\Support\Str;
 /**
  * Returns null when validation or persistence fails.
  *
- * The three registration controllers and two emergency/inpatient clinical-note
- * controllers currently treat that result as best-effort and non-atomic. BG-02b
- * does not claim audit completeness for those five existing mutation paths.
+ * Mutation callers must check that result inside their database transaction so
+ * domain state cannot commit when its required audit evidence is unavailable.
  */
 class AuditRecorder
 {

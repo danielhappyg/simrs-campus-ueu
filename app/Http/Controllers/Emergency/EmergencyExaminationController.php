@@ -225,19 +225,21 @@ class EmergencyExaminationController extends Controller
             } elseif ($encounter->status === Encounter::STATUS_REGISTERED) {
                 $encounter->update(['status' => Encounter::STATUS_IN_EXAMINATION]);
             }
-        });
 
-        $this->auditRecorder->record(
-            action: 'clinical.note.write',
-            resourceType: 'encounter',
-            resourceId: $encounter->public_id,
-            actor: $user,
-            outcome: 'SUCCESS',
-            metadata: [
-                'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
-                'entry_type' => $validated['entry_type'],
-            ],
-        );
+            $event = $this->auditRecorder->record(
+                action: 'clinical.note.write',
+                resourceType: 'encounter',
+                resourceId: $encounter->public_id,
+                actor: $user,
+                outcome: 'SUCCESS',
+                metadata: [
+                    'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
+                    'entry_type' => $validated['entry_type'],
+                ],
+            );
+
+            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+        });
 
         return redirect()
             ->route('pemeriksaan.igd.show', $encounter)
