@@ -40,6 +40,8 @@ Set secrets in the matching Vercel environment scope, never in Git. Each persist
 - `APP_MODE=SIMULATION`
 - `APP_SYNTHETIC_ONLY=true`
 - `APP_URL`
+- `APP_MAINTENANCE_DRIVER=cache`
+- `APP_MAINTENANCE_STORE=database`
 - `DB_CONNECTION=pgsql`
 - `DB_URL`
 - `DB_SCHEMA` (`laravel` for the Production demo; a distinct name for an isolated Preview schema)
@@ -73,11 +75,33 @@ git status --short
 
 Record the intended full Git SHA before any migration or promotion. Passing tests in another checkout or against another commit is not release evidence.
 
+## Shared maintenance drain
+
+Vercel functions cannot share Laravel's default file maintenance marker because each function has an ephemeral filesystem. The Vercel entry point therefore defaults to Laravel's cache maintenance driver backed by the shared database cache table. Keep `APP_MAINTENANCE_DRIVER=cache` and `APP_MAINTENANCE_STORE=database` explicit in Production so a configuration review can verify the drain contract.
+
+Before a migration that requires old writers to stop, activate the marker from the exact release checkout using the protected Production environment:
+
+```bash
+APP_MAINTENANCE_DRIVER=cache APP_MAINTENANCE_STORE=database \
+    php artisan --env=vercel.local down --retry=60
+```
+
+Do not use `--secret`; there is no web bypass during a database maintenance window. Promote the exact reviewed release while the shared marker is active, verify `/up` returns 200 and `/login` returns 503, then wait at least the configured 60-second Vercel function maximum plus an observation margin before taking the final backup or migrating. Confirm no earlier application writer remains in flight at the database. Static assets may remain available; they do not write application state.
+
+Keep the marker active through migration, schema/preflight verification, exact-SHA promotion checks, and log inspection. Reopen only after every gate passes:
+
+```bash
+APP_MAINTENANCE_DRIVER=cache APP_MAINTENANCE_STORE=database \
+    php artisan --env=vercel.local up
+```
+
+Then verify `/login`, one permitted audited write, and one denied-role request. If activation, promotion, migration, or completion is ambiguous, leave the marker active and inspect the shared cache record, deployment SHA, migration ledger, and schema. Do not issue `up` merely to diagnose an outage.
+
 ## Manual Production database migration
 
 Vercel does **not** run Laravel migrations. Every release containing migrations needs a separate, explicit Supabase migration step from the same trusted checkout and commit.
 
-Before the first application write, create the private PostgreSQL schema `laravel` in the Production-demo Supabase project and set `DB_SCHEMA=laravel`. Before later migrations, confirm the reviewed migration is compatible with both the currently deployed application and the release being promoted. Establish a tested backup/restore or disposable reset path appropriate to the target before changing the schema.
+Before the first application write, create the private PostgreSQL schema `laravel` in the Production-demo Supabase project and set `DB_SCHEMA=laravel`. Before later migrations, confirm the reviewed migration is compatible with both the currently deployed application and the release being promoted. Establish a tested backup/restore or disposable reset path appropriate to the target before changing the schema. For Supabase Free, create and independently validate a logical backup because automatic daily backups are not provided.
 
 Pull the Production values into the ignored `.env.vercel.local` file, or create that file through the approved secret manager. Do not load it with `export $(grep ...)`; shell parsing can corrupt values and expose them through process state or history.
 
