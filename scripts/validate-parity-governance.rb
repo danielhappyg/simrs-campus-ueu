@@ -154,6 +154,15 @@ class ParityGovernanceValidator
     PAR-PWH-021 PAR-PWH-022 PAR-PWH-023
   ].freeze
 
+  EXPECTED_BATCH_F_IDS = %w[
+    PAR-ADM-011 PAR-ADM-016 PAR-ADM-018 PAR-ADM-019 PAR-ADM-039
+    PAR-BPJS-001 PAR-BPJS-002
+    PAR-CLM-001 PAR-CLM-002 PAR-CLM-003 PAR-CLM-004 PAR-CLM-005 PAR-CLM-006
+    PAR-FIN-001 PAR-FIN-002 PAR-FIN-003 PAR-FIN-004 PAR-FIN-005 PAR-FIN-006 PAR-FIN-007 PAR-FIN-008 PAR-FIN-009 PAR-FIN-010
+    PAR-FIN-011 PAR-FIN-012 PAR-FIN-013 PAR-FIN-014 PAR-FIN-015 PAR-FIN-016 PAR-FIN-017 PAR-FIN-018 PAR-FIN-019
+    PAR-RMIK-003 PAR-RMIK-005
+  ].freeze
+
   BATCH_A_REGISTER_SCHEMA_VERSION = 1
   BATCH_A_REGISTER_ID = 'G0-BATCH-A-2026-08-25'
   BATCH_A_EVIDENCE_DIRECTORY = 'G0_BATCH_A_DECISION_EVIDENCE_2026-08-25'
@@ -166,12 +175,16 @@ class ParityGovernanceValidator
   BATCH_E_REGISTER_ID = 'G0-BATCH-E-2026-08-25'
   BATCH_E_EVIDENCE_DIRECTORY = 'G0_BATCH_E_DECISION_EVIDENCE_2026-08-25'
   BATCH_E_SOURCE_REVISION = '36c309cd734f78716ae8ee146a08c2129beedbd9'
+  BATCH_F_REGISTER_ID = 'G0-BATCH-F-2026-08-25'
+  BATCH_F_EVIDENCE_DIRECTORY = 'G0_BATCH_F_DECISION_EVIDENCE_2026-08-25'
+  BATCH_F_SOURCE_REVISION = 'e3cd84d94be2768cbc597cfe5cb277f973c2f2b4'
   DECISION_REGISTER_CONFIGS = {
     'A' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('A'), expected_ids: EXPECTED_BATCH_A_IDS, register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }.freeze,
     'B' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('B'), expected_ids: EXPECTED_BATCH_B_IDS, register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }.freeze,
     'C' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('C'), expected_ids: EXPECTED_BATCH_C_IDS, register_id: BATCH_C_REGISTER_ID, evidence_directory: BATCH_C_EVIDENCE_DIRECTORY }.freeze,
     'D' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('D'), expected_ids: EXPECTED_BATCH_D_IDS, register_id: BATCH_D_REGISTER_ID, evidence_directory: BATCH_D_EVIDENCE_DIRECTORY }.freeze,
-    'E' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('E'), expected_ids: EXPECTED_BATCH_E_IDS, register_id: BATCH_E_REGISTER_ID, evidence_directory: BATCH_E_EVIDENCE_DIRECTORY }.freeze
+    'E' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('E'), expected_ids: EXPECTED_BATCH_E_IDS, register_id: BATCH_E_REGISTER_ID, evidence_directory: BATCH_E_EVIDENCE_DIRECTORY }.freeze,
+    'F' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('F'), expected_ids: EXPECTED_BATCH_F_IDS, register_id: BATCH_F_REGISTER_ID, evidence_directory: BATCH_F_EVIDENCE_DIRECTORY }.freeze
   }.transform_values(&:freeze).freeze
   BATCH_C_REQUIRED_AUTHORITIES = {
     'PAR-ADM-004' => %w[product_delivery clinical_governance rmik quality_analytics security_privacy_data],
@@ -264,8 +277,8 @@ class ParityGovernanceValidator
     ['batch_gate', 'B', %w[patient encounter admission identity]],
     ['batch_gate', 'C', %w[clinical_state clinical_authority rmik_record amendment]]
   ].map(&:freeze).freeze
-  FOUR_SCENARIO_BATCHES = %w[C D E].freeze
-  AUTHORITY_BOUND_BATCHES = %w[C D E].freeze
+  FOUR_SCENARIO_BATCHES = %w[C D E F].freeze
+  AUTHORITY_BOUND_BATCHES = %w[C D E F].freeze
   FOUR_SCENARIO_NAMES = %w[normal denial correction_or_amendment dependency_outage].freeze
   BATCH_D_CAPABILITY_KINDS = {
     'PAR-ADM-014' => 'diagnostic_master', 'PAR-ADM-015' => 'diagnostic_master',
@@ -590,6 +603,302 @@ class ParityGovernanceValidator
   BATCH_E_LEDGER_RECEIPT_ARTIFACT_TYPE = 'g0_batch_e_ledger_receipt'
   BATCH_E_LEDGER_RECEIPT_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id ledger_kind synthetic_only period_start period_end cutoff_at event_count control_values ledger_digest idempotency_key date author_identity reviewer].freeze
   BATCH_E_CONSOLIDATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id candidate_id members target_requirement_id member_impacts mapped_fields mapped_states exclusions date author_identity reviewer].freeze
+  BATCH_F_FAMILY_MEMBERS = {
+    'F1' => %w[PAR-ADM-011 PAR-ADM-016 PAR-ADM-018 PAR-ADM-019 PAR-ADM-039],
+    'F2' => %w[PAR-FIN-001 PAR-FIN-002 PAR-FIN-003 PAR-FIN-004 PAR-FIN-005 PAR-FIN-006 PAR-FIN-007 PAR-FIN-008 PAR-FIN-009 PAR-FIN-010 PAR-FIN-013 PAR-FIN-014 PAR-FIN-016 PAR-FIN-018 PAR-FIN-019],
+    'F3' => %w[PAR-FIN-011 PAR-FIN-012 PAR-FIN-015 PAR-FIN-017],
+    'F4' => %w[PAR-RMIK-003 PAR-CLM-001 PAR-CLM-002 PAR-CLM-003 PAR-CLM-004 PAR-CLM-005 PAR-CLM-006],
+    'F5' => %w[PAR-RMIK-005 PAR-BPJS-001 PAR-BPJS-002]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_FAMILY_AUTHORITIES = {
+    'F1' => { lead: 'finance_master', co_owners: %w[product_delivery finance_master cashier_revenue finance_accounting rmik_coding claims_simulation pharmacy_gf security_privacy_data] },
+    'F2' => { lead: 'cashier_revenue', co_owners: %w[product_delivery cashier_revenue finance_accounting treasury rmik_coding claims_simulation clinical_governance pharmacy_gf security_privacy_data] },
+    'F3' => { lead: 'finance_accounting', co_owners: %w[product_delivery finance_accounting treasury cashier_revenue rmik_coding claims_simulation clinical_governance pharmacy_gf security_privacy_data operations_recovery] },
+    'F4' => { lead: 'rmik_coding', co_owners: %w[product_delivery rmik_coding claims_simulation clinical_governance cashier_revenue finance_accounting pharmacy_gf security_privacy_data] },
+    'F5' => { lead: 'claims_simulation', co_owners: %w[product_delivery claims_simulation rmik_coding clinical_governance finance_accounting interoperability_security security_privacy_data] }
+  }.transform_values { |policy| { lead: policy.fetch(:lead).freeze, co_owners: policy.fetch(:co_owners).freeze }.freeze }.freeze
+  BATCH_F_FAMILY_HAZARDS = {
+    'F1' => %w[overlapping_effective_dates destructive_master_edit unauthorized_tariff_change orphan_cost_component target_used_as_actual_revenue],
+    'F2' => %w[duplicate_charge bill_version_overwrite projection_writeback report_dimension_double_count unapproved_adjustment],
+    'F3' => %w[payment_without_allocation settlement_without_receipt duplicate_journal unbalanced_journal payment_reversal_without_ar_reopen closed_period_mutation],
+    'F4' => %w[claim_without_final_encounter claim_after_unapproved_coding mutable_claim_snapshot monitor_used_as_financial_truth duplicate_claim_version],
+    'F5' => %w[live_national_submission credential_presence ambiguous_ack_duplicate_send integration_monitor_used_as_truth unsupported_external_response]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_CROSS_HAZARDS = %w[
+    e_dispense_return_charge_duplication d_procedure_correction_without_reversal
+    b_payer_class_change_after_bill_snapshot c_coding_amendment_after_claim_submission
+    monitor_used_as_financial_truth report_projection_double_count duplicate_journal_generation
+    payment_reversal_without_ar_reopen closed_period_correction_mutation
+  ].freeze
+  BATCH_F_ROW_HAZARDS = {
+    'PAR-ADM-011' => %w[tariff_overlap_or_unapproved_version], 'PAR-ADM-016' => %w[bank_master_or_account_mapping_ambiguity],
+    'PAR-ADM-018' => %w[cost_component_group_member_loss], 'PAR-ADM-019' => %w[cost_component_orphan_or_duplicate],
+    'PAR-ADM-039' => %w[revenue_target_misrepresented_as_actual],
+    'PAR-BPJS-001' => %w[outpatient_vclaim_live_send_or_duplicate_ack], 'PAR-BPJS-002' => %w[inpatient_vclaim_live_send_or_duplicate_ack],
+    'PAR-CLM-001' => %w[outpatient_grouping_snapshot_or_version_drift], 'PAR-CLM-002' => %w[inpatient_grouping_snapshot_or_version_drift],
+    'PAR-CLM-003' => %w[outpatient_idrg_mapping_equivalence_unproven], 'PAR-CLM-004' => %w[inpatient_idrg_mapping_equivalence_unproven],
+    'PAR-CLM-005' => %w[inpatient_ceiling_estimate_used_as_approved_claim], 'PAR-CLM-006' => %w[claim_monitor_relocation_equivalence_unproven],
+    'PAR-FIN-001' => %w[outpatient_bill_wrong_encounter_or_payer], 'PAR-FIN-002' => %w[inpatient_bill_wrong_admission_or_payer],
+    'PAR-FIN-003' => %w[other_transaction_untyped_or_duplicate], 'PAR-FIN-004' => %w[outpatient_detail_projection_writeback],
+    'PAR-FIN-005' => %w[inpatient_detail_projection_writeback], 'PAR-FIN-006' => %w[overall_revenue_partition_double_count],
+    'PAR-FIN-007' => %w[inpatient_revenue_partition_overlap], 'PAR-FIN-008' => %w[outpatient_revenue_partition_overlap],
+    'PAR-FIN-009' => %w[emergency_revenue_partition_overlap], 'PAR-FIN-010' => %w[medical_fee_allocation_exceeds_approved_basis],
+    'PAR-FIN-011' => %w[receivable_balance_or_ageing_drift], 'PAR-FIN-012' => %w[cashier_settlement_without_treasury_receipt],
+    'PAR-FIN-013' => %w[other_revenue_partition_overlap], 'PAR-FIN-014' => %w[unit_revenue_partition_overlap],
+    'PAR-FIN-015' => %w[treasury_receipt_without_cashier_handoff], 'PAR-FIN-016' => %w[procedure_revenue_without_d_reversal],
+    'PAR-FIN-017' => %w[automatic_journal_duplicate_or_unbalanced], 'PAR-FIN-018' => %w[billing_report_variant_equivalence_unknown],
+    'PAR-FIN-019' => %w[billing_report_v2_equivalence_unknown], 'PAR-RMIK-003' => %w[monitor_claim_relocation_equivalence_unproven],
+    'PAR-RMIK-005' => %w[satusehat_live_send_or_identity_disclosure]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_ROW_LIFECYCLES = {
+    'PAR-ADM-011' => %w[tariff_version_draft authorize_effective_dated_tariff tariff_version_effective one_tariff_per_context_and_date],
+    'PAR-ADM-016' => %w[bank_mapping_draft validate_bank_account_mapping bank_mapping_effective bank_account_mapping_unique],
+    'PAR-ADM-018' => %w[component_group_draft validate_group_membership component_group_effective every_component_membership_retained],
+    'PAR-ADM-019' => %w[cost_component_draft validate_component_identity cost_component_effective component_code_unique_and_grouped],
+    'PAR-ADM-039' => %w[revenue_target_draft authorize_target_period revenue_target_effective target_never_posts_actual_revenue],
+    'PAR-BPJS-001' => %w[outpatient_claim_snapshot_ready simulate_vclaim_outpatient_request outpatient_vclaim_simulation_not_sent request_version_idempotent],
+    'PAR-BPJS-002' => %w[inpatient_claim_snapshot_ready simulate_vclaim_inpatient_request inpatient_vclaim_simulation_not_sent request_version_idempotent],
+    'PAR-CLM-001' => %w[outpatient_encounter_coding_bill_final freeze_and_group_outpatient_claim outpatient_claim_snapshot_versioned grouping_inputs_and_version_immutable],
+    'PAR-CLM-002' => %w[inpatient_encounter_coding_bill_final freeze_and_group_inpatient_claim inpatient_claim_snapshot_versioned grouping_inputs_and_version_immutable],
+    'PAR-CLM-003' => %w[outpatient_claim_snapshot_versioned map_outpatient_idrg_result outpatient_idrg_mapping_versioned source_and_target_lineage_complete],
+    'PAR-CLM-004' => %w[inpatient_claim_snapshot_versioned map_inpatient_idrg_result inpatient_idrg_mapping_versioned source_and_target_lineage_complete],
+    'PAR-CLM-005' => %w[inpatient_claim_snapshot_versioned calculate_non_authoritative_ceiling inpatient_ceiling_estimate_versioned estimate_never_marks_claim_approved],
+    'PAR-CLM-006' => %w[claim_events_posted project_claim_monitor claim_monitor_reconciled monitor_read_only_and_not_financial_truth],
+    'PAR-FIN-001' => %w[outpatient_charge_events_posted freeze_outpatient_bill_version outpatient_bill_version_issued bill_equals_versioned_charges_and_adjustments],
+    'PAR-FIN-002' => %w[inpatient_charge_events_posted freeze_inpatient_bill_version inpatient_bill_version_issued bill_equals_versioned_charges_and_adjustments],
+    'PAR-FIN-003' => %w[typed_other_transaction_authorized append_other_charge_event other_charge_posted one_typed_charge_event],
+    'PAR-FIN-004' => %w[outpatient_bill_version_issued project_outpatient_bill_detail outpatient_detail_reconciled projection_read_only_and_line_complete],
+    'PAR-FIN-005' => %w[inpatient_bill_version_issued project_inpatient_bill_detail inpatient_detail_reconciled projection_read_only_and_line_complete],
+    'PAR-FIN-006' => %w[revenue_partitions_reconciled project_overall_revenue overall_revenue_reconciled overall_equals_disjoint_partitions],
+    'PAR-FIN-007' => %w[inpatient_revenue_events_posted project_inpatient_revenue inpatient_revenue_reconciled inpatient_partition_disjoint],
+    'PAR-FIN-008' => %w[outpatient_revenue_events_posted project_outpatient_revenue outpatient_revenue_reconciled outpatient_partition_disjoint],
+    'PAR-FIN-009' => %w[emergency_revenue_events_posted project_emergency_revenue emergency_revenue_reconciled emergency_partition_disjoint],
+    'PAR-FIN-010' => %w[approved_fee_basis_collected allocate_medical_fee_recipients medical_fee_allocation_posted recipient_sum_within_approved_basis],
+    'PAR-FIN-011' => %w[bill_version_issued open_or_adjust_receivable receivable_balance_reconciled closing_ar_matches_subledger],
+    'PAR-FIN-012' => %w[cashier_receipts_reconciled handoff_cashier_settlement settlement_batch_handed_off settlement_equals_receipts_less_refunds_reversals],
+    'PAR-FIN-013' => %w[other_revenue_events_posted project_other_revenue other_revenue_reconciled other_partition_disjoint],
+    'PAR-FIN-014' => %w[unit_revenue_events_posted project_unit_revenue unit_revenue_reconciled unit_partition_disjoint],
+    'PAR-FIN-015' => %w[settlement_batch_handed_off accept_treasury_deposit settlement_batch_accepted accepted_deposit_equals_cashier_net_settlement],
+    'PAR-FIN-016' => %w[procedure_charge_and_reversal_events_posted project_procedure_revenue procedure_revenue_reconciled cancelled_procedure_not_recognized_twice],
+    'PAR-FIN-017' => %w[source_subledger_events_closed simulate_balanced_automatic_journal journal_simulation_not_sent debits_equal_credits_and_source],
+    'PAR-FIN-018' => %w[bill_versions_posted project_billing_report_variant_one billing_report_one_reconciled projection_read_only_and_version_visible],
+    'PAR-FIN-019' => %w[bill_versions_posted project_billing_report_variant_two billing_report_two_reconciled projection_read_only_and_version_visible],
+    'PAR-RMIK-003' => %w[claim_events_posted project_rmik_claim_monitor rmik_claim_monitor_reconciled monitor_read_only_and_not_financial_truth],
+    'PAR-RMIK-005' => %w[outpatient_encounter_snapshot_ready simulate_satusehat_outpatient_bundle satusehat_simulation_not_sent patient_data_never_leaves_local_fixture]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_PROJECTION_IDS = %w[PAR-CLM-006 PAR-FIN-004 PAR-FIN-005 PAR-FIN-006 PAR-FIN-007 PAR-FIN-008 PAR-FIN-009 PAR-FIN-013 PAR-FIN-014 PAR-FIN-016 PAR-FIN-018 PAR-FIN-019 PAR-RMIK-003].freeze
+  BATCH_F_LEDGER_OWNERSHIP = {
+    'finance_master_ledger' => 'finance_master', 'charge_ledger' => 'cashier_revenue', 'bill_version_ledger' => 'cashier_revenue',
+    'payment_settlement_ledger' => 'treasury', 'claim_version_ledger' => 'rmik_coding', 'reversal_adjustment_ledger' => 'finance_accounting',
+    'receivable_ledger' => 'finance_accounting', 'medical_fee_allocation_ledger' => 'finance_accounting',
+    'journal_ledger' => 'finance_accounting', 'integration_simulation_ledger' => 'claims_simulation', 'reporting_projection' => nil
+  }.freeze
+  BATCH_F_ROW_WRITE_LEDGERS = EXPECTED_BATCH_F_IDS.to_h do |id|
+    ledgers = if id.start_with?('PAR-ADM-')
+                %w[finance_master_ledger]
+              elsif %w[PAR-FIN-001 PAR-FIN-002 PAR-FIN-003].include?(id)
+                %w[charge_ledger bill_version_ledger]
+              elsif id == 'PAR-FIN-010'
+                %w[medical_fee_allocation_ledger]
+              elsif id == 'PAR-FIN-011'
+                %w[receivable_ledger reversal_adjustment_ledger]
+              elsif %w[PAR-FIN-012 PAR-FIN-015].include?(id)
+                %w[payment_settlement_ledger reversal_adjustment_ledger]
+              elsif id == 'PAR-FIN-017'
+                %w[journal_ledger]
+              elsif %w[PAR-CLM-001 PAR-CLM-002 PAR-CLM-003 PAR-CLM-004 PAR-CLM-005].include?(id)
+                %w[claim_version_ledger]
+              elsif %w[PAR-BPJS-001 PAR-BPJS-002 PAR-RMIK-005].include?(id)
+                %w[integration_simulation_ledger]
+              else
+                []
+              end
+    [id, ledgers.freeze]
+  end.freeze
+  BATCH_F_LEDGER_INVARIANTS = %w[single_write_owner immutable_append_only_events versioned_bill_snapshot versioned_claim_snapshot compensating_reversal_or_adjustment no_edit_or_delete_history no_duplicate_charge no_duplicate_receipt no_duplicate_claim balanced_journal idempotent_posting closed_period_immutable projections_read_only partial_failure_visible].freeze
+  BATCH_F_CONTROL_VALUE_KEYS = %w[
+    active_master_count effective_version_count invalid_overlap_count correction_event_count
+    gross_charge_total approved_discount_total tax_fee_total debit_adjustment_total credit_adjustment_total reversal_total net_bill_total
+    opening_ar_total net_billed_total payment_total payer_remittance_total writeoff_total closing_ar_total
+    receipt_total refund_total reversed_receipt_total net_settlement_total accepted_deposit_total
+    eligible_bill_snapshot_total submitted_claim_total accepted_claim_amount remitted_claim_amount denied_claim_amount pending_claim_amount reversed_claim_amount
+    submitted_claim_count accepted_claim_count remitted_claim_count denied_claim_count pending_claim_count reversed_claim_count
+    journal_debit_total journal_credit_total journal_source_total medical_fee_approved_basis medical_fee_recipient_sum
+    revenue_overall_total revenue_inpatient_total revenue_outpatient_total revenue_emergency_total revenue_other_total revenue_unit_total revenue_procedure_total
+    request_count not_sent_count duplicate_request_count
+  ].freeze
+  BATCH_F_RECONCILIATION_EQUATIONS = [
+    'invalid_overlap_count=0',
+    'gross_charge_total-approved_discount_total+tax_fee_total+debit_adjustment_total-credit_adjustment_total-reversal_total=net_bill_total',
+    'opening_ar_total+net_billed_total-payment_total-payer_remittance_total-writeoff_total+debit_adjustment_total-credit_adjustment_total=closing_ar_total',
+    'receipt_total-refund_total-reversed_receipt_total=net_settlement_total', 'net_settlement_total=accepted_deposit_total',
+    'submitted_claim_total=eligible_bill_snapshot_total',
+    'accepted_claim_amount+remitted_claim_amount+denied_claim_amount+pending_claim_amount+reversed_claim_amount=submitted_claim_total',
+    'accepted_claim_count+remitted_claim_count+denied_claim_count+pending_claim_count+reversed_claim_count=submitted_claim_count',
+    'journal_debit_total=journal_credit_total', 'journal_source_total=journal_debit_total',
+    'medical_fee_recipient_sum<=medical_fee_approved_basis',
+    'revenue_inpatient_total+revenue_outpatient_total+revenue_emergency_total+revenue_other_total+revenue_unit_total+revenue_procedure_total=revenue_overall_total',
+    'request_count=not_sent_count', 'duplicate_request_count=0'
+  ].freeze
+  BATCH_F_DIFFERENCE_KEYS = %w[master_overlap_difference bill_difference ar_difference settlement_difference deposit_difference claim_snapshot_difference claim_amount_cohort_difference claim_count_cohort_difference journal_balance_difference journal_source_difference fee_basis_excess revenue_partition_difference not_sent_difference duplicate_request_difference].freeze
+  BATCH_F_RECONCILIATION_PROFILES = {
+    'master_version' => { control_totals: %w[active_master_count effective_version_count invalid_overlap_count correction_event_count], equations: ['invalid_overlap_count=0'], ledgers: %w[finance_master_ledger] },
+    'bill_version' => { control_totals: %w[gross_charge_total approved_discount_total tax_fee_total debit_adjustment_total credit_adjustment_total reversal_total net_bill_total], equations: [BATCH_F_RECONCILIATION_EQUATIONS[1]], ledgers: %w[charge_ledger bill_version_ledger reversal_adjustment_ledger reporting_projection] },
+    'revenue_projection' => { control_totals: %w[revenue_overall_total revenue_inpatient_total revenue_outpatient_total revenue_emergency_total revenue_other_total revenue_unit_total revenue_procedure_total], equations: [BATCH_F_RECONCILIATION_EQUATIONS[11]], ledgers: %w[charge_ledger bill_version_ledger reversal_adjustment_ledger reporting_projection] },
+    'medical_fee' => { control_totals: %w[medical_fee_approved_basis medical_fee_recipient_sum], equations: [BATCH_F_RECONCILIATION_EQUATIONS[10]], ledgers: %w[medical_fee_allocation_ledger reporting_projection] },
+    'receivable' => { control_totals: %w[opening_ar_total net_billed_total payment_total payer_remittance_total writeoff_total debit_adjustment_total credit_adjustment_total closing_ar_total], equations: [BATCH_F_RECONCILIATION_EQUATIONS[2]], ledgers: %w[bill_version_ledger receivable_ledger payment_settlement_ledger reversal_adjustment_ledger reporting_projection] },
+    'settlement' => { control_totals: %w[receipt_total refund_total reversed_receipt_total net_settlement_total accepted_deposit_total], equations: BATCH_F_RECONCILIATION_EQUATIONS.values_at(3, 4), ledgers: %w[payment_settlement_ledger reversal_adjustment_ledger reporting_projection] },
+    'journal' => { control_totals: %w[journal_debit_total journal_credit_total journal_source_total], equations: BATCH_F_RECONCILIATION_EQUATIONS.values_at(8, 9), ledgers: %w[bill_version_ledger reversal_adjustment_ledger journal_ledger reporting_projection] },
+    'claim_snapshot' => { control_totals: %w[eligible_bill_snapshot_total submitted_claim_total accepted_claim_amount remitted_claim_amount denied_claim_amount pending_claim_amount reversed_claim_amount submitted_claim_count accepted_claim_count remitted_claim_count denied_claim_count pending_claim_count reversed_claim_count], equations: BATCH_F_RECONCILIATION_EQUATIONS.values_at(5, 6, 7), ledgers: %w[bill_version_ledger claim_version_ledger reversal_adjustment_ledger reporting_projection] },
+    'claim_boundary' => { control_totals: %w[eligible_bill_snapshot_total submitted_claim_total accepted_claim_amount remitted_claim_amount denied_claim_amount pending_claim_amount reversed_claim_amount submitted_claim_count accepted_claim_count remitted_claim_count denied_claim_count pending_claim_count reversed_claim_count request_count not_sent_count duplicate_request_count], equations: [*BATCH_F_RECONCILIATION_EQUATIONS.values_at(5, 6, 7), *BATCH_F_RECONCILIATION_EQUATIONS.values_at(12, 13)], ledgers: %w[bill_version_ledger claim_version_ledger integration_simulation_ledger reporting_projection] },
+    'integration_boundary' => { control_totals: %w[request_count not_sent_count duplicate_request_count], equations: BATCH_F_RECONCILIATION_EQUATIONS.values_at(12, 13), ledgers: %w[integration_simulation_ledger reporting_projection] }
+  }.transform_values { |profile| profile.transform_values(&:freeze).freeze }.freeze
+  BATCH_F_PROFILE_DIFFERENCE_KEYS = {
+    'master_version' => %w[master_overlap_difference], 'bill_version' => %w[bill_difference],
+    'revenue_projection' => %w[revenue_partition_difference], 'medical_fee' => %w[fee_basis_excess],
+    'receivable' => %w[ar_difference], 'settlement' => %w[settlement_difference deposit_difference],
+    'journal' => %w[journal_balance_difference journal_source_difference],
+    'claim_snapshot' => %w[claim_snapshot_difference claim_amount_cohort_difference claim_count_cohort_difference],
+    'claim_boundary' => %w[claim_snapshot_difference claim_amount_cohort_difference claim_count_cohort_difference not_sent_difference duplicate_request_difference],
+    'integration_boundary' => %w[not_sent_difference duplicate_request_difference]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_ROW_RECONCILIATION_PROFILE = EXPECTED_BATCH_F_IDS.to_h do |id|
+    profile = if id.start_with?('PAR-ADM-')
+                'master_version'
+              elsif %w[PAR-FIN-001 PAR-FIN-002 PAR-FIN-003 PAR-FIN-004 PAR-FIN-005 PAR-FIN-018 PAR-FIN-019].include?(id)
+                'bill_version'
+              elsif %w[PAR-FIN-006 PAR-FIN-007 PAR-FIN-008 PAR-FIN-009 PAR-FIN-013 PAR-FIN-014 PAR-FIN-016].include?(id)
+                'revenue_projection'
+              elsif id == 'PAR-FIN-010'
+                'medical_fee'
+              elsif id == 'PAR-FIN-011'
+                'receivable'
+              elsif %w[PAR-FIN-012 PAR-FIN-015].include?(id)
+                'settlement'
+              elsif id == 'PAR-FIN-017'
+                'journal'
+              elsif %w[PAR-BPJS-001 PAR-BPJS-002].include?(id)
+                'claim_boundary'
+              elsif id == 'PAR-RMIK-005'
+                'integration_boundary'
+              else
+                'claim_snapshot'
+              end
+    [id, profile]
+  end.freeze
+  BATCH_F_CONSOLIDATION_GROUPS = {
+    'F-C01' => %w[PAR-ADM-018 PAR-ADM-019], 'F-C02' => %w[PAR-FIN-001 PAR-FIN-002], 'F-C03' => %w[PAR-FIN-004 PAR-FIN-005],
+    'F-C04' => %w[PAR-FIN-006 PAR-FIN-007 PAR-FIN-008 PAR-FIN-009 PAR-FIN-013 PAR-FIN-014 PAR-FIN-016],
+    'F-C05' => %w[PAR-FIN-018 PAR-FIN-019], 'F-C06' => %w[PAR-FIN-012 PAR-FIN-015],
+    'F-C07' => %w[PAR-CLM-001 PAR-CLM-003], 'F-C08' => %w[PAR-CLM-002 PAR-CLM-004],
+    'F-C09' => %w[PAR-RMIK-003 PAR-CLM-006], 'F-C10' => %w[PAR-BPJS-001 PAR-BPJS-002]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_CONSOLIDATION_MAPPING_CONTRACTS = BATCH_F_CONSOLIDATION_GROUPS.to_h do |candidate, members|
+    family = BATCH_F_FAMILY_MEMBERS.find { |_family, family_members| family_members.include?(members.first) }&.first
+    fields = %w[requirement_id source_menu role context identity version status effective_period amounts currency event_lineage authority audit]
+    states = members.flat_map { |member| BATCH_F_ROW_LIFECYCLES.fetch(member).values_at(0, 2) }.uniq
+    totals = members.flat_map do |member|
+      profile_id = BATCH_F_ROW_RECONCILIATION_PROFILE.fetch(member)
+      BATCH_F_RECONCILIATION_PROFILES.fetch(profile_id).fetch(:control_totals)
+    end.uniq
+    [candidate, { family: family, fields: fields.freeze, states: states.freeze, control_totals: totals.freeze }.freeze]
+  end.freeze
+  BATCH_F_GATE_SCOPES = {
+    'A' => %w[identity access audit configuration], 'B' => %w[patient encounter admission payer_class],
+    'C' => %w[clinical_record coding amendment authorization], 'D' => %w[order result procedure cancellation],
+    'E' => %w[medication stock valuation charge_credit], 'G' => %w[report projection reconciliation export]
+  }.transform_values(&:freeze).freeze
+  BATCH_F_GATE_PROFILES = {
+    'master_basic' => { 'A' => %w[PAR-ADM-003 PAR-ADM-037], 'G' => [] },
+    'tariff' => { 'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-ADM-010 PAR-ADM-033], 'G' => [] },
+    'billing' => {
+      'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-ADM-010 PAR-ADM-033 PAR-REG-001 PAR-REG-002 PAR-REG-003],
+      'C' => %w[PAR-CLN-004 PAR-CLN-005 PAR-RMIK-001 PAR-RMIK-002], 'D' => %w[PAR-CLN-006 PAR-CLN-007 PAR-CLN-009 PAR-ORP-001],
+      'E' => %w[PAR-PHA-002 PAR-PHA-003 PAR-PHA-020 PAR-PWH-014], 'G' => []
+    },
+    'medical_fee' => {
+      'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-ADM-010 PAR-ADM-033 PAR-REG-001 PAR-REG-002 PAR-REG-003],
+      'C' => %w[PAR-CLN-004 PAR-CLN-005 PAR-RMIK-001 PAR-RMIK-002], 'D' => %w[PAR-CLN-006 PAR-CLN-007 PAR-CLN-009], 'G' => []
+    },
+    'finance_handoff' => { 'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-ADM-010 PAR-ADM-033 PAR-REG-001 PAR-REG-002 PAR-REG-003], 'G' => [] },
+    'claims' => {
+      'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-ADM-010 PAR-ADM-033 PAR-REG-001 PAR-REG-002 PAR-REG-003],
+      'C' => %w[PAR-CLN-004 PAR-CLN-005 PAR-RMIK-001 PAR-RMIK-002], 'D' => %w[PAR-CLN-006 PAR-CLN-007 PAR-CLN-009 PAR-ORP-001],
+      'E' => %w[PAR-PHA-002 PAR-PHA-003 PAR-PHA-020 PAR-PWH-014], 'G' => []
+    },
+    'monitor' => { 'A' => %w[PAR-ADM-003 PAR-ADM-037], 'G' => [] },
+    'bpjs_boundary' => {
+      'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-ADM-010 PAR-ADM-033 PAR-REG-001 PAR-REG-002 PAR-REG-003],
+      'C' => %w[PAR-CLN-004 PAR-CLN-005 PAR-RMIK-001 PAR-RMIK-002], 'G' => []
+    },
+    'satusehat_boundary' => { 'A' => %w[PAR-ADM-003 PAR-ADM-037], 'B' => %w[PAR-REG-003], 'C' => %w[PAR-CLN-004 PAR-RMIK-001], 'G' => [] }
+  }.transform_values { |profile| profile.transform_values(&:freeze).freeze }.freeze
+  BATCH_F_ROW_GATE_PROFILE = EXPECTED_BATCH_F_IDS.to_h do |id|
+    profile = if id == 'PAR-ADM-011' then 'tariff'
+              elsif id.start_with?('PAR-ADM-') then 'master_basic'
+              elsif id == 'PAR-FIN-010' then 'medical_fee'
+              elsif %w[PAR-FIN-011 PAR-FIN-012 PAR-FIN-015 PAR-FIN-017].include?(id) then 'finance_handoff'
+              elsif id == 'PAR-RMIK-003' || id == 'PAR-CLM-006' then 'monitor'
+              elsif id.start_with?('PAR-CLM-') then 'claims'
+              elsif id.start_with?('PAR-BPJS-') then 'bpjs_boundary'
+              elsif id == 'PAR-RMIK-005' then 'satusehat_boundary'
+              else 'billing'
+              end
+    [id, profile]
+  end.freeze
+  BATCH_F_INTRA_BATCH_DEPENDENCIES = {
+    'PAR-ADM-011' => [], 'PAR-ADM-016' => [], 'PAR-ADM-018' => [], 'PAR-ADM-019' => %w[PAR-ADM-018], 'PAR-ADM-039' => [],
+    'PAR-BPJS-001' => %w[PAR-CLM-001], 'PAR-BPJS-002' => %w[PAR-CLM-002],
+    'PAR-CLM-001' => %w[PAR-ADM-011 PAR-FIN-001], 'PAR-CLM-002' => %w[PAR-ADM-011 PAR-FIN-002], 'PAR-CLM-003' => %w[PAR-CLM-001],
+    'PAR-CLM-004' => %w[PAR-CLM-002], 'PAR-CLM-005' => %w[PAR-CLM-002], 'PAR-CLM-006' => %w[PAR-CLM-001 PAR-CLM-002],
+    'PAR-FIN-001' => %w[PAR-ADM-011 PAR-ADM-018 PAR-ADM-019], 'PAR-FIN-002' => %w[PAR-ADM-011 PAR-ADM-018 PAR-ADM-019],
+    'PAR-FIN-003' => %w[PAR-ADM-011 PAR-ADM-018 PAR-ADM-019], 'PAR-FIN-004' => %w[PAR-FIN-001], 'PAR-FIN-005' => %w[PAR-FIN-002],
+    'PAR-FIN-006' => %w[PAR-FIN-007 PAR-FIN-008 PAR-FIN-009 PAR-FIN-013 PAR-FIN-014 PAR-FIN-016], 'PAR-FIN-007' => %w[PAR-FIN-002],
+    'PAR-FIN-008' => %w[PAR-FIN-001], 'PAR-FIN-009' => %w[PAR-FIN-003], 'PAR-FIN-010' => %w[PAR-FIN-001 PAR-FIN-002],
+    'PAR-FIN-011' => %w[PAR-FIN-001 PAR-FIN-002 PAR-FIN-003], 'PAR-FIN-012' => %w[PAR-FIN-011], 'PAR-FIN-013' => %w[PAR-FIN-003],
+    'PAR-FIN-014' => %w[PAR-FIN-001 PAR-FIN-002 PAR-FIN-003], 'PAR-FIN-015' => %w[PAR-FIN-012], 'PAR-FIN-016' => %w[PAR-FIN-001 PAR-FIN-002],
+    'PAR-FIN-017' => %w[PAR-FIN-001 PAR-FIN-002 PAR-FIN-003 PAR-FIN-011 PAR-FIN-012 PAR-FIN-015],
+    'PAR-FIN-018' => %w[PAR-FIN-001 PAR-FIN-002], 'PAR-FIN-019' => %w[PAR-FIN-001 PAR-FIN-002],
+    'PAR-RMIK-003' => %w[PAR-CLM-001 PAR-CLM-002 PAR-CLM-006], 'PAR-RMIK-005' => []
+  }.transform_values(&:freeze).freeze
+  BATCH_F_GATE_AUTHORITIES = { 'G' => 'reporting' }.freeze
+  BATCH_F_E_DEFERRAL_EXCLUSIONS = %w[no_medication_charge_readiness no_stock_valuation_readiness no_pharmacy_claim_completeness no_live_delivery].freeze
+  BATCH_F_G_DEFERRAL_EXCLUSIONS = %w[no_g_readiness no_reporting_export no_financial_truth no_live_delivery].freeze
+  BATCH_F_GATE_STATUSES = %w[pending resolved deferred].freeze
+  BATCH_F_INTEGRATION_MODES = %w[none non_transmitting_simulation].freeze
+  BATCH_F_PROHIBITED_TARGETS = %w[BPJS VClaim Antrol Aplicares E-Klaim iDRG SATUSEHAT payment_bank accounting_ERP live_endpoint device printer].freeze
+  BATCH_F_EVIDENCE_BASES = %w[behavioral_execution signed_finance_policy reconciled_ledger integration_sandbox_result user_interview structural_capture].freeze
+  BATCH_F_REGISTER_KEYS = %w[schema_version register_id batch register_status data_boundary external_integrations source_manifest source_manifest_sha256 source_revision evidence_directory purpose availability_state family_policies ledger_ownership entries].freeze
+  BATCH_F_FAMILY_POLICY_KEYS = %w[family_id members lead_authority_domain co_owners inherited_hazards].freeze
+  BATCH_F_ENTRY_KEYS = %w[requirement_id batch legacy_menu family_id availability_state lead_authority_domain lifecycle_contract evidence decision affected_domains co_owners downstream_impacts synthetic_scenarios accountable_owner appointment_dependencies gate_authority_appointments dependency_gates intra_batch_dependencies integration_boundary ledger_invariants write_contract reconciliation_contract consolidation_mapping approval row_hazards].freeze
+  BATCH_F_EVIDENCE_RECORD_KEYS = BATCH_E_EVIDENCE_RECORD_KEYS
+  BATCH_F_DECISION_KEYS = BATCH_E_DECISION_KEYS
+  BATCH_F_TARGET_KEYS = BATCH_E_TARGET_KEYS
+  BATCH_F_OWNER_KEYS = BATCH_E_OWNER_KEYS
+  BATCH_F_APPOINTMENT_KEYS = BATCH_E_APPOINTMENT_KEYS
+  BATCH_F_APPROVAL_KEYS = BATCH_E_APPROVAL_KEYS
+  BATCH_F_LIFECYCLE_KEYS = %w[pre_state transition post_state assertion].freeze
+  BATCH_F_SCENARIO_KEYS = %w[status data_class description expected_results contract_ref].freeze
+  BATCH_F_BOUNDARY_KEYS = %w[mode endpoint credential_state outbound_network delivery_state prohibited_targets transport_result notes].freeze
+  BATCH_F_WRITE_CONTRACT_KEYS = %w[owned_ledgers projection_write_access allowed_event_operations prohibited_mutations].freeze
+  BATCH_F_GATE_KEYS = %w[direction batch scope source_requirement_ids status resolution defer_authority_domain resolution_reference resolution_artifact_sha256].freeze
+  BATCH_F_INTRA_DEPENDENCY_KEYS = %w[requirement_id scope status resolution_reference resolution_artifact_sha256].freeze
+  BATCH_F_RECONCILIATION_KEYS = %w[status profile_id currency minor_unit period_timezone late_posting_policy control_totals equations receipt_reference receipt_artifact_sha256].freeze
+  BATCH_F_CONSOLIDATION_KEYS = BATCH_E_CONSOLIDATION_KEYS
+  BATCH_F_GATE_ARTIFACT_TYPE = 'g0_batch_f_gate_resolution'
+  BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_TYPE = 'g0_batch_f_gate_deferral_approval'
+  BATCH_F_INTRA_DEPENDENCY_ARTIFACT_TYPE = 'g0_batch_f_intra_dependency_resolution'
+  BATCH_F_RECONCILIATION_ARTIFACT_TYPE = 'g0_batch_f_reconciliation'
+  BATCH_F_LEDGER_RECEIPT_ARTIFACT_TYPE = 'g0_batch_f_ledger_receipt'
+  BATCH_F_CONSOLIDATION_ARTIFACT_TYPE = 'g0_batch_f_consolidation_mapping'
+  BATCH_F_GATE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject direction batch scope status resolution identity authority_domain source_register_id source_register_sha256 source_bindings deferral_bindings exclusions date reviewer].freeze
+  BATCH_F_GATE_SOURCE_BINDING_KEYS = %w[requirement_id lead_authority_domain owner_identity approval_reference approval_sha256].freeze
+  BATCH_F_GATE_DEFERRAL_BINDING_KEYS = %w[authority_domain identity appointment_reference appointment_sha256 approval_reference approval_sha256].freeze
+  BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject batch scope status resolution exclusions identity authority_domain date reviewer].freeze
+  BATCH_F_INTRA_DEPENDENCY_ARTIFACT_KEYS = %w[artifact_type schema_version register_id source_requirement_id target_requirement_id scope status identity authority_domain target_decision_status target_disposition target_approval_reference target_approval_sha256 date reviewer].freeze
+  BATCH_F_RECONCILIATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id family_id profile_id synthetic_only currency minor_unit period_start period_end period_timezone cutoff_at late_posting_policy event_count ledger_receipts control_values equations differences idempotency_key date author_identity reviewer].freeze
+  BATCH_F_LEDGER_RECEIPT_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id profile_id ledger_kind synthetic_only currency minor_unit period_start period_end period_timezone cutoff_at late_posting_policy event_count control_values ledger_digest idempotency_key date author_identity reviewer].freeze
+  BATCH_F_CONSOLIDATION_ARTIFACT_KEYS = %w[artifact_type schema_version register_id candidate_id members target_requirement_id terminal_owner_identity terminal_authority_domain terminal_approval_reference terminal_approval_sha256 member_impacts mapped_fields mapped_states mapped_control_totals lineage_preserved authorities_preserved exclusions date author_identity reviewer].freeze
   GOVERNANCE_ARTIFACT_TYPE = 'g0_parity_governance_attestation'
   EVIDENCE_ARTIFACT_TYPE = 'g0_parity_evidence'
   ARTIFACT_SCHEMA_VERSION = 1
@@ -623,7 +932,7 @@ class ParityGovernanceValidator
 
   attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', batch_f_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
@@ -633,7 +942,8 @@ class ParityGovernanceValidator
       'B' => File.expand_path(batch_b_decision_register_path),
       'C' => File.expand_path(batch_c_decision_register_path),
       'D' => File.expand_path(batch_d_decision_register_path),
-      'E' => File.expand_path(batch_e_decision_register_path)
+      'E' => File.expand_path(batch_e_decision_register_path),
+      'F' => File.expand_path(batch_f_decision_register_path)
     }
     @decision_register_paths = DECISION_REGISTER_CONFIGS.keys.to_h do |batch|
       [batch, supplied_register_paths.fetch(batch)]
@@ -823,6 +1133,15 @@ class ParityGovernanceValidator
       actual_manifest_sha = Digest::SHA256.file(@batch_manifest_path).hexdigest if File.file?(@batch_manifest_path)
       errors << "#{prefix}: source_manifest_sha256 must match the loaded manifest" unless actual_manifest_sha && register['source_manifest_sha256'] == actual_manifest_sha
       validate_batch_e_family_policies(register['family_policies'])
+    elsif batch == 'F'
+      validate_closed_object(register, BATCH_F_REGISTER_KEYS, prefix)
+      errors << "#{prefix}: source_revision must be #{BATCH_F_SOURCE_REVISION}" unless register['source_revision'] == BATCH_F_SOURCE_REVISION
+      actual_manifest_sha = Digest::SHA256.file(@batch_manifest_path).hexdigest if File.file?(@batch_manifest_path)
+      errors << "#{prefix}: source_manifest_sha256 must match the loaded manifest" unless actual_manifest_sha && register['source_manifest_sha256'] == actual_manifest_sha
+      errors << "#{prefix}: availability_state must be Soon" unless register['availability_state'] == 'Soon'
+      errors << "#{prefix}: ledger_ownership must exactly freeze one writer per ledger and a read-only reporting projection" unless register['ledger_ownership'] == BATCH_F_LEDGER_OWNERSHIP
+      validate_batch_f_family_policies(register['family_policies'])
+      validate_batch_f_frozen_dependency_policy
     end
 
     entries = register['entries']
@@ -912,6 +1231,7 @@ class ParityGovernanceValidator
     validate_strict_batch_authorities(entry, label) if AUTHORITY_BOUND_BATCHES.include?(@active_decision_context[:batch])
     validate_batch_d_controls(entry, label) if @active_decision_context[:batch] == 'D'
     validate_batch_e_controls(entry, label) if @active_decision_context[:batch] == 'E'
+    validate_batch_f_controls(entry, label) if @active_decision_context[:batch] == 'F'
 
     scenarios = entry['synthetic_scenarios']
     if !scenarios.is_a?(Hash)
@@ -941,6 +1261,11 @@ class ParityGovernanceValidator
     if @active_decision_context[:batch] == 'E'
       family = batch_e_family_for(label)
       authority_policy = BATCH_E_FAMILY_AUTHORITIES[family]
+      expected_authorities = authority_policy && authority_policy[:co_owners]
+      expected_lead = authority_policy && authority_policy[:lead]
+    elsif @active_decision_context[:batch] == 'F'
+      family = batch_f_family_for(label)
+      authority_policy = BATCH_F_FAMILY_AUTHORITIES[family]
       expected_authorities = authority_policy && authority_policy[:co_owners]
       expected_lead = authority_policy && authority_policy[:lead]
     else
@@ -1391,6 +1716,652 @@ class ParityGovernanceValidator
     end
   end
 
+  def batch_f_family_for(requirement_id)
+    BATCH_F_FAMILY_MEMBERS.find { |_family, members| members.include?(requirement_id) }&.first
+  end
+
+  def batch_f_row_hazards(requirement_id)
+    family = batch_f_family_for(requirement_id)
+    return [] unless family && BATCH_F_ROW_HAZARDS.key?(requirement_id)
+
+    [*BATCH_F_FAMILY_HAZARDS.fetch(family), *BATCH_F_CROSS_HAZARDS, *BATCH_F_ROW_HAZARDS.fetch(requirement_id)]
+  end
+
+  def batch_f_expected_family_policy(family)
+    authority = BATCH_F_FAMILY_AUTHORITIES.fetch(family)
+    {
+      'family_id' => family,
+      'members' => BATCH_F_FAMILY_MEMBERS.fetch(family),
+      'lead_authority_domain' => authority.fetch(:lead),
+      'co_owners' => authority.fetch(:co_owners),
+      'inherited_hazards' => BATCH_F_FAMILY_HAZARDS.fetch(family)
+    }
+  end
+
+  def validate_batch_f_family_policies(policies)
+    prefix = 'Batch F decision register: family_policies'
+    unless policies.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+
+    expected_families = BATCH_F_FAMILY_MEMBERS.keys
+    actual_families = policies.each_with_object([]) { |policy, values| values << policy['family_id'] if policy.is_a?(Hash) }
+    errors << "#{prefix} must follow exact frozen family order #{expected_families.inspect}" unless actual_families == expected_families
+    duplicates = actual_families.group_by { |family| family }.select { |_family, values| values.length > 1 }.keys
+    errors << "#{prefix} duplicate families: #{duplicates.join(', ')}" unless duplicates.empty?
+
+    policies.each_with_index do |policy, index|
+      family = policy['family_id'] if policy.is_a?(Hash)
+      label = "#{prefix}[#{index}]"
+      validate_closed_object(policy, BATCH_F_FAMILY_POLICY_KEYS, label)
+      next unless BATCH_F_FAMILY_MEMBERS.key?(family)
+
+      errors << "#{label} must exactly match frozen family #{family}" unless policy == batch_f_expected_family_policy(family)
+    end
+    members = policies.each_with_object([]) { |policy, values| values << policy['members'] if policy.is_a?(Hash) }.flatten
+    errors << "#{prefix} must partition the exact 34 Batch F IDs without duplicates" unless members == BATCH_F_FAMILY_MEMBERS.values.flatten && members.uniq.length == EXPECTED_BATCH_F_IDS.length
+  end
+
+  def validate_batch_f_frozen_dependency_policy
+    unless BATCH_F_INTRA_BATCH_DEPENDENCIES.keys == EXPECTED_BATCH_F_IDS
+      errors << 'Batch F frozen intra-dependency policy must cover the exact 34 IDs in manifest order'
+    end
+    unknown = BATCH_F_INTRA_BATCH_DEPENDENCIES.values.flatten - EXPECTED_BATCH_F_IDS
+    errors << "Batch F frozen intra-dependency policy contains unknown IDs: #{unknown.uniq.join(', ')}" unless unknown.empty?
+    self_edges = BATCH_F_INTRA_BATCH_DEPENDENCIES.each_with_object([]) { |(source, targets), values| values << source if targets.include?(source) }
+    errors << "Batch F frozen intra-dependency policy contains self-dependencies: #{self_edges.join(', ')}" unless self_edges.empty?
+    cycle = batch_f_dependency_cycle(BATCH_F_INTRA_BATCH_DEPENDENCIES)
+    errors << "Batch F frozen intra-dependency policy contains a cycle: #{cycle.join(' -> ')}" if cycle
+  end
+
+  def batch_f_dependency_cycle(graph)
+    state = {}
+    stack = []
+    visit = lambda do |node|
+      state[node] = :visiting
+      stack << node
+      Array(graph[node]).each do |target|
+        if state[target] == :visiting
+          start = stack.index(target) || 0
+          return stack[start..] + [target]
+        elsif state[target].nil?
+          cycle = visit.call(target)
+          return cycle if cycle
+        end
+      end
+      stack.pop
+      state[node] = :visited
+      nil
+    end
+    graph.keys.each do |node|
+      cycle = visit.call(node) if state[node].nil?
+      return cycle if cycle
+    end
+    nil
+  end
+
+  def validate_batch_f_controls(entry, label)
+    prefix = "#{decision_register_label} #{label}"
+    validate_closed_object(entry, BATCH_F_ENTRY_KEYS, prefix)
+    family = batch_f_family_for(label)
+    unless family
+      errors << "#{prefix}: missing frozen Batch F family policy"
+      return
+    end
+
+    validate_closed_object(entry['decision'], BATCH_F_DECISION_KEYS, "#{prefix}: decision") if entry['decision'].is_a?(Hash)
+    validate_closed_object(entry.dig('decision', 'target'), BATCH_F_TARGET_KEYS, "#{prefix}: decision target") if entry.dig('decision', 'target').is_a?(Hash)
+    validate_closed_object(entry['accountable_owner'], BATCH_F_OWNER_KEYS, "#{prefix}: accountable_owner") if entry['accountable_owner'].is_a?(Hash)
+    Array(entry['appointment_dependencies']).each_with_index { |record, index| validate_closed_object(record, BATCH_F_APPOINTMENT_KEYS, "#{prefix}: appointment_dependencies[#{index}]") if record.is_a?(Hash) }
+    Array(entry['evidence']).each_with_index { |record, index| validate_closed_object(record, BATCH_F_EVIDENCE_RECORD_KEYS, "#{prefix}: evidence[#{index}]") if record.is_a?(Hash) }
+    validate_closed_object(entry['approval'], BATCH_F_APPROVAL_KEYS, "#{prefix}: approval") if entry['approval'].is_a?(Hash)
+    errors << "#{prefix}: family_id must be #{family}" unless entry['family_id'] == family
+    errors << "#{prefix}: availability_state must be Soon" unless entry['availability_state'] == 'Soon'
+    validate_closed_object(entry['lifecycle_contract'], BATCH_F_LIFECYCLE_KEYS, "#{prefix}: lifecycle_contract")
+    expected_lifecycle = BATCH_F_LIFECYCLE_KEYS.zip(BATCH_F_ROW_LIFECYCLES.fetch(label)).to_h
+    errors << "#{prefix}: lifecycle_contract must exactly match the substantive per-ID state transition" unless entry['lifecycle_contract'] == expected_lifecycle
+    expected_authorities = BATCH_F_FAMILY_AUTHORITIES.fetch(family).fetch(:co_owners)
+    errors << "#{prefix}: affected_domains must exactly match frozen co-owners" unless entry['affected_domains'] == expected_authorities
+    expected_hazards = batch_f_row_hazards(label)
+    errors << "#{prefix}: row_hazards must exactly match frozen family, cross-family, and row hazards" unless entry['row_hazards'] == expected_hazards
+    errors << "#{prefix}: ledger_invariants must exactly match the immutable Batch F finance/claim policy" unless entry['ledger_invariants'] == BATCH_F_LEDGER_INVARIANTS
+    validate_batch_f_write_contract(entry['write_contract'], label)
+    validate_batch_f_gate_authority_appointments(entry['gate_authority_appointments'], label)
+    validate_batch_f_dependency_gates(entry['dependency_gates'], label)
+    validate_batch_f_intra_dependencies(entry['intra_batch_dependencies'], label)
+    validate_batch_f_integration_boundary(entry['integration_boundary'], label)
+    validate_batch_f_reconciliation(entry['reconciliation_contract'], family, label)
+    validate_batch_f_consolidation(entry['consolidation_mapping'], entry['decision'], label)
+  end
+
+  def validate_batch_f_write_contract(contract, label)
+    prefix = "#{decision_register_label} #{label}: write_contract"
+    validate_closed_object(contract, BATCH_F_WRITE_CONTRACT_KEYS, prefix)
+    return unless contract.is_a?(Hash)
+
+    expected_ledgers = BATCH_F_ROW_WRITE_LEDGERS.fetch(label, nil)
+    errors << "#{prefix} owned_ledgers must exactly match the frozen per-ID writer policy" unless expected_ledgers && contract['owned_ledgers'] == expected_ledgers
+    errors << "#{prefix} projection_write_access must be false" unless contract['projection_write_access'] == false
+    errors << "#{prefix} allowed_event_operations must be append/version/compensate/reverse/reconcile/project only" unless contract['allowed_event_operations'] == %w[append version compensate reverse reconcile project]
+    errors << "#{prefix} prohibited_mutations must freeze edit/delete/overwrite/backdate/closed-period/projection safeguards" unless contract['prohibited_mutations'] == %w[edit delete overwrite backdate reopen_closed_period projection_writeback]
+    if BATCH_F_PROJECTION_IDS.include?(label) && contract['owned_ledgers'] != []
+      errors << "#{prefix} projection-only capability cannot own or write any source ledger"
+    end
+    Array(contract['owned_ledgers']).each do |ledger|
+      errors << "#{prefix} unknown ledger #{ledger.inspect}" unless BATCH_F_LEDGER_OWNERSHIP.key?(ledger) && ledger != 'reporting_projection'
+    end
+  end
+
+  def validate_batch_f_gate_authority_appointments(appointments, label)
+    prefix = "#{decision_register_label} #{label}: gate_authority_appointments"
+    expected_domains = []
+    expected_domains.concat(%w[pharmacy_gf finance_accounting]) if batch_f_expected_gates(label).any? { |gate| gate['batch'] == 'E' }
+    expected_domains << BATCH_F_GATE_AUTHORITIES.fetch('G')
+    unless appointments.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    domains = appointments.each_with_object([]) { |appointment, values| values << appointment['authority_domain'] if appointment.is_a?(Hash) }
+    errors << "#{prefix} must exactly cover prior-batch and reporting gate authorities #{expected_domains.inspect}" unless domains == expected_domains && domains.uniq.length == expected_domains.length
+    appointments.each_with_index do |appointment, index|
+      next unless appointment.is_a?(Hash)
+
+      validate_closed_object(appointment, BATCH_F_APPOINTMENT_KEYS, "#{prefix}[#{index}]")
+      errors << "#{prefix}[#{index}] required_scope must bind gate closure only" unless nonempty_string?(appointment['required_scope']) && appointment['required_scope'].include?('gate')
+      status = appointment['status']
+      errors << "#{prefix}[#{index}] status must be pending or appointed" unless APPOINTMENT_STATUSES.include?(status)
+      if status == 'pending'
+        %w[identity date reference artifact_sha256].each { |key| errors << "#{prefix}[#{index}] pending #{key} must be null" unless appointment[key].nil? }
+      elsif status == 'appointed'
+        errors << "#{prefix}[#{index}] identity must be non-placeholder" unless nonempty_string?(appointment['identity']) && !appointment['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+        errors << "#{prefix}[#{index}] date must be YYYY-MM-DD" unless iso_date?(appointment['date'])
+        validate_governance_artifact(
+          reference: appointment['reference'], expected_sha256: appointment['artifact_sha256'],
+          label: "#{prefix}[#{index}] appointment", requirement_id: label,
+          subject: 'appointment_dependency', record: appointment
+        )
+      end
+    end
+  end
+
+  def batch_f_expected_gates(label)
+    profile_id = BATCH_F_ROW_GATE_PROFILE[label]
+    profile = BATCH_F_GATE_PROFILES[profile_id]
+    return [] unless profile
+
+    profile.map do |batch, source_ids|
+      {
+        'direction' => batch == 'G' ? 'forward' : 'upstream',
+        'batch' => batch,
+        'scope' => BATCH_F_GATE_SCOPES.fetch(batch),
+        'source_requirement_ids' => source_ids
+      }
+    end
+  end
+
+  def validate_batch_f_dependency_gates(gates, label)
+    prefix = "#{decision_register_label} #{label}: dependency_gates"
+    unless gates.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    expected = batch_f_expected_gates(label)
+    actual = gates.each_with_object([]) { |gate, values| values << gate.slice('direction', 'batch', 'scope', 'source_requirement_ids') if gate.is_a?(Hash) }
+    errors << "#{prefix} must exactly bind the applicability-specific upstream and forward gates in dependency order" unless actual == expected
+
+    gates.each_with_index do |gate, index|
+      next unless gate.is_a?(Hash)
+
+      gate_label = "#{prefix}[#{index}]"
+      validate_closed_object(gate, BATCH_F_GATE_KEYS, gate_label)
+      status = gate['status']
+      errors << "#{gate_label} invalid status #{status.inspect}" unless BATCH_F_GATE_STATUSES.include?(status)
+      if status == 'pending'
+        %w[resolution defer_authority_domain resolution_reference resolution_artifact_sha256].each do |key|
+          errors << "#{gate_label} pending #{key} must be null" unless gate[key].nil?
+        end
+      elsif status == 'resolved'
+        errors << "#{gate_label} forward Batch G cannot be marked resolved without a loaded G register" if gate['batch'] == 'G'
+        errors << "#{gate_label} resolved gate defer_authority_domain must be null" unless gate['defer_authority_domain'].nil?
+        validate_batch_f_gate_artifact(gate, label, gate_label)
+      elsif status == 'deferred'
+        errors << "#{gate_label} only a scoped Batch E pharmacy-charge gate or forward Batch G reporting gate may be deferred" unless %w[E G].include?(gate['batch'])
+        expected_defer_authority = gate['batch'] == 'E' ? 'pharmacy_gf_and_finance_accounting' : BATCH_F_GATE_AUTHORITIES.fetch('G')
+        errors << "#{gate_label} defer_authority_domain must be #{expected_defer_authority}" unless gate['defer_authority_domain'] == expected_defer_authority
+        if gate['batch'] == 'G' && BATCH_F_PROJECTION_IDS.include?(label)
+          entry = @decision_entries.find { |candidate| candidate['batch'] == 'F' && candidate['requirement_id'] == label }
+          decision = entry && entry['decision']
+          safe = decision.is_a?(Hash) && decision['status'] == 'defer' && decision['canonical_disposition'] == 'exclude' &&
+            decision.dig('target', 'exclusions') == BATCH_F_G_DEFERRAL_EXCLUSIONS
+          errors << "#{gate_label} projection/monitor capability must remain defer/exclude with the exact G no-readiness exclusions while Batch G is deferred" unless safe
+        end
+        validate_batch_f_gate_artifact(gate, label, gate_label)
+      end
+    end
+  end
+
+  def validate_batch_f_gate_artifact(gate, requirement_id, gate_label)
+    artifact = load_structured_json_artifact(gate['resolution_reference'], gate['resolution_artifact_sha256'], "#{gate_label} resolution")
+    return unless artifact
+
+    label = "#{gate_label} resolution"
+    validate_closed_object(artifact, BATCH_F_GATE_ARTIFACT_KEYS, label)
+    errors << "#{label} artifact_type must be #{BATCH_F_GATE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_F_GATE_ARTIFACT_TYPE
+    errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} register_id must be #{BATCH_F_REGISTER_ID}" unless artifact['register_id'] == BATCH_F_REGISTER_ID
+    errors << "#{label} requirement_id must be #{requirement_id}" unless artifact['requirement_id'] == requirement_id
+    errors << "#{label} subject must be dependency_gate" unless artifact['subject'] == 'dependency_gate'
+    %w[direction batch scope status].each { |key| errors << "#{label} #{key} does not match the register gate" unless artifact[key] == gate[key] }
+    errors << "#{label} resolution does not match the register gate" unless artifact['resolution'] == gate['resolution']
+    errors << "#{label} identity must be a non-placeholder string" unless nonempty_string?(artifact['identity']) && !artifact['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+
+      if gate['batch'] == 'G'
+      expected_authority = BATCH_F_GATE_AUTHORITIES.fetch('G')
+      errors << "#{label} authority_domain must be #{expected_authority}" unless artifact['authority_domain'] == expected_authority
+      entry = @decision_entries.find { |candidate| candidate['requirement_id'] == requirement_id && candidate['batch'] == 'F' }
+      appointment = Array(entry && entry['gate_authority_appointments']).find { |candidate| candidate.is_a?(Hash) && candidate['authority_domain'] == expected_authority }
+      unless appointment && appointment['status'] == 'appointed' && appointment['identity'] == artifact['identity']
+        errors << "#{label} identity must match the appointed reporting gate authority"
+      end
+      manifest_sha = Digest::SHA256.file(@batch_manifest_path).hexdigest if File.file?(@batch_manifest_path)
+      errors << "#{label} deferred G source_register_id must bind the manifest Batch G gate" unless artifact['source_register_id'] == 'G0_PARITY_BATCH_MANIFEST.json#batch-G'
+      errors << "#{label} deferred G source_register_sha256 must match the loaded manifest" unless manifest_sha && artifact['source_register_sha256'] == manifest_sha
+      errors << "#{label} deferred G source_bindings must be empty" unless artifact['source_bindings'] == []
+      validate_batch_f_gate_deferral_bindings(artifact, entry, [expected_authority], label)
+      errors << "#{label} deferred G exclusions must exactly prevent reporting readiness, export, financial truth, and live delivery" unless artifact['exclusions'] == BATCH_F_G_DEFERRAL_EXCLUSIONS
+    elsif gate['batch'] == 'E' && gate['status'] == 'deferred'
+      upstream_path = @decision_register_paths.fetch('E')
+      upstream_sha = Digest::SHA256.file(upstream_path).hexdigest if File.file?(upstream_path)
+      errors << "#{label} deferred E source_register_id must bind Batch E" unless artifact['source_register_id'] == BATCH_E_REGISTER_ID
+      errors << "#{label} deferred E source_register_sha256 must match the loaded Batch E register" unless upstream_sha && artifact['source_register_sha256'] == upstream_sha
+      errors << "#{label} deferred E source_bindings must be empty because no upstream readiness is claimed" unless artifact['source_bindings'] == []
+      entry = @decision_entries.find { |candidate| candidate['requirement_id'] == requirement_id && candidate['batch'] == 'F' }
+      validate_batch_f_gate_deferral_bindings(artifact, entry, %w[pharmacy_gf finance_accounting], label)
+      errors << "#{label} deferred E gate identity/domain must bind pharmacy_gf first approval" unless artifact['authority_domain'] == 'pharmacy_gf' && artifact['identity'] == artifact.dig('deferral_bindings', 0, 'identity')
+      required_exclusions = BATCH_F_E_DEFERRAL_EXCLUSIONS
+      errors << "#{label} deferred E exclusions must exactly exclude medication charges, stock valuation, pharmacy claim completeness, and live delivery" unless artifact['exclusions'] == required_exclusions
+      decision_exclusions = Array(entry&.dig('decision', 'target', 'exclusions')).join(' ').downcase
+      missing = ['medication', 'stock valuation', 'charge-credit', 'claim completeness'].reject { |term| decision_exclusions.include?(term) }
+      errors << "#{label} deferred E gate requires matching decision target exclusions for medication, stock valuation, charge-credit, and claim completeness" unless missing.empty?
+    else
+      upstream_batch = gate['batch']
+      upstream_config = DECISION_REGISTER_CONFIGS[upstream_batch]
+      upstream_path = @decision_register_paths[upstream_batch]
+      upstream_sha = Digest::SHA256.file(upstream_path).hexdigest if upstream_path && File.file?(upstream_path)
+      errors << "#{label} source_register_id must bind Batch #{upstream_batch}" unless upstream_config && artifact['source_register_id'] == upstream_config[:register_id]
+      errors << "#{label} source_register_sha256 must match the loaded Batch #{upstream_batch} register" unless upstream_sha && artifact['source_register_sha256'] == upstream_sha
+      errors << "#{label} resolved prior-batch exclusions must be empty" unless artifact['exclusions'] == []
+      errors << "#{label} resolved prior-batch deferral_bindings must be empty" unless artifact['deferral_bindings'] == []
+      unless @decision_register_statuses[upstream_batch] == 'complete'
+        errors << "#{label} cannot resolve while Batch #{upstream_batch} register_status is not complete"
+      end
+      upstream_entries = @decision_entries_by_batch.fetch(upstream_batch, [])
+      compatible = upstream_entries.length == upstream_config&.dig(:expected_count) && upstream_entries.all? do |candidate|
+        decision = candidate['decision']
+        decision.is_a?(Hash) && %w[approve defer].include?(decision['status'])
+      end
+      errors << "#{label} Batch #{upstream_batch} must be complete with terminal approve/defer decisions" unless compatible
+      bindings = artifact['source_bindings']
+      expected_ids = gate['source_requirement_ids']
+      actual_ids = Array(bindings).each_with_object([]) { |binding, values| values << binding['requirement_id'] if binding.is_a?(Hash) }
+      errors << "#{label} source_bindings must exactly follow the frozen dependency ID order" unless bindings.is_a?(Array) && actual_ids == expected_ids && actual_ids.uniq.length == expected_ids.length
+      Array(bindings).each_with_index do |binding, index|
+        binding_label = "#{label} source_bindings[#{index}]"
+        next unless validate_closed_object(binding, BATCH_F_GATE_SOURCE_BINDING_KEYS, binding_label)
+
+        source = upstream_entries.find { |candidate| candidate['requirement_id'] == binding['requirement_id'] }
+        unless source
+          errors << "#{binding_label} requirement_id must identify a loaded Batch #{upstream_batch} entry"
+          next
+        end
+        expected_lead = source['lead_authority_domain'] || source.dig('accountable_owner', 'authority_domain')
+        owner = source['accountable_owner']
+        errors << "#{binding_label} lead_authority_domain must match the selected upstream lead #{expected_lead}" unless nonempty_string?(expected_lead) && binding['lead_authority_domain'] == expected_lead
+        unless owner.is_a?(Hash) && owner['appointment_status'] == 'appointed' && owner['identity'] == binding['owner_identity'] && owner['authority_domain'] == expected_lead
+          errors << "#{binding_label} owner_identity must match the selected upstream appointed accountable owner"
+        end
+        decision = source['decision']
+        unless decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+          errors << "#{binding_label} source requirement must have an approved reproduce/replace decision"
+        end
+        approval = source['approval']
+        unless approval.is_a?(Hash) && approval['status'] == 'recorded' && approval['identity'] == binding['owner_identity'] && approval['reference'] == binding['approval_reference'] && approval['artifact_sha256'] == binding['approval_sha256']
+          errors << "#{binding_label} approval reference and SHA-256 must match the loaded upstream approval"
+        end
+      end
+      first_binding = Array(bindings).first
+      unless first_binding.is_a?(Hash) && artifact['identity'] == first_binding['owner_identity'] && artifact['authority_domain'] == first_binding['lead_authority_domain']
+        errors << "#{label} gate resolution identity/domain must bind the first frozen upstream owner"
+      end
+    end
+    validate_artifact_reviewer(artifact['reviewer'], artifact['identity'], label)
+  end
+
+  def validate_batch_f_gate_deferral_bindings(artifact, entry, expected_domains, label)
+    bindings = artifact['deferral_bindings']
+    actual_domains = Array(bindings).each_with_object([]) { |binding, values| values << binding['authority_domain'] if binding.is_a?(Hash) }
+    errors << "#{label} deferral_bindings must exactly follow appointed authorities #{expected_domains.inspect}" unless bindings.is_a?(Array) && actual_domains == expected_domains
+    Array(bindings).each_with_index do |binding, index|
+      binding_label = "#{label} deferral_bindings[#{index}]"
+      next unless validate_closed_object(binding, BATCH_F_GATE_DEFERRAL_BINDING_KEYS, binding_label)
+
+      appointment = Array(entry && entry['gate_authority_appointments']).find { |candidate| candidate.is_a?(Hash) && candidate['authority_domain'] == binding['authority_domain'] }
+      unless appointment && appointment['status'] == 'appointed' && appointment['identity'] == binding['identity'] && appointment['reference'] == binding['appointment_reference'] && appointment['artifact_sha256'] == binding['appointment_sha256']
+        errors << "#{binding_label} must bind the matching appointed gate authority identity and artifact"
+      end
+      approval = load_structured_json_artifact(binding['approval_reference'], binding['approval_sha256'], "#{binding_label} signed deferral approval")
+      next unless approval
+
+      approval_label = "#{binding_label} signed deferral approval"
+      validate_closed_object(approval, BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_KEYS, approval_label)
+      errors << "#{approval_label} artifact_type must be #{BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_TYPE}" unless approval['artifact_type'] == BATCH_F_GATE_DEFERRAL_APPROVAL_ARTIFACT_TYPE
+      errors << "#{approval_label} schema_version/register_id must match Batch F" unless approval['schema_version'] == ARTIFACT_SCHEMA_VERSION && approval['register_id'] == BATCH_F_REGISTER_ID
+      errors << "#{approval_label} requirement_id must match the gate entry" unless approval['requirement_id'] == artifact['requirement_id']
+      errors << "#{approval_label} subject must be gate_deferral_approval" unless approval['subject'] == 'gate_deferral_approval'
+      %w[batch scope status resolution exclusions].each do |key|
+        errors << "#{approval_label} #{key} must exactly match the gate deferral" unless approval[key] == artifact[key]
+      end
+      errors << "#{approval_label} identity/authority_domain must match the deferral binding" unless approval['identity'] == binding['identity'] && approval['authority_domain'] == binding['authority_domain']
+      errors << "#{approval_label} date must match the gate artifact date" unless iso_date?(approval['date']) && approval['date'] == artifact['date']
+      validate_artifact_reviewer(approval['reviewer'], approval['identity'], approval_label)
+    end
+  end
+
+  def batch_f_expected_intra_dependencies(label)
+    Array(BATCH_F_INTRA_BATCH_DEPENDENCIES[label]).map do |target|
+      source_state = BATCH_F_ROW_LIFECYCLES.fetch(target)[2]
+      target_state = BATCH_F_ROW_LIFECYCLES.fetch(label)[0]
+      { 'requirement_id' => target, 'scope' => [source_state, target_state] }
+    end
+  end
+
+  def validate_batch_f_intra_dependencies(dependencies, label)
+    prefix = "#{decision_register_label} #{label}: intra_batch_dependencies"
+    unless dependencies.is_a?(Array)
+      errors << "#{prefix} must be an array"
+      return
+    end
+    expected = batch_f_expected_intra_dependencies(label)
+    actual = dependencies.each_with_object([]) { |dependency, values| values << dependency.slice('requirement_id', 'scope') if dependency.is_a?(Hash) }
+    errors << "#{prefix} must exactly match the frozen intra-Batch-F dependency graph" unless actual == expected
+    dependencies.each_with_index do |dependency, index|
+      next unless dependency.is_a?(Hash)
+
+      dependency_label = "#{prefix}[#{index}]"
+      validate_closed_object(dependency, BATCH_F_INTRA_DEPENDENCY_KEYS, dependency_label)
+      unless %w[pending resolved].include?(dependency['status'])
+        errors << "#{dependency_label} status must be pending or resolved"
+      end
+      if dependency['status'] == 'pending'
+        %w[resolution_reference resolution_artifact_sha256].each { |key| errors << "#{dependency_label} pending #{key} must be null" unless dependency[key].nil? }
+      elsif dependency['status'] == 'resolved'
+        validate_batch_f_intra_dependency_artifact(dependency, label, dependency_label)
+      end
+    end
+  end
+
+  def validate_batch_f_intra_dependency_artifact(dependency, source_id, dependency_label)
+    artifact = load_structured_json_artifact(dependency['resolution_reference'], dependency['resolution_artifact_sha256'], "#{dependency_label} resolution")
+    return unless artifact
+
+    label = "#{dependency_label} resolution"
+    validate_closed_object(artifact, BATCH_F_INTRA_DEPENDENCY_ARTIFACT_KEYS, label)
+    errors << "#{label} artifact_type must be #{BATCH_F_INTRA_DEPENDENCY_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_F_INTRA_DEPENDENCY_ARTIFACT_TYPE
+    errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} register_id must be #{BATCH_F_REGISTER_ID}" unless artifact['register_id'] == BATCH_F_REGISTER_ID
+    errors << "#{label} source_requirement_id must be #{source_id}" unless artifact['source_requirement_id'] == source_id
+    errors << "#{label} target_requirement_id must match the dependency" unless artifact['target_requirement_id'] == dependency['requirement_id']
+    errors << "#{label} scope/status must match the dependency" unless artifact['scope'] == dependency['scope'] && artifact['status'] == 'resolved'
+    target = @decision_entries.find { |entry| entry['requirement_id'] == dependency['requirement_id'] && entry['batch'] == 'F' }
+    unless target
+      errors << "#{label} target requirement must exist in Batch F"
+      return
+    end
+    decision = target['decision']
+    unless decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+      errors << "#{label} target requirement must have an approved reproduce/replace decision"
+    end
+    owner = target['accountable_owner']
+    unless owner.is_a?(Hash) && owner['appointment_status'] == 'appointed' && artifact['identity'] == owner['identity'] && artifact['authority_domain'] == target['lead_authority_domain']
+      errors << "#{label} identity/domain must match the target appointed accountable owner and lead"
+    end
+    approval = target['approval']
+    unless approval.is_a?(Hash) && approval['status'] == 'recorded' && artifact['target_approval_reference'] == approval['reference'] && artifact['target_approval_sha256'] == approval['artifact_sha256']
+      errors << "#{label} target approval reference and SHA-256 must match the loaded target"
+    end
+    errors << "#{label} target decision binding must match approve/reproduce-or-replace" unless artifact['target_decision_status'] == 'approve' && artifact['target_disposition'] == decision&.dig('canonical_disposition')
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    validate_artifact_reviewer(artifact['reviewer'], artifact['identity'], label)
+  end
+
+  def validate_batch_f_integration_boundary(boundary, label)
+    prefix = "#{decision_register_label} #{label}: integration_boundary"
+    validate_closed_object(boundary, BATCH_F_BOUNDARY_KEYS, prefix)
+    return unless boundary.is_a?(Hash)
+
+    family = batch_f_family_for(label)
+    expected_mode = %w[F4 F5].include?(family) ? 'non_transmitting_simulation' : 'none'
+    expected_transport = expected_mode == 'none' ? 'not_applicable' : 'deterministic_local_fixture'
+    errors << "#{prefix} mode must be #{expected_mode}" unless BATCH_F_INTEGRATION_MODES.include?(boundary['mode']) && boundary['mode'] == expected_mode
+    errors << "#{prefix} endpoint must be null" unless boundary['endpoint'].nil?
+    errors << "#{prefix} credential_state must be absent" unless boundary['credential_state'] == 'absent'
+    errors << "#{prefix} outbound_network must be false" unless boundary['outbound_network'] == false
+    errors << "#{prefix} delivery_state must be NOT_SENT" unless boundary['delivery_state'] == 'NOT_SENT'
+    errors << "#{prefix} transport_result must be #{expected_transport}" unless boundary['transport_result'] == expected_transport
+    errors << "#{prefix} prohibited_targets must exactly enumerate every forbidden national, payment, bank, ERP, and device boundary" unless boundary['prohibited_targets'] == BATCH_F_PROHIBITED_TARGETS
+    errors << "#{prefix} notes must state the synthetic-only boundary" unless nonempty_string?(boundary['notes']) && boundary['notes'].downcase.include?('synthetic')
+  end
+
+  def validate_batch_f_reconciliation(control, family, requirement_id)
+    prefix = "#{decision_register_label} #{requirement_id}: reconciliation_contract"
+    validate_closed_object(control, BATCH_F_RECONCILIATION_KEYS, prefix)
+    return unless control.is_a?(Hash)
+
+    profile_id = BATCH_F_ROW_RECONCILIATION_PROFILE[requirement_id]
+    profile = BATCH_F_RECONCILIATION_PROFILES[profile_id]
+    errors << "#{prefix} missing frozen per-ID reconciliation profile" unless profile
+    errors << "#{prefix} profile_id must be #{profile_id}" unless control['profile_id'] == profile_id
+    errors << "#{prefix} status must be pending or complete" unless %w[pending complete].include?(control['status'])
+    errors << "#{prefix} currency must be IDR" unless control['currency'] == 'IDR'
+    errors << "#{prefix} minor_unit must be 1" unless control['minor_unit'] == 1
+    errors << "#{prefix} period_timezone must be Asia/Jakarta" unless control['period_timezone'] == 'Asia/Jakarta'
+    errors << "#{prefix} late_posting_policy must append to an open period with a prior-period reference" unless control['late_posting_policy'] == 'append_to_open_period_with_prior_period_reference'
+    errors << "#{prefix} control_totals must exactly match the applicable per-ID totals" unless profile && control['control_totals'] == profile.fetch(:control_totals)
+    errors << "#{prefix} equations must exactly match the applicable per-ID minor-unit equations" unless profile && control['equations'] == profile.fetch(:equations)
+    if control['status'] == 'pending'
+      %w[receipt_reference receipt_artifact_sha256].each { |key| errors << "#{prefix} pending #{key} must be null" unless control[key].nil? }
+    elsif control['status'] == 'complete'
+      validate_batch_f_reconciliation_artifact(control, family, requirement_id)
+    end
+  end
+
+  def validate_batch_f_reconciliation_artifact(control, family, requirement_id)
+    artifact = load_structured_json_artifact(control['receipt_reference'], control['receipt_artifact_sha256'], "#{decision_register_label} #{requirement_id}: reconciliation")
+    return unless artifact
+
+    label = "#{decision_register_label} #{requirement_id}: reconciliation"
+    validate_closed_object(artifact, BATCH_F_RECONCILIATION_ARTIFACT_KEYS, label)
+    errors << "#{label} artifact_type must be #{BATCH_F_RECONCILIATION_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_F_RECONCILIATION_ARTIFACT_TYPE
+    errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
+    errors << "#{label} register_id must be #{BATCH_F_REGISTER_ID}" unless artifact['register_id'] == BATCH_F_REGISTER_ID
+    errors << "#{label} requirement_id must be #{requirement_id}" unless artifact['requirement_id'] == requirement_id
+    errors << "#{label} family_id must be #{family}" unless artifact['family_id'] == family
+    profile_id = BATCH_F_ROW_RECONCILIATION_PROFILE.fetch(requirement_id)
+    profile = BATCH_F_RECONCILIATION_PROFILES.fetch(profile_id)
+    errors << "#{label} profile_id must be #{profile_id}" unless artifact['profile_id'] == profile_id && control['profile_id'] == profile_id
+    errors << "#{label} synthetic_only must be true" unless artifact['synthetic_only'] == true
+    errors << "#{label} currency/minor_unit must be IDR/1" unless artifact['currency'] == 'IDR' && artifact['minor_unit'] == 1
+    errors << "#{label} period_timezone must be Asia/Jakarta" unless artifact['period_timezone'] == 'Asia/Jakarta'
+    errors << "#{label} late_posting_policy does not match the register" unless artifact['late_posting_policy'] == control['late_posting_policy']
+    errors << "#{label} period dates must be YYYY-MM-DD and ordered" unless iso_date?(artifact['period_start']) && iso_date?(artifact['period_end']) && artifact['period_start'] <= artifact['period_end']
+    errors << "#{label} cutoff_at must include Asia/Jakarta offset +07:00" unless nonempty_string?(artifact['cutoff_at']) && artifact['cutoff_at'].match?(/\+07:00\z/)
+    errors << "#{label} event_count must be a positive integer" unless artifact['event_count'].is_a?(Integer) && artifact['event_count'] > 0
+    errors << "#{label} equations must exactly match the register and applicable profile" unless artifact['equations'] == control['equations'] && artifact['equations'] == profile.fetch(:equations)
+    validate_batch_f_control_values(artifact['control_values'], artifact['differences'], profile_id, label)
+    validate_batch_f_ledger_receipts(artifact['ledger_receipts'], artifact, requirement_id, profile_id, label)
+    errors << "#{label} idempotency_key must be a non-placeholder string" unless nonempty_string?(artifact['idempotency_key'])
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+  end
+
+  def validate_batch_f_control_values(values, differences, profile_id, label)
+    profile = BATCH_F_RECONCILIATION_PROFILES.fetch(profile_id)
+    expected_keys = profile.fetch(:control_totals)
+    unless values.is_a?(Hash) && values.keys == expected_keys && values.values.all? { |value| value.is_a?(Integer) && value >= 0 }
+      errors << "#{label} control_values must contain exact nonnegative integer IDR minor-unit/count totals"
+      return
+    end
+    expected_differences = batch_f_expected_differences(profile_id, values)
+    expected_difference_keys = BATCH_F_PROFILE_DIFFERENCE_KEYS.fetch(profile_id)
+    unless differences.is_a?(Hash) && differences.keys == expected_difference_keys && differences == expected_differences && differences.values.all?(&:zero?)
+      errors << "#{label} differences must exactly bind every frozen equation and all equal zero"
+    end
+  end
+
+  def batch_f_expected_differences(profile_id, values)
+    case profile_id
+    when 'master_version'
+      { 'master_overlap_difference' => values['invalid_overlap_count'] }
+    when 'bill_version'
+      { 'bill_difference' => values['gross_charge_total'] - values['approved_discount_total'] + values['tax_fee_total'] + values['debit_adjustment_total'] - values['credit_adjustment_total'] - values['reversal_total'] - values['net_bill_total'] }
+    when 'revenue_projection'
+      { 'revenue_partition_difference' => values['revenue_inpatient_total'] + values['revenue_outpatient_total'] + values['revenue_emergency_total'] + values['revenue_other_total'] + values['revenue_unit_total'] + values['revenue_procedure_total'] - values['revenue_overall_total'] }
+    when 'medical_fee'
+      { 'fee_basis_excess' => [values['medical_fee_recipient_sum'] - values['medical_fee_approved_basis'], 0].max }
+    when 'receivable'
+      { 'ar_difference' => values['opening_ar_total'] + values['net_billed_total'] - values['payment_total'] - values['payer_remittance_total'] - values['writeoff_total'] + values['debit_adjustment_total'] - values['credit_adjustment_total'] - values['closing_ar_total'] }
+    when 'settlement'
+      {
+        'settlement_difference' => values['receipt_total'] - values['refund_total'] - values['reversed_receipt_total'] - values['net_settlement_total'],
+        'deposit_difference' => values['net_settlement_total'] - values['accepted_deposit_total']
+      }
+    when 'journal'
+      { 'journal_balance_difference' => values['journal_debit_total'] - values['journal_credit_total'], 'journal_source_difference' => values['journal_source_total'] - values['journal_debit_total'] }
+    when 'claim_snapshot', 'claim_boundary'
+      differences = {
+        'claim_snapshot_difference' => values['submitted_claim_total'] - values['eligible_bill_snapshot_total'],
+        'claim_amount_cohort_difference' => values['accepted_claim_amount'] + values['remitted_claim_amount'] + values['denied_claim_amount'] + values['pending_claim_amount'] + values['reversed_claim_amount'] - values['submitted_claim_total'],
+        'claim_count_cohort_difference' => values['accepted_claim_count'] + values['remitted_claim_count'] + values['denied_claim_count'] + values['pending_claim_count'] + values['reversed_claim_count'] - values['submitted_claim_count']
+      }
+      if profile_id == 'claim_boundary'
+        differences['not_sent_difference'] = values['request_count'] - values['not_sent_count']
+        differences['duplicate_request_difference'] = values['duplicate_request_count']
+      end
+      differences
+    when 'integration_boundary'
+      { 'not_sent_difference' => values['request_count'] - values['not_sent_count'], 'duplicate_request_difference' => values['duplicate_request_count'] }
+    else
+      {}
+    end
+  end
+
+  def validate_batch_f_ledger_receipts(receipts, reconciliation, requirement_id, profile_id, label)
+    expected_kinds = BATCH_F_RECONCILIATION_PROFILES.fetch(profile_id).fetch(:ledgers)
+    unless receipts.is_a?(Array) && receipts.length == expected_kinds.length
+      errors << "#{label} ledger_receipts must contain exactly the applicable #{profile_id} ledgers"
+      return
+    end
+    kinds = receipts.map { |receipt| receipt['ledger_kind'] if receipt.is_a?(Hash) }
+    errors << "#{label} ledger_receipts must follow the applicable frozen ledger order" unless kinds == expected_kinds
+    digests = []
+    receipts.each_with_index do |descriptor, index|
+      prefix = "#{label} ledger_receipts[#{index}]"
+      unless descriptor.is_a?(Hash)
+        errors << "#{prefix} must be an object"
+        next
+      end
+      validate_closed_object(descriptor, %w[ledger_kind reference sha256], prefix)
+      receipt = load_structured_json_artifact(descriptor['reference'], descriptor['sha256'], prefix)
+      next unless receipt
+
+      validate_closed_object(receipt, BATCH_F_LEDGER_RECEIPT_ARTIFACT_KEYS, prefix)
+      errors << "#{prefix} artifact_type must be #{BATCH_F_LEDGER_RECEIPT_ARTIFACT_TYPE}" unless receipt['artifact_type'] == BATCH_F_LEDGER_RECEIPT_ARTIFACT_TYPE
+      errors << "#{prefix} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless receipt['schema_version'] == ARTIFACT_SCHEMA_VERSION
+      errors << "#{prefix} register_id must be #{BATCH_F_REGISTER_ID}" unless receipt['register_id'] == BATCH_F_REGISTER_ID
+      errors << "#{prefix} requirement_id/profile_id must match the reconciliation" unless receipt['requirement_id'] == requirement_id && receipt['profile_id'] == profile_id
+      errors << "#{prefix} ledger_kind must match the descriptor" unless receipt['ledger_kind'] == descriptor['ledger_kind']
+      errors << "#{prefix} must be synthetic_only" unless receipt['synthetic_only'] == true
+      %w[currency minor_unit period_start period_end period_timezone cutoff_at late_posting_policy event_count control_values idempotency_key].each do |key|
+        errors << "#{prefix} #{key} must match the reconciliation artifact" unless receipt[key] == reconciliation[key]
+      end
+      errors << "#{prefix} event_count must be positive" unless receipt['event_count'].is_a?(Integer) && receipt['event_count'] > 0
+      errors << "#{prefix} ledger_digest must be SHA-256" unless receipt['ledger_digest'].is_a?(String) && receipt['ledger_digest'].match?(/\A[0-9a-f]{64}\z/i)
+      digests << receipt['ledger_digest'] if receipt['ledger_digest'].is_a?(String)
+      errors << "#{prefix} date must be YYYY-MM-DD" unless iso_date?(receipt['date'])
+      errors << "#{prefix} author_identity must be non-placeholder" unless nonempty_string?(receipt['author_identity']) && !receipt['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+      validate_artifact_reviewer(receipt['reviewer'], receipt['author_identity'], prefix)
+    end
+    errors << "#{label} ledger receipt digests must be distinct across every applicable ledger/projection" unless digests.length == expected_kinds.length && digests.uniq.length == digests.length
+  end
+
+  def batch_f_candidate_for(label)
+    BATCH_F_CONSOLIDATION_GROUPS.find { |_candidate, members| members.include?(label) }&.first
+  end
+
+  def validate_batch_f_consolidation(control, decision, label)
+    prefix = "#{decision_register_label} #{label}: consolidation_mapping"
+    validate_closed_object(control, BATCH_F_CONSOLIDATION_KEYS, prefix)
+    return unless control.is_a?(Hash)
+
+    candidate = batch_f_candidate_for(label)
+    errors << "#{prefix} candidate_id must be #{candidate.inspect}" unless control['candidate_id'] == candidate
+    errors << "#{prefix} status must be pending, complete, or not_applicable" unless %w[pending complete not_applicable].include?(control['status'])
+    if %w[pending not_applicable].include?(control['status'])
+      %w[terminal_target_requirement_id artifact_reference artifact_sha256].each { |key| errors << "#{prefix} #{key} must be null until mapping is complete" unless control[key].nil? }
+      errors << "#{prefix} audited candidates must remain pending until mapped" if candidate && control['status'] == 'not_applicable'
+      errors << "#{prefix} non-candidates must be not_applicable" if candidate.nil? && control['status'] != 'not_applicable'
+    elsif control['status'] == 'complete'
+      errors << "#{prefix} cannot complete a non-candidate" unless candidate
+      validate_batch_f_consolidation_artifact(control, label, candidate) if candidate
+    end
+    if decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+      errors << "#{prefix} consolidation requires a complete frozen-candidate mapping" unless candidate && control['status'] == 'complete'
+    end
+  end
+
+  def validate_batch_f_consolidation_artifact(control, requirement_id, candidate)
+    artifact = load_structured_json_artifact(control['artifact_reference'], control['artifact_sha256'], "#{decision_register_label} #{requirement_id}: consolidation artifact")
+    return unless artifact
+
+    label = "#{decision_register_label} #{requirement_id}: consolidation artifact"
+    validate_closed_object(artifact, BATCH_F_CONSOLIDATION_ARTIFACT_KEYS, label)
+    errors << "#{label} artifact_type must be #{BATCH_F_CONSOLIDATION_ARTIFACT_TYPE}" unless artifact['artifact_type'] == BATCH_F_CONSOLIDATION_ARTIFACT_TYPE
+    errors << "#{label} schema_version/register_id must match Batch F" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION && artifact['register_id'] == BATCH_F_REGISTER_ID
+    errors << "#{label} candidate_id must be #{candidate}" unless artifact['candidate_id'] == candidate
+    members = BATCH_F_CONSOLIDATION_GROUPS.fetch(candidate)
+    errors << "#{label} members must exactly retain all audited IDs" unless artifact['members'] == members
+    impacts = artifact['member_impacts']
+    errors << "#{label} member_impacts must retain each ID with substantive impacts" unless impacts.is_a?(Hash) && impacts.keys == members && impacts.values.all? { |values| values.is_a?(Array) && !values.empty? && values.all? { |value| nonempty_string?(value) } }
+    mapping = BATCH_F_CONSOLIDATION_MAPPING_CONTRACTS.fetch(candidate)
+    errors << "#{label} target_requirement_id must match the shared terminal target" unless artifact['target_requirement_id'] == control['terminal_target_requirement_id']
+    target = @decision_entries.find { |entry| entry['batch'] == 'F' && entry['requirement_id'] == artifact['target_requirement_id'] }
+    target_decision = target && target['decision']
+    unless target_decision.is_a?(Hash) && target_decision['status'] == 'approve' && %w[reproduce replace].include?(target_decision['canonical_disposition'])
+      errors << "#{label} terminal target must have an approved reproduce/replace decision"
+    end
+    target_owner = target && target['accountable_owner']
+    unless target_owner.is_a?(Hash) && target_owner['appointment_status'] == 'appointed' &&
+           artifact['terminal_owner_identity'] == target_owner['identity'] && artifact['terminal_authority_domain'] == target['lead_authority_domain']
+      errors << "#{label} terminal owner identity/domain must bind the appointed target owner and lead"
+    end
+    target_approval = target && target['approval']
+    unless target_approval.is_a?(Hash) && target_approval['status'] == 'recorded' &&
+           artifact['terminal_approval_reference'] == target_approval['reference'] && artifact['terminal_approval_sha256'] == target_approval['artifact_sha256']
+      errors << "#{label} terminal approval reference and SHA-256 must bind the recorded target approval"
+    end
+    errors << "#{label} mapped_fields must exactly preserve fields, roles, contexts, versions, amounts, lineage, authorities, and audit" unless artifact['mapped_fields'] == mapping.fetch(:fields)
+    errors << "#{label} mapped_states must exactly preserve every member lifecycle state" unless artifact['mapped_states'] == mapping.fetch(:states)
+    errors << "#{label} mapped_control_totals must exactly preserve every applicable reconciliation total" unless artifact['mapped_control_totals'] == mapping.fetch(:control_totals)
+    errors << "#{label} lineage_preserved and authorities_preserved must be true" unless artifact['lineage_preserved'] == true && artifact['authorities_preserved'] == true
+    errors << "#{label} exclusions must be an array" unless artifact['exclusions'].is_a?(Array) && artifact['exclusions'].all? { |value| nonempty_string?(value) }
+    errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
+    errors << "#{label} author_identity must be non-placeholder" unless nonempty_string?(artifact['author_identity']) && !artifact['author_identity'].match?(PLACEHOLDER_OWNER_PATTERN)
+    validate_artifact_reviewer(artifact['reviewer'], artifact['author_identity'], label)
+  end
+
   def validate_batch_d_controls(entry, label)
     unless entry['capability_kind'] == BATCH_D_CAPABILITY_KINDS[label]
       errors << "#{decision_register_label} #{label}: capability_kind must be #{BATCH_D_CAPABILITY_KINDS[label]}"
@@ -1669,7 +2640,7 @@ class ParityGovernanceValidator
       %w[date source reference interpreter artifact_reference artifact_sha256].each do |key|
         errors << "#{decision_register_label} #{label}: pending evidence #{key} must be null" unless record[key].nil?
       end
-      if %w[D E].include?(@active_decision_context[:batch]) && !record['evidence_basis'].nil?
+      if %w[D E F].include?(@active_decision_context[:batch]) && !record['evidence_basis'].nil?
         errors << "#{decision_register_label} #{label}: pending evidence evidence_basis must be null"
       end
       errors << "#{decision_register_label} #{label}: pending evidence confidence must be pending" unless confidence == 'pending'
@@ -1687,6 +2658,8 @@ class ParityGovernanceValidator
     if @active_decision_context[:batch] == 'D' && !BATCH_D_EVIDENCE_BASES.include?(record['evidence_basis'])
       errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
     elsif @active_decision_context[:batch] == 'E' && !BATCH_E_EVIDENCE_BASES.include?(record['evidence_basis'])
+      errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
+    elsif @active_decision_context[:batch] == 'F' && !BATCH_F_EVIDENCE_BASES.include?(record['evidence_basis'])
       errors << "#{decision_register_label} #{label}: invalid evidence_basis #{record['evidence_basis'].inspect}"
     end
     validate_evidence_artifact(record, label, index)
@@ -1791,6 +2764,8 @@ class ParityGovernanceValidator
     detect_decision_register_consolidation_cycles(graph, register_edges)
     validate_batch_d_terminal_consolidations(entries_by_batch.fetch('D', []))
     validate_batch_e_consolidation_decisions(entries_by_batch.fetch('E', []))
+    validate_batch_f_consolidation_decisions(entries_by_batch.fetch('F', []))
+    validate_batch_f_actual_dependency_graph(entries_by_batch.fetch('F', []))
   end
 
   def validate_batch_e_consolidation_decisions(entries)
@@ -1840,6 +2815,70 @@ class ParityGovernanceValidator
         errors << "Batch E decision register candidate #{candidate}: every member must bind the same consolidation artifact and SHA-256"
       end
     end
+  end
+
+  def validate_batch_f_consolidation_decisions(entries)
+    by_id = entries.to_h { |entry| [entry['requirement_id'], entry] }
+    active_candidates = {}
+    entries.each do |entry|
+      decision = entry['decision'] if entry.is_a?(Hash)
+      next unless decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+
+      source = entry['requirement_id']
+      candidate = batch_f_candidate_for(source)
+      members = candidate && BATCH_F_CONSOLIDATION_GROUPS[candidate]
+      target = decision.dig('target', 'reference')
+      unless members && members.include?(target) && target != source
+        errors << "Batch F decision register #{source}: consolidation is allowed only inside its frozen candidate"
+        next
+      end
+      if active_candidates.key?(candidate) && active_candidates[candidate] != target
+        errors << "Batch F decision register #{source}: candidate #{candidate} cannot use conflicting terminal targets"
+      else
+        active_candidates[candidate] = target
+      end
+      target_decision = by_id.dig(target, 'decision')
+      unless target_decision.is_a?(Hash) && target_decision['status'] == 'approve' && %w[reproduce replace].include?(target_decision['canonical_disposition'])
+        errors << "Batch F decision register #{source}: terminal target #{target} must have an approved reproduce/replace decision"
+      end
+    end
+    active_candidates.each do |candidate, target|
+      members = BATCH_F_CONSOLIDATION_GROUPS.fetch(candidate)
+      coherent = members.all? do |member|
+        decision = by_id.dig(member, 'decision')
+        if member == target
+          decision.is_a?(Hash) && decision['status'] == 'approve' && %w[reproduce replace].include?(decision['canonical_disposition'])
+        else
+          decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate' && decision.dig('target', 'reference') == target
+        end
+      end
+      errors << "Batch F decision register candidate #{candidate}: every non-terminal member must resolve to the one terminal target #{target}" unless coherent
+      controls = members.map { |member| by_id.dig(member, 'consolidation_mapping') }
+      unless controls.all? { |control| control.is_a?(Hash) && control['status'] == 'complete' && control['terminal_target_requirement_id'] == target }
+        errors << "Batch F decision register candidate #{candidate}: every member must share a complete mapping to #{target}"
+        next
+      end
+      references = controls.map { |control| [control['artifact_reference'], control['artifact_sha256']] }
+      errors << "Batch F decision register candidate #{candidate}: every member must bind one shared mapping artifact and SHA-256" unless references.uniq.length == 1
+    end
+  end
+
+  def validate_batch_f_actual_dependency_graph(entries)
+    graph = {}
+    entries.each do |entry|
+      next unless entry.is_a?(Hash) && nonempty_string?(entry['requirement_id'])
+
+      source = entry['requirement_id']
+      targets = Array(entry['intra_batch_dependencies']).each_with_object([]) { |dependency, values| values << dependency['requirement_id'] if dependency.is_a?(Hash) }
+      decision = entry['decision']
+      if decision.is_a?(Hash) && %w[approve defer].include?(decision['status']) && decision['canonical_disposition'] == 'consolidate'
+        target = decision.dig('target', 'reference')
+        targets << target if EXPECTED_BATCH_F_IDS.include?(target)
+      end
+      graph[source] = targets
+    end
+    cycle = batch_f_dependency_cycle(graph)
+    errors << "Batch F decision register dependency/consolidation cycle detected: #{cycle.join(' -> ')}" if cycle
   end
 
   def validate_batch_d_terminal_consolidations(entries)
@@ -1913,6 +2952,16 @@ class ParityGovernanceValidator
     errors << "#{decision_register_label} #{label}: synthetic scenario #{name} data_class must be synthetic" unless scenario['data_class'] == 'synthetic'
     errors << "#{decision_register_label} #{label}: synthetic scenario #{name} description must be a non-empty string" unless nonempty_string?(scenario['description'])
     validate_nonempty_string_array(scenario['expected_results'], "#{decision_register_label} #{label}: synthetic scenario #{name} expected_results")
+    if @active_decision_context[:batch] == 'F'
+      validate_closed_object(scenario, BATCH_F_SCENARIO_KEYS, "#{decision_register_label} #{label}: synthetic scenario #{name}")
+      return unless BATCH_F_ROW_LIFECYCLES.key?(label)
+
+      expected = batch_f_required_scenario_contract(label, name)
+      expected.each do |key, value|
+        errors << "#{decision_register_label} #{label}: synthetic scenario #{name} #{key} must exactly match the frozen per-ID lifecycle and hazard contract" unless scenario[key] == value
+      end
+      return
+    end
     if @active_decision_context[:batch] == 'E'
       validate_closed_object(scenario, BATCH_E_SCENARIO_KEYS, "#{decision_register_label} #{label}: synthetic scenario #{name}")
       return unless batch_e_family_for(label)
@@ -1947,6 +2996,41 @@ class ParityGovernanceValidator
         errors << "#{decision_register_label} #{label}: ready synthetic scenario #{name} requires at least two substantive expected results"
       end
     end
+  end
+
+  def batch_f_required_scenario_contract(label, name)
+    lifecycle = BATCH_F_ROW_LIFECYCLES.fetch(label)
+    family = batch_f_family_for(label)
+    hazards = batch_f_row_hazards(label)
+    pre_state, normal_action, normal_post_state, normal_assertion = lifecycle
+    action, post_state, assertion, intent, expected_results = case name
+                                                            when 'normal'
+                                                              [normal_action, normal_post_state, normal_assertion,
+                                                               'execute one authorized deterministic local flow and reconcile every applicable ledger receipt',
+                                                               ["#{label} reaches #{normal_post_state} through #{normal_action} exactly once.", 'Every applicable integer minor-unit equation balances at the frozen cutoff without a projection write.']]
+                                                            when 'denial'
+                                                              ["reject_invalid_or_unauthorized_#{normal_action}", pre_state, "no_partial_state_for_#{normal_action}",
+                                                               'deny an invalid, unauthorized, duplicated, stale-version, or unsafe request before any source-ledger mutation',
+                                                               ["#{label} remains #{pre_state} and records an attributable denial.", 'No charge, bill, payment, claim, adjustment, journal, monitor, or outbound partial state is created.']]
+                                                            when 'correction_or_amendment'
+                                                              ["append_compensating_reversal_for_#{normal_action}", "#{normal_post_state}_with_linked_adjustment", 'prior_version_immutable_and_control_totals_reconciled',
+                                                               'append an attributed reversal or adjustment without editing history, including after payer, procedure, coding, or stock correction',
+                                                               ["#{label} preserves #{normal_post_state} and appends one reasoned actor-linked compensation.", 'Closed-period history remains immutable and the open-period control totals, AR, claims, and journal reconcile exactly where applicable.']]
+                                                            when 'dependency_outage'
+                                                              ["retry_#{normal_action}_after_ambiguous_ack", pre_state, 'not_sent_and_no_duplicate_event_after_idempotent_retry',
+                                                               'fail closed on dependency outage, quarantine an ambiguous acknowledgement, and apply the closed idempotency replay contract',
+                                                               ["#{label} remains #{pre_state}, NOT_SENT, with endpoint null and credentials absent.",
+                                                                'The same idempotency key with the same payload returns the same synthetic outcome without a second event.',
+                                                                'The same idempotency key with a different payload is rejected as a conflict before any mutation.',
+                                                                'An ambiguous acknowledgement is quarantined until reconciliation proves the prior attempt outcome.',
+                                                                'Recovery creates no duplicate charge, receipt, claim version, reversal, settlement, journal, monitor row, or outbound request.']]
+                                                            end
+    hazard_digest = Digest::SHA256.hexdigest(hazards.join('|'))
+    {
+      'description' => "For #{label} in family #{family}, #{intent}; assert #{assertion} from #{pre_state} to #{post_state} under the frozen ledger and hazard policy.",
+      'expected_results' => expected_results,
+      'contract_ref' => "#{label}:#{name}:#{pre_state}->#{action}->#{post_state}:#{hazard_digest}"
+    }
   end
 
   def batch_e_required_scenario_contract(label, name)
@@ -2216,6 +3300,24 @@ class ParityGovernanceValidator
         errors << "#{decision_register_label} #{label}: approval requires a complete synthetic cross-ledger reconciliation receipt"
       end
     end
+    if @active_decision_context[:batch] == 'F'
+      substantive = evidence.is_a?(Array) && evidence.any? do |record|
+        record.is_a?(Hash) && %w[O M I].include?(record['evidence_class']) && %w[behavioral_execution signed_finance_policy reconciled_ledger integration_sandbox_result].include?(record['evidence_basis'])
+      end
+      errors << "#{decision_register_label} #{label}: G0 requires behavioral, policy, reconciled-ledger, or sandbox O/M/I evidence; structural capture alone cannot prove finance or claim behavior" unless substantive
+      gates = entry['dependency_gates']
+      unless gates.is_a?(Array) && !gates.empty? && gates.all? { |gate| gate.is_a?(Hash) && %w[resolved deferred].include?(gate['status']) }
+        errors << "#{decision_register_label} #{label}: G0 requires every applicability-specific upstream and forward dependency gate resolved or validly authority-deferred"
+      end
+      dependencies = entry['intra_batch_dependencies']
+      unless dependencies.is_a?(Array) && dependencies.all? { |dependency| dependency.is_a?(Hash) && dependency['status'] == 'resolved' }
+        errors << "#{decision_register_label} #{label}: G0 requires every intra-Batch-F dependency resolved against an approved target"
+      end
+      reconciliation = entry['reconciliation_contract']
+      if decision_status == 'approve' && !(reconciliation.is_a?(Hash) && reconciliation['status'] == 'complete')
+        errors << "#{decision_register_label} #{label}: approval requires a complete applicability-specific integer minor-unit reconciliation"
+      end
+    end
   end
 
   def validate_governance_artifact(reference:, expected_sha256:, label:, requirement_id:, subject:, record:, decision: nil)
@@ -2263,7 +3365,7 @@ class ParityGovernanceValidator
     artifact = load_structured_json_artifact(record['artifact_reference'], record['artifact_sha256'], label)
     return unless artifact
 
-    expected_keys = %w[D E].include?(@active_decision_context[:batch]) ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
+    expected_keys = %w[D E F].include?(@active_decision_context[:batch]) ? BATCH_D_EVIDENCE_ARTIFACT_KEYS : EVIDENCE_ARTIFACT_KEYS
     validate_closed_object(artifact, expected_keys, label)
     errors << "#{label} artifact_type must be #{EVIDENCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == EVIDENCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
@@ -2272,7 +3374,7 @@ class ParityGovernanceValidator
     %w[evidence_class date source reference interpreter confidence].each do |key|
       errors << "#{label} #{key} does not match the register" unless artifact[key] == record[key]
     end
-    if %w[D E].include?(@active_decision_context[:batch])
+    if %w[D E F].include?(@active_decision_context[:batch])
       errors << "#{label} evidence_basis does not match the register" unless artifact['evidence_basis'] == record['evidence_basis']
     end
     validate_artifact_reviewer(artifact['reviewer'], artifact['interpreter'], label)
@@ -2971,6 +4073,7 @@ if $PROGRAM_NAME == __FILE__
     batch_c_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json',
     batch_d_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json',
     batch_e_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json',
+    batch_f_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -2985,6 +4088,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--batch-c-decision-register PATH', 'Batch C G0 decision register JSON path') { |value| options[:batch_c_decision_register] = value }
     opts.on('--batch-d-decision-register PATH', 'Batch D G0 decision register JSON path') { |value| options[:batch_d_decision_register] = value }
     opts.on('--batch-e-decision-register PATH', 'Batch E G0 decision register JSON path') { |value| options[:batch_e_decision_register] = value }
+    opts.on('--batch-f-decision-register PATH', 'Batch F G0 decision register JSON path') { |value| options[:batch_f_decision_register] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -3005,6 +4109,7 @@ if $PROGRAM_NAME == __FILE__
     batch_c_decision_register_path: options[:batch_c_decision_register],
     batch_d_decision_register_path: options[:batch_d_decision_register],
     batch_e_decision_register_path: options[:batch_e_decision_register],
+    batch_f_decision_register_path: options[:batch_f_decision_register],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )
