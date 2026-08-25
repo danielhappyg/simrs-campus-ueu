@@ -101,11 +101,73 @@ class ParityGovernanceValidator
     PAR-REG-005
   ].freeze
 
+  EXPECTED_BATCH_C_IDS = %w[
+    PAR-ADM-004
+    PAR-ADM-021
+    PAR-ADM-026
+    PAR-ADM-027
+    PAR-ADM-028
+    PAR-ADM-034
+    PAR-ADM-036
+    PAR-ADM-046
+    PAR-CLN-001
+    PAR-CLN-002
+    PAR-CLN-003
+    PAR-CLN-004
+    PAR-CLN-005
+    PAR-CLN-019
+    PAR-RMIK-001
+    PAR-RMIK-002
+    PAR-RMIK-004
+    PAR-RMIK-006
+    PAR-RMIK-007
+  ].freeze
+
   BATCH_A_REGISTER_SCHEMA_VERSION = 1
   BATCH_A_REGISTER_ID = 'G0-BATCH-A-2026-08-25'
   BATCH_A_EVIDENCE_DIRECTORY = 'G0_BATCH_A_DECISION_EVIDENCE_2026-08-25'
   BATCH_B_REGISTER_ID = 'G0-BATCH-B-2026-08-25'
   BATCH_B_EVIDENCE_DIRECTORY = 'G0_BATCH_B_DECISION_EVIDENCE_2026-08-25'
+  BATCH_C_REGISTER_ID = 'G0-BATCH-C-2026-08-25'
+  BATCH_C_EVIDENCE_DIRECTORY = 'G0_BATCH_C_DECISION_EVIDENCE_2026-08-25'
+  DECISION_REGISTER_CONFIGS = {
+    'A' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('A'), expected_ids: EXPECTED_BATCH_A_IDS, register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }.freeze,
+    'B' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('B'), expected_ids: EXPECTED_BATCH_B_IDS, register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }.freeze,
+    'C' => { expected_count: EXPECTED_BATCH_COUNTS.fetch('C'), expected_ids: EXPECTED_BATCH_C_IDS, register_id: BATCH_C_REGISTER_ID, evidence_directory: BATCH_C_EVIDENCE_DIRECTORY }.freeze
+  }.transform_values(&:freeze).freeze
+  BATCH_C_REQUIRED_AUTHORITIES = {
+    'PAR-ADM-004' => %w[product_delivery clinical_governance rmik quality_analytics security_privacy_data],
+    'PAR-ADM-021' => %w[product_delivery inpatient_clinical nursing_governance rmik coding_claims reporting security_privacy_data],
+    'PAR-ADM-026' => %w[product_delivery clinical_governance rmik quality_analytics security_privacy_data],
+    'PAR-ADM-027' => %w[product_delivery clinical_governance rmik security_privacy_data],
+    'PAR-ADM-028' => %w[product_delivery clinical_governance rmik data_migration security_privacy_data],
+    'PAR-ADM-034' => %w[product_delivery nursing_governance clinical_governance rmik reporting security_privacy_data],
+    'PAR-ADM-036' => %w[product_delivery dental_clinical clinical_governance rmik security_privacy_data],
+    'PAR-ADM-046' => %w[product_delivery clinical_operations biomedical_equipment inventory_supply rmik security_privacy_data],
+    'PAR-CLN-001' => %w[product_delivery clinical_governance outpatient_clinical rmik data_migration security_privacy_data],
+    'PAR-CLN-002' => %w[product_delivery emergency_clinical nursing_governance patient_flow rmik security_privacy_data],
+    'PAR-CLN-003' => %w[product_delivery emergency_clinical nursing_governance orders_results rmik finance_claims security_privacy_data],
+    'PAR-CLN-004' => %w[product_delivery outpatient_clinical nursing_governance orders_results rmik coding_claims security_privacy_data],
+    'PAR-CLN-005' => %w[product_delivery inpatient_clinical nursing_governance orders_results rmik facility_bed_management coding_claims security_privacy_data],
+    'PAR-CLN-019' => %w[product_delivery inpatient_clinical nursing_governance rmik data_migration security_privacy_data],
+    'PAR-RMIK-001' => %w[product_delivery rmik outpatient_clinical coding_claims record_custody security_privacy_data],
+    'PAR-RMIK-002' => %w[product_delivery rmik inpatient_clinical nursing_governance coding_claims record_custody security_privacy_data],
+    'PAR-RMIK-004' => %w[product_delivery rmik record_custody clinical_access legal_retention security_privacy_data],
+    'PAR-RMIK-006' => %w[product_delivery rmik outpatient_clinical clinical_governance data_migration security_privacy_data],
+    'PAR-RMIK-007' => %w[product_delivery rmik inpatient_clinical nursing_governance clinical_governance data_migration security_privacy_data]
+  }.transform_values(&:freeze).freeze
+  BATCH_C_LEAD_AUTHORITIES = {
+    'PAR-ADM-004' => 'clinical_governance', 'PAR-ADM-021' => 'rmik',
+    'PAR-ADM-026' => 'clinical_governance', 'PAR-ADM-027' => 'clinical_governance',
+    'PAR-ADM-028' => 'clinical_governance', 'PAR-ADM-034' => 'nursing_governance',
+    'PAR-ADM-036' => 'dental_clinical', 'PAR-ADM-046' => 'biomedical_equipment',
+    'PAR-CLN-001' => 'clinical_governance', 'PAR-CLN-002' => 'emergency_clinical',
+    'PAR-CLN-003' => 'emergency_clinical', 'PAR-CLN-004' => 'outpatient_clinical',
+    'PAR-CLN-005' => 'inpatient_clinical', 'PAR-CLN-019' => 'inpatient_clinical',
+    'PAR-RMIK-001' => 'rmik', 'PAR-RMIK-002' => 'rmik', 'PAR-RMIK-004' => 'rmik',
+    'PAR-RMIK-006' => 'rmik', 'PAR-RMIK-007' => 'rmik'
+  }.freeze
+  BATCH_C_SCENARIO_NAMES = %w[normal denial correction_or_amendment dependency_outage].freeze
   GOVERNANCE_ARTIFACT_TYPE = 'g0_parity_governance_attestation'
   EVIDENCE_ARTIFACT_TYPE = 'g0_parity_evidence'
   ARTIFACT_SCHEMA_VERSION = 1
@@ -121,10 +183,11 @@ class ParityGovernanceValidator
   VERIFICATION_METHODS = %w[detached_signature institutional_registry signed_document_review].freeze
   REVIEWER_KEYS = %w[identity verification_method verification_reference].freeze
   GOVERNANCE_ARTIFACT_KEYS = {
-    'accountable_owner' => %w[artifact_type schema_version register_id requirement_id subject identity scope date reviewer],
+    'accountable_owner' => %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date reviewer],
     'appointment_dependency' => %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date reviewer],
     'approval' => %w[artifact_type schema_version register_id requirement_id subject identity scope date decision_status canonical_disposition conditions reviewer]
   }.freeze
+  BATCH_C_APPROVAL_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id subject identity authority_domain scope date decision_status canonical_disposition conditions reviewer].freeze
   EVIDENCE_ARTIFACT_KEYS = %w[artifact_type schema_version register_id requirement_id evidence_class date source reference interpreter confidence reviewer].freeze
 
   PAR_ID_PATTERN = /\APAR-[A-Z0-9]+-\d{3}\z/.freeze
@@ -134,15 +197,19 @@ class ParityGovernanceValidator
 
   attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
     @batch_manifest_path = File.expand_path(batch_manifest_path)
-    @decision_register_paths = {
+    supplied_register_paths = {
       'A' => File.expand_path(decision_register_path),
-      'B' => File.expand_path(batch_b_decision_register_path)
+      'B' => File.expand_path(batch_b_decision_register_path),
+      'C' => File.expand_path(batch_c_decision_register_path)
     }
+    @decision_register_paths = DECISION_REGISTER_CONFIGS.keys.to_h do |batch|
+      [batch, supplied_register_paths.fetch(batch)]
+    end
     @mode = mode
     @batch_assignments = {}
     @decision_entries = []
@@ -160,10 +227,7 @@ class ParityGovernanceValidator
 
     baseline = load_baseline
     manifest = load_batch_manifest
-    decision_registers = {
-      'A' => load_decision_register('A'),
-      'B' => load_decision_register('B')
-    }
+    decision_registers = DECISION_REGISTER_CONFIGS.keys.to_h { |batch| [batch, load_decision_register(batch)] }
     parse_matrix
     parse_release_index
 
@@ -266,14 +330,7 @@ class ParityGovernanceValidator
   end
 
   def decision_register_config(batch)
-    case batch
-    when 'A'
-      { register_id: BATCH_A_REGISTER_ID, evidence_directory: BATCH_A_EVIDENCE_DIRECTORY }
-    when 'B'
-      { register_id: BATCH_B_REGISTER_ID, evidence_directory: BATCH_B_EVIDENCE_DIRECTORY }
-    else
-      raise ArgumentError, "unsupported decision-register batch #{batch.inspect}"
-    end
+    DECISION_REGISTER_CONFIGS.fetch(batch)
   end
 
   def decision_register_label
@@ -334,6 +391,7 @@ class ParityGovernanceValidator
     entries = register['entries']
     unless entries.is_a?(Array)
       errors << "#{prefix}: entries must be an array"
+      errors << "#{prefix}: expected exactly #{config[:expected_count]} entries, got 0"
       return []
     end
     valid_entries = entries.select { |entry| entry.is_a?(Hash) }
@@ -358,8 +416,8 @@ class ParityGovernanceValidator
     unknown = string_ids - expected_ids
     errors << "#{prefix}: missing Batch #{batch} requirement IDs: #{missing.sort.join(', ')}" unless missing.empty?
     errors << "#{prefix}: unknown Batch #{batch} requirement IDs: #{unknown.sort.join(', ')}" unless unknown.empty?
-    if entries.length != EXPECTED_BATCH_COUNTS[batch]
-      errors << "#{prefix}: expected exactly #{EXPECTED_BATCH_COUNTS[batch]} entries, got #{entries.length}"
+    if entries.length != config[:expected_count]
+      errors << "#{prefix}: expected exactly #{config[:expected_count]} entries, got #{entries.length}"
     end
     if entries.length == expected_ids.length && actual_ids != expected_ids
       errors << "#{prefix}: entries must follow the canonical Batch #{batch} manifest order"
@@ -414,20 +472,53 @@ class ParityGovernanceValidator
     validate_nonempty_string_array(entry['affected_domains'], "#{decision_register_label} #{label}: affected_domains")
     validate_nonempty_string_array(entry['co_owners'], "#{decision_register_label} #{label}: co_owners")
     validate_nonempty_string_array(entry['downstream_impacts'], "#{decision_register_label} #{label}: downstream_impacts")
+    validate_batch_c_authorities(entry, label) if @active_decision_context[:batch] == 'C'
 
     scenarios = entry['synthetic_scenarios']
     if !scenarios.is_a?(Hash)
       errors << "#{decision_register_label} #{label}: synthetic_scenarios must be an object"
     else
-      validate_decision_scenario(scenarios['normal'], label, 'normal')
-      validate_decision_scenario(scenarios['denial_or_correction'], label, 'denial_or_correction')
+      scenario_names = @active_decision_context[:batch] == 'C' ? BATCH_C_SCENARIO_NAMES : %w[normal denial_or_correction]
+      if @active_decision_context[:batch] == 'C' && scenarios.keys.sort != scenario_names.sort
+        errors << "#{decision_register_label} #{label}: synthetic_scenarios must contain exactly #{scenario_names.join(', ')}"
+      end
+      scenario_names.each { |name| validate_decision_scenario(scenarios[name], label, name) }
     end
 
     validate_accountable_owner(entry['accountable_owner'], label)
     validate_appointment_dependencies(entry['appointment_dependencies'], entry['co_owners'], label)
-    validate_decision_approval(entry['approval'], label, decision)
+    validate_decision_approval(
+      entry['approval'],
+      label,
+      decision,
+      accountable_owner: entry['accountable_owner'],
+      lead_authority_domain: entry['lead_authority_domain']
+    )
 
     validate_decision_g0_resolution(entry, label) if @mode == 'g0'
+  end
+
+  def validate_batch_c_authorities(entry, label)
+    expected_authorities = BATCH_C_REQUIRED_AUTHORITIES[label]
+    expected_lead = BATCH_C_LEAD_AUTHORITIES[label]
+    unless expected_authorities && expected_lead
+      errors << "#{decision_register_label} #{label}: required authority policy is missing"
+      return
+    end
+    unless expected_authorities.include?(expected_lead) && expected_lead != 'product_delivery'
+      errors << "#{decision_register_label} #{label}: required authority policy must bind a non-product lead included in co_owners"
+    end
+
+    unless entry['co_owners'] == expected_authorities
+      errors << "#{decision_register_label} #{label}: co_owners must exactly match required authorities #{expected_authorities.inspect}"
+    end
+    unless entry['lead_authority_domain'] == expected_lead
+      errors << "#{decision_register_label} #{label}: lead_authority_domain must be #{expected_lead}"
+    end
+    owner = entry['accountable_owner']
+    unless owner.is_a?(Hash) && owner['authority_domain'] == expected_lead
+      errors << "#{decision_register_label} #{label}: accountable owner authority_domain must match lead authority #{expected_lead}"
+    end
   end
 
   def validate_decision_evidence(record, label, index)
@@ -621,7 +712,7 @@ class ParityGovernanceValidator
         errors << "#{decision_register_label} #{label}: pending accountable owner #{key} must be null" unless owner[key].nil?
       end
     elsif status == 'appointed'
-      %w[identity appointed_scope appointment_reference].each do |key|
+      %w[identity authority_domain appointed_scope appointment_reference].each do |key|
         errors << "#{decision_register_label} #{label}: appointed accountable owner #{key} must be a non-empty string" unless nonempty_string?(owner[key])
       end
       if nonempty_string?(owner['identity']) && owner['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
@@ -696,7 +787,7 @@ class ParityGovernanceValidator
     end
   end
 
-  def validate_decision_approval(approval, label, decision)
+  def validate_decision_approval(approval, label, decision, accountable_owner:, lead_authority_domain:)
     unless approval.is_a?(Hash)
       errors << "#{decision_register_label} #{label}: approval must be an object"
       return
@@ -709,7 +800,9 @@ class ParityGovernanceValidator
     end
 
     if status == 'pending'
-      %w[identity scope date reference artifact_sha256].each do |key|
+      pending_keys = %w[identity scope date reference artifact_sha256]
+      pending_keys << 'authority_domain' if @active_decision_context[:batch] == 'C'
+      pending_keys.each do |key|
         errors << "#{decision_register_label} #{label}: pending approval #{key} must be null" unless approval[key].nil?
       end
       errors << "#{decision_register_label} #{label}: pending approval conditions must be empty" unless approval['conditions'] == []
@@ -725,6 +818,22 @@ class ParityGovernanceValidator
     errors << "#{decision_register_label} #{label}: approval identity must be a non-empty string" unless nonempty_string?(approval['identity'])
     if nonempty_string?(approval['identity']) && approval['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
       errors << "#{decision_register_label} #{label}: approval identity must not be a placeholder"
+    end
+    if @active_decision_context[:batch] == 'C'
+      unless nonempty_string?(approval['authority_domain'])
+        errors << "#{decision_register_label} #{label}: approval authority_domain must be a non-empty string"
+      end
+      unless approval['authority_domain'] == lead_authority_domain
+        errors << "#{decision_register_label} #{label}: approval authority_domain must match lead authority #{lead_authority_domain}"
+      end
+      owner_identity = accountable_owner['identity'] if accountable_owner.is_a?(Hash)
+      unless nonempty_string?(owner_identity) && approval['identity'] == owner_identity
+        errors << "#{decision_register_label} #{label}: approval identity must exactly match the appointed accountable owner"
+      end
+      owner_status = accountable_owner['appointment_status'] if accountable_owner.is_a?(Hash)
+      unless owner_status == 'appointed'
+        errors << "#{decision_register_label} #{label}: recorded approval requires an appointed accountable owner"
+      end
     end
     errors << "#{decision_register_label} #{label}: approval scope must be a non-empty string" unless nonempty_string?(approval['scope'])
     errors << "#{decision_register_label} #{label}: approval date must be YYYY-MM-DD" unless iso_date?(approval['date'])
@@ -765,8 +874,10 @@ class ParityGovernanceValidator
       errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires a recorded approval"
     end
     scenarios = entry['synthetic_scenarios']
-    unless scenarios.is_a?(Hash) && %w[normal denial_or_correction].all? { |name| scenarios[name].is_a?(Hash) && scenarios[name]['status'] == 'ready' }
-      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires ready normal and denial/correction scenarios"
+    scenario_names = @active_decision_context[:batch] == 'C' ? BATCH_C_SCENARIO_NAMES : %w[normal denial_or_correction]
+    unless scenarios.is_a?(Hash) && scenario_names.all? { |name| scenarios[name].is_a?(Hash) && scenarios[name]['status'] == 'ready' }
+      scenario_description = @active_decision_context[:batch] == 'C' ? scenario_names.join(', ') : 'normal and denial/correction'
+      errors << "#{decision_register_label} #{label}: G0-approved/deferred entry requires ready #{scenario_description} scenarios"
     end
   end
 
@@ -774,7 +885,11 @@ class ParityGovernanceValidator
     artifact = load_structured_json_artifact(reference, expected_sha256, label)
     return unless artifact
 
-    expected_keys = GOVERNANCE_ARTIFACT_KEYS.fetch(subject)
+    expected_keys = if subject == 'approval' && @active_decision_context[:batch] == 'C'
+                      BATCH_C_APPROVAL_ARTIFACT_KEYS
+                    else
+                      GOVERNANCE_ARTIFACT_KEYS.fetch(subject)
+                    end
     validate_closed_object(artifact, expected_keys, label)
     errors << "#{label} artifact_type must be #{GOVERNANCE_ARTIFACT_TYPE}" unless artifact['artifact_type'] == GOVERNANCE_ARTIFACT_TYPE
     errors << "#{label} schema_version must be #{ARTIFACT_SCHEMA_VERSION}" unless artifact['schema_version'] == ARTIFACT_SCHEMA_VERSION
@@ -785,6 +900,7 @@ class ParityGovernanceValidator
 
     case subject
     when 'accountable_owner'
+      errors << "#{label} authority_domain does not match the register" unless artifact['authority_domain'] == record['authority_domain']
       errors << "#{label} scope does not match appointed_scope" unless artifact['scope'] == record['appointed_scope']
       errors << "#{label} date does not match appointment_date" unless artifact['date'] == record['appointment_date']
     when 'appointment_dependency'
@@ -792,6 +908,9 @@ class ParityGovernanceValidator
       errors << "#{label} scope does not match required_scope" unless artifact['scope'] == record['required_scope']
       errors << "#{label} date does not match the appointment date" unless artifact['date'] == record['date']
     when 'approval'
+      if @active_decision_context[:batch] == 'C'
+        errors << "#{label} authority_domain does not match the register" unless artifact['authority_domain'] == record['authority_domain']
+      end
       errors << "#{label} scope does not match the register" unless artifact['scope'] == record['scope']
       errors << "#{label} date does not match the approval date" unless artifact['date'] == record['date']
       errors << "#{label} decision_status does not match the register decision" unless decision.is_a?(Hash) && artifact['decision_status'] == decision['status']
@@ -997,10 +1116,8 @@ class ParityGovernanceValidator
     assignment_count = occurrences.values.map(&:length).inject(0, :+)
     errors << "batch manifest: expected exactly 268 assignments, got #{assignment_count}" if assignment_count != 268
 
-    {
-      'A' => EXPECTED_BATCH_A_IDS,
-      'B' => EXPECTED_BATCH_B_IDS
-    }.each do |batch, expected_exact_ids|
+    DECISION_REGISTER_CONFIGS.each do |batch, config|
+      expected_exact_ids = config[:expected_ids]
       actual_ids = batches[batch].is_a?(Array) ? batches[batch].sort : []
       missing_from_batch = expected_exact_ids - actual_ids
       unexpected_in_batch = actual_ids - expected_exact_ids
@@ -1501,6 +1618,7 @@ if $PROGRAM_NAME == __FILE__
     batch_manifest: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json',
     decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json',
     batch_b_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json',
+    batch_c_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json',
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -1512,6 +1630,7 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--batch-manifest PATH', 'deterministic G0 batch manifest JSON path') { |value| options[:batch_manifest] = value }
     opts.on('--decision-register PATH', 'Batch A G0 decision register JSON path') { |value| options[:decision_register] = value }
     opts.on('--batch-b-decision-register PATH', 'Batch B G0 decision register JSON path') { |value| options[:batch_b_decision_register] = value }
+    opts.on('--batch-c-decision-register PATH', 'Batch C G0 decision register JSON path') { |value| options[:batch_c_decision_register] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -1529,6 +1648,7 @@ if $PROGRAM_NAME == __FILE__
     batch_manifest_path: options[:batch_manifest],
     decision_register_path: options[:decision_register],
     batch_b_decision_register_path: options[:batch_b_decision_register],
+    batch_c_decision_register_path: options[:batch_c_decision_register],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )
