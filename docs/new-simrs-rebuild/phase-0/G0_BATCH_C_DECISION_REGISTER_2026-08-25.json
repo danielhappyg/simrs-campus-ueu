@@ -1,0 +1,470 @@
+{
+  "schema_version": 1,
+  "register_id": "G0-BATCH-C-2026-08-25",
+  "batch": "C",
+  "register_status": "pending",
+  "data_boundary": "synthetic_only",
+  "external_integrations": "disabled",
+  "source_manifest": "docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json",
+  "evidence_directory": "G0_BATCH_C_DECISION_EVIDENCE_2026-08-25",
+  "purpose": "Fail-closed decision register for the exact nineteen Batch C core-care and RMIK requirements. Matrix dispositions and local teaching behavior are candidates only; this register claims no authoritative evidence, appointment, approval, equivalence or parity acceptance.",
+  "entries": [
+    {
+      "requirement_id": "PAR-ADM-004", "batch": "C", "legacy_menu": "Ref Clinical Pathway", "lead_authority_domain": "clinical_governance",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritatively reviewed clinical-pathway reference evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["clinical_governance", "care_documentation", "rmik", "analytics", "security_privacy"],
+      "co_owners": ["product_delivery", "clinical_governance", "rmik", "quality_analytics", "security_privacy_data"],
+      "downstream_impacts": ["pathway_versioning", "clinical_prompts", "documentation_completeness", "quality_measurement", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Publish a versioned synthetic pathway reference and associate it with an eligible synthetic encounter without auto-authoring clinical facts.", "expected_results": ["Only the effective pathway version is offered for the approved encounter context.", "Selection is attributable and leaves clinical documentation, RMIK completeness and quality measures reconcilable."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt wrong-role publication and use of a retired pathway version.", "expected_results": ["Unauthorized or retired-version actions are denied without changing the encounter.", "No pathway association or downstream measure is partially created."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous synthetic pathway association after recording an explicit reason.", "expected_results": ["The prior association, reason, actor and time remain immutable.", "The corrected association and downstream measures reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Make the documentation or quality-measure dependency unavailable during pathway association and retry after recovery.", "expected_results": ["The operation fails closed without a partial association or derived measure.", "Retry is idempotent, attributable and produces one reconciled result."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "clinical_governance", "required_scope": "Approve pathway lifecycle, eligibility, clinical-use boundary, correction and RMIK/quality consequences.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical disposition and bounded synthetic scope.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Pathway content, version, eligibility and clinical-use rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Documentation attribution and completeness effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "quality_analytics", "required_scope": "Measure definition and recalculation effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Publication authorization, audit and data boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-021", "batch": "C", "legacy_menu": "Kelengkapan RI", "lead_authority_domain": "rmik",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative inpatient-completeness rule evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["inpatient_clinical", "nursing", "rmik", "coding_claims", "reporting"],
+      "co_owners": ["product_delivery", "inpatient_clinical", "nursing_governance", "rmik", "coding_claims", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["record_completeness", "discharge_readiness", "coding_queue", "claim_readiness", "deficiency_reports"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Evaluate a synthetic inpatient record containing the owner-approved required document set at a defined episode state.", "expected_results": ["The checklist reports each rule and evidence source deterministically.", "A complete result is attributable and reconciles with discharge, coding and claim-readiness queues."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Evaluate a synthetic inpatient record with missing, late or superseded required documents.", "expected_results": ["Closure or completeness sign-off is blocked while an applicable requirement is unmet.", "No coding or claim-ready transition is partially recorded."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct a wrongly classified synthetic inpatient deficiency with an attributable reason.", "expected_results": ["The original assessment and reviewer decision remain immutable.", "Completeness, coding and claim queues refresh exactly once from the corrected state."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt document retrieval or coding-queue reconciliation during completeness review and retry after recovery.", "expected_results": ["Review/sign-off fails closed without a partial closure transition.", "Retry is idempotent and yields one reconciled checklist and queue state."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "rmik", "required_scope": "Approve inpatient completeness rules, effective states, exceptions, correction and downstream closure/coding/claim effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical completeness-control disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Clinical document and episode-state applicability.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing-document completeness rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Deficiency review, sign-off and correction workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "coding_claims", "required_scope": "Coding and claim-readiness consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Completeness and deficiency control totals.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Review, sign-off, sensitive-record access and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-026", "batch": "C", "legacy_menu": "Instrumen", "lead_authority_domain": "clinical_governance",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative clinical-instrument definition and scoring evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["clinical_governance", "care_documentation", "rmik", "analytics"],
+      "co_owners": ["product_delivery", "clinical_governance", "rmik", "quality_analytics", "security_privacy_data"],
+      "downstream_impacts": ["instrument_versioning", "scoring", "clinical_documents", "quality_reports", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Complete an effective version of a synthetic clinical instrument with boundary-valued responses.", "expected_results": ["Required items and score calculation follow the selected immutable version.", "Responses, derived result, author and encounter attribution remain traceable."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Submit missing or out-of-range responses and attempt use of a retired instrument version.", "expected_results": ["Invalid or retired-instrument submission is denied.", "No partial response set or derived clinical score is stored."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous synthetic instrument response under an authorized amendment path.", "expected_results": ["The original responses and score remain immutable and attributable.", "A new version recalculates the score and reports exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt scoring or document persistence while submitting a completed synthetic instrument.", "expected_results": ["Submission fails closed without a partial result or score.", "Retry after recovery is idempotent and produces one attributable version."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "clinical_governance", "required_scope": "Approve instrument content, scoring, version lifecycle, correction and documentation/reporting effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical instrument-master disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Instrument content, scoring and clinical interpretation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Document version, author and record-retention rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "quality_analytics", "required_scope": "Derived score and report semantics.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Publication access and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-027", "batch": "C", "legacy_menu": "DOC EMR", "lead_authority_domain": "clinical_governance",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative DOC EMR template and lifecycle evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["clinical_documentation", "rmik", "clinical_governance", "security_privacy"],
+      "co_owners": ["product_delivery", "clinical_governance", "rmik", "security_privacy_data"],
+      "downstream_impacts": ["template_versioning", "authorship", "required_fields", "amendment_history", "completeness_review"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Use an effective synthetic DOC EMR template to draft, finalize and retrieve an attributable encounter document.", "expected_results": ["Required fields and allowed roles follow the immutable template version.", "Final content and metadata are readable by RMIK completeness review without overwriting prior versions."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt unauthorized DOC EMR finalization and submit missing required fields.", "expected_results": ["Unauthorized or incomplete finalization is denied.", "No final record or completeness transition is produced."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Amend a finalized synthetic DOC EMR document with an authorized reason and signer.", "expected_results": ["The original version, author and signature remain immutable.", "The amended version and completeness consequences reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt document-version storage or RMIK indexing during finalization.", "expected_results": ["Finalization fails closed without a partial final/index state.", "Retry after recovery is idempotent and creates one final version and index event."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "clinical_governance", "required_scope": "Approve DOC EMR template fields, roles, draft/final/amend lifecycle and RMIK completeness effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical document-template disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Clinical field, authorship and finalization rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Version retention, completeness and retrieval rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Role, signing, audit and sensitive-data boundaries.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-028", "batch": "C", "legacy_menu": "DOC EMR 2", "lead_authority_domain": "clinical_governance",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative DOC EMR 2 differences and consolidation evidence are pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["clinical_documentation", "rmik", "clinical_governance", "data_migration"],
+      "co_owners": ["product_delivery", "clinical_governance", "rmik", "data_migration", "security_privacy_data"],
+      "downstream_impacts": ["template_mapping", "document_versions", "legacy_links", "completeness_review", "migration_trace"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map representative synthetic DOC EMR 2 fields and lifecycle states to a proposed canonical document model.", "expected_results": ["Every field, rule and state is mapped, explicitly excluded or left unresolved for decision.", "A future approved consolidation would preserve authorship, version and encounter attribution without duplicate documents."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Present an unmapped DOC EMR 2 rule and invoke a retired deep link.", "expected_results": ["Unmapped behavior blocks consolidation.", "The retired path cannot create or mutate a clinical record."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous DOC EMR 2 template mapping with reviewed before-and-after evidence.", "expected_results": ["The original mapping and reviewer trail remain immutable.", "The corrected mapping reconciles document versions and RMIK completeness exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt migration mapping or canonical document persistence during a synthetic conversion.", "expected_results": ["Conversion fails closed without a partial canonical document.", "Retry is idempotent and produces one migration trace and document result."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "clinical_governance", "required_scope": "Approve DOC EMR 2 disposition only after field/rule/state mapping, exclusions, migration and retention review.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical consolidation or separate-capability decision.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Clinical field and workflow equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Document identity, versions, completeness and retention.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "data_migration", "required_scope": "Mapping, traceability, idempotency and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Role, deep-link retirement and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-034", "batch": "C", "legacy_menu": "Diag Keperawatan", "lead_authority_domain": "nursing_governance",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative nursing-diagnosis terminology and governance evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["nursing", "clinical_documentation", "rmik", "reporting"],
+      "co_owners": ["product_delivery", "nursing_governance", "clinical_governance", "rmik", "reporting", "security_privacy_data"],
+      "downstream_impacts": ["nursing_plan", "terminology_version", "care_documentation", "completeness", "nursing_reports"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Select an active versioned synthetic nursing diagnosis in an eligible nursing assessment and care plan.", "expected_results": ["The selected code, label and version remain linked to the author and encounter.", "Care-plan, RMIK completeness and report views use the same diagnosis identity."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt inactive nursing terminology use and wrong-role master editing.", "expected_results": ["Inactive and unauthorized actions are denied.", "The care plan and reports remain unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous synthetic nursing-diagnosis selection with an authorized reason.", "expected_results": ["The prior selection, author and terminology version remain immutable.", "Care-plan documentation and reports reconcile to the corrected selection exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt terminology resolution or care-plan persistence during diagnosis selection.", "expected_results": ["Selection fails closed without partial care-plan state.", "Retry is idempotent and yields one diagnosis selection and report event."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "nursing_governance", "required_scope": "Approve nursing-diagnosis terminology, lifecycle, use roles, correction and documentation/reporting effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical terminology-master disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Diagnosis terminology and care-plan usage.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Cross-disciplinary clinical meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Record identity, version and completeness effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "reporting", "required_scope": "Nursing diagnosis report semantics.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Terminology publication, clinical access and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-036", "batch": "C", "legacy_menu": "Odontogram", "lead_authority_domain": "dental_clinical",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative odontogram notation, version and clinical-use evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["dental_clinical", "clinical_documentation", "rmik", "security_privacy"],
+      "co_owners": ["product_delivery", "dental_clinical", "clinical_governance", "rmik", "security_privacy_data"],
+      "downstream_impacts": ["tooth_notation", "dental_findings", "treatment_plan", "document_versions", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Record synthetic dental findings against an owner-approved tooth notation and finalize an attributable odontogram version.", "expected_results": ["Tooth positions, surfaces, symbols and meanings are stored without ambiguity.", "The finalized version is retrievable in the encounter record and preserves author/time attribution."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Submit an invalid tooth/surface combination and attempt wrong-role odontogram finalization.", "expected_results": ["Invalid or unauthorized changes are denied.", "No partial odontogram or treatment-plan effect is stored."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Amend a finalized synthetic dental finding with an authorized reason.", "expected_results": ["The prior graphic/data version and signer remain immutable.", "The amendment and treatment-plan effects reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt graphic/data persistence or RMIK indexing during odontogram finalization.", "expected_results": ["Finalization fails closed without divergent graphic and structured data.", "Retry is idempotent and produces one version and index event."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "dental_clinical", "required_scope": "Approve odontogram notation, validation, authoring, final/amend lifecycle and RMIK retention.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical odontogram disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "dental_clinical", "required_scope": "Notation, validation and treatment-plan meaning.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Clinical-document lifecycle boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Version, retention, retrieval and completeness.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Authoring role and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-ADM-046", "batch": "C", "legacy_menu": "Alat Medis", "lead_authority_domain": "biomedical_equipment",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative medical-device master and care-use evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["clinical_operations", "biomedical_equipment", "care_documentation", "inventory", "security_privacy"],
+      "co_owners": ["product_delivery", "clinical_operations", "biomedical_equipment", "inventory_supply", "rmik", "security_privacy_data"],
+      "downstream_impacts": ["device_availability", "maintenance_status", "encounter_use", "traceability", "safety_audit"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Activate a synthetic medical-device record with serviceability status and associate permitted use with a synthetic encounter.", "expected_results": ["Only an available and serviceable device can be selected for the approved unit/context.", "Use is attributable and reconciles device status, encounter documentation and trace history."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt use of retired, quarantined or maintenance-due synthetic equipment.", "expected_results": ["Unsafe or unauthorized use is denied.", "Device availability and encounter state remain unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous synthetic encounter-device association with an authorized reason.", "expected_results": ["The original association and actor remain immutable.", "Device availability and encounter histories reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt biomedical status or inventory reconciliation during device assignment.", "expected_results": ["Assignment fails closed without partial custody or encounter use.", "Retry is idempotent and produces one reconciled assignment event."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "biomedical_equipment", "required_scope": "Approve device identity, status, care-use, correction and clinical/inventory/RMIK traceability.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical device-master disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_operations", "required_scope": "Permitted care context and use outcome.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "biomedical_equipment", "required_scope": "Device identity, serviceability and maintenance state.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inventory_supply", "required_scope": "Availability and custody reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Encounter-use record and correction trace.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Role and device-use audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-CLN-001", "batch": "C", "legacy_menu": "Assesmen", "lead_authority_domain": "clinical_governance",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "The matrix consolidation candidate lacks authoritative assessment-equivalence evidence and approval." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["clinical_assessment", "outpatient_clinical", "rmik", "clinical_governance"],
+      "co_owners": ["product_delivery", "clinical_governance", "outpatient_clinical", "rmik", "data_migration", "security_privacy_data"],
+      "downstream_impacts": ["assessment_fields", "document_lifecycle", "clinical_handoff", "completeness", "legacy_links"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map representative synthetic Assesmen fields, roles and states to the proposed PAR-CLN-004 outpatient examination document.", "expected_results": ["Every field and state is mapped, excluded or unresolved without silently losing clinical meaning.", "A future approved consolidation produces one attributable assessment/document chain and one RMIK completeness outcome."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Present an unmapped assessment rule and invoke a retired Assesmen path.", "expected_results": ["Unresolved clinical meaning blocks consolidation.", "The retired path cannot author clinical data."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous assessment-to-document field mapping with reviewed evidence.", "expected_results": ["The original mapping and review trail remain immutable.", "The corrected mapping refreshes document and completeness results exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt canonical document persistence or RMIK completeness evaluation during mapped assessment submission.", "expected_results": ["Submission fails closed without a partial canonical record.", "Retry is idempotent and produces one document and completeness result."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "clinical_governance", "required_scope": "Approve assessment consolidation only after field, role, state, exclusion, migration and clinical/RMIK equivalence review.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical consolidation decision.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Assessment content and safety equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "outpatient_clinical", "required_scope": "Outpatient authoring workflow and outcomes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Document identity, completeness and retention.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "data_migration", "required_scope": "Mapping, trace and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Roles, retired links and audit.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-CLN-002", "batch": "C", "legacy_menu": "Triage", "lead_authority_domain": "emergency_clinical",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative triage scale, rules and clinical-owner evidence are pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["emergency_clinical", "nursing", "patient_flow", "rmik", "security_privacy"],
+      "co_owners": ["product_delivery", "emergency_clinical", "nursing_governance", "patient_flow", "rmik", "security_privacy_data"],
+      "downstream_impacts": ["acuity", "queue_priority", "clinical_handoff", "timestamps", "emergency_register"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Record owner-approved synthetic triage inputs and acuity for an open synthetic emergency encounter.", "expected_results": ["The configured scale version, inputs, acuity, author and time are attributable.", "Queue priority, ED handoff, RMIK record and emergency report reflect the same triage event."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Submit missing mandatory observations and attempt wrong-role triage.", "expected_results": ["Invalid or unauthorized triage is denied.", "Clinical priority, queue and record state remain unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct a misclassified synthetic acuity with an authorized reason and time.", "expected_results": ["The prior acuity, author and time remain immutable.", "Queue priority and emergency record reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt queue or emergency-record persistence during triage finalization.", "expected_results": ["Finalization fails closed without divergent acuity and queue state.", "Retry is idempotent and produces one triage and priority event."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "emergency_clinical", "required_scope": "Approve triage scale, required inputs, roles, priority effect, correction and emergency/RMIK outcomes.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical triage disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "emergency_clinical", "required_scope": "Scale, inputs and clinical outcome.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Triage authoring role and observations.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "patient_flow", "required_scope": "Queue-priority effect and reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Emergency record and correction history.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Clinical role and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-CLN-003", "batch": "C", "legacy_menu": "IGD", "lead_authority_domain": "emergency_clinical",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Observed and local ED behavior has not been normalized into authoritative examination evidence." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["emergency_clinical", "nursing", "orders_results", "rmik", "finance_claims"],
+      "co_owners": ["product_delivery", "emergency_clinical", "nursing_governance", "orders_results", "rmik", "finance_claims", "security_privacy_data"],
+      "downstream_impacts": ["ed_documentation", "orders", "disposition", "rm_completeness", "charges_claims", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Open a synthetic ED encounter, author required examination content and record an owner-approved disposition path.", "expected_results": ["One attributable versioned ED examination is linked to the correct encounter.", "Permitted orders, disposition, RMIK completeness and simulated financial state reconcile without inventing clinical rules."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt wrong-role ED access and incomplete examination finalization.", "expected_results": ["Unauthorized or incomplete finalization is denied.", "No order, disposition or financial transition is partially recorded."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Amend a finalized synthetic ED examination or correct its disposition with authorization.", "expected_results": ["All prior versions, actors and reasons remain immutable.", "Orders, disposition, RMIK and simulated charges reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt order, disposition or RMIK persistence during ED finalization.", "expected_results": ["Finalization fails closed without a partial downstream transition.", "Retry is idempotent and yields one reconciled ED state."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "emergency_clinical", "required_scope": "Approve ED examination fields, roles, lifecycle, disposition/correction and order/RMIK/finance effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical ED examination disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "emergency_clinical", "required_scope": "Examination and disposition rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing contribution and handoff rules.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "orders_results", "required_scope": "Order eligibility and lifecycle effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Document version and completeness.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "finance_claims", "required_scope": "Simulated charge and claim consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Clinical role and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-CLN-004", "batch": "C", "legacy_menu": "Rawat Jalan", "lead_authority_domain": "outpatient_clinical",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Local structured-document behavior and historical UAT are not authoritative owner-reviewed parity evidence." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["outpatient_clinical", "nursing", "orders_results", "rmik", "coding_claims"],
+      "co_owners": ["product_delivery", "outpatient_clinical", "nursing_governance", "orders_results", "rmik", "coding_claims", "security_privacy_data"],
+      "downstream_impacts": ["outpatient_documentation", "orders_results", "diagnosis_procedure", "rm_completeness", "coding_claims"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Author, finalize and retrieve an owner-approved structured outpatient note for a synthetic encounter.", "expected_results": ["Required fields, author roles and immutable versions follow the approved document contract.", "Orders/results, diagnosis/procedure context, RMIK completeness and coding readiness reconcile to the same encounter."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt cross-encounter access and incomplete outpatient-note finalization.", "expected_results": ["Unauthorized or incomplete actions are denied.", "No order, RMIK or coding state is partially changed."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Amend a finalized synthetic outpatient note with an authorized reason and signer.", "expected_results": ["The original version and signature remain immutable.", "RMIK completeness and coding consequences refresh exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt order/result, RMIK or coding reconciliation during outpatient finalization.", "expected_results": ["Finalization fails closed without divergent downstream state.", "Retry is idempotent and yields one reconciled outpatient document state."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "outpatient_clinical", "required_scope": "Approve outpatient documentation fields, roles, lifecycle, amendments and order/RMIK/coding consequences.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical outpatient clinical disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "outpatient_clinical", "required_scope": "Clinical fields, authorship and outcomes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing documentation boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "orders_results", "required_scope": "Order/result linkage and correction effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Version, completeness, retrieval and closure.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "coding_claims", "required_scope": "Diagnosis/procedure and claim-readiness effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Encounter access, signing and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-CLN-005", "batch": "C", "legacy_menu": "Rawat Inap", "lead_authority_domain": "inpatient_clinical",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Observed/local inpatient examination behavior lacks authoritative lifecycle and parity review." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["inpatient_clinical", "nursing", "orders_results", "rmik", "facility_bed", "coding_claims"],
+      "co_owners": ["product_delivery", "inpatient_clinical", "nursing_governance", "orders_results", "rmik", "facility_bed_management", "coding_claims", "security_privacy_data"],
+      "downstream_impacts": ["inpatient_documentation", "orders_results", "transfer_discharge", "rm_completeness", "bed_state", "coding_claims"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Author longitudinal synthetic inpatient examination entries through an approved active-stay workflow and prepare discharge handoff.", "expected_results": ["Entries are attributable, versioned and tied to the correct stay and location interval.", "Orders/results, transfer/discharge, bed, RMIK completeness and coding readiness reconcile."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt documentation on a closed or wrong stay and an incomplete discharge transition.", "expected_results": ["Invalid actions are denied.", "The stay remains open and capacity/downstream state is unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct a finalized synthetic inpatient entry or location context with authorization.", "expected_results": ["Prior clinical and location versions remain immutable.", "Clinical, bed, RMIK and coding state updates exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt bed, order or RMIK reconciliation during inpatient finalization or discharge.", "expected_results": ["The transition fails closed without releasing capacity or closing the record.", "Retry is idempotent and yields one reconciled stay transition."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "inpatient_clinical", "required_scope": "Approve inpatient examination, longitudinal versions, transfer/discharge, correction and all bed/RMIK/coding effects.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical inpatient clinical disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Examination, transfer and discharge outcomes.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing longitudinal documentation and handoff.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "orders_results", "required_scope": "Order/result lifecycle effects.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Version, completeness, retention and closure.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "facility_bed_management", "required_scope": "Location and bed-state consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "coding_claims", "required_scope": "Coding and claim-readiness consequences.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Stay access, signing and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-CLN-019", "batch": "C", "legacy_menu": "Rawat Inap v2", "lead_authority_domain": "inpatient_clinical",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "The matrix consolidation candidate lacks authoritative v2-to-canonical equivalence evidence." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["inpatient_clinical", "nursing", "rmik", "data_migration", "security_privacy"],
+      "co_owners": ["product_delivery", "inpatient_clinical", "nursing_governance", "rmik", "data_migration", "security_privacy_data"],
+      "downstream_impacts": ["workflow_consolidation", "document_mapping", "stay_history", "completeness", "legacy_links", "migration_trace"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map representative synthetic Rawat Inap v2 fields, states and posts to proposed PAR-CLN-005 canonical behavior.", "expected_results": ["Every field, rule and state is mapped, excluded or unresolved with no silent clinical loss.", "A future approved consolidation creates one longitudinal stay record and retained migration trace."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Present conflicting Rawat Inap v2 behavior and invoke a retired route.", "expected_results": ["Conflict blocks consolidation.", "The retired route cannot author clinical data."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous v2-to-canonical field/state mapping with reviewed evidence.", "expected_results": ["The original mapping and evidence remain immutable.", "RMIK completeness and stay history reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt mapping or canonical stay-document persistence during a synthetic conversion.", "expected_results": ["Conversion fails closed without a partial clinical record.", "Retry is idempotent and produces one migration trace and stay result."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "inpatient_clinical", "required_scope": "Approve consolidation only after complete clinical/nursing/RMIK field, state, migration and retirement review.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical consolidation decision.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Clinical field and state equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing workflow equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Document identity, completeness and retention.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "data_migration", "required_scope": "Mapping, idempotency, trace and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Retired route, access and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-RMIK-001", "batch": "C", "legacy_menu": "Rawat Jalan", "lead_authority_domain": "rmik",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Local completeness/sign-off behavior and historical UAT lack authoritative RMIK parity approval." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["rmik", "outpatient_clinical", "coding_claims", "record_custody", "security_privacy"],
+      "co_owners": ["product_delivery", "rmik", "outpatient_clinical", "coding_claims", "record_custody", "security_privacy_data"],
+      "downstream_impacts": ["outpatient_record", "completeness_review", "signoff", "coding_queue", "closed_record_retrieval", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Review a synthetic outpatient record against approved completeness rules, sign it off and retrieve the closed read-only record.", "expected_results": ["Checklist evidence, reviewer, decision, time and document versions are attributable.", "Sign-off, coding readiness and closed retrieval reconcile without changing clinical source content."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt outpatient RM sign-off with a deficiency and wrong-role reopening.", "expected_results": ["Invalid sign-off or reopening is denied.", "Record, closure and coding state remain unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous synthetic outpatient completeness classification with authorization.", "expected_results": ["The original review and decision remain immutable.", "Closure, coding queue and audit state reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt document retrieval, coding queue or custody indexing during sign-off.", "expected_results": ["Sign-off fails closed without partial closure.", "Retry is idempotent and yields one review, closure and queue transition."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "rmik", "required_scope": "Approve outpatient RM aggregation, completeness, sign-off, reopening/correction, custody and coding consequences.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical outpatient RM disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Completeness, sign-off and correction workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "outpatient_clinical", "required_scope": "Source-document meaning and amendment boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "coding_claims", "required_scope": "Coding and claim-readiness transition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "record_custody", "required_scope": "Closed-record retrieval and custody.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Review, sign-off, reopening and audit access.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-RMIK-002", "batch": "C", "legacy_menu": "Rawat Inap", "lead_authority_domain": "rmik",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative inpatient RM workflow, completeness and custody evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["rmik", "inpatient_clinical", "nursing", "coding_claims", "record_custody"],
+      "co_owners": ["product_delivery", "rmik", "inpatient_clinical", "nursing_governance", "coding_claims", "record_custody", "security_privacy_data"],
+      "downstream_impacts": ["inpatient_record", "longitudinal_completeness", "discharge_signoff", "coding_queue", "custody", "audit_history"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Assemble a synthetic inpatient episode record across care days, review approved completeness rules and perform attributable discharge-record sign-off.", "expected_results": ["All applicable clinical/nursing documents and versions resolve to one stay and checklist.", "Sign-off, coding readiness, custody and retrieval state reconcile with discharge."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt premature inpatient RM sign-off with a required document missing.", "expected_results": ["Premature or incomplete sign-off is denied.", "The record remains open and coding/custody state is unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous synthetic deficiency or stay-document association with authorization.", "expected_results": ["The prior review and association remain immutable.", "Completeness, coding and custody state reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt longitudinal document retrieval, coding or custody indexing during inpatient sign-off.", "expected_results": ["Sign-off fails closed without partial closure.", "Retry is idempotent and yields one review, closure and queue transition."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "rmik", "required_scope": "Approve inpatient record assembly, longitudinal completeness, discharge sign-off, correction, coding and custody outcomes.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical inpatient RM disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Assembly, completeness, sign-off and correction.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Clinical-document applicability and discharge boundary.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing-document applicability.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "coding_claims", "required_scope": "Coding and claim-readiness transition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "record_custody", "required_scope": "Closed-record custody and retrieval.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Review, closure, reopening and audit roles.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-RMIK-004", "batch": "C", "legacy_menu": "Filing", "lead_authority_domain": "rmik",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "Authoritative filing, custody, movement and retention evidence is pending." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["rmik", "record_custody", "retention", "clinical_access", "security_privacy"],
+      "co_owners": ["product_delivery", "rmik", "record_custody", "clinical_access", "legal_retention", "security_privacy_data"],
+      "downstream_impacts": ["record_location", "borrow_return", "retention_disposition", "authorized_retrieval", "traceability"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Assign a synthetic record to a filing location, loan it to an authorized synthetic role and return it with attributable custody events.", "expected_results": ["Current location and complete movement history reconcile at every step.", "Authorized clinical retrieval respects custody, purpose and retention state."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Attempt duplicate filing checkout, unauthorized retrieval and unauthorized retention action.", "expected_results": ["Conflicting or unauthorized actions are denied.", "Current location and custody state remain unchanged."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct a misfiled synthetic record location with an authorized reason.", "expected_results": ["The original location and movement evidence remain immutable.", "Current custody and filing control totals reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt custody-index or retrieval-audit persistence during checkout or return.", "expected_results": ["The movement fails closed without divergent location and custody state.", "Retry is idempotent and produces one movement and audit event."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "rmik", "required_scope": "Approve filing identity, location, movement, access, retention, correction and custody audit outcomes.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical filing disposition.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "Record identity and filing workflow.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "record_custody", "required_scope": "Location, loan, return and reconciliation.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_access", "required_scope": "Permitted retrieval purpose and availability.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "legal_retention", "required_scope": "Retention and disposition authority.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "Access, disclosure and custody audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-RMIK-006", "batch": "C", "legacy_menu": "EMR IPP RAWAT JALAN", "lead_authority_domain": "rmik",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "The multi-target matrix consolidation candidate lacks authoritative mapping and approval." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["rmik", "outpatient_clinical", "clinical_documentation", "data_migration", "security_privacy"],
+      "co_owners": ["product_delivery", "rmik", "outpatient_clinical", "clinical_governance", "data_migration", "security_privacy_data"],
+      "downstream_impacts": ["emr_view_consolidation", "document_mapping", "completeness", "legacy_links", "migration_trace"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map a representative synthetic EMR IPP outpatient record to proposed PAR-RMIK-001 custody/review and PAR-CLN-004 clinical-document boundaries.", "expected_results": ["Every field, document, role and state has one explicit canonical owner or unresolved decision.", "A future approved design presents one record view without duplicate clinical source documents or completeness events."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Present ambiguous outpatient EMR ownership and invoke a retired view.", "expected_results": ["Ambiguity blocks consolidation.", "The retired view cannot mutate clinical or RMIK records."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous outpatient cross-target mapping with reviewed evidence.", "expected_results": ["The original mapping and review trail remain immutable.", "Clinical versions and RMIK completeness reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt clinical-document or RMIK-view persistence during a mapped outpatient operation.", "expected_results": ["The operation fails closed without duplicate or partial records.", "Retry is idempotent and produces one clinical and RM result."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "rmik", "required_scope": "Approve consolidation target boundaries only after complete clinical/RMIK mapping, exclusions, migration and view retirement.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical target-boundary decision.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "RM view, completeness and custody ownership.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "outpatient_clinical", "required_scope": "Clinical document and workflow ownership.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Clinical meaning and safety equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "data_migration", "required_scope": "Mapping, trace and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "View access, retired path and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    },
+    {
+      "requirement_id": "PAR-RMIK-007", "batch": "C", "legacy_menu": "EMR IPP RAWAT INAP", "lead_authority_domain": "rmik",
+      "evidence": [{ "evidence_class": "P", "date": null, "source": null, "reference": null, "interpreter": null, "confidence": "pending", "note": "The multi-target inpatient EMR consolidation candidate lacks authoritative mapping and approval." }],
+      "decision": { "status": "pending", "canonical_disposition": "pending", "target": { "kind": "pending", "reference": null, "exclusions": [] }, "rationale": null },
+      "affected_domains": ["rmik", "inpatient_clinical", "nursing", "data_migration", "security_privacy"],
+      "co_owners": ["product_delivery", "rmik", "inpatient_clinical", "nursing_governance", "clinical_governance", "data_migration", "security_privacy_data"],
+      "downstream_impacts": ["inpatient_emr_view", "longitudinal_document_mapping", "completeness", "legacy_links", "migration_trace"],
+      "synthetic_scenarios": {
+        "normal": { "status": "draft", "data_class": "synthetic", "description": "Map a longitudinal synthetic EMR IPP inpatient record to proposed PAR-RMIK-002 custody/review and PAR-CLN-005 clinical-document boundaries.", "expected_results": ["Each field, document, role and stay state has one explicit canonical owner or unresolved decision.", "A future approved design presents one stay record without duplicate clinical entries or completeness events."] },
+        "denial": { "status": "draft", "data_class": "synthetic", "description": "Present conflicting shared-post behavior and invoke a retired inpatient EMR path.", "expected_results": ["Conflict blocks consolidation.", "The retired path cannot mutate the stay record."] },
+        "correction_or_amendment": { "status": "draft", "data_class": "synthetic", "description": "Correct an erroneous inpatient cross-target mapping with reviewed evidence.", "expected_results": ["The original mapping and review trail remain immutable.", "Longitudinal versions and RMIK completeness reconcile exactly once."] },
+        "dependency_outage": { "status": "draft", "data_class": "synthetic", "description": "Interrupt clinical-document or RMIK-view persistence during a mapped inpatient operation.", "expected_results": ["The operation fails closed without duplicate or partial stay records.", "Retry is idempotent and produces one longitudinal clinical and RM result."] }
+      },
+      "accountable_owner": { "identity": null, "authority_domain": "rmik", "required_scope": "Approve inpatient consolidation boundaries only after clinical/nursing/RMIK mapping, exclusions, migration and route retirement.", "appointed_scope": null, "appointment_status": "pending", "appointment_date": null, "appointment_reference": null, "artifact_sha256": null },
+      "appointment_dependencies": [
+        { "authority_domain": "product_delivery", "required_scope": "Canonical target-boundary decision.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "rmik", "required_scope": "RM view, completeness and custody ownership.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "inpatient_clinical", "required_scope": "Clinical document and stay-workflow ownership.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "nursing_governance", "required_scope": "Nursing longitudinal-document ownership.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "clinical_governance", "required_scope": "Clinical meaning and safety equivalence.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "data_migration", "required_scope": "Mapping, trace and rollback.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null },
+        { "authority_domain": "security_privacy_data", "required_scope": "View access, retired path and audit controls.", "status": "pending", "identity": null, "date": null, "reference": null, "artifact_sha256": null }
+      ],
+      "approval": { "status": "pending", "identity": null, "authority_domain": null, "date": null, "reference": null, "artifact_sha256": null, "conditions": [] }
+    }
+  ]
+}
