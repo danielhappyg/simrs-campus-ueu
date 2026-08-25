@@ -67,4 +67,27 @@ class AuditWritePathArchitectureTest extends TestCase
             $this->assertStringContainsString('abort_if($event === null, 503', $contents);
         }
     }
+
+    public function test_application_does_not_offer_a_user_hard_delete_path(): void
+    {
+        $forbiddenPatterns = [
+            'User::destroy(',
+            'User::query()->delete(',
+            'User::query()->forceDelete(',
+            '$user->delete(',
+            '$user->forceDelete(',
+            "DB::table('users')",
+            'DB::table("users")',
+        ];
+
+        foreach (Finder::create()->files()->in(app_path())->name('*.php') as $file) {
+            foreach ($forbiddenPatterns as $pattern) {
+                $this->assertStringNotContainsString(
+                    $pattern,
+                    $file->getContents(),
+                    "Forbidden user deletion path found in {$file->getRelativePathname()}.",
+                );
+            }
+        }
+    }
 }

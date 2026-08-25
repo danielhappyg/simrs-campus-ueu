@@ -33,15 +33,12 @@ class AuditRecorder
         try {
             $correlationId = $this->correlationId($request);
             $userAgent = $includeRequestFingerprint ? $this->hashUserAgent($request) : null;
-
-            if ($actor !== null && (! $actor->exists || $actor->getKey() === null)) {
-                throw new InvalidAuditEvent('Audit actor must be a persisted user.');
-            }
+            $attribution = app(AuditActorAttribution::class)->forRecording($action, $actor);
 
             return AuditEvent::query()->create([
                 'id' => (string) Str::ulid(),
                 'recorded_at' => now(),
-                'actor_user_id' => $actor?->getKey(),
+                ...$attribution,
                 'action' => $action,
                 'resource_type' => $resourceType,
                 'resource_id' => $resourceId,

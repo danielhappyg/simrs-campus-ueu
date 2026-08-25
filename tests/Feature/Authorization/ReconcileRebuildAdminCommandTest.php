@@ -4,6 +4,7 @@ namespace Tests\Feature\Authorization;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
@@ -80,6 +81,9 @@ class ReconcileRebuildAdminCommandTest extends TestCase
 
         $this->assertSame('user', $event->resource_type);
         $this->assertSame($target->public_id, $event->resource_id);
+        $this->assertNull($event->actor_user_id);
+        $this->assertSame(AuditActorAttribution::TYPE_SERVICE, $event->actor_type);
+        $this->assertSame(AuditActorAttribution::REBUILD_ADMIN_SERVICE, $event->actor_reference);
         $this->assertSame('SUCCESS', $event->outcome);
         $this->assertSame('Resolve privileged role drift before the wider teaching pilot', $event->reason);
         $this->assertSame([

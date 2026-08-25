@@ -14,6 +14,9 @@ use LogicException;
  * Append-only audit row for the clean-slate rebuild foundation.
  *
  * @property string $id
+ * @property int|null $actor_user_id
+ * @property string|null $actor_type
+ * @property string|null $actor_reference
  * @property string $action
  * @property string $resource_type
  * @property string|null $resource_id
@@ -36,6 +39,8 @@ class AuditEvent extends Model
         'id',
         'recorded_at',
         'actor_user_id',
+        'actor_type',
+        'actor_reference',
         'action',
         'resource_type',
         'resource_id',
@@ -57,6 +62,8 @@ class AuditEvent extends Model
             $metadata = $event->metadata ?? [];
 
             $action = self::requiredString($event->action, 'action');
+            $actorType = self::requiredString($event->getAttribute('actor_type'), 'actor_type');
+            $actorReference = self::requiredString($event->getAttribute('actor_reference'), 'actor_reference');
             $resourceType = self::requiredString($event->resource_type, 'resource_type');
             $resourceId = self::nullableString($event->resource_id, 'resource_id');
             $outcome = self::requiredString($event->outcome, 'outcome');
@@ -67,8 +74,16 @@ class AuditEvent extends Model
 
             $safeDataGuard = app(AuditSafeDataGuard::class);
             $safeDataGuard->assertSafeMetadata($metadata);
+            $safeDataGuard->assertSafeText($actorReference, 'actor_reference');
             $safeDataGuard->assertSafeText($resourceId, 'resource_id');
             $safeDataGuard->assertSafeText($reason, 'reason');
+
+            app(AuditActorAttribution::class)->assertValid(
+                action: $action,
+                actorUserId: $event->actor_user_id,
+                actorType: $actorType,
+                actorReference: $actorReference,
+            );
 
             app(AuditEventSchemaRegistry::class)->assertAllows(
                 action: $action,
