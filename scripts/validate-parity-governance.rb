@@ -1557,7 +1557,7 @@ class ParityGovernanceValidator
   end
 
   def owner_parse_json(source)
-    JSON.parse(source, object_class: DuplicateKeyHash)
+    JSON.parse(source, object_class: DuplicateKeyHash, allow_duplicate_key: false)
   end
 
   def owner_canonical_value(value)

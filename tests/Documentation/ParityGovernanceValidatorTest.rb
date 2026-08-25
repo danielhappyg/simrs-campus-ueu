@@ -2859,6 +2859,11 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_equal '{"a":"\\u00e9","t":"2026-08-24T18:02:03Z","z":1}', canonical
     assert_equal '0ed7c5524e4b4fe1694023316b6457c830050fc76c027c046ce4cae8370a5e0f', Digest::SHA256.hexdigest(owner_test_signature_message('decision_vote', canonical))
     assert_raises(JSON::ParserError) { ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"a":1,"a":2}') }
+    assert_raises(JSON::ParserError) { ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"outer":{"a":1,"a":2}}') }
+    assert_raises(JSON::ParserError) { ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"items":[{"a":1,"a":2}]}') }
+    assert_raises(JSON::ParserError) { ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"a":1,"\\u0061":2}') }
+    assert_equal({ 'left' => { 'a' => 1 }, 'right' => { 'a' => 2 } }, ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"left":{"a":1},"right":{"a":2}}'))
+    assert_equal({ 'text' => '"a":1,"a":2' }, ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"text":"\\"a\\":1,\\"a\\":2"}'))
     assert_raises(ArgumentError) { owner_test_canonical('amount' => 1.5) }
   end
 
