@@ -19,6 +19,10 @@ class ParityGovernanceValidatorTest < Minitest::Test
   SOURCE_BATCH_E_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_F_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json')
   SOURCE_BATCH_G_DECISION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json')
+  SOURCE_INSTITUTIONAL_IDENTITY_KEY_REGISTRY = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json')
+  SOURCE_OWNER_AUTHORITY_POLICY = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json')
+  SOURCE_OWNER_APPOINTMENT_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json')
+  SOURCE_DECISION_SESSION_REGISTER = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_DECISION_SESSION_REGISTER_2026-08-25.json')
   SOURCE_RELEASE_INDEX = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md')
 
   def setup
@@ -33,6 +37,10 @@ class ParityGovernanceValidatorTest < Minitest::Test
     @batch_e_decision_register = File.join(@tmpdir, 'batch-e-decision-register.json')
     @batch_f_decision_register = File.join(@tmpdir, 'batch-f-decision-register.json')
     @batch_g_decision_register = File.join(@tmpdir, 'batch-g-decision-register.json')
+    @institutional_identity_key_registry = File.join(@tmpdir, 'G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json')
+    @owner_authority_policy = File.join(@tmpdir, 'G0_OWNER_AUTHORITY_POLICY_2026-08-25.json')
+    @owner_appointment_register = File.join(@tmpdir, 'G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json')
+    @decision_session_register = File.join(@tmpdir, 'G0_DECISION_SESSION_REGISTER_2026-08-25.json')
     @release_index = File.join(@tmpdir, 'release-index.md')
     FileUtils.cp(SOURCE_MATRIX, @matrix)
     FileUtils.cp(SOURCE_BASELINE, @baseline)
@@ -44,6 +52,11 @@ class ParityGovernanceValidatorTest < Minitest::Test
     FileUtils.cp(SOURCE_BATCH_E_DECISION_REGISTER, @batch_e_decision_register)
     FileUtils.cp(SOURCE_BATCH_F_DECISION_REGISTER, @batch_f_decision_register)
     FileUtils.cp(SOURCE_BATCH_G_DECISION_REGISTER, @batch_g_decision_register)
+    FileUtils.cp(SOURCE_INSTITUTIONAL_IDENTITY_KEY_REGISTRY, @institutional_identity_key_registry)
+    FileUtils.cp(SOURCE_OWNER_AUTHORITY_POLICY, @owner_authority_policy)
+    FileUtils.cp(SOURCE_OWNER_APPOINTMENT_REGISTER, @owner_appointment_register)
+    FileUtils.cp(SOURCE_DECISION_SESSION_REGISTER, @decision_session_register)
+    FileUtils.mkdir_p(File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY))
     FileUtils.cp(SOURCE_RELEASE_INDEX, @release_index)
   end
 
@@ -2827,6 +2840,1048 @@ class ParityGovernanceValidatorTest < Minitest::Test
     assert_error validator, 'gate must record Gx PASS'
   end
 
+  def test_owner_policy_has_exact_268_closed_applicability_rows_and_empty_registers
+    validator = fixture_validator
+
+    assert validator.validate, validator.errors.join("\n")
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    appointments = JSON.parse(File.read(@owner_appointment_register))
+    sessions = JSON.parse(File.read(@decision_session_register))
+    assert_equal 268, policy.fetch('requirement_policies').length
+    assert_equal [], appointments.fetch('appointments')
+    assert_equal [], appointments.fetch('events')
+    assert_equal [], sessions.fetch('sessions')
+  end
+
+  def test_owner_canonical_json_has_a_stable_golden_vector_and_rejects_duplicate_keys
+    canonical = owner_test_canonical('z' => 1, 'a' => "e\u0301", 't' => '2026-08-25T01:02:03+07:00')
+
+    assert_equal '{"a":"\\u00e9","t":"2026-08-24T18:02:03Z","z":1}', canonical
+    assert_equal '0ed7c5524e4b4fe1694023316b6457c830050fc76c027c046ce4cae8370a5e0f', Digest::SHA256.hexdigest(owner_test_signature_message('decision_vote', canonical))
+    assert_raises(JSON::ParserError) { ParityGovernanceValidator.allocate.send(:owner_parse_json, '{"a":1,"a":2}') }
+    assert_raises(ArgumentError) { owner_test_canonical('amount' => 1.5) }
+  end
+
+  def test_owner_terminal_session_requires_pinned_active_trust_root_and_approved_policy
+    prepare_valid_owner_session_fixture
+
+    missing_pin = fixture_validator(refresh_owner: false, trusted_identity_root_sha256: nil)
+    refute missing_pin.validate
+    assert_error missing_pin, 'terminal sessions require a cryptographically approved authority policy and independently pinned trust root'
+
+    wrong_pin = fixture_validator(refresh_owner: false, trusted_identity_root_sha256: 'f' * 64)
+    refute wrong_pin.validate
+    assert_error wrong_pin, 'independently supplied trust-root SHA is required for approval'
+  end
+
+  def test_owner_vote_rejects_forged_wrong_key_purpose_and_post_signature_payload_mutation
+    prepare_valid_owner_session_fixture
+    original = File.read(@decision_session_register)
+    variants = {
+      forged: lambda { |vote| vote['signature'] = Base64.strict_encode64('forged-signature') },
+      wrong_key: lambda { |vote| vote['key_id'] = owner_test_key_id('UEU-PERSON-ROOT-1') },
+      wrong_subject: lambda { |vote| vote['subject_institutional_id'] = 'UEU-PERSON-SEAT-20' },
+      wrong_purpose: lambda { |vote| vote['purpose'] = 'registry_review' },
+      changed_payload: lambda { |vote| vote['recusal_reason'] = 'Added after the signer consented.' }
+    }
+    variants.each do |_name, mutation|
+      File.write(@decision_session_register, original)
+      mutate_decision_session_register do |register|
+        session = register['sessions'].first
+        mutation.call(session['decisions'].first['votes'].first)
+        reseal_owner_session_only(session)
+      end
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+    end
+  end
+
+  def test_owner_policy_signature_envelopes_reject_timestamp_only_mutation
+    prepare_valid_owner_session_fixture
+    policy_bytes = File.read(@owner_authority_policy)
+    appointments_bytes = File.read(@owner_appointment_register)
+    sessions_bytes = File.read(@decision_session_register)
+    policy = JSON.parse(policy_bytes)
+    artifact_path = File.join(@tmpdir, policy.fetch('approval').fetch('reference'))
+    artifact_bytes = File.read(artifact_path)
+    [['signed_at', '2026-08-25T07:05:00+07:00'], ['reviewer.verified_at', '2026-08-25T07:31:00+07:00']].each do |field, value|
+      File.write(@owner_authority_policy, policy_bytes)
+      File.write(@owner_appointment_register, appointments_bytes)
+      File.write(@decision_session_register, sessions_bytes)
+      artifact = JSON.parse(artifact_bytes)
+      field == 'signed_at' ? artifact['signed_at'] = value : artifact['reviewer']['verified_at'] = value
+      File.write(artifact_path, JSON.pretty_generate(artifact) + "\n")
+      mutated_policy = JSON.parse(policy_bytes)
+      mutated_policy['approval']['artifact_sha256'] = Digest::SHA256.file(artifact_path).hexdigest
+      File.write(@owner_authority_policy, JSON.pretty_generate(mutated_policy) + "\n")
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+    end
+  end
+
+  def test_owner_appointment_envelopes_reject_acceptance_issuer_and_reviewer_timestamp_mutation
+    prepare_valid_owner_session_fixture
+    appointment_bytes = File.read(@owner_appointment_register)
+    variants = [
+      ['acceptance', 'signed_at', '2026-08-25T08:11:00+07:00'],
+      ['issuer_signature', 'signed_at', '2026-08-25T08:16:00+07:00'],
+      ['registry_receipt', 'verified_at', '2026-08-25T08:31:00+07:00']
+    ]
+    variants.each do |container, field, value|
+      File.write(@owner_appointment_register, appointment_bytes)
+      mutate_owner_appointment_register { |register| register['appointments'].first[container][field] = value }
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+    end
+  end
+
+  def test_owner_registry_root_envelope_rejects_timestamp_only_mutation
+    prepare_valid_owner_session_fixture
+    mutate_owner_key_registry do |registry|
+      registry['registry_root']['signatures'].first['signed_at'] = '2026-08-25T06:06:00Z'
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+  end
+
+  def test_owner_lifecycle_vote_and_session_receipt_envelopes_reject_timestamp_only_mutation
+    prepare_valid_owner_session_fixture
+    appointment = JSON.parse(File.read(@owner_appointment_register)).fetch('appointments').first
+    mutate_owner_appointment_register { |register| register['events'] << valid_owner_event(appointment, 'suspended', '2026-08-25T12:00:00+07:00') }
+    reseal_owner_session_appointment_bindings(appointment['appointment_id'])
+    appointment_bytes = File.read(@owner_appointment_register)
+    session_bytes = File.read(@decision_session_register)
+    variants = %i[lifecycle vote session_receipt]
+    variants.each do |variant|
+      File.write(@owner_appointment_register, appointment_bytes)
+      File.write(@decision_session_register, session_bytes)
+      case variant
+      when :lifecycle
+        mutate_owner_appointment_register { |register| register['events'].first['signed_at'] = '2026-08-25T11:58:00+07:00' }
+      when :vote
+        mutate_decision_session_register { |register| register['sessions'].first['decisions'].first['votes'].first['signed_at'] = '2026-08-25T10:41:00+07:00' }
+      when :session_receipt
+        mutate_decision_session_register { |register| register['sessions'].first['registry_receipt']['verified_at'] = '2026-08-25T11:31:00+07:00' }
+      end
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+    end
+  end
+
+  def test_owner_key_validity_revocation_and_registry_mutation_fail_closed
+    prepare_valid_owner_session_fixture
+    original_registry = File.read(@institutional_identity_key_registry)
+    %i[not_yet_valid expired revoked].each do |state|
+      registry = JSON.parse(original_registry)
+      identity = registry.fetch('identities').find { |item| item['subject_id'] == 'UEU-PERSON-SEAT-1' }
+      key = identity.fetch('keys').first
+      case state
+      when :not_yet_valid then key['valid_from'] = '2027-01-01T00:00:00Z'
+      when :expired then key['valid_until'] = '2026-01-01T00:00:00Z'
+      when :revoked
+        key['revoked_at'] = '2026-08-25T08:00:00+07:00'
+        key['revocation_reason'] = 'Fixture revocation before use.'
+      end
+      reseal_owner_key_registry(registry)
+      File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+    end
+
+    registry = JSON.parse(original_registry)
+    registry.fetch('identities').find { |item| item['subject_id'] == 'UEU-PERSON-SEAT-1' }['display_name'] = 'Mutated after registry root signatures'
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'root must bind the exact identity set'
+  end
+
+  def test_owner_identity_registry_accepts_linear_signed_snapshot_and_rejects_prior_mutation
+    fixture_validator
+    prepare_active_owner_key_registry
+    previous_bytes = File.read(@institutional_identity_key_registry)
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    previous_path = File.join(evidence_dir, 'identity-registry-snapshot-1.json')
+    File.write(previous_path, previous_bytes)
+    registry = JSON.parse(previous_bytes)
+    registry['snapshot_id'] = 'FIXTURE-IDENTITY-SNAPSHOT-2'
+    registry['snapshot_revision'] = 2
+    registry['snapshot_at'] = '2026-08-25T06:10:00Z'
+    registry['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(previous_path))
+    registry['prior_snapshot_sha256'] = Digest::SHA256.file(previous_path).hexdigest
+    reseal_owner_key_registry(registry)
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    prior = JSON.parse(File.read(previous_path))
+    prior['identities'].first['display_name'] = 'Mutated prior snapshot'
+    File.write(previous_path, JSON.pretty_generate(prior) + "\n")
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'evidence path or SHA-256 does not bind the referenced artifact'
+  end
+
+  def test_owner_later_identity_revocation_preserves_history_but_blocks_reuse
+    prepare_valid_owner_session_fixture
+    registry_v1_bytes = File.read(@institutional_identity_key_registry)
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    registry_v1_path = File.join(evidence_dir, 'identity-registry-before-revocation.json')
+    File.write(registry_v1_path, registry_v1_bytes)
+    registry = JSON.parse(registry_v1_bytes)
+    identity = registry.fetch('identities').find { |item| item['subject_id'] == 'UEU-PERSON-SEAT-1' }
+    identity['status'] = 'revoked'
+    identity['status_effective_at'] = '2026-08-25T12:00:00+07:00'
+    registry['snapshot_id'] = 'FIXTURE-IDENTITY-SNAPSHOT-2-REVOCATION'
+    registry['snapshot_revision'] = 2
+    registry['snapshot_at'] = '2026-08-25T11:50:00+07:00'
+    registry['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(registry_v1_path))
+    registry['prior_snapshot_sha256'] = Digest::SHA256.file(registry_v1_path).hexdigest
+    reseal_owner_key_registry(registry)
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    later_payload = owner_test_canonical('action' => 'attempt-reuse-after-revocation')
+    later_signature = owner_fixture_signature('UEU-PERSON-SEAT-1', later_payload, 'decision_vote', '2026-08-25T12:40:00+07:00')
+    refute validator.send(:owner_verify_detached_signature, later_signature, 'UEU-PERSON-SEAT-1', later_payload, 'decision_vote', later_signature['signed_at'], 'later reuse')
+    assert_error validator, 'later reuse: detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+  end
+
+  def test_owner_rev2_added_key_cannot_authenticate_rev1_envelope_while_rev1_history_survives
+    prepare_valid_owner_session_fixture
+    registry_v1_bytes = File.read(@institutional_identity_key_registry)
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    registry_v1_path = File.join(evidence_dir, 'identity-registry-envelope-snapshot-1.json')
+    File.write(registry_v1_path, registry_v1_bytes)
+    registry_v2 = JSON.parse(registry_v1_bytes)
+    new_subject = 'UEU-PERSON-REV2-ONLY'
+    new_key = owner_test_key(new_subject)
+    registry_v2['identities'] << {
+      'subject_id' => new_subject, 'identity_type' => 'person', 'display_name' => 'Fixture Rev2 Only',
+      'unit' => 'Fixture Governance Unit', 'title' => 'Fixture revision-two signer', 'status' => 'active',
+      'status_effective_at' => nil, 'issuer_subject_id' => 'UEU-PERSON-ROOT-1', 'authorization_roles' => [],
+      'keys' => [{
+        'key_id' => owner_test_key_id(new_subject), 'fingerprint_sha256' => Digest::SHA256.hexdigest(new_key.public_key.to_der),
+        'algorithm' => 'RS256', 'public_key_spki_base64' => Base64.strict_encode64(new_key.public_key.to_der),
+        'allowed_purposes' => ['decision_vote'], 'valid_from' => '2026-08-25T11:00:00+07:00',
+        'valid_until' => '2030-01-01T00:00:00Z', 'revoked_at' => nil, 'revocation_reason' => nil
+      }]
+    }
+    rev1_subject = registry_v2['identities'].find { |identity| identity['subject_id'] == 'UEU-PERSON-SEAT-1' }
+    rev1_subject['status'] = 'revoked'
+    rev1_subject['status_effective_at'] = '2026-08-25T12:00:00+07:00'
+    registry_v2['snapshot_id'] = 'FIXTURE-IDENTITY-SNAPSHOT-2-ADDED-KEY'
+    registry_v2['snapshot_revision'] = 2
+    registry_v2['snapshot_at'] = '2026-08-25T11:05:00+07:00'
+    registry_v2['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(registry_v1_path))
+    registry_v2['prior_snapshot_sha256'] = Digest::SHA256.file(registry_v1_path).hexdigest
+    reseal_owner_key_registry(registry_v2)
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry_v2) + "\n")
+
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    mutate_decision_session_register do |register|
+      session = register['sessions'].first
+      vote = session['decisions'].first['votes'].first
+      vote['subject_institutional_id'] = new_subject
+      vote['key_id'] = owner_test_key_id(new_subject)
+      payload = owner_test_canonical(vote.reject { |key, _value| %w[canonical_signed_payload_sha256 signature].include?(key) })
+      vote['canonical_signed_payload_sha256'] = Digest::SHA256.hexdigest(payload)
+      envelope = {
+        'artifact_type' => vote['signature_artifact_type'], 'purpose' => vote['purpose'],
+        'signer_subject_id' => new_subject, 'key_id' => vote['key_id'], 'algorithm' => vote['algorithm'],
+        'signed_at' => vote['signed_at'], 'semantic_payload_sha256' => vote['canonical_signed_payload_sha256']
+      }.merge(vote.slice(*ParityGovernanceValidator::OWNER_SIGNATURE_REGISTRY_BINDING_KEYS))
+      vote['signature'] = Base64.strict_encode64(new_key.sign(OpenSSL::Digest::SHA256.new, owner_test_signature_message('decision_vote', owner_test_canonical(envelope))))
+      reseal_owner_session_only(session)
+    end
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+  end
+
+  def test_owner_appointment_rejects_duplicate_ids_and_post_activation_signatures
+    prepare_valid_owner_session_fixture
+    mutate_owner_appointment_register do |register|
+      register['appointments'] << Marshal.load(Marshal.dump(register['appointments'].first))
+      appointment = register['appointments'].first
+      payload = owner_test_canonical(appointment.slice(*%w[appointment_id appointment_register_id subject authority_domain authority_role capacity_id scope decision_rights data_boundary issuer effective_at expires_at conflict_disclosure delegation policy_sha256 manifest_sha256 source_register_sha256s]))
+      appointment['acceptance'] = owner_fixture_signature(appointment.dig('subject', 'institutional_id'), payload, 'appointment_acceptance', '2026-08-25T10:00:00+07:00')
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'appointment IDs must be globally unique'
+    assert_error validator, 'issuer signature, acceptance and independent verification must precede activation'
+  end
+
+  def test_owner_registered_service_identity_cannot_sign_a_human_quorum_seat
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      session = register['sessions'].first
+      vote = session['decisions'].first['votes'].first
+      vote['subject_institutional_id'] = 'UEU-SERVICE-INTEGRITY-1'
+      reseal_owner_vote(vote)
+      reseal_owner_session_only(session)
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'human quorum/signing seats require UEU-PERSON identities'
+    assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+  end
+
+  def test_owner_historical_snapshot_allows_append_but_rejects_prefix_mutation
+    prepare_valid_owner_session_fixture
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    appended = valid_owner_appointment('PAR-ADM-005', 'product_delivery', 'UEU-PERSON-SEAT-20', policy, suffix: 'LATER-APPEND')
+    appended['effective_at'] = '2026-08-25T12:00:00+07:00'
+    appended['expires_at'] = '2027-08-25T12:00:00+07:00'
+    reseal_owner_appointment(appended)
+    mutate_owner_appointment_register { |register| register['appointments'] << appended }
+    mutate_decision_session_register { |register| register['appointment_register_sha256'] = Digest::SHA256.file(@owner_appointment_register).hexdigest }
+
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    mutate_owner_appointment_register { |register| register['appointments'].first['subject']['title'] = 'Mutated historical title' }
+    mutate_decision_session_register { |register| register['appointment_register_sha256'] = Digest::SHA256.file(@owner_appointment_register).hexdigest }
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'appointment snapshot root does not match the immutable prefix'
+  end
+
+  def test_owner_session_revision_chain_accepts_amendment_and_rejects_fork
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      first = register['sessions'].first
+      second = Marshal.load(Marshal.dump(first))
+      second['session_id'] = 'SESSION-G0-S0-AMENDMENT-2'
+      second['session_revision'] = 2
+      second['started_at'] = '2026-08-25T12:00:00+07:00'
+      second['ended_at'] = '2026-08-25T13:00:00+07:00'
+      second['appointment_snapshot_cutoff'] = '2026-08-25T11:45:00+07:00'
+      second['prior_session_sha256'] = first['canonical_session_sha256']
+      decision = second['decisions'].first
+      decision['session_id'] = second['session_id']
+      decision['decision_revision'] = 2
+      decision['decided_at'] = '2026-08-25T12:30:00+07:00'
+      decision['prior_decision_sha256'] = first['decisions'].first['decision_sha256']
+      decision['votes'].each { |vote| vote['signed_at'] = '2026-08-25T12:40:00+07:00' }
+      reseal_owner_decision_and_session(second)
+      reseal_owner_session_only(second, verified_at: '2026-08-25T13:30:00+07:00')
+      register['sessions'] << second
+    end
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    mutate_decision_session_register do |register|
+      register['sessions'].last['prior_session_sha256'] = nil
+      reseal_owner_decision_and_session(register['sessions'].last)
+      reseal_owner_session_only(register['sessions'].last, verified_at: '2026-08-25T13:30:00+07:00')
+    end
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'prior_session_sha256 must preserve one global append-only session chain'
+  end
+
+  def test_owner_historical_policy_and_source_snapshots_survive_real_correction_and_support_new_revision
+    prepare_valid_owner_session_fixture
+    old_policy = JSON.parse(File.read(@owner_authority_policy))
+    old_register = JSON.parse(File.read(@decision_register))
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    prior_policy_path = File.join(evidence_dir, 'owner-policy-snapshot-1.json')
+    File.write(prior_policy_path, JSON.pretty_generate(old_policy) + "\n")
+    old_source_descriptor = old_policy.fetch('source_decision_registers').find { |item| item['batch'] == 'A' }
+    prior_source_artifact = {
+      'artifact_type' => ParityGovernanceValidator::OWNER_SOURCE_SNAPSHOT_ARTIFACT_TYPE,
+      'schema_version' => 1, 'descriptor' => old_source_descriptor, 'register' => old_register
+    }
+    prior_source_path = File.join(evidence_dir, 'batch-a-source-snapshot-1.json')
+    File.write(prior_source_path, JSON.pretty_generate(prior_source_artifact) + "\n")
+    prior_source_bytes = File.read(prior_source_path)
+
+    source_artifact_path = File.join(@tmpdir, ParityGovernanceValidator::BATCH_A_EVIDENCE_DIRECTORY, 'owner-source-decision.json')
+    source_artifact = JSON.parse(File.read(source_artifact_path))
+    source_artifact['conditions'] = ['Corrected synthetic exclusion reviewed through owner session revision 2.']
+    File.write(source_artifact_path, JSON.pretty_generate(source_artifact) + "\n")
+    mutate_decision_register do |register|
+      entry = register['entries'].first
+      entry['approval']['conditions'] = source_artifact['conditions']
+      entry['approval']['artifact_sha256'] = Digest::SHA256.file(source_artifact_path).hexdigest
+    end
+
+    bootstrap = fixture_validator(refresh_owner: false)
+    bootstrap.validate
+    manifest = JSON.parse(File.read(@batch_manifest))
+    corrected_policy = bootstrap.send(:expected_owner_authority_policy, manifest)
+    corrected_policy['snapshot_id'] = 'G0-OWNER-AUTHORITY-POLICY-SNAPSHOT-2'
+    corrected_policy['snapshot_revision'] = 2
+    corrected_policy['snapshot_at'] = '2026-08-25T11:00:00+07:00'
+    corrected_policy['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(prior_policy_path))
+    corrected_policy['prior_snapshot_sha256'] = Digest::SHA256.file(prior_policy_path).hexdigest
+    corrected_source = corrected_policy.fetch('source_decision_registers').find { |item| item['batch'] == 'A' }
+    corrected_source['snapshot_id'] = 'G0-BATCH-A-SOURCE-SNAPSHOT-2'
+    corrected_source['snapshot_revision'] = 2
+    corrected_source['captured_at'] = '2026-08-25T10:50:00+07:00'
+    corrected_source['cutoff_at'] = '2026-08-25T10:45:00+07:00'
+    corrected_source['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(prior_source_path))
+    corrected_source['prior_snapshot_sha256'] = Digest::SHA256.file(prior_source_path).hexdigest
+    corrected_policy['requirement_policies'].select { |row| row['batch'] == 'A' }.each do |row|
+      row['batch_register_sha256'] = corrected_source['sha256']
+    end
+    corrected_policy['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(bootstrap.send(:owner_policy_control_payload, corrected_policy)))
+    File.write(@owner_authority_policy, JSON.pretty_generate(corrected_policy) + "\n")
+    prepare_approved_owner_policy
+
+    historical_validator = fixture_validator(refresh_owner: false)
+    assert historical_validator.validate, historical_validator.errors.join("\n")
+
+    current_policy = JSON.parse(File.read(@owner_authority_policy))
+    requirement_policy = current_policy.fetch('requirement_policies').find { |row| row['requirement_id'] == 'PAR-ADM-001' }
+    current_source = current_policy.fetch('source_decision_registers').find { |item| item['batch'] == 'A' }
+    historical_validator.validate
+    normalized = historical_validator.send(:owner_normalized_source_decision, requirement_policy, current_source['sha256'])
+    decision_stub = {
+      'requirement_id' => 'PAR-ADM-001', 'decision_status' => normalized['status'],
+      'disposition' => normalized['disposition'], 'target_requirement_id' => normalized['target_requirement_id'],
+      'consolidation_member_ids' => normalized['consolidation_member_ids'],
+      'unresolved_gate_authority_domains' => normalized['unresolved_gate_authority_domains']
+    }
+    seats = historical_validator.send(:owner_required_seats_for_decision, requirement_policy, decision_stub, current_policy, {})
+    new_appointments = seats.each_with_index.map do |seat, index|
+      appointment = valid_owner_appointment(seat['requirement_id'], seat['role'], "UEU-PERSON-SEAT-#{index + 9}", current_policy, suffix: "REV2-#{index + 1}")
+      appointment['effective_at'] = '2026-08-25T11:15:00+07:00'
+      appointment['expires_at'] = '2027-08-25T11:15:00+07:00'
+      reseal_owner_appointment(appointment)
+      appointment
+    end
+    mutate_owner_appointment_register { |register| register['appointments'].concat(new_appointments) }
+    refresh_owner_register_tops
+    historical_validator = fixture_validator(refresh_owner: false)
+    historical_validator.validate
+
+    mutate_decision_session_register do |register|
+      first = register['sessions'].first
+      second = Marshal.load(Marshal.dump(first))
+      second['session_id'] = 'SESSION-G0-S0-SOURCE-POLICY-CORRECTION-2'
+      second['session_revision'] = 2
+      second['started_at'] = '2026-08-25T12:00:00+07:00'
+      second['ended_at'] = '2026-08-25T13:00:00+07:00'
+      second['appointment_snapshot_cutoff'] = '2026-08-25T11:30:00+07:00'
+      second['appointment_snapshot_count'] = JSON.parse(File.read(@owner_appointment_register)).fetch('appointments').length
+      second['appointment_snapshot_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(JSON.parse(File.read(@owner_appointment_register)).fetch('appointments')))
+      second['policy_sha256'] = current_policy['control_root_sha256']
+      second['source_register_sha256s'] = current_policy.fetch('source_decision_registers').to_h { |item| [item['batch'], item['sha256']] }
+      second['chair_appointment_id'] = new_appointments.first['appointment_id']
+      second['facilitator_appointment_id'] = new_appointments.last['appointment_id']
+      second['prior_session_sha256'] = first['canonical_session_sha256']
+      decision = second['decisions'].first
+      decision['session_id'] = second['session_id']
+      decision['decision_revision'] = 2
+      decision['policy_sha256'] = current_policy['control_root_sha256']
+      decision['decided_at'] = '2026-08-25T12:30:00+07:00'
+      decision['row_sha256'] = requirement_policy['source_row_sha256']
+      decision['batch_register_sha256'] = current_source['sha256']
+      decision['source_decision_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(normalized))
+      decision['decision_status'] = normalized['status']
+      decision['disposition'] = normalized['disposition']
+      decision['target_reference'] = normalized['target_reference']
+      decision['target_requirement_id'] = normalized['target_requirement_id']
+      decision['exclusions'] = normalized['exclusions']
+      decision['conditions'] = normalized['conditions']
+      decision['consolidation_member_ids'] = normalized['consolidation_member_ids']
+      decision['unresolved_gate_authority_domains'] = normalized['unresolved_gate_authority_domains']
+      decision['evidence_roots'] = historical_validator.send(:owner_expected_evidence_roots, requirement_policy, current_source['sha256'])
+      decision['control_roots'] = historical_validator.send(:owner_expected_control_roots, requirement_policy, current_policy)
+      decision['prior_decision_sha256'] = first['decisions'].first['decision_sha256']
+      decision['appointment_digests'] = new_appointments.map { |appointment| { 'appointment_id' => appointment['appointment_id'], 'appointment_sha256' => Digest::SHA256.hexdigest(owner_test_canonical(appointment)) } }.sort_by { |item| item['appointment_id'] }
+      decision['votes'] = seats.each_with_index.map do |seat, index|
+        appointment = new_appointments[index]
+        vote = Marshal.load(Marshal.dump(first['decisions'].first['votes'].first))
+        vote['vote_id'] = "VOTE-G0-REV2-#{index + 1}"
+        vote['seat_requirement_id'] = seat['requirement_id']
+        vote['appointment_id'] = appointment['appointment_id']
+        vote['subject_institutional_id'] = appointment.dig('subject', 'institutional_id')
+        vote['authority_domain'] = appointment['authority_domain']
+        vote['authority_role'] = appointment['authority_role']
+        vote['appointment_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(appointment))
+        vote['signed_at'] = '2026-08-25T12:40:00+07:00'
+        vote
+      end
+      reseal_owner_decision_and_session(second)
+      reseal_owner_session_only(second, verified_at: '2026-08-25T13:30:00+07:00')
+      register['sessions'] << second
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    prior_source_artifact['register']['entries'].first['decision']['rationale'] = 'Tampered historical source snapshot.'
+    File.write(prior_source_path, JSON.pretty_generate(prior_source_artifact) + "\n")
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'evidence path or SHA-256 does not bind the referenced artifact'
+
+    File.write(prior_source_path, prior_source_bytes)
+    prior_policy = JSON.parse(File.read(prior_policy_path))
+    prior_policy['snapshot_id'] = 'TAMPERED-PRIOR-POLICY-SNAPSHOT'
+    File.write(prior_policy_path, JSON.pretty_generate(prior_policy) + "\n")
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'evidence path or SHA-256 does not bind the referenced artifact'
+  end
+
+  def test_owner_policy_rejects_future_source_capture_future_snapshot_and_pending_historical_policy
+    prepare_valid_owner_session_fixture
+    original_policy = File.read(@owner_authority_policy)
+
+    mutate_owner_policy do |policy|
+      policy['source_decision_registers'].first['captured_at'] = '2026-08-25T00:01:00Z'
+      policy['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(fixture_validator(refresh_owner: false).send(:owner_policy_control_payload, policy)))
+    end
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'source capture, policy snapshot, sponsor signature and independent review must form one causal chain'
+
+    File.write(@owner_authority_policy, original_policy)
+    mutate_owner_policy do |policy|
+      policy['snapshot_at'] = '2026-08-25T08:00:00+07:00'
+      policy['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(fixture_validator(refresh_owner: false).send(:owner_policy_control_payload, policy)))
+    end
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'source capture, policy snapshot, sponsor signature and independent review must form one causal chain'
+
+    File.write(@owner_authority_policy, original_policy)
+    prior_path, = prepare_owner_policy_revision_two
+    prior = JSON.parse(File.read(prior_path))
+    prior['policy_status'] = 'proposal'
+    prior['approval'] = { 'status' => 'pending', 'identity' => nil, 'authority_role' => nil, 'date' => nil, 'reference' => nil, 'artifact_sha256' => nil }
+    prior['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(fixture_validator(refresh_owner: false).send(:owner_policy_control_payload, prior)))
+    File.write(prior_path, JSON.pretty_generate(prior) + "\n")
+    mutate_owner_policy do |policy|
+      policy['prior_snapshot_sha256'] = Digest::SHA256.file(prior_path).hexdigest
+      policy['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(fixture_validator(refresh_owner: false).send(:owner_policy_control_payload, policy)))
+    end
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'historical policy must be approved with a fully verified sponsor/reviewer contract before it can authorize an old session'
+  end
+
+  def test_owner_registry_activation_rejects_rev2_key_backdated_before_rev2_root_approval
+    fixture_validator
+    prepare_active_owner_key_registry
+    registry_v1_bytes = File.read(@institutional_identity_key_registry)
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    prior_path = File.join(evidence_dir, 'identity-registry-before-backdated-key.json')
+    File.write(prior_path, registry_v1_bytes)
+    registry = JSON.parse(registry_v1_bytes)
+    subject_id = 'UEU-PERSON-REV2-BACKDATED'
+    key = owner_test_key(subject_id)
+    registry['identities'] << {
+      'subject_id' => subject_id, 'identity_type' => 'person', 'display_name' => 'Fixture Rev2 Backdated',
+      'unit' => 'Fixture Governance Unit', 'title' => 'Fixture revision-two signer', 'status' => 'active',
+      'status_effective_at' => nil, 'issuer_subject_id' => 'UEU-PERSON-ROOT-1', 'authorization_roles' => [],
+      'keys' => [{
+        'key_id' => owner_test_key_id(subject_id), 'fingerprint_sha256' => Digest::SHA256.hexdigest(key.public_key.to_der),
+        'algorithm' => 'RS256', 'public_key_spki_base64' => Base64.strict_encode64(key.public_key.to_der),
+        'allowed_purposes' => ['decision_vote'], 'valid_from' => '2025-01-01T00:00:00Z',
+        'valid_until' => '2030-01-01T00:00:00Z', 'revoked_at' => nil, 'revocation_reason' => nil
+      }]
+    }
+    registry['snapshot_id'] = 'FIXTURE-IDENTITY-SNAPSHOT-2-BACKDATED'
+    registry['snapshot_revision'] = 2
+    registry['snapshot_at'] = '2026-08-25T11:00:00+07:00'
+    registry['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(prior_path))
+    registry['prior_snapshot_sha256'] = Digest::SHA256.file(prior_path).hexdigest
+    reseal_owner_key_registry(registry)
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    payload = owner_test_canonical('action' => 'backdated-before-registry-activation')
+    signature = owner_fixture_signature(subject_id, payload, 'decision_vote', '2026-08-25T11:04:00+07:00')
+    refute validator.send(:owner_verify_detached_signature, signature, subject_id, payload, 'decision_vote', signature['signed_at'], 'backdated rev2 key')
+    assert_error validator, 'backdated rev2 key: detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+  end
+
+  def test_owner_reviewer_receipts_authenticate_every_closed_metadata_field
+    prepare_valid_owner_session_fixture
+    policy_bytes = File.read(@owner_authority_policy)
+    appointment_bytes = File.read(@owner_appointment_register)
+    session_bytes = File.read(@decision_session_register)
+    policy = JSON.parse(policy_bytes)
+    artifact_path = File.join(@tmpdir, policy.fetch('approval').fetch('reference'))
+    artifact_bytes = File.read(artifact_path)
+
+    receipt_mutations = {
+      reviewed_payload_sha256: ->(receipt) { receipt['reviewed_payload_sha256'] = '0' * 64 },
+      reviewer_institutional_id: ->(receipt) { receipt['reviewer_institutional_id'] = 'UEU-PERSON-SESSION-REVIEWER' },
+      evidence_author_institutional_id: ->(receipt) { receipt['evidence_author_institutional_id'] = 'UEU-PERSON-SEAT-20' },
+      implementer_institutional_id: ->(receipt) { receipt['implementer_institutional_id'] = 'UEU-PERSON-SEAT-19' },
+      verification_method: ->(receipt) { receipt['verification_method'] = 'detached_signature' },
+      verification_reference: ->(receipt) { receipt['verification_reference'] = 'UEU-MUTATED-UNSIGNED-REFERENCE' },
+      verified_at: ->(receipt) { receipt['verified_at'] = '2026-08-25T07:03:00+07:00' },
+      key_id: ->(receipt) { receipt['key_id'] = owner_test_key_id('UEU-PERSON-ROOT-1') },
+      purpose: ->(receipt) { receipt['purpose'] = 'session_review' },
+      registry_id: ->(receipt) { receipt['identity_registry_id'] = 'MUTATED-REGISTRY-ID' },
+      registry_snapshot_id: ->(receipt) { receipt['identity_registry_snapshot_id'] = 'MUTATED-SNAPSHOT-ID' },
+      registry_snapshot_revision: ->(receipt) { receipt['identity_registry_snapshot_revision'] = 99 },
+      registry_snapshot_sha: ->(receipt) { receipt['identity_registry_snapshot_sha256'] = '1' * 64 },
+      registry_root_sha: ->(receipt) { receipt['identity_registry_root_sha256'] = '2' * 64 }
+    }
+    receipt_mutations.each_value do |mutation|
+      artifact = JSON.parse(artifact_bytes)
+      mutation.call(artifact['reviewer'])
+      File.write(artifact_path, JSON.pretty_generate(artifact) + "\n")
+      mutated_policy = JSON.parse(policy_bytes)
+      mutated_policy['approval']['artifact_sha256'] = Digest::SHA256.file(artifact_path).hexdigest
+      File.write(@owner_authority_policy, JSON.pretty_generate(mutated_policy) + "\n")
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+    end
+
+    File.write(@owner_authority_policy, policy_bytes)
+    File.write(artifact_path, artifact_bytes)
+    mutate_owner_appointment_register { |register| register['appointments'].first['registry_receipt']['evidence_author_institutional_id'] = 'UEU-PERSON-SEAT-20' }
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+
+    File.write(@owner_appointment_register, appointment_bytes)
+    File.write(@decision_session_register, session_bytes)
+    mutate_decision_session_register { |register| register['sessions'].first['registry_receipt']['verification_method'] = 'detached_signature' }
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'detached RS256 signature, identity/key authorization, purpose or validity is invalid'
+  end
+
+  def test_owner_corrected_policy_cannot_drop_any_frozen_authority_applicability
+    fixture_validator
+    prepare_active_owner_key_registry
+    _prior_path, policy = prepare_owner_policy_revision_two
+    approved_bytes = File.read(@owner_authority_policy)
+    variants = {
+      dropped_co_owner: lambda do |rows|
+        row = rows.find { |item| item['required_authority_domains'].length > 2 }
+        row['required_authority_domains'].delete_at(-1)
+      end,
+      dropped_special_role: lambda do |rows|
+        row = rows.find { |item| !item['required_special_roles'].empty? }
+        row['required_special_roles'].delete_at(-1)
+      end,
+      dropped_independent_control: lambda do |rows|
+        row = rows.find { |item| !item['applicable_independent_controls'].empty? }
+        row['applicable_independent_controls'].delete_at(-1)
+      end,
+      cleared_statutory_flag: lambda do |rows|
+        row = rows.find { |item| item['statutory_scope'] == true }
+        row['statutory_scope'] = false
+      end
+    }
+    variants.each_value do |mutation|
+      File.write(@owner_authority_policy, approved_bytes)
+      mutate_owner_policy do |current|
+        mutation.call(current['requirement_policies'])
+        current['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(fixture_validator(refresh_owner: false).send(:owner_policy_control_payload, current)))
+      end
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'cannot weaken or amend frozen accountable/co-owner/special-role/independent-control/statutory applicability'
+    end
+    assert_equal 268, policy.fetch('requirement_policies').length
+  end
+
+  def test_owner_historical_subject_metadata_survives_legitimate_registry_update_but_mutation_fails
+    prepare_valid_owner_session_fixture
+    registry_v1_bytes = File.read(@institutional_identity_key_registry)
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    prior_path = File.join(evidence_dir, 'identity-registry-before-metadata-update.json')
+    File.write(prior_path, registry_v1_bytes)
+    registry = JSON.parse(registry_v1_bytes)
+    identity = registry.fetch('identities').find { |item| item['subject_id'] == 'UEU-PERSON-SEAT-1' }
+    identity['display_name'] = 'Fixture Seat One Updated'
+    identity['title'] = 'Updated institutional role title'
+    identity['unit'] = 'Updated Governance Unit'
+    registry['snapshot_id'] = 'FIXTURE-IDENTITY-SNAPSHOT-2-METADATA'
+    registry['snapshot_revision'] = 2
+    registry['snapshot_at'] = '2026-08-25T12:00:00+07:00'
+    registry['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(prior_path))
+    registry['prior_snapshot_sha256'] = Digest::SHA256.file(prior_path).hexdigest
+    reseal_owner_key_registry(registry)
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+    validator = fixture_validator(refresh_owner: false)
+    assert validator.validate, validator.errors.join("\n")
+
+    mutate_owner_appointment_register { |register| register['appointments'].first['subject']['display_name'] = 'Unsigned metadata mutation' }
+    validator = fixture_validator(refresh_owner: false)
+    refute validator.validate
+    assert_error validator, 'subject identity_type/name/title/unit must exactly match the bound historical institutional identity registry'
+  end
+
+  def test_owner_policy_evidence_is_recursively_secret_scanned
+    fixture_validator
+    prepare_active_owner_key_registry
+    prepare_approved_owner_policy
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    artifact_path = File.join(@tmpdir, policy.fetch('approval').fetch('reference'))
+    artifact = JSON.parse(File.read(artifact_path))
+    artifact['nested_metadata'] = { 'recovery_material' => 'must-never-be-loaded' }
+    File.write(artifact_path, JSON.pretty_generate(artifact) + "\n")
+    policy['approval']['artifact_sha256'] = Digest::SHA256.file(artifact_path).hexdigest
+    File.write(@owner_authority_policy, JSON.pretty_generate(policy) + "\n")
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'evidence contains prohibited credentials, tokens, private keys or recovery material'
+  end
+
+  def test_owner_evidence_secret_scan_rejects_nested_tokens_and_allows_public_verification_material
+    fixture_validator
+    prepare_active_owner_key_registry
+    prepare_approved_owner_policy
+    policy_bytes = File.read(@owner_authority_policy)
+    policy = JSON.parse(policy_bytes)
+    artifact_path = File.join(@tmpdir, policy.fetch('approval').fetch('reference'))
+    artifact_bytes = File.read(artifact_path)
+    prohibited = [
+      { 'nested' => { 'token' => 'opaque-token-value' } },
+      { 'nested' => { 'session_token' => 'opaque-session-value' } },
+      { 'nested' => { 'authorization' => 'Bearer abc.def.ghi' } },
+      { 'nested' => { 'cookie' => 'session=opaque-cookie-value' } },
+      { 'nested' => { 'hmac_key' => 'opaque-hmac-value' } },
+      { 'nested' => { 'signing_material' => 'opaque-signing-value' } }
+    ]
+    prohibited.each do |nested_secret|
+      File.write(@owner_authority_policy, policy_bytes)
+      artifact = JSON.parse(artifact_bytes).merge('nested_metadata' => nested_secret)
+      File.write(artifact_path, JSON.pretty_generate(artifact) + "\n")
+      mutated_policy = JSON.parse(policy_bytes)
+      mutated_policy['approval']['artifact_sha256'] = Digest::SHA256.file(artifact_path).hexdigest
+      File.write(@owner_authority_policy, JSON.pretty_generate(mutated_policy) + "\n")
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'evidence contains prohibited credentials, tokens, private keys or recovery material'
+    end
+
+    scanner = ParityGovernanceValidator.allocate
+    allowed_public_material = {
+      'public_key_spki_base64' => Base64.strict_encode64('public-verification-key'),
+      'public_key_fingerprint_sha256' => 'a' * 64,
+      'signature' => Base64.strict_encode64('detached-public-signature')
+    }
+    refute scanner.send(:owner_contains_secret?, allowed_public_material)
+  end
+
+  def test_owner_governance_rejects_stale_policy_and_register_hashes
+    fixture_validator
+    mutate_owner_policy { |policy| policy['manifest_sha256'] = '0' * 64 }
+    mutate_owner_appointment_register { |register| register['policy_sha256'] = '1' * 64 }
+    mutate_decision_session_register { |register| register['appointment_register_sha256'] = '2' * 64 }
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'must exactly bind the frozen A-G authority capacities'
+    assert_error validator, 'policy_sha256 must bind the current closed owner policy'
+    assert_error validator, 'appointment_register_sha256 must bind the current policy, appointment register'
+  end
+
+  def test_owner_appointment_rejects_appointer_subject_and_reviewer_conflicts
+    prepare_valid_owner_session_fixture
+    mutate_owner_appointment_register do |register|
+      appointment = register['appointments'].first
+      appointment['issuer']['institutional_id'] = appointment.dig('subject', 'institutional_id')
+      appointment['registry_receipt']['reviewer_institutional_id'] = appointment.dig('subject', 'institutional_id')
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'appointer must be a registered human identity distinct from appointee'
+    assert_error validator, 'reviewer must be distinct from subject, appointer, evidence author and implementer'
+  end
+
+  def test_owner_appointment_rejects_alias_identity_and_unknown_dual_hat
+    prepare_valid_owner_session_fixture
+    mutate_owner_appointment_register do |register|
+      original = register['appointments'].first
+      alias_record = Marshal.load(Marshal.dump(original))
+      alias_record['appointment_id'] = 'APP-G0-ALIAS'
+      alias_record['subject']['institutional_id'] = 'UEU-PERSON-ALIAS'
+      reseal_owner_appointment(alias_record)
+      register['appointments'] << alias_record
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'display-name alias'
+  end
+
+  def test_owner_appointment_rejects_expired_suspended_and_revoked_seats
+    %w[expired suspended revoked].each do |state|
+      teardown
+      setup
+      prepare_valid_owner_session_fixture
+      appointment = mutate_owner_appointment_register do |register|
+        record = register['appointments'].first
+        if state == 'expired'
+          record['expires_at'] = '2026-08-25T09:30:00+07:00'
+          reseal_owner_appointment(record)
+        else
+          register['events'] << valid_owner_event(record, state, '2026-08-25T09:30:00+07:00')
+        end
+        record
+      end
+      reseal_owner_session_appointment_bindings(appointment['appointment_id'])
+
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'appointment must exist, cover the exact PAR/role seat and be historically active'
+    end
+  end
+
+  def test_owner_session_rejects_missing_product_signer_and_product_substitution
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      decision = register['sessions'].first['decisions'].first
+      decision['votes'].reject! { |vote| vote['authority_role'] == 'product_delivery' }
+      decision['appointment_digests'].reject! { |item| item['appointment_id'].include?('PRODUCT-DELIVERY') }
+      reseal_owner_decision_and_session(register['sessions'].first)
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'unanimous consent requires every exact PAR/role seat'
+  end
+
+  def test_owner_session_rejects_product_appointment_substituted_for_security_seat
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      session = register['sessions'].first
+      decision = session['decisions'].first
+      product_vote = decision['votes'].find { |vote| vote['authority_role'] == 'product_delivery' }
+      security_vote = decision['votes'].find { |vote| vote['authority_role'] == 'security_privacy_data' }
+      security_vote['appointment_id'] = product_vote['appointment_id']
+      security_vote['appointment_sha256'] = product_vote['appointment_sha256']
+      security_vote['subject_institutional_id'] = product_vote['subject_institutional_id']
+      reseal_owner_decision_and_session(session)
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'appointment must exist, cover the exact PAR/role seat and be historically active'
+    assert_error validator, 'identity/domain/role/appointment SHA and historical policy/source snapshots must match the appointed seat'
+  end
+
+  def test_owner_session_rejects_recusal_and_dual_role_quorum_inflation
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      session = register['sessions'].first
+      decision = session['decisions'].first
+      product_vote = decision['votes'].find { |vote| vote['authority_role'] == 'product_delivery' }
+      product_vote['vote'] = 'recuse'
+      product_vote['recusal_reason'] = 'Declared fixture conflict.'
+      other_votes = decision['votes'].reject { |vote| vote.equal?(product_vote) }
+      other_votes.each { |vote| vote['subject_institutional_id'] = other_votes.first['subject_institutional_id'] }
+      reseal_owner_decision_and_session(session)
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'recusal leaves its seat vacant'
+    assert_error validator, 'quorum requires 3 unique people'
+  end
+
+  def test_owner_appointments_reject_cashier_reconciler_and_formula_sponsor_dual_hats
+    fixture_validator
+    prepare_active_owner_key_registry
+    prepare_approved_owner_policy
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    finance = valid_owner_appointment('PAR-FIN-012', 'cashier_operator', 'UEU-PERSON-DUAL-FIN', policy, suffix: 'CASHIER')
+    reconciler = valid_owner_appointment('PAR-FIN-012', 'independent_finance_reconciler', 'UEU-PERSON-DUAL-FIN', policy, suffix: 'RECONCILER')
+    formula = valid_owner_appointment('PAR-RPT-041', 'report_formula_author', 'UEU-PERSON-DUAL-STAT', policy, suffix: 'FORMULA')
+    sponsor = valid_owner_appointment('PAR-RPT-041', 'statutory_sponsor', 'UEU-PERSON-DUAL-STAT', policy, suffix: 'SPONSOR')
+    mutate_owner_appointment_register { |register| register['appointments'] = [finance, reconciler, formula, sponsor] }
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'cashier_operator + independent_finance_reconciler'
+    assert_error validator, 'report_formula_author + statutory_sponsor'
+  end
+
+  def test_owner_delegation_rejects_widening_expiry_redelegation_and_cycle
+    fixture_validator
+    prepare_active_owner_key_registry
+    prepare_approved_owner_policy
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    parent = valid_owner_appointment('PAR-ADM-001', 'product_delivery', 'UEU-PERSON-PARENT', policy, suffix: 'PARENT')
+    child = valid_owner_appointment('PAR-ADM-005', 'product_delivery', 'UEU-PERSON-CHILD', policy, suffix: 'CHILD')
+    parent['delegation']['parent_appointment_id'] = child['appointment_id']
+    parent['delegation']['depth'] = 1
+    parent['delegation']['may_redelegate'] = false
+    parent['issuer']['institutional_id'] = child.dig('subject', 'institutional_id')
+    child['delegation']['parent_appointment_id'] = parent['appointment_id']
+    child['delegation']['depth'] = 1
+    child['delegation']['may_redelegate'] = true
+    child['issuer']['institutional_id'] = parent.dig('subject', 'institutional_id')
+    child['expires_at'] = '2028-08-25T09:00:00+07:00'
+    reseal_owner_appointment(parent)
+    reseal_owner_appointment(child)
+    mutate_owner_appointment_register do |register|
+      register['appointments'] = [parent, child]
+      register['events'] = [valid_owner_event(parent, 'delegated', '2026-08-25T08:30:00+07:00', child['appointment_id']), valid_owner_event(child, 'delegated', '2026-08-25T08:31:00+07:00', parent['appointment_id'])]
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'delegation cannot widen parent PAR scope'
+    assert_error validator, 'delegation cannot outlive parent'
+    assert_error validator, 're-delegation is forbidden'
+    assert_error validator, 'delegation cycle detected'
+  end
+
+  def test_owner_delegation_accepts_one_level_narrower_scope_and_rights
+    fixture_validator
+    prepare_active_owner_key_registry
+    prepare_approved_owner_policy
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    parent = valid_owner_appointment('PAR-ADM-001', 'product_delivery', 'UEU-PERSON-PARENT', policy, suffix: 'NARROW-PARENT')
+    parent['scope']['requirement_ids'] = %w[PAR-ADM-001 PAR-ADM-005]
+    parent['scope']['manifest_batches'] = ['A']
+    parent['delegation']['scope_requirement_ids'] = parent['scope']['requirement_ids']
+    reseal_owner_appointment(parent)
+    child = valid_owner_appointment('PAR-ADM-001', 'product_delivery', 'UEU-PERSON-CHILD', policy, suffix: 'NARROW-CHILD')
+    child['issuer'] = {
+      'institutional_id' => parent.dig('subject', 'institutional_id'),
+      'authority_role' => parent['authority_role'],
+      'mandate_reference' => 'UEU-FIXTURE-NARROW-DELEGATION-20260825'
+    }
+    child['effective_at'] = '2026-08-25T10:00:00+07:00'
+    child['expires_at'] = '2027-01-01T00:00:00+07:00'
+    child['delegation'] = {
+      'parent_appointment_id' => parent['appointment_id'], 'scope_requirement_ids' => ['PAR-ADM-001'],
+      'depth' => 1, 'may_redelegate' => false
+    }
+    child['decision_rights'] = {
+      'session_actions' => ['consent'], 'permitted_decision_statuses' => ['defer'],
+      'permitted_dispositions' => ['exclude']
+    }
+    reseal_owner_appointment(child)
+    event = valid_owner_event(child, 'delegated', '2026-08-25T09:30:00+07:00', parent['appointment_id'])
+    mutate_owner_appointment_register do |register|
+      register['appointments'] = [parent, child]
+      register['events'] = [event]
+    end
+    refresh_owner_register_tops
+
+    validator = fixture_validator(refresh_owner: false)
+
+    assert validator.validate, validator.errors.join("\n")
+  end
+
+  def test_owner_session_rejects_missing_replace_sponsor_and_tampered_row_vote_session
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      session = register['sessions'].first
+      decision = session['decisions'].first
+      decision['disposition'] = 'replace'
+      decision['row_sha256'] = '0' * 64
+      decision['votes'].first['evidence_roots'] = ['1' * 64]
+      session['ended_at'] = '2026-08-25T11:30:00+07:00'
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'row digest and register digest must bind the current requirement row'
+    assert_error validator, 'session decision must exactly match the normalized terminal source decision'
+    assert_error validator, 'vote must bind session, policy, batch register, decision status/disposition, row, decision, evidence and controls'
+    assert_error validator, 'canonical_session_sha256 must be recomputable'
+  end
+
+  def test_owner_session_rejects_missing_disposition_specific_authorities
+    variants = [
+      ['retire', 'approve', [], ['retention evidence required'], ['operations handoff required']],
+      ['exclude', 'approve', [], ['scope excluded'], ['retention handoff required']],
+      ['reproduce', 'defer', ['laboratory'], ['laboratory scope unavailable'], ['revisit after laboratory appointment']]
+    ]
+    variants.each do |disposition, decision_status, unresolved, exclusions, conditions|
+      teardown
+      setup
+      prepare_valid_owner_session_fixture
+      mutate_decision_session_register do |register|
+        session = register['sessions'].first
+        decision = session['decisions'].first
+        decision['disposition'] = disposition
+        decision['decision_status'] = decision_status
+        decision['unresolved_gate_authority_domains'] = unresolved
+        decision['exclusions'] = exclusions
+        decision['conditions'] = conditions
+        reseal_owner_decision_and_session(session)
+      end
+      validator = fixture_validator(refresh_owner: false)
+      refute validator.validate
+      assert_error validator, 'session decision must exactly match the normalized terminal source decision'
+    end
+  end
+
+  def test_owner_session_rejects_consolidation_without_member_terminal_and_sponsor_authorities
+    prepare_valid_owner_session_fixture
+    mutate_decision_session_register do |register|
+      session = register['sessions'].first
+      decision = session['decisions'].first
+      decision['disposition'] = 'consolidate'
+      decision['target_reference'] = 'Fixture consolidation target requiring authority review.'
+      decision['target_requirement_id'] = 'PAR-ADM-001'
+      decision['consolidation_member_ids'] = %w[PAR-ADM-005 PAR-ADM-001]
+      reseal_owner_decision_and_session(session)
+    end
+
+    validator = fixture_validator(refresh_owner: false)
+
+    refute validator.validate
+    assert_error validator, 'session decision must exactly match the normalized terminal source decision'
+    assert_error validator, 'consolidation terminal must have an approved reproduce/replace decision'
+  end
+
+  def test_owner_session_accepts_valid_minimal_session_zero_ordinary_row_contract
+    prepare_valid_owner_session_fixture
+
+    validator = fixture_validator(refresh_owner: false)
+
+    assert validator.validate, validator.errors.join("\n")
+  end
+
   private
 
   def repository_validator
@@ -2841,13 +3896,17 @@ class ParityGovernanceValidatorTest < Minitest::Test
       batch_e_decision_register_path: SOURCE_BATCH_E_DECISION_REGISTER,
       batch_f_decision_register_path: SOURCE_BATCH_F_DECISION_REGISTER,
       batch_g_decision_register_path: SOURCE_BATCH_G_DECISION_REGISTER,
+      institutional_identity_key_registry_path: SOURCE_INSTITUTIONAL_IDENTITY_KEY_REGISTRY,
+      owner_authority_policy_path: SOURCE_OWNER_AUTHORITY_POLICY,
+      owner_appointment_register_path: SOURCE_OWNER_APPOINTMENT_REGISTER,
+      decision_session_register_path: SOURCE_DECISION_SESSION_REGISTER,
       release_index_path: SOURCE_RELEASE_INDEX,
       mode: 'integrity'
     )
   end
 
-  def fixture_validator(mode: 'integrity')
-    ParityGovernanceValidator.new(
+  def fixture_validator(mode: 'integrity', refresh_owner: true, trusted_identity_root_sha256: @trusted_identity_root_sha256)
+    validator = ParityGovernanceValidator.new(
       matrix_path: @matrix,
       baseline_path: @baseline,
       batch_manifest_path: @batch_manifest,
@@ -2858,8 +3917,581 @@ class ParityGovernanceValidatorTest < Minitest::Test
       batch_e_decision_register_path: @batch_e_decision_register,
       batch_f_decision_register_path: @batch_f_decision_register,
       batch_g_decision_register_path: @batch_g_decision_register,
+      institutional_identity_key_registry_path: @institutional_identity_key_registry,
+      trusted_identity_root_sha256: trusted_identity_root_sha256,
+      owner_authority_policy_path: @owner_authority_policy,
+      owner_appointment_register_path: @owner_appointment_register,
+      decision_session_register_path: @decision_session_register,
       release_index_path: @release_index,
       mode: mode
+    )
+    if refresh_owner
+      validator.validate
+      manifest = JSON.parse(File.read(@batch_manifest))
+      policy = validator.send(:expected_owner_authority_policy, manifest)
+      File.write(@owner_authority_policy, JSON.pretty_generate(policy) + "\n")
+      appointments = validator.send(:expected_owner_appointment_register_top).merge('appointments' => [], 'events' => [])
+      File.write(@owner_appointment_register, JSON.pretty_generate(appointments) + "\n")
+      sessions = validator.send(:expected_owner_decision_session_register_top).merge('sessions' => [])
+      File.write(@decision_session_register, JSON.pretty_generate(sessions) + "\n")
+      validator = ParityGovernanceValidator.new(
+        matrix_path: @matrix, baseline_path: @baseline, batch_manifest_path: @batch_manifest,
+        decision_register_path: @decision_register, batch_b_decision_register_path: @batch_b_decision_register,
+        batch_c_decision_register_path: @batch_c_decision_register, batch_d_decision_register_path: @batch_d_decision_register,
+        batch_e_decision_register_path: @batch_e_decision_register, batch_f_decision_register_path: @batch_f_decision_register,
+        batch_g_decision_register_path: @batch_g_decision_register, owner_authority_policy_path: @owner_authority_policy,
+        institutional_identity_key_registry_path: @institutional_identity_key_registry,
+        trusted_identity_root_sha256: trusted_identity_root_sha256,
+        owner_appointment_register_path: @owner_appointment_register, decision_session_register_path: @decision_session_register,
+        release_index_path: @release_index, mode: mode
+      )
+    end
+    validator
+  end
+
+  def mutate_owner_policy
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    result = yield policy
+    File.write(@owner_authority_policy, JSON.pretty_generate(policy) + "\n")
+    result
+  end
+
+  def mutate_owner_key_registry
+    registry = JSON.parse(File.read(@institutional_identity_key_registry))
+    result = yield registry
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+    result
+  end
+
+  def mutate_owner_appointment_register
+    register = JSON.parse(File.read(@owner_appointment_register))
+    result = yield register
+    File.write(@owner_appointment_register, JSON.pretty_generate(register) + "\n")
+    result
+  end
+
+  def mutate_decision_session_register
+    register = JSON.parse(File.read(@decision_session_register))
+    result = yield register
+    File.write(@decision_session_register, JSON.pretty_generate(register) + "\n")
+    result
+  end
+
+  def owner_test_key(subject_id)
+    self.class.instance_variable_set(:@owner_test_keys, {}) unless self.class.instance_variable_defined?(:@owner_test_keys)
+    keys = self.class.instance_variable_get(:@owner_test_keys)
+    keys[subject_id] ||= OpenSSL::PKey::RSA.generate(3072, 65_537)
+  end
+
+  def owner_test_subject_ids
+    %w[
+      UEU-PERSON-ROOT-1 UEU-PERSON-ROOT-2 UEU-PERSON-EXECUTIVE-ISSUER
+      UEU-PERSON-REGISTRY-REVIEWER UEU-PERSON-SESSION-REVIEWER
+      UEU-PERSON-EVIDENCE-AUTHOR UEU-PERSON-IMPLEMENTER UEU-PERSON-ALIAS
+      UEU-PERSON-DUAL-FIN UEU-PERSON-DUAL-STAT UEU-PERSON-PARENT UEU-PERSON-CHILD
+      UEU-PERSON-SEAT-1 UEU-PERSON-SEAT-2 UEU-PERSON-SEAT-3 UEU-PERSON-SEAT-4
+      UEU-PERSON-SEAT-5 UEU-PERSON-SEAT-6 UEU-PERSON-SEAT-7 UEU-PERSON-SEAT-8
+      UEU-PERSON-SEAT-9 UEU-PERSON-SEAT-10 UEU-PERSON-SEAT-11 UEU-PERSON-SEAT-12
+      UEU-PERSON-SEAT-13 UEU-PERSON-SEAT-14 UEU-PERSON-SEAT-15 UEU-PERSON-SEAT-16
+      UEU-PERSON-SEAT-17 UEU-PERSON-SEAT-18 UEU-PERSON-SEAT-19 UEU-PERSON-SEAT-20
+      UEU-SERVICE-INTEGRITY-1
+    ]
+  end
+
+  def owner_test_key_id(subject_id)
+    "UEU-PUBKEY-#{subject_id.sub(/\AUEU-(?:PERSON|SERVICE)-/, '')}"
+  end
+
+  def owner_test_canonical(value)
+    ParityGovernanceValidator.allocate.send(:owner_canonical_json, value)
+  end
+
+  def owner_test_signature_message(purpose, payload_bytes)
+    ParityGovernanceValidator.allocate.send(:owner_signature_message, purpose, payload_bytes)
+  end
+
+  def prepare_active_owner_key_registry
+    identities = owner_test_subject_ids.map do |subject_id|
+      service_identity = subject_id.start_with?('UEU-SERVICE-')
+      authorizations = if %w[UEU-PERSON-ROOT-1 UEU-PERSON-ROOT-2].include?(subject_id)
+                         %w[institutional_trust_root identity_registry_issuer]
+                       elsif subject_id == 'UEU-PERSON-EXECUTIVE-ISSUER'
+                         %w[executive_sponsor appointment_issuer]
+                       elsif %w[UEU-PERSON-REGISTRY-REVIEWER UEU-PERSON-SESSION-REVIEWER].include?(subject_id)
+                         %w[independent_reviewer]
+                       else
+                         []
+                       end
+      purposes = if service_identity
+                   %w[automated_integrity_receipt]
+                 elsif authorizations.include?('institutional_trust_root')
+                   %w[registry_root]
+                 elsif subject_id == 'UEU-PERSON-EXECUTIVE-ISSUER'
+                   %w[policy_approval appointment_issuance lifecycle_event]
+                 elsif authorizations.include?('independent_reviewer')
+                   %w[registry_review session_review]
+                 else
+                   %w[appointment_acceptance appointment_issuance lifecycle_event decision_vote]
+                 end
+      key = owner_test_key(subject_id)
+      {
+        'subject_id' => subject_id,
+        'identity_type' => service_identity ? 'service' : 'person',
+        'display_name' => "Fixture #{subject_id.sub('UEU-PERSON-', '')}",
+        'unit' => 'Fixture Governance Unit',
+        'title' => 'Fixture role holder',
+        'status' => 'active',
+        'status_effective_at' => nil,
+        'issuer_subject_id' => authorizations.include?('institutional_trust_root') ? subject_id : 'UEU-PERSON-ROOT-1',
+        'authorization_roles' => authorizations,
+        'keys' => [{
+          'key_id' => owner_test_key_id(subject_id),
+          'fingerprint_sha256' => Digest::SHA256.hexdigest(key.public_key.to_der),
+          'algorithm' => 'RS256',
+          'public_key_spki_base64' => Base64.strict_encode64(key.public_key.to_der),
+          'allowed_purposes' => purposes,
+          'valid_from' => '2025-01-01T00:00:00Z',
+          'valid_until' => '2030-01-01T00:00:00Z',
+          'revoked_at' => nil,
+          'revocation_reason' => nil
+        }]
+      }
+    end
+    identity_sha = Digest::SHA256.hexdigest(owner_test_canonical(identities))
+    trust_material = identities.select { |identity| identity['authorization_roles'].include?('institutional_trust_root') }.map do |identity|
+      { 'subject_id' => identity['subject_id'], 'keys' => identity['keys'].map { |key| { 'key_id' => key['key_id'], 'fingerprint_sha256' => key['fingerprint_sha256'] } } }
+    end
+    @trusted_identity_root_sha256 = Digest::SHA256.hexdigest(owner_test_canonical(trust_material))
+    registry = {
+      'schema_version' => 1,
+      'registry_id' => ParityGovernanceValidator::OWNER_KEY_REGISTRY_ID,
+      'registry_status' => 'active',
+      'data_boundary' => 'synthetic_only',
+      'source_revision' => ParityGovernanceValidator::OWNER_SOURCE_REVISION,
+      'snapshot_id' => 'FIXTURE-IDENTITY-SNAPSHOT-1',
+      'snapshot_revision' => 1,
+      'snapshot_at' => '2026-08-24T23:00:00Z',
+      'prior_snapshot_reference' => nil,
+      'prior_snapshot_sha256' => nil,
+      'identities' => identities,
+      'registry_root' => nil
+    }
+    root_payload = {
+      'registry_id' => registry['registry_id'], 'snapshot_id' => registry['snapshot_id'],
+      'snapshot_revision' => registry['snapshot_revision'], 'snapshot_at' => registry['snapshot_at'],
+      'prior_snapshot_sha256' => nil, 'identity_set_sha256' => identity_sha,
+      'trust_root_sha256' => @trusted_identity_root_sha256
+    }
+    root_bytes = owner_test_canonical(root_payload)
+    registry['registry_root'] = {
+      'status' => 'signed', 'identity_set_sha256' => identity_sha,
+      'trust_root_sha256' => @trusted_identity_root_sha256,
+      'snapshot_payload_sha256' => Digest::SHA256.hexdigest(root_bytes),
+      'signatures' => []
+    }
+    registry['registry_root']['signatures'] = %w[UEU-PERSON-ROOT-1 UEU-PERSON-ROOT-2].map { |subject_id| owner_fixture_signature(subject_id, root_bytes, 'registry_root', '2026-08-24T23:05:00Z', registry: registry) }
+    File.write(@institutional_identity_key_registry, JSON.pretty_generate(registry) + "\n")
+  end
+
+  def reseal_owner_key_registry(registry)
+    identities = registry.fetch('identities')
+    identity_sha = Digest::SHA256.hexdigest(owner_test_canonical(identities))
+    trust_material = identities.select { |identity| identity.fetch('authorization_roles').include?('institutional_trust_root') }.map do |identity|
+      { 'subject_id' => identity.fetch('subject_id'), 'keys' => identity.fetch('keys').map { |key| { 'key_id' => key.fetch('key_id'), 'fingerprint_sha256' => key.fetch('fingerprint_sha256') } } }
+    end
+    @trusted_identity_root_sha256 = Digest::SHA256.hexdigest(owner_test_canonical(trust_material))
+    payload = {
+      'registry_id' => registry.fetch('registry_id'), 'snapshot_id' => registry.fetch('snapshot_id'),
+      'snapshot_revision' => registry.fetch('snapshot_revision'), 'snapshot_at' => registry.fetch('snapshot_at'),
+      'prior_snapshot_sha256' => registry['prior_snapshot_sha256'], 'identity_set_sha256' => identity_sha,
+      'trust_root_sha256' => @trusted_identity_root_sha256
+    }
+    payload_bytes = owner_test_canonical(payload)
+    root_signed_at = (Time.iso8601(registry.fetch('snapshot_at')) + 300).iso8601
+    registry['registry_root'] = {
+      'status' => 'signed', 'identity_set_sha256' => identity_sha,
+      'trust_root_sha256' => @trusted_identity_root_sha256,
+      'snapshot_payload_sha256' => Digest::SHA256.hexdigest(payload_bytes),
+      'signatures' => []
+    }
+    registry['registry_root']['signatures'] = %w[UEU-PERSON-ROOT-1 UEU-PERSON-ROOT-2].map { |subject_id| owner_fixture_signature(subject_id, payload_bytes, 'registry_root', root_signed_at, registry: registry) }
+  end
+
+  def prepare_approved_owner_policy
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    control_sha = policy.fetch('control_root_sha256')
+    snapshot_time = Time.iso8601(policy.fetch('snapshot_at'))
+    sponsor_signed_at = (snapshot_time + 60).iso8601
+    reviewer_verified_at = (snapshot_time + 120).iso8601
+    approval_payload = {
+      'artifact_type' => ParityGovernanceValidator::OWNER_POLICY_APPROVAL_ARTIFACT_TYPE,
+      'schema_version' => 1,
+      'policy_id' => ParityGovernanceValidator::OWNER_POLICY_ID,
+      'policy_control_sha256' => control_sha,
+      'identity' => 'UEU-PERSON-EXECUTIVE-ISSUER',
+      'authority_role' => 'executive_sponsor',
+      'mandate_reference' => 'UEU-FIXTURE-EXECUTIVE-MANDATE-20260825',
+      'date' => snapshot_time.getlocal('+07:00').strftime('%Y-%m-%d')
+    }
+    approval_bytes = owner_test_canonical(approval_payload)
+    sponsor_signature = owner_fixture_signature('UEU-PERSON-EXECUTIVE-ISSUER', approval_bytes, 'policy_approval', sponsor_signed_at)
+    artifact = approval_payload.merge(sponsor_signature.reject { |key, _value| key == 'signer_institutional_id' })
+    artifact['reviewer'] = owner_fixture_registry_receipt(approval_bytes, 'UEU-PERSON-REGISTRY-REVIEWER', purpose: 'registry_review', verified_at: reviewer_verified_at)
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    artifact_path = File.join(evidence_dir, "policy-approval-fixture-rev#{policy.fetch('snapshot_revision')}.json")
+    File.write(artifact_path, JSON.pretty_generate(artifact) + "\n")
+    policy['policy_status'] = 'approved'
+    policy['approval'] = {
+      'status' => 'recorded', 'identity' => artifact['identity'], 'authority_role' => 'executive_sponsor',
+      'date' => artifact['date'],
+      'reference' => File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(artifact_path)),
+      'artifact_sha256' => Digest::SHA256.file(artifact_path).hexdigest
+    }
+    File.write(@owner_authority_policy, JSON.pretty_generate(policy) + "\n")
+    refresh_owner_register_tops
+  end
+
+  def prepare_owner_policy_revision_two(snapshot_at: '2026-08-25T08:00:00+07:00')
+    prepare_approved_owner_policy
+    prior_policy = JSON.parse(File.read(@owner_authority_policy))
+    evidence_dir = File.join(@tmpdir, ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY)
+    FileUtils.mkdir_p(evidence_dir)
+    prior_path = File.join(evidence_dir, 'owner-policy-revision-1-fixture.json')
+    File.write(prior_path, JSON.pretty_generate(prior_policy) + "\n")
+    current = Marshal.load(Marshal.dump(prior_policy))
+    current['policy_status'] = 'proposal'
+    current['snapshot_id'] = 'G0-OWNER-AUTHORITY-POLICY-SNAPSHOT-2-FIXTURE'
+    current['snapshot_revision'] = 2
+    current['snapshot_at'] = snapshot_at
+    current['prior_snapshot_reference'] = File.join(ParityGovernanceValidator::OWNER_EVIDENCE_DIRECTORY, File.basename(prior_path))
+    current['prior_snapshot_sha256'] = Digest::SHA256.file(prior_path).hexdigest
+    current['approval'] = { 'status' => 'pending', 'identity' => nil, 'authority_role' => nil, 'date' => nil, 'reference' => nil, 'artifact_sha256' => nil }
+    validator = fixture_validator(refresh_owner: false)
+    current['control_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(validator.send(:owner_policy_control_payload, current)))
+    File.write(@owner_authority_policy, JSON.pretty_generate(current) + "\n")
+    prepare_approved_owner_policy
+    [prior_path, JSON.parse(File.read(@owner_authority_policy))]
+  end
+
+  def refresh_owner_register_tops
+    validator = fixture_validator(refresh_owner: false)
+    validator.validate
+    appointments_existing = JSON.parse(File.read(@owner_appointment_register))
+    appointments = validator.send(:expected_owner_appointment_register_top).merge(
+      'appointments' => Array(appointments_existing['appointments']), 'events' => Array(appointments_existing['events'])
+    )
+    File.write(@owner_appointment_register, JSON.pretty_generate(appointments) + "\n")
+    sessions_existing = JSON.parse(File.read(@decision_session_register))
+    sessions = validator.send(:expected_owner_decision_session_register_top).merge('sessions' => Array(sessions_existing['sessions']))
+    File.write(@decision_session_register, JSON.pretty_generate(sessions) + "\n")
+  end
+
+  def owner_fixture_signature(signer, payload_bytes, purpose, timestamp = '2026-08-25T08:15:00+07:00', registry: nil)
+    payload_bytes = payload_bytes.encode(Encoding::UTF_8)
+    registry ||= JSON.parse(File.read(@institutional_identity_key_registry))
+    binding = {
+      'identity_registry_id' => registry.fetch('registry_id'),
+      'identity_registry_snapshot_id' => registry.fetch('snapshot_id'),
+      'identity_registry_snapshot_revision' => registry.fetch('snapshot_revision'),
+      'identity_registry_snapshot_sha256' => registry.dig('registry_root', 'snapshot_payload_sha256'),
+      'identity_registry_root_sha256' => registry.dig('registry_root', 'trust_root_sha256')
+    }
+    semantic_sha = Digest::SHA256.hexdigest(payload_bytes)
+    signature = {
+      'signature_artifact_type' => ParityGovernanceValidator::OWNER_SIGNATURE_ARTIFACT_TYPES.fetch(purpose),
+      'signer_institutional_id' => signer,
+      'key_id' => owner_test_key_id(signer), 'algorithm' => 'RS256', 'purpose' => purpose,
+      'signed_at' => timestamp, 'semantic_payload_sha256' => semantic_sha
+    }.merge(binding)
+    envelope = {
+      'artifact_type' => signature['signature_artifact_type'], 'purpose' => purpose,
+      'signer_subject_id' => signer, 'key_id' => signature['key_id'], 'algorithm' => 'RS256',
+      'signed_at' => timestamp, 'semantic_payload_sha256' => semantic_sha
+    }.merge(binding)
+    signature['signature'] = Base64.strict_encode64(owner_test_key(signer).sign(OpenSSL::Digest::SHA256.new, owner_test_signature_message(purpose, owner_test_canonical(envelope))))
+    signature
+  end
+
+  def owner_fixture_registry_receipt(payload_bytes, reviewer = 'UEU-PERSON-REGISTRY-REVIEWER', purpose: 'registry_review', verified_at: '2026-08-25T08:30:00+07:00')
+    metadata = owner_fixture_signature(reviewer, ''.b, purpose, verified_at)
+    receipt = {
+      'reviewer_institutional_id' => reviewer,
+      'evidence_author_institutional_id' => 'UEU-PERSON-EVIDENCE-AUTHOR',
+      'implementer_institutional_id' => 'UEU-PERSON-IMPLEMENTER',
+      'verification_method' => 'institutional_registry',
+      'verification_reference' => 'UEU-REGISTRY-RECEIPT-20260825-001',
+      'verified_at' => verified_at,
+      'reviewed_payload_sha256' => Digest::SHA256.hexdigest(payload_bytes),
+      'signature_artifact_type' => metadata['signature_artifact_type'],
+      'key_id' => metadata['key_id'],
+      'algorithm' => metadata['algorithm'],
+      'purpose' => purpose,
+      'semantic_payload_sha256' => nil,
+      'signature' => nil
+    }.merge(metadata.slice(*ParityGovernanceValidator::OWNER_SIGNATURE_REGISTRY_BINDING_KEYS))
+    receipt_payload = receipt.slice(
+      'reviewed_payload_sha256', 'reviewer_institutional_id', 'evidence_author_institutional_id',
+      'implementer_institutional_id', 'verification_method', 'verification_reference', 'verified_at',
+      'key_id', 'algorithm', 'purpose', *ParityGovernanceValidator::OWNER_SIGNATURE_REGISTRY_BINDING_KEYS
+    )
+    signature = owner_fixture_signature(reviewer, owner_test_canonical(receipt_payload), purpose, verified_at)
+    receipt['semantic_payload_sha256'] = signature['semantic_payload_sha256']
+    receipt['signature'] = signature['signature']
+    receipt
+  end
+
+  def valid_owner_appointment(requirement_id, role, subject_id, policy, suffix: nil)
+    requirement_policy = policy.fetch('requirement_policies').find { |item| item['requirement_id'] == requirement_id }
+    suffix ||= role.upcase.gsub(/[^A-Z0-9]+/, '-')
+    registry_identity = JSON.parse(File.read(@institutional_identity_key_registry)).fetch('identities').find { |identity| identity['subject_id'] == subject_id }
+    appointment = {
+      'appointment_id' => "APP-G0-#{suffix}",
+      'appointment_register_id' => ParityGovernanceValidator::OWNER_APPOINTMENT_REGISTER_ID,
+      'subject' => {
+        'institutional_id' => subject_id,
+        'identity_type' => registry_identity.fetch('identity_type'),
+        'display_name' => registry_identity.fetch('display_name'),
+        'title' => registry_identity.fetch('title'),
+        'unit' => registry_identity.fetch('unit')
+      },
+      'authority_domain' => ParityGovernanceValidator::OWNER_ROLE_DOMAIN_MAP.fetch(role),
+      'authority_role' => role,
+      'capacity_id' => ParityGovernanceValidator::OWNER_ROLE_CAPACITY_MAP.fetch(role),
+      'scope' => { 'requirement_ids' => [requirement_id], 'manifest_batches' => [requirement_policy.fetch('batch')] },
+      'decision_rights' => {
+        'session_actions' => ParityGovernanceValidator::OWNER_DECISION_ACTIONS,
+        'permitted_decision_statuses' => ParityGovernanceValidator::OWNER_DECISION_STATUSES,
+        'permitted_dispositions' => ParityGovernanceValidator::OWNER_PERMITTED_DISPOSITIONS
+      },
+      'data_boundary' => 'synthetic_only',
+      'issuer' => {
+        'institutional_id' => 'UEU-PERSON-EXECUTIVE-ISSUER',
+        'authority_role' => 'executive_sponsor',
+        'mandate_reference' => 'UEU-MANDATE-FIXTURE-20260825'
+      },
+      'effective_at' => '2026-08-25T09:00:00+07:00',
+      'expires_at' => '2027-08-25T08:00:00+07:00',
+      'conflict_disclosure' => { 'status' => 'none', 'details' => nil },
+      'delegation' => { 'parent_appointment_id' => nil, 'scope_requirement_ids' => [requirement_id], 'depth' => 0, 'may_redelegate' => true },
+      'policy_sha256' => policy.fetch('control_root_sha256'),
+      'manifest_sha256' => Digest::SHA256.file(@batch_manifest).hexdigest,
+      'source_register_sha256s' => policy.fetch('source_decision_registers').to_h { |item| [item.fetch('batch'), item.fetch('sha256')] },
+      'acceptance' => nil,
+      'issuer_signature' => nil,
+      'registry_receipt' => nil,
+      'canonical_signed_payload_sha256' => nil
+    }
+    reseal_owner_appointment(appointment)
+    appointment
+  end
+
+  def reseal_owner_appointment(appointment)
+    payload_keys = %w[appointment_id appointment_register_id subject authority_domain authority_role capacity_id scope decision_rights data_boundary issuer effective_at expires_at conflict_disclosure delegation policy_sha256 manifest_sha256 source_register_sha256s]
+    payload_bytes = owner_test_canonical(appointment.slice(*payload_keys))
+    payload_sha = Digest::SHA256.hexdigest(payload_bytes)
+    appointment['canonical_signed_payload_sha256'] = payload_sha
+    effective_at = Time.iso8601(appointment.fetch('effective_at'))
+    appointment['acceptance'] = owner_fixture_signature(appointment.dig('subject', 'institutional_id'), payload_bytes, 'appointment_acceptance', (effective_at - 180).iso8601)
+    appointment['issuer_signature'] = owner_fixture_signature(appointment.dig('issuer', 'institutional_id'), payload_bytes, 'appointment_issuance', (effective_at - 120).iso8601)
+    appointment['registry_receipt'] = owner_fixture_registry_receipt(payload_bytes, 'UEU-PERSON-REGISTRY-REVIEWER', purpose: 'registry_review', verified_at: (effective_at - 60).iso8601)
+  end
+
+  def valid_owner_event(appointment, event_type, effective_at, parent_appointment_id = nil)
+    signed_at = (Time.iso8601(effective_at) - 60).iso8601
+    issuer_id = appointment.dig('issuer', 'institutional_id')
+    signature_metadata = owner_fixture_signature(issuer_id, ''.b, 'lifecycle_event', signed_at)
+    event = {
+      'event_id' => "EVT-G0-#{appointment['appointment_id'].sub('APP-G0-', '')}-#{event_type.upcase}",
+      'appointment_id' => appointment['appointment_id'],
+      'parent_appointment_id' => parent_appointment_id,
+      'event_type' => event_type,
+      'effective_at' => effective_at,
+      'reason' => "Fixture #{event_type} lifecycle evidence.",
+      'issuer_institutional_id' => issuer_id,
+      'prior_event_sha256' => nil,
+      'signature_artifact_type' => signature_metadata['signature_artifact_type'],
+      'key_id' => signature_metadata['key_id'],
+      'algorithm' => signature_metadata['algorithm'],
+      'purpose' => signature_metadata['purpose'],
+      'signed_at' => signed_at,
+      'canonical_signed_payload_sha256' => nil,
+      'event_sha256' => nil,
+      'signature' => nil
+    }.merge(signature_metadata.slice(*ParityGovernanceValidator::OWNER_SIGNATURE_REGISTRY_BINDING_KEYS))
+    payload_keys = %w[event_id appointment_id parent_appointment_id event_type effective_at reason issuer_institutional_id prior_event_sha256 signature_artifact_type key_id algorithm purpose signed_at identity_registry_id identity_registry_snapshot_id identity_registry_snapshot_revision identity_registry_snapshot_sha256 identity_registry_root_sha256]
+    payload_bytes = owner_test_canonical(event.slice(*payload_keys))
+    signature = owner_fixture_signature(event['issuer_institutional_id'], payload_bytes, 'lifecycle_event', signed_at)
+    event['canonical_signed_payload_sha256'] = signature['semantic_payload_sha256']
+    event['signature'] = signature['signature']
+    event['event_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(event.reject { |key, _value| %w[event_sha256 signature].include?(key) }))
+    event
+  end
+
+  def prepare_valid_owner_session_fixture(requirement_id = 'PAR-ADM-001')
+    raise 'owner fixture currently supports the Batch A ordinary decision path' unless requirement_id == 'PAR-ADM-001'
+
+    artifact = valid_approval_artifact
+    artifact['conditions'] = ['Revisit only through the immutable owner-session revision chain.']
+    reference, digest = write_json_artifact('owner-source-decision.json', artifact)
+    prepare_recorded_defer(reference, digest)
+    mutate_decision_register { |register| register['entries'].first['approval']['conditions'] = artifact['conditions'] }
+    fixture_validator
+    prepare_active_owner_key_registry
+    prepare_approved_owner_policy
+
+    policy = JSON.parse(File.read(@owner_authority_policy))
+    requirement_policy = policy.fetch('requirement_policies').find { |item| item['requirement_id'] == requirement_id }
+    validator = fixture_validator(refresh_owner: false)
+    validator.validate
+    normalized = validator.send(:owner_normalized_source_decision, requirement_policy)
+    decision_stub = {
+      'requirement_id' => requirement_id, 'decision_status' => normalized['status'],
+      'disposition' => normalized['disposition'], 'target_requirement_id' => normalized['target_requirement_id'],
+      'consolidation_member_ids' => normalized['consolidation_member_ids'],
+      'unresolved_gate_authority_domains' => normalized['unresolved_gate_authority_domains']
+    }
+    seats = validator.send(:owner_required_seats_for_decision, requirement_policy, decision_stub, policy, {})
+    appointments = seats.each_with_index.map do |seat, index|
+      suffix = "#{seat['role'].upcase.gsub(/[^A-Z0-9]+/, '-')}-#{index + 1}"
+      valid_owner_appointment(seat['requirement_id'], seat['role'], "UEU-PERSON-SEAT-#{index + 1}", policy, suffix: suffix)
+    end
+    mutate_owner_appointment_register { |register| register['appointments'] = appointments; register['events'] = [] }
+    refresh_owner_register_tops
+    validator = fixture_validator(refresh_owner: false)
+    validator.validate
+
+    appointment_digests = appointments.map do |appointment|
+      { 'appointment_id' => appointment['appointment_id'], 'appointment_sha256' => Digest::SHA256.hexdigest(owner_test_canonical(appointment)) }
+    end.uniq.sort_by { |item| item['appointment_id'] }
+    decision = {
+      'requirement_id' => requirement_id, 'batch' => requirement_policy.fetch('batch'), 'decision_revision' => 1,
+      'session_id' => 'SESSION-G0-S0-FIXTURE', 'policy_sha256' => policy.fetch('control_root_sha256'),
+      'decided_at' => '2026-08-25T10:30:00+07:00', 'row_sha256' => requirement_policy.fetch('source_row_sha256'),
+      'batch_register_sha256' => requirement_policy.fetch('batch_register_sha256'),
+      'source_decision_sha256' => Digest::SHA256.hexdigest(owner_test_canonical(normalized)),
+      'decision_status' => normalized['status'], 'disposition' => normalized['disposition'],
+      'target_reference' => normalized['target_reference'], 'target_requirement_id' => normalized['target_requirement_id'],
+      'exclusions' => normalized['exclusions'], 'conditions' => normalized['conditions'],
+      'consolidation_member_ids' => normalized['consolidation_member_ids'],
+      'unresolved_gate_authority_domains' => normalized['unresolved_gate_authority_domains'],
+      'evidence_roots' => validator.send(:owner_expected_evidence_roots, requirement_policy),
+      'control_roots' => validator.send(:owner_expected_control_roots, requirement_policy, policy),
+      'appointment_digests' => appointment_digests, 'prior_decision_sha256' => nil,
+      'decision_sha256' => nil, 'votes' => []
+    }
+    decision['decision_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(decision.reject { |key, _value| %w[decision_sha256 votes].include?(key) }))
+    decision['votes'] = seats.each_with_index.map do |seat, index|
+      appointment = appointments[index]
+      vote = {
+        'vote_id' => "VOTE-G0-#{index + 1}", 'session_id' => decision['session_id'],
+        'policy_sha256' => decision['policy_sha256'], 'batch_register_sha256' => decision['batch_register_sha256'],
+        'seat_requirement_id' => seat['requirement_id'], 'appointment_id' => appointment['appointment_id'],
+        'subject_institutional_id' => appointment.dig('subject', 'institutional_id'),
+        'authority_domain' => appointment['authority_domain'], 'authority_role' => appointment['authority_role'],
+        'vote' => 'consent', 'recusal_reason' => nil, 'decision_status' => decision['decision_status'],
+        'disposition' => decision['disposition'], 'row_sha256' => decision['row_sha256'],
+        'decision_sha256' => decision['decision_sha256'], 'evidence_roots' => decision['evidence_roots'],
+        'control_roots' => decision['control_roots'],
+        'appointment_sha256' => Digest::SHA256.hexdigest(owner_test_canonical(appointment)),
+        'signed_at' => '2026-08-25T10:40:00+07:00', 'key_id' => nil, 'algorithm' => nil,
+        'purpose' => 'decision_vote', 'canonical_signed_payload_sha256' => nil, 'signature' => nil
+      }
+      reseal_owner_vote(vote)
+      vote
+    end
+    snapshot_cutoff = '2026-08-25T09:30:00+07:00'
+    session = {
+      'session_id' => 'SESSION-G0-S0-FIXTURE', 'sequence' => 0, 'session_revision' => 1,
+      'session_code' => 'S0', 'status' => 'closed', 'started_at' => '2026-08-25T10:00:00+07:00',
+      'ended_at' => '2026-08-25T11:00:00+07:00', 'policy_sha256' => policy.fetch('control_root_sha256'),
+      'manifest_sha256' => Digest::SHA256.file(@batch_manifest).hexdigest,
+      'appointment_snapshot_cutoff' => snapshot_cutoff, 'appointment_snapshot_count' => appointments.length,
+      'appointment_snapshot_root_sha256' => Digest::SHA256.hexdigest(owner_test_canonical(appointments)),
+      'appointment_event_prefix_count' => 0,
+      'appointment_event_prefix_sha256' => Digest::SHA256.hexdigest(owner_test_canonical([])),
+      'source_register_sha256s' => policy.fetch('source_decision_registers').to_h { |item| [item.fetch('batch'), item.fetch('sha256')] },
+      'chair_appointment_id' => appointments.first['appointment_id'],
+      'facilitator_appointment_id' => appointments.last['appointment_id'],
+      'prior_session_sha256' => nil, 'decisions' => [decision],
+      'canonical_session_sha256' => nil, 'registry_receipt' => nil
+    }
+    reseal_owner_decision_and_session(session)
+    mutate_decision_session_register { |register| register['sessions'] = [session] }
+  end
+
+  def reseal_owner_decision_and_session(session)
+    Array(session['decisions']).each do |decision|
+      decision['decision_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(decision.reject { |key, _value| %w[decision_sha256 votes].include?(key) }))
+      Array(decision['votes']).each do |vote|
+        vote['session_id'] = session['session_id']
+        vote['policy_sha256'] = decision['policy_sha256']
+        vote['batch_register_sha256'] = decision['batch_register_sha256']
+        vote['decision_status'] = decision['decision_status']
+        vote['disposition'] = decision['disposition']
+        vote['row_sha256'] = decision['row_sha256']
+        vote['decision_sha256'] = decision['decision_sha256']
+        vote['evidence_roots'] = decision['evidence_roots']
+        vote['control_roots'] = decision['control_roots']
+        reseal_owner_vote(vote)
+      end
+    end
+    session_payload = session.reject { |key, _value| %w[canonical_session_sha256 registry_receipt].include?(key) }
+    session_payload_bytes = owner_test_canonical(session_payload)
+    session['canonical_session_sha256'] = Digest::SHA256.hexdigest(session_payload_bytes)
+    session['registry_receipt'] = owner_fixture_registry_receipt(
+      session_payload_bytes,
+      'UEU-PERSON-SESSION-REVIEWER',
+      purpose: 'session_review',
+      verified_at: '2026-08-25T11:30:00+07:00'
+    )
+  end
+
+  def reseal_owner_vote(vote)
+    metadata = owner_fixture_signature(vote.fetch('subject_institutional_id'), ''.b, 'decision_vote', vote.fetch('signed_at'))
+    vote['signature_artifact_type'] = metadata['signature_artifact_type']
+    vote['key_id'] = metadata['key_id']
+    vote['algorithm'] = metadata['algorithm']
+    vote['purpose'] = metadata['purpose']
+    vote.merge!(metadata.slice(*ParityGovernanceValidator::OWNER_SIGNATURE_REGISTRY_BINDING_KEYS))
+    payload_bytes = owner_test_canonical(vote.reject { |key, _value| %w[canonical_signed_payload_sha256 signature].include?(key) })
+    signature = owner_fixture_signature(vote.fetch('subject_institutional_id'), payload_bytes, 'decision_vote', vote.fetch('signed_at'))
+    vote['canonical_signed_payload_sha256'] = signature.fetch('semantic_payload_sha256')
+    vote['signature'] = signature.fetch('signature')
+  end
+
+  def reseal_owner_session_appointment_bindings(appointment_id)
+    appointment_register = JSON.parse(File.read(@owner_appointment_register))
+    appointments = appointment_register.fetch('appointments')
+    events = appointment_register.fetch('events')
+    appointment = appointments.find { |item| item['appointment_id'] == appointment_id }
+    appointment_sha = Digest::SHA256.hexdigest(owner_test_canonical(appointment))
+    mutate_decision_session_register do |register|
+      register['appointment_register_sha256'] = Digest::SHA256.file(@owner_appointment_register).hexdigest
+      register['sessions'].each do |session|
+        cutoff = Time.iso8601(session.fetch('appointment_snapshot_cutoff'))
+        snapshot_count = appointments.take_while { |item| Time.iso8601(item.fetch('effective_at')) <= cutoff }.length
+        event_count = events.take_while { |item| Time.iso8601(item.fetch('effective_at')) <= cutoff }.length
+        session['appointment_snapshot_count'] = snapshot_count
+        session['appointment_event_prefix_count'] = event_count
+        session['appointment_snapshot_root_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(appointments.first(snapshot_count)))
+        session['appointment_event_prefix_sha256'] = Digest::SHA256.hexdigest(owner_test_canonical(events.first(event_count)))
+        session['decisions'].each do |decision|
+          decision['appointment_digests'].each { |item| item['appointment_sha256'] = appointment_sha if item['appointment_id'] == appointment_id }
+          decision['votes'].each { |vote| vote['appointment_sha256'] = appointment_sha if vote['appointment_id'] == appointment_id }
+        end
+        reseal_owner_decision_and_session(session)
+      end
+    end
+  end
+
+
+  def reseal_owner_session_only(session, verified_at: '2026-08-25T11:30:00+07:00')
+    payload = session.reject { |key, _value| %w[canonical_session_sha256 registry_receipt].include?(key) }
+    payload_bytes = owner_test_canonical(payload)
+    session['canonical_session_sha256'] = Digest::SHA256.hexdigest(payload_bytes)
+    session['registry_receipt'] = owner_fixture_registry_receipt(
+      payload_bytes, 'UEU-PERSON-SESSION-REVIEWER', purpose: 'session_review', verified_at: verified_at
     )
   end
 

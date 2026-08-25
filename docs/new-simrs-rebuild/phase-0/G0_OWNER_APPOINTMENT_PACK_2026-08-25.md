@@ -1,111 +1,152 @@
-# G0 domain-owner appointment pack — 2026-08-25
+# Paket penunjukan pemilik dan sesi keputusan G0 — 2026-08-25
 
-**Status:** DRAFT FOR PRODUCT/SPONSOR ACTION
-**Purpose:** Name accountable owners who can approve the 268 parity dispositions and later G2/G3 outcomes
-**Boundary:** Synthetic teaching SIMRS; appointments in this pack do not authorize real data or live integrations
+**Status:** PROPOSAL — BELUM ADA PENUNJUKAN ATAU KEPUTUSAN
 
-## Why appointments are required
+**Cakupan:** 268 kapabilitas Batch A–G, data sintetis saja
 
-The parity register currently has 252 rows whose Business owner field still contains `TBD`. Daniel may approve product scope, architecture, priorities, synthetic-demo operations, and release coordination, but technical or product authority cannot substitute for professional Clinical, Laboratory, Pharmacy, Finance, or RMIK decisions.
+**Larangan:** dokumen ini tidak menunjuk seseorang, tidak memberi mandat, tidak merekam suara, dan tidak menyetujui keputusan apa pun.
 
-A domain owner approves intended workflow outcomes and acceptance criteria within their authority. Cross-domain consequences require co-approval from the receiving owner; for example, a Clinical owner cannot alone approve stock valuation or financial posting.
+Nama, jabatan, atau unit yang pernah muncul pada dokumen naratif hanya boleh diperlakukan sebagai kandidat yang belum diverifikasi. Tidak ada peran interim atau organisasi yang menjadi penunjukan aktif tanpa rekaman terstruktur, penerimaan appointee, tanda tangan issuer, serta verifikasi independen yang lolos validator.
 
-The [G0 authority map](G0_AUTHORITY_MAP_2026-08-25.md) assigns every row to a decision batch: **28 rows are Daniel-led** through shared-control and patient/encounter responsibilities, while **240 rows require a professional/domain lead**. Daniel-led is not Daniel-only: affected clinical, RMIK, stock, financial, privacy or integration consequences still require their owners.
+## Berkas otoritatif mesin
 
-Appointments and approvals are separate events. A blank candidate, an interim cover, or an organizational owner without a delegate must not be represented as a named appointment. Naming an owner also does not approve any matrix disposition.
+- `G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json`: trust registry proposal yang masih kosong; belum ada subject, public key, atau trust-root signature.
+- `G0_OWNER_AUTHORITY_POLICY_2026-08-25.json`: kebijakan proposal, katalog kapasitas/peran, pemisahan tugas, aturan disposisi, dan matriks persyaratan tepat 268 PAR.
+- `G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json`: register terbuka dengan `appointments: []` dan `events: []`.
+- `G0_DECISION_SESSION_REGISTER_2026-08-25.json`: register terbuka dengan `sessions: []`.
+- `G0_OWNER_DECISION_EVIDENCE_2026-08-25/`: akar bukti tertutup untuk artefak JSON bertanda tangan di masa depan.
 
-## Appointment register
+Seluruh digest mengikat manifest, register A–G, kebijakan, penunjukan, baris PAR, bukti/kontrol, suara, dan sesi. Perubahan setelah tanda tangan, hash kedaluwarsa, revisi paralel, atau sumber yang tidak cocok harus gagal tertutup.
 
-| Authority domain | Minimum decision scope | Current authority | Named person/unit | Appointment evidence/date | Status |
-| --- | --- | --- | --- | --- | --- |
-| Product sponsor | G0/G1/G3 gate, authorized exclusions and residual risk | Daniel Happy Putra, interim | | DEC/reference: | Interim |
-| Product and delivery | Scope, priority, canonical disposition, dependency graph | Daniel Happy Putra | Daniel Happy Putra | DEC-001 | Confirmed for now |
-| Registration/admission | Patient access, encounter, queue, correction/cancellation | Daniel Happy Putra, interim | | | Interim |
-| Outpatient/ED/inpatient Clinical | Documentation, orders, transitions, clinical closure and safety | TBD | | | **Required for T0/C/D** |
-| Nursing | Nursing documentation, supervision, administration boundary | TBD | | | Required |
-| Laboratory | Test/order/specimen/result verification and correction | TBD | | | **Required for DEC-016/D** |
-| Radiology | Scheduling, imaging result verification/correction, PACS boundary | TBD | | | Required before PAR-CLN-007 build |
-| Allied care/blood/surgery | Nutrition, rehabilitation, blood, theatre and related handoffs | TBD | | | Required for D |
-| RMIK/coding/reports | Completeness, filing, coding, report definitions and teaching acceptance | RMIK Department | Named delegate: | DEC-011 / delegation: | Organizational owner confirmed |
-| Pharmacy | Prescription, dispense/return and pharmacy clinical handoff | TBD | | | Required for E |
-| Warehouse/GF | Procurement, receipt, distribution, lot/expiry, stocktake | TBD | | | Required for E |
-| Claims/BPJS simulation | Coding/grouping/status simulation and payer boundary | TBD | | | Required for F; live integration excluded |
-| Cashier/revenue/finance | Tariff, charge, payment, reversal, receivable, settlement, journals | TBD | | | Required for F |
-| Security/privacy/data | RBAC, break-glass, audit, synthetic isolation and exports | Daniel interim; institutional reviewer TBD | | | Required for G1/G3 |
-| Operations/recovery | Deployment, backup/restore, rollback, monitoring and support | Daniel Happy Putra, interim | | | Interim |
-| Teaching/facilitation | Classroom scenarios, learner boundaries and usability | RMIK Department | Named delegate: | | Organizational owner confirmed |
+## Trust root dan tanda tangan nyata
 
-Privileged-access requester, approver, subject, security reviewer and dual recovery-custodian appointments are recorded separately in the [G1 privileged-access authority appointment pack](G1_PRIVILEGED_ACCESS_AUTHORITY_APPOINTMENT_PACK_2026-08-25.md). This link does not imply that any appointment or G1 approval exists.
+Validator tidak menerima teks yang sekadar berbentuk signature. Penutupan terminal menggunakan detached `RS256` yang benar-benar diverifikasi dengan Ruby OpenSSL atas byte JSON kanonis. Kunci RSA harus public-only SPKI, sedikitnya 3072 bit, exponent 65537, strict Base64, dan fingerprint SHA-256 yang dapat dihitung ulang. Private key tidak pernah masuk repository.
 
-## Required appointment statement
+Pesan tanda tangan memakai domain `SIMRS-UEU-G0-OWNER-SIGNATURE-V1`, purpose tertutup, serta framing panjang domain/purpose/envelope. Envelope kanonis selalu mengikat jenis artefak, purpose, institutional subject ID penanda tangan, key ID, algoritma, `signed_at`/`verified_at`, SHA-256 payload semantik, serta ID/revisi/SHA/root snapshot identity registry yang tepat. Timestamp acceptance, issuer, reviewer, event, vote, session receipt, dan root signature adalah bagian byte yang ditandatangani; mengubah timestamp tanpa tanda tangan baru harus gagal.
 
-For each named owner, retain a statement equivalent to:
+JSON kanonis memakai key ASCII terurut, string UTF-8 NFC, integer 64-bit tanpa float, dan timestamp UTC presisi detik. Dengan demikian perubahan spasi tidak menjadi otoritas baru, sedangkan perubahan nilai, timestamp, purpose, subject, key, registry snapshot, atau payload pasti membatalkan tanda tangan.
 
-> I accept accountability for reviewing the listed synthetic teaching workflows and parity dispositions within my professional authority. My approval does not extend to another domain’s clinical, stock, financial, privacy, integration, or operational consequences. I will identify required co-approvers and record approve/revise/reject/defer decisions with evidence and conditions.
+Snapshot identity registry aktif kelak membutuhkan sedikitnya dua tanda tangan trust-root dari dua orang berbeda. SHA trust root **harus diberikan dari luar file repository** melalui `--trusted-identity-root-sha256`; file JSON tidak boleh mempercayai pin miliknya sendiri. Tanpa pin independen, policy approval dan sesi terminal tetap gagal tertutup.
 
-Record:
+Rotasi registry harus berupa rantai snapshot linear. Revisi kedua dan seterusnya wajib menunjuk file snapshot sebelumnya di akar bukti, mengikat SHA file tersebut, memverifikasi ulang dua root signature terdahulu, serta mempertahankan setiap subject dan material public-key historis. Mengganti prefix, melompati revisi, membuat siklus, atau menghapus key historis gagal tertutup.
 
-- owner name, position and unit;
-- authority domain and decision limits;
-- effective date and review/replacement date;
-- approving sponsor/product owner;
-- conflicts or unavailable expertise; and
-- authorized delegate, if any.
+Setiap signature diverifikasi terhadap snapshot registry historis yang dinyatakan di envelope, bukan otomatis terhadap registry terbaru. Kunci yang baru muncul pada revisi 2 tidak dapat mengesahkan artefak revisi 1. Suspension/revocation pada snapshot baru mempertahankan signature lama yang dibuat sebelum waktu efektifnya, tetapi mencegah pemakaian ulang setelah waktu tersebut.
 
-## Immediate appointments blocking T0
+Setiap snapshot registry mempunyai waktu aktivasi yang dapat dihitung ulang: nilai maksimum dari `snapshot_at` dan seluruh trust-root signature yang diwajibkan. Acceptance, issuer signature, reviewer receipt, lifecycle event, vote, dan session receipt yang mengikat snapshot tersebut tidak boleh bertimestamp sebelum aktivasi. `valid_from` key yang lebih awal tidak dapat dipakai untuk membuat signature revision 2 secara surut sebelum root revision 2 selesai menyetujui snapshot.
 
-1. Outpatient/Clinical owner for the bounded nursing/medical Draft/Final fields and encounter transitions.
-2. Laboratory owner for FINAL-only result, active-order closure, late-result and correction boundaries.
-3. A named RMIK Department delegate for the automatic completeness checklist and sign-off model.
+Kebijakan otoritas dan register keputusan A–G juga memiliki snapshot bernomor, timestamp/cutoff, content/control root, dan rantai predecessor linear. Appointment, session, dan decision mengikat snapshot historis yang tepat. Koreksi kebijakan atau baris sumber membuat revisi baru; sesi lama tetap diverifikasi terhadap snapshot lama, sedangkan revisi keputusan baru harus mengikat snapshot baru serta `prior_session_sha256`/`prior_decision_sha256` yang sah. Fork, stale predecessor, atau mutasi snapshot lama gagal tertutup.
 
-Use the recorded appointments with:
+Rantai waktunya wajib kausal: seluruh source `captured_at` tidak boleh melewati policy `snapshot_at`; sponsor menandatangani sesudah snapshot; reviewer memverifikasi sesudah sponsor; issuer/acceptance/reviewer appointment menyusul aktivasi policy; appointment efektif sebelum vote; dan session receipt menyusul seluruh vote serta penutupan sesi. Setiap policy historis divalidasi penuh—closed schema, source binding, control root, approval kriptografis, serta kronologi—sebelum boleh dipakai mengesahkan sesi lama. Snapshot proposal/pending tidak pernah menjadi otoritas historis.
 
-- `STRUCTURED_RJ_RM_OWNER_DECISION_PACK_2026-08-25.md`; and
-- DEC-016 in `DECISION_LOG.md`.
+Koreksi policy revision 2 tidak boleh mengurangi accountable authority, co-owner, special separation role, independent control, statutory scope, eligible role/disposition, atau batas `synthetic_only`. Versi kontrak ini menolak perubahan applicability; perubahan otoritas kelak memerlukan kontrak perubahan lintas-otoritas terpisah.
 
-## Appointment-to-batch mapping
+### Onboarding identitas manual
 
-| G0 batch | Rows | Lead owners | Required co-owners |
-| --- | ---: | --- | --- |
-| A Shared controls | 20 | Product, security/data, operations | All affected role/teaching owners; sponsor for material risk or exclusion |
-| B Patient/encounter | 8 | Registration/admission | Clinical, RMIK, finance/payer; security/data for identity/access |
-| C Core care/RMIK | 19 | Clinical, Nursing, RMIK | Product, Registration, Laboratory, security/data |
-| D Diagnostics/allied/surgery | 19 | Laboratory/Radiology/allied/surgery | Product, Clinical, RMIK, Pharmacy/GF, Finance; security/data where applicable |
-| E Pharmacy/warehouse | 48 | Pharmacy and GF | Product, Clinical, Finance, security/data |
-| F Claims/BPJS/revenue | 34 | RMIK/coding, claims, Finance | Product, Clinical, Pharmacy/GF, security/data |
-| G Reports/public health | 120 | RMIK/report owner plus each source-domain owner | Product sponsor and security/privacy |
-| **Total** | **268** | **28 Daniel-led / 240 professional-domain-led** | Cross-domain effects always retain their owner |
+1. Registry officer memverifikasi institutional subject ID stabil, tipe `person|service`, nama, unit, jabatan, status, dan issuer terhadap sumber institusi di luar repository.
+2. Pemilik kunci membuat RSA private key pada perangkat/keystore institusi; hanya public SPKI Base64, key ID, fingerprint, purpose, dan masa berlaku yang diserahkan.
+3. Dua trust-root person memeriksa snapshot, identity set, purpose, serta fingerprint; keduanya menandatangani payload root yang sama.
+4. Trust-root SHA disalurkan melalui kanal konfigurasi validator yang independen dan dibandingkan dengan pin yang disetujui. Jangan menyalin pin dari JSON yang sedang divalidasi.
+5. Policy sponsor dan reviewer independen menandatangani payload kebijakan; reviewer harus sesudah sponsor.
+6. Baru setelah itu appointment dapat diterbitkan, diterima appointee, dan diverifikasi reviewer sebelum `effective_at`.
 
-## Practical appointment order
+Identitas `UEU-SERVICE-*` hanya boleh dipakai untuk `automated_integrity_receipt`. Ia tidak boleh menjadi appointee manusia, signer keputusan, reviewer manusia, atau menambah kuorum.
 
-1. **T0:** record the Outpatient Clinical owner, Laboratory owner and named RMIK delegate, then use the appointments for the focused evidence review and decisions.
-2. **A:** confirm product/operations and security/data authority plus affected role owners.
-3. **B:** confirm Registration/admission and its Clinical/RMIK/finance/security co-owners.
-4. **C:** record Clinical, Nursing and RMIK authority for the core care/RM model.
-5. **D:** add Laboratory, Radiology, allied, blood and surgery/service authorities.
-6. **E:** add Pharmacy and GF/warehouse authorities.
-7. **F:** add claims/BPJS-simulation and Finance/cashier authorities.
-8. **G:** name the reporting coordinator and source-domain owner for each report.
+## Batas kewenangan
 
-Appointments may be collected in parallel, but parity decisions follow `A → B → C → D → E → F → G`. See the authority map for limits and minimum approval rules.
+Setiap keputusan terminal wajib memiliki persetujuan berbasis peran yang bulat dari:
 
-## Product-owner action record
+1. `product_delivery` sebagai otoritas produk/bisnis;
+2. lead domain yang akuntabel;
+3. seluruh co-owner/source-owner yang berlaku;
+4. kontrol keamanan/privasi/data, keselamatan klinis/RMIK, atau kontrol keuangan independen bila berlaku; dan
+5. sponsor/domain statutori untuk ruang lingkup statutori atau kesehatan publik.
 
-| Action | Decision / evidence | Date |
-| --- | --- | --- |
-| Confirm interim appointments that remain valid | | |
-| Name or request Clinical owner | | |
-| Name or request Laboratory owner | | |
-| Record named RMIK delegate | | |
-| Name Pharmacy/GF owners before Batch E | | |
-| Name Finance/claims owners before Batch F | | |
-| Name institutional security/privacy reviewer before G3 or any non-synthetic path | | |
+Kehadiran produk tidak menggantikan domain lain. Orang yang sama dapat memegang dua peran hanya jika kombinasi kapasitasnya ada pada whitelist, memiliki dua penunjukan dan dua tanda tangan yang terpisah, serta tetap dihitung sebagai satu orang untuk kuorum. Kombinasi tidak dikenal atau pasangan yang tidak kompatibel ditolak.
 
-## References
+Pemisahan minimum:
 
-- [G0 authority map](G0_AUTHORITY_MAP_2026-08-25.md)
-- [Owners and RACI](OWNERS_AND_RACI.md)
-- [G0 parity-control baseline](G0_PARITY_CONTROL_BASELINE_2026-08-25.md)
-- [Structured RJ/RM owner decision pack](../phase-1/STRUCTURED_RJ_RM_OWNER_DECISION_PACK_2026-08-25.md)
-- [Parity requirements matrix](../PARITY_REQUIREMENTS_MATRIX.md)
-- [Delivery roadmap](../DELIVERY_ROADMAP.md)
+- appointer berbeda dari appointee;
+- reviewer register berbeda dari subject, evidence author, implementer, dan decision signer;
+- executor migrasi berbeda dari approver pemetaan;
+- cashier/treasury berbeda dari reconciler keuangan independen; dan
+- penulis formula laporan berbeda dari sponsor statutori.
+
+## Formulir penunjukan — siap diisi, masih kosong
+
+Semua kolom berikut wajib diisi pada artefak JSON, bukan hanya pada narasi ini.
+
+| Bidang | Nilai yang harus direkam |
+| --- | --- |
+| Appointment ID | `APP-G0-...` unik dan stabil |
+| Subject | institutional ID, `identity_type`, nama tampilan, jabatan, unit dari snapshot registry historis |
+| Otoritas | authority domain, role, capacity |
+| Cakupan | daftar PAR tepat dan Batch manifest yang diturunkan |
+| Hak keputusan | consent/recuse; status dan disposisi yang diizinkan |
+| Mandat | issuer institutional ID, role, mandate reference |
+| Masa berlaku | effective/expiry bertimestamp |
+| Konflik | `none` atau disclosure substantif |
+| Delegasi | parent, scope, depth; tidak boleh melebar atau hidup lebih lama |
+| Binding | identity/trust registry yang dipin, SHA kebijakan, manifest, register A–G, canonical payload |
+| Persetujuan | acceptance appointee dan signature issuer |
+| Verifikasi | receipt reviewer independen, metode, referensi, public-key ID |
+
+Tidak boleh menyimpan kredensial atau private key. Pemindaian rekursif juga menolak password/passphrase, generic/session/access/refresh token, bearer/authorization/cookie secret, API key, HMAC/signing/recovery material, dan pola secret assignment pada setiap artefak terpisah. Public-only SPKI, fingerprint, key ID, dan detached signature tetap diperbolehkan. Suspension, resumption, revocation, dan delegation merupakan event append-only; revocation tidak menghapus sejarah. Tanda tangan/event wajib mendahului aktivasi; penunjukan harus sudah aktif pada timestamp sesi dan vote.
+
+Metadata subject appointment—`identity_type`, nama, jabatan, dan unit—dicocokkan terhadap snapshot identity registry historis yang ditandatangani appointment, bukan registry terbaru. Pembaruan metadata institusional pada revision berikutnya mempertahankan appointment/sesi lama; appointment baru wajib memakai metadata revision baru.
+
+Reviewer receipt tidak menandatangani business payload secara longgar. Receipt memiliki payload semantik tertutup sendiri yang mengikat `reviewed_payload_sha256`, reviewer/key/purpose, evidence author, implementer, metode/referensi verifikasi, `verified_at`, serta snapshot registry. Perubahan satu bidang receipt tanpa tanda tangan ulang membatalkan receipt.
+
+## Urutan tepat delapan sesi
+
+Sesi dapat dipersiapkan secara paralel, tetapi penandatanganan mengikuti rantai digest linear. Kursi yang recuse tetap kosong dan harus diisi oleh appointment lain yang sah.
+
+| Urutan | Kode | Cakupan | Isian wajib sebelum ditutup |
+| ---: | --- | --- | --- |
+| 0 | S0 | Ratifikasi penunjukan dan pemeriksaan batas T0 | policy/manifest/register SHA; chair/facilitator appointments; bukti acceptance, issuer, reviewer; konflik/delegasi |
+| 1 | S1 | Batch A — shared controls | row SHA; product, lead, semua co-owner; evidence/control roots; keputusan dan suara |
+| 2 | S2 | Batch B — patient/encounter | sumber A; registration/admission lead; clinical/RMIK/finance/security yang berlaku |
+| 3 | S3 | Batch C — core care/RMIK | sumber A–B; clinical/nursing/RMIK dan seluruh co-owner |
+| 4 | S4 | Batch D — diagnostics/allied/surgery | sumber A–C; lead diagnostik/layanan dan lintas-domain terkait |
+| 5 | S5 | Batch E — pharmacy/warehouse | sumber A–D; pharmacy/GF, clinical, finance, security sesuai scope |
+| 6 | S6 | Batch F — finance/claims/BPJS simulation | sumber A–E; finance/cashier/claims serta kontrol independen |
+| 7 | S7 | Batch G — reports/statutory/public health | sumber A–F; reporting/formula/source owners/security/sponsor statutori |
+
+## Rekaman keputusan per baris — siap diisi, masih kosong
+
+Setiap keputusan harus mengikat:
+
+- PAR ID, Batch, row SHA, dan SHA register Batch;
+- status keputusan, disposisi, target, exclusion, condition, dan unresolved-gate owners;
+- evidence roots dan control roots;
+- seluruh appointment ID serta digest;
+- prior decision digest (atau `null` untuk keputusan pertama);
+- vote per peran, institutional identity, appointment digest, timestamp, public-key ID, payload SHA, dan signature;
+- decision SHA dan canonical session SHA; dan
+- receipt reviewer independen.
+
+Persetujuan harus bulat. Minimum dua orang unik untuk keputusan reproduce biasa dan minimum tiga bila kontrol independen berlaku. Identitas alias, vote duplikat, atau dua appointment milik satu orang tidak boleh menambah kuorum.
+
+Aturan tambahan disposisi:
+
+- `replace`: sponsor eksekutif;
+- `consolidate`: sponsor, security, seluruh owner member, owner terminal, dan otoritas statutori bila berlaku; terminal wajib `approve` + `reproduce|replace`;
+- `retire|exclude`: sponsor, domain, operations, RMIK/retention, security, serta otoritas statutori bila berlaku;
+- `defer`: sponsor, domain, seluruh unresolved-gate owner, security, serta otoritas statutori bila berlaku.
+
+## Keadaan saat ini
+
+- Kebijakan: `proposal`, approval `pending`.
+- Identity/key registry: `proposal`, identity **0**, root signature **0**, external trust-root pin belum ada.
+- Penunjukan: **0**.
+- Event lifecycle: **0**.
+- Sesi: **0**.
+- Suara/keputusan terminal: **0**.
+- G0: tetap terbuka dan harus gagal tertutup.
+
+## Referensi
+
+- `G0_PARITY_BATCH_MANIFEST.json`
+- `G0_AUTHORITY_MAP_2026-08-25.md`
+- `G0_BATCH_A_DECISION_REGISTER_2026-08-25.json` sampai `G0_BATCH_G_DECISION_REGISTER_2026-08-25.json`
+- `REQUIREMENTS_GOVERNANCE.md`
+- `DATA_AND_INTEGRATION_STRATEGY.md`

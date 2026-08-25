@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "registry_id": "G0-INSTITUTIONAL-IDENTITY-KEY-REGISTRY-2026-08-26",
+  "registry_status": "proposal",
+  "data_boundary": "synthetic_only",
+  "source_revision": "cbad920453274f8ae79f28a00496538bae0ad0fe",
+  "snapshot_id": null,
+  "snapshot_revision": 0,
+  "snapshot_at": null,
+  "prior_snapshot_reference": null,
+  "prior_snapshot_sha256": null,
+  "identities": [],
+  "registry_root": {
+    "status": "pending",
+    "identity_set_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "trust_root_sha256": null,
+    "snapshot_payload_sha256": null,
+    "signatures": []
+  }
+}

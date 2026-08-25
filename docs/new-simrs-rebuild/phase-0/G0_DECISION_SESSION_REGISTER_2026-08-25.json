@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "register_id": "G0-DECISION-SESSIONS-2026-08-25",
+  "register_status": "open",
+  "data_boundary": "synthetic_only",
+  "policy_reference": "G0_OWNER_AUTHORITY_POLICY_2026-08-25.json",
+  "policy_sha256": "7d8a512df0a1662a98f2f40544354317527353e0f4c612b87716ccf3769cb237",
+  "appointment_register_reference": "G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json",
+  "appointment_register_sha256": "1e109792821d2540610d3634dc4ca9f3b25ec0228e38b98f3aa6bdde073f0345",
+  "manifest_reference": "G0_PARITY_BATCH_MANIFEST.json",
+  "manifest_sha256": "59b0f05b94e2a659b342016c5b9e5e9e011f3a8e4c0f0efd3dda12a7b65fa9ca",
+  "source_decision_registers": [
+    {
+      "batch": "A",
+      "register_id": "G0-BATCH-A-2026-08-25",
+      "reference": "G0_BATCH_A_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "a5c1e01686fdb576026802331d3228df9a6335f6f7176b7c023c459bfc532098",
+      "snapshot_id": "G0-BATCH-A-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "9130eb069ac3d5cbf9fcd2815eddbe1304112ed06f017948dc34f01ea9dcbe37",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "B",
+      "register_id": "G0-BATCH-B-2026-08-25",
+      "reference": "G0_BATCH_B_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "3db0a698be4f7729f24f997dbbc54e69c7c98442237fb7a9d4b12358971eeb1f",
+      "snapshot_id": "G0-BATCH-B-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "5a9ff8587c706acbbab6f88a629de48ed34c05e395fe1ec9f95818a46df9c59c",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "C",
+      "register_id": "G0-BATCH-C-2026-08-25",
+      "reference": "G0_BATCH_C_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "7b97e8cc5169ff848dc5ca524281f93ad5b42b0a2134acc52cf91368cc580775",
+      "snapshot_id": "G0-BATCH-C-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "5fbe077c6ba55af02b2ebce106594ef1e3a9ebd5704afb858a79b73455123113",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "D",
+      "register_id": "G0-BATCH-D-2026-08-25",
+      "reference": "G0_BATCH_D_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "da057e99d9d7d2349662f532605efec87edf220deb885783852088a2975c6287",
+      "snapshot_id": "G0-BATCH-D-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "06eb62bda2e47a30fb48103da730e8a9913b52d30ef9e0832816845d22b813c4",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "E",
+      "register_id": "G0-BATCH-E-2026-08-25",
+      "reference": "G0_BATCH_E_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "10778f021fc23f7fac0d3dfbdaacd8574cc424aaa76788afd7a26ba9f426a93b",
+      "snapshot_id": "G0-BATCH-E-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "8d84e47e67e81db49297e4099b73988194b197839a6bba0bd771740750699839",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "F",
+      "register_id": "G0-BATCH-F-2026-08-25",
+      "reference": "G0_BATCH_F_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "d2e78446dc2aa84162c8229dec8ab809bd45ace51a8fc6a313da95286503b795",
+      "snapshot_id": "G0-BATCH-F-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "94fd17262759d0873319842cb28698bfb9041e83475fadbeaf6b0491ddb0f7f9",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "G",
+      "register_id": "G0-BATCH-G-2026-08-25",
+      "reference": "G0_BATCH_G_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "53bef20b3f509c543213e649b2d5f6644e9dbe00a7dae34d209c57a93137612e",
+      "snapshot_id": "G0-BATCH-G-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "content_root_sha256": "097c7d53a9cddc31765770050f21401d0706a0c369686702e7b9583661932487",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    }
+  ],
+  "sessions": [
+
+  ]
+}
