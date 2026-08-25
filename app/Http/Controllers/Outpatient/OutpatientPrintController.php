@@ -30,7 +30,7 @@ class OutpatientPrintController extends Controller
         $requested = array_values(array_filter(
             explode(',', (string) $request->query('docs', 'bukti')),
         ));
-        $documents = array_values(array_intersect($requested, self::DOCUMENT_KEYS));
+        $documents = array_values(array_unique(array_intersect($requested, self::DOCUMENT_KEYS)));
 
         if ($documents === []) {
             $documents = ['bukti'];
@@ -39,7 +39,7 @@ class OutpatientPrintController extends Controller
         $user = $request->user();
         assert($user !== null);
 
-        $this->auditRecorder->record(
+        $event = $this->auditRecorder->record(
             action: 'encounter.print',
             resourceType: 'encounter',
             resourceId: $encounter->public_id,
@@ -51,6 +51,8 @@ class OutpatientPrintController extends Controller
                 'live_bpjs' => false,
             ],
         );
+
+        abort_if($event === null, 503, 'Dokumen tidak dapat dicetak karena audit gagal direkam.');
 
         return view('prints.encounter', [
             'encounter' => $encounter,

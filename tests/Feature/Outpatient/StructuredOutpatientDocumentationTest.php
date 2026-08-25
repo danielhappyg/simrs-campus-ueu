@@ -9,6 +9,7 @@ use App\Models\OutpatientClinicalDocument;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use App\Support\Clinical\OutpatientLabLifecycle;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
+use Mockery\CompositeExpectation;
 use Tests\TestCase;
 
 class StructuredOutpatientDocumentationTest extends TestCase
@@ -100,6 +102,42 @@ class StructuredOutpatientDocumentationTest extends TestCase
         }
     }
 
+    public function test_unknown_document_field_keys_are_audited_only_as_bounded_digests(): void
+    {
+        [$encounter, $nurse] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_NURSE);
+        $longKey = str_repeat('x', 300);
+        $unknownFields = [
+            0 => 'numeric key',
+            'password' => 'secret-like key',
+            $longKey => 'oversized key',
+        ];
+        for ($index = 0; $index < 48; $index++) {
+            $unknownFields['unknown_'.$index] = 'bounded digest input';
+        }
+
+        $this->actingAs($nurse)->post(
+            route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]),
+            [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => $unknownFields,
+            ],
+        )->assertStatus(422);
+
+        $event = AuditEvent::query()->where('reason', 'validation_failed')->sole();
+        $this->assertSame(51, $event->metadata['invalid_field_key_count']);
+        $this->assertCount(50, $event->metadata['invalid_field_key_digests']);
+        $this->assertSame([
+            hash('sha256', 'integer:0'),
+            hash('sha256', 'string:password'),
+            hash('sha256', 'string:'.$longKey),
+        ], array_slice($event->metadata['invalid_field_key_digests'], 0, 3));
+        $encodedMetadata = json_encode($event->metadata, JSON_THROW_ON_ERROR);
+        $this->assertStringNotContainsString('password', $encodedMetadata);
+        $this->assertStringNotContainsString($longKey, $encodedMetadata);
+        $this->assertDatabaseCount('outpatient_clinical_documents', 0);
+    }
+
     public function test_medical_final_moves_to_rm_and_complete_snapshot_signoff_closes_atomically(): void
     {
         [$encounter, $nurse] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_NURSE);
@@ -156,9 +194,21 @@ class StructuredOutpatientDocumentationTest extends TestCase
                 ->where('review.status', 'SIGNED_OFF')
                 ->where('review.definition_version', 'OUTPATIENT_RM_COMPLETENESS_ARCHIVED_V0')
                 ->where('review.source_fingerprint', $storedFingerprint)
-                ->where('review.checklist_items', fn ($items): bool => collect($items)->contains(
-                    fn ($item): bool => $item['code'] === 'NO_ACTIVE_LAB_ORDERS' && $item['status'] === 'PASS',
-                ))
+                ->where('review.checklist_items', static function (mixed $items): bool {
+                    if (! is_iterable($items)) {
+                        return false;
+                    }
+
+                    foreach ($items as $item) {
+                        if (is_array($item)
+                            && ($item['code'] ?? null) === 'NO_ACTIVE_LAB_ORDERS'
+                            && ($item['status'] ?? null) === 'PASS') {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
                 ->has('blockers', 0)
                 ->where('permissions.can_save_review', false)
                 ->where('permissions.can_signoff', false)
@@ -221,7 +271,9 @@ class StructuredOutpatientDocumentationTest extends TestCase
     {
         [$encounter, $nurse] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_NURSE);
         $recorder = Mockery::mock(AuditRecorder::class);
-        $recorder->shouldReceive('record')->once()->andReturnNull();
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
         $this->app->instance(AuditRecorder::class, $recorder);
         $this->actingAs($nurse)->post(route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]), [
             'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
@@ -252,7 +304,9 @@ class StructuredOutpatientDocumentationTest extends TestCase
         ])->assertRedirect();
 
         $recorder = Mockery::mock(AuditRecorder::class);
-        $recorder->shouldReceive('record')->once()->andReturnNull();
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
         $this->app->instance(AuditRecorder::class, $recorder);
 
         $this->actingAs($rmik)->post(route('rm.rawat-jalan.signoff', $encounter), [
@@ -313,8 +367,9 @@ class StructuredOutpatientDocumentationTest extends TestCase
         $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [])
             ->assertSessionHasErrors(['expected_version', 'source_fingerprint']);
         $this->assertDatabaseCount('outpatient_rm_completeness_reviews', 0);
-        $this->assertFalse(method_exists(OutpatientLabLifecycle::class, 'closeEncounter'));
-        $this->assertFalse(method_exists(OutpatientLabLifecycle::class, 'writeClinicalEntry'));
+        $methods = get_class_methods(OutpatientLabLifecycle::class);
+        $this->assertNotContains('closeEncounter', $methods);
+        $this->assertNotContains('writeClinicalEntry', $methods);
     }
 
     public function test_new_migration_qualifies_all_postgres_sequences(): void

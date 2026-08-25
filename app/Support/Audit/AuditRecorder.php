@@ -6,6 +6,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+/**
+ * Returns null when validation or persistence fails.
+ *
+ * The three registration controllers and two emergency/inpatient clinical-note
+ * controllers currently treat that result as best-effort and non-atomic. BG-02b
+ * does not claim audit completeness for those five existing mutation paths.
+ */
 class AuditRecorder
 {
     /**
@@ -24,14 +31,14 @@ class AuditRecorder
     ): ?AuditEvent {
         $request ??= request();
 
-        $correlationId = $request->attributes->get('request_id');
-        if (is_string($correlationId)) {
-            $correlationId = Str::limit($correlationId, 26, '');
-        } else {
-            $correlationId = null;
-        }
-
         try {
+            $correlationId = $this->correlationId($request);
+            $userAgent = $includeRequestFingerprint ? $this->hashUserAgent($request) : null;
+
+            if ($actor !== null && (! $actor->exists || $actor->getKey() === null)) {
+                throw new InvalidAuditEvent('Audit actor must be a persisted user.');
+            }
+
             return AuditEvent::query()->create([
                 'id' => (string) Str::ulid(),
                 'recorded_at' => now(),
@@ -43,22 +50,36 @@ class AuditRecorder
                 'reason' => $reason,
                 'request_correlation_id' => $correlationId,
                 'ip_hash' => $includeRequestFingerprint ? $this->hashIp($request) : null,
-                'user_agent' => $includeRequestFingerprint
-                    ? Str::limit((string) $request->userAgent(), 255, '')
-                    : null,
+                'user_agent' => $userAgent,
                 'metadata' => $metadata === [] ? null : $metadata,
             ]);
         } catch (\Throwable $exception) {
-            report($exception);
+            $failureCode = $exception instanceof InvalidAuditEvent
+                ? 'AUDIT_CONTRACT_REJECTED'
+                : 'AUDIT_PERSISTENCE_FAILED';
             error_log(sprintf(
-                '[simrs] audit record failed for %s/%s: %s',
-                $action,
-                (string) $resourceId,
-                $exception->getMessage(),
+                '[simrs] audit record failed (%s; %s)',
+                $failureCode,
+                $exception::class,
             ));
 
             return null;
         }
+    }
+
+    private function correlationId(Request $request): ?string
+    {
+        $correlationId = $request->attributes->get('request_id');
+
+        if ($correlationId === null) {
+            return null;
+        }
+
+        if (! is_string($correlationId) || ! Str::isUlid($correlationId)) {
+            throw new InvalidAuditEvent('Audit request correlation ID must be a ULID.');
+        }
+
+        return $correlationId;
     }
 
     private function hashIp(Request $request): ?string
@@ -71,5 +92,21 @@ class AuditRecorder
         }
 
         return hash_hmac('sha256', $ip, $key);
+    }
+
+    private function hashUserAgent(Request $request): ?string
+    {
+        $userAgent = trim((string) $request->userAgent());
+        if ($userAgent === '') {
+            return null;
+        }
+
+        $key = config('app.key');
+
+        if (! is_string($key) || $key === '') {
+            return null;
+        }
+
+        return hash_hmac('sha256', $userAgent, $key);
     }
 }
