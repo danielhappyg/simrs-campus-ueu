@@ -1,6 +1,6 @@
 # T0 current-truth baseline — 2026-08-25
 
-**Evidence ID:** `REL-20260825-01`
+**Evidence IDs:** `REL-20260825-01` (structured/schema baseline), `REL-20260825-02` (governance controls), `REL-20260825-03` (exact-SHA production promotion)
 **Status:** Current engineering and hosted baseline reconciled; T0 remains open
 **Boundary:** Synthetic teaching environment only. This is not clinical-production authorization or parity acceptance.
 
@@ -8,12 +8,12 @@
 
 | Layer | Verified state |
 | --- | --- |
-| Local repository | `main` at `aabfff562dbe75d022da203f3f44215b055be614`; `origin/main` matched |
-| Local verification | `composer ci:check` passed: 151 PHP tests / 1,183 assertions; 20 frontend tests; TypeScript, ESLint, Prettier, PHPStan and Pint passed |
+| Local repository | `main` at `42ab482de577fe38cef539a74f0b749d64485b19`; `origin/main` matched after PR #55 |
+| Local verification | `composer ci:check` passed: 161 PHP tests / 1,266 assertions; 20 frontend tests; TypeScript, ESLint, Prettier, PHPStan and Pint passed |
 | Focused verification | Structured documentation and lifecycle filter passed 19 tests / 253 assertions |
-| Vercel production | Deployment `dpl_2th2jRdhHHof859F3WM9rWt3ZiTf`; source SHA `aabfff562dbe75d022da203f3f44215b055be614`; state `READY`; target `production` |
+| Vercel production | Deployment `dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q`; source SHA `42ab482de577fe38cef539a74f0b749d64485b19`; state `READY`; target `production`; public alias confirmed |
 | Public runtime | `/up` and `/login` returned HTTP 200; login payload reported `SIMULATION`, `syntheticOnly=true`, and `SIMULASI — DATA SINTETIS` |
-| Runtime errors | No Vercel runtime error clusters or error/fatal logs were returned for the checked 24-hour window |
+| Runtime errors | No Vercel runtime error clusters or error/fatal logs were returned in the post-promotion checked window |
 | Supabase project | `simrs-campus-ueu-demo` was `ACTIVE_HEALTHY` |
 | Laravel migration | `2026_08_24_000100_create_outpatient_documentation_tables` recorded in `laravel.migrations`, batch 7 |
 | Structured tables | `outpatient_clinical_documents`, `outpatient_clinical_document_versions`, `outpatient_rm_completeness_reviews`, and `outpatient_rm_completeness_items` exist |
@@ -35,7 +35,7 @@ The performance advisor reported informational missing-index observations, inclu
 
 Role reconciliation also found that `admin.rebuild@example.invalid` is active with `admin`, `nurse`, `physician`, `registrar`, and `rmik`, while `DemoActorsSeeder` defines that account as admin-only. It has zero active sessions and is not required for the focused UAT. Treat this as privileged-role drift: do not use the account as a clinical actor, and reconcile it through an attributable least-privilege operation before a wider teaching pilot.
 
-The reviewed correction path is `rebuild:admin-reconcile`, documented in `PRIVILEGED_REBUILD_ADMIN_RUNBOOK_2026-08-25.md`. It is dry-run by default, accepts only the canonical or known-drift role sets, and makes role/status/session changes and their audit event one transaction. The command has not been applied to the hosted database in this baseline. Even after role sync, the separate `is_system_administrator` bypass remains and requires a G1 break-glass decision.
+The deployed correction path is `rebuild:admin-reconcile`, documented in `PRIVILEGED_REBUILD_ADMIN_RUNBOOK_2026-08-25.md`. It is dry-run by default, accepts only the canonical or known-drift role sets, and makes role/status/session changes and their audit event one transaction. The command has not been applied to the hosted database in this baseline. Even after role sync, the separate `is_system_administrator` bypass remains and requires a G1 break-glass decision.
 
 ## Evidence boundaries
 
