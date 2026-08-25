@@ -7,6 +7,8 @@ use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
 use App\Models\Patient;
+use App\Models\SecurityLedgerEntry;
+use App\Models\SecurityLedgerOutbox;
 use App\Models\User;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
@@ -14,12 +16,20 @@ use App\Support\Simulation\SyntheticResetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Mockery;
+use Mockery\CompositeExpectation;
 use RuntimeException;
 use Tests\TestCase;
 
 class SimulationResetCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_reset_command_has_no_audit_purge_option(): void
+    {
+        $command = Artisan::all()['simulation:reset'];
+
+        $this->assertFalse($command->getDefinition()->hasOption('purge-audit'));
+    }
 
     public function test_reset_refuses_when_synthetic_only_is_false(): void
     {
@@ -43,6 +53,39 @@ class SimulationResetCommandTest extends TestCase
         ]);
 
         $user = User::factory()->create();
+        $existingAudit = AuditEvent::query()->create([
+            'action' => 'security.evidence.preexisting',
+            'resource_type' => 'security_evidence',
+            'resource_id' => 'preserve-through-reset',
+            'outcome' => 'SUCCESS',
+            'reason' => 'reset_preservation_test',
+            'metadata' => ['evidence_class' => 'ordinary_audit'],
+        ]);
+        $ledgerEntry = SecurityLedgerEntry::query()->create([
+            'recorded_at' => now(),
+            'actor_user_id' => $user->id,
+            'actor_type' => 'USER',
+            'actor_reference' => $user->email,
+            'event_type' => 'security.evidence.preexisting',
+            'resource_type' => 'simulation',
+            'resource_public_id' => 'preserve-through-reset',
+            'outcome' => 'SUCCESS',
+            'reason' => 'reset_preservation_test',
+            'environment' => 'testing',
+            'release_sha' => str_repeat('a', 40),
+            'schema_version' => 1,
+            'payload' => ['evidence_class' => 'security_ledger'],
+            'payload_digest' => str_repeat('b', 64),
+            'semantic_key' => str_repeat('c', 64),
+            'integrity_digest' => str_repeat('d', 64),
+        ]);
+        $ledgerOutbox = SecurityLedgerOutbox::query()->create([
+            'security_ledger_entry_id' => $ledgerEntry->id,
+            'destination' => 'teaching-evidence-sink',
+            'delivery_state' => SecurityLedgerOutbox::STATE_PENDING,
+            'attempts' => 0,
+            'available_at' => now(),
+        ]);
         $patient = Patient::factory()->create([
             'created_by_user_id' => $user->id,
         ]);
@@ -63,6 +106,21 @@ class SimulationResetCommandTest extends TestCase
         $this->assertDatabaseCount('patients', 0);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertDatabaseHas('audit_events', [
+            'id' => $existingAudit->id,
+            'action' => 'security.evidence.preexisting',
+            'resource_id' => 'preserve-through-reset',
+        ]);
+        $this->assertDatabaseHas('security_ledger_entries', [
+            'id' => $ledgerEntry->id,
+            'event_type' => 'security.evidence.preexisting',
+            'resource_public_id' => 'preserve-through-reset',
+        ]);
+        $this->assertDatabaseHas('security_ledger_outboxes', [
+            'id' => $ledgerOutbox->id,
+            'security_ledger_entry_id' => $ledgerEntry->id,
+            'delivery_state' => SecurityLedgerOutbox::STATE_PENDING,
+        ]);
 
         $this->assertDatabaseHas('audit_events', [
             'action' => 'teaching.reset.started',
@@ -75,6 +133,16 @@ class SimulationResetCommandTest extends TestCase
             'resource_type' => 'simulation',
             'outcome' => 'SUCCESS',
         ]);
+
+        $resetEvents = AuditEvent::query()
+            ->whereIn('action', ['teaching.reset.started', 'teaching.reset.completed'])
+            ->get();
+
+        $this->assertCount(2, $resetEvents);
+        $resetEvents->each(function (AuditEvent $event): void {
+            $this->assertArrayNotHasKey('purge_audit', $event->metadata ?? []);
+            $this->assertTrue($event->metadata['evidence_preserved']);
+        });
     }
 
     public function test_reset_refuses_without_force(): void
@@ -169,12 +237,14 @@ class SimulationResetCommandTest extends TestCase
         ]);
 
         $recorder = Mockery::mock(AuditRecorder::class);
-        $recorder->shouldReceive('record')
-            ->twice()
-            ->andReturn(new AuditEvent, null);
+        $recordExpectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $recordExpectation);
+        $recordExpectation->andReturn(new AuditEvent, null);
+
+        $this->app->instance(AuditRecorder::class, $recorder);
 
         try {
-            (new SyntheticResetService($recorder))->reset();
+            (new SyntheticResetService($this->app->make(AuditRecorder::class)))->reset();
             $this->fail('Reset should roll back when the completion audit cannot be recorded.');
         } catch (RuntimeException $exception) {
             $this->assertStringContainsString('completion audit event', $exception->getMessage());

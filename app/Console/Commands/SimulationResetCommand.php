@@ -9,8 +9,7 @@ use Throwable;
 class SimulationResetCommand extends Command
 {
     protected $signature = 'simulation:reset
-                            {--force : Required confirmation flag for destructive reset}
-                            {--purge-audit : Also delete audit_events (teaching evidence usually kept)}';
+                            {--force : Required confirmation flag for destructive reset}';
 
     protected $description = 'Reset synthetic domain data while preserving identity/RBAC (simulation only)';
 
@@ -30,7 +29,6 @@ class SimulationResetCommand extends Command
 
         try {
             $resetService->reset([
-                'purge_audit' => (bool) $this->option('purge-audit'),
                 'reason' => 'artisan_simulation_reset',
             ]);
         } catch (Throwable $exception) {
@@ -40,10 +38,6 @@ class SimulationResetCommand extends Command
         }
 
         $this->info('Synthetic simulation reset completed.');
-
-        if ($this->option('purge-audit')) {
-            $this->warn('Audit events were purged; only the completion event remains.');
-        }
 
         return self::SUCCESS;
     }

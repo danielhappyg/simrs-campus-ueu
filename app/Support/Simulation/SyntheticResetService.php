@@ -12,20 +12,17 @@ class SyntheticResetService
 {
     public function __construct(private readonly AuditRecorder $auditRecorder) {}
 
-    /**
-     * @param  array{purge_audit?: bool, actor?: ?User, reason?: ?string}  $options
-     */
+    /** @param array{actor?: ?User, reason?: ?string} $options */
     public function reset(array $options = []): void
     {
         if (config('simulation.mode') !== 'SIMULATION' || config('simulation.synthetic_only') !== true) {
             throw new RuntimeException('Synthetic reset requires SIMULATION mode with synthetic-only data enforced.');
         }
 
-        $purgeAudit = (bool) ($options['purge_audit'] ?? false);
         $actor = $options['actor'] ?? null;
         $reason = $options['reason'] ?? 'simulation_reset';
 
-        DB::transaction(function () use ($purgeAudit, $actor, $reason): void {
+        DB::transaction(function () use ($actor, $reason): void {
             $started = $this->auditRecorder->record(
                 action: 'teaching.reset.started',
                 resourceType: 'simulation',
@@ -34,8 +31,8 @@ class SyntheticResetService
                 outcome: 'SUCCESS',
                 reason: $reason,
                 metadata: [
-                    'purge_audit' => $purgeAudit,
                     'boundary' => 'synthetic_patient_graph',
+                    'evidence_preserved' => true,
                 ],
                 includeRequestFingerprint: false,
             );
@@ -46,10 +43,6 @@ class SyntheticResetService
 
             $deleted = Patient::query()->syntheticOnly()->delete();
 
-            if ($purgeAudit) {
-                DB::table('audit_events')->delete();
-            }
-
             $completed = $this->auditRecorder->record(
                 action: 'teaching.reset.completed',
                 resourceType: 'simulation',
@@ -58,9 +51,9 @@ class SyntheticResetService
                 outcome: 'SUCCESS',
                 reason: $reason,
                 metadata: [
-                    'purge_audit' => $purgeAudit,
                     'boundary' => 'synthetic_patient_graph',
                     'deleted_patients' => $deleted,
+                    'evidence_preserved' => true,
                 ],
                 includeRequestFingerprint: false,
             );
