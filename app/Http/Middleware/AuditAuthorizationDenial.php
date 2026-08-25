@@ -68,7 +68,7 @@ class AuditAuthorizationDenial
         $routeName = $route instanceof Route ? $route->getName() : null;
 
         try {
-            $this->auditRecorder->record(
+            $event = $this->auditRecorder->record(
                 action: 'authorization.denied',
                 resourceType: 'http_route',
                 resourceId: is_string($routeName) && $routeName !== ''
@@ -85,9 +85,18 @@ class AuditAuthorizationDenial
                 includeRequestFingerprint: false,
             );
 
-            $request->attributes->set(self::AUDITED_ATTRIBUTE, true);
+            if ($event !== null) {
+                $request->attributes->set(self::AUDITED_ATTRIBUTE, true);
+
+                return;
+            }
+
+            Log::critical('Authorization denial audit recording failed.', [
+                'failure_code' => 'AUDIT_EVENT_NOT_RECORDED',
+            ]);
         } catch (Throwable $exception) {
             Log::critical('Authorization denial audit recording failed.', [
+                'failure_code' => 'AUDIT_RECORDER_THROWN',
                 'exception_class' => $exception::class,
             ]);
         }

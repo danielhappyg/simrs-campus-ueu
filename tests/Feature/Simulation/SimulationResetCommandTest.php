@@ -15,6 +15,7 @@ use App\Support\Audit\AuditRecorder;
 use App\Support\Simulation\SyntheticResetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use InvalidArgumentException;
 use Mockery;
 use Mockery\CompositeExpectation;
 use RuntimeException;
@@ -53,14 +54,17 @@ class SimulationResetCommandTest extends TestCase
         ]);
 
         $user = User::factory()->create();
-        $existingAudit = AuditEvent::query()->create([
-            'action' => 'security.evidence.preexisting',
-            'resource_type' => 'security_evidence',
-            'resource_id' => 'preserve-through-reset',
-            'outcome' => 'SUCCESS',
-            'reason' => 'reset_preservation_test',
-            'metadata' => ['evidence_class' => 'ordinary_audit'],
-        ]);
+        $existingAudit = $this->app->make(AuditRecorder::class)->record(
+            action: 'authorization.denied',
+            resourceType: 'http_route',
+            resourceId: 'simulation.reset.preserved_evidence',
+            actor: $user,
+            outcome: 'DENIED',
+            reason: 'authorization_check_failed',
+            metadata: ['http_method' => 'POST', 'http_status' => 403],
+            includeRequestFingerprint: false,
+        );
+        $this->assertNotNull($existingAudit);
         $ledgerEntry = SecurityLedgerEntry::query()->create([
             'recorded_at' => now(),
             'actor_user_id' => $user->id,
@@ -108,8 +112,8 @@ class SimulationResetCommandTest extends TestCase
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertDatabaseHas('audit_events', [
             'id' => $existingAudit->id,
-            'action' => 'security.evidence.preexisting',
-            'resource_id' => 'preserve-through-reset',
+            'action' => 'authorization.denied',
+            'resource_id' => 'simulation.reset.preserved_evidence',
         ]);
         $this->assertDatabaseHas('security_ledger_entries', [
             'id' => $ledgerEntry->id,
@@ -156,6 +160,27 @@ class SimulationResetCommandTest extends TestCase
 
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('--force', Artisan::output());
+    }
+
+    public function test_reset_rejects_overlong_reason_before_deleting_synthetic_data(): void
+    {
+        $user = User::factory()->create();
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $user->id,
+            'is_synthetic' => true,
+        ]);
+
+        try {
+            $this->app->make(SyntheticResetService::class)->reset([
+                'reason' => str_repeat('r', 256),
+            ]);
+            $this->fail('Overlong reset attribution must be rejected.');
+        } catch (InvalidArgumentException $exception) {
+            $this->assertStringContainsString('255', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('patients', ['id' => $patient->id]);
+        $this->assertDatabaseCount('audit_events', 0);
     }
 
     public function test_reset_deletes_only_the_synthetic_patient_graph_and_preserves_non_synthetic_records(): void

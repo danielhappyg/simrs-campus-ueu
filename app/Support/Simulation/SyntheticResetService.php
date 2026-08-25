@@ -6,6 +6,7 @@ use App\Models\Patient;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use RuntimeException;
 
 class SyntheticResetService
@@ -21,6 +22,9 @@ class SyntheticResetService
 
         $actor = $options['actor'] ?? null;
         $reason = $options['reason'] ?? 'simulation_reset';
+        if (mb_strlen($reason) < 1 || mb_strlen($reason) > 255) {
+            throw new InvalidArgumentException('Synthetic reset reason must contain between 1 and 255 characters.');
+        }
 
         DB::transaction(function () use ($actor, $reason): void {
             $started = $this->auditRecorder->record(

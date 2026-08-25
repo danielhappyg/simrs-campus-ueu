@@ -53,6 +53,36 @@ class AuditEvent extends Model
         static::creating(function (self $event): void {
             $event->id ??= (string) Str::ulid();
             $event->recorded_at ??= now();
+
+            $metadata = $event->metadata ?? [];
+
+            $action = self::requiredString($event->action, 'action');
+            $resourceType = self::requiredString($event->resource_type, 'resource_type');
+            $resourceId = self::nullableString($event->resource_id, 'resource_id');
+            $outcome = self::requiredString($event->outcome, 'outcome');
+            $reason = self::nullableString($event->reason, 'reason');
+            if ($event->resource_version !== null) {
+                throw new InvalidAuditEvent('Audit resource_version is not registered for current event families.');
+            }
+
+            $safeDataGuard = app(AuditSafeDataGuard::class);
+            $safeDataGuard->assertSafeMetadata($metadata);
+            $safeDataGuard->assertSafeText($resourceId, 'resource_id');
+            $safeDataGuard->assertSafeText($reason, 'reason');
+
+            app(AuditEventSchemaRegistry::class)->assertAllows(
+                action: $action,
+                resourceType: $resourceType,
+                resourceId: $resourceId,
+                actorPresent: $event->actor_user_id !== null,
+                outcome: $outcome,
+                reason: $reason,
+                metadata: $metadata,
+            );
+
+            self::assertOptionalUlid($event->request_correlation_id, 'request_correlation_id');
+            self::assertOptionalDigest($event->ip_hash, 'ip_hash');
+            self::assertOptionalDigest($event->user_agent, 'user_agent');
         });
 
         static::updating(function (): never {
@@ -81,5 +111,37 @@ class AuditEvent extends Model
             'recorded_at' => 'immutable_datetime',
             'metadata' => 'array',
         ];
+    }
+
+    private static function requiredString(mixed $value, string $field): string
+    {
+        if (! is_string($value) || $value === '') {
+            throw new InvalidAuditEvent("Audit {$field} must be a non-empty string.");
+        }
+
+        return $value;
+    }
+
+    private static function nullableString(mixed $value, string $field): ?string
+    {
+        if ($value !== null && ! is_string($value)) {
+            throw new InvalidAuditEvent("Audit {$field} must be null or a string.");
+        }
+
+        return $value;
+    }
+
+    private static function assertOptionalUlid(mixed $value, string $field): void
+    {
+        if ($value !== null && (! is_string($value) || ! Str::isUlid($value))) {
+            throw new InvalidAuditEvent("Audit {$field} must be null or a ULID.");
+        }
+    }
+
+    private static function assertOptionalDigest(mixed $value, string $field): void
+    {
+        if ($value !== null && (! is_string($value) || preg_match('/\A[a-f0-9]{64}\z/', $value) !== 1)) {
+            throw new InvalidAuditEvent("Audit {$field} must be null or a SHA-256 hex digest.");
+        }
     }
 }

@@ -6,10 +6,14 @@ use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Audit\AuditEvent;
+use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Mockery;
+use Mockery\CompositeExpectation;
 use Tests\TestCase;
 
 class OutpatientPrintAndRecapTest extends TestCase
@@ -97,6 +101,36 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_print_deduplicates_repeated_document_keys_before_auditing_and_rendering(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $encounter = $this->printableEncounter($registrar);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs='.implode(',', array_fill(0, 7, 'bukti')))
+            ->assertOk();
+
+        $event = AuditEvent::query()->where('action', 'encounter.print')->sole();
+        $this->assertSame(['bukti'], $event->metadata['documents']);
+    }
+
+    public function test_print_returns_service_unavailable_when_audit_cannot_be_recorded(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $encounter = $this->printableEncounter($registrar);
+        $recorder = Mockery::mock(AuditRecorder::class);
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
+        $this->app->instance(AuditRecorder::class, $recorder);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.kunjungan.cetak', $encounter))
+            ->assertStatus(503);
+
+        $this->assertDatabaseCount('audit_events', 0);
+    }
+
     public function test_rekap_filters_online_booking_and_exports_csv(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
@@ -157,5 +191,18 @@ class OutpatientPrintAndRecapTest extends TestCase
         $user->roles()->sync([$role->id]);
 
         return $user;
+    }
+
+    private function printableEncounter(User $registrar): Encounter
+    {
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+        ]);
+
+        return Encounter::factory()->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+        ]);
     }
 }

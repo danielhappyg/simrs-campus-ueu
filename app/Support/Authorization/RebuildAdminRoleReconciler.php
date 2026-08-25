@@ -246,9 +246,9 @@ final class RebuildAdminRoleReconciler
             'unknown',
         ];
 
-        if (mb_strlen($value) < $minimumLength || in_array($normalized, $placeholders, true)) {
+        if (mb_strlen($value) < $minimumLength || mb_strlen($value) > 255 || in_array($normalized, $placeholders, true)) {
             throw new InvalidArgumentException(
-                sprintf('--%s must be a non-placeholder value of at least %d characters.', $field, $minimumLength),
+                sprintf('--%s must be a non-placeholder value between %d and 255 characters.', $field, $minimumLength),
             );
         }
 

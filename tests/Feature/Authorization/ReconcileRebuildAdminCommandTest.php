@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Mockery;
+use Mockery\CompositeExpectation;
 use Tests\TestCase;
 
 class ReconcileRebuildAdminCommandTest extends TestCase
@@ -236,6 +237,43 @@ class ReconcileRebuildAdminCommandTest extends TestCase
         $this->assertDatabaseCount('audit_events', 0);
     }
 
+    public function test_apply_accepts_255_character_operator_and_reason_attribution(): void
+    {
+        $this->createTarget($this->knownDriftRoles());
+        $operator = str_repeat('o', 255);
+        $reason = str_repeat('r', 255);
+
+        $this->assertSame(0, Artisan::call('rebuild:admin-reconcile', [
+            '--apply' => true,
+            '--operator' => $operator,
+            '--reason' => $reason,
+        ]));
+
+        $event = AuditEvent::query()->sole();
+        $this->assertSame($operator, $event->metadata['operator']);
+        $this->assertSame($reason, $event->reason);
+    }
+
+    public function test_apply_rejects_operator_or_reason_longer_than_255_characters(): void
+    {
+        $target = $this->createTarget($this->knownDriftRoles());
+
+        foreach (['operator', 'reason'] as $field) {
+            $arguments = [
+                '--apply' => true,
+                '--operator' => 'Security Operations',
+                '--reason' => 'Specific synthetic containment reason',
+            ];
+            $arguments['--'.$field] = str_repeat('x', 256);
+
+            $this->assertSame(1, Artisan::call('rebuild:admin-reconcile', $arguments));
+            $this->assertStringContainsString('255 characters', Artisan::output());
+        }
+
+        $this->assertSame($this->knownDriftRoles(), $this->freshRoleSlugs($target));
+        $this->assertDatabaseCount('audit_events', 0);
+    }
+
     public function test_admin_only_state_is_idempotent_and_reported_without_domain_mutation(): void
     {
         $target = $this->createTarget([RoleCapabilityMatrix::ROLE_ADMIN]);
@@ -267,7 +305,9 @@ class ReconcileRebuildAdminCommandTest extends TestCase
         $this->createSession($target, 'rollback-session');
 
         $recorder = Mockery::mock(AuditRecorder::class);
-        $recorder->shouldReceive('record')->once()->andReturn(null);
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
         $this->app->instance(AuditRecorder::class, $recorder);
 
         $exitCode = Artisan::call('rebuild:admin-reconcile', [

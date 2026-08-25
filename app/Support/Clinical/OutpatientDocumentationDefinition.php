@@ -3,6 +3,7 @@
 namespace App\Support\Clinical;
 
 use App\Models\OutpatientClinicalDocument;
+use InvalidArgumentException;
 
 final class OutpatientDocumentationDefinition
 {
@@ -51,8 +52,10 @@ final class OutpatientDocumentationDefinition
 
     public static function auditPrefix(string $documentType): string
     {
-        return $documentType === OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT
-            ? 'clinical.nursing'
-            : 'clinical.medical';
+        return match ($documentType) {
+            OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT => 'clinical.nursing',
+            OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT => 'clinical.medical',
+            default => throw new InvalidArgumentException('Unsupported outpatient document type for audit.'),
+        };
     }
 }

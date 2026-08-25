@@ -15,7 +15,7 @@ final class OutpatientDocumentationService
     public function __construct(private readonly AuditRecorder $auditRecorder) {}
 
     /**
-     * @param  array<string, mixed>|null  $fields
+     * @param  array<array-key, mixed>|null  $fields
      */
     public function save(
         Encounter $encounter,
@@ -149,7 +149,7 @@ final class OutpatientDocumentationService
                         'encounter_id' => $lockedEncounter->public_id,
                         'document_type' => $documentType,
                         'version' => $newVersion,
-                        'author_user_id' => $document->author_user_id,
+                        'author_user_public_id' => $actor->public_id,
                         'document_state' => $state,
                     ],
                 );
@@ -166,7 +166,7 @@ final class OutpatientDocumentationService
         }
     }
 
-    /** @param array<string, mixed> $fields */
+    /** @param array<array-key, mixed> $fields */
     private function validateFields(string $documentType, array $fields, bool $finalize): void
     {
         $allowed = OutpatientDocumentationDefinition::allowedFields($documentType);
@@ -174,12 +174,26 @@ final class OutpatientDocumentationService
             throw new OutpatientLifecycleDenial('validation_failed', 'Jenis dokumen tidak didukung.');
         }
 
-        $unknown = array_values(array_diff(array_keys($fields), $allowed));
+        $unknown = array_values(array_filter(
+            array_keys($fields),
+            static fn (int|string $key): bool => ! is_string($key) || ! in_array($key, $allowed, true),
+        ));
         if ($unknown !== []) {
+            $digests = array_map(
+                static fn (int|string $key): string => hash(
+                    'sha256',
+                    (is_int($key) ? 'integer:' : 'string:').(string) $key,
+                ),
+                array_slice($unknown, 0, 50),
+            );
+
             throw new OutpatientLifecycleDenial(
                 'validation_failed',
                 'Dokumen memuat field yang tidak didukung.',
-                metadata: ['invalid_field_keys' => $unknown],
+                metadata: [
+                    'invalid_field_key_digests' => $digests,
+                    'invalid_field_key_count' => count($unknown),
+                ],
             );
         }
 
@@ -208,13 +222,16 @@ final class OutpatientDocumentationService
         }
     }
 
-    /** @param array<string, mixed> $fields
+    /** @param array<array-key, mixed> $fields
      * @return array<string, string>
      */
     private function normalizeFields(array $fields): array
     {
         $normalized = [];
         foreach ($fields as $key => $value) {
+            if (! is_string($key)) {
+                throw new OutpatientLifecycleDenial('validation_failed', 'Field dokumen wajib memakai kunci teks.');
+            }
             $normalized[$key] = trim((string) $value);
         }
         ksort($normalized);
