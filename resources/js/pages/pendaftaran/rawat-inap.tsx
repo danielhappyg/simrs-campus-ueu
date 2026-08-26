@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
@@ -65,6 +65,7 @@ type Props = {
     continueFromOptions: Option[];
     filters: Filters;
     canRegister: boolean;
+    canOpen?: boolean;
 };
 
 const statusLabel: Record<string, string> = {
@@ -102,6 +103,28 @@ const sexLabel: Record<string, string> = {
 const fieldClass =
     'border-input h-8 w-full rounded-md border bg-white px-2.5 text-sm shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30 disabled:cursor-not-allowed disabled:opacity-60';
 
+const registrationFieldLabels: Record<string, string> = {
+    patient_public_id: 'Pasien terpilih',
+    full_name: 'Nama lengkap',
+    date_of_birth: 'Tanggal lahir',
+    sex: 'Jenis kelamin',
+    nik: 'NIK',
+    phone: 'Telepon',
+    ward_name: 'Bangsal',
+    ward_class: 'Kelas',
+    bed_code: 'Tempat tidur',
+    payer_type: 'Cara bayar',
+    insurance_number: 'Nomor penjamin',
+    continue_from: 'Asal atau kelanjutan',
+    chief_complaint: 'Keluhan utama',
+    is_synthetic: 'Batas data sintetis',
+};
+
+const registrationErrorTarget: Record<string, string> = {
+    patient_public_id: 'patient-search',
+    is_synthetic: 'full_name',
+};
+
 export default function PendaftaranRawatInap({
     q,
     searchResults,
@@ -113,6 +136,7 @@ export default function PendaftaranRawatInap({
     continueFromOptions,
     filters,
     canRegister,
+    canOpen = false,
 }: Props) {
     const [searchQ, setSearchQ] = useState(q);
     const [filterQ, setFilterQ] = useState(filters.q);
@@ -124,6 +148,8 @@ export default function PendaftaranRawatInap({
     const [selectedPatient, setSelectedPatient] = useState<PatientRow | null>(
         null,
     );
+    const [validationAttempt, setValidationAttempt] = useState(0);
+    const errorSummaryRef = useRef<HTMLDivElement>(null);
 
     const form = useForm({
         patient_public_id: '',
@@ -149,6 +175,22 @@ export default function PendaftaranRawatInap({
     );
 
     const availableBeds = selectedWard?.beds ?? [];
+    const registrationErrors = Object.entries(form.errors);
+
+    useEffect(() => {
+        if (validationAttempt > 0 && registrationErrors.length > 0) {
+            errorSummaryRef.current?.focus();
+        }
+    }, [registrationErrors.length, validationAttempt]);
+
+    const errorProps = (field: keyof typeof form.data) => {
+        const message = form.errors[field];
+
+        return {
+            'aria-invalid': message ? true : undefined,
+            'aria-describedby': message ? `${field}-error` : undefined,
+        };
+    };
 
     const applySearch = (event: FormEvent) => {
         event.preventDefault();
@@ -220,6 +262,7 @@ export default function PendaftaranRawatInap({
         event.preventDefault();
         form.post('/pendaftaran/rawat-inap', {
             preserveScroll: true,
+            onError: () => setValidationAttempt((attempt) => attempt + 1),
             onSuccess: () => {
                 clearPatient();
                 form.reset(
@@ -289,10 +332,14 @@ export default function PendaftaranRawatInap({
                 >
                     <div className="flex flex-wrap items-end gap-2">
                         <div className="grid min-w-[14rem] flex-1 gap-1">
-                            <Label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <Label
+                                htmlFor="patient-search"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Cari pasien (No.RM / NIK / Nama)
                             </Label>
                             <Input
+                                id="patient-search"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={searchQ}
                                 onChange={(e) => setSearchQ(e.target.value)}
@@ -306,12 +353,16 @@ export default function PendaftaranRawatInap({
                 </form>
 
                 {searchResults.length > 0 ? (
-                    <section className="rounded-lg border border-[#e2e8f0] bg-white p-3">
+                    <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
                         <h2 className="text-sm font-semibold text-[#0f172a]">
                             Hasil pencarian pasien
                         </h2>
-                        <div className="mt-2 overflow-x-auto">
+                        <div className="mt-2 min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[40rem] text-left text-sm">
+                                <caption className="sr-only">
+                                    Hasil pencarian pasien sintetis untuk rawat
+                                    inap
+                                </caption>
                                 <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                     <tr>
                                         <th className="px-2 py-1.5">No. RM</th>
@@ -320,7 +371,11 @@ export default function PendaftaranRawatInap({
                                             Tgl lahir
                                         </th>
                                         <th className="px-2 py-1.5">JK</th>
-                                        <th className="px-2 py-1.5" />
+                                        <th scope="col" className="px-2 py-1.5">
+                                            <span className="sr-only">
+                                                Aksi
+                                            </span>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -378,6 +433,48 @@ export default function PendaftaranRawatInap({
                         Identitas ringkas + bangsal → kelas → tempat tidur.
                     </p>
 
+                    {registrationErrors.length > 0 ? (
+                        <div
+                            ref={errorSummaryRef}
+                            role="alert"
+                            tabIndex={-1}
+                            aria-labelledby="inpatient-registration-error-title"
+                            className="mt-3 rounded-md border border-[#fecaca] bg-[#fef2f2] p-3 text-sm text-[#991b1b] focus-visible:ring-2 focus-visible:ring-[#b91c1c] focus-visible:ring-offset-2 focus-visible:outline-none"
+                        >
+                            <p
+                                id="inpatient-registration-error-title"
+                                className="font-semibold"
+                            >
+                                Pendaftaran rawat inap belum dapat disimpan.
+                            </p>
+                            <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                                {registrationErrors.map(([field, message]) => {
+                                    const target =
+                                        registrationErrorTarget[field] ?? field;
+                                    const label =
+                                        registrationFieldLabels[field] ?? field;
+
+                                    return (
+                                        <li key={field}>
+                                            <a
+                                                href={`#${target}`}
+                                                className="underline underline-offset-2"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    document
+                                                        .getElementById(target)
+                                                        ?.focus();
+                                                }}
+                                            >
+                                                {label}: {message}
+                                            </a>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    ) : null}
+
                     <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                         {!selectedPatient ? (
                             <>
@@ -387,6 +484,7 @@ export default function PendaftaranRawatInap({
                                     </Label>
                                     <Input
                                         id="full_name"
+                                        {...errorProps('full_name')}
                                         className={fieldClass}
                                         value={form.data.full_name}
                                         onChange={(e) =>
@@ -398,6 +496,7 @@ export default function PendaftaranRawatInap({
                                         disabled={!canRegister}
                                     />
                                     <InputError
+                                        id="full_name-error"
                                         message={form.errors.full_name}
                                     />
                                 </div>
@@ -407,6 +506,7 @@ export default function PendaftaranRawatInap({
                                     </Label>
                                     <Input
                                         id="date_of_birth"
+                                        {...errorProps('date_of_birth')}
                                         type="date"
                                         className={fieldClass}
                                         value={form.data.date_of_birth}
@@ -419,6 +519,7 @@ export default function PendaftaranRawatInap({
                                         disabled={!canRegister}
                                     />
                                     <InputError
+                                        id="date_of_birth-error"
                                         message={form.errors.date_of_birth}
                                     />
                                 </div>
@@ -426,6 +527,7 @@ export default function PendaftaranRawatInap({
                                     <Label htmlFor="sex">Jenis kelamin</Label>
                                     <select
                                         id="sex"
+                                        {...errorProps('sex')}
                                         className={fieldClass}
                                         value={form.data.sex}
                                         onChange={(e) =>
@@ -442,7 +544,10 @@ export default function PendaftaranRawatInap({
                                             </option>
                                         ))}
                                     </select>
-                                    <InputError message={form.errors.sex} />
+                                    <InputError
+                                        id="sex-error"
+                                        message={form.errors.sex}
+                                    />
                                 </div>
                             </>
                         ) : (
@@ -463,6 +568,7 @@ export default function PendaftaranRawatInap({
                             <Label htmlFor="nik">NIK</Label>
                             <Input
                                 id="nik"
+                                {...errorProps('nik')}
                                 className={fieldClass}
                                 value={form.data.nik}
                                 onChange={(e) =>
@@ -470,12 +576,16 @@ export default function PendaftaranRawatInap({
                                 }
                                 disabled={!canRegister}
                             />
-                            <InputError message={form.errors.nik} />
+                            <InputError
+                                id="nik-error"
+                                message={form.errors.nik}
+                            />
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="phone">Telepon</Label>
                             <Input
                                 id="phone"
+                                {...errorProps('phone')}
                                 className={fieldClass}
                                 value={form.data.phone}
                                 onChange={(e) =>
@@ -483,13 +593,17 @@ export default function PendaftaranRawatInap({
                                 }
                                 disabled={!canRegister}
                             />
-                            <InputError message={form.errors.phone} />
+                            <InputError
+                                id="phone-error"
+                                message={form.errors.phone}
+                            />
                         </div>
 
                         <div className="grid gap-1">
                             <Label htmlFor="ward_name">Bangsal</Label>
                             <select
                                 id="ward_name"
+                                {...errorProps('ward_name')}
                                 className={fieldClass}
                                 value={form.data.ward_name}
                                 onChange={(e) => onWardChange(e.target.value)}
@@ -501,22 +615,30 @@ export default function PendaftaranRawatInap({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={form.errors.ward_name} />
+                            <InputError
+                                id="ward_name-error"
+                                message={form.errors.ward_name}
+                            />
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="ward_class">Kelas</Label>
                             <Input
                                 id="ward_class"
+                                {...errorProps('ward_class')}
                                 className={fieldClass}
                                 value={form.data.ward_class}
                                 readOnly
                             />
-                            <InputError message={form.errors.ward_class} />
+                            <InputError
+                                id="ward_class-error"
+                                message={form.errors.ward_class}
+                            />
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="bed_code">Tempat tidur</Label>
                             <select
                                 id="bed_code"
+                                {...errorProps('bed_code')}
                                 className={fieldClass}
                                 value={form.data.bed_code}
                                 onChange={(e) =>
@@ -530,13 +652,17 @@ export default function PendaftaranRawatInap({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={form.errors.bed_code} />
+                            <InputError
+                                id="bed_code-error"
+                                message={form.errors.bed_code}
+                            />
                         </div>
 
                         <div className="grid gap-1">
                             <Label htmlFor="payer_type">Cara bayar</Label>
                             <select
                                 id="payer_type"
+                                {...errorProps('payer_type')}
                                 className={fieldClass}
                                 value={form.data.payer_type}
                                 onChange={(e) =>
@@ -553,7 +679,10 @@ export default function PendaftaranRawatInap({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={form.errors.payer_type} />
+                            <InputError
+                                id="payer_type-error"
+                                message={form.errors.payer_type}
+                            />
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="insurance_number">
@@ -561,6 +690,7 @@ export default function PendaftaranRawatInap({
                             </Label>
                             <Input
                                 id="insurance_number"
+                                {...errorProps('insurance_number')}
                                 className={fieldClass}
                                 value={form.data.insurance_number}
                                 onChange={(e) =>
@@ -572,6 +702,7 @@ export default function PendaftaranRawatInap({
                                 disabled={!canRegister}
                             />
                             <InputError
+                                id="insurance_number-error"
                                 message={form.errors.insurance_number}
                             />
                         </div>
@@ -581,6 +712,7 @@ export default function PendaftaranRawatInap({
                             </Label>
                             <select
                                 id="continue_from"
+                                {...errorProps('continue_from')}
                                 className={fieldClass}
                                 value={form.data.continue_from}
                                 onChange={(e) =>
@@ -600,7 +732,10 @@ export default function PendaftaranRawatInap({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={form.errors.continue_from} />
+                            <InputError
+                                id="continue_from-error"
+                                message={form.errors.continue_from}
+                            />
                         </div>
 
                         <div className="grid gap-1 md:col-span-2 lg:col-span-3">
@@ -609,6 +744,7 @@ export default function PendaftaranRawatInap({
                             </Label>
                             <textarea
                                 id="chief_complaint"
+                                {...errorProps('chief_complaint')}
                                 className={cn(
                                     fieldClass,
                                     'min-h-[4.5rem] resize-y py-2',
@@ -622,7 +758,10 @@ export default function PendaftaranRawatInap({
                                 }
                                 disabled={!canRegister}
                             />
-                            <InputError message={form.errors.chief_complaint} />
+                            <InputError
+                                id="chief_complaint-error"
+                                message={form.errors.chief_complaint}
+                            />
                         </div>
                     </div>
 
@@ -649,10 +788,14 @@ export default function PendaftaranRawatInap({
                 >
                     <div className="flex flex-wrap items-end gap-2">
                         <div className="grid min-w-[10rem] flex-1 gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="inpatient-filter-q"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 No. RM / Nama
                             </label>
                             <Input
+                                id="inpatient-filter-q"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={filterQ}
                                 onChange={(e) => setFilterQ(e.target.value)}
@@ -660,10 +803,14 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <div className="grid min-w-[10rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="inpatient-filter-ward"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Bangsal
                             </label>
                             <select
+                                id="inpatient-filter-ward"
                                 className={fieldClass}
                                 value={filterWard}
                                 onChange={(e) => setFilterWard(e.target.value)}
@@ -680,10 +827,14 @@ export default function PendaftaranRawatInap({
                             </select>
                         </div>
                         <div className="grid min-w-[8rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="inpatient-filter-payer"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Cara bayar
                             </label>
                             <select
+                                id="inpatient-filter-payer"
                                 className={fieldClass}
                                 value={filterPayer}
                                 onChange={(e) => setFilterPayer(e.target.value)}
@@ -700,10 +851,14 @@ export default function PendaftaranRawatInap({
                             </select>
                         </div>
                         <div className="grid min-w-[9rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="inpatient-filter-origin"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Asal
                             </label>
                             <select
+                                id="inpatient-filter-origin"
                                 className={fieldClass}
                                 value={filterContinue}
                                 onChange={(e) =>
@@ -722,10 +877,14 @@ export default function PendaftaranRawatInap({
                             </select>
                         </div>
                         <div className="grid min-w-[8rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="inpatient-filter-date-from"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Dari tgl
                             </label>
                             <Input
+                                id="inpatient-filter-date-from"
                                 type="date"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={filterDateFrom}
@@ -735,10 +894,14 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <div className="grid min-w-[8rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="inpatient-filter-date-to"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Sampai tgl
                             </label>
                             <Input
+                                id="inpatient-filter-date-to"
                                 type="date"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={filterDateTo}
@@ -753,7 +916,7 @@ export default function PendaftaranRawatInap({
                     </div>
                 </form>
 
-                <section className="rounded-lg border border-[#e2e8f0] bg-white p-3">
+                <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
                     <div className="mb-2 flex items-center justify-between gap-2">
                         <h2 className="text-sm font-semibold text-[#0f172a]">
                             Daftar masuk rawat inap
@@ -765,8 +928,11 @@ export default function PendaftaranRawatInap({
                             Buka worklist pemeriksaan →
                         </Link>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[56rem] text-left text-sm">
+                            <caption className="sr-only">
+                                Daftar pendaftaran rawat inap sintetis
+                            </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
                                     <th className="px-2 py-1.5">Antrian</th>
@@ -779,7 +945,9 @@ export default function PendaftaranRawatInap({
                                     <th className="px-2 py-1.5">Penjamin</th>
                                     <th className="px-2 py-1.5">Status</th>
                                     <th className="px-2 py-1.5">Keluhan</th>
-                                    <th className="px-2 py-1.5" />
+                                    <th scope="col" className="px-2 py-1.5">
+                                        <span className="sr-only">Aksi</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -854,14 +1022,26 @@ export default function PendaftaranRawatInap({
                                                     '—'}
                                             </td>
                                             <td className="px-2 py-1.5 text-right">
-                                                <a
-                                                    href={`/pendaftaran/kunjungan/${encounter.public_id}/cetak?docs=bukti,antrian`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-sm font-medium text-[#1b75bc] hover:underline"
-                                                >
-                                                    Cetak
-                                                </a>
+                                                <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                                                    {canOpen ? (
+                                                        <Link
+                                                            href={`/pemeriksaan/rawat-inap/${encounter.public_id}`}
+                                                            aria-label={`Buka pemeriksaan untuk ${encounter.patient.full_name}`}
+                                                            className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                        >
+                                                            Buka pemeriksaan
+                                                        </Link>
+                                                    ) : null}
+                                                    <a
+                                                        href={`/pendaftaran/kunjungan/${encounter.public_id}/cetak?docs=bukti,antrian`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        aria-label={`Cetak untuk ${encounter.patient.full_name}`}
+                                                        className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                    >
+                                                        Cetak
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

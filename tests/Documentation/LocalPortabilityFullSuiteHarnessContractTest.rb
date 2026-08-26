@@ -14,7 +14,11 @@ class LocalPortabilityFullSuiteHarnessContractTest < Minitest::Test
     assert_equal %w[E2E-01 E2E-02 E2E-03 E2E-04 E2E-05 E2E-12 E2E-15 E2E-16], Harness::WORKFLOW_SLICES.keys
     assert Harness::WORKFLOW_SLICES.values.flatten.all? { |path| path.start_with?('tests/Feature/') }
     Harness::WORKFLOW_SLICES.each_value { |paths| assert_equal paths.uniq, paths }
-    assert_includes Harness::WORKFLOW_SLICES.fetch('E2E-02'), 'tests/Feature/Clinical/LockedClinicalEntryWriterTest.php'
+    assert_equal [
+      'tests/Feature/Emergency/EmergencyFlowTest.php',
+      'tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php',
+      'tests/Feature/Clinical/LockedClinicalEntryWriterTest.php',
+    ], Harness::WORKFLOW_SLICES.fetch('E2E-02')
     assert_includes Harness::WORKFLOW_SLICES.fetch('E2E-16'), 'tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php'
     assert_equal File.join(Harness::ROOT, 'storage/app/portability-rehearsals'), Harness::EVIDENCE_DIRECTORY
   end

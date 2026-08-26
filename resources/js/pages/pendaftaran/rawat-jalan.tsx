@@ -1029,6 +1029,7 @@ export default function PendaftaranRawatJalan({
                 {canRegister ? (
                     <form
                         onSubmit={submit}
+                        noValidate
                         className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4"
                     >
                         <RegistrationErrorSummary

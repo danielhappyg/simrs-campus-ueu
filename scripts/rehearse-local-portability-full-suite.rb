@@ -41,6 +41,7 @@ class LocalPortabilityFullSuiteRehearsal
     ],
     'E2E-02' => %w[
       tests/Feature/Emergency/EmergencyFlowTest.php
+      tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php
       tests/Feature/Clinical/LockedClinicalEntryWriterTest.php
     ],
     'E2E-03' => %w[

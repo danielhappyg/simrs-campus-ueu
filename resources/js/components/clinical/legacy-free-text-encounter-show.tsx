@@ -1,6 +1,6 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent, KeyboardEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -138,6 +138,39 @@ const clinicalTabs = [
     'Riwayat',
 ] as const;
 
+type ClinicalTab = (typeof clinicalTabs)[number];
+
+const clinicalTabSlug: Record<ClinicalTab, string> = {
+    Asesmen: 'asesmen',
+    SOAP: 'soap',
+    Diagnosa: 'diagnosa',
+    Tindakan: 'tindakan',
+    Resep: 'resep',
+    'Order Lab': 'order-lab',
+    'Order Rad': 'order-rad',
+    Riwayat: 'riwayat',
+};
+
+const entryErrorTargets: Record<string, { id: string; label: string }> = {
+    entry_type: { id: 'entry_type', label: 'Jenis catatan' },
+    body: { id: 'body', label: 'Isi catatan' },
+};
+
+const labOrderErrorTargets: Record<string, { id: string; label: string }> = {
+    test_code: { id: 'test_code', label: 'Pemeriksaan' },
+    clinical_question: {
+        id: 'clinical_question',
+        label: 'Pertanyaan klinis',
+    },
+};
+
+function presentErrors(errors: Record<string, string | undefined>) {
+    return Object.entries(errors).filter(
+        (entry): entry is [string, string] =>
+            typeof entry[1] === 'string' && entry[1] !== '',
+    );
+}
+
 export default function LegacyFreeTextEncounterShow({
     variant = 'rawat-jalan',
     indexPath = '/pemeriksaan/rawat-jalan',
@@ -164,8 +197,12 @@ export default function LegacyFreeTextEncounterShow({
     const allowedOptions = entryTypeOptions.filter((option) => option.allowed);
     const canWrite = canWriteNursing || canWriteMedical;
     const closed = encounter.status === 'CLOSED';
-    const [activeTab, setActiveTab] =
-        useState<(typeof clinicalTabs)[number]>('Asesmen');
+    const [activeTab, setActiveTab] = useState<ClinicalTab>('Asesmen');
+    const [entryValidationAttempt, setEntryValidationAttempt] = useState(0);
+    const [labOrderValidationAttempt, setLabOrderValidationAttempt] =
+        useState(0);
+    const entryErrorSummaryRef = useRef<HTMLDivElement>(null);
+    const labOrderErrorSummaryRef = useRef<HTMLDivElement>(null);
 
     const form = useForm({
         entry_type: allowedOptions[0]?.value ?? '',
@@ -177,10 +214,36 @@ export default function LegacyFreeTextEncounterShow({
         clinical_question: '',
     });
 
+    const entryErrors = presentErrors(form.errors);
+    const labOrderErrors = presentErrors(labForm.errors);
+    const entryErrorFingerprint = entryErrors
+        .map(([field, message]) => `${field}:${message}`)
+        .join('|');
+    const labOrderErrorFingerprint = labOrderErrors
+        .map(([field, message]) => `${field}:${message}`)
+        .join('|');
+
+    useEffect(() => {
+        if (entryValidationAttempt > 0 && entryErrors.length > 0) {
+            entryErrorSummaryRef.current?.focus();
+        }
+    }, [entryErrorFingerprint, entryErrors.length, entryValidationAttempt]);
+
+    useEffect(() => {
+        if (labOrderValidationAttempt > 0 && labOrderErrors.length > 0) {
+            labOrderErrorSummaryRef.current?.focus();
+        }
+    }, [
+        labOrderErrorFingerprint,
+        labOrderErrors.length,
+        labOrderValidationAttempt,
+    ]);
+
     const submit = (event: FormEvent) => {
         event.preventDefault();
         form.post(entryPostPath, {
             preserveScroll: true,
+            onError: () => setEntryValidationAttempt((attempt) => attempt + 1),
             onSuccess: () => form.reset('body'),
         });
     };
@@ -189,16 +252,49 @@ export default function LegacyFreeTextEncounterShow({
         event.preventDefault();
         labForm.post(labOrderPostPath, {
             preserveScroll: true,
+            onError: () =>
+                setLabOrderValidationAttempt((attempt) => attempt + 1),
             onSuccess: () => labForm.reset('clinical_question'),
         });
     };
 
-    const tabIsLive = (tab: (typeof clinicalTabs)[number]) => {
+    const tabIsLive = (tab: ClinicalTab) => {
         if (tab === 'Asesmen' || tab === 'Riwayat') {
             return true;
         }
 
         return tab === 'Order Lab' && isOutpatient;
+    };
+
+    const tabId = (tab: ClinicalTab) => `clinical-tab-${clinicalTabSlug[tab]}`;
+    const tabPanelId = (tab: ClinicalTab) =>
+        `clinical-tabpanel-${clinicalTabSlug[tab]}`;
+    const handleTabKeyDown = (
+        event: KeyboardEvent<HTMLButtonElement>,
+        tab: ClinicalTab,
+    ) => {
+        const liveTabs = clinicalTabs.filter(tabIsLive);
+        const currentIndex = liveTabs.indexOf(tab);
+        let nextTab: ClinicalTab | undefined;
+
+        if (event.key === 'ArrowRight') {
+            nextTab = liveTabs[(currentIndex + 1) % liveTabs.length];
+        } else if (event.key === 'ArrowLeft') {
+            nextTab =
+                liveTabs[
+                    (currentIndex - 1 + liveTabs.length) % liveTabs.length
+                ];
+        } else if (event.key === 'Home') {
+            nextTab = liveTabs[0];
+        } else if (event.key === 'End') {
+            nextTab = liveTabs[liveTabs.length - 1];
+        }
+
+        if (nextTab) {
+            event.preventDefault();
+            setActiveTab(nextTab);
+            document.getElementById(tabId(nextTab))?.focus();
+        }
     };
 
     return (
@@ -209,12 +305,22 @@ export default function LegacyFreeTextEncounterShow({
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
                 {typeof flash?.error === 'string' && flash.error !== '' ? (
-                    <div className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]">
+                    <div
+                        role="alert"
+                        aria-live="assertive"
+                        aria-atomic="true"
+                        className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]"
+                    >
                         {flash.error}
                     </div>
                 ) : null}
                 {typeof flash?.success === 'string' && flash.success !== '' ? (
-                    <div className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]">
+                    <div
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                        className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]"
+                    >
                         {flash.success}
                     </div>
                 ) : null}
@@ -348,16 +454,31 @@ export default function LegacyFreeTextEncounterShow({
                     </dl>
                 </header>
 
-                <div className="flex flex-wrap gap-1 border-b border-[#e2e8f0] pb-px">
+                <div
+                    role="tablist"
+                    aria-label="Bagian pemeriksaan klinis"
+                    className="flex flex-wrap gap-1 border-b border-[#e2e8f0] pb-px"
+                >
                     {clinicalTabs.map((tab) => {
                         const live = tabIsLive(tab);
 
                         return (
                             <button
                                 key={tab}
+                                id={tabId(tab)}
                                 type="button"
+                                role="tab"
                                 disabled={!live}
+                                aria-disabled={!live}
+                                aria-selected={live && activeTab === tab}
+                                aria-controls={
+                                    live ? tabPanelId(tab) : undefined
+                                }
+                                tabIndex={live && activeTab === tab ? 0 : -1}
                                 onClick={() => live && setActiveTab(tab)}
+                                onKeyDown={(event) =>
+                                    live && handleTabKeyDown(event, tab)
+                                }
                                 className={cn(
                                     'rounded-t-md px-3 py-1.5 text-xs font-medium',
                                     activeTab === tab && live
@@ -383,7 +504,12 @@ export default function LegacyFreeTextEncounterShow({
                 </div>
 
                 {activeTab === 'Order Lab' && isOutpatient && (
-                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                    <div
+                        id={tabPanelId('Order Lab')}
+                        role="tabpanel"
+                        aria-labelledby={tabId('Order Lab')}
+                        className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]"
+                    >
                         <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
@@ -479,6 +605,64 @@ export default function LegacyFreeTextEncounterShow({
                                     onSubmit={submitLabOrder}
                                     className="mt-3 space-y-3"
                                 >
+                                    {labOrderErrors.length > 0 ? (
+                                        <div
+                                            ref={labOrderErrorSummaryRef}
+                                            role="alert"
+                                            tabIndex={-1}
+                                            aria-labelledby="lab-order-error-summary-title"
+                                            className="rounded-md border border-[#fecaca] bg-[#fef2f2] p-3 text-sm text-[#991b1b] focus-visible:ring-2 focus-visible:ring-[#b91c1c] focus-visible:ring-offset-2 focus-visible:outline-none"
+                                        >
+                                            <p
+                                                id="lab-order-error-summary-title"
+                                                className="font-semibold"
+                                            >
+                                                Order laboratorium belum dapat
+                                                disimpan.
+                                            </p>
+                                            <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                                                {labOrderErrors.map(
+                                                    ([field, message]) => {
+                                                        const target =
+                                                            labOrderErrorTargets[
+                                                                field
+                                                            ];
+
+                                                        return (
+                                                            <li key={field}>
+                                                                {target ? (
+                                                                    <a
+                                                                        href={`#${target.id}`}
+                                                                        className="underline underline-offset-2"
+                                                                        onClick={(
+                                                                            event,
+                                                                        ) => {
+                                                                            event.preventDefault();
+                                                                            document
+                                                                                .getElementById(
+                                                                                    target.id,
+                                                                                )
+                                                                                ?.focus();
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            target.label
+                                                                        }
+                                                                        :{' '}
+                                                                        {
+                                                                            message
+                                                                        }
+                                                                    </a>
+                                                                ) : (
+                                                                    message
+                                                                )}
+                                                            </li>
+                                                        );
+                                                    },
+                                                )}
+                                            </ul>
+                                        </div>
+                                    ) : null}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="test_code">
                                             Pemeriksaan
@@ -487,6 +671,16 @@ export default function LegacyFreeTextEncounterShow({
                                             id="test_code"
                                             className="h-8 rounded-md border border-input bg-white px-2.5 text-sm"
                                             value={labForm.data.test_code}
+                                            aria-invalid={
+                                                labForm.errors.test_code
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            aria-describedby={
+                                                labForm.errors.test_code
+                                                    ? 'lab-order-test-code-error'
+                                                    : undefined
+                                            }
                                             onChange={(e) =>
                                                 labForm.setData(
                                                     'test_code',
@@ -505,6 +699,7 @@ export default function LegacyFreeTextEncounterShow({
                                             ))}
                                         </select>
                                         <InputError
+                                            id="lab-order-test-code-error"
                                             message={labForm.errors.test_code}
                                         />
                                     </div>
@@ -518,6 +713,16 @@ export default function LegacyFreeTextEncounterShow({
                                             value={
                                                 labForm.data.clinical_question
                                             }
+                                            aria-invalid={
+                                                labForm.errors.clinical_question
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            aria-describedby={
+                                                labForm.errors.clinical_question
+                                                    ? 'lab-order-clinical-question-error'
+                                                    : undefined
+                                            }
                                             onChange={(e) =>
                                                 labForm.setData(
                                                     'clinical_question',
@@ -527,6 +732,7 @@ export default function LegacyFreeTextEncounterShow({
                                             placeholder="Contoh: evaluasi anemia, kontrol DM…"
                                         />
                                         <InputError
+                                            id="lab-order-clinical-question-error"
                                             message={
                                                 labForm.errors.clinical_question
                                             }
@@ -555,7 +761,12 @@ export default function LegacyFreeTextEncounterShow({
                 )}
 
                 {(activeTab === 'Asesmen' || activeTab === 'Riwayat') && (
-                    <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                    <div
+                        id={tabPanelId(activeTab)}
+                        role="tabpanel"
+                        aria-labelledby={tabId(activeTab)}
+                        className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]"
+                    >
                         <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                             <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
                                 Catatan klinis
@@ -602,6 +813,64 @@ export default function LegacyFreeTextEncounterShow({
                                     onSubmit={submit}
                                     className="mt-3 space-y-3"
                                 >
+                                    {entryErrors.length > 0 ? (
+                                        <div
+                                            ref={entryErrorSummaryRef}
+                                            role="alert"
+                                            tabIndex={-1}
+                                            aria-labelledby="clinical-entry-error-summary-title"
+                                            className="rounded-md border border-[#fecaca] bg-[#fef2f2] p-3 text-sm text-[#991b1b] focus-visible:ring-2 focus-visible:ring-[#b91c1c] focus-visible:ring-offset-2 focus-visible:outline-none"
+                                        >
+                                            <p
+                                                id="clinical-entry-error-summary-title"
+                                                className="font-semibold"
+                                            >
+                                                Catatan klinis belum dapat
+                                                disimpan.
+                                            </p>
+                                            <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                                                {entryErrors.map(
+                                                    ([field, message]) => {
+                                                        const target =
+                                                            entryErrorTargets[
+                                                                field
+                                                            ];
+
+                                                        return (
+                                                            <li key={field}>
+                                                                {target ? (
+                                                                    <a
+                                                                        href={`#${target.id}`}
+                                                                        className="underline underline-offset-2"
+                                                                        onClick={(
+                                                                            event,
+                                                                        ) => {
+                                                                            event.preventDefault();
+                                                                            document
+                                                                                .getElementById(
+                                                                                    target.id,
+                                                                                )
+                                                                                ?.focus();
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                            target.label
+                                                                        }
+                                                                        :{' '}
+                                                                        {
+                                                                            message
+                                                                        }
+                                                                    </a>
+                                                                ) : (
+                                                                    message
+                                                                )}
+                                                            </li>
+                                                        );
+                                                    },
+                                                )}
+                                            </ul>
+                                        </div>
+                                    ) : null}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="entry_type">
                                             Jenis catatan
@@ -610,6 +879,16 @@ export default function LegacyFreeTextEncounterShow({
                                             id="entry_type"
                                             className="h-8 rounded-md border border-input bg-white px-2.5 text-sm"
                                             value={form.data.entry_type}
+                                            aria-invalid={
+                                                form.errors.entry_type
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            aria-describedby={
+                                                form.errors.entry_type
+                                                    ? 'clinical-entry-type-error'
+                                                    : undefined
+                                            }
                                             onChange={(e) =>
                                                 form.setData(
                                                     'entry_type',
@@ -628,6 +907,7 @@ export default function LegacyFreeTextEncounterShow({
                                             ))}
                                         </select>
                                         <InputError
+                                            id="clinical-entry-type-error"
                                             message={form.errors.entry_type}
                                         />
                                     </div>
@@ -639,6 +919,16 @@ export default function LegacyFreeTextEncounterShow({
                                             id="body"
                                             className="min-h-36 rounded-md border border-input bg-white px-2.5 py-2 text-sm"
                                             value={form.data.body}
+                                            aria-invalid={
+                                                form.errors.body
+                                                    ? true
+                                                    : undefined
+                                            }
+                                            aria-describedby={
+                                                form.errors.body
+                                                    ? 'clinical-entry-body-error'
+                                                    : undefined
+                                            }
                                             onChange={(e) =>
                                                 form.setData(
                                                     'body',
@@ -649,6 +939,7 @@ export default function LegacyFreeTextEncounterShow({
                                             placeholder="Tuliskan asesmen teaching/sintetis…"
                                         />
                                         <InputError
+                                            id="clinical-entry-body-error"
                                             message={form.errors.body}
                                         />
                                     </div>

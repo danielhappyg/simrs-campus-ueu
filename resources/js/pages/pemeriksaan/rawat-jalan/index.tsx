@@ -65,11 +65,13 @@ type Props = {
 const statusLabel: Record<string, string> = {
     REGISTERED: 'Terdaftar',
     IN_EXAMINATION: 'Dalam pemeriksaan',
+    READY_FOR_RM: 'Dokumentasi selesai',
 };
 
 const statusChip: Record<string, string> = {
     REGISTERED: 'bg-[#e8f2fa] text-[#123b63]',
     IN_EXAMINATION: 'bg-[#fdeee3] text-[#9a3412]',
+    READY_FOR_RM: 'bg-[#ecfdf5] text-[#047857]',
 };
 
 const payerLabel: Record<string, string> = {
@@ -620,6 +622,7 @@ export default function PemeriksaanRawatJalanIndex({
                                                 {canOpen ? (
                                                     <Link
                                                         href={`${showPathPrefix}/${encounter.public_id}`}
+                                                        aria-label={`${isTriage ? 'Ke IGD' : 'Buka'} untuk ${encounter.patient.full_name}`}
                                                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                     >
                                                         {isTriage

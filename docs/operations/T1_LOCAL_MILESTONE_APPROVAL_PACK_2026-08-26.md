@@ -2,11 +2,11 @@
 
 ## Decision summary
 
-**Current state: `LOCAL / NOT_DEPLOYED`.** This pack freezes the publishable portion of the intentionally dirty T1 worktree on the fixed base `d04b35f1f85ab0e6e56818d08c374f3a5bb3cb88`. The generator requires `HEAD`, `origin/main`, and that exact base to match and requires an empty staging area. The JSON manifest binds every included modified, untracked, and deleted path by SHA-256; deleted paths bind the bytes in `HEAD` because no worktree bytes remain.
+**Current state: `LOCAL / NOT_DEPLOYED`.** This pack now binds 33 unpublished candidate paths for the IGD/RI teaching-continuity and accessibility follow-up on the published base `1e188215ff4b39af547cda75a1904cfe1d062f75`. The generator requires `HEAD`, `origin/main`, and that exact base to match and requires an empty staging area. The JSON manifest binds every included modified, untracked, and deleted path by SHA-256; deleted paths, when present, bind the bytes in `HEAD` because no worktree bytes remain.
 
 The manifest excludes itself from self-hashing. It also excludes `deliverables/`, `docs/legacy-visual-field-capture/`, `docs/operations/UAT_20260820_002_003_DRAFT_ORDER_REMEDIATION.md`, and `lang/` before file inspection. The generator never opens, hashes, or adds a protected path.
 
-No commit, push, pull request, GitHub Actions run, deployment, hosted migration, credential transmission, or hosted mutation is authorized or recorded by this pack.
+No new commit, push, pull request, GitHub Actions run, deployment, hosted migration, credential transmission, or hosted mutation is authorized or recorded by this follow-up pack. The base commit already has a verified Vercel Preview; the public production alias remains a separate cutover decision.
 
 ## What the manifest proves
 
@@ -58,22 +58,22 @@ If any harness-defined execution byte changes, ordinary `--write` and `--check` 
 
 | Verification | Result |
 | --- | --- |
-| PHP application suite | 451 tests; 449 passed, 2 skipped; 5,717 assertions |
+| PHP application suite | 453 tests; 451 passed, 2 skipped; 5,856 assertions |
 | PHPStan | 0 errors |
-| Frontend unit tests | 10 files, 32 tests, PASS |
-| Bounded accessibility automation | Four representative operational pages, one multi-error registration validation state, and first/middle/last pagination states: zero detected axe WCAG 2.1 A/AA violations in tested DOM states; automated pagination Tab order and repeated failed-submit summary focus PASS; aggregate accessibility remains `OPEN/PARTIAL` |
-| Bounded native-browser accessibility | Four T1 routes rendered with named controls/captions and no console errors; one real Laravel validation summary and linked invalid-input focus path passed; three sampled contrast ratios passed; 320-pixel and 640-pixel-equivalent reflow checks passed after a cross-route page-overflow fix; screen reader, complete keyboard order, and true browser zoom remain `NOT_RUN` |
+| Frontend unit tests | 12 files, 45 tests, PASS |
+| Bounded accessibility automation | Current RJ/IGD/RI registration, IGD/RI clinical-note, worklist, laboratory, recap and pagination states: zero detected axe WCAG 2.1 A/AA violations in tested DOM states; named/linked error summaries, repeated failed-submit focus, semantic tabs and unambiguous row actions PASS; aggregate accessibility remains `OPEN/PARTIAL` |
+| Bounded native-browser accessibility | Registrar, nurse, physician and RMIK route/permission surfaces across IGD registration, triage, IGD detail/worklist and RI registration/detail/worklist rendered with simulation banners, labels/captions and no console errors; bounded IGD/RI note journeys and the corrected real IGD multi-error summary/focus path passed; 320-pixel and 200%-equivalent proxy reflow checks passed with intentional table scrolling contained; screen reader, complete keyboard order, true browser zoom, full contrast and full touch-target coverage remain `NOT_RUN` |
 | TypeScript, ESLint, Prettier | PASS |
-| Coverage-ledger contract | 21 tests, 217 assertions, PASS |
-| Milestone-manifest contract | 18 tests, 790 assertions, PASS; stale inner bindings, wrong engines, duplicate/malformed JSON, claim inflation, shared-binding disagreement, legacy loopback PostgreSQL, and bootstrap bypass fail closed |
+| Coverage-ledger contract | 21 tests, 221 assertions, PASS before final evidence-note refresh |
+| Milestone-manifest contract | 19 tests, 276 assertions, PASS; stale inner bindings, wrong engines, duplicate/malformed JSON, claim inflation, shared-binding disagreement, legacy loopback PostgreSQL, and bootstrap bypass fail closed |
 | Parity-governance adversarial contract | 214 tests, 1,627 assertions, PASS |
 | Owner-snapshot generator contract | 7 tests, 30 assertions, PASS |
 | G0/S0 intake contract | 37 tests, 181 assertions, PASS |
 | Queue/query-plan/recovery harness contracts | 12/145, 14/175, and 10/69 tests/assertions, all PASS |
 | PostgreSQL 17 disposable evidence | Final queue, query-plan, and recovery artifacts are mode `0600`, ignored, and bound by exact SHA-256 in the manifest |
-| Portability harness contract | 12 tests, 153 assertions, PASS |
-| PostgreSQL 17.10 current-manifest application suite | Harness-owned private cluster/Unix socket and fresh private-`laravel` migration; 451 tests; 450 passed, 1 skipped; 5,724 assertions; PASS |
-| MySQL 8.4.11 current-manifest application suite | Fresh InnoDB migration; 451 tests; 444 passed, 7 skipped; 5,695 assertions; PASS |
+| Portability harness contract | 12 tests, 152 assertions, PASS |
+| PostgreSQL 17.10 current-manifest application suite | Harness-owned private cluster/Unix socket and fresh private-`laravel` migration; 453 tests; 452 passed, 1 skipped; 5,863 assertions; PASS |
+| MySQL 8.4.11 current-manifest application suite | Fresh InnoDB migration; 453 tests; 446 passed, 7 skipped; 5,834 assertions; PASS |
 | Current-manifest focused workflow slices | E2E-01/02/03/04/05/12/15/16 all PASS on PostgreSQL 17.10 and MySQL 8.4.11 with identical per-slice counts |
 | Independent portability reviews | Defensive-security GO; release-gate integrity GO with no P0–P3 findings; local exact-engine scope only |
 | MySQL 8.4 rollback/reapply | Last two T1 migrations rolled back and reapplied; schema probes changed from `0 0 0 0` to `1 1 2 1`; PASS |

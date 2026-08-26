@@ -126,6 +126,8 @@ class G0G3CoverageLedgerTest < Minitest::Test
     assert_equal 'PASS', evidence.dig('database_engine_evidence', 'mysql_8_4')
     assert_equal 'NOT_RUN', evidence.fetch('hosted_uat')
     assert_equal 'NOT_READY', evidence.fetch('owner_acceptance')
+    assert_includes evidence.fetch('evidence_paths'), 'tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php'
+    assert_includes evidence.fetch('evidence_paths'), 'docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md'
     assert_includes evidence.fetch('evidence_paths'), 'docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md'
   end
 

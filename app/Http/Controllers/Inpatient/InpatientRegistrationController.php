@@ -126,6 +126,7 @@ class InpatientRegistrationController extends Controller
                 'date_to' => $dateTo,
             ],
             'canRegister' => $request->user()?->canCapability(Capability::PATIENT_REGISTER) ?? false,
+            'canOpen' => $request->user()?->canCapability(Capability::ENCOUNTER_OPEN) ?? false,
         ]);
     }
 

@@ -5,9 +5,11 @@ namespace Tests\Feature\Inpatient;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\Patient;
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
+use App\Support\Authorization\Capability;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use Database\Seeders\InpatientMastersSeeder;
 use Database\Seeders\OutpatientMastersSeeder;
@@ -98,8 +100,32 @@ class InpatientFlowTest extends TestCase
                 ->component('pendaftaran/rawat-inap')
                 ->has('todaysEncounters', 1)
                 ->has('wards', 3)
+                ->where('canOpen', true)
                 ->where('todaysEncounters.0.patient.full_name', 'Pasien RI Sintetis')
                 ->where('todaysEncounters.0.bed_code', $ward['beds'][0]));
+    }
+
+    public function test_inpatient_registration_hides_examination_handoff_without_open_capability(): void
+    {
+        $listOnlyRole = Role::query()->create([
+            'slug' => 'inpatient-list-only',
+            'name' => 'Inpatient list only',
+            'description' => 'Synthetic test role without encounter open',
+        ]);
+        $listOnlyRole->permissions()->sync(Permission::query()
+            ->whereIn('name', [Capability::PATIENT_SEARCH, Capability::ENCOUNTER_LIST])
+            ->pluck('id'));
+
+        $user = User::factory()->create();
+        $user->roles()->sync([$listOnlyRole->id]);
+
+        $this->actingAs($user)
+            ->get(route('pendaftaran.rawat-inap.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('pendaftaran/rawat-inap')
+                ->where('canRegister', false)
+                ->where('canOpen', false));
     }
 
     public function test_inpatient_registration_rolls_back_when_audit_write_fails(): void

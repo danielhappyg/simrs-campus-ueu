@@ -92,7 +92,7 @@
         "runtime_availability": "PARTIAL", "automated_evidence": "PARTIAL_PASS",
         "database_engine_evidence": {"sqlite": "PASS", "postgresql_17": "PASS", "mysql_8_4": "PASS", "mysql_other": "NOT_RUN"},
         "hosted_uat": "NOT_RUN", "reconciliation": "PARTIAL", "defect_status": "PENDING", "owner_acceptance": "NOT_ACCEPTED",
-        "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "tests/Feature/Registration/DailyQueueAllocatorTest.php", "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php", "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"]
+        "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php", "tests/Feature/Registration/DailyQueueAllocatorTest.php", "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php", "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md", "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md", "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"]
       },
       "workflow_binding": {"status": "PROVISIONAL", "scenario_ids": ["E2E-01", "E2E-02"], "authority_reference": null}
     },
@@ -101,7 +101,7 @@
         "runtime_availability": "PARTIAL", "automated_evidence": "PARTIAL_PASS",
         "database_engine_evidence": {"sqlite": "PASS", "postgresql_17": "PASS", "mysql_8_4": "PASS", "mysql_other": "NOT_RUN"},
         "hosted_uat": "NOT_RUN", "reconciliation": "NOT_STARTED", "defect_status": "PENDING", "owner_acceptance": "NOT_ACCEPTED",
-        "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"]
+        "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php", "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md", "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"]
       },
       "workflow_binding": {"status": "PROVISIONAL", "scenario_ids": ["E2E-02"], "authority_reference": null}
     },
@@ -110,7 +110,7 @@
         "runtime_availability": "PARTIAL", "automated_evidence": "PARTIAL_PASS",
         "database_engine_evidence": {"sqlite": "PASS", "postgresql_17": "PASS", "mysql_8_4": "PASS", "mysql_other": "NOT_RUN"},
         "hosted_uat": "NOT_RUN", "reconciliation": "NOT_STARTED", "defect_status": "PENDING", "owner_acceptance": "NOT_ACCEPTED",
-        "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"]
+        "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php", "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md", "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"]
       },
       "workflow_binding": {"status": "PROVISIONAL", "scenario_ids": ["E2E-02"], "authority_reference": null}
     },
@@ -155,8 +155,8 @@
       "reconciliation": "PARTIAL",
       "defect_status": "PENDING",
       "owner_acceptance": "NOT_READY",
-      "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "tests/Feature/Registration/DailyQueueAllocatorTest.php", "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php", "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"],
-      "note": "The current emergency scaffold and shared daily registration queue pass bounded local PostgreSQL 17 and exact MySQL 8.4 execution. Diagnostics, medication, disposition branches, downstream reconciliation and hosted role-based execution remain unproven."
+      "evidence_paths": ["tests/Feature/Emergency/EmergencyFlowTest.php", "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php", "tests/Feature/Registration/DailyQueueAllocatorTest.php", "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php", "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md", "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md", "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md", "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"],
+      "note": "The current emergency scaffold has one continuous synthetic registrar-to-nurse-to-physician route test, wrong-role denial, shared daily registration queue, dual exact-engine PASS, and a bounded local role/browser rehearsal. Triage facts, diagnostics, medication, disposition branches, downstream reconciliation, complete accessibility, hosted execution and owner acceptance remain unproven."
     },
     {
       "workflow_id": "E2E-03",

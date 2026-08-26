@@ -2,7 +2,7 @@
 
 ## Evidence boundary
 
-**Classification: `LOCAL / NOT_DEPLOYED`.** This evidence covers the unpublished backend bytes bound below on base `d04b35f1f85ab0e6e56818d08c374f3a5bb3cb88`. It used generated synthetic data and disposable local databases only. It records no commit, push, pull request, GitHub Actions run, Vercel deployment, hosted Supabase migration, hosted UAT, owner acceptance, production readiness, or external-integration behavior.
+**Classification: `LOCAL / NOT_DEPLOYED`.** This evidence covers the unpublished follow-up backend bytes bound below on published base `1e188215ff4b39af547cda75a1904cfe1d062f75`. It used generated synthetic data and disposable local databases only. It records no new commit, push, pull request, GitHub Actions run, Vercel deployment, hosted Supabase migration, hosted UAT, owner acceptance, production readiness, or external-integration behavior.
 
 The reusable harness forces `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, break-glass `off`, global break-glass disabled, empty production-service credentials, fresh migrations, aggregate-only output, and cleanup in `ensure`. It accepts exactly one engine per invocation and refuses any `DB_URL`, PostgreSQL connection override, or executable-path override. PostgreSQL runs in a harness-created exact-17.10 cluster that rejects host authentication and listens only on a private mode-`0700` Unix-socket directory. MySQL runs in a harness-created exact-8.4.11 server bound to loopback. Trusted absolute binaries and a fixed subprocess `PATH` are used.
 
@@ -14,12 +14,12 @@ The final PostgreSQL and MySQL PASS records match on every shared binding:
 
 | Binding | Exact value |
 | --- | --- |
-| Pre-run local manifest SHA-256 | `1e3020773730e3cc031861a2bb1ebe16e699bc7538a8439ebded223b7d796402` |
-| Manifest candidate count | 137 |
-| Backend execution source set | 266 files; SHA-256 `74b18856f1e846e759f86f0f071c35ff85009ef1889acbfee6d9ccb87d49dd1b` |
+| Pre-run local manifest SHA-256 | `ca43a57d4061cc40032774c909443f1e59533bb3f6590c7613f9ae521c6b1f36` |
+| Manifest candidate count | 17 |
+| Backend execution source set | 267 files; SHA-256 `fe8d0b20cf8612b1d320cae0b606a96e652f7ef32f99b332442050bd7c023b69` |
 | Migration set | 21 files; SHA-256 `f0e21175b1428c3744227376e2b81174df225b8a42995f3ff297d2f19fe70603` |
-| Harness | SHA-256 `d3b0945d2daec9f442a0784b0bdb33581cc4cc2dcc51f37597599de0ff195680` |
-| Workflow test catalogue | SHA-256 `68067bb43af8ac372cb9311f1b951b0e1f9c1e833342289783bd6d2e16abe88c` |
+| Harness | SHA-256 `14a390270fbd7a156058deb397406fff823da7db7fb7bb28602b4f55aa2b98d8` |
+| Workflow test catalogue | SHA-256 `bfe4177dde755fa8a35e23118d25fbc19f6d2e03a8559c2dee2a7bf0fcbd31fd` |
 | PHP runtime | 8.5.7; not PHP 8.3 CI-runtime equivalence |
 
 The closed backend source set covers `artisan`, application/configuration/bootstrap files, factories, migrations, seeders, routes, all PHP tests, Composer locks, PHPUnit configuration, and the harness. Evidence documentation and generated ledgers are intentionally outside this execution digest so that documenting a completed run cannot circularly invalidate the tested backend bytes.
@@ -28,8 +28,8 @@ The closed backend source set covers `artisan`, application/configuration/bootst
 
 | Engine | Fresh migration | Complete PHP suite | Result |
 | --- | --- | --- | --- |
-| PostgreSQL 17.10 / harness-owned private cluster, Unix socket, and `laravel` schema | PASS | 451 tests; 450 passed, 1 skipped; 5,724 assertions | PASS |
-| MySQL 8.4.11 / InnoDB | PASS | 451 tests; 444 passed, 7 skipped; 5,695 assertions | PASS |
+| PostgreSQL 17.10 / harness-owned private cluster, Unix socket, and `laravel` schema | PASS | 453 tests; 452 passed, 1 skipped; 5,863 assertions | PASS |
+| MySQL 8.4.11 / InnoDB | PASS | 453 tests; 446 passed, 7 skipped; 5,834 assertions | PASS |
 
 The skip counts are engine-specific test-boundary skips, not failed tests. Both complete-suite commands exited successfully.
 
@@ -39,8 +39,8 @@ Every mapped slice passed with the same test and assertion counts on PostgreSQL 
 
 | Workflow | Current bounded scope | Tests | Assertions |
 | --- | --- | ---: | ---: |
-| E2E-01 | RJ/IGD/RI registration and transactional daily queue | 36 | 243 |
-| E2E-02 | Current IGD scaffold and locked clinical entry | 11 | 77 |
+| E2E-01 | RJ/IGD/RI registration and transactional daily queue | 37 | 257 |
+| E2E-02 | Continuous registrar-to-nurse-to-physician IGD scaffold, wrong-role denial, and locked clinical entry | 12 | 202 |
 | E2E-03 | Continuous outpatient teaching journey | 1 | 154 |
 | E2E-04 | Continuous inpatient scaffold journey | 1 | 123 |
 | E2E-05 | Current outpatient laboratory lifecycle | 12 | 105 |
@@ -52,17 +52,16 @@ This supports exact-engine `PASS` only for the currently mapped partial capabili
 
 ## Retained sanitized evidence
 
-- PostgreSQL: `storage/app/portability-rehearsals/20260826T212541Z-postgresql17-87c90954250d.json`; mode `0600`; SHA-256 `d4adba383775e5a977ca506ace7bb661eb4df6e929a1e2cc53ca9492d0d0f8e2`.
-- MySQL: `storage/app/portability-rehearsals/20260826T212710Z-mysql8411-7d45f8dbe886.json`; mode `0600`; SHA-256 `fcca784137d4c88bf36ff22e0684775b30f82cf03965edb1c6ae75b786cfc274`.
+- PostgreSQL: `storage/app/portability-rehearsals/20260826T225535Z-postgresql17-a6f44e24f1fb.json`; mode `0600`; SHA-256 `cb40e7881f9db54b0e59393f4ae2ccd2cf66534b1e298a71ecc57d3916e12e7e`.
+- MySQL: `storage/app/portability-rehearsals/20260826T225729Z-mysql8411-85462ea6f33b.json`; mode `0600`; SHA-256 `673024ca8a422a663a27c0d87e5f4429b606fec8d9459bc9a261475da431d4a0`.
 
 The ignored JSON records contain aggregate counts, versions, boolean boundaries, durations, and SHA-256 bindings only. They do not contain database names, database users, passwords, DSNs, ports, sockets, process identifiers, raw test output, patient/account values, or external targets. Final cleanup found zero generated PostgreSQL portability databases and zero generated MySQL temporary server directories.
 
-## Independent final review
+## Review boundary
 
-- Defensive-security review: **GO**. All earlier binding, local-endpoint, executable-path, cleanup-observability, and evidence-directory findings are closed for this harness. Residual limits remain local-only evidence, same-user workspace trust, and abrupt power-loss cleanup risk.
-- Release-gate integrity review: **GO with no P0–P3 findings** for this local exact-engine milestone. The review independently matched both retained records to the live execution bindings, confirmed ordinary semantic manifest and ledger checks, and retained every formal/hosted/owner boundary as open.
+Earlier defensive-security and release-gate reviews drove the harness's closed endpoint, executable-path, cleanup, evidence-directory, and stale-binding controls. They were not repeated as a complete changed-source security review of this 17-file follow-up inventory. The current manifest and contract tests independently match both retained records to the live execution bindings, while the three previously recorded P3 findings and all formal/hosted/owner gates remain open.
 
-Neither verdict authorizes publication, deployment, hosted migration/UAT, production use, or owner acceptance.
+No earlier verdict authorizes publication, deployment, hosted migration/UAT, production use, or owner acceptance for this follow-up batch.
 
 ## Fail-closed findings during rehearsal
 

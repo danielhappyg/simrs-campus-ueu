@@ -34,6 +34,8 @@ class T1LocalMilestoneManifestTest < Minitest::Test
 
     assert_equal 'LOCAL', manifest.fetch('classification')
     assert_equal 'NOT_DEPLOYED', manifest.fetch('deployment_status')
+    assert_equal T1LocalMilestoneManifest::CURRENT_ARTIFACT_ID, manifest.fetch('artifact_id')
+    assert_equal T1LocalMilestoneManifest::CURRENT_SNAPSHOT_DATE, manifest.fetch('snapshot_date')
     assert_equal T1LocalMilestoneManifest::REQUIRED_SHA, manifest.dig('repository', 'head')
     assert_equal T1LocalMilestoneManifest::REQUIRED_SHA, manifest.dig('repository', 'origin_main')
     assert_equal true, manifest.dig('repository', 'staging_empty')
@@ -53,7 +55,6 @@ class T1LocalMilestoneManifestTest < Minitest::Test
     assert_equal %w[deleted modified untracked], state_counts.keys.sort
     assert_includes paths, T1LocalMilestoneManifest::GENERATOR_PATH
     assert_includes paths, T1LocalMilestoneManifest::TEST_PATH
-    assert_includes paths, T1LocalMilestoneManifest::APPROVAL_PACK_PATH
     refute_includes paths, T1LocalMilestoneManifest::MANIFEST_PATH
     candidates.each do |record|
       assert_match(/\A[0-9a-f]{64}\z/, record.fetch('sha256'))
@@ -62,11 +63,18 @@ class T1LocalMilestoneManifestTest < Minitest::Test
     end
   end
 
-  def test_deleted_candidates_bind_head_bytes
-    deleted = T1LocalMilestoneManifest.build_inventory.fetch('candidate_files').select { |record| record['state'] == 'deleted' }
+  def test_deleted_candidates_bind_head_bytes_without_requiring_a_live_deletion
+    raw = " D scripts/generate-t1-local-milestone-manifest.rb\0".b
 
-    refute_empty deleted
-    assert deleted.all? { |record| record['sha256_basis'] == 'head_bytes' }
+    records, excluded_count = T1LocalMilestoneManifest.candidate_inventory(raw)
+
+    assert_equal 0, excluded_count
+    assert_equal 1, records.length
+    assert_equal 'deleted', records.first.fetch('state')
+    assert_equal 'head_bytes', records.first.fetch('sha256_basis')
+    assert_equal Digest::SHA256.hexdigest(
+      T1LocalMilestoneManifest.git('show', 'HEAD:scripts/generate-t1-local-milestone-manifest.rb')
+    ), records.first.fetch('sha256')
   end
 
   def test_protected_status_entries_are_excluded_before_filename_or_file_inspection
@@ -142,6 +150,14 @@ class T1LocalMilestoneManifestTest < Minitest::Test
       portability_documents,
       enforce_currentness: false
     )
+  end
+
+  def test_current_portability_evidence_matches_the_published_base_and_artifact_binding
+    portability_documents.each_value do |document|
+      assert_equal T1LocalMilestoneManifest::REQUIRED_SHA, document.fetch('baseline_git_sha')
+      assert_equal T1LocalMilestoneManifest::CURRENT_ARTIFACT_ID,
+                   document.dig('local_manifest', 'artifact_id')
+    end
   end
 
   def test_current_portability_binding_is_explicitly_pass_or_stale

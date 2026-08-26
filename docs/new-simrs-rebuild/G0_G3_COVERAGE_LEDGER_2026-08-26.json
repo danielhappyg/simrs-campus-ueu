@@ -63,7 +63,7 @@
     {
       "source_id": "evidence_map",
       "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-26.json",
-      "sha256": "4189cfd50c9ed67cac2facba00cdb927a7409b35eceb76e132aa3d0889c5025b"
+      "sha256": "94d96ae65143c3636a83bac8dee6c4ac887483dd7d10a904ed161b9fc3a38865"
     },
     {
       "source_id": "manifest",
@@ -1278,11 +1278,14 @@
         "owner_acceptance": "NOT_ACCEPTED",
         "evidence_paths": [
           "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
           "tests/Feature/Registration/DailyQueueAllocatorTest.php",
           "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
           "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
           "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
-          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
         ]
       }
     },
@@ -1841,8 +1844,11 @@
         "owner_acceptance": "NOT_ACCEPTED",
         "evidence_paths": [
           "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
           "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
-          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
         ]
       }
     },
@@ -1885,8 +1891,11 @@
         "owner_acceptance": "NOT_ACCEPTED",
         "evidence_paths": [
           "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
           "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
-          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
         ]
       }
     },
@@ -11613,13 +11622,16 @@
         "owner_acceptance": "NOT_READY",
         "evidence_paths": [
           "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
           "tests/Feature/Registration/DailyQueueAllocatorTest.php",
           "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
           "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
           "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
-          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
         ],
-        "note": "The current emergency scaffold and shared daily registration queue pass bounded local PostgreSQL 17 and exact MySQL 8.4 execution. Diagnostics, medication, disposition branches, downstream reconciliation and hosted role-based execution remain unproven."
+        "note": "The current emergency scaffold has one continuous synthetic registrar-to-nurse-to-physician route test, wrong-role denial, shared daily registration queue, dual exact-engine PASS, and a bounded local role/browser rehearsal. Triage facts, diagnostics, medication, disposition branches, downstream reconciliation, complete accessibility, hosted execution and owner acceptance remain unproven."
       }
     },
     {

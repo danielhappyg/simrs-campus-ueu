@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
-  "artifact_id": "T1-LOCAL-MILESTONE-2026-08-26",
-  "snapshot_date": "2026-08-26",
+  "artifact_id": "T1-LOCAL-MILESTONE-2026-08-27",
+  "snapshot_date": "2026-08-27",
   "classification": "LOCAL",
   "deployment_status": "NOT_DEPLOYED",
   "repository": {
-    "required_sha": "d04b35f1f85ab0e6e56818d08c374f3a5bb3cb88",
-    "head": "d04b35f1f85ab0e6e56818d08c374f3a5bb3cb88",
-    "origin_main": "d04b35f1f85ab0e6e56818d08c374f3a5bb3cb88",
+    "required_sha": "1e188215ff4b39af547cda75a1904cfe1d062f75",
+    "head": "1e188215ff4b39af547cda75a1904cfe1d062f75",
+    "origin_main": "1e188215ff4b39af547cda75a1904cfe1d062f75",
     "staging_empty": true
   },
   "scope": {
-    "candidate_count": 137,
+    "candidate_count": 33,
     "state_counts": {
-      "modified": 51,
-      "untracked": 80,
-      "deleted": 6
+      "modified": 18,
+      "untracked": 10,
+      "deleted": 5
     },
     "manifest_self_hash_excluded": true,
     "protected_status_entry_count": 322,
@@ -41,825 +41,201 @@
   },
   "candidate_files": [
     {
-      "path": ".gitignore",
-      "state": "modified",
-      "sha256": "e9025bbe1520f27769f932d5edd947b422bac944f16990c0b8d8b0a0a5775c5f",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Console/Commands/RehearseDailyQueueAllocationWorkerCommand.php",
-      "state": "untracked",
-      "sha256": "0f4ce315acf860d215c348383779451fde7653b9434cba73217203cc0f64018b",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Console/Commands/VerifySyntheticRecoverySnapshotCommand.php",
-      "state": "untracked",
-      "sha256": "80cdbcdf64b3ff2d94326ceac615d5b797be7e351ab254dcde804f6a1001155d",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Clinical/LaboratoryController.php",
-      "state": "modified",
-      "sha256": "43484779528373d9e2fea3006c817d6b928cc776dbfff818c47a3f9ccd750f58",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Emergency/EmergencyExaminationController.php",
-      "state": "modified",
-      "sha256": "920813b54d48971fc7754c0b36ccaaccdf30b0602d155551e9cceacd89e14850",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Emergency/EmergencyRegistrationController.php",
-      "state": "modified",
-      "sha256": "de11f5e9943536127da50669a1894793f821d11f959aebfbe02ac5e3a3752303",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Inpatient/InpatientExaminationController.php",
-      "state": "modified",
-      "sha256": "669fdd869fa5aaaf40dd69a445f63ccaab15f8331d3551da403aed9e43d8e299",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
       "path": "app/Http/Controllers/Inpatient/InpatientRegistrationController.php",
       "state": "modified",
-      "sha256": "f15b69dcac590530422f8ccc0546fd6b5001f7cd1fea959bd4099d3ba24929c6",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Outpatient/OutpatientExaminationController.php",
-      "state": "modified",
-      "sha256": "c9e958b38419c90395be862c5ddcb0c37e64dc20e3918dd66e257e0a6ab99977",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Outpatient/OutpatientRecapController.php",
-      "state": "modified",
-      "sha256": "f12ae144fc6ffb017e7a4907887019a9c33eb66cb7bd4aa9ac63b23daf90e7d7",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php",
-      "state": "modified",
-      "sha256": "0f7245853c1a8d80c2f05fbb16beeeaf64ce13a31600191eb986c13399911f70",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Http/Middleware/AssignRequestCorrelationId.php",
-      "state": "modified",
-      "sha256": "772d90b2c0abb196631721ed069eee5202e9e3d1808b90f796d8ed24d2acb9c6",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Models/DailyQueueCounter.php",
-      "state": "untracked",
-      "sha256": "6a5b5bf35aeffbc2082e99522dc05e4fc8a921bf15d58ec3ee6281dde9022df8",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Models/Encounter.php",
-      "state": "modified",
-      "sha256": "8c23bbd90ef8fb4f838261b87fe7e0cae50f7315a26fd7c749cdd980176474fc",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Providers/AppServiceProvider.php",
-      "state": "modified",
-      "sha256": "81e8289693725d1d823ef3fd4a98c3fc370ff1a330c20db3ec3377a8fc9ed548",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Audit/AuditEventSchemaRegistry.php",
-      "state": "modified",
-      "sha256": "a20515506b4a639cd13cca0dae9a95ac7cb44be2db1541252cc5653e77e13716",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Clinical/LockedClinicalEntryWriter.php",
-      "state": "untracked",
-      "sha256": "5be427d7284da9808434da1b3fb5525d5e876418ee7cfdec18f2e8293b5a512e",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Http/InertiaPagination.php",
-      "state": "untracked",
-      "sha256": "098f21efd6efb9b42273bbb83c1664e8161a9a925b2662ce116b42f81e3308f6",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Http/RequestCorrelation.php",
-      "state": "untracked",
-      "sha256": "b44f92c5debe17beecb93bfb757cc97964914d40bf2a8c473c263a4c81b987cc",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Operations/ExpectedQueueAllocationRehearsalRollback.php",
-      "state": "untracked",
-      "sha256": "f81210599b5725aad0060c4e224aa02f42a59b5a471b49be02645a24aadc720b",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Operations/SyntheticRecoverySnapshot.php",
-      "state": "untracked",
-      "sha256": "e446c3f114e9f6569fe7a07e44de2f66c44a600ac5469c6abe2f16ed377ab41a",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/PrivilegedAccess/PrivilegedAccessDatabaseClock.php",
-      "state": "untracked",
-      "sha256": "b71a07266c2b4cf8117ed55e359a631c62e9ebcfb1e18499df38106bba056e07",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/PrivilegedAccess/PrivilegedAccessSessionReference.php",
-      "state": "untracked",
-      "sha256": "f6c5a5037a0d3a0a08f05acaae26798ca28ff79b8a4a2fab18f6d6095f775ad7",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/PrivilegedAccess/PrivilegedAccessShadowResolver.php",
-      "state": "untracked",
-      "sha256": "12d6b098572b9a9edc29b8fb9602ac856741390f0f25ac6040a8964f2d4f552a",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Registration/DailyQueueAllocation.php",
-      "state": "untracked",
-      "sha256": "3436313c49b4a92803f2a8340d87034fbb97ef7d8415d023f50fa6165ffd462c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Registration/DailyQueueAllocator.php",
-      "state": "untracked",
-      "sha256": "f5a1f0eb06133187f06429183034629e30bbd04bfe5940966245b2a0c7e3dd49",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "app/Support/Simulation/SyntheticResetService.php",
-      "state": "modified",
-      "sha256": "910fedbd7272aa1427c87e1c7a308b98a587d56f2a455bf4ca2f42bb65dce48e",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "bootstrap/app.php",
-      "state": "modified",
-      "sha256": "930406128a9e15bc209aa14df01c266a50684ad7ff7f1b7081580684f1173ee9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "config/break_glass.php",
-      "state": "modified",
-      "sha256": "572ad864761a0ea5dbdb5cfb56ac67da296a70f32911871c6c3e411f08379c61",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "database/factories/EncounterFactory.php",
-      "state": "modified",
-      "sha256": "b928f7148db4ab976d209f6e37d4f7976085ead175033681ce72228e257760c9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "database/migrations/2026_08_26_000100_add_operational_worklist_indexes.php",
-      "state": "untracked",
-      "sha256": "e9077592ac53dd9ef704ac376e7bc7c45ecddc43040273597d7a5dcadb23f954",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "database/migrations/2026_08_26_000200_create_daily_queue_allocator.php",
-      "state": "untracked",
-      "sha256": "5eca2d46ea0fba89cf4bfe26afb83a096e47aa249a08e89580937b508f0ac3e0",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "database/seeders/RecoveryRehearsalSeeder.php",
-      "state": "untracked",
-      "sha256": "3311ac5dc7d75a6ffbf3617c31c790e39a2ceb527f8243ce91cdb55fbc9890ea",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "database/seeders/TeachingCensusSeeder.php",
-      "state": "modified",
-      "sha256": "f19475dee5d8bf3b1ec61239b0bc982e050b40147369024a17d674efb3cc6db6",
+      "sha256": "d2a59da3fdbb75a82a6c294854a5a2db8bbff59e9a0f2e6bc6060d7452425683",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-26.json",
-      "state": "untracked",
-      "sha256": "4189cfd50c9ed67cac2facba00cdb927a7409b35eceb76e132aa3d0889c5025b",
+      "state": "modified",
+      "sha256": "94d96ae65143c3636a83bac8dee6c4ac887483dd7d10a904ed161b9fc3a38865",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_2026-08-26.json",
-      "state": "untracked",
-      "sha256": "b25b2bc67ed4bf7dc75b2e92dec9326903ebb811dbd96129788a5f949009113e",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md",
-      "state": "untracked",
-      "sha256": "f5c3d28766a2883a8b71c8f023a7f769e6b995fa2d513ff466c6af1a2cc3517c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-0/G0_DECISION_SESSION_REGISTER_2026-08-25.json",
       "state": "modified",
-      "sha256": "a86576e0bb80171b275a1f7b7d8dde92ecf3bcc0856a4b386481ef68746117b3",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json",
-      "state": "modified",
-      "sha256": "85697fd4c1979f6447e1e0b1ab0cf761ca8c8755941c9059795aea95cb77f008",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json",
-      "state": "modified",
-      "sha256": "bd43a7f0fbfc6f3a6f571c6077f7ac4722cd241006358c7fd325c0a27c37cc75",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_GOVERNANCE_SNAPSHOT_PLAN_2026-08-25.json",
-      "state": "untracked",
-      "sha256": "3ab2abd46fdcbbd7f13ff6bd87857834c88e1cc373894bbe78fa54ae0a440ee0",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-0/G0_S0_INSTITUTIONAL_AUTHORITY_INTAKE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "3b67978695b8729463d52e6bb6063713bcd70fb763e418381372f8c30e545a90",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-0/README.md",
-      "state": "modified",
-      "sha256": "b812189de5e21a3291a9bc1cb101e2b6aef4772b29cdecfcab4c58af24295e32",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-1/CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md",
-      "state": "untracked",
-      "sha256": "6da1ca2532b10e433b754a0e0ccb09bc4c3e49712bcff70b17d335324643008f",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-1/OUTPATIENT_POST_CLOSURE_AMENDMENT_FR_PACK.md",
-      "state": "untracked",
-      "sha256": "6c7174fafda1b5fb1ee76a9841349a639b5ce985904ba6ebec8fba6118c3723b",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-1/README.md",
-      "state": "modified",
-      "sha256": "92d28f6926e56c2b347e6bad5287deb07722dfb0121e0309fbe6de24fa6f6cc5",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-1/requirements/PAR-REG-001-rawat-inap-registration.md",
-      "state": "modified",
-      "sha256": "ecc8ef4b51895d1df699c796eb601d7cd55a94f00088429bdee747e9f4110459",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-1/requirements/PAR-REG-002-igd-registration.md",
-      "state": "modified",
-      "sha256": "b7632552f2d5edbfeb244e8cddefecdd3ada0b30e1e47ac8541948c3399e87db",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-1/requirements/PAR-REG-003-rawat-jalan-registration.md",
-      "state": "modified",
-      "sha256": "e23819bc33e05404d5dfad33a70f80ebba00d3ec3c63187f7de776e5b40b897f",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-2/README.md",
-      "state": "modified",
-      "sha256": "e340bcd74ddf43c234a652e0bbd7f6e5c87c9b39c192458b8f6575d649fe6ea2",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/new-simrs-rebuild/phase-3/README.md",
-      "state": "modified",
-      "sha256": "e82dc7770e089f1b354ff08044bdcdc94abb2a0afe66765826e942d46235731c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/ADR_CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_2026-08-27.md",
-      "state": "untracked",
-      "sha256": "9d5d0042fe79eaa80fb6f7f9441ee36f35a4e43f20db0bad3737ce7cbebb1335",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/ADR_GITHUB_ACTIONS_VERCEL_BUDGET_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "727487e26ff9b574e278eda3a7bb9fb34ab5e8bc91a1a845b6b95ee60b9deb08",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/ADR_OUTPATIENT_POST_CLOSURE_AMENDMENT_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "62469954f9d4ece51ddb175a5a300edd71c05a09dcbb80020d172e819d4f3eff",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/ADR_TRANSACTIONAL_DAILY_REGISTRATION_QUEUE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "1b28de6556dd78eed3b9a765e2ce6b1fc0b41a6553012520e8381c10c873d847",
+      "sha256": "91162e60df901b0635f72e73bea5ca62d8f36e916c20c36ca2af33d9af90936f",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "docs/operations/HANDOFF_SIMRS_TEACHING_REBUILD_2026-08-23.md",
       "state": "modified",
-      "sha256": "e543e696b02f9d9a020a5363fab5a294f9d4bb398f5b76189ffffa5c1a2fa8a9",
+      "sha256": "60ea8bdb3659b20cae5f5c58182a9f9a91edf50921ab3a518223a032178e68b8",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+      "path": "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
       "state": "untracked",
-      "sha256": "6eda0b8195a89a1fc782205e011a8457ad3a27cff062e7d23e707b87087b1489",
+      "sha256": "8ab49abe70ed4caf8e808b99c822f445af8f2e0fbe1e74aa970f67ebbe35b040",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "docs/operations/T1_CONTINUOUS_INPATIENT_SCAFFOLD_EVIDENCE_2026-08-26.md",
+      "path": "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md",
       "state": "untracked",
-      "sha256": "ebce7c6bb85763fdfb6183f0ea1b9503a86e5070d8fd65d1e13322648132df21",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "5782572f1f311f853498d9dbbfc8ff1b169143506c0476bac3c55ae83d8d3d1c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_CROSS_SETTING_CLINICAL_ENTRY_LOCKING_EVIDENCE_2026-08-27.md",
-      "state": "untracked",
-      "sha256": "eb9a21266cae870809bbcb12d6d006bbf6b9f1bb0d291aa3c18a582cf0ec3173",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_HIGH_VOLUME_QUERY_GROWTH_EVIDENCE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "4246366149e9daa1abb2684092b1ff13cf14d8e5391b42172f25fde31f852744",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
-      "state": "untracked",
-      "sha256": "8e04312787889c099077e3f3c7e3b77002a5caaf19e9d8d20b3a2b350774c91c",
+      "sha256": "b0e01c912b37d5ca07fdafc2110e7d915b4a5c2cc622b3d6c366e8817364a4cf",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
-      "state": "untracked",
-      "sha256": "f786ceaf8865271a03a56d2a98686e6c887541e75a8f1fa1b7681a31cc367a5b",
+      "state": "modified",
+      "sha256": "62880d4e85c4151225da9ebe56ee58ba55cce77b4b9414439c1c84aaa21f0a1c",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "docs/operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "1161beedaafcc134fae6b60c837902dbeda13995d0d11faa3b46ca251d888e6a",
+      "state": "modified",
+      "sha256": "0bb9ea34e1d15aa366feaab5218a63bf639af0860d9814ff6f1b52725a2dcbf1",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+      "path": "public/build/assets/app-BWTMoIGP.js",
       "state": "untracked",
-      "sha256": "aa2b6ff31d7b6944feae2ac490d5264826a9ee870764baba0014438a0cbf7d44",
+      "sha256": "bd2746cf21677793600b5379d9f04f29084281e71b643ba34bfa4c5064c514d9",
       "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
-      "state": "untracked",
-      "sha256": "ae489da81f40eb9a745375fce9c5535721272ff36aa36e3747895fce9a2f597b",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "6c011ef78361e812144b23541246e2e62f632eaf362c8f6acc1b63dca03be176",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_LOCAL_POSTGRESQL_QUERY_PLAN_EVIDENCE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "4380ffc5ceb5246da36f89e25b410869047550b8390b5f2c93347b724df2683d",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_LOCAL_POSTGRESQL_QUERY_PLAN_FIXTURE_2026-08-26.sql",
-      "state": "untracked",
-      "sha256": "4ac1209e1e3945016d7739c017cb09acd04033d03ea1f4ed479992289c7097d3",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_LOCAL_POSTGRESQL_RECOVERY_REHEARSAL_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "6365b457f510fa302361d2eacca5f510fdedfd37f0746e9651727361229662f4",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_OPERATIONAL_PAGINATION_EXPORT_EVIDENCE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "84695d5aaa95d09633c671cb64dc4a6f8ac56727373512cd59fcf9a88bb85253",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "docs/operations/T1_REQUEST_CORRELATION_FAILURE_EVIDENCE_2026-08-26.md",
-      "state": "untracked",
-      "sha256": "dbd9dedbbc872dc507d9df5acc73757669bc728d2a0e3c96534db966b3af2e8d",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "public/build/assets/app-COUHLtWf.css",
-      "state": "untracked",
-      "sha256": "fe803aebef4adb90537f92c7c4147e43d451c18707013ed0270adc3c7e2cd01e",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "public/build/assets/app-CWDOgPA4.js",
-      "state": "deleted",
-      "sha256": "d0b17c52a459630c824c3b1cd542885bfdc7f4d26c224d504ea5697bf5f42fe6",
-      "sha256_basis": "head_bytes"
-    },
-    {
-      "path": "public/build/assets/app-DXAPbEyw.css",
-      "state": "deleted",
-      "sha256": "f8306720410171e620dbe7250ac48d76e8aaef586ed629403188a17c2cae8049",
-      "sha256_basis": "head_bytes"
     },
     {
       "path": "public/build/assets/app-w4B14Zit.js",
-      "state": "untracked",
-      "sha256": "6f3d714b90dde49ce1e41c075a969b698d2303b7b9bfce2c78713b5a125f84f9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "public/build/assets/laboratorium-Ct1mv6_b.js",
       "state": "deleted",
-      "sha256": "3c17aff8a88c22f8e698e7f06e0cab6751e4089b627d3c18ad7afa75ecc18b59",
+      "sha256": "6f3d714b90dde49ce1e41c075a969b698d2303b7b9bfce2c78713b5a125f84f9",
       "sha256_basis": "head_bytes"
     },
     {
-      "path": "public/build/assets/laboratorium-GxyPQo-F.js",
+      "path": "public/build/assets/rawat-inap-BbpowJSR.js",
       "state": "untracked",
-      "sha256": "4a266c72d7a8eecec4d67594d72d5f4f49d664c800c44cf145556e30240c4980",
+      "sha256": "c60f90c0882210debb141a20bc7fc93e5791b59effd5fed6479a65cded819ef8",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "public/build/assets/operational-pagination-CSLSX5WA.js",
-      "state": "untracked",
-      "sha256": "5929c9ca072e4b9353a71c82b78665c8b403a7ed75fec503d02870e59386e63d",
-      "sha256_basis": "worktree_bytes"
+      "path": "public/build/assets/rawat-inap-ClVVWrXg.js",
+      "state": "deleted",
+      "sha256": "5e4595b0b741635908996e82e59e0a339468212ddbc2b02ebe24b42ca63b92dc",
+      "sha256_basis": "head_bytes"
     },
     {
       "path": "public/build/assets/rawat-jalan-BRpL9YZK.js",
-      "state": "untracked",
+      "state": "deleted",
       "sha256": "9a402fb576ffa59e89822d7c2a3f2b1b209d9a7576a757abc52f802f86e76592",
-      "sha256_basis": "worktree_bytes"
+      "sha256_basis": "head_bytes"
     },
     {
       "path": "public/build/assets/rawat-jalan-Bul1jUiL.js",
-      "state": "untracked",
+      "state": "deleted",
       "sha256": "88555434d6daba80a33822427deb3d25b961aa2b816b1c9c07a8ea57d8db45e3",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "public/build/assets/rawat-jalan-Cer0vzSf.js",
-      "state": "deleted",
-      "sha256": "ee5b6b02e57c34e63bfb415fdd80930b54e5ba70cc82dabe7e4af8a3136c843a",
       "sha256_basis": "head_bytes"
     },
     {
-      "path": "public/build/assets/rawat-jalan-fQZV9yWT.js",
-      "state": "deleted",
-      "sha256": "a33570cd6774a9d0c9ea8b7ccd2af8838a79ab7a4d9e3ba5b05ceef91379b071",
-      "sha256_basis": "head_bytes"
-    },
-    {
-      "path": "public/build/assets/rekap-B1FG7gmI.js",
+      "path": "public/build/assets/rawat-jalan-CsYCMpH-.js",
       "state": "untracked",
-      "sha256": "d74ec3e05cca3788ff28b6a1c6054d530532f0ef08a15fea42c09d0d927bd73f",
+      "sha256": "87a677f113c57433511a520288733d3c799edd5a26b5f4dffe64207e5b2a036a",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "public/build/assets/rekap-DkZVmI6v.js",
+      "path": "public/build/assets/rawat-jalan-D2idoxf5.js",
+      "state": "untracked",
+      "sha256": "cd0bbbde0215ed1bc84100bd069c137abf17d72bd29e46ba6ea4acb3c4e4802f",
+      "sha256_basis": "worktree_bytes"
+    },
+    {
+      "path": "public/build/assets/show-I-kNJiZM.js",
+      "state": "untracked",
+      "sha256": "5bb9c963d9a387bad696341ebeeeacc3ded17dd3eff0f7232ffe787348deb545",
+      "sha256_basis": "worktree_bytes"
+    },
+    {
+      "path": "public/build/assets/show-fct9YUOz.js",
       "state": "deleted",
-      "sha256": "08babf67e6182250f197352c633c0d06b4a6388b8c8c07ad6370b2830cb6f32d",
+      "sha256": "8994afd55fff3c692d7142c5f3ce06cf3a248f5fcf55928785303b691a4ab95d",
       "sha256_basis": "head_bytes"
     },
     {
       "path": "public/build/manifest.json",
       "state": "modified",
-      "sha256": "83477756d5f0574b2c7cbe2e35fa427c77529eae2a0869391c72eaf9ca9c1f5d",
+      "sha256": "1fcb34b1c4b27e849a4daeadef83ba15858f83ee2bd3932a6435eab59d78cad6",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "resources/css/app.css",
+      "path": "resources/js/components/clinical/legacy-free-text-encounter-show.tsx",
       "state": "modified",
-      "sha256": "0444a8a9b07e29b080c9a9a289616e8147d1ed812ab21b2e565b5b01012088e8",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/components/app-content.tsx",
-      "state": "modified",
-      "sha256": "dab5175d2cbdb8d9b955f7530a5f2b13fed3d64c78d33428ea26479fd3cb9d44",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/components/app-shell.tsx",
-      "state": "modified",
-      "sha256": "b3e4434206e261c5133dfd5c31387e9fed09c6ef5f295c7dcae689fb7af01f32",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/components/operational-pagination.test.tsx",
-      "state": "untracked",
-      "sha256": "b9dcd8fe98b73d3f71bf93ceeb89ea5d51bf0193a9c81dac1f3e4d4bea533b1b",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/components/operational-pagination.tsx",
-      "state": "untracked",
-      "sha256": "ac71a43de53da18473a56dbde859825edfe0142d6cd586a255f733eacbca7af9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/components/ui/sidebar.tsx",
-      "state": "modified",
-      "sha256": "ab24e041997cda8e1cc9a9e6f201a8ce4e614ea8eeecfc3a890b26a1e6c5a7bf",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/pages/pemeriksaan/laboratorium/index.tsx",
-      "state": "modified",
-      "sha256": "2bbaf09aa4da2826686dae8bf35a5c23ebf5ea1f5699e17a13b428263e31f306",
+      "sha256": "c209fba0668d21a9451a410386a7a336f28d3b516eac72da4e26ea511e875a34",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "resources/js/pages/pemeriksaan/rawat-jalan/index.tsx",
       "state": "modified",
-      "sha256": "9dfbf1e7b01f86e1d2212bd5113c5f082badaebb79ded1242b0f300fde59d381",
+      "sha256": "840b653a5b313c4e8bdcdfac235219eb280c58cf7522982dafb7ee820aa9d705",
+      "sha256_basis": "worktree_bytes"
+    },
+    {
+      "path": "resources/js/pages/pendaftaran/rawat-inap.tsx",
+      "state": "modified",
+      "sha256": "0dc2859cdcf18e5d9ace37176b66921d1df324a64b901a58dfceb3b831ba6533",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "resources/js/pages/pendaftaran/rawat-jalan.tsx",
       "state": "modified",
-      "sha256": "6a58f1c02daec813bea78d74654f4934ff6f33995c7757f581d91be2eaf45296",
+      "sha256": "e320a2b8601942b488397bbc5f29f63d5128dd16927b97977327f128d66c5654",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "resources/js/pages/pendaftaran/rekap.tsx",
-      "state": "modified",
-      "sha256": "db75815e8f1f7da35d2afe198b2fa276fda9d4b0c4f133d4b799afa4e081fe3d",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "resources/js/test/registration-validation-accessibility.test.tsx",
+      "path": "resources/js/test/inpatient-registration-accessibility.test.tsx",
       "state": "untracked",
-      "sha256": "30c396f3ae8ad5701ef1f212c108112e94767910c4fca19b71fba9c8005040d9",
+      "sha256": "effea42b8d21a1da67d6b0c389a8a863888183cc90d77c17d3fc6a2048d7046e",
+      "sha256_basis": "worktree_bytes"
+    },
+    {
+      "path": "resources/js/test/legacy-free-text-encounter-accessibility.test.tsx",
+      "state": "untracked",
+      "sha256": "d4ef7e55ea0b42678c1343be6d604450922f7f8c65f9c80d141afc289e0b0829",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "resources/js/test/t1-operational-pages-accessibility.test.tsx",
-      "state": "untracked",
-      "sha256": "e4d109360efaaeb86e52c184bfcd83ccf2739e2dd12d904e8057466a5b67d912",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/generate-g0-g3-coverage-ledger.rb",
-      "state": "untracked",
-      "sha256": "cbe8e249c9cf8e366f7903c176964297f25166304b9f81f2011660f2776116c4",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/generate-g0-owner-governance-snapshot.rb",
-      "state": "untracked",
-      "sha256": "a6c0e229123e30d02777a6f085c2da94062ada22e7a1676cea6ed77c1fab3a86",
+      "state": "modified",
+      "sha256": "f4dee2c8f1175d02e22c05c7c4c94678541b3e6647b160221cc240c591f6f6e8",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "scripts/generate-t1-local-milestone-manifest.rb",
-      "state": "untracked",
-      "sha256": "58b9377d2902d8546dfb0e8bc027b5879867dacd33154c2cdb918a0628137959",
+      "state": "modified",
+      "sha256": "4379ce99556989f48b6f460786da10a001005d821491ee9cb60425d18ce062be",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "scripts/rehearse-local-portability-full-suite.rb",
-      "state": "untracked",
-      "sha256": "d3b0945d2daec9f442a0784b0bdb33581cc4cc2dcc51f37597599de0ff195680",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/rehearse-local-postgres17-daily-queue.rb",
-      "state": "untracked",
-      "sha256": "16fad7a4f85dddcc3957c34bd998a82a8a763439e236ac2baca57619efacb718",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/rehearse-local-postgres17-query-plans.rb",
-      "state": "untracked",
-      "sha256": "6050d9b5f41e263ba8b7ff81ef2d381081acd09f53cf96689979ec8fe365a782",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/rehearse-local-postgres17-recovery.rb",
-      "state": "untracked",
-      "sha256": "e79106baba05004ba869e747d6f2a372bbff50799f69e998f5b7d5f2a9fe57c1",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/validate-g0-s0-intake.rb",
-      "state": "untracked",
-      "sha256": "d90e5452c63d61162e7683a2999fea89a3cb2e76c25048af3e907e03eb165ee5",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "scripts/validate-parity-governance.rb",
       "state": "modified",
-      "sha256": "251cd15d947ea14b517f56ac23aee143faa91d59ce349d96756c8e88378cf65f",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/CrossSettingEncounterCancellationDecisionPackTest.rb",
-      "state": "untracked",
-      "sha256": "6404753593bf0dec1297771a957f0eef8dcaac05748773e5850f7b57b3b742f6",
+      "sha256": "14a390270fbd7a156058deb397406fff823da7db7fb7bb28602b4f55aa2b98d8",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "tests/Documentation/G0G3CoverageLedgerTest.rb",
-      "state": "untracked",
-      "sha256": "c41c180265305395b1804f7554699384abc4c10128aeaff4b8f3330e1a306962",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/G0OwnerGovernanceSnapshotGeneratorTest.rb",
-      "state": "untracked",
-      "sha256": "a9f28a2fe4d682274aa1c18a71144c850c1f3a0c42423a6d7673a191dcffda51",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/G0S0IntakeContractTest.rb",
-      "state": "untracked",
-      "sha256": "0d3de612c2a937434530c4c1d02477df57afcf264877475c3dbc1a63126b7be7",
+      "state": "modified",
+      "sha256": "d146d4a0b08250a2a6635eb6d5eee17b9e374c3c95190402c87ab46f1b42d7da",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "tests/Documentation/LocalPortabilityFullSuiteHarnessContractTest.rb",
-      "state": "untracked",
-      "sha256": "0cc210de126f4ebe91c2fac76365746ceeb32aab0ef9ee4db59fda781f6b991e",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/LocalPostgresDailyQueueHarnessContractTest.rb",
-      "state": "untracked",
-      "sha256": "fc98a43f6d2688ee7963727f15c61f1741fd808a95cea385ff9d540000e261fd",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/LocalPostgresQueryPlanHarnessContractTest.rb",
-      "state": "untracked",
-      "sha256": "a118c15a85c43dfd5f9080d1bfcc83890f47346f8f9873d46eb41a3f248a496c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/LocalPostgresRecoveryHarnessContractTest.rb",
-      "state": "untracked",
-      "sha256": "1f8d01b7be08553fcfb5ac2051046683aeebc71ea24d921b68881df0da38fd1c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Documentation/ParityGovernanceValidatorTest.rb",
       "state": "modified",
-      "sha256": "92441766a024eabe9462767f58d4985b87a5da9a636c22d67c4cab973c35e182",
+      "sha256": "64d65e1be119e6eb815d33b4f4549e6452a49a4cd9293dc2e098637b000a7b44",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "tests/Documentation/T1LocalMilestoneManifestTest.rb",
-      "state": "untracked",
-      "sha256": "2003cdc9a90b1514acdde0ab6e5c3fa99b4edd63223fea10adf457c5fd0917b9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Audit/AuditRecorderSafetyTest.php",
       "state": "modified",
-      "sha256": "fd85a823c3386892c6b488acbaac490fb8a810f93f6ab09e8592e120fb94cc45",
+      "sha256": "10f248845a688228ca13104e6bfd7a20a56d7071463c7e81d1ca2965ee896eb4",
       "sha256_basis": "worktree_bytes"
     },
     {
-      "path": "tests/Feature/Clinical/LockedClinicalEntryWriterTest.php",
+      "path": "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
       "state": "untracked",
-      "sha256": "3cc26af70f2c3d80d95d2b8ac9ba8ced7528c1eae9c09cfea92656d1e4ed0ae9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
-      "state": "untracked",
-      "sha256": "0973cdd753c93ea3bfca70780b1c34073e3d6a31df6984add8fe42dd1a1dc66d",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Emergency/EmergencyFlowTest.php",
-      "state": "modified",
-      "sha256": "6d46fa1b1ce883608a34e9ee0f66cd87f557de7799765098b555d3747fbf144c",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Inpatient/ContinuousInpatientTeachingJourneyTest.php",
-      "state": "untracked",
-      "sha256": "b94356d49f973974525678c48770b42f4df9956934de1dc298436acc62d06635",
+      "sha256": "9ecb46ddd70d02cb21e49f04e6a6b2a99035e0912342f9d8223917c989ae5fc0",
       "sha256_basis": "worktree_bytes"
     },
     {
       "path": "tests/Feature/Inpatient/InpatientFlowTest.php",
       "state": "modified",
-      "sha256": "10822770bd3060b32a6046ec7fd7081e4e65a85a5c851c826b8ff66ad9440f8e",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Operations/VerifySyntheticRecoverySnapshotCommandTest.php",
-      "state": "untracked",
-      "sha256": "407d0b0a87108fb631a34e5a88563f6b4b7b322ed20946a638eb8acca3938576",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
-      "state": "untracked",
-      "sha256": "0e1951eb1776bb6baec92bcda5434409a2ff9a21c7abef4865c0cf37172e7402",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Outpatient/OutpatientFlowTest.php",
-      "state": "modified",
-      "sha256": "1ea8a8bcff11370425473a5173575b8042f057be3afbb53f0786938c93c6426b",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Outpatient/OutpatientLabFlowTest.php",
-      "state": "modified",
-      "sha256": "0b9932dde2e9c2393204ca38ab9c504c6d4d1b3644ed16c1435bb4229fed2758",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Outpatient/OutpatientPrintAndRecapTest.php",
-      "state": "modified",
-      "sha256": "a3a02fc4ca7526bbc9ac9e2f8d097bd040aeeea66d53ab8a35a2f5179ed43397",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Performance/HighVolumeOperationalDeskQueryGrowthTest.php",
-      "state": "untracked",
-      "sha256": "d22dae6567665f0cd9db8c053ea567666403dfaeb6c5efe524010f9a8a03fa47",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
-      "state": "untracked",
-      "sha256": "e87fbdaed0b0fd99438c1923a0ae58fb47d3f7ed4fdfdd0640ffaab08f86bfe9",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Registration/DailyQueueAllocatorTest.php",
-      "state": "untracked",
-      "sha256": "453d3acbc0e029672fa3c466216fec63a1e436cb43c825e3f9228bd1ddc92501",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/RequestCorrelationTest.php",
-      "state": "modified",
-      "sha256": "a18eed5ae343eed076f7b02aa6d58fd77a3a17dee84525c3de75d22c5a8d3b09",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Simulation/SimulationResetCommandTest.php",
-      "state": "modified",
-      "sha256": "976be9be5604ecf8296287e61c4f9cecd8a1f7a59aca6314e3ced93c89cdc98f",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Feature/Wilayah/TeachingCensusSeederTest.php",
-      "state": "modified",
-      "sha256": "1bddb5045e7ab7a09b0cedad31b874a012935e985bf953da4b51ae34e907423d",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Unit/Audit/AuditEventSchemaRegistryTest.php",
-      "state": "modified",
-      "sha256": "f59340b75fe63af7d8017739044dfdde3b82e5e910253ac78eaed7a01600cfe8",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Unit/Audit/AuditWritePathArchitectureTest.php",
-      "state": "modified",
-      "sha256": "5d8e58b973a3592f7b23fdc8c6467d9cede37d8407f45d0666b2473b6ad7d232",
-      "sha256_basis": "worktree_bytes"
-    },
-    {
-      "path": "tests/Unit/Registration/DailyQueueAllocatorTransactionTest.php",
-      "state": "untracked",
-      "sha256": "55f397b57e1d0091c04cc779d5924184b1188a9da498964c9a269841eaca3663",
+      "sha256": "8df58f9d12f334036ad0643483217a95ddc9b70d2d80020e3e153ba960c171a4",
       "sha256_basis": "worktree_bytes"
     }
   ],
@@ -890,17 +266,17 @@
     },
     {
       "evidence_id": "postgresql_17_current_manifest_portability",
-      "path": "storage/app/portability-rehearsals/20260826T212541Z-postgresql17-87c90954250d.json",
+      "path": "storage/app/portability-rehearsals/20260826T225535Z-postgresql17-a6f44e24f1fb.json",
       "claim_boundary": "Harness-owned local disposable PostgreSQL 17.10 Unix-socket cluster: fresh migration, full application suite and eight focused workflow slices for bound current bytes only; not hosted, load, contention, PHP 8.3 or owner-acceptance evidence.",
-      "sha256": "d4adba383775e5a977ca506ace7bb661eb4df6e929a1e2cc53ca9492d0d0f8e2",
+      "sha256": "cb40e7881f9db54b0e59393f4ae2ccd2cf66534b1e298a71ecc57d3916e12e7e",
       "ignored": true,
       "content_in_manifest": false
     },
     {
       "evidence_id": "mysql_8_4_current_manifest_portability",
-      "path": "storage/app/portability-rehearsals/20260826T212710Z-mysql8411-7d45f8dbe886.json",
+      "path": "storage/app/portability-rehearsals/20260826T225729Z-mysql8411-85462ea6f33b.json",
       "claim_boundary": "Local disposable exact MySQL 8.4.11 fresh migration, full application suite and eight focused workflow slices for bound current bytes only; not hosted, load, contention, PHP 8.3 or owner-acceptance evidence.",
-      "sha256": "fcca784137d4c88bf36ff22e0684775b30f82cf03965edb1c6ae75b786cfc274",
+      "sha256": "673024ca8a422a663a27c0d87e5f4429b606fec8d9459bc9a261475da431d4a0",
       "ignored": true,
       "content_in_manifest": false
     }

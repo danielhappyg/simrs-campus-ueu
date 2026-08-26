@@ -21,7 +21,9 @@ module T1LocalMilestoneManifest
   end
 
   ROOT = File.expand_path('..', __dir__).freeze
-  REQUIRED_SHA = 'd04b35f1f85ab0e6e56818d08c374f3a5bb3cb88'
+  REQUIRED_SHA = '1e188215ff4b39af547cda75a1904cfe1d062f75'
+  CURRENT_ARTIFACT_ID = 'T1-LOCAL-MILESTONE-2026-08-27'
+  CURRENT_SNAPSHOT_DATE = '2026-08-27'
   MANIFEST_PATH = 'docs/operations/T1_LOCAL_MILESTONE_MANIFEST_2026-08-26.json'
   APPROVAL_PACK_PATH = 'docs/operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md'
   GENERATOR_PATH = 'scripts/generate-t1-local-milestone-manifest.rb'
@@ -53,12 +55,12 @@ module T1LocalMilestoneManifest
     },
     {
       'evidence_id' => 'postgresql_17_current_manifest_portability',
-      'path' => 'storage/app/portability-rehearsals/20260826T212541Z-postgresql17-87c90954250d.json',
+      'path' => 'storage/app/portability-rehearsals/20260826T225535Z-postgresql17-a6f44e24f1fb.json',
       'claim_boundary' => 'Harness-owned local disposable PostgreSQL 17.10 Unix-socket cluster: fresh migration, full application suite and eight focused workflow slices for bound current bytes only; not hosted, load, contention, PHP 8.3 or owner-acceptance evidence.'
     },
     {
       'evidence_id' => 'mysql_8_4_current_manifest_portability',
-      'path' => 'storage/app/portability-rehearsals/20260826T212710Z-mysql8411-7d45f8dbe886.json',
+      'path' => 'storage/app/portability-rehearsals/20260826T225729Z-mysql8411-85462ea6f33b.json',
       'claim_boundary' => 'Local disposable exact MySQL 8.4.11 fresh migration, full application suite and eight focused workflow slices for bound current bytes only; not hosted, load, contention, PHP 8.3 or owner-acceptance evidence.'
     }
   ].freeze
@@ -304,7 +306,7 @@ module T1LocalMilestoneManifest
 
     manifest = document['local_manifest']
     assert_exact_keys!(manifest, %w[artifact_id sha256 candidate_count], "#{label}.local_manifest")
-    assert_exact_value!(manifest['artifact_id'], 'T1-LOCAL-MILESTONE-2026-08-26', "#{label}.local_manifest.artifact_id")
+    assert_exact_value!(manifest['artifact_id'], CURRENT_ARTIFACT_ID, "#{label}.local_manifest.artifact_id")
     assert_sha256!(manifest['sha256'], "#{label}.local_manifest.sha256")
     assert_positive_integer!(manifest['candidate_count'], "#{label}.local_manifest.candidate_count")
 
@@ -381,6 +383,9 @@ module T1LocalMilestoneManifest
     postgresql = documents.fetch('postgresql_17_current_manifest_portability').fetch('engine')
     unless postgresql['isolated_server'] == true && postgresql['local_unix_socket_only'] == true
       raise ContractError, 'stale portability evidence: PostgreSQL must use the harness-owned isolated Unix-socket cluster contract'
+    end
+    unless reference['baseline_git_sha'] == REQUIRED_SHA
+      raise ContractError, 'stale portability evidence: baseline_git_sha does not match the current published base'
     end
     true
   rescue LocalPortabilityFullSuiteRehearsal::CommandFailed => e
@@ -468,8 +473,8 @@ module T1LocalMilestoneManifest
     counts = %w[modified untracked deleted].to_h { |state| [state, candidates.count { |record| record['state'] == state }] }
     {
       'schema_version' => 1,
-      'artifact_id' => 'T1-LOCAL-MILESTONE-2026-08-26',
-      'snapshot_date' => '2026-08-26',
+      'artifact_id' => CURRENT_ARTIFACT_ID,
+      'snapshot_date' => CURRENT_SNAPSHOT_DATE,
       'classification' => 'LOCAL',
       'deployment_status' => 'NOT_DEPLOYED',
       'repository' => {
