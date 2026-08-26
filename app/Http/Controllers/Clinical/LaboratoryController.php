@@ -7,6 +7,7 @@ use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
 use App\Support\Authorization\Capability;
 use App\Support\Clinical\OutpatientLabLifecycle;
+use App\Support\Http\InertiaPagination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class LaboratoryController extends Controller
 {
     public function __construct(private readonly OutpatientLabLifecycle $lifecycle) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         Gate::authorize(Capability::CLINICAL_LAB_RESULT_WRITE);
 
@@ -46,9 +47,14 @@ class LaboratoryController extends Controller
                 });
             }
 
-            $orders = $query
-                ->limit(100)
-                ->get()
+            $orderPage = $query
+                ->orderBy('id')
+                ->paginate(100)
+                ->withQueryString();
+            if ($redirect = InertiaPagination::redirectIfOutOfRange($orderPage, $request)) {
+                return $redirect;
+            }
+            $orders = collect($orderPage->items())
                 ->map(fn (LabServiceRequest $order): array => [
                     'public_id' => $order->public_id,
                     'test_code' => $order->test_code,
@@ -73,6 +79,9 @@ class LaboratoryController extends Controller
 
         return Inertia::render('pemeriksaan/laboratorium/index', [
             'orders' => $orders,
+            'pagination' => isset($orderPage)
+                ? InertiaPagination::from($orderPage)
+                : null,
             'filters' => [
                 'q' => $q,
             ],
@@ -87,6 +96,8 @@ class LaboratoryController extends Controller
         $validated = $request->validate([
             'result_text' => ['required', 'string', 'max:10000'],
             'status' => ['required', Rule::in([LabDiagnosticResult::STATUS_FINAL])],
+            'q' => ['nullable', 'string', 'max:255'],
+            'page' => ['nullable', 'integer', 'min:1', 'max:1000000'],
         ]);
 
         $user = $request->user();
@@ -99,7 +110,10 @@ class LaboratoryController extends Controller
         );
 
         return redirect()
-            ->route('pemeriksaan.laboratorium.index')
+            ->route('pemeriksaan.laboratorium.index', array_filter([
+                'q' => $validated['q'] ?? null,
+                'page' => $validated['page'] ?? null,
+            ], fn (mixed $value): bool => $value !== null && $value !== ''))
             ->with('success', 'Hasil lab disimpan.');
     }
 }

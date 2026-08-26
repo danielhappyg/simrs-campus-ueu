@@ -206,10 +206,12 @@ final class AuditEventSchemaRegistry
         }
 
         $this->assertExactKeys($metadata, $completed
-            ? ['boundary', 'deleted_patients', 'evidence_preserved']
-            : ['boundary', 'evidence_preserved']);
+            ? ['boundary', 'deleted_patients', 'evidence_preserved', 'queue_counter_high_water_preserved']
+            : ['boundary', 'evidence_preserved', 'queue_counter_high_water_preserved']);
 
-        if ($metadata['boundary'] !== 'synthetic_patient_graph' || $metadata['evidence_preserved'] !== true) {
+        if ($metadata['boundary'] !== 'synthetic_patient_graph'
+            || $metadata['evidence_preserved'] !== true
+            || $metadata['queue_counter_high_water_preserved'] !== true) {
             throw new InvalidAuditEvent('Teaching reset evidence boundary is invalid.');
         }
 
@@ -223,7 +225,7 @@ final class AuditEventSchemaRegistry
     {
         if (! array_key_exists('care_setting', $metadata)) {
             $this->assertExactKeys($metadata, [
-                'patient_public_id', 'clinic_name', 'doctor_name', 'schedule_label', 'payer_type', 'queue_number',
+                'patient_public_id', 'clinic_name', 'doctor_name', 'schedule_label', 'payer_type', 'queue_date', 'queue_number',
             ]);
             $this->assertClinicRegistrationFields($metadata);
 
@@ -233,7 +235,7 @@ final class AuditEventSchemaRegistry
         if ($metadata['care_setting'] === Encounter::CARE_SETTING_EMERGENCY) {
             $this->assertExactKeys($metadata, [
                 'care_setting', 'patient_public_id', 'clinic_name', 'doctor_name', 'schedule_label',
-                'payer_type', 'case_type', 'accident_type', 'queue_number',
+                'payer_type', 'case_type', 'accident_type', 'queue_date', 'queue_number',
             ]);
             $this->assertClinicRegistrationFields($metadata);
             $this->assertEnum($metadata['case_type'], Encounter::CASE_TYPE_VALUES, 'metadata.case_type');
@@ -245,7 +247,7 @@ final class AuditEventSchemaRegistry
         if ($metadata['care_setting'] === Encounter::CARE_SETTING_INPATIENT) {
             $this->assertExactKeys($metadata, [
                 'care_setting', 'patient_public_id', 'ward_name', 'ward_class', 'bed_code',
-                'continue_from', 'payer_type', 'queue_number',
+                'continue_from', 'payer_type', 'queue_date', 'queue_number',
             ]);
             $this->assertNullablePublicId($metadata['patient_public_id'], 'metadata.patient_public_id');
             $this->assertText($metadata['ward_name'], 'metadata.ward_name', 1, 120);
@@ -253,7 +255,8 @@ final class AuditEventSchemaRegistry
             $this->assertText($metadata['bed_code'], 'metadata.bed_code', 1, 32);
             $this->assertEnum($metadata['continue_from'], Encounter::CONTINUE_FROM_VALUES, 'metadata.continue_from');
             $this->assertEnum($metadata['payer_type'], Encounter::PAYER_VALUES, 'metadata.payer_type');
-            $this->assertNullableNonNegativeInt($metadata['queue_number'], 'metadata.queue_number');
+            $this->assertDate($metadata['queue_date'], 'metadata.queue_date');
+            $this->assertPositiveInt($metadata['queue_number'], 'metadata.queue_number');
 
             return;
         }
@@ -269,7 +272,8 @@ final class AuditEventSchemaRegistry
         $this->assertNullableText($metadata['doctor_name'], 'metadata.doctor_name', 255);
         $this->assertNullableText($metadata['schedule_label'], 'metadata.schedule_label', 255);
         $this->assertEnum($metadata['payer_type'], Encounter::PAYER_VALUES, 'metadata.payer_type');
-        $this->assertNullableNonNegativeInt($metadata['queue_number'], 'metadata.queue_number');
+        $this->assertDate($metadata['queue_date'], 'metadata.queue_date');
+        $this->assertPositiveInt($metadata['queue_number'], 'metadata.queue_number');
     }
 
     /** @param array<string, mixed> $metadata */
@@ -649,17 +653,19 @@ final class AuditEventSchemaRegistry
         }
     }
 
-    private function assertNullableNonNegativeInt(mixed $value, string $path): void
-    {
-        if ($value !== null) {
-            $this->assertNonNegativeInt($value, $path);
-        }
-    }
-
     private function assertStatus(mixed $value, string $path): void
     {
         if (! is_string($value) || preg_match('/\A[A-Z][A-Z0-9_]{0,31}\z/', $value) !== 1) {
             throw new InvalidAuditEvent("Audit {$path} must be a bounded status code.");
+        }
+    }
+
+    private function assertDate(mixed $value, string $path): void
+    {
+        $date = is_string($value) ? \DateTimeImmutable::createFromFormat('!Y-m-d', $value) : false;
+
+        if ($date === false || $date->format('Y-m-d') !== $value) {
+            throw new InvalidAuditEvent("Audit {$path} must be a valid YYYY-MM-DD date.");
         }
     }
 

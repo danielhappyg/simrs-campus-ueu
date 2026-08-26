@@ -4,7 +4,7 @@
   "register_status": "open",
   "data_boundary": "synthetic_only",
   "policy_reference": "G0_OWNER_AUTHORITY_POLICY_2026-08-25.json",
-  "policy_sha256": "7d8a512df0a1662a98f2f40544354317527353e0f4c612b87716ccf3769cb237",
+  "policy_sha256": "bd43a7f0fbfc6f3a6f571c6077f7ac4722cd241006358c7fd325c0a27c37cc75",
   "manifest_reference": "G0_PARITY_BATCH_MANIFEST.json",
   "manifest_sha256": "59b0f05b94e2a659b342016c5b9e5e9e011f3a8e4c0f0efd3dda12a7b65fa9ca",
   "source_decision_registers": [

@@ -40,6 +40,7 @@ Create or locate a synthetic outpatient patient and open a coherent outpatient e
 
 - Duplicate: discovery — duplicate detection behaviour **Unknown**
 - Cancellation: must not destroy audit; exact charge/queue unwind **Unknown**
+- Decision candidate: the [cross-setting pre-clinical cancellation pack](../CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md) proposes `REGISTERED` + zero dependent facts, preserved queue history, and no downstream reversal. It remains **unapproved**.
 - Correction: attributable amendment — Proposed NEW
 - External failure: fail closed; no false eligibility success — Proposed NEW
 
@@ -59,7 +60,7 @@ Create or locate a synthetic outpatient patient and open a coherent outpatient e
 1. Registrar can register a new synthetic outpatient and see encounter id.
 2. Non-registrar is denied server-side with audit.
 3. Production BPJS hostnames cannot be called.
-4. Cancellation/correction paths defined before UAT sign-off ( presently blocked as Unknown).
+4. Cancellation/correction paths defined before UAT sign-off (presently blocked; proposed cancellation pack is not owner-approved).
 
 ## Open unknowns
 

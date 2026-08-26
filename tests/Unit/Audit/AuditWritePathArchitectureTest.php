@@ -75,22 +75,36 @@ class AuditWritePathArchitectureTest extends TestCase
         }
     }
 
-    public function test_five_legacy_mutation_callers_fail_closed_inside_their_transactions(): void
+    public function test_registration_and_shared_clinical_mutations_fail_closed_inside_their_transactions(): void
     {
-        $atomicCallers = [
-            'Http/Controllers/Emergency/EmergencyExaminationController.php',
+        $directAtomicCallers = [
             'Http/Controllers/Emergency/EmergencyRegistrationController.php',
-            'Http/Controllers/Inpatient/InpatientExaminationController.php',
             'Http/Controllers/Inpatient/InpatientRegistrationController.php',
             'Http/Controllers/Outpatient/OutpatientRegistrationController.php',
         ];
 
-        foreach ($atomicCallers as $relativePath) {
+        foreach ($directAtomicCallers as $relativePath) {
             $contents = file_get_contents(app_path($relativePath));
             $this->assertIsString($contents);
             $this->assertStringContainsString('$this->auditRecorder->record(', $contents);
             $this->assertStringContainsString('abort_if($event === null, 503', $contents);
         }
+
+        foreach ([
+            'Http/Controllers/Emergency/EmergencyExaminationController.php',
+            'Http/Controllers/Inpatient/InpatientExaminationController.php',
+        ] as $relativePath) {
+            $contents = file_get_contents(app_path($relativePath));
+            $this->assertIsString($contents);
+            $this->assertStringContainsString('$this->clinicalEntryWriter->write(', $contents);
+        }
+
+        $writer = file_get_contents(app_path('Support/Clinical/LockedClinicalEntryWriter.php'));
+        $this->assertIsString($writer);
+        $this->assertStringContainsString('DB::transaction(', $writer);
+        $this->assertStringContainsString('->lockForUpdate()', $writer);
+        $this->assertStringContainsString('$this->auditRecorder->record(', $writer);
+        $this->assertStringContainsString('abort_if($event === null, 503', $writer);
     }
 
     public function test_application_does_not_offer_a_user_hard_delete_path(): void

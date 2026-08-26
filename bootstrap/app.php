@@ -6,12 +6,16 @@ use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureCapability;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Support\Http\RequestCorrelation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -49,14 +53,43 @@ return Application::configure(basePath: dirname(__DIR__))
             fn ($request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        $exceptions->reportable(function (Throwable $e): void {
-            error_log(sprintf(
-                '[simrs] %s: %s in %s:%d',
-                $e::class,
-                $e->getMessage(),
-                $e->getFile(),
-                $e->getLine(),
-            ));
+        $exceptions->reportable(function (Throwable $e): bool {
+            if (! app()->bound('request')) {
+                return true;
+            }
+
+            $request = request();
+            $requestId = RequestCorrelation::existing($request);
+            if (app()->runningInConsole() && $requestId === null) {
+                // Artisan binds a synthetic Request during console bootstrap.
+                // It has not passed through the web correlation middleware and
+                // must retain Laravel's normal console exception diagnostics.
+                return true;
+            }
+
+            $route = $request->route();
+            Log::error('Unhandled HTTP exception.', [
+                'request_id' => $requestId ?? RequestCorrelation::ensure($request),
+                'exception_class' => $e::class,
+                'exception_fingerprint' => hash('sha256', implode('|', [$e::class, $e->getFile(), (string) $e->getLine()])),
+                'http_method' => $request->getMethod(),
+                'route_name' => $route instanceof Route ? $route->getName() : null,
+                'route_template' => $route instanceof Route ? $route->uri() : null,
+            ]);
+
+            // The structured event above intentionally omits exception messages,
+            // stack traces and concrete URL values. Prevent a duplicate default
+            // report from reintroducing them into hosted stderr logs.
+            return false;
+        });
+
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request): Response {
+            $response->headers->set(
+                RequestCorrelation::HEADER,
+                RequestCorrelation::ensure($request),
+            );
+
+            return $response;
         });
 
         $exceptions->render(function (Throwable $e, Request $request) {
@@ -70,7 +103,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            error_log('[simrs] forbidden: '.$e->getMessage().' on '.$request->path());
+            $route = $request->route();
+            Log::notice('Forbidden HTTP exception.', [
+                'request_id' => RequestCorrelation::ensure($request),
+                'exception_class' => $e::class,
+                'http_method' => $request->getMethod(),
+                'route_name' => $route instanceof Route ? $route->getName() : null,
+                'route_template' => $route instanceof Route ? $route->uri() : null,
+            ]);
 
             // Inertia navigations: flash to Beranda. Keep bare 403 for API/tests.
             if ($request->header('X-Inertia')) {

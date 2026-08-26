@@ -19,6 +19,7 @@
 - BG-02c3 read-only attribution preflight: schema-qualified streaming classifies legacy rows without payload disclosure or identity inference and produces deterministic, keyed readiness evidence
 - BG-02c4a private attribution manifest: exact-root/clean-source generation and offline verification bind reviewed recovery candidates as expiring keyed evidence; no apply/backfill executor exists
 - BG-02c4b hosted preflight evidence: exact Vercel/Supabase release inventory identified migration-ledger drift, the mandatory Free-plan logical-backup gate, and one actor-provenance blocker; migration and promotion remain held
+- BG-03 non-authoritative privileged-access comparison: `off` remains query/telemetry free, while `shadow` compares exact allowlisted scope, environment/release, database-time lease, approval-chain, revocation and HMAC-bound session facts without changing the existing Gate result. Accidental `enforce` is also deliberately non-authoritative until BG-08.
 
 ## Not in this phase
 
@@ -29,6 +30,7 @@
 - Hosted execution of the legacy-attribution preflight, durable USER recovery provenance, reviewed manifest apply/backfill, and a later non-null contraction remain deferred. BG-02c2 intentionally keeps the new snapshot columns nullable for rollout compatibility; BG-02c3 never infers a missing historical actor; BG-02c4a generates/verifies private evidence only.
 - Complete denial auditing for the five BG-02c1 mutation routes remains outside this atomic-success slice; existing authorization and validation denial behavior is unchanged.
 - A G1-accepted long-term break-glass control. The current permanent `is_system_administrator` bypass remains runtime truth; [ADR-017](ADR-017-TIME-BOUND-SCOPED-BREAK-GLASS.md) and the [G1 acceptance contract](G1_BREAK_GLASS_ACCEPTANCE_CONTRACT.md) are proposed and not owner-approved.
+- BG-04 through BG-08 request/approval, real activation, session revocation/binding, hosted observation, recovery and cutover. BG-03 creates no usable privilege and no state-changing endpoint.
 
 BG-02c2 rollout remains governed by the [audit-attribution rollout runbook](../../operations/BG_02C2_AUDIT_ATTRIBUTION_ROLLOUT_2026-08-25.md).
 BG-02c3 execution remains governed by the [read-only attribution-preflight runbook](../../operations/BG_02C3_AUDIT_ATTRIBUTION_PREFLIGHT_2026-08-25.md).
@@ -42,3 +44,4 @@ BG-02c4b hosted release ordering remains governed by the [hosted attribution-pre
 - Matrix: [RBAC_MATRIX.md](./RBAC_MATRIX.md)
 - Proposed G1 design: [ADR-017 — time-bound scoped break-glass](ADR-017-TIME-BOUND-SCOPED-BREAK-GLASS.md)
 - Proposed G1 gate: [break-glass acceptance contract](G1_BREAK_GLASS_ACCEPTANCE_CONTRACT.md)
+- Local BG-03 evidence: [`T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md`](../../operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md)

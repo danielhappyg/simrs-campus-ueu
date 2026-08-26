@@ -37,6 +37,7 @@ class SyntheticResetService
                 metadata: [
                     'boundary' => 'synthetic_patient_graph',
                     'evidence_preserved' => true,
+                    'queue_counter_high_water_preserved' => true,
                 ],
                 includeRequestFingerprint: false,
             );
@@ -58,6 +59,7 @@ class SyntheticResetService
                     'boundary' => 'synthetic_patient_graph',
                     'deleted_patients' => $deleted,
                     'evidence_preserved' => true,
+                    'queue_counter_high_water_preserved' => true,
                 ],
                 includeRequestFingerprint: false,
             );

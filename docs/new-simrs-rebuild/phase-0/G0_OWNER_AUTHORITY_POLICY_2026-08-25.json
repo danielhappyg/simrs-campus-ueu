@@ -9,7 +9,7 @@
   "snapshot_at": "2026-08-25T00:00:00Z",
   "prior_snapshot_reference": null,
   "prior_snapshot_sha256": null,
-  "control_root_sha256": "b45ffd7564ee42d281f5f5fd926f71c512015f88065d9e2df02a516de41805da",
+  "control_root_sha256": "dee9dd51f7e50242b2ef3b3aaea1f5bfe3868c491db485243b1dcd3571fba26e",
   "manifest_reference": "G0_PARITY_BATCH_MANIFEST.json",
   "manifest_sha256": "59b0f05b94e2a659b342016c5b9e5e9e011f3a8e4c0f0efd3dda12a7b65fa9ca",
   "source_decision_registers": [
@@ -754,7 +754,10 @@
     "minimum_unique_people_independent": 3,
     "recusal_rule": "recusal_leaves_required_seat_vacant",
     "parallel_revision_rule": "one_linear_prior_decision_digest_chain",
-    "post_signature_mutation_rule": "canonical_payload_digest_mismatch_fails_closed"
+    "post_signature_mutation_rule": "canonical_payload_digest_mismatch_fails_closed",
+    "chair_authority_role": "product_delivery",
+    "facilitator_authority_role": "operations",
+    "officer_separation_rule": "distinct_appointment_and_identity"
   },
   "session_sequence": [
     {

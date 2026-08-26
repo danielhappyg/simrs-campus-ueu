@@ -48,6 +48,8 @@ The teaching implementation is fail-closed: active lab orders block RM closure; 
 
 Preliminary results, result amendment, encounter reopening and lab-order cancellation are not built. See [`../phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md`](../phase-1/OUTPATIENT_ORDER_RESULT_CLOSURE_CONTRACT.md).
 
+Existing IGD/RI clinical-note writes now share an encounter-first locked writer with fresh state validation and atomic audit. This is a local concurrency prerequisite only; the proposed cross-setting encounter-cancellation state/route remains unimplemented and unapproved. Evidence: [`../../operations/T1_CROSS_SETTING_CLINICAL_ENTRY_LOCKING_EVIDENCE_2026-08-27.md`](../../operations/T1_CROSS_SETTING_CLINICAL_ENTRY_LOCKING_EVIDENCE_2026-08-27.md).
+
 ## Routes
 
 | Method | Path | Name |
@@ -93,3 +95,4 @@ Current exact-SHA deployment and schema reconciliation: `docs/operations/T0_CURR
 - `tests/Feature/Outpatient/StructuredOutpatientDocumentationTest.php` (versioned documents, automatic completeness review, sign-off, and closed-record access)
 - `tests/Feature/RebuildHomeTest.php`
 - `tests/Feature/Simulation/SimulationResetCommandTest.php`
+- `docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md` (current bound backend bytes: fresh migration, full suite, and E2E-01/02/03/04/05/12/15/16 focused slices on a harness-owned PostgreSQL 17.10 private cluster and isolated exact MySQL 8.4.11 server; pre/post binding and semantic manifest gates; not hosted or accepted)

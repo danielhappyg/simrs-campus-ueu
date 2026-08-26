@@ -41,6 +41,7 @@ The next outpatient-depth slice has a bounded v1 engineering authorization. Clin
 | [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md) | Combined PAR-CLN-004 + PAR-RMIK-001 functional requirements, response sheets and acceptance scenarios | Bounded v1 engineering authorized; broader owner decisions open |
 | [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_WIREFRAME.md) | Indonesian, UEU-token design handoff for nurse, physician and RMIK desks | Bounded v1 engineering authorized; Clinical/RMIK acceptance pending |
 | [`STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md`](STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_V1_IMPLEMENTATION_DECISION.md) | Exact narrow field, lifecycle, RM-review and safety boundary authorized for implementation | Authorized by product owner on 2026-08-24 |
+| [`CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md`](CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md) | Shared RJ/IGD/RI cancellation choices, dependency boundary, audit/report/bed behavior, owner record and synthetic UAT matrix | **Proposed; no implementation approval** |
 
 Matrix: [`../PARITY_REQUIREMENTS_MATRIX.md`](../PARITY_REQUIREMENTS_MATRIX.md)  
 G0 control baseline and dependency-safe decision batches: [`../phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md`](../phase-0/G0_PARITY_CONTROL_BASELINE_2026-08-25.md)
@@ -48,4 +49,4 @@ UI direction: [`UI_DIRECTION.md`](UI_DIRECTION.md)
 
 ## Next
 
-Implement and verify only the bounded v1 decision above. Obtain the remaining Clinical and RMIK decisions before broadening clinical fields, learner/supervisor behavior, correction/amendment, or RM policy. Continue Phase 1 residual disposition of non-slice menus with owners and evidence plans in parallel as needed for later phases.
+Implement and verify only approved bounded decisions. Obtain the named cross-domain decisions in the cancellation pack before adding a cancellation route/state, and obtain the remaining Clinical and RMIK decisions before broadening clinical fields, learner/supervisor behavior, correction/amendment, or RM policy. Continue Phase 1 residual disposition of non-slice menus with owners and evidence plans in parallel as needed for later phases.

@@ -91,7 +91,11 @@ class AuditEventSchemaRegistryTest extends TestCase
             'simulation',
             false,
             resourceId: 'synthetic-reset',
-            metadata: ['boundary' => 'synthetic_patient_graph', 'evidence_preserved' => true],
+            metadata: [
+                'boundary' => 'synthetic_patient_graph',
+                'evidence_preserved' => true,
+                'queue_counter_high_water_preserved' => true,
+            ],
             reason: 'artisan_simulation_reset',
         )];
         yield 'teaching reset completed' => [self::event(
@@ -99,7 +103,12 @@ class AuditEventSchemaRegistryTest extends TestCase
             'simulation',
             false,
             resourceId: 'synthetic-reset',
-            metadata: ['boundary' => 'synthetic_patient_graph', 'deleted_patients' => 2, 'evidence_preserved' => true],
+            metadata: [
+                'boundary' => 'synthetic_patient_graph',
+                'deleted_patients' => 2,
+                'evidence_preserved' => true,
+                'queue_counter_high_water_preserved' => true,
+            ],
             reason: 'artisan_simulation_reset',
         )];
 
@@ -109,6 +118,7 @@ class AuditEventSchemaRegistryTest extends TestCase
             'doctor_name' => 'dr. Synthetic',
             'schedule_label' => 'Senin pagi',
             'payer_type' => Encounter::PAYER_UMUM,
+            'queue_date' => '2026-08-26',
             'queue_number' => 1,
         ])];
         yield 'emergency registration' => [self::event('patient.register', 'encounter', true, metadata: [
@@ -120,6 +130,7 @@ class AuditEventSchemaRegistryTest extends TestCase
             'payer_type' => Encounter::PAYER_UMUM,
             'case_type' => Encounter::CASE_NON_BEDAH,
             'accident_type' => Encounter::ACCIDENT_NONE,
+            'queue_date' => '2026-08-26',
             'queue_number' => 1,
         ])];
         yield 'inpatient registration' => [self::event('patient.register', 'encounter', true, metadata: [
@@ -130,6 +141,7 @@ class AuditEventSchemaRegistryTest extends TestCase
             'bed_code' => 'A-01',
             'continue_from' => Encounter::CONTINUE_LANGSUNG,
             'payer_type' => Encounter::PAYER_UMUM,
+            'queue_date' => '2026-08-26',
             'queue_number' => 1,
         ])];
 
@@ -251,7 +263,17 @@ class AuditEventSchemaRegistryTest extends TestCase
             'doctor_name' => null,
             'schedule_label' => null,
             'payer_type' => Encounter::PAYER_UMUM,
+            'queue_date' => '2026-08-26',
             'queue_number' => '1',
+        ])];
+        yield 'invalid queue date' => [self::event('patient.register', 'encounter', true, metadata: [
+            'patient_public_id' => self::ULID,
+            'clinic_name' => 'Poli',
+            'doctor_name' => null,
+            'schedule_label' => null,
+            'payer_type' => Encounter::PAYER_UMUM,
+            'queue_date' => '2026-02-30',
+            'queue_number' => 1,
         ])];
         yield 'wrong enum' => [self::event('clinical.note.write', 'encounter', true, metadata: [
             'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,

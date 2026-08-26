@@ -2,6 +2,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
+import { OperationalPagination } from '@/components/operational-pagination';
+import type { OperationalPaginationMeta } from '@/components/operational-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -52,6 +54,7 @@ type Props = {
     indexPath?: string;
     showPathPrefix?: string;
     encounters: EncounterRow[];
+    pagination?: OperationalPaginationMeta | null;
     clinics: ClinicOption[];
     payerOptions?: Option[];
     continueFromOptions?: Option[];
@@ -89,6 +92,7 @@ export default function PemeriksaanRawatJalanIndex({
     indexPath = '/pemeriksaan/rawat-jalan',
     showPathPrefix = '/pemeriksaan/rawat-jalan',
     encounters,
+    pagination,
     clinics,
     payerOptions = [],
     continueFromOptions = [],
@@ -198,10 +202,14 @@ export default function PemeriksaanRawatJalanIndex({
                 >
                     <div className="flex flex-wrap items-end gap-2">
                         <div className="grid min-w-[12rem] flex-1 gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="worklist-q"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 No. RM / Nama
                             </label>
                             <Input
+                                id="worklist-q"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
@@ -210,10 +218,14 @@ export default function PemeriksaanRawatJalanIndex({
                         </div>
                         {isTriage ? (
                             <div className="grid min-w-[10rem] gap-1">
-                                <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                <label
+                                    htmlFor="worklist-payer"
+                                    className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                                >
                                     Cara bayar
                                 </label>
                                 <select
+                                    id="worklist-payer"
                                     className={fieldClass}
                                     value={payer}
                                     onChange={(e) => setPayer(e.target.value)}
@@ -234,7 +246,10 @@ export default function PemeriksaanRawatJalanIndex({
                         ) : (
                             <>
                                 <div className="grid min-w-[10rem] gap-1">
-                                    <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                    <label
+                                        htmlFor="worklist-clinic"
+                                        className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                                    >
                                         {isInpatient
                                             ? 'Bangsal'
                                             : isIgd
@@ -242,6 +257,7 @@ export default function PemeriksaanRawatJalanIndex({
                                               : 'Klinik'}
                                     </label>
                                     <select
+                                        id="worklist-clinic"
                                         className={fieldClass}
                                         value={clinic}
                                         onChange={(e) =>
@@ -268,10 +284,14 @@ export default function PemeriksaanRawatJalanIndex({
                                 {isInpatient ? (
                                     <>
                                         <div className="grid min-w-[8rem] gap-1">
-                                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                            <label
+                                                htmlFor="worklist-payer"
+                                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                                            >
                                                 Cara bayar
                                             </label>
                                             <select
+                                                id="worklist-payer"
                                                 className={fieldClass}
                                                 value={payer}
                                                 onChange={(e) =>
@@ -290,10 +310,14 @@ export default function PemeriksaanRawatJalanIndex({
                                             </select>
                                         </div>
                                         <div className="grid min-w-[9rem] gap-1">
-                                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                                            <label
+                                                htmlFor="worklist-continue-from"
+                                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                                            >
                                                 Asal
                                             </label>
                                             <select
+                                                id="worklist-continue-from"
                                                 className={fieldClass}
                                                 value={continueFrom}
                                                 onChange={(e) =>
@@ -320,10 +344,14 @@ export default function PemeriksaanRawatJalanIndex({
                             </>
                         )}
                         <div className="grid min-w-[9rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="worklist-date-from"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Dari
                             </label>
                             <Input
+                                id="worklist-date-from"
                                 type="date"
                                 className={fieldClass}
                                 value={dateFrom}
@@ -331,10 +359,14 @@ export default function PemeriksaanRawatJalanIndex({
                             />
                         </div>
                         <div className="grid min-w-[9rem] gap-1">
-                            <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
+                            <label
+                                htmlFor="worklist-date-to"
+                                className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
+                            >
                                 Sampai
                             </label>
                             <Input
+                                id="worklist-date-to"
                                 type="date"
                                 className={fieldClass}
                                 value={dateTo}
@@ -397,21 +429,36 @@ export default function PemeriksaanRawatJalanIndex({
                     </div>
                 </form>
 
-                <section className="rounded-lg border border-[#e2e8f0] bg-white p-3">
-                    <div className="overflow-x-auto">
+                <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
+                    <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[56rem] text-left text-sm">
+                            <caption className="sr-only">
+                                Daftar pasien pada worklist pemeriksaan
+                            </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
-                                    <th className="px-2 py-1.5 font-medium">
+                                    <th
+                                        scope="col"
+                                        className="px-2 py-1.5 font-medium"
+                                    >
                                         Antrian
                                     </th>
-                                    <th className="px-2 py-1.5 font-medium">
+                                    <th
+                                        scope="col"
+                                        className="px-2 py-1.5 font-medium"
+                                    >
                                         No. RM
                                     </th>
-                                    <th className="px-2 py-1.5 font-medium">
+                                    <th
+                                        scope="col"
+                                        className="px-2 py-1.5 font-medium"
+                                    >
                                         Nama
                                     </th>
-                                    <th className="px-2 py-1.5 font-medium">
+                                    <th
+                                        scope="col"
+                                        className="px-2 py-1.5 font-medium"
+                                    >
                                         {isInpatient
                                             ? 'Bangsal'
                                             : isIgd || isTriage
@@ -456,7 +503,12 @@ export default function PemeriksaanRawatJalanIndex({
                                     <th className="px-2 py-1.5 font-medium">
                                         Keluhan
                                     </th>
-                                    <th className="px-2 py-1.5 font-medium" />
+                                    <th
+                                        scope="col"
+                                        className="px-2 py-1.5 font-medium"
+                                    >
+                                        <span className="sr-only">Aksi</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -582,6 +634,11 @@ export default function PemeriksaanRawatJalanIndex({
                             </tbody>
                         </table>
                     </div>
+                    <OperationalPagination
+                        pagination={pagination}
+                        itemLabel="kunjungan aktif"
+                        className="mt-3"
+                    />
                 </section>
             </div>
         </>

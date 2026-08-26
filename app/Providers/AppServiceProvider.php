@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
+use App\Support\PrivilegedAccess\PrivilegedAccessShadowResolver;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Date;
@@ -110,13 +111,30 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Register capability gates from Capability constants.
-     * System administrators are break-glass via User::canCapability().
+     *
+     * BG-03 observes a proposed scoped decision after the current
+     * User::canCapability() result has been computed. The resolver returns the
+     * exact legacy result in off, shadow, and accidental enforce modes.
      */
     protected function configureAuthorization(): void
     {
         foreach (Capability::all() as $capability) {
             Gate::define($capability, function (?User $user) use ($capability): bool {
-                return $user instanceof User && $user->canCapability($capability);
+                if (! $user instanceof User) {
+                    return false;
+                }
+
+                $legacyAllowed = $user->canCapability($capability);
+
+                try {
+                    /** @var PrivilegedAccessShadowResolver $resolver */
+                    $resolver = app(PrivilegedAccessShadowResolver::class);
+                    $request = app()->bound('request') ? request() : null;
+
+                    return $resolver->resolve($user, $capability, $legacyAllowed, $request);
+                } catch (\Throwable) {
+                    return $legacyAllowed;
+                }
             });
         }
     }

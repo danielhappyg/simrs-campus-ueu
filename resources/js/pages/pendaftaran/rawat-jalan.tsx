@@ -1,8 +1,10 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import { cloneElement, useEffect, useMemo, useRef, useState } from 'react';
+import type { AriaAttributes, FormEvent, ReactElement, ReactNode } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
+import { OperationalPagination } from '@/components/operational-pagination';
+import type { OperationalPaginationMeta } from '@/components/operational-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,7 +85,9 @@ type Props = {
     variant?: DeskVariant;
     q: string;
     searchResults: PatientRow[];
+    searchResultsTruncated?: boolean;
     todaysEncounters: EncounterRow[];
+    todaysEncountersPagination?: OperationalPaginationMeta | null;
     clinics: ClinicOption[];
     sexOptions: Option[];
     maritalOptions: Option[];
@@ -150,6 +154,15 @@ const fieldClass =
 
 const selectClass = fieldClass;
 
+type FieldControlProps = Pick<
+    AriaAttributes,
+    'aria-describedby' | 'aria-invalid'
+>;
+
+type FieldChild =
+    | ReactElement<FieldControlProps & { id?: string }>
+    | ((controlProps: FieldControlProps) => ReactNode);
+
 function Field({
     id,
     label,
@@ -159,17 +172,269 @@ function Field({
 }: {
     id: string;
     label: string;
-    children: ReactNode;
+    children: FieldChild;
     error?: string;
     className?: string;
 }) {
+    const errorId = `${id}-error`;
+    const controlProps: FieldControlProps = {
+        'aria-invalid': error ? true : undefined,
+        'aria-describedby': error ? errorId : undefined,
+    };
+    const control =
+        typeof children === 'function'
+            ? children(controlProps)
+            : children.props.id === id
+              ? cloneElement(children, controlProps)
+              : (() => {
+                    throw new Error(
+                        `Field ${id} requires a matching control id or a render function.`,
+                    );
+                })();
+
     return (
         <div className={cn('grid gap-1', className)}>
             <Label htmlFor={id} className="text-xs font-medium text-[#475569]">
                 {label}
             </Label>
-            {children}
-            <InputError message={error} />
+            {control}
+            <InputError id={errorId} message={error} />
+        </div>
+    );
+}
+
+type RegistrationErrorField = {
+    keys: string[];
+    label: string;
+    targetId?: string;
+};
+
+const registrationErrorFields: RegistrationErrorField[] = [
+    {
+        keys: ['patient_public_id'],
+        label: 'Pasien',
+        targetId: 'patient-search',
+    },
+    {
+        keys: ['medical_record_number'],
+        label: 'Nomor rekam medis',
+        targetId: 'medical_record_number',
+    },
+    { keys: ['nik'], label: 'NIK', targetId: 'nik' },
+    { keys: ['full_name'], label: 'Nama pasien', targetId: 'full_name' },
+    { keys: ['sex'], label: 'Jenis kelamin', targetId: 'sex' },
+    {
+        keys: ['place_of_birth'],
+        label: 'Tempat lahir',
+        targetId: 'place_of_birth',
+    },
+    {
+        keys: ['date_of_birth'],
+        label: 'Tanggal lahir',
+        targetId: 'date_of_birth',
+    },
+    {
+        keys: ['marital_status'],
+        label: 'Status pernikahan',
+        targetId: 'marital_status',
+    },
+    { keys: ['religion'], label: 'Agama', targetId: 'religion' },
+    { keys: ['education'], label: 'Pendidikan', targetId: 'education' },
+    { keys: ['occupation'], label: 'Pekerjaan', targetId: 'occupation' },
+    {
+        keys: ['province_code', 'province'],
+        label: 'Provinsi',
+        targetId: 'province_code',
+    },
+    {
+        keys: ['city_code', 'city'],
+        label: 'Kabupaten/Kota',
+        targetId: 'city_code',
+    },
+    {
+        keys: ['district_code', 'district'],
+        label: 'Kecamatan',
+        targetId: 'district_code',
+    },
+    {
+        keys: ['village_code', 'village'],
+        label: 'Kelurahan',
+        targetId: 'village_code',
+    },
+    { keys: ['address_line'], label: 'Dusun/Jalan', targetId: 'address_line' },
+    { keys: ['domicile'], label: 'Domisili', targetId: 'domicile' },
+    { keys: ['phone'], label: 'Telepon', targetId: 'phone' },
+    { keys: ['email'], label: 'Email', targetId: 'email' },
+    { keys: ['ethnicity'], label: 'Suku', targetId: 'ethnicity' },
+    { keys: ['language'], label: 'Bahasa', targetId: 'language' },
+    { keys: ['notes'], label: 'Catatan pasien', targetId: 'notes' },
+    {
+        keys: ['responsible_party_name'],
+        label: 'Penanggung jawab',
+        targetId: 'responsible_party_name',
+    },
+    { keys: ['booking_code'], label: 'Kode booking', targetId: 'booking_code' },
+    {
+        keys: ['visit_date'],
+        label: 'Tanggal kunjungan',
+        targetId: 'visit_date',
+    },
+    {
+        keys: ['clinic_public_id'],
+        label: 'Poliklinik atau unit',
+        targetId: 'clinic_public_id',
+    },
+    {
+        keys: ['doctor_public_id'],
+        label: 'Dokter',
+        targetId: 'doctor_public_id',
+    },
+    {
+        keys: ['schedule_public_id'],
+        label: 'Jadwal atau shift',
+        targetId: 'schedule_public_id',
+    },
+    { keys: ['case_type'], label: 'Kasus tindakan', targetId: 'case_type' },
+    {
+        keys: ['accident_type'],
+        label: 'Jenis kecelakaan',
+        targetId: 'accident_type',
+    },
+    {
+        keys: ['admission_mode'],
+        label: 'Cara masuk',
+        targetId: 'admission_mode',
+    },
+    { keys: ['payer_type'], label: 'Cara bayar', targetId: 'payer_type' },
+    {
+        keys: ['insurance_number'],
+        label: 'Nomor asuransi',
+        targetId: 'insurance_number',
+    },
+    {
+        keys: ['chief_complaint'],
+        label: 'Catatan kunjungan',
+        targetId: 'chief_complaint',
+    },
+];
+
+type RegistrationErrorEntry = {
+    key: string;
+    label: string;
+    message: string;
+    targetId?: string;
+};
+
+function registrationErrorEntries(
+    errors: Record<string, string | undefined>,
+    isIgd: boolean,
+): RegistrationErrorEntry[] {
+    const remainingKeys = new Set(
+        Object.keys(errors).filter((key) => Boolean(errors[key])),
+    );
+    const entries: RegistrationErrorEntry[] = registrationErrorFields.flatMap(
+        (field) => {
+            const key = field.keys.find((candidate) =>
+                remainingKeys.has(candidate),
+            );
+
+            if (!key) {
+                return [];
+            }
+
+            remainingKeys.delete(key);
+            field.keys.forEach((alias) => remainingKeys.delete(alias));
+
+            return [
+                {
+                    key,
+                    label: field.label,
+                    message: errors[key] as string,
+                    targetId:
+                        isIgd && key === 'clinic_public_id'
+                            ? undefined
+                            : field.targetId,
+                },
+            ];
+        },
+    );
+
+    remainingKeys.forEach((key) => {
+        entries.push({
+            key,
+            label: 'Formulir pendaftaran',
+            message: errors[key] as string,
+        });
+    });
+
+    return entries;
+}
+
+function RegistrationErrorSummary({
+    entries,
+    focusAttempt,
+}: {
+    entries: RegistrationErrorEntry[];
+    focusAttempt: number;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const fingerprint = entries
+        .map((entry) => `${entry.key}:${entry.message}`)
+        .join('|');
+
+    useEffect(() => {
+        if (entries.length > 0) {
+            ref.current?.focus();
+        }
+    }, [entries.length, fingerprint, focusAttempt]);
+
+    if (entries.length === 0) {
+        return null;
+    }
+
+    return (
+        <div
+            ref={ref}
+            role="alert"
+            tabIndex={-1}
+            aria-labelledby="registration-error-summary-title"
+            className="mb-4 rounded-md border border-[#fecaca] bg-[#fef2f2] p-3 text-sm text-[#991b1b] focus-visible:ring-2 focus-visible:ring-[#b91c1c] focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
+            <p id="registration-error-summary-title" className="font-semibold">
+                Pendaftaran belum dapat disimpan.
+            </p>
+            <p className="mt-1">
+                Periksa bagian berikut tanpa menghapus data yang sudah diisi:
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+                {entries.map((entry) => (
+                    <li key={entry.key}>
+                        {entry.targetId ? (
+                            <a
+                                href={`#${entry.targetId}`}
+                                className="font-medium underline underline-offset-2"
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    document
+                                        .getElementById(
+                                            entry.targetId as string,
+                                        )
+                                        ?.focus();
+                                }}
+                            >
+                                {entry.label}: {entry.message}
+                            </a>
+                        ) : (
+                            <>
+                                <span className="font-medium">
+                                    {entry.label}:
+                                </span>{' '}
+                                {entry.message}
+                            </>
+                        )}
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 }
@@ -217,7 +482,9 @@ export default function PendaftaranRawatJalan({
     variant = 'rawat-jalan',
     q,
     searchResults,
+    searchResultsTruncated = false,
     todaysEncounters,
+    todaysEncountersPagination,
     clinics,
     sexOptions,
     maritalOptions = [],
@@ -249,6 +516,7 @@ export default function PendaftaranRawatJalan({
     const [cityOptions, setCityOptions] = useState<Option[]>([]);
     const [districtOptions, setDistrictOptions] = useState<Option[]>([]);
     const [villageOptions, setVillageOptions] = useState<Option[]>([]);
+    const [validationAttempt, setValidationAttempt] = useState(0);
     const [printQueue, setPrintQueue] = useState(true);
     const [printFlags, setPrintFlags] = useState({
         sep: false,
@@ -491,6 +759,9 @@ export default function PendaftaranRawatJalan({
         event.preventDefault();
         form.post(storePath, {
             preserveScroll: true,
+            onError: () => {
+                setValidationAttempt((attempt) => attempt + 1);
+            },
             onSuccess: () => {
                 const igdClinicId = isIgd ? (clinics[0]?.public_id ?? '') : '';
                 form.reset();
@@ -509,6 +780,10 @@ export default function PendaftaranRawatJalan({
         });
     };
 
+    const registrationErrors = registrationErrorEntries(
+        form.errors as Record<string, string | undefined>,
+        isIgd,
+    );
     const returning = form.data.patient_public_id !== '';
     const printTargetId =
         lastEncounterPublicId ?? todaysEncounters[0]?.public_id ?? null;
@@ -605,7 +880,12 @@ export default function PendaftaranRawatJalan({
                         onSubmit={search}
                         className="flex min-w-[16rem] flex-1 items-center gap-2"
                     >
+                        <Label htmlFor="patient-search" className="sr-only">
+                            Cari pasien berdasarkan nama, nomor rekam medis,
+                            atau NIK
+                        </Label>
                         <Input
+                            id="patient-search"
                             name="q"
                             defaultValue={q}
                             placeholder="Cari nama / No. RM / NIK"
@@ -632,7 +912,7 @@ export default function PendaftaranRawatJalan({
                 </div>
 
                 {searchOpen && q !== '' ? (
-                    <section className="rounded-lg border border-[#e2e8f0] bg-white p-3">
+                    <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
                         <div className="mb-2 flex items-center justify-between">
                             <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
                                 Hasil pencarian
@@ -645,8 +925,11 @@ export default function PendaftaranRawatJalan({
                                 Tutup
                             </button>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[40rem] text-left text-sm">
+                                <caption className="sr-only">
+                                    Hasil pencarian pasien sintetis
+                                </caption>
                                 <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                     <tr>
                                         <th className="px-2 py-1.5 font-medium">
@@ -664,7 +947,14 @@ export default function PendaftaranRawatJalan({
                                         <th className="px-2 py-1.5 font-medium">
                                             JK
                                         </th>
-                                        <th className="px-2 py-1.5 font-medium" />
+                                        <th
+                                            scope="col"
+                                            className="px-2 py-1.5 font-medium"
+                                        >
+                                            <span className="sr-only">
+                                                Aksi
+                                            </span>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -724,6 +1014,15 @@ export default function PendaftaranRawatJalan({
                                 </tbody>
                             </table>
                         </div>
+                        {searchResultsTruncated ? (
+                            <p
+                                className="mt-2 text-xs text-[#92400e]"
+                                role="status"
+                            >
+                                Menampilkan 20 hasil pertama. Persempit
+                                pencarian untuk menemukan pasien lainnya.
+                            </p>
+                        ) : null}
                     </section>
                 ) : null}
 
@@ -732,6 +1031,10 @@ export default function PendaftaranRawatJalan({
                         onSubmit={submit}
                         className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4"
                     >
+                        <RegistrationErrorSummary
+                            entries={registrationErrors}
+                            focusAttempt={validationAttempt}
+                        />
                         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_13rem]">
                             <DeskSection title="Data pribadi">
                                 <Field
@@ -1172,28 +1475,31 @@ export default function PendaftaranRawatJalan({
                                     label="Domisili"
                                     error={form.errors.domicile}
                                 >
-                                    <div className="flex gap-2">
-                                        <Input
-                                            id="domicile"
-                                            className={fieldClass}
-                                            value={form.data.domicile}
-                                            onChange={(e) =>
-                                                form.setData(
-                                                    'domicile',
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 shrink-0"
-                                            onClick={autoDomicile}
-                                        >
-                                            Auto
-                                        </Button>
-                                    </div>
+                                    {(controlProps) => (
+                                        <div className="flex gap-2">
+                                            <Input
+                                                id="domicile"
+                                                {...controlProps}
+                                                className={fieldClass}
+                                                value={form.data.domicile}
+                                                onChange={(e) =>
+                                                    form.setData(
+                                                        'domicile',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 shrink-0"
+                                                onClick={autoDomicile}
+                                            >
+                                                Auto
+                                            </Button>
+                                        </div>
+                                    )}
                                 </Field>
                                 <div className="grid gap-2.5 sm:grid-cols-2">
                                     <Field
@@ -1320,46 +1626,51 @@ export default function PendaftaranRawatJalan({
                                             form.errors.responsible_party_name
                                         }
                                     >
-                                        <div className="flex gap-2">
-                                            <Input
-                                                id="responsible_party_name"
-                                                className={fieldClass}
-                                                value={
-                                                    form.data
-                                                        .responsible_party_name
-                                                }
-                                                onChange={(e) =>
-                                                    form.setData(
-                                                        'responsible_party_name',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 shrink-0"
-                                                onClick={autoResponsibleParty}
-                                            >
-                                                Auto
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 shrink-0"
-                                                onClick={() => {
-                                                    document
-                                                        .getElementById(
+                                        {(controlProps) => (
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    id="responsible_party_name"
+                                                    {...controlProps}
+                                                    className={fieldClass}
+                                                    value={
+                                                        form.data
+                                                            .responsible_party_name
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
                                                             'responsible_party_name',
+                                                            e.target.value,
                                                         )
-                                                        ?.focus();
-                                                }}
-                                            >
-                                                Edit
-                                            </Button>
-                                        </div>
+                                                    }
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 shrink-0"
+                                                    onClick={
+                                                        autoResponsibleParty
+                                                    }
+                                                >
+                                                    Auto
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 shrink-0"
+                                                    onClick={() => {
+                                                        document
+                                                            .getElementById(
+                                                                'responsible_party_name',
+                                                            )
+                                                            ?.focus();
+                                                    }}
+                                                >
+                                                    Edit
+                                                </Button>
+                                            </div>
+                                        )}
                                     </Field>
                                 </DeskSection>
 
@@ -1656,46 +1967,50 @@ export default function PendaftaranRawatJalan({
                                         label="No. asuransi"
                                         error={form.errors.insurance_number}
                                     >
-                                        <div className="flex gap-1.5">
-                                            <Input
-                                                id="insurance_number"
-                                                className={fieldClass}
-                                                value={
-                                                    form.data.insurance_number
-                                                }
-                                                onChange={(e) =>
-                                                    form.setData(
-                                                        'insurance_number',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="Sintetis / opsional"
-                                            />
-                                            <button
-                                                type="button"
-                                                disabled
-                                                title="Tidak mengirim BPJS nyata"
-                                                className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
-                                            >
-                                                Cek
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled
-                                                title="Biometrik tidak aktif di demo"
-                                                className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
-                                            >
-                                                FR
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled
-                                                title="Biometrik tidak aktif di demo"
-                                                className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
-                                            >
-                                                FP
-                                            </button>
-                                        </div>
+                                        {(controlProps) => (
+                                            <div className="flex gap-1.5">
+                                                <Input
+                                                    id="insurance_number"
+                                                    {...controlProps}
+                                                    className={fieldClass}
+                                                    value={
+                                                        form.data
+                                                            .insurance_number
+                                                    }
+                                                    onChange={(e) =>
+                                                        form.setData(
+                                                            'insurance_number',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Sintetis / opsional"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    disabled
+                                                    title="Tidak mengirim BPJS nyata"
+                                                    className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
+                                                >
+                                                    Cek
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled
+                                                    title="Biometrik tidak aktif di demo"
+                                                    className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
+                                                >
+                                                    FR
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled
+                                                    title="Biometrik tidak aktif di demo"
+                                                    className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
+                                                >
+                                                    FP
+                                                </button>
+                                            </div>
+                                        )}
                                     </Field>
                                     <Field
                                         id="chief_complaint"
@@ -1823,12 +2138,15 @@ export default function PendaftaranRawatJalan({
                     </section>
                 )}
 
-                <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
+                <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                     <h2 className="mb-2 text-xs font-semibold tracking-wide text-[#123b63] uppercase">
                         Pendaftaran hari ini
                     </h2>
-                    <div className="overflow-x-auto">
+                    <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[52rem] text-left text-sm">
+                            <caption className="sr-only">
+                                Daftar pendaftaran pasien hari ini
+                            </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
                                     <th className="px-2 py-1.5 font-medium">
@@ -1855,7 +2173,12 @@ export default function PendaftaranRawatJalan({
                                     <th className="px-2 py-1.5 font-medium">
                                         Status
                                     </th>
-                                    <th className="px-2 py-1.5 font-medium" />
+                                    <th
+                                        scope="col"
+                                        className="px-2 py-1.5 font-medium"
+                                    >
+                                        <span className="sr-only">Aksi</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1959,6 +2282,11 @@ export default function PendaftaranRawatJalan({
                             </tbody>
                         </table>
                     </div>
+                    <OperationalPagination
+                        pagination={todaysEncountersPagination}
+                        itemLabel="pendaftaran hari ini"
+                        className="mt-3"
+                    />
                 </section>
             </div>
         </>

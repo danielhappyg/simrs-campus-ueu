@@ -96,6 +96,7 @@ class EmergencyFlowTest extends TestCase
             'clinic_schedule_id' => $schedule->id,
             'doctor_name' => $doctor->name,
             'schedule_label' => $schedule->label,
+            'queue_date' => now()->toDateString(),
             'queue_number' => 1,
             'status' => Encounter::STATUS_REGISTERED,
             'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
@@ -107,6 +108,10 @@ class EmergencyFlowTest extends TestCase
             'action' => 'patient.register',
             'resource_type' => 'encounter',
             'outcome' => 'SUCCESS',
+        ]);
+        $this->assertDatabaseHas('daily_queue_counters', [
+            'queue_date' => now()->toDateString(),
+            'last_number' => 1,
         ]);
 
         $this->actingAs($registrar)
@@ -137,6 +142,7 @@ class EmergencyFlowTest extends TestCase
         $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien IGD Sintetis']);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('audit_events', 0);
+        $this->assertDatabaseCount('daily_queue_counters', 0);
     }
 
     public function test_clinical_staff_can_open_igd_worklist_and_write_note(): void
@@ -212,6 +218,49 @@ class EmergencyFlowTest extends TestCase
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
         $this->assertDatabaseMissing('audit_events', ['action' => 'clinical.note.write']);
+    }
+
+    public function test_unauthorized_actor_is_denied_before_closed_igd_state_is_disclosed(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $encounter = Encounter::factory()->create([
+            'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
+            'status' => Encounter::STATUS_CLOSED,
+        ]);
+
+        $this->actingAs($registrar)
+            ->post(route('pemeriksaan.igd.entries.store', $encounter), [
+                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
+                'body' => 'Permintaan tidak berwenang.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('clinical_entries', 0);
+    }
+
+    public function test_unauthorized_actor_is_denied_before_opposite_care_setting_is_disclosed(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $encounter = Encounter::factory()->create([
+            'care_setting' => Encounter::CARE_SETTING_INPATIENT,
+            'status' => Encounter::STATUS_REGISTERED,
+        ]);
+
+        $this->actingAs($registrar)
+            ->post(route('pemeriksaan.igd.entries.store', $encounter), [
+                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
+                'body' => 'Permintaan lintas layanan tidak berwenang.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
+        $this->assertDatabaseHas('audit_events', [
+            'action' => 'authorization.denied',
+            'resource_type' => 'http_route',
+            'outcome' => 'DENIED',
+            'reason' => 'authorization_check_failed',
+        ]);
     }
 
     public function test_user_without_patient_register_gets_forbidden_on_igd_store(): void

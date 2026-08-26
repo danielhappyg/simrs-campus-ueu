@@ -25,6 +25,7 @@ class EncounterFactory extends Factory
             'status' => Encounter::STATUS_REGISTERED,
             'clinic_name' => 'Poliklinik Umum',
             'payer_type' => Encounter::PAYER_UMUM,
+            'queue_date' => now()->toDateString(),
             'registered_at' => now(),
             'registered_by_user_id' => User::factory(),
             'chief_complaint' => null,

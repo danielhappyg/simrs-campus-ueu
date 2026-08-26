@@ -11,6 +11,8 @@ use App\Models\Patient;
 use App\Models\User;
 use App\Models\WilayahProvince;
 use App\Models\WilayahVillage;
+use App\Support\Registration\DailyQueueAllocator;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -348,6 +350,8 @@ class TeachingCensusSeeder extends Seeder
 
         $marker = 'SYNTH-ENC-RJ-'.sprintf('%03d', $index + 1);
         $this->assertSyntheticEncounterMarker($marker);
+        $registeredAt = $visitDate->copy()->setTime(7 + ($index % 8), ($index * 3) % 60);
+        $queue = $this->queueAssignment($marker, $registeredAt);
 
         $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
             ['booking_code' => $marker],
@@ -365,8 +369,9 @@ class TeachingCensusSeeder extends Seeder
                 'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
                 'payer_type' => $index % 3 === 0 ? Encounter::PAYER_BPJS : Encounter::PAYER_UMUM,
                 'insurance_number' => $index % 3 === 0 ? 'SYNTH-BPJS-'.sprintf('%04d', $index + 1) : null,
-                'queue_number' => ($index % 40) + 1,
-                'registered_at' => $visitDate->copy()->setTime(7 + ($index % 8), ($index * 3) % 60),
+                'queue_date' => $queue['queue_date'],
+                'queue_number' => $queue['queue_number'],
+                'registered_at' => $registeredAt,
                 'registered_by_user_id' => $registrar->id,
                 'chief_complaint' => 'Keluhan sintesis untuk uji desktop pendaftaran/pemeriksaan.',
             ],
@@ -392,6 +397,8 @@ class TeachingCensusSeeder extends Seeder
 
         $marker = 'SYNTH-ENC-IGD-'.sprintf('%03d', $index + 1);
         $this->assertSyntheticEncounterMarker($marker);
+        $registeredAt = $visitDate->copy()->setTime(1 + ($index % 20), ($index * 5) % 60);
+        $queue = $this->queueAssignment($marker, $registeredAt);
 
         $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
             ['booking_code' => $marker],
@@ -408,8 +415,9 @@ class TeachingCensusSeeder extends Seeder
                 'visit_date' => $visitDate,
                 'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
                 'payer_type' => Encounter::PAYER_UMUM,
-                'queue_number' => ($index % 20) + 1,
-                'registered_at' => $visitDate->copy()->setTime(1 + ($index % 20), ($index * 5) % 60),
+                'queue_date' => $queue['queue_date'],
+                'queue_number' => $queue['queue_number'],
+                'registered_at' => $registeredAt,
                 'registered_by_user_id' => $registrar->id,
                 'chief_complaint' => 'Triase sintesis — keluhan akut pengajaran.',
                 'case_type' => $index % 2 === 0 ? Encounter::CASE_NON_BEDAH : Encounter::CASE_BEDAH,
@@ -434,6 +442,8 @@ class TeachingCensusSeeder extends Seeder
     ): void {
         $marker = 'SYNTH-ENC-RI-'.sprintf('%03d', $index + 1);
         $this->assertSyntheticEncounterMarker($marker);
+        $registeredAt = $visitDate->copy()->setTime(10, ($index * 7) % 60);
+        $queue = $this->queueAssignment($marker, $registeredAt);
 
         // Soft dual-book: skip creating a second OPEN stay on the same bed.
         $openConflict = Encounter::query()
@@ -460,7 +470,9 @@ class TeachingCensusSeeder extends Seeder
                 'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
                 'payer_type' => Encounter::PAYER_BPJS,
                 'insurance_number' => 'SYNTH-RI-BPJS-'.sprintf('%04d', $index + 1),
-                'registered_at' => $visitDate->copy()->setTime(10, ($index * 7) % 60),
+                'queue_date' => $queue['queue_date'],
+                'queue_number' => $queue['queue_number'],
+                'registered_at' => $registeredAt,
                 'registered_by_user_id' => $registrar->id,
                 'chief_complaint' => 'Rawat inap sintesis — observasi pengajaran.',
                 'ward_name' => $wardName,
@@ -486,6 +498,40 @@ class TeachingCensusSeeder extends Seeder
                 'Teaching census refused: booking marker '.$marker.' belongs to a non-synthetic patient encounter.',
             );
         }
+    }
+
+    /**
+     * @return array{queue_date: string, queue_number: int}
+     */
+    private function queueAssignment(string $marker, CarbonInterface $registeredAt): array
+    {
+        $existing = Encounter::query()
+            ->syntheticOnly()
+            ->where('booking_code', $marker)
+            ->first();
+        $queueDate = $registeredAt
+            ->copy()
+            ->setTimezone((string) config('app.timezone', 'Asia/Jakarta'))
+            ->toDateString();
+        $allocator = app(DailyQueueAllocator::class);
+
+        if ($existing instanceof Encounter
+            && $existing->queue_date === $queueDate
+            && $existing->queue_number !== null) {
+            $allocation = $allocator->ensureHighWatermark($registeredAt, $existing->queue_number);
+
+            return [
+                'queue_date' => $allocation->queueDate,
+                'queue_number' => $allocation->queueNumber,
+            ];
+        }
+
+        $allocation = $allocator->allocate($registeredAt);
+
+        return [
+            'queue_date' => $allocation->queueDate,
+            'queue_number' => $allocation->queueNumber,
+        ];
     }
 
     private function seedNotesIfNeeded(Encounter $encounter, User $nurse, User $physician, string $status): void

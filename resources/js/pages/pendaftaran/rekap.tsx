@@ -1,6 +1,8 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
+import { OperationalPagination } from '@/components/operational-pagination';
+import type { OperationalPaginationMeta } from '@/components/operational-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +42,7 @@ type Props = {
         care_setting: string;
     };
     rows: RecapRow[];
+    pagination: OperationalPaginationMeta;
     totals: { all: number; online: number; walk_in: number };
     clinicOptions: Option[];
     payerOptions: Option[];
@@ -48,10 +51,12 @@ type Props = {
 export default function PendaftaranRekap({
     filters,
     rows,
+    pagination,
     totals,
     clinicOptions,
     payerOptions,
 }: Props) {
+    const { flash } = usePage().props;
     const apply = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -118,9 +123,18 @@ export default function PendaftaranRekap({
                     </p>
                 </header>
 
+                {typeof flash?.error === 'string' && flash.error !== '' ? (
+                    <div
+                        className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]"
+                        role="alert"
+                    >
+                        {flash.error}
+                    </div>
+                ) : null}
+
                 <form
                     onSubmit={apply}
-                    className="grid gap-3 rounded-lg border border-[#e2e8f0] bg-white p-3 md:grid-cols-6"
+                    className="grid min-w-0 grid-cols-1 gap-3 rounded-lg border border-[#e2e8f0] bg-white p-3 md:grid-cols-6"
                 >
                     <div className="grid gap-1">
                         <Label htmlFor="date_from">Dari</Label>
@@ -146,7 +160,7 @@ export default function PendaftaranRekap({
                             id="care_setting"
                             name="care_setting"
                             defaultValue={filters.care_setting}
-                            className="h-9 rounded-md border border-[#e2e8f0] px-2 text-sm"
+                            className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
                             <option value="OUTPATIENT">Rawat jalan</option>
                             <option value="EMERGENCY">IGD</option>
@@ -160,7 +174,7 @@ export default function PendaftaranRekap({
                             id="clinic"
                             name="clinic"
                             defaultValue={filters.clinic}
-                            className="h-9 rounded-md border border-[#e2e8f0] px-2 text-sm"
+                            className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
                             <option value="">Semua</option>
                             {clinicOptions.map((option) => (
@@ -176,7 +190,7 @@ export default function PendaftaranRekap({
                             id="payer"
                             name="payer"
                             defaultValue={filters.payer}
-                            className="h-9 rounded-md border border-[#e2e8f0] px-2 text-sm"
+                            className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
                             <option value="">Semua</option>
                             {payerOptions.map((option) => (
@@ -192,7 +206,7 @@ export default function PendaftaranRekap({
                             id="origin"
                             name="origin"
                             defaultValue={filters.origin}
-                            className="h-9 rounded-md border border-[#e2e8f0] px-2 text-sm"
+                            className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
                             <option value="">Semua</option>
                             <option value="WALK_IN">Walk-in</option>
@@ -201,7 +215,7 @@ export default function PendaftaranRekap({
                             </option>
                         </select>
                     </div>
-                    <div className="flex items-end gap-2 md:col-span-6">
+                    <div className="flex flex-wrap items-end gap-2 md:col-span-6">
                         <Button
                             type="submit"
                             className="bg-[#1b75bc] hover:bg-[#1665a3]"
@@ -233,8 +247,11 @@ export default function PendaftaranRekap({
                     </span>
                 </div>
 
-                <section className="overflow-x-auto rounded-lg border border-[#e2e8f0] bg-white">
+                <section className="min-w-0 overflow-x-auto rounded-lg border border-[#e2e8f0] bg-white">
                     <table className="w-full min-w-[56rem] text-left text-sm">
+                        <caption className="sr-only">
+                            Rekap kunjungan berdasarkan filter pendaftaran
+                        </caption>
                         <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                             <tr>
                                 <th className="px-3 py-2 font-medium">Waktu</th>
@@ -250,7 +267,12 @@ export default function PendaftaranRekap({
                                 <th className="px-3 py-2 font-medium">
                                     Penjamin
                                 </th>
-                                <th className="px-3 py-2 font-medium" />
+                                <th
+                                    scope="col"
+                                    className="px-3 py-2 font-medium"
+                                >
+                                    <span className="sr-only">Aksi</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -326,6 +348,11 @@ export default function PendaftaranRekap({
                             )}
                         </tbody>
                     </table>
+                    <OperationalPagination
+                        pagination={pagination}
+                        itemLabel="kunjungan"
+                        className="m-3"
+                    />
                 </section>
             </div>
         </>

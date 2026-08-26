@@ -3,6 +3,8 @@ import { Fragment, useState } from 'react';
 import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import InputError from '@/components/input-error';
+import { OperationalPagination } from '@/components/operational-pagination';
+import type { OperationalPaginationMeta } from '@/components/operational-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +30,7 @@ type OrderRow = {
 
 type Props = {
     orders: OrderRow[];
+    pagination?: OperationalPaginationMeta | null;
     filters: { q: string };
     canEnterResult: boolean;
 };
@@ -37,6 +40,7 @@ const fieldClass =
 
 export default function PemeriksaanLaboratoriumIndex({
     orders,
+    pagination,
     filters,
     canEnterResult,
 }: Props) {
@@ -60,6 +64,11 @@ export default function PemeriksaanLaboratoriumIndex({
 
     const submitResult = (orderId: string, event: FormEvent) => {
         event.preventDefault();
+        resultForm.transform((data) => ({
+            ...data,
+            q: filters.q,
+            page: pagination?.current_page ?? 1,
+        }));
         resultForm.post(`/pemeriksaan/laboratorium/${orderId}/results`, {
             preserveScroll: true,
             onSuccess: () => {
@@ -75,12 +84,18 @@ export default function PemeriksaanLaboratoriumIndex({
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
                 {typeof flash?.error === 'string' && flash.error !== '' ? (
-                    <div className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]">
+                    <div
+                        className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]"
+                        role="alert"
+                    >
                         {flash.error}
                     </div>
                 ) : null}
                 {typeof flash?.success === 'string' && flash.success !== '' ? (
-                    <div className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]">
+                    <div
+                        className="rounded-md border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-2 text-sm text-[#166534]"
+                        role="status"
+                    >
                         {flash.success}
                     </div>
                 ) : null}
@@ -147,9 +162,12 @@ export default function PemeriksaanLaboratoriumIndex({
                     </Button>
                 </form>
 
-                <section className="overflow-hidden rounded-lg border border-[#e2e8f0] bg-white">
-                    <div className="overflow-x-auto">
+                <section className="min-w-0 overflow-hidden rounded-lg border border-[#e2e8f0] bg-white">
+                    <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[720px] text-left text-sm">
+                            <caption className="sr-only">
+                                Daftar order laboratorium aktif
+                            </caption>
                             <thead className="border-b border-[#e2e8f0] bg-[#f8fafc] text-xs text-[#64748b] uppercase">
                                 <tr>
                                     <th className="px-3 py-2 font-semibold">
@@ -235,6 +253,11 @@ export default function PemeriksaanLaboratoriumIndex({
                                                         {canEnterResult ? (
                                                             <button
                                                                 type="button"
+                                                                aria-expanded={
+                                                                    expandedOrderId ===
+                                                                    order.public_id
+                                                                }
+                                                                aria-controls={`lab-result-${order.public_id}`}
                                                                 className="text-xs font-medium text-[#1b75bc] hover:underline"
                                                                 onClick={() =>
                                                                     setExpandedOrderId(
@@ -259,6 +282,7 @@ export default function PemeriksaanLaboratoriumIndex({
                                             canEnterResult ? (
                                                 <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
                                                     <td
+                                                        id={`lab-result-${order.public_id}`}
                                                         colSpan={5}
                                                         className="px-3 py-3"
                                                     >
@@ -353,6 +377,11 @@ export default function PemeriksaanLaboratoriumIndex({
                             </tbody>
                         </table>
                     </div>
+                    <OperationalPagination
+                        pagination={pagination}
+                        itemLabel="order laboratorium aktif"
+                        className="px-3 pb-3"
+                    />
                 </section>
             </div>
         </>

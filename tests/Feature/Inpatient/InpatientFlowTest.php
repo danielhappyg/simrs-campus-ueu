@@ -77,12 +77,18 @@ class InpatientFlowTest extends TestCase
             'continue_from' => Encounter::CONTINUE_LANGSUNG,
             'status' => Encounter::STATUS_REGISTERED,
             'payer_type' => Encounter::PAYER_UMUM,
+            'queue_date' => now()->toDateString(),
+            'queue_number' => 1,
         ]);
 
         $this->assertDatabaseHas('audit_events', [
             'action' => 'patient.register',
             'resource_type' => 'encounter',
             'outcome' => 'SUCCESS',
+        ]);
+        $this->assertDatabaseHas('daily_queue_counters', [
+            'queue_date' => now()->toDateString(),
+            'last_number' => 1,
         ]);
 
         $this->actingAs($registrar)
@@ -112,6 +118,7 @@ class InpatientFlowTest extends TestCase
         $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien RI Sintetis']);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('audit_events', 0);
+        $this->assertDatabaseCount('daily_queue_counters', 0);
     }
 
     public function test_second_admit_same_bed_blocked_while_first_open(): void
@@ -222,6 +229,49 @@ class InpatientFlowTest extends TestCase
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
         $this->assertDatabaseMissing('audit_events', ['action' => 'clinical.note.write']);
+    }
+
+    public function test_unauthorized_actor_is_denied_before_closed_ri_state_is_disclosed(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $encounter = Encounter::factory()->create([
+            'care_setting' => Encounter::CARE_SETTING_INPATIENT,
+            'status' => Encounter::STATUS_CLOSED,
+        ]);
+
+        $this->actingAs($registrar)
+            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
+                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
+                'body' => 'Permintaan tidak berwenang.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('clinical_entries', 0);
+    }
+
+    public function test_unauthorized_actor_is_denied_before_opposite_care_setting_is_disclosed(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $encounter = Encounter::factory()->create([
+            'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
+            'status' => Encounter::STATUS_REGISTERED,
+        ]);
+
+        $this->actingAs($registrar)
+            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
+                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
+                'body' => 'Permintaan lintas layanan tidak berwenang.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
+        $this->assertDatabaseHas('audit_events', [
+            'action' => 'authorization.denied',
+            'resource_type' => 'http_route',
+            'outcome' => 'DENIED',
+            'reason' => 'authorization_check_failed',
+        ]);
     }
 
     public function test_non_registrar_forbidden_on_inpatient_store(): void

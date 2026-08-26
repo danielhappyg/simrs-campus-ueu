@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Wilayah;
 
+use App\Models\DailyQueueCounter;
 use App\Models\Encounter;
 use App\Models\Patient;
 use App\Models\User;
@@ -39,6 +40,38 @@ class TeachingCensusSeederTest extends TestCase
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_EMERGENCY)->exists());
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->exists());
         $this->assertTrue(User::query()->where('email', 'registrar.demo@example.invalid')->exists());
+
+        $firstAssignments = Encounter::query()
+            ->where('booking_code', 'like', 'SYNTH-ENC-%')
+            ->orderBy('booking_code')
+            ->get(['booking_code', 'queue_date', 'queue_number']);
+        $firstCounters = DailyQueueCounter::query()->orderBy('queue_date')->pluck('last_number', 'queue_date');
+
+        $firstAssignments
+            ->groupBy(fn (Encounter $encounter): string => $encounter->queue_date)
+            ->each(function ($dailyEncounters, string $queueDate): void {
+                $numbers = $dailyEncounters->pluck('queue_number');
+                $this->assertCount($numbers->count(), $numbers->unique());
+                $this->assertSame(
+                    $numbers->max(),
+                    DailyQueueCounter::query()->where('queue_date', $queueDate)->value('last_number'),
+                );
+            });
+
+        $this->seed(TeachingCensusSeeder::class);
+
+        $this->assertEquals(
+            $firstAssignments->toArray(),
+            Encounter::query()
+                ->where('booking_code', 'like', 'SYNTH-ENC-%')
+                ->orderBy('booking_code')
+                ->get(['booking_code', 'queue_date', 'queue_number'])
+                ->toArray(),
+        );
+        $this->assertEquals(
+            $firstCounters->toArray(),
+            DailyQueueCounter::query()->orderBy('queue_date')->pluck('last_number', 'queue_date')->toArray(),
+        );
     }
 
     public function test_teaching_census_refuses_unsafe_application_mode_before_writing(): void

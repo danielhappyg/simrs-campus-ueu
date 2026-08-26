@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "data_boundary": "synthetic_only",
+  "policy": {
+    "snapshot_id": "G0-OWNER-AUTHORITY-POLICY-SNAPSHOT-1",
+    "snapshot_revision": 1,
+    "snapshot_at": "2026-08-25T00:00:00Z",
+    "prior_snapshot_reference": null,
+    "prior_snapshot_sha256": null
+  },
+  "sources": [
+    {
+      "batch": "A",
+      "snapshot_id": "G0-BATCH-A-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "B",
+      "snapshot_id": "G0-BATCH-B-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "C",
+      "snapshot_id": "G0-BATCH-C-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "D",
+      "snapshot_id": "G0-BATCH-D-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "E",
+      "snapshot_id": "G0-BATCH-E-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "F",
+      "snapshot_id": "G0-BATCH-F-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    },
+    {
+      "batch": "G",
+      "snapshot_id": "G0-BATCH-G-SOURCE-SNAPSHOT-1",
+      "snapshot_revision": 1,
+      "captured_at": "2026-08-25T00:00:00Z",
+      "cutoff_at": "2026-08-25T00:00:00Z",
+      "prior_snapshot_reference": null,
+      "prior_snapshot_sha256": null
+    }
+  ]
+}

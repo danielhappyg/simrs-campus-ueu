@@ -33,6 +33,10 @@ bootstrap/ssr/
 # Laravel runtime data
 storage/*.key
 storage/pail/
+storage/app/recovery-rehearsals/
+storage/app/query-plan-rehearsals/
+storage/app/queue-allocation-rehearsals/
+storage/app/portability-rehearsals/
 database/*.sqlite
 
 # ibnux/data-indonesia JSON (fetch via scripts/fetch-ibnux-wilayah.sh; import into DB)

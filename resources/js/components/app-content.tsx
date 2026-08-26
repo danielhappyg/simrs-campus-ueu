@@ -23,7 +23,10 @@ export function AppContent({
 
     return (
         <main
-            className={cn('flex h-full w-full flex-1 flex-col', className)}
+            className={cn(
+                'flex h-full w-full max-w-full min-w-0 flex-1 flex-col',
+                className,
+            )}
             {...props}
         >
             {children}

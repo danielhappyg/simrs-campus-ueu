@@ -43,6 +43,7 @@ Create or locate a synthetic emergency patient and open a coherent ED encounter 
 - Duplicate: discovery — duplicate detection behaviour **Unknown**
 - Unknown / unidentified patient: **Unknown** legacy rule; teaching policy TBD (Proposed NEW if needed)
 - Cancellation: must not destroy audit; exact charge/queue unwind **Unknown**
+- Decision candidate: the [cross-setting pre-clinical cancellation pack](../CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md) proposes cancellation only before triage/clinical/downstream facts. It remains **unapproved**.
 - Correction: attributable amendment — Proposed NEW
 - External failure: fail closed; no false eligibility success — Proposed NEW
 
@@ -63,7 +64,7 @@ Create or locate a synthetic emergency patient and open a coherent ED encounter 
 2. Non-registrar is denied server-side with audit.
 3. Production BPJS hostnames cannot be called.
 4. Registered patient appears for triage/ED exam actors when those modules are in slice.
-5. Cancellation/correction paths defined before UAT sign-off (presently blocked as Unknown).
+5. Cancellation/correction paths defined before UAT sign-off (presently blocked; proposed cancellation pack is not owner-approved).
 
 ## Open unknowns
 

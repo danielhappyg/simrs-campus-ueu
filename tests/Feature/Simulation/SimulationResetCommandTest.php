@@ -3,6 +3,7 @@
 namespace Tests\Feature\Simulation;
 
 use App\Models\ClinicalEntry;
+use App\Models\DailyQueueCounter;
 use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
@@ -102,6 +103,10 @@ class SimulationResetCommandTest extends TestCase
             'encounter_id' => $encounter->id,
             'author_user_id' => $user->id,
         ]);
+        DailyQueueCounter::query()->create([
+            'queue_date' => now()->toDateString(),
+            'last_number' => 9,
+        ]);
 
         $exitCode = Artisan::call('simulation:reset', ['--force' => true]);
 
@@ -111,6 +116,10 @@ class SimulationResetCommandTest extends TestCase
         $this->assertDatabaseCount('patients', 0);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertDatabaseHas('daily_queue_counters', [
+            'queue_date' => now()->toDateString(),
+            'last_number' => 9,
+        ]);
         $this->assertDatabaseHas('audit_events', [
             'id' => $existingAudit->id,
             'action' => 'authorization.denied',
@@ -150,6 +159,7 @@ class SimulationResetCommandTest extends TestCase
             $this->assertSame(AuditActorAttribution::SYNTHETIC_RESET_SERVICE, $event->actor_reference);
             $this->assertArrayNotHasKey('purge_audit', $event->metadata ?? []);
             $this->assertTrue($event->metadata['evidence_preserved']);
+            $this->assertTrue($event->metadata['queue_counter_high_water_preserved']);
         });
     }
 

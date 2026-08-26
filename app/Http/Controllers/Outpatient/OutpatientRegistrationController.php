@@ -17,6 +17,8 @@ use App\Services\Wilayah\WilayahRepository;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaAwareRules;
+use App\Support\Http\InertiaPagination;
+use App\Support\Registration\DailyQueueAllocator;
 use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Database\Seeders\OutpatientMastersSeeder;
@@ -36,23 +38,27 @@ class OutpatientRegistrationController extends Controller
     public function __construct(
         private readonly AuditRecorder $auditRecorder,
         private readonly WilayahRepository $wilayah,
+        private readonly DailyQueueAllocator $dailyQueueAllocator,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         Gate::authorize(Capability::PATIENT_SEARCH);
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
         $search = trim((string) $request->query('q', ''));
         $searchResults = [];
+        $searchResultsTruncated = false;
         $todaysEncounters = [];
         $clinics = [];
 
         try {
             $this->ensureMastersSeeded();
+            $todayStart = now()->startOfDay();
+            $tomorrowStart = $todayStart->copy()->addDay();
 
             if ($search !== '') {
-                $searchResults = Patient::query()
+                $patientMatches = Patient::query()
                     ->syntheticOnly()
                     ->where(function ($query) use ($search): void {
                         $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
@@ -61,20 +67,29 @@ class OutpatientRegistrationController extends Controller
                             ->orWhere('nik', $like, '%'.$search.'%');
                     })
                     ->orderBy('full_name')
-                    ->limit(20)
-                    ->get()
+                    ->limit(21)
+                    ->get();
+                $searchResultsTruncated = $patientMatches->count() > 20;
+                $searchResults = $patientMatches
+                    ->take(20)
                     ->map(fn (Patient $patient): array => $this->patientSummary($patient))
                     ->all();
             }
 
-            $todaysEncounters = Encounter::query()
+            $todaysEncounterPage = Encounter::query()
                 ->syntheticOnly()
                 ->with('patient')
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
-                ->whereDate('registered_at', today())
+                ->where('registered_at', '>=', $todayStart)
+                ->where('registered_at', '<', $tomorrowStart)
                 ->orderByDesc('registered_at')
-                ->limit(50)
-                ->get()
+                ->orderByDesc('id')
+                ->paginate(50, ['*'], 'encounter_page')
+                ->withQueryString();
+            if ($redirect = InertiaPagination::redirectIfOutOfRange($todaysEncounterPage, $request, 'encounter_page')) {
+                return $redirect;
+            }
+            $todaysEncounters = collect($todaysEncounterPage->items())
                 ->map(fn (Encounter $encounter): array => $this->encounterSummary($encounter))
                 ->all();
 
@@ -109,7 +124,11 @@ class OutpatientRegistrationController extends Controller
         return Inertia::render('pendaftaran/rawat-jalan', [
             'q' => $search,
             'searchResults' => $searchResults,
+            'searchResultsTruncated' => $searchResultsTruncated,
             'todaysEncounters' => $todaysEncounters,
+            'todaysEncountersPagination' => isset($todaysEncounterPage)
+                ? InertiaPagination::from($todaysEncounterPage)
+                : null,
             'clinics' => $clinics,
             'sexOptions' => TeachingVocabulary::options(TeachingVocabulary::SEX),
             'maritalOptions' => TeachingVocabulary::options(TeachingVocabulary::MARITAL),
@@ -242,10 +261,8 @@ class OutpatientRegistrationController extends Controller
                 ]);
             }
 
-            // Allocation stays global so a contaminated row cannot cause duplicate operational numbering.
-            $queueNumber = ((int) Encounter::query()
-                ->whereDate('registered_at', today())
-                ->max('queue_number')) + 1;
+            $registeredAt = now((string) config('app.timezone', 'Asia/Jakarta'));
+            $queue = $this->dailyQueueAllocator->allocate($registeredAt);
 
             $created = Encounter::query()->create([
                 'patient_id' => $patient->id,
@@ -262,8 +279,9 @@ class OutpatientRegistrationController extends Controller
                 'payer_type' => $validated['payer_type'],
                 'insurance_number' => $validated['insurance_number'] ?? null,
                 'booking_code' => $validated['booking_code'] ?? null,
-                'queue_number' => $queueNumber,
-                'registered_at' => now(),
+                'queue_date' => $queue->queueDate,
+                'queue_number' => $queue->queueNumber,
+                'registered_at' => $registeredAt,
                 'registered_by_user_id' => $user->id,
                 'chief_complaint' => $validated['chief_complaint'] ?? null,
             ]);
@@ -282,6 +300,7 @@ class OutpatientRegistrationController extends Controller
                     'doctor_name' => $created->doctor_name,
                     'schedule_label' => $created->schedule_label,
                     'payer_type' => $created->payer_type,
+                    'queue_date' => $created->queue_date,
                     'queue_number' => $created->queue_number,
                 ],
             );
@@ -289,7 +308,7 @@ class OutpatientRegistrationController extends Controller
             abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
 
             return $created;
-        });
+        }, 3);
 
         return redirect()
             ->route('pendaftaran.rawat-jalan.index')

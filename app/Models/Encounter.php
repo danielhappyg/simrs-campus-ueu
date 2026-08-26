@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $insurance_number
  * @property string|null $booking_code
  * @property int|null $queue_number
+ * @property string $queue_date
  * @property Carbon $registered_at
  * @property int $registered_by_user_id
  * @property string|null $chief_complaint
@@ -163,6 +164,7 @@ class Encounter extends Model
         'insurance_number',
         'booking_code',
         'queue_number',
+        'queue_date',
         'registered_at',
         'registered_by_user_id',
         'chief_complaint',

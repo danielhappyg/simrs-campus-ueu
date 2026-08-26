@@ -17,6 +17,7 @@ use App\Services\Wilayah\WilayahRepository;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaAwareRules;
+use App\Support\Registration\DailyQueueAllocator;
 use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Database\Seeders\OutpatientMastersSeeder;
@@ -36,6 +37,7 @@ class EmergencyRegistrationController extends Controller
     public function __construct(
         private readonly AuditRecorder $auditRecorder,
         private readonly WilayahRepository $wilayah,
+        private readonly DailyQueueAllocator $dailyQueueAllocator,
     ) {}
 
     public function index(Request $request): Response
@@ -252,10 +254,8 @@ class EmergencyRegistrationController extends Controller
                 ]);
             }
 
-            // Allocation stays global so a contaminated row cannot cause duplicate operational numbering.
-            $queueNumber = ((int) Encounter::query()
-                ->whereDate('registered_at', today())
-                ->max('queue_number')) + 1;
+            $registeredAt = now((string) config('app.timezone', 'Asia/Jakarta'));
+            $queue = $this->dailyQueueAllocator->allocate($registeredAt);
 
             $created = Encounter::query()->create([
                 'patient_id' => $patient->id,
@@ -272,8 +272,9 @@ class EmergencyRegistrationController extends Controller
                 'payer_type' => $validated['payer_type'],
                 'insurance_number' => $validated['insurance_number'] ?? null,
                 'booking_code' => $validated['booking_code'] ?? null,
-                'queue_number' => $queueNumber,
-                'registered_at' => now(),
+                'queue_date' => $queue->queueDate,
+                'queue_number' => $queue->queueNumber,
+                'registered_at' => $registeredAt,
                 'registered_by_user_id' => $user->id,
                 'chief_complaint' => $validated['chief_complaint'] ?? null,
                 'case_type' => $validated['case_type'],
@@ -297,6 +298,7 @@ class EmergencyRegistrationController extends Controller
                     'payer_type' => $created->payer_type,
                     'case_type' => $created->case_type,
                     'accident_type' => $created->accident_type,
+                    'queue_date' => $created->queue_date,
                     'queue_number' => $created->queue_number,
                 ],
             );
@@ -304,7 +306,7 @@ class EmergencyRegistrationController extends Controller
             abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
 
             return $created;
-        });
+        }, 3);
 
         return redirect()
             ->route('pendaftaran.igd.index')

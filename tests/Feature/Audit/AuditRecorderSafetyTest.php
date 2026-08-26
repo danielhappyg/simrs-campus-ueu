@@ -55,7 +55,11 @@ class AuditRecorderSafetyTest extends TestCase
             resourceId: 'synthetic-reset',
             outcome: 'SUCCESS',
             reason: 'Bearer synthetic.secret.value',
-            metadata: ['boundary' => 'synthetic_patient_graph', 'evidence_preserved' => true],
+            metadata: [
+                'boundary' => 'synthetic_patient_graph',
+                'evidence_preserved' => true,
+                'queue_counter_high_water_preserved' => true,
+            ],
             includeRequestFingerprint: false,
         );
 
@@ -71,7 +75,11 @@ class AuditRecorderSafetyTest extends TestCase
             resourceId: 'synthetic-reset',
             outcome: 'SUCCESS',
             reason: 'simulation_reset',
-            metadata: ['boundary' => 'synthetic_patient_graph', 'evidence_preserved' => true],
+            metadata: [
+                'boundary' => 'synthetic_patient_graph',
+                'evidence_preserved' => true,
+                'queue_counter_high_water_preserved' => true,
+            ],
             includeRequestFingerprint: false,
         );
 

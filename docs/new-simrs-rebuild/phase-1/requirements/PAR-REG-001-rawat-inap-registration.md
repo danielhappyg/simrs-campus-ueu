@@ -43,6 +43,7 @@ Create or locate a synthetic inpatient and open a coherent admission with payer/
 - Duplicate: discovery — **Unknown**
 - No free bed: behaviour **Unknown** (waitlist Inferred possible only)
 - Cancellation before clinical start: must not destroy audit; bed release rules **Unknown**
+- Decision candidate: the [cross-setting pre-clinical cancellation pack](../CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md) proposes an immutable cancellation, retained placement history, and bed reuse only when no dependent fact exists. It remains **unapproved**.
 - Correction / class change: attributable amendment — Proposed NEW; charge effects **Unknown**
 - External failure: fail closed — Proposed NEW
 
@@ -63,7 +64,7 @@ Create or locate a synthetic inpatient and open a coherent admission with payer/
 2. Non-registrar is denied server-side with audit.
 3. Production BPJS / Aplicares hostnames cannot be called.
 4. Admitted patient appears on ward examination worklist when PAR-CLN-005 is in slice.
-5. Bed double-book and cancellation/correction paths defined before UAT sign-off (presently blocked as Unknown where noted).
+5. Bed double-book and cancellation/correction paths defined before UAT sign-off (presently blocked; proposed cancellation/bed rule is not owner-approved).
 
 ## Open unknowns
 

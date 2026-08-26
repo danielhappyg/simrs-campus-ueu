@@ -103,6 +103,7 @@ class OutpatientFlowTest extends TestCase
             'clinic_schedule_id' => $schedule->id,
             'doctor_name' => $doctor->name,
             'schedule_label' => $schedule->label,
+            'queue_date' => now()->toDateString(),
             'queue_number' => 1,
             'status' => Encounter::STATUS_REGISTERED,
             'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
@@ -112,6 +113,10 @@ class OutpatientFlowTest extends TestCase
             'action' => 'patient.register',
             'resource_type' => 'encounter',
             'outcome' => 'SUCCESS',
+        ]);
+        $this->assertDatabaseHas('daily_queue_counters', [
+            'queue_date' => now()->toDateString(),
+            'last_number' => 1,
         ]);
 
         $this->actingAs($registrar)
@@ -141,6 +146,7 @@ class OutpatientFlowTest extends TestCase
         $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien Sintetis Satu']);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('audit_events', 0);
+        $this->assertDatabaseCount('daily_queue_counters', 0);
     }
 
     public function test_registrar_cannot_save_free_text_ethnicity(): void
@@ -179,6 +185,23 @@ class OutpatientFlowTest extends TestCase
                 ->component('pendaftaran/rawat-jalan')
                 ->has('wilayahProvinces')
                 ->where('canRegister', true));
+    }
+
+    public function test_patient_search_discloses_when_more_than_twenty_matches_exist(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        Patient::factory()->count(21)->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+            'full_name' => 'Pasien Sintetis Pencarian Umum',
+        ]);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rawat-jalan.index', ['q' => 'Pencarian Umum']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('searchResults', 20)
+                ->where('searchResultsTruncated', true));
     }
 
     public function test_inertia_forbidden_pendaftaran_redirects_home_with_flash(): void

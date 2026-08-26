@@ -13,6 +13,8 @@ use App\Support\Clinical\LabTestCatalog;
 use App\Support\Clinical\OutpatientDocumentationDefinition;
 use App\Support\Clinical\OutpatientDocumentationService;
 use App\Support\Clinical\OutpatientLabLifecycle;
+use App\Support\Http\InertiaPagination;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +30,7 @@ class OutpatientExaminationController extends Controller
         private readonly OutpatientDocumentationService $documentationService,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
@@ -62,11 +64,19 @@ class OutpatientExaminationController extends Controller
             }
 
             if ($dateFrom !== '') {
-                $query->whereDate('registered_at', '>=', $dateFrom);
+                $query->where(
+                    'registered_at',
+                    '>=',
+                    CarbonImmutable::parse($dateFrom, config('app.timezone'))->startOfDay(),
+                );
             }
 
             if ($dateTo !== '') {
-                $query->whereDate('registered_at', '<=', $dateTo);
+                $query->where(
+                    'registered_at',
+                    '<',
+                    CarbonImmutable::parse($dateTo, config('app.timezone'))->startOfDay()->addDay(),
+                );
             }
 
             if ($q !== '') {
@@ -77,10 +87,15 @@ class OutpatientExaminationController extends Controller
                 });
             }
 
-            $encounters = $query
+            $encounterPage = $query
                 ->orderBy('registered_at')
-                ->limit(100)
-                ->get()
+                ->orderBy('id')
+                ->paginate(100)
+                ->withQueryString();
+            if ($redirect = InertiaPagination::redirectIfOutOfRange($encounterPage, $request)) {
+                return $redirect;
+            }
+            $encounters = collect($encounterPage->items())
                 ->map(fn (Encounter $encounter): array => [
                     'public_id' => $encounter->public_id,
                     'status' => $encounter->status,
@@ -107,6 +122,9 @@ class OutpatientExaminationController extends Controller
 
         return Inertia::render('pemeriksaan/rawat-jalan/index', [
             'encounters' => $encounters,
+            'pagination' => isset($encounterPage)
+                ? InertiaPagination::from($encounterPage)
+                : null,
             'clinics' => $clinics,
             'filters' => [
                 'q' => $q,

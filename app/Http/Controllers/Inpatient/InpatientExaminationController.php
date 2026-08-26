@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Inpatient;
 use App\Http\Controllers\Controller;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
-use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
+use App\Support\Clinical\LockedClinicalEntryWriter;
 use Database\Seeders\InpatientMastersSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ use Inertia\Response;
 
 class InpatientExaminationController extends Controller
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(private readonly LockedClinicalEntryWriter $clinicalEntryWriter) {}
 
     public function index(Request $request): Response
     {
@@ -146,17 +146,6 @@ class InpatientExaminationController extends Controller
 
     public function storeEntry(Request $request, Encounter $encounter): RedirectResponse
     {
-        abort_unless(
-            $encounter->care_setting === Encounter::CARE_SETTING_INPATIENT,
-            404,
-        );
-
-        abort_if(
-            in_array($encounter->status, [Encounter::STATUS_CLOSED], true),
-            422,
-            'Kunjungan sudah ditutup.',
-        );
-
         $validated = $request->validate([
             'entry_type' => ['required', Rule::in(ClinicalEntry::TYPE_VALUES)],
             'body' => ['required', 'string', 'max:10000'],
@@ -171,34 +160,13 @@ class InpatientExaminationController extends Controller
         $user = $request->user();
         assert($user !== null);
 
-        DB::transaction(function () use ($validated, $encounter, $user): void {
-            ClinicalEntry::query()->create([
-                'encounter_id' => $encounter->id,
-                'author_user_id' => $user->id,
-                'entry_type' => $validated['entry_type'],
-                'body' => $validated['body'],
-            ]);
-
-            if ($validated['entry_type'] === ClinicalEntry::TYPE_MEDICAL_ASSESSMENT) {
-                $encounter->update(['status' => Encounter::STATUS_READY_FOR_RM]);
-            } elseif ($encounter->status === Encounter::STATUS_REGISTERED) {
-                $encounter->update(['status' => Encounter::STATUS_IN_EXAMINATION]);
-            }
-
-            $event = $this->auditRecorder->record(
-                action: 'clinical.note.write',
-                resourceType: 'encounter',
-                resourceId: $encounter->public_id,
-                actor: $user,
-                outcome: 'SUCCESS',
-                metadata: [
-                    'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                    'entry_type' => $validated['entry_type'],
-                ],
-            );
-
-            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
-        });
+        $this->clinicalEntryWriter->write(
+            encounter: $encounter,
+            actor: $user,
+            expectedCareSetting: Encounter::CARE_SETTING_INPATIENT,
+            entryType: $validated['entry_type'],
+            body: $validated['body'],
+        );
 
         return redirect()
             ->route('pemeriksaan.rawat-inap.show', $encounter)

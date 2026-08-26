@@ -1419,12 +1419,16 @@ class ParityGovernanceValidator
   }.freeze
   OWNER_POLICY_KEYS = %w[schema_version policy_id policy_status data_boundary source_revision snapshot_id snapshot_revision snapshot_at prior_snapshot_reference prior_snapshot_sha256 control_root_sha256 manifest_reference manifest_sha256 source_decision_registers authority_capacities authority_roles compatibility_whitelist incompatible_role_pairs separation_rules disposition_rules session_rules session_sequence requirement_policies approval].freeze
   OWNER_SOURCE_REGISTER_KEYS = %w[batch register_id reference sha256 snapshot_id snapshot_revision captured_at cutoff_at content_root_sha256 prior_snapshot_reference prior_snapshot_sha256].freeze
+  OWNER_SNAPSHOT_PLAN_KEYS = %w[schema_version data_boundary policy sources].freeze
+  OWNER_SNAPSHOT_PLAN_POLICY_KEYS = %w[snapshot_id snapshot_revision snapshot_at prior_snapshot_reference prior_snapshot_sha256].freeze
+  OWNER_SNAPSHOT_PLAN_SOURCE_KEYS = %w[batch snapshot_id snapshot_revision captured_at cutoff_at prior_snapshot_reference prior_snapshot_sha256].freeze
+  DEFAULT_OWNER_SNAPSHOT_PLAN_PATH = 'docs/new-simrs-rebuild/phase-0/G0_OWNER_GOVERNANCE_SNAPSHOT_PLAN_2026-08-25.json'
   OWNER_SOURCE_SNAPSHOT_ARTIFACT_KEYS = %w[artifact_type schema_version descriptor register].freeze
   OWNER_SOURCE_SNAPSHOT_ARTIFACT_TYPE = 'g0_owner_source_register_snapshot'
   OWNER_CAPACITY_KEYS = %w[capacity_id description].freeze
   OWNER_ROLE_KEYS = %w[authority_role authority_domain capacity_id].freeze
   OWNER_SEPARATION_RULE_KEYS = %w[rule_id first_role second_role rationale].freeze
-  OWNER_POLICY_SESSION_KEYS = %w[consent_rule unclassified_co_owner_rule minimum_unique_people_ordinary minimum_unique_people_independent recusal_rule parallel_revision_rule post_signature_mutation_rule].freeze
+  OWNER_POLICY_SESSION_KEYS = %w[consent_rule unclassified_co_owner_rule minimum_unique_people_ordinary minimum_unique_people_independent recusal_rule parallel_revision_rule post_signature_mutation_rule chair_authority_role facilitator_authority_role officer_separation_rule].freeze
   OWNER_REQUIREMENT_POLICY_KEYS = %w[requirement_id batch batch_register_id batch_register_sha256 source_row_sha256 accountable_authority_domain required_authority_domains required_special_roles eligible_authority_roles applicable_independent_controls statutory_scope].freeze
   OWNER_POLICY_APPROVAL_KEYS = %w[status identity authority_role date reference artifact_sha256].freeze
   OWNER_POLICY_APPROVAL_ARTIFACT_TYPE = 'g0_owner_authority_policy_approval'
@@ -1454,7 +1458,7 @@ class ParityGovernanceValidator
 
   attr_reader :batch_assignments, :decision_entries, :decision_entries_by_batch, :errors, :rows, :release_rows
 
-  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', batch_f_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json', batch_g_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json', institutional_identity_key_registry_path: 'docs/new-simrs-rebuild/phase-0/G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json', trusted_identity_root_sha256: nil, owner_authority_policy_path: 'docs/new-simrs-rebuild/phase-0/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json', owner_appointment_register_path: 'docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json', decision_session_register_path: 'docs/new-simrs-rebuild/phase-0/G0_DECISION_SESSION_REGISTER_2026-08-25.json', mode: 'integrity')
+  def initialize(matrix_path:, baseline_path:, release_index_path:, batch_manifest_path: 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json', decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json', batch_b_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json', batch_c_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json', batch_d_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json', batch_e_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json', batch_f_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json', batch_g_decision_register_path: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json', institutional_identity_key_registry_path: 'docs/new-simrs-rebuild/phase-0/G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json', trusted_identity_root_sha256: nil, owner_snapshot_plan_path: DEFAULT_OWNER_SNAPSHOT_PLAN_PATH, owner_authority_policy_path: 'docs/new-simrs-rebuild/phase-0/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json', owner_appointment_register_path: 'docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json', decision_session_register_path: 'docs/new-simrs-rebuild/phase-0/G0_DECISION_SESSION_REGISTER_2026-08-25.json', owner_evidence_root_path: nil, mode: 'integrity')
     @matrix_path = File.expand_path(matrix_path)
     @baseline_path = File.expand_path(baseline_path)
     @release_index_path = File.expand_path(release_index_path)
@@ -1473,9 +1477,13 @@ class ParityGovernanceValidator
     end
     @institutional_identity_key_registry_path = File.expand_path(institutional_identity_key_registry_path)
     @trusted_identity_root_sha256 = trusted_identity_root_sha256
+    @owner_snapshot_plan_path = File.expand_path(owner_snapshot_plan_path)
+    @owner_snapshot_plan_loaded = false
+    @owner_snapshot_plan = nil
     @owner_authority_policy_path = File.expand_path(owner_authority_policy_path)
     @owner_appointment_register_path = File.expand_path(owner_appointment_register_path)
     @decision_session_register_path = File.expand_path(decision_session_register_path)
+    @owner_evidence_root_path = owner_evidence_root_path && File.expand_path(owner_evidence_root_path)
     @mode = mode
     @batch_assignments = {}
     @decision_entries = []
@@ -1534,7 +1542,99 @@ class ParityGovernanceValidator
     false
   end
 
+  # Builds deterministic candidate documents in memory. Callers remain responsible
+  # for writing them to an isolated directory and for verifying the emitted bundle.
+  def build_owner_governance_snapshot_candidate
+    @batch_assignments = {}
+    @decision_entries = []
+    @decision_entries_by_batch = {}
+    @decision_register_statuses = {}
+    @errors = []
+    @rows = []
+    @owner_source_snapshots = {}
+    @owner_policy_snapshots = {}
+    @owner_policy_activation_times = {}
+
+    baseline = load_baseline
+    manifest = load_batch_manifest
+    decision_registers = DECISION_REGISTER_CONFIGS.keys.to_h { |batch| [batch, load_decision_register(batch)] }
+    parse_matrix
+    validate_matrix_header
+    validate_matrix_shape_and_cells
+    validate_exact_id_set(baseline)
+    validate_categories_and_prefixes(baseline)
+    validate_batch_manifest(baseline, manifest)
+    decision_registers.each do |batch, register|
+      @decision_entries_by_batch[batch] = validate_decision_register(baseline, manifest, register, batch)
+    end
+    validate_decision_register_consolidation_graph(@decision_entries_by_batch, baseline['expected'])
+    owner_snapshot_plan
+
+    @owner_key_registry_snapshots = {}
+    @owner_key_registry_activation_times = {}
+    @owner_key_registry = load_owner_governance_json(@institutional_identity_key_registry_path, 'institutional identity/key registry')
+    validate_owner_key_registry(@owner_key_registry)
+
+    policy = expected_owner_authority_policy(manifest)
+    @owner_policy = policy
+    validate_owner_authority_policy(policy, manifest)
+    canonical_policy = load_owner_governance_json(@owner_authority_policy_path, 'current canonical owner authority policy')
+    validate_owner_candidate_snapshot_identity_reuse(policy, canonical_policy)
+
+    appointment_register = load_owner_governance_json(@owner_appointment_register_path, 'current canonical owner appointment register')
+    session_register = load_owner_governance_json(@decision_session_register_path, 'current canonical decision session register')
+    errors << 'owner governance snapshot candidate: canonical appointments must be an array' unless appointment_register['appointments'].is_a?(Array)
+    errors << 'owner governance snapshot candidate: canonical lifecycle events must be an array' unless appointment_register['events'].is_a?(Array)
+    errors << 'owner governance snapshot candidate: canonical sessions must be an array' unless session_register['sessions'].is_a?(Array)
+    return nil unless errors.empty?
+
+    policy_bytes = JSON.pretty_generate(policy) + "\n"
+    policy_sha = Digest::SHA256.hexdigest(policy_bytes)
+    appointment_top = expected_owner_appointment_register_top(
+      policy,
+      policy_reference: File.basename(@owner_authority_policy_path),
+      policy_sha256: policy_sha
+    )
+    appointment_candidate = appointment_top.merge(
+      'appointments' => appointment_register['appointments'],
+      'events' => appointment_register['events']
+    )
+    appointment_bytes = JSON.pretty_generate(appointment_candidate) + "\n"
+    appointment_sha = Digest::SHA256.hexdigest(appointment_bytes)
+    session_top = expected_owner_decision_session_register_top(
+      policy,
+      policy_reference: File.basename(@owner_authority_policy_path),
+      policy_sha256: policy_sha,
+      appointment_reference: File.basename(@owner_appointment_register_path),
+      appointment_sha256: appointment_sha
+    )
+    session_candidate = session_top.merge('sessions' => session_register['sessions'])
+    {
+      'policy' => policy,
+      'appointment_register' => appointment_candidate,
+      'decision_session_register' => session_candidate
+    }
+  rescue ArgumentError => e
+    errors << "owner governance snapshot candidate canonicalization failed closed: #{e.message}"
+    nil
+  end
+
   private
+
+  def validate_owner_candidate_snapshot_identity_reuse(candidate, canonical)
+    return unless candidate.is_a?(Hash) && canonical.is_a?(Hash)
+
+    canonical_sources = Array(canonical['source_decision_registers']).to_h do |source|
+      [[source['batch'], source['snapshot_id'], source['snapshot_revision']], source]
+    end
+    Array(candidate['source_decision_registers']).each do |source|
+      prior = canonical_sources[[source['batch'], source['snapshot_id'], source['snapshot_revision']]]
+      next unless prior
+
+      same_bytes = source['sha256'] == prior['sha256'] && source['content_root_sha256'] == prior['content_root_sha256'] && source['register_id'] == prior['register_id']
+      errors << "owner governance snapshot candidate: Batch #{source['batch']} live bytes changed but snapshot identity metadata was reused" unless same_bytes
+    end
+  end
 
   def load_owner_governance_json(path, label)
     unless File.file?(path)
@@ -1888,17 +1988,75 @@ class ParityGovernanceValidator
     valid
   end
 
+  def owner_snapshot_plan
+    return @owner_snapshot_plan if @owner_snapshot_plan_loaded
+
+    @owner_snapshot_plan_loaded = true
+    @owner_snapshot_plan = load_owner_governance_json(@owner_snapshot_plan_path, 'owner governance snapshot plan')
+    plan = @owner_snapshot_plan
+    label = 'owner governance snapshot plan'
+    validate_closed_object(plan, OWNER_SNAPSHOT_PLAN_KEYS, label)
+    return plan unless plan.is_a?(Hash)
+
+    errors << "#{label}: schema_version and data_boundary must be 1 and synthetic_only" unless plan['schema_version'] == 1 && plan['data_boundary'] == 'synthetic_only'
+    policy = plan['policy']
+    validate_closed_object(policy, OWNER_SNAPSHOT_PLAN_POLICY_KEYS, "#{label} policy")
+    validate_owner_snapshot_plan_identity(policy, "#{label} policy") if policy.is_a?(Hash)
+
+    sources = plan['sources']
+    errors << "#{label}: sources must be an exact ordered A-G array" unless sources.is_a?(Array)
+    source_batches = Array(sources).map { |source| source['batch'] if source.is_a?(Hash) }
+    errors << "#{label}: sources must contain each batch exactly once in A-G order" unless source_batches == DECISION_REGISTER_CONFIGS.keys
+    source_ids = []
+    Array(sources).each_with_index do |source, index|
+      source_label = "#{label} sources[#{index}]"
+      validate_closed_object(source, OWNER_SNAPSHOT_PLAN_SOURCE_KEYS, source_label)
+      next unless source.is_a?(Hash)
+
+      validate_owner_snapshot_plan_identity(source, source_label)
+      captured_at = owner_time(source['captured_at'])
+      cutoff_at = owner_time(source['cutoff_at'])
+      errors << "#{source_label}: captured_at and cutoff_at must be explicit ISO-8601 times with cutoff_at at or before captured_at" unless captured_at && cutoff_at && cutoff_at <= captured_at
+      source_ids << source['snapshot_id'] if nonempty_string?(source['snapshot_id'])
+    end
+    duplicates = source_ids.group_by(&:itself).select { |_id, values| values.length > 1 }.keys
+    errors << "#{label}: source snapshot IDs must be globally unique; duplicates #{duplicates.join(', ')}" unless duplicates.empty?
+    policy_time = policy.is_a?(Hash) ? owner_time(policy['snapshot_at']) : nil
+    causal = policy_time && Array(sources).all? do |source|
+      source.is_a?(Hash) && owner_time(source['captured_at']) && owner_time(source['cutoff_at']) && owner_time(source['captured_at']) <= policy_time && owner_time(source['cutoff_at']) <= policy_time
+    end
+    errors << "#{label}: no source capture or cutoff may be later than the policy snapshot_at" unless causal
+    errors << "#{label}: must not contain credentials, secrets, private keys or recovery material" if owner_contains_secret?(plan)
+    plan
+  end
+
+  def validate_owner_snapshot_plan_identity(value, label)
+    revision = value['snapshot_revision']
+    time_key = value.key?('snapshot_at') ? 'snapshot_at' : 'captured_at'
+    base_valid = nonempty_string?(value['snapshot_id']) && revision.is_a?(Integer) && revision.positive? && iso_datetime?(value[time_key])
+    chain_valid = if revision == 1
+                    value['prior_snapshot_reference'].nil? && value['prior_snapshot_sha256'].nil?
+                  elsif revision.is_a?(Integer) && revision > 1
+                    nonempty_string?(value['prior_snapshot_reference']) && value['prior_snapshot_sha256'].to_s.match?(/\A[0-9a-f]{64}\z/)
+                  else
+                    false
+                  end
+    errors << "#{label}: snapshot identity, revision, explicit time or linear predecessor shape is invalid" unless base_valid && chain_valid
+  end
+
   def owner_source_registers
+    source_plans = Array(owner_snapshot_plan['sources'])
     DECISION_REGISTER_CONFIGS.keys.map do |batch|
       path = @decision_register_paths.fetch(batch)
       register = owner_parse_json(File.read(path))
+      source_plan = source_plans.find { |item| item.is_a?(Hash) && item['batch'] == batch } || {}
       descriptor = {
         'batch' => batch, 'register_id' => register['register_id'],
         'reference' => File.basename(path), 'sha256' => Digest::SHA256.file(path).hexdigest,
-        'snapshot_id' => "G0-BATCH-#{batch}-SOURCE-SNAPSHOT-1", 'snapshot_revision' => 1,
-        'captured_at' => '2026-08-25T00:00:00Z', 'cutoff_at' => '2026-08-25T00:00:00Z',
+        'snapshot_id' => source_plan['snapshot_id'], 'snapshot_revision' => source_plan['snapshot_revision'],
+        'captured_at' => source_plan['captured_at'], 'cutoff_at' => source_plan['cutoff_at'],
         'content_root_sha256' => Digest::SHA256.hexdigest(owner_canonical_json(register)),
-        'prior_snapshot_reference' => nil, 'prior_snapshot_sha256' => nil
+        'prior_snapshot_reference' => source_plan['prior_snapshot_reference'], 'prior_snapshot_sha256' => source_plan['prior_snapshot_sha256']
       }
       owner_register_source_snapshot(descriptor, register)
       descriptor
@@ -1958,8 +2116,13 @@ class ParityGovernanceValidator
     prior_descriptor = artifact['descriptor'] || {}
     prior_register = artifact['register']
     validate_closed_object(prior_descriptor, OWNER_SOURCE_REGISTER_KEYS, "#{label} prior source snapshot descriptor")
-    exact_prior = artifact['artifact_type'] == OWNER_SOURCE_SNAPSHOT_ARTIFACT_TYPE && artifact['schema_version'] == OWNER_POLICY_SCHEMA_VERSION && prior_register.is_a?(Hash) && prior_descriptor['batch'] == batch && prior_descriptor['snapshot_revision'] == descriptor['snapshot_revision'] - 1 && prior_descriptor['register_id'] == prior_register['register_id'] && prior_descriptor['content_root_sha256'] == Digest::SHA256.hexdigest(owner_canonical_json(prior_register))
+    prior_captured_at = owner_time(prior_descriptor['captured_at'])
+    prior_cutoff_at = owner_time(prior_descriptor['cutoff_at'])
+    content_advanced = descriptor['sha256'] != prior_descriptor['sha256'] && descriptor['content_root_sha256'] != prior_descriptor['content_root_sha256']
+    exact_prior = artifact['artifact_type'] == OWNER_SOURCE_SNAPSHOT_ARTIFACT_TYPE && artifact['schema_version'] == OWNER_POLICY_SCHEMA_VERSION && prior_register.is_a?(Hash) && prior_descriptor['batch'] == batch && prior_descriptor['snapshot_revision'] == descriptor['snapshot_revision'] - 1 && prior_descriptor['snapshot_id'] != descriptor['snapshot_id'] && prior_descriptor['register_id'] == prior_register['register_id'] && prior_descriptor['sha256'].to_s.match?(/\A[0-9a-f]{64}\z/) && prior_descriptor['content_root_sha256'] == Digest::SHA256.hexdigest(owner_canonical_json(prior_register)) && content_advanced && prior_captured_at && prior_cutoff_at && captured_at && cutoff_at && captured_at > prior_captured_at && cutoff_at > prior_cutoff_at
     errors << "#{label}: prior source artifact must contain the exact immediately preceding immutable register snapshot" unless exact_prior
+    errors << "#{label}: advanced source snapshot ID must be new and both captured_at and cutoff_at must strictly increase" unless prior_descriptor['snapshot_id'] != descriptor['snapshot_id'] && prior_captured_at && prior_cutoff_at && captured_at && cutoff_at && captured_at > prior_captured_at && cutoff_at > prior_cutoff_at
+    errors << "#{label}: advancing source identity/revision/time requires both raw SHA-256 and canonical content root to change" unless content_advanced
     if exact_prior
       owner_register_source_snapshot(prior_descriptor, prior_register)
       validate_owner_source_snapshot_descriptor(prior_descriptor, "#{label} prior source snapshot", current: false, visited: [*visited, reference])
@@ -1997,7 +2160,10 @@ class ParityGovernanceValidator
       'minimum_unique_people_independent' => 3,
       'recusal_rule' => 'recusal_leaves_required_seat_vacant',
       'parallel_revision_rule' => 'one_linear_prior_decision_digest_chain',
-      'post_signature_mutation_rule' => 'canonical_payload_digest_mismatch_fails_closed'
+      'post_signature_mutation_rule' => 'canonical_payload_digest_mismatch_fails_closed',
+      'chair_authority_role' => 'product_delivery',
+      'facilitator_authority_role' => 'operations',
+      'officer_separation_rule' => 'distinct_appointment_and_identity'
     }
   end
 
@@ -2086,17 +2252,19 @@ class ParityGovernanceValidator
   end
 
   def expected_owner_authority_policy(manifest)
+    snapshot_plan = owner_snapshot_plan
+    policy_plan = snapshot_plan['policy'].is_a?(Hash) ? snapshot_plan['policy'] : {}
     policy = {
       'schema_version' => OWNER_POLICY_SCHEMA_VERSION,
       'policy_id' => OWNER_POLICY_ID,
       'policy_status' => 'proposal',
       'data_boundary' => 'synthetic_only',
       'source_revision' => OWNER_SOURCE_REVISION,
-      'snapshot_id' => 'G0-OWNER-AUTHORITY-POLICY-SNAPSHOT-1',
-      'snapshot_revision' => 1,
-      'snapshot_at' => '2026-08-25T00:00:00Z',
-      'prior_snapshot_reference' => nil,
-      'prior_snapshot_sha256' => nil,
+      'snapshot_id' => policy_plan['snapshot_id'],
+      'snapshot_revision' => policy_plan['snapshot_revision'],
+      'snapshot_at' => policy_plan['snapshot_at'],
+      'prior_snapshot_reference' => policy_plan['prior_snapshot_reference'],
+      'prior_snapshot_sha256' => policy_plan['prior_snapshot_sha256'],
       'control_root_sha256' => nil,
       'manifest_reference' => File.basename(@batch_manifest_path),
       'manifest_sha256' => Digest::SHA256.file(@batch_manifest_path).hexdigest,
@@ -2120,7 +2288,7 @@ class ParityGovernanceValidator
   end
 
   def owner_policy_control_payload(policy)
-    policy.reject { |key, _value| %w[policy_status approval control_root_sha256].include?(key) }
+    policy.to_h.reject { |key, _value| %w[policy_status approval control_root_sha256].include?(key) }
   end
 
   def owner_register_policy_snapshot(policy, activation_at = nil)
@@ -2157,11 +2325,15 @@ class ParityGovernanceValidator
       errors << "#{label}: corrected snapshot must preserve immutable authority vocabularies, separation and session rules" unless policy.slice(*immutable_catalog_keys) == expected.slice(*immutable_catalog_keys)
       validate_owner_corrected_requirement_policies(policy, expected, label)
     end
+    plan_bound_keys = %w[snapshot_id snapshot_revision snapshot_at prior_snapshot_reference prior_snapshot_sha256 source_decision_registers]
+    errors << "#{label}: snapshot identity, predecessor and exact ordered A-G source descriptors must bind the explicit snapshot plan" unless policy.slice(*plan_bound_keys) == expected.slice(*plan_bound_keys)
     recomputed_control_root = Digest::SHA256.hexdigest(owner_canonical_json(owner_policy_control_payload(policy)))
     errors << "#{label}: control_root_sha256 must bind the exact immutable policy snapshot" unless policy['control_root_sha256'] == recomputed_control_root
     snapshot_chain_valid = policy['snapshot_revision'].is_a?(Integer) && policy['snapshot_revision'].positive? && iso_datetime?(policy['snapshot_at']) && ((policy['snapshot_revision'] == 1 && policy['prior_snapshot_reference'].nil? && policy['prior_snapshot_sha256'].nil?) || (policy['snapshot_revision'] > 1 && nonempty_string?(policy['prior_snapshot_reference']) && policy['prior_snapshot_sha256'].to_s.match?(/\A[0-9a-f]{64}\z/)))
     errors << "#{label}: snapshot ID/revision/time and linear predecessor binding are invalid" unless nonempty_string?(policy['snapshot_id']) && snapshot_chain_valid
-    errors << "#{label}: every correction after snapshot revision 1 requires cryptographic executive approval" if policy['snapshot_revision'].to_i > 1 && policy['policy_status'] != 'approved'
+    if @mode == 'g0' && policy['snapshot_revision'].to_i > 1 && policy['policy_status'] != 'approved'
+      errors << "#{label}: a correction proposal keeps G0 open until cryptographic executive approval is recorded"
+    end
     Array(policy['source_decision_registers']).each_with_index { |item, index| validate_owner_source_snapshot_descriptor(item, "#{label} source_decision_registers[#{index}]") }
     validate_owner_prior_policy_chain(policy, label, expected)
     validate_owner_policy_source_row_bindings(policy, label)
@@ -2235,10 +2407,13 @@ class ParityGovernanceValidator
     return unless previous.is_a?(Hash)
 
     prior_root = Digest::SHA256.hexdigest(owner_canonical_json(owner_policy_control_payload(previous)))
-    chain_valid = previous['policy_id'] == OWNER_POLICY_ID && previous['schema_version'] == OWNER_POLICY_SCHEMA_VERSION && previous['policy_status'] == 'approved' && previous['data_boundary'] == 'synthetic_only' && previous['source_revision'] == OWNER_SOURCE_REVISION && previous['snapshot_revision'] == revision - 1 && nonempty_string?(previous['snapshot_id']) && iso_datetime?(previous['snapshot_at']) && previous['control_root_sha256'] == prior_root
+    prior_time = owner_time(previous['snapshot_at'])
+    current_time = owner_time(policy['snapshot_at'])
+    chain_valid = previous['policy_id'] == OWNER_POLICY_ID && previous['schema_version'] == OWNER_POLICY_SCHEMA_VERSION && previous['policy_status'] == 'approved' && previous['data_boundary'] == 'synthetic_only' && previous['source_revision'] == OWNER_SOURCE_REVISION && previous['snapshot_revision'] == revision - 1 && nonempty_string?(previous['snapshot_id']) && previous['snapshot_id'] != policy['snapshot_id'] && prior_time && current_time && current_time > prior_time && previous['control_root_sha256'] == prior_root
     predecessor_valid = (previous['snapshot_revision'] == 1 && previous['prior_snapshot_reference'].nil? && previous['prior_snapshot_sha256'].nil?) || (previous['snapshot_revision'].to_i > 1 && nonempty_string?(previous['prior_snapshot_reference']) && previous['prior_snapshot_sha256'].to_s.match?(/\A[0-9a-f]{64}\z/))
     exact = chain_valid && predecessor_valid
     errors << "#{prior_label}: must be the exact immediately preceding immutable policy snapshot" unless exact
+    errors << "#{prior_label}: current policy snapshot ID must be new and snapshot_at must strictly increase" unless nonempty_string?(previous['snapshot_id']) && previous['snapshot_id'] != policy['snapshot_id'] && prior_time && current_time && current_time > prior_time
     errors << "#{prior_label}: historical policy must be approved with a fully verified sponsor/reviewer contract before it can authorize an old session" unless previous['policy_status'] == 'approved'
     immutable_catalog_keys = %w[schema_version policy_id data_boundary source_revision manifest_reference manifest_sha256 authority_capacities authority_roles compatibility_whitelist incompatible_role_pairs separation_rules disposition_rules session_rules session_sequence]
     errors << "#{prior_label}: historical policy must preserve immutable authority vocabularies, separation and session rules" unless previous.slice(*immutable_catalog_keys) == expected.slice(*immutable_catalog_keys)
@@ -2272,9 +2447,9 @@ class ParityGovernanceValidator
     control_sha = policy['control_root_sha256']
     errors << "#{label}: artifact must bind the exact frozen policy control, sponsor and recorded approval" unless artifact['artifact_type'] == OWNER_POLICY_APPROVAL_ARTIFACT_TYPE && artifact['schema_version'] == OWNER_POLICY_SCHEMA_VERSION && artifact['policy_id'] == OWNER_POLICY_ID && artifact['policy_control_sha256'] == control_sha && artifact['identity'] == approval['identity'] && artifact['authority_role'] == 'executive_sponsor' && artifact['date'] == approval['date'] && nonempty_string?(artifact['mandate_reference'])
     signature_metadata_keys = %w[signature_artifact_type key_id algorithm purpose signed_at semantic_payload_sha256 identity_registry_id identity_registry_snapshot_id identity_registry_snapshot_revision identity_registry_snapshot_sha256 identity_registry_root_sha256 signature reviewer]
-    approval_payload = artifact.reject { |key, _value| signature_metadata_keys.include?(key) }
+    approval_payload = artifact.to_h.reject { |key, _value| signature_metadata_keys.include?(key) }
     approval_bytes = owner_canonical_json(approval_payload)
-    signature_record = artifact.slice('signature_artifact_type', 'key_id', 'algorithm', 'purpose', 'signed_at', 'semantic_payload_sha256', *OWNER_SIGNATURE_REGISTRY_BINDING_KEYS, 'signature').merge('signer_institutional_id' => artifact['identity'])
+    signature_record = artifact.to_h.slice('signature_artifact_type', 'key_id', 'algorithm', 'purpose', 'signed_at', 'semantic_payload_sha256', *OWNER_SIGNATURE_REGISTRY_BINDING_KEYS, 'signature').merge('signer_institutional_id' => artifact['identity'])
     owner_verify_detached_signature(signature_record, artifact['identity'], approval_bytes, 'policy_approval', artifact['signed_at'], "#{label} artifact", required_authorization: 'executive_sponsor')
     reviewer = artifact['reviewer'] || {}
     errors << "#{label}: independent reviewer must differ from sponsor, evidence author and implementer" unless owner_identity_id?(reviewer['reviewer_institutional_id']) && reviewer['reviewer_institutional_id'] != approval['identity'] && reviewer['reviewer_institutional_id'] != reviewer['evidence_author_institutional_id'] && reviewer['reviewer_institutional_id'] != reviewer['implementer_institutional_id']
@@ -2295,9 +2470,15 @@ class ParityGovernanceValidator
     @owner_key_registry && @owner_key_registry['registry_status'] == 'active' && @trusted_identity_root_sha256.to_s.match?(/\A[0-9a-f]{64}\z/) && @trusted_identity_root_sha256 == root_sha
   end
 
+  def owner_evidence_root
+    return @owner_evidence_root_path if @owner_evidence_root_path
+
+    File.join(File.realpath(File.dirname(@owner_authority_policy_path)), OWNER_EVIDENCE_DIRECTORY)
+  end
+
   def load_owner_evidence_artifact(reference, expected_sha, label)
-    phase_directory = File.realpath(File.dirname(@owner_authority_policy_path))
-    evidence_root = File.join(phase_directory, OWNER_EVIDENCE_DIRECTORY)
+    evidence_root = owner_evidence_root
+    phase_directory = File.dirname(evidence_root)
     path = File.expand_path(reference.to_s, phase_directory)
     allowed_prefix = "#{evidence_root}#{File::SEPARATOR}"
     unless path.start_with?(allowed_prefix) && File.extname(path).casecmp?('.json') && File.file?(path) && File.lstat(path).file?
@@ -2335,17 +2516,19 @@ class ParityGovernanceValidator
     owner_source_registers.to_h { |item| [item['batch'], item['sha256']] }
   end
 
-  def expected_owner_appointment_register_top
+  def expected_owner_appointment_register_top(policy = nil, policy_reference: File.basename(@owner_authority_policy_path), policy_sha256: owner_policy_sha256)
+    policy ||= load_owner_governance_json(@owner_authority_policy_path, 'owner authority policy header source')
+    policy_sources = policy.is_a?(Hash) && policy['source_decision_registers'].is_a?(Array) ? policy['source_decision_registers'] : []
     {
       'schema_version' => OWNER_POLICY_SCHEMA_VERSION,
       'register_id' => OWNER_APPOINTMENT_REGISTER_ID,
       'register_status' => 'open',
       'data_boundary' => 'synthetic_only',
-      'policy_reference' => File.basename(@owner_authority_policy_path),
-      'policy_sha256' => owner_policy_sha256,
+      'policy_reference' => policy_reference,
+      'policy_sha256' => policy_sha256,
       'manifest_reference' => File.basename(@batch_manifest_path),
       'manifest_sha256' => owner_manifest_sha256,
-      'source_decision_registers' => owner_source_registers,
+      'source_decision_registers' => policy_sources,
       'evidence_directory' => OWNER_EVIDENCE_DIRECTORY
     }
   end
@@ -2359,7 +2542,7 @@ class ParityGovernanceValidator
     expected_top.each { |key, value| errors << "#{label}: #{key} must bind the current closed owner policy/manifest/A-G registers" unless register[key] == value }
     errors << "#{label}: appointments must be an array" unless register['appointments'].is_a?(Array)
     errors << "#{label}: events must be an array" unless register['events'].is_a?(Array)
-    evidence_root = File.expand_path(OWNER_EVIDENCE_DIRECTORY, File.dirname(@owner_appointment_register_path))
+    evidence_root = owner_evidence_root
     errors << "#{label}: evidence_directory must exist as a regular directory" unless File.directory?(evidence_root) && File.lstat(evidence_root).directory?
     errors << "#{label}: must not contain credentials, secrets or private keys" if owner_contains_secret?(register)
 
@@ -2529,7 +2712,7 @@ class ParityGovernanceValidator
         normalized_key = key.to_s.downcase.gsub(/[^a-z0-9]+/, '_').sub(/\A_+/, '').sub(/_+\z/, '')
         prohibited_names = %w[
           password passphrase token session_token bearer authorization cookie session_secret
-          api_key access_token refresh_token private_key private_key_pem recovery_code recovery_material
+          api_key access_token refresh_token client_secret private_key private_key_pem recovery_code recovery_material
           signing_key signing_secret signing_material hmac_key hmac_secret hmac_material
           credential credentials secret secret_material
         ]
@@ -2735,19 +2918,48 @@ class ParityGovernanceValidator
     parent && owner_appointment_state_at(parent, events, timestamp) == 'active'
   end
 
-  def expected_owner_decision_session_register_top
+  def owner_appointment_continuously_covers?(appointment, requirement_ids, role, started_at, ended_at, events = [], appointments = [], visited = [])
+    return false unless appointment.is_a?(Hash) && started_at && ended_at && ended_at > started_at
+    return false unless appointment['authority_role'] == role
+    return false unless (Array(requirement_ids) - Array(appointment.dig('scope', 'requirement_ids'))).empty?
+
+    effective_at = owner_time(appointment['effective_at'])
+    expires_at = owner_time(appointment['expires_at'])
+    return false unless effective_at && expires_at && effective_at <= started_at && expires_at >= ended_at
+    return false unless owner_appointment_state_at(appointment, events, started_at) == 'active'
+
+    interrupted = Array(events).any? do |event|
+      next false unless event.is_a?(Hash) && event['appointment_id'] == appointment['appointment_id'] && %w[suspended revoked].include?(event['event_type'])
+
+      event_time = owner_time(event['effective_at'])
+      event_time && event_time >= started_at && event_time < ended_at
+    end
+    return false if interrupted
+
+    parent_id = appointment.dig('delegation', 'parent_appointment_id')
+    return true unless nonempty_string?(parent_id)
+    return false if visited.include?(appointment['appointment_id'])
+
+    parent = Array(appointments).find { |candidate| candidate.is_a?(Hash) && candidate['appointment_id'] == parent_id }
+    parent && owner_appointment_continuously_covers?(parent, requirement_ids, parent['authority_role'], started_at, ended_at, events, appointments, [*visited, appointment['appointment_id']])
+  end
+
+  def expected_owner_decision_session_register_top(policy = nil, policy_reference: File.basename(@owner_authority_policy_path), policy_sha256: owner_policy_sha256, appointment_reference: File.basename(@owner_appointment_register_path), appointment_sha256: nil)
+    policy ||= load_owner_governance_json(@owner_authority_policy_path, 'owner authority policy header source')
+    policy_sources = policy.is_a?(Hash) && policy['source_decision_registers'].is_a?(Array) ? policy['source_decision_registers'] : []
+    bound_appointment_sha = appointment_sha256 || (File.file?(@owner_appointment_register_path) ? Digest::SHA256.file(@owner_appointment_register_path).hexdigest : nil)
     {
       'schema_version' => OWNER_POLICY_SCHEMA_VERSION,
       'register_id' => OWNER_DECISION_SESSION_REGISTER_ID,
       'register_status' => 'open',
       'data_boundary' => 'synthetic_only',
-      'policy_reference' => File.basename(@owner_authority_policy_path),
-      'policy_sha256' => owner_policy_sha256,
-      'appointment_register_reference' => File.basename(@owner_appointment_register_path),
-      'appointment_register_sha256' => File.file?(@owner_appointment_register_path) ? Digest::SHA256.file(@owner_appointment_register_path).hexdigest : nil,
+      'policy_reference' => policy_reference,
+      'policy_sha256' => policy_sha256,
+      'appointment_register_reference' => appointment_reference,
+      'appointment_register_sha256' => bound_appointment_sha,
       'manifest_reference' => File.basename(@batch_manifest_path),
       'manifest_sha256' => owner_manifest_sha256,
-      'source_decision_registers' => owner_source_registers
+      'source_decision_registers' => policy_sources
     }
   end
 
@@ -2838,10 +3050,36 @@ class ParityGovernanceValidator
     by_id = appointments.to_h { |appointment| [appointment['appointment_id'], appointment] }
     snapshot_events = events.first(session['appointment_event_prefix_count'].to_i)
     snapshot_appointment_ids = appointments.first(session['appointment_snapshot_count'].to_i).map { |appointment| appointment['appointment_id'] }
-    [session['chair_appointment_id'], session['facilitator_appointment_id']].each do |appointment_id|
+    chair_appointment_id = session['chair_appointment_id']
+    facilitator_appointment_id = session['facilitator_appointment_id']
+    chair_appointment = by_id[chair_appointment_id]
+    facilitator_appointment = by_id[facilitator_appointment_id]
+    session_rules = bound_policy.is_a?(Hash) ? bound_policy['session_rules'] : {}
+    chair_role = session_rules['chair_authority_role']
+    facilitator_role = session_rules['facilitator_authority_role']
+    officer_separation_rule = session_rules['officer_separation_rule']
+    chair_domain = OWNER_ROLE_DOMAIN_MAP[chair_role]
+    facilitator_domain = OWNER_ROLE_DOMAIN_MAP[facilitator_role]
+    distinct_appointments = nonempty_string?(chair_appointment_id) && nonempty_string?(facilitator_appointment_id) && chair_appointment_id != facilitator_appointment_id
+    errors << "#{label}: chair and facilitator must use different non-empty appointment IDs under the bound policy" unless officer_separation_rule == 'distinct_appointment_and_identity' && distinct_appointments
+    errors << "#{label}: chair appointment must exist with the role/domain required by the bound policy (#{chair_role || 'missing'})" unless chair_appointment && nonempty_string?(chair_role) && chair_appointment['authority_role'] == chair_role && chair_appointment['authority_domain'] == chair_domain
+    errors << "#{label}: facilitator appointment must exist with the role/domain required by the bound policy (#{facilitator_role || 'missing'})" unless facilitator_appointment && nonempty_string?(facilitator_role) && facilitator_appointment['authority_role'] == facilitator_role && facilitator_appointment['authority_domain'] == facilitator_domain
+    chair_subject_id = chair_appointment&.dig('subject', 'institutional_id')
+    facilitator_subject_id = facilitator_appointment&.dig('subject', 'institutional_id')
+    distinct_subjects = nonempty_string?(chair_subject_id) && nonempty_string?(facilitator_subject_id) && chair_subject_id != facilitator_subject_id
+    errors << "#{label}: chair and facilitator must bind different non-empty institutional subject IDs under the bound policy" unless officer_separation_rule == 'distinct_appointment_and_identity' && distinct_subjects
+    session_requirement_ids = Array(session['decisions']).each_with_object([]) do |decision, requirement_ids|
+      requirement_ids << decision['requirement_id'] if decision.is_a?(Hash) && nonempty_string?(decision['requirement_id'])
+    end.uniq
+    { 'chair' => [chair_appointment, chair_role], 'facilitator' => [facilitator_appointment, facilitator_role] }.each do |officer, (appointment, role)|
+      covers_session = owner_appointment_continuously_covers?(appointment, session_requirement_ids, role, started, ended, events, appointments)
+      errors << "#{label}: #{officer} appointment must cover every requirement ID decided in the session and remain continuously active throughout the session" unless covers_session
+    end
+    [chair_appointment_id, facilitator_appointment_id].each do |appointment_id|
       appointment = by_id[appointment_id]
       bound_to_session = appointment && appointment['policy_sha256'] == session['policy_sha256'] && appointment['source_register_sha256s'] == session['source_register_sha256s']
-      errors << "#{label}: chair/facilitator appointments must bind the session snapshots, be signed into the prefix and remain active" unless bound_to_session && snapshot_appointment_ids.include?(appointment_id) && started && ended && owner_appointment_state_at(appointment, snapshot_events, started) == 'active' && owner_appointment_state_at(appointment, snapshot_events, ended - 0.001) == 'active'
+      continuously_active = appointment && owner_appointment_continuously_covers?(appointment, session_requirement_ids, appointment['authority_role'], started, ended, events, appointments)
+      errors << "#{label}: chair/facilitator appointments must bind the session snapshots, be signed into the prefix and remain continuously active" unless bound_to_session && snapshot_appointment_ids.include?(appointment_id) && continuously_active
     end
     Array(session['decisions']).each_with_index do |decision, decision_index|
       validate_owner_session_decision(decision, decision_index, session, appointments, snapshot_events, bound_policy || policy, prior_by_requirement, revision_by_requirement, latest_by_requirement)
@@ -4136,7 +4374,7 @@ class ParityGovernanceValidator
     errors << "#{label} identity must be a non-placeholder string" unless nonempty_string?(artifact['identity']) && !artifact['identity'].match?(PLACEHOLDER_OWNER_PATTERN)
     errors << "#{label} date must be YYYY-MM-DD" unless iso_date?(artifact['date'])
 
-      if gate['batch'] == 'G'
+    if gate['batch'] == 'G'
       expected_authority = BATCH_F_GATE_AUTHORITIES.fetch('G')
       errors << "#{label} authority_domain must be #{expected_authority}" unless artifact['authority_domain'] == expected_authority
       entry = @decision_entries.find { |candidate| candidate['requirement_id'] == requirement_id && candidate['batch'] == 'F' }
@@ -7369,9 +7607,11 @@ if $PROGRAM_NAME == __FILE__
     batch_g_decision_register: 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json',
     institutional_identity_key_registry: 'docs/new-simrs-rebuild/phase-0/G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json',
     trusted_identity_root_sha256: nil,
+    owner_snapshot_plan: ParityGovernanceValidator::DEFAULT_OWNER_SNAPSHOT_PLAN_PATH,
     owner_authority_policy: 'docs/new-simrs-rebuild/phase-0/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json',
     owner_appointment_register: 'docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json',
     decision_session_register: 'docs/new-simrs-rebuild/phase-0/G0_DECISION_SESSION_REGISTER_2026-08-25.json',
+    owner_evidence_root: nil,
     release_index: 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
   }
 
@@ -7390,9 +7630,11 @@ if $PROGRAM_NAME == __FILE__
     opts.on('--batch-g-decision-register PATH', 'Batch G G0 decision register JSON path') { |value| options[:batch_g_decision_register] = value }
     opts.on('--institutional-identity-key-registry PATH', 'institutional identity and public-key registry JSON path') { |value| options[:institutional_identity_key_registry] = value }
     opts.on('--trusted-identity-root-sha256 SHA', 'independently supplied institutional trust-root SHA-256') { |value| options[:trusted_identity_root_sha256] = value }
+    opts.on('--owner-snapshot-plan PATH', 'closed owner-governance snapshot-plan JSON path') { |value| options[:owner_snapshot_plan] = value }
     opts.on('--owner-authority-policy PATH', 'closed owner authority policy JSON path') { |value| options[:owner_authority_policy] = value }
     opts.on('--owner-appointment-register PATH', 'owner appointment register JSON path') { |value| options[:owner_appointment_register] = value }
     opts.on('--decision-session-register PATH', 'owner decision session register JSON path') { |value| options[:decision_session_register] = value }
+    opts.on('--owner-evidence-root PATH', 'authoritative owner evidence directory path') { |value| options[:owner_evidence_root] = value }
     opts.on('--release-index PATH', 'release evidence index Markdown path') { |value| options[:release_index] = value }
   end
 
@@ -7417,9 +7659,11 @@ if $PROGRAM_NAME == __FILE__
     batch_g_decision_register_path: options[:batch_g_decision_register],
     institutional_identity_key_registry_path: options[:institutional_identity_key_registry],
     trusted_identity_root_sha256: options[:trusted_identity_root_sha256],
+    owner_snapshot_plan_path: options[:owner_snapshot_plan],
     owner_authority_policy_path: options[:owner_authority_policy],
     owner_appointment_register_path: options[:owner_appointment_register],
     decision_session_register_path: options[:decision_session_register],
+    owner_evidence_root_path: options[:owner_evidence_root],
     release_index_path: options[:release_index],
     mode: options[:mode]
   )

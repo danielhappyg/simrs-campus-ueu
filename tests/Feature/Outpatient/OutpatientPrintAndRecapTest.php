@@ -171,8 +171,183 @@ class OutpatientPrintAndRecapTest extends TestCase
 
         $csv->assertOk();
         $csv->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $csv->assertSee('Walk-in', false);
-        $csv->assertDontSee('RGN-ONLINE-1', false);
+        $csvContent = $csv->streamedContent();
+        $this->assertStringContainsString('Walk-in', $csvContent);
+        $this->assertStringNotContainsString('RGN-ONLINE-1', $csvContent);
+    }
+
+    public function test_recap_totals_pages_and_csv_cover_the_complete_filtered_result(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+            'medical_record_number' => 'SYNTH-RECAP-501',
+            'full_name' => 'Pasien Rekap Sintetis',
+        ]);
+
+        Encounter::factory()->count(501)->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+            'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            'registered_at' => now(),
+        ]);
+
+        $filters = [
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ];
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', $filters))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 500)
+                ->where('pagination.current_page', 1)
+                ->where('pagination.last_page', 2)
+                ->where('pagination.total', 501)
+                ->where('pagination.from', 1)
+                ->where('pagination.to', 500)
+                ->where('totals.all', 501)
+                ->where('totals.online', 0)
+                ->where('totals.walk_in', 501));
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [...$filters, 'page' => 2]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('rows', 1)
+                ->where('pagination.current_page', 2)
+                ->where('pagination.from', 501)
+                ->where('pagination.to', 501)
+                ->where('totals.all', 501));
+
+        $csv = $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [...$filters, 'format' => 'csv', 'page' => 2]));
+        $csv->assertOk();
+        $lines = array_values(array_filter(explode("\n", trim($csv->streamedContent()))));
+        $this->assertCount(502, $lines, 'CSV must contain its header and all 501 filtered rows, independent of screen page.');
+    }
+
+    public function test_recap_csv_neutralizes_spreadsheet_formula_prefixes(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+            'medical_record_number' => '+SYNTH-FORMULA',
+            'full_name' => '=HYPERLINK("https://example.invalid")',
+        ]);
+        Encounter::factory()->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+            'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            'registered_at' => now(),
+        ]);
+        $whitespacePatient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+            'medical_record_number' => ' @SUM(1,1)',
+            'full_name' => "\n=SUM(1,1)",
+        ]);
+        Encounter::factory()->create([
+            'patient_id' => $whitespacePatient->id,
+            'registered_by_user_id' => $registrar->id,
+            'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            'registered_at' => now(),
+        ]);
+
+        $csv = $this->actingAs($registrar)->get(route('pendaftaran.rekap', [
+            'format' => 'csv',
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ]));
+        $content = $csv->streamedContent();
+
+        $this->assertStringContainsString("'+SYNTH-FORMULA", $content);
+        $this->assertStringContainsString("'=HYPERLINK", $content);
+        $this->assertStringContainsString("' @SUM(1,1)", $content);
+        $this->assertStringContainsString("'\n=SUM(1,1)", $content);
+        $this->assertStringNotContainsString(',+SYNTH-FORMULA', $content);
+        $this->assertStringNotContainsString(',=HYPERLINK', $content);
+    }
+
+    public function test_recap_csv_refuses_missing_dates(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap').'?format=csv&date_from=&date_to=&care_setting=ALL')
+            ->assertRedirect(route('pendaftaran.rekap', [
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+                'care_setting' => 'ALL',
+            ]))
+            ->assertSessionHas('error', 'Tanggal awal dan akhir yang valid wajib dipilih untuk ekspor CSV.');
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'format' => 'csv',
+                'date_from' => 'invalid',
+                'date_to' => now()->toDateString(),
+            ]))
+            ->assertRedirect(route('pendaftaran.rekap', [
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+                'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            ]))
+            ->assertSessionHas('error', 'Tanggal awal dan akhir yang valid wajib dipilih untuk ekspor CSV.');
+    }
+
+    public function test_recap_screen_recovers_invalid_dates_before_querying(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'date_from' => 'not-a-date',
+                'date_to' => now()->toDateString(),
+            ]))
+            ->assertRedirect(route('pendaftaran.rekap', [
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+                'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            ]))
+            ->assertSessionHas('error', 'Tanggal filter tidak valid. Rentang dikembalikan ke hari ini.');
+    }
+
+    public function test_recap_csv_refuses_overlong_date_range(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'format' => 'csv',
+                'date_from' => now()->subDays(31)->toDateString(),
+                'date_to' => now()->toDateString(),
+                'care_setting' => 'ALL',
+            ]))
+            ->assertRedirect(route('pendaftaran.rekap', [
+                'date_from' => now()->subDays(31)->toDateString(),
+                'date_to' => now()->toDateString(),
+                'care_setting' => 'ALL',
+            ]))
+            ->assertSessionHas('error', 'Ekspor CSV sinkron sementara dibatasi maksimal 31 hari. Persempit rentang tanggal.');
+    }
+
+    public function test_recap_csv_allows_the_provisional_thirty_one_day_boundary(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $response = $this->actingAs($registrar)->get(route('pendaftaran.rekap', [
+            'format' => 'csv',
+            'date_from' => now()->subDays(30)->toDateString(),
+            'date_to' => now()->toDateString(),
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
     }
 
     public function test_user_without_encounter_list_cannot_open_rekap(): void

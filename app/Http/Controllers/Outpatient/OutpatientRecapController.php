@@ -6,16 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Encounter;
 use App\Support\Authorization\Capability;
+use App\Support\Http\InertiaPagination;
 use App\Support\TeachingVocabulary;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OutpatientRecapController extends Controller
 {
-    public function index(Request $request): Response|HttpResponse
+    private const CSV_MAX_RANGE_DAYS = 31;
+
+    public function index(Request $request): Response|StreamedResponse|RedirectResponse
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
@@ -25,6 +32,43 @@ class OutpatientRecapController extends Controller
         $payer = trim((string) $request->query('payer', ''));
         $origin = trim((string) $request->query('origin', ''));
         $careSetting = trim((string) $request->query('care_setting', Encounter::CARE_SETTING_OUTPATIENT));
+        $isCsv = $request->query('format') === 'csv';
+
+        if ($isCsv) {
+            $csvDateFrom = trim((string) $request->query->get('date_from', ''));
+            $csvDateTo = trim((string) $request->query->get('date_to', ''));
+            $csvValidation = Validator::make([
+                'date_from' => $csvDateFrom,
+                'date_to' => $csvDateTo,
+            ], [
+                'date_from' => ['required', 'date_format:Y-m-d'],
+                'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            ]);
+
+            if ($csvValidation->fails()) {
+                return $this->rejectCsvExport($request, 'Tanggal awal dan akhir yang valid wajib dipilih untuk ekspor CSV.');
+            }
+
+            $rangeDays = CarbonImmutable::parse($csvDateFrom)->startOfDay()
+                ->diffInDays(CarbonImmutable::parse($csvDateTo)->startOfDay()) + 1;
+            if ($rangeDays > self::CSV_MAX_RANGE_DAYS) {
+                return $this->rejectCsvExport(
+                    $request,
+                    'Ekspor CSV sinkron sementara dibatasi maksimal 31 hari. Persempit rentang tanggal.',
+                );
+            }
+        }
+
+        $dateValidation = Validator::make([
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ], [
+            'date_from' => ['required', 'date_format:Y-m-d'],
+            'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+        ]);
+        if ($dateValidation->fails()) {
+            return $this->rejectCsvExport($request, 'Tanggal filter tidak valid. Rentang dikembalikan ke hari ini.');
+        }
 
         $query = Encounter::query()
             ->syntheticOnly()
@@ -35,11 +79,19 @@ class OutpatientRecapController extends Controller
         }
 
         if ($dateFrom !== '') {
-            $query->whereDate('registered_at', '>=', $dateFrom);
+            $query->where(
+                'registered_at',
+                '>=',
+                CarbonImmutable::parse($dateFrom, config('app.timezone'))->startOfDay(),
+            );
         }
 
         if ($dateTo !== '') {
-            $query->whereDate('registered_at', '<=', $dateTo);
+            $query->where(
+                'registered_at',
+                '<',
+                CarbonImmutable::parse($dateTo, config('app.timezone'))->startOfDay()->addDay(),
+            );
         }
 
         if ($clinic !== '') {
@@ -58,44 +110,27 @@ class OutpatientRecapController extends Controller
             });
         }
 
-        $rows = $query
-            ->orderByDesc('registered_at')
-            ->limit(500)
-            ->get();
-
-        $summaries = array_values($rows->map(function (Encounter $encounter): array {
-            $origin = filled($encounter->booking_code) ? 'ONLINE' : 'WALK_IN';
-
-            return [
-                'public_id' => $encounter->public_id,
-                'registered_at' => $encounter->registered_at->toIso8601String(),
-                'visit_date' => $encounter->visit_date?->toDateString(),
-                'queue_number' => $encounter->queue_number,
-                'care_setting' => $encounter->care_setting,
-                'care_setting_label' => TeachingVocabulary::label(TeachingVocabulary::CARE_SETTING, $encounter->care_setting),
-                'clinic_name' => $encounter->clinic_name,
-                'doctor_name' => $encounter->doctor_name,
-                'payer_type' => $encounter->payer_type,
-                'payer_label' => TeachingVocabulary::label(TeachingVocabulary::PAYER, $encounter->payer_type),
-                'booking_code' => $encounter->booking_code,
-                'origin' => $origin,
-                'origin_label' => TeachingVocabulary::label(TeachingVocabulary::ORIGIN, $origin),
-                'status' => $encounter->status,
-                'patient' => [
-                    'medical_record_number' => $encounter->patient?->medical_record_number,
-                    'full_name' => $encounter->patient?->full_name,
-                ],
-            ];
-        })->all());
-
-        if ($request->query('format') === 'csv') {
-            $csv = $this->toCsv($summaries);
-
-            return response($csv, 200, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="rekap-pendaftaran.csv"',
-            ]);
+        if ($isCsv) {
+            return $this->csvResponse($query);
         }
+
+        $onlineTotal = (clone $query)
+            ->whereNotNull('booking_code')
+            ->where('booking_code', '!=', '')
+            ->count();
+
+        $page = $query
+            ->orderByDesc('registered_at')
+            ->orderByDesc('id')
+            ->paginate(500)
+            ->withQueryString();
+        if ($redirect = InertiaPagination::redirectIfOutOfRange($page, $request)) {
+            return $redirect;
+        }
+        $summaries = collect($page->items())
+            ->map(fn (Encounter $encounter): array => $this->encounterSummary($encounter))
+            ->values()
+            ->all();
 
         $clinics = Clinic::query()
             ->where('is_active', true)
@@ -115,10 +150,11 @@ class OutpatientRecapController extends Controller
                 'care_setting' => $careSetting,
             ],
             'rows' => $summaries,
+            'pagination' => InertiaPagination::from($page),
             'totals' => [
-                'all' => $rows->count(),
-                'online' => $rows->filter(fn (Encounter $encounter): bool => filled($encounter->booking_code))->count(),
-                'walk_in' => $rows->filter(fn (Encounter $encounter): bool => ! filled($encounter->booking_code))->count(),
+                'all' => $page->total(),
+                'online' => $onlineTotal,
+                'walk_in' => $page->total() - $onlineTotal,
             ],
             'clinicOptions' => $clinics,
             'payerOptions' => TeachingVocabulary::options(TeachingVocabulary::PAYER),
@@ -126,34 +162,118 @@ class OutpatientRecapController extends Controller
     }
 
     /**
-     * @param  list<array<string, mixed>>  $rows
+     * @return array<string, mixed>
      */
-    private function toCsv(array $rows): string
+    private function encounterSummary(Encounter $encounter): array
     {
-        $handle = fopen('php://temp', 'r+');
-        assert($handle !== false);
-        fputcsv($handle, ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status']);
+        $origin = filled($encounter->booking_code) ? 'ONLINE' : 'WALK_IN';
 
-        foreach ($rows as $row) {
-            $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
-            fputcsv($handle, [
-                (string) $row['registered_at'],
-                (string) ($row['queue_number'] ?? ''),
-                (string) ($patient['medical_record_number'] ?? ''),
-                (string) ($patient['full_name'] ?? ''),
-                (string) ($row['origin_label'] ?? $row['origin']),
-                (string) ($row['booking_code'] ?? ''),
-                (string) $row['clinic_name'],
-                (string) ($row['doctor_name'] ?? ''),
-                (string) ($row['payer_label'] ?? $row['payer_type']),
-                (string) $row['status'],
-            ]);
+        return [
+            'public_id' => $encounter->public_id,
+            'registered_at' => $encounter->registered_at->toIso8601String(),
+            'visit_date' => $encounter->visit_date?->toDateString(),
+            'queue_number' => $encounter->queue_number,
+            'care_setting' => $encounter->care_setting,
+            'care_setting_label' => TeachingVocabulary::label(TeachingVocabulary::CARE_SETTING, $encounter->care_setting),
+            'clinic_name' => $encounter->clinic_name,
+            'doctor_name' => $encounter->doctor_name,
+            'payer_type' => $encounter->payer_type,
+            'payer_label' => TeachingVocabulary::label(TeachingVocabulary::PAYER, $encounter->payer_type),
+            'booking_code' => $encounter->booking_code,
+            'origin' => $origin,
+            'origin_label' => TeachingVocabulary::label(TeachingVocabulary::ORIGIN, $origin),
+            'status' => $encounter->status,
+            'patient' => [
+                'medical_record_number' => $encounter->patient?->medical_record_number,
+                'full_name' => $encounter->patient?->full_name,
+            ],
+        ];
+    }
+
+    /**
+     * @param  Builder<Encounter>  $query
+     */
+    private function csvResponse(Builder $query): StreamedResponse
+    {
+        $maximumId = (clone $query)->max('id');
+        $exportCutoffId = $maximumId === null ? null : (int) $maximumId;
+
+        return response()->streamDownload(function () use ($query, $exportCutoffId): void {
+            $handle = fopen('php://output', 'wb');
+            assert($handle !== false);
+            fputcsv($handle, ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status']);
+
+            if ($exportCutoffId === null) {
+                fclose($handle);
+
+                return;
+            }
+
+            $encounters = $query
+                ->where('id', '<=', $exportCutoffId)
+                ->lazyByIdDesc(500);
+
+            foreach ($encounters as $encounter) {
+                $row = $this->encounterSummary($encounter);
+                $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
+                fputcsv($handle, array_map($this->spreadsheetSafe(...), [
+                    $row['registered_at'],
+                    $row['queue_number'] ?? '',
+                    $patient['medical_record_number'] ?? '',
+                    $patient['full_name'] ?? '',
+                    $row['origin_label'] ?? $row['origin'],
+                    $row['booking_code'] ?? '',
+                    $row['clinic_name'],
+                    $row['doctor_name'] ?? '',
+                    $row['payer_label'] ?? $row['payer_type'],
+                    $row['status'],
+                ]));
+            }
+
+            fclose($handle);
+        }, 'rekap-pendaftaran.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    private function spreadsheetSafe(mixed $value): string
+    {
+        $text = (string) $value;
+
+        if (preg_match('/^(?:[=+\-@]|[\t\r\n]|[[:space:]]+[=+\-@])/u', $text) === 1) {
+            return "'".$text;
         }
 
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        return $text;
+    }
 
-        return $csv === false ? '' : $csv;
+    private function rejectCsvExport(Request $request, string $message): RedirectResponse
+    {
+        $requestedDateFrom = trim((string) $request->query->get('date_from', ''));
+        $requestedDateTo = trim((string) $request->query->get('date_to', ''));
+        $dateValidation = Validator::make([
+            'date_from' => $requestedDateFrom,
+            'date_to' => $requestedDateTo,
+        ], [
+            'date_from' => ['required', 'date_format:Y-m-d'],
+            'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+        ]);
+        if ($dateValidation->fails()) {
+            $requestedDateFrom = now()->toDateString();
+            $requestedDateTo = now()->toDateString();
+        }
+
+        $query = array_filter([
+            'date_from' => $requestedDateFrom,
+            'date_to' => $requestedDateTo,
+            'clinic' => trim((string) $request->query('clinic', '')),
+            'payer' => trim((string) $request->query('payer', '')),
+            'origin' => trim((string) $request->query('origin', '')),
+            'care_setting' => trim((string) $request->query('care_setting', Encounter::CARE_SETTING_OUTPATIENT)),
+        ], fn (string $value): bool => $value !== '');
+
+        return redirect()
+            ->route('pendaftaran.rekap', $query)
+            ->with('error', $message);
     }
 }

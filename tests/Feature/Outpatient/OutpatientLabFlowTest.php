@@ -139,6 +139,49 @@ class OutpatientLabFlowTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_result_entry_returns_to_the_filtered_worklist_page(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+        ]);
+        $encounter = Encounter::factory()->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+            'status' => Encounter::STATUS_IN_EXAMINATION,
+        ]);
+        $orders = LabServiceRequest::factory()->count(101)->create([
+            'encounter_id' => $encounter->id,
+            'requested_by_user_id' => $physician->id,
+            'status' => LabServiceRequest::STATUS_ACTIVE,
+            'test_code' => 'HB',
+            'test_label' => 'Hemoglobin',
+        ]);
+        $order = $orders->last();
+        $this->assertInstanceOf(LabServiceRequest::class, $order);
+
+        $this->actingAs($nurse)
+            ->followingRedirects()
+            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
+                'result_text' => 'Hasil sintetis final.',
+                'status' => LabDiagnosticResult::STATUS_FINAL,
+                'q' => 'Hemoglobin',
+                'page' => 2,
+            ])
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('pemeriksaan/laboratorium/index')
+                ->has('orders', 100)
+                ->where('filters.q', 'Hemoglobin')
+                ->where('flash.success', 'Hasil lab disimpan.')
+                ->where('pagination.current_page', 1)
+                ->where('pagination.last_page', 1)
+                ->where('pagination.total', 100));
+    }
+
     private function userWithRole(string $roleSlug): User
     {
         $user = User::factory()->create();
