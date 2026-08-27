@@ -173,8 +173,8 @@ class ProductionPromotionReadinessPreflightContractTest < Minitest::Test
     assert_equal 'docs/operations/T1_PRODUCTION_PROMOTION_READINESS_PREFLIGHT_2026-08-27.sql',
                  @result.fetch('query_path')
     assert_equal Digest::SHA256.file(SQL_PATH).hexdigest, @result.fetch('query_sha256')
-    assert_equal 'LOCAL_UNCOMMITTED_NOT_DEPLOYABLE', @result.fetch('candidate_state')
-    assert_nil @result.fetch('candidate_application_sha')
+    assert_equal 'EXACT_COMMITTED_RELEASE_CANDIDATE', @result.fetch('candidate_state')
+    assert_match(/\A[a-f0-9]{40}\z/, @result.fetch('candidate_application_sha'))
     assert_match(/\A[0-9a-f]{40}\z/, @result.fetch('base_application_sha'))
     assert_match(/\A[0-9a-f]{40}\z/, @result.fetch('public_production_sha'))
     assert_match(/\A2026-08-27T\d{2}:\d{2}:\d{2}\.\d{6}Z\z/, @result.fetch('captured_at_utc'))
