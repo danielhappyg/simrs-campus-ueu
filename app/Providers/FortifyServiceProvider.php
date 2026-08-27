@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Actions\Fortify\ResetUserPassword;
 use App\Models\User;
+use App\Support\Authorization\TeachingRoleAccessLeaseGuard;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -14,6 +18,9 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\Passkey;
+use Laravel\Passkeys\Passkeys;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -54,13 +61,71 @@ class FortifyServiceProvider extends ServiceProvider
                 ->where('email', Str::lower((string) $request->input('email')))
                 ->first();
 
-            if (! $user || $user->status !== 'ACTIVE' || ! Hash::check((string) $request->input('password'), $user->password)) {
+            if (! $user || ! Hash::check((string) $request->input('password'), $user->password)) {
+                return null;
+            }
+
+            $leaseGuard = app(TeachingRoleAccessLeaseGuard::class);
+
+            if ($leaseGuard->isRosterAccount($user)) {
+                // Teaching-role credentials are short-lived operational leases.
+                // They must never create a persistent remember-me credential.
+                $request->merge(['remember' => false]);
+
+                if (! $leaseGuard->allowsPassword(
+                    $user,
+                    (string) $request->input('password'),
+                    $request->getHost(),
+                )) {
+                    return null;
+                }
+            } elseif ($user->status !== 'ACTIVE') {
                 return null;
             }
 
             $user->forceFill(['last_login_at' => now()])->save();
 
             return $user;
+        });
+
+        Passkeys::authorizeLoginUsing(function (Request $request, PasskeyUser $user, Passkey $passkey): bool {
+            return ! $user instanceof User
+                || ! app(TeachingRoleAccessLeaseGuard::class)->isRosterAccount($user);
+        });
+
+        Event::listen(Login::class, function (Login $event): void {
+            if (! $event->user instanceof User) {
+                return;
+            }
+
+            $leaseGuard = app(TeachingRoleAccessLeaseGuard::class);
+
+            if (! $leaseGuard->isRosterAccount($event->user)) {
+                return;
+            }
+
+            $fresh = $event->user->fresh();
+            $request = app()->bound('request') ? request() : null;
+
+            if (! $fresh instanceof User
+                || ! $leaseGuard->allows($fresh, $request?->getHost())
+                || ! $request instanceof Request
+                || ! $request->hasSession()) {
+                if ($request instanceof Request && $request->hasSession()) {
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                }
+
+                throw new AuthenticationException(
+                    'Teaching-role access lease is not valid.',
+                    [$event->guard],
+                );
+            }
+
+            $request->session()->put([
+                TeachingRoleAccessLeaseGuard::SESSION_EPOCH_KEY => (int) $fresh->teaching_access_epoch,
+                TeachingRoleAccessLeaseGuard::SESSION_LEASE_KEY => (string) $fresh->teaching_access_lease_public_id,
+            ]);
         });
     }
 

@@ -1,0 +1,80 @@
+{
+  "artifact_type": "production_promotion_readiness_predecessor_result",
+  "schema_version": 2,
+  "project_ref": "xbmsfvstcpngizcplqyg",
+  "query_path": "docs/operations/T1_PRODUCTION_PROMOTION_READINESS_PREFLIGHT_2026-08-27.sql",
+  "query_sha256": "a70ff74908a6eac5bf04f5313f38f5abf0f8985b9cd56d91cfdfdae77a1a6d4c",
+  "candidate_state": "LOCAL_UNCOMMITTED_NOT_DEPLOYABLE",
+  "candidate_application_sha": null,
+  "base_application_sha": "b3f9eb48d195fa1b2be02170b2dbd33eee20ae76",
+  "public_production_sha": "42ab482de577fe38cef539a74f0b749d64485b19",
+  "captured_at_utc": "2026-08-27T05:26:52.049385Z",
+  "status": "PRE_MIGRATION_CONTRACT_MATCH",
+  "promotion_authorized": false,
+  "supersedes_result_path": "docs/operations/T1_PRODUCTION_PROMOTION_READINESS_RESULT_B3F9EB48_2026-08-27.json",
+  "superseded_result_sha256": "b13b63dad8ae782546ee963adbe73fc8ff83fa457cd4c7e3ba6ea4b1a760038a",
+  "facts": {
+    "postgres_17": true,
+    "exact_predecessor_ledger": true,
+    "all_candidate_migrations_pending": true,
+    "exact_audit_columns": true,
+    "exact_audit_indexes": true,
+    "exact_audit_foreign_key": true,
+    "exact_marital_status": true,
+    "exact_sequence_predecessor": true,
+    "exact_teaching_role_access_predecessor": true,
+    "candidate_physical_state_absent": true,
+    "synthetic_only": true,
+    "all_encounters_have_registration_time": true,
+    "data_api_roles_denied": true
+  },
+  "candidate_migrations": [
+    "2026_08_21_000100_create_rebuild_foundation_tables",
+    "2026_08_22_000800_add_patient_marital_status",
+    "2026_08_22_001000_qualify_laravel_serial_sequence_defaults",
+    "2026_08_25_000100_create_break_glass_record_tables",
+    "2026_08_25_000200_create_security_ledger_tables",
+    "2026_08_25_000300_expand_audit_actor_attribution",
+    "2026_08_26_000100_add_operational_worklist_indexes",
+    "2026_08_26_000200_create_daily_queue_allocator",
+    "2026_08_27_000100_create_teaching_role_access_leases"
+  ],
+  "data_api_role_privileges": [
+    {
+      "role_name": "anon",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    },
+    {
+      "role_name": "authenticated",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    },
+    {
+      "role_name": "authenticator",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    },
+    {
+      "role_name": "service_role",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    }
+  ]
+}

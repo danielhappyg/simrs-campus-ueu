@@ -14,6 +14,8 @@ final class AuditActorAttribution
 
     public const REBUILD_ADMIN_SERVICE = 'rebuild-admin-role-reconciler';
 
+    public const TEACHING_ROLE_ACCESS_SERVICE = 'teaching-role-access-manager';
+
     /**
      * @return array{actor_user_id: int|null, actor_type: string, actor_reference: string}
      */
@@ -75,6 +77,9 @@ final class AuditActorAttribution
         return match ($action) {
             'teaching.reset.started', 'teaching.reset.completed' => self::SYNTHETIC_RESET_SERVICE,
             'authorization.rebuild_admin.reconciled' => self::REBUILD_ADMIN_SERVICE,
+            'authorization.teaching_role.activated',
+            'authorization.teaching_role.revoked',
+            'authorization.teaching_role.compensated' => self::TEACHING_ROLE_ACCESS_SERVICE,
             default => throw new InvalidAuditEvent('Audit event requires a persisted user actor.'),
         };
     }

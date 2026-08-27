@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureCapability;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ProtectTeachingRoleAuthenticationPaths;
 use App\Support\Http\RequestCorrelation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
@@ -43,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             prepend: [AssignRequestCorrelationId::class],
             append: [
                 AuditAuthorizationDenial::class,
+                ProtectTeachingRoleAuthenticationPaths::class,
                 HandleInertiaRequests::class,
                 AddLinkHeadersForPreloadedAssets::class,
             ],

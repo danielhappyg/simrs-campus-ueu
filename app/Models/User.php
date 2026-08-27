@@ -16,6 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -33,6 +34,11 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
  * @property string|null $remember_token
+ * @property int $teaching_access_epoch
+ * @property int $teaching_access_mutex
+ * @property string|null $teaching_access_roster_key
+ * @property string|null $teaching_access_lease_public_id
+ * @property int|null $teaching_access_expires_at_epoch
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -156,8 +162,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
             return $this->resolvedRoleSlugs = $slugs;
         } catch (\Throwable $exception) {
-            report($exception);
-            error_log('[simrs] roleSlugs failed for user '.$this->getKey().': '.$exception->getMessage());
+            Log::error('Role resolution failed closed.', [
+                'user_id' => $this->getKey(),
+                'exception_class' => $exception::class,
+                'failure_fingerprint' => hash('sha256', $exception::class."\0".$exception->getMessage()),
+            ]);
 
             return $this->resolvedRoleSlugs = [];
         }
@@ -176,6 +185,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'is_system_administrator' => 'boolean',
             'last_login_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
+            'teaching_access_epoch' => 'integer',
+            'teaching_access_mutex' => 'integer',
+            'teaching_access_expires_at_epoch' => 'integer',
         ];
     }
 }

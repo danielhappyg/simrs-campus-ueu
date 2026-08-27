@@ -1,0 +1,100 @@
+{
+  "artifact_type": "hosted_structured_rj_rm_uat_template",
+  "schema_version": 1,
+  "template_only": true,
+  "run_id": null,
+  "execution_status": "BLOCKED_ACCESS_LIFECYCLE_NOT_DEPLOYED",
+  "current_reference_captured_at_asia_jakarta": "2026-08-27T11:17:24+07:00",
+  "environment": "https://simrs-campus-ueu-demo.vercel.app",
+  "production_deployment_id": "dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q",
+  "production_source_sha": "42ab482de577fe38cef539a74f0b749d64485b19",
+  "approved_candidate_sha": null,
+  "execution_window_asia_jakarta": null,
+  "browser": null,
+  "synthetic_only": true,
+  "live_integrations_used": false,
+  "credentials_recorded": false,
+  "promotion_authorized": false,
+  "access_lifecycle": {
+    "command_deployed": false,
+    "one_account_at_a_time": true,
+    "release_bound": true,
+    "environment_bound": true,
+    "deployment_bound": true,
+    "canonical_host_bound": true,
+    "request_host_enforced": true,
+    "maximum_ttl_minutes": 30,
+    "unique_access_value_per_window": true,
+    "final_active_account_count": null,
+    "final_session_count": null,
+    "final_authentication_artifact_count": null
+  },
+  "accounts": [
+    {
+      "role": "registrar",
+      "account": "registrar.demo@example.invalid",
+      "activation_audit_id": null,
+      "revocation_audit_id": null,
+      "final_status": null,
+      "final_authentication_artifact_count": null
+    },
+    {
+      "role": "nurse",
+      "account": "nurse.demo@example.invalid",
+      "activation_audit_id": null,
+      "revocation_audit_id": null,
+      "final_status": null,
+      "final_authentication_artifact_count": null
+    },
+    {
+      "role": "physician",
+      "account": "physician.demo@example.invalid",
+      "activation_audit_id": null,
+      "revocation_audit_id": null,
+      "final_status": null,
+      "final_authentication_artifact_count": null
+    },
+    {
+      "role": "rmik",
+      "account": "rmik.demo@example.invalid",
+      "activation_audit_id": null,
+      "revocation_audit_id": null,
+      "final_status": null,
+      "final_authentication_artifact_count": null
+    }
+  ],
+  "journey": {
+    "registration": "NOT_RUN",
+    "wrong_role_denial": "NOT_RUN",
+    "nursing_draft_final": "NOT_RUN",
+    "medical_draft_final": "NOT_RUN",
+    "rmik_review_signoff": "NOT_RUN",
+    "closed_read_only_retrieval": "NOT_RUN"
+  },
+  "observed_counts": {
+    "document_heads": null,
+    "document_versions": null,
+    "reviews": null,
+    "checklist_items": null,
+    "active_lab_orders": null,
+    "denial_mutation_delta": null
+  },
+  "expected_counts": {
+    "document_heads": 2,
+    "document_versions": 4,
+    "reviews": 2,
+    "checklist_items": 14,
+    "active_lab_orders": 0,
+    "denial_mutation_delta": 0
+  },
+  "encounter_status_sequence": [
+    "REGISTERED",
+    "IN_EXAMINATION",
+    "READY_FOR_RM",
+    "CLOSED"
+  ],
+  "owner_acceptance": {
+    "clinical": "OPEN",
+    "rmik": "OPEN"
+  }
+}

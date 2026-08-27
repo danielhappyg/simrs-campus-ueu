@@ -7,6 +7,7 @@ use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\OutpatientClinicalDocument;
 use App\Models\OutpatientRmCompletenessReview;
+use App\Models\User;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use App\Support\Clinical\LabTestCatalog;
 
@@ -43,6 +44,18 @@ final class AuditEventSchemaRegistry
         switch ($tuple) {
             case 'authorization.rebuild_admin.reconciled|SUCCESS|user':
                 $this->assertRebuildAdminReconciled($resourceId, $actorPresent, $reason, $metadata);
+
+                return;
+            case 'authorization.teaching_role.activated|SUCCESS|user':
+                $this->assertTeachingRoleLifecycle($resourceId, $actorPresent, $reason, $metadata, activated: true);
+
+                return;
+            case 'authorization.teaching_role.revoked|SUCCESS|user':
+                $this->assertTeachingRoleLifecycle($resourceId, $actorPresent, $reason, $metadata, activated: false);
+
+                return;
+            case 'authorization.teaching_role.compensated|SUCCESS|user':
+                $this->assertTeachingRoleLifecycle($resourceId, $actorPresent, $reason, $metadata, activated: false);
 
                 return;
             case 'teaching.reset.started|SUCCESS|simulation':
@@ -192,6 +205,168 @@ final class AuditEventSchemaRegistry
         if ($metadata['note'] !== 'is_system_administrator remains true; the system-admin capability bypass remains active.') {
             throw new InvalidAuditEvent('Audit metadata.note does not match the registered containment note.');
         }
+    }
+
+    /** @param array<string, mixed> $metadata */
+    private function assertTeachingRoleLifecycle(
+        ?string $resourceId,
+        bool $actorPresent,
+        ?string $reason,
+        array $metadata,
+        bool $activated,
+    ): void {
+        if ($actorPresent) {
+            throw new InvalidAuditEvent('Teaching-role lifecycle attribution must use its bounded operator field.');
+        }
+
+        $this->assertPublicId($resourceId, 'resource_id');
+        $this->assertText($reason, 'reason', 8, 240);
+        $this->assertExactKeys($metadata, [
+            'target_email',
+            'expected_role',
+            'operator',
+            'reason',
+            'environment',
+            'release_sha',
+            'deployment_url',
+            'canonical_host',
+            'lease_public_id',
+            'expires_at',
+            'access_epoch',
+            'activation_commitment',
+            'login_state_commitment',
+            'before',
+            'after',
+            'revoked',
+            'login_material_rotated',
+            'idempotent',
+        ]);
+
+        $roleByEmail = [
+            'registrar.demo@example.invalid' => RoleCapabilityMatrix::ROLE_REGISTRAR,
+            'nurse.demo@example.invalid' => RoleCapabilityMatrix::ROLE_NURSE,
+            'physician.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHYSICIAN,
+            'rmik.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RMIK,
+        ];
+        $targetEmail = $metadata['target_email'] ?? null;
+        if (! is_string($targetEmail)
+            || ! array_key_exists($targetEmail, $roleByEmail)
+            || ($metadata['expected_role'] ?? null) !== $roleByEmail[$targetEmail]) {
+            throw new InvalidAuditEvent('Teaching-role audit target is not an exact registered email and role pair.');
+        }
+
+        $target = User::query()
+            ->where(function ($query) use ($targetEmail, $roleByEmail): void {
+                $query->where('email', $targetEmail)
+                    ->orWhere('teaching_access_roster_key', $roleByEmail[$targetEmail]);
+            })
+            ->where('public_id', $resourceId)
+            ->first();
+        if (! $target instanceof User || $target->public_id !== $resourceId) {
+            throw new InvalidAuditEvent('Teaching-role audit resource ID does not match its registered target account.');
+        }
+
+        $this->assertText($metadata['operator'], 'metadata.operator', 3, 120);
+        $this->assertText($metadata['reason'], 'metadata.reason', 8, 240);
+        if ($metadata['reason'] !== $reason) {
+            throw new InvalidAuditEvent('Teaching-role audit metadata.reason must match the top-level reason.');
+        }
+
+        if (! is_string($metadata['environment'])
+            || preg_match('/\A[a-z0-9][a-z0-9._-]{2,63}\z/', $metadata['environment']) !== 1) {
+            throw new InvalidAuditEvent('Teaching-role audit environment is invalid.');
+        }
+        if (! is_string($metadata['release_sha'])
+            || preg_match('/\A[a-f0-9]{40}\z/', $metadata['release_sha']) !== 1) {
+            throw new InvalidAuditEvent('Teaching-role audit release SHA is invalid.');
+        }
+        foreach (['deployment_url', 'canonical_host'] as $key) {
+            if (! is_string($metadata[$key])
+                || preg_match('/\A[a-z0-9][a-z0-9.-]{2,253}\z/', $metadata[$key]) !== 1) {
+                throw new InvalidAuditEvent('Teaching-role audit deployment binding is invalid.');
+            }
+        }
+        $this->assertNonNegativeInt($metadata['access_epoch'], 'metadata.access_epoch');
+        if ($metadata['access_epoch'] < 1) {
+            throw new InvalidAuditEvent('Teaching-role audit access epoch must be positive.');
+        }
+        foreach (['activation_commitment', 'login_state_commitment'] as $key) {
+            $value = $metadata[$key];
+            if ($value !== null && (! is_string($value) || preg_match('/\A[a-f0-9]{64}\z/', $value) !== 1)) {
+                throw new InvalidAuditEvent('Teaching-role audit commitment is invalid.');
+            }
+        }
+        if (! is_string($metadata['login_state_commitment'])) {
+            throw new InvalidAuditEvent('Teaching-role audit login-state commitment is required.');
+        }
+        foreach (['lease_public_id', 'expires_at'] as $key) {
+            if ($metadata[$key] !== null && ! is_string($metadata[$key])) {
+                throw new InvalidAuditEvent('Teaching-role audit lease binding is invalid.');
+            }
+        }
+        if ($activated) {
+            $this->assertPublicId($metadata['lease_public_id'], 'metadata.lease_public_id');
+            $this->assertText($metadata['expires_at'], 'metadata.expires_at', 20, 40);
+            if (! is_string($metadata['activation_commitment'])) {
+                throw new InvalidAuditEvent('Teaching-role activation requires its one-way activation commitment.');
+            }
+        } elseif ($metadata['activation_commitment'] !== null) {
+            throw new InvalidAuditEvent('Teaching-role closure cannot carry an activation commitment.');
+        }
+
+        $before = $this->assertTeachingRoleState($metadata['before'], 'metadata.before');
+        $after = $this->assertTeachingRoleState($metadata['after'], 'metadata.after');
+        $revoked = $this->assertMap($metadata['revoked'], 'metadata.revoked');
+        $this->assertExactKeys($revoked, ['sessions', 'passkeys', 'reset_records']);
+        foreach (['sessions', 'passkeys', 'reset_records'] as $key) {
+            $this->assertNonNegativeInt($revoked[$key], 'metadata.revoked.'.$key);
+        }
+
+        $this->assertBool($metadata['login_material_rotated'], 'metadata.login_material_rotated');
+        $this->assertBool($metadata['idempotent'], 'metadata.idempotent');
+        if ($metadata['idempotent'] === $metadata['login_material_rotated']) {
+            throw new InvalidAuditEvent('Teaching-role audit idempotency and login-material rotation flags are inconsistent.');
+        }
+
+        $expectedStatus = $activated ? 'TEACHING_ACTIVE' : 'DISABLED';
+        $expectedVerified = $activated;
+        if ($after['status'] !== $expectedStatus
+            || $after['verified'] !== $expectedVerified
+            || $after['remember_present'] !== false
+            || $after['mfa_present'] !== false
+            || $after['sessions'] !== 0
+            || $after['passkeys'] !== 0
+            || $after['reset_records'] !== 0) {
+            throw new InvalidAuditEvent('Teaching-role audit after state is not the registered closed lifecycle state.');
+        }
+
+        if ($metadata['idempotent'] === true && $before !== $after) {
+            throw new InvalidAuditEvent('Idempotent teaching-role audit events require identical before and after states.');
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function assertTeachingRoleState(mixed $value, string $path): array
+    {
+        $state = $this->assertMap($value, $path);
+        $this->assertExactKeys($state, [
+            'status',
+            'verified',
+            'remember_present',
+            'mfa_present',
+            'sessions',
+            'passkeys',
+            'reset_records',
+        ]);
+        $this->assertStatus($state['status'], $path.'.status');
+        foreach (['verified', 'remember_present', 'mfa_present'] as $key) {
+            $this->assertBool($state[$key], $path.'.'.$key);
+        }
+        foreach (['sessions', 'passkeys', 'reset_records'] as $key) {
+            $this->assertNonNegativeInt($state[$key], $path.'.'.$key);
+        }
+
+        return $state;
     }
 
     /** @param array<string, mixed> $metadata */

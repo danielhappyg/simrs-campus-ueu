@@ -1,0 +1,12 @@
+{
+  "artifact_type": "superseded_production_preflight_evidence_manifest",
+  "schema_version": 1,
+  "base_application_sha": "b3f9eb48d195fa1b2be02170b2dbd33eee20ae76",
+  "status": "SUPERSEDED_HISTORICAL_EVIDENCE_ONLY",
+  "promotion_authorized": false,
+  "result_path": "docs/operations/T1_PRODUCTION_PROMOTION_READINESS_RESULT_B3F9EB48_2026-08-27.json",
+  "result_sha256": "b13b63dad8ae782546ee963adbe73fc8ff83fa457cd4c7e3ba6ea4b1a760038a",
+  "preserved_query_path": "docs/operations/T1_PRODUCTION_PROMOTION_READINESS_PREFLIGHT_B3F9EB48_2026-08-27.sql",
+  "preserved_query_sha256": "dd353b49b50e4e1325843a8cf70c68373d2bd36f7aad4f26e005b674bb0300a5",
+  "embedded_query_path_note": "The immutable historical result predates preservation of its SQL under a SHA-specific filename. Use preserved_query_path for byte-reproducible verification; do not use the mutable current query path embedded in the historical result."
+}

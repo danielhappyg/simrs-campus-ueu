@@ -48,6 +48,15 @@ jobs:
       - name: Validate parity governance integrity
         run: ruby scripts/validate-parity-governance.rb --mode integrity
 
+      - name: Test Production promotion readiness preflight contract
+        run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
+
+      - name: Test hosted Structured RJ/RM UAT protocol contract
+        run: ruby tests/Documentation/HostedStructuredRjRmUatProtocolTest.rb
+
+      - name: Test temporary teaching-role access runbook contract
+        run: ruby tests/Documentation/TeachingRoleAccessRunbookTest.rb
+
       - name: Reject tracked credential files
         shell: ruby {0}
         run: |

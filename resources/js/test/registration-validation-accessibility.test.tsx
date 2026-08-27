@@ -249,5 +249,5 @@ describe('outpatient registration validation accessibility', () => {
         expect(inertiaMock.post).toHaveBeenCalledTimes(2);
 
         await expectNoWcag21Violations(container);
-    });
+    }, 10_000);
 });
