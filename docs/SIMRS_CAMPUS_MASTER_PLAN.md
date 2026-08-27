@@ -1,5 +1,10 @@
 # SIMRS Campus UEU Master Plan
 
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> This plan preserves earlier product direction and prototype-era delivery notes. In particular, current `HEAD` does **not** contain the computer-assisted-coding or E-Klaim claim-simulation routes/runtime described below. Those passages are historical context, not current implementation, acceptance, deployment, or readiness evidence. For current status, inspect the [current route surface](../routes/web.php), [T1 local evidence boundary](operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](operations/T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
 **Version:** 1.1
 **Date:** 15 July 2026  
 **Status:** Proposed for cross-program review  
@@ -13,7 +18,7 @@ The target should be a **workflow-faithful campus hospital platform** where stud
 
 The first release is not a licensed production hospital EMR. It is a supervised education system designed with production-grade security, provenance, interoperability boundaries, and hospital logic so that future expansion remains possible.
 
-The reference MVP includes **computer-assisted coding**: versioned ICD-10 diagnosis and ICD-9-CM procedure candidates are generated from clinician-authored source statements, but an authorized human coder must review every suggestion and create the assignment. This is not autonomous diagnosis, final coding, or claim grouping.
+The historical reference MVP included a **computer-assisted coding** design: versioned ICD-10 diagnosis and ICD-9-CM procedure candidates were generated from clinician-authored source statements, but an authorized human coder had to review every suggestion and create the assignment. This remains useful product context, but the described coding runtime is absent from current `HEAD`.
 
 ### Core recommendation
 
@@ -389,7 +394,7 @@ Durations are indicative for a team of roughly 3–4 developers, one QA/product 
 | 7. Integration and reporting laboratory     |           6–8 weeks | SATUSEHAT sandbox adapter, BPJS simulation console, terminology validation, retry/reconciliation, RMIK/statutory reporting exercises                                                                      | Learners can inspect successful and failed messages; no production credential or endpoint is required                                                            |
 | 8. Advanced education and operations        |             Ongoing | Scenario authoring, facilitator event injection, grading/debrief analytics, surgery/intensive/blood/CSSD/maintenance simulations                                                                         | Faculty can author and run a reusable interprofessional scenario without developer intervention                                                                  |
 
-The first bounded claim-laboratory increment is now implemented as a never-sent E-Klaim compatibility simulation. It maps only finalized synthetic encounters with approved human ICD coding, exposes the ordered `new_claim` → `set_claim_data` → `grouper` → `claim_final` teaching sequence, replaces the real send operation with `SIMULATE_SEND_CLAIM`, and stores immutable hashed exchanges. See [ADR-013](adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md), the [E-Klaim/BPJS simulation specification](product/ECLAIM_BPJS_SIMULATION_SPEC.md), and the [runbook](operations/ECLAIM_SIMULATION_RUNBOOK.md). SATUSEHAT claim-resource mapping, authorized sandbox transport, retries, and reconciliation remain later increments.
+An earlier bounded claim-laboratory increment was recorded as a never-sent E-Klaim compatibility simulation. It mapped only finalized synthetic encounters with approved human ICD coding, exposed the ordered `new_claim` → `set_claim_data` → `grouper` → `claim_final` teaching sequence, replaced the real send operation with `SIMULATE_SEND_CLAIM`, and stored immutable hashed exchanges. That runtime is absent from current `HEAD`; preserve this paragraph only as historical design evidence. See [ADR-013](adr/ADR-013-ECLAIM-EDUCATIONAL-ADAPTER.md), the [E-Klaim/BPJS simulation specification](product/ECLAIM_BPJS_SIMULATION_SPEC.md), and the [historical runbook](operations/ECLAIM_SIMULATION_RUNBOOK.md). SATUSEHAT claim-resource mapping, authorized sandbox transport, retries, and reconciliation were described as later increments.
 
 ### Roadmap rule
 

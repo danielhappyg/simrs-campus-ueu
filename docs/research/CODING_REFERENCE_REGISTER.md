@@ -1,5 +1,10 @@
 # Coding Reference Register
 
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> This register preserves source research and prototype-era coding evidence. The reference-data observations remain historical research, but current `HEAD` does **not** contain the computer-assisted-coding routes/runtime described in the implementation passages below. Do not treat those passages as current implementation, acceptance, deployment, or readiness evidence. For current status, inspect the [current route surface](../../routes/web.php), [T1 local evidence boundary](../operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](../operations/T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](../new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
 - **Version:** 1.6
 - **Evidence checked:** 20 August 2026
 - **Scope:** diagnosis and procedure terminology for the SIMRS Campus UEU outpatient reference MVP
@@ -12,7 +17,7 @@ Daniel directed that the system include an "auto coding" capability and that the
 
 The implementation contract is defined in the [Computer-Assisted Coding Specification](../product/COMPUTER_ASSISTED_CODING_SPEC.md).
 
-The current reference implementation uses the supplied ICD-10 release only for diagnosis sources and the supplied ICD-9-CM release only for completed performed-procedure sources. Candidate generation, manual alternatives, draft creation, coder submission, linked RMIK-supervisor approval, and stale-source invalidation preserve that separation; an encounter with recorded procedures cannot finalize until both diagnosis and procedure assignments are independently approved.
+The earlier reference implementation used the supplied ICD-10 release only for diagnosis sources and the supplied ICD-9-CM release only for completed performed-procedure sources. Candidate generation, manual alternatives, draft creation, coder submission, linked RMIK-supervisor approval, and stale-source invalidation preserved that separation; an encounter with recorded procedures could not finalize until both diagnosis and procedure assignments were independently approved. This describes the historical prototype, not current `HEAD`.
 
 ## 2. User-supplied workbook inventory
 
@@ -72,9 +77,9 @@ They must not yet be:
 
 Before a faculty pilot, download the official-linked exports again, compare hashes and normalized rows, document any change, and record the permitted institutional use.
 
-## 5. Implemented import and release controls
+## 5. Historically implemented import and release controls
 
-The reference importer now:
+The historical reference importer was recorded as follows:
 
 1. accept only an explicitly selected code-system type;
 2. verify the exact header contract and file checksum;

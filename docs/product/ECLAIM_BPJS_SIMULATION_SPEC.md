@@ -1,8 +1,13 @@
 # E-Klaim and BPJS Claim Simulation Specification
 
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> This specification preserves an earlier never-sent E-Klaim teaching prototype. Current `HEAD` does **not** contain the E-Klaim/BPJS claim-simulation routes or runtime described below. Do not use this document to claim current implementation, acceptance, deployment, or production readiness. For current status, inspect the [current route surface](../../routes/web.php), [T1 local evidence boundary](../operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](../operations/T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](../new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
 ## 1. Outcome
 
-SIMRS Campus UEU can demonstrate how a finalized outpatient encounter becomes a claim-preparation sequence without installing, copying, or transmitting through E-Klaim.
+The earlier SIMRS Campus UEU reference increment was designed to demonstrate how a finalized outpatient encounter became a claim-preparation sequence without installing, copying, or transmitting through E-Klaim. That capability is not present in current `HEAD`.
 
 This is an **educational compatibility simulator**, not:
 

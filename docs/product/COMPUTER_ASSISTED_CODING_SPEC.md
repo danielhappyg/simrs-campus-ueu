@@ -1,7 +1,12 @@
 # Computer-Assisted Coding Specification
 
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> This specification preserves an earlier outpatient prototype/reference increment. Current `HEAD` does **not** contain the computer-assisted-coding routes or runtime described below. Do not use this document to claim current implementation, acceptance, deployment, or production readiness. For current status, inspect the [current route surface](../../routes/web.php), [T1 local evidence boundary](../operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](../operations/T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](../new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
 - **Version:** 1.3 reference specification
-- **Status:** human-confirmed diagnosis/procedure coding and draft synthetic retrieval baseline implemented; expert validation pending
+- **Historical status:** the earlier reference increment recorded human-confirmed diagnosis/procedure coding and a draft synthetic retrieval baseline; this is not current clean-slate runtime evidence
 - **Owner of final scope and acceptance:** Daniel Happy Putra
 - **Mode:** synthetic teaching data only
 - **Primary UI term:** `Saran Koding Otomatis` with the persistent qualifier `Wajib ditinjau koder`
@@ -31,17 +36,17 @@ flowchart LR
 
 ## 2. Product boundary
 
-### Current reference-increment boundary
+### Historical reference-increment boundary
 
-- ICD-10 and ICD-9-CM workbook validation, immutable release activation, and manual search are implemented.
-- Ranked ICD-10 candidates from an exact approved diagnosis source and ranked ICD-9-CM candidates from an exact approved performed-procedure source are implemented. Both use explicit coder decisions, immutable code-assignment drafts, linked RMIK-supervisor review, audit, and finalization gating.
-- An immutable clinician-authored performed-procedure source is implemented at encounter closure. It requires an explicit `NONE_PERFORMED` or `PROCEDURES_RECORDED` attestation; each recorded item has completed status, authored text, performed time, performer, optional diagnosis/order linkage, and a content hash covered by closure supervision.
-- Diagnosis and procedure use one typed coding spine with mutually exclusive sources: diagnosis requires ICD-10 and its medical-entry version; performed procedure requires ICD-9-CM and its exact closure-bound procedure record. Cross-system assignment is rejected.
-- Diagnosis `CORRECTION_REQUESTED` opens an attributed medical-source amendment task, preserves operational orders, requires linked medical and closure supervision, forces a replacement RMIK review, and moves stale diagnosis assignments to `REVIEW_REQUIRED`. Closure replacement separately invalidates procedure assignments bound to the old closure source.
-- Procedure `CORRECTION_REQUESTED` uses a separate attributed closure-amendment lifecycle. Only the exact closure/procedure author may create the successor; non-procedure closure fields and the original clinical occurrence time are locked; the linked medical supervisor and prior RMIK reviewer/supervisor must approve the successor chain before coding resumes.
-- Controlled Indonesian synonym mappings and the synthetic gold-set threshold remain unapproved content; exact/normalized English catalog retrieval and honest no-candidate behavior are the current evaluated boundary.
+- The earlier increment recorded ICD-10 and ICD-9-CM workbook validation, immutable release activation, and manual search.
+- It recorded ranked ICD-10 candidates from an exact approved diagnosis source and ranked ICD-9-CM candidates from an exact approved performed-procedure source. Both used explicit coder decisions, immutable code-assignment drafts, linked RMIK-supervisor review, audit, and finalization gating.
+- It recorded an immutable clinician-authored performed-procedure source at encounter closure. That source required an explicit `NONE_PERFORMED` or `PROCEDURES_RECORDED` attestation; each recorded item had completed status, authored text, performed time, performer, optional diagnosis/order linkage, and a content hash covered by closure supervision.
+- Diagnosis and procedure used one typed coding spine with mutually exclusive sources: diagnosis required ICD-10 and its medical-entry version; performed procedure required ICD-9-CM and its exact closure-bound procedure record. Cross-system assignment was rejected.
+- Diagnosis `CORRECTION_REQUESTED` opened an attributed medical-source amendment task, preserved operational orders, required linked medical and closure supervision, forced a replacement RMIK review, and moved stale diagnosis assignments to `REVIEW_REQUIRED`. Closure replacement separately invalidated procedure assignments bound to the old closure source.
+- Procedure `CORRECTION_REQUESTED` used a separate attributed closure-amendment lifecycle. Only the exact closure/procedure author could create the successor; non-procedure closure fields and the original clinical occurrence time were locked; the linked medical supervisor and prior RMIK reviewer/supervisor had to approve the successor chain before coding resumed.
+- Controlled Indonesian synonym mappings and the synthetic gold-set threshold remained unapproved content; exact/normalized English catalog retrieval and honest no-candidate behavior formed the evaluated boundary for that historical increment.
 
-The current evidence and limitations are recorded in the [Computer-Assisted Coding Validation Record](../operations/COMPUTER_ASSISTED_CODING_VALIDATION.md).
+The historical evidence and limitations were recorded in the [Computer-Assisted Coding Validation Record](../operations/COMPUTER_ASSISTED_CODING_VALIDATION.md).
 
 ### Included
 
@@ -135,7 +140,7 @@ The system records the candidate snapshot, decision, decision reason, coder assi
 
 If the medical source is amended, prior diagnosis suggestions and assignments remain historical and the assignments become `REVIEW_REQUIRED`. If the closure source is replaced, assignments bound to procedures in the old closure also become `REVIEW_REQUIRED`. Regeneration creates a new suggestion run against the exact successor source.
 
-The implemented diagnosis-correction route is deliberately sequential:
+The historical diagnosis-correction route was documented as deliberately sequential:
 
 1. the coder records a reason against the exact suggestion run, diagnosis statement, medical version/hash, and current approved RMIK review;
 2. the encounter moves to `AMENDMENT_PENDING`, coding is blocked, and only the original medical-author assignment receives the correction task;

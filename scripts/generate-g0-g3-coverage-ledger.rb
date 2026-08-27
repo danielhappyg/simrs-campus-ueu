@@ -20,8 +20,8 @@ class G0G3CoverageLedger
   end
 
   ROOT = File.expand_path('..', __dir__).freeze
-  EVIDENCE_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-26.json'
-  LEDGER_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_2026-08-26.json'
+  EVIDENCE_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-27.json'
+  LEDGER_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_2026-08-27.json'
   MANIFEST_PATH = 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json'
   CATALOGUE_PATH = 'docs/new-simrs-rebuild/TESTING_AND_UAT_STRATEGY.md'
   RELEASE_INDEX_PATH = 'docs/new-simrs-rebuild/phase-0/RELEASE_EVIDENCE_INDEX.md'
@@ -161,6 +161,8 @@ class G0G3CoverageLedger
   def validate_overlay!(overlay)
     closed_object!(overlay, MAP_KEYS, 'evidence map')
     raise ContractError, 'evidence map: schema_version must be 1' unless overlay['schema_version'] == 1
+    expected_artifact_id = "G0-G3-COVERAGE-EVIDENCE-MAP-#{snapshot_date}"
+    raise ContractError, 'evidence map: artifact_id does not match explicit CLI date' unless overlay['artifact_id'] == expected_artifact_id
     raise ContractError, 'evidence map: snapshot_date does not match explicit CLI date' unless overlay['snapshot_date'] == snapshot_date
     raise ContractError, 'evidence map: data_boundary must be synthetic_only' unless overlay['data_boundary'] == 'synthetic_only'
     validate_evidence!(overlay['capability_defaults'], 'capability_defaults')
@@ -227,7 +229,22 @@ class G0G3CoverageLedger
 
   def validate_paths!(paths, label)
     raise ContractError, "#{label}: expected unique path array" unless paths.is_a?(Array) && paths.uniq == paths
-    paths.each { |path| safe_path(path) }
+    paths.each do |path|
+      validate_evidence_chronology!(path, label)
+      safe_path(path)
+    end
+  end
+
+  def validate_evidence_chronology!(path, label)
+    return unless path.is_a?(String)
+
+    dated_segments = path.scan(/(?<!\d)(\d{4}-\d{2}-\d{2})(?!\d)/).flatten
+    dated_segments.each do |date|
+      next unless valid_date?(date)
+      next unless date > snapshot_date
+
+      raise ContractError, "#{label}: evidence path date #{date} is later than snapshot #{snapshot_date}: #{path}"
+    end
   end
 
   def safe_path(relative, must_exist: true)

@@ -1,8 +1,13 @@
 # E-Klaim Simulation Runbook
 
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> **DO NOT EXECUTE THIS RUNBOOK AGAINST CURRENT `HEAD` OR ANY HOSTED ENVIRONMENT.** It preserves commands and routes for an earlier never-sent E-Klaim teaching prototype; current `HEAD` does **not** contain that claim-simulation runtime. For current status, inspect the [current route surface](../../routes/web.php), [T1 local evidence boundary](T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](../new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
 ## Purpose
 
-Run the synthetic BPJS/E-Klaim claim exercise after the reference outpatient journey has reached `FINALIZED`.
+Historically, this procedure ran the synthetic BPJS/E-Klaim claim exercise after the earlier reference outpatient journey reached `FINALIZED`. It is retained for design provenance only, not as an executable procedure.
 
 This runbook never uses the supplied E-Klaim binaries, a hospital server, BPJS credentials, production identifiers, or an external endpoint.
 
@@ -44,7 +49,7 @@ This runbook never uses the supplied E-Klaim binaries, a hospital server, BPJS c
 
 The code and amount are fixtures. They are not a tariff claim and must not be compared with a real hospital reimbursement decision.
 
-## Verification commands
+## Historical verification commands
 
 ```bash
 php artisan test tests/Feature/EClaimSimulationWorkflowTest.php

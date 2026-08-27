@@ -5,7 +5,7 @@ require 'minitest/autorun'
 require_relative '../../scripts/generate-g0-g3-coverage-ledger'
 
 class G0G3CoverageLedgerTest < Minitest::Test
-  SNAPSHOT_DATE = '2026-08-26'
+  SNAPSHOT_DATE = '2026-08-27'
 
   def setup
     @compiler = G0G3CoverageLedger.new(snapshot_date: SNAPSHOT_DATE)
@@ -15,6 +15,8 @@ class G0G3CoverageLedgerTest < Minitest::Test
   def test_generates_exact_capability_and_workflow_universes
     ledger = @compiler.build
 
+    assert_equal 'G0-G3-COVERAGE-LEDGER-2026-08-27', ledger.fetch('artifact_id')
+    assert_equal SNAPSHOT_DATE, ledger.fetch('snapshot_date')
     assert_equal 268, ledger.fetch('capabilities').length
     assert_equal 268, ledger.fetch('capabilities').map { |row| row.fetch('requirement_id') }.uniq.length
     assert_equal G0G3CoverageLedger::EXPECTED_COUNTS, ledger.dig('capability_summary', 'by_batch')
@@ -25,10 +27,15 @@ class G0G3CoverageLedgerTest < Minitest::Test
   def test_defaults_do_not_inflate_build_or_acceptance
     ledger = @compiler.build
 
-    assert_equal 256, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'runtime_availability') == 'NOT_IMPLEMENTED' }
-    assert_equal 12, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'runtime_availability') == 'PARTIAL' }
+    assert_equal 254, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'runtime_availability') == 'NOT_IMPLEMENTED' }
+    assert_equal 14, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'runtime_availability') == 'PARTIAL' }
     assert_equal 256, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'owner_acceptance') == 'NOT_READY' }
     assert_equal 12, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'owner_acceptance') == 'NOT_ACCEPTED' }
+    assert_equal 2, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'owner_acceptance') == 'NOT_READY' && row.dig('engineering_evidence', 'runtime_availability') == 'PARTIAL' }
+    assert_equal 6, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'hosted_uat') == 'HISTORICAL_PARTIAL' }
+    assert_equal 262, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'hosted_uat') == 'NOT_RUN' }
+    assert_equal 11, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'reconciliation') == 'PARTIAL' }
+    assert_equal 257, ledger.fetch('capabilities').count { |row| row.dig('engineering_evidence', 'reconciliation') == 'NOT_STARTED' }
     assert_equal 0, ledger.dig('workflow_summary', 'runtime_availability', 'IMPLEMENTED')
     assert_equal 0, ledger.dig('workflow_summary', 'automated_evidence', 'COMPLETE_PASS')
     assert_equal 0, ledger.dig('workflow_summary', 'owner_acceptance', 'PASS')
@@ -68,14 +75,15 @@ class G0G3CoverageLedgerTest < Minitest::Test
     assert_equal({ 'status' => 'PENDING', 'scenario_ids' => [], 'authority_reference' => nil }, row.fetch('workflow_binding'))
   end
 
-  def test_exact_twelve_provisional_bindings_have_no_cross_domain_batch_leakage
+  def test_exact_fourteen_provisional_bindings_have_no_cross_domain_batch_leakage
     expected = {
       'PAR-REG-003' => %w[E2E-01 E2E-03], 'PAR-CLN-004' => %w[E2E-03],
       'PAR-CLN-006' => %w[E2E-03 E2E-05], 'PAR-RMIK-001' => %w[E2E-03 E2E-12],
       'PAR-REG-002' => %w[E2E-01 E2E-02], 'PAR-CLN-002' => %w[E2E-02],
       'PAR-CLN-003' => %w[E2E-02], 'PAR-REG-001' => %w[E2E-01 E2E-04],
       'PAR-CLN-005' => %w[E2E-04], 'PAR-ADM-001' => %w[E2E-16],
-      'PAR-ADM-002' => %w[E2E-16], 'PAR-ADM-037' => %w[E2E-16]
+      'PAR-ADM-002' => %w[E2E-16], 'PAR-ADM-037' => %w[E2E-16],
+      'PAR-RPT-016' => %w[E2E-15], 'PAR-RPT-019' => %w[E2E-15]
     }
     capabilities = @compiler.build.fetch('capabilities')
     provisional = capabilities.select { |row| row.dig('workflow_binding', 'status') == 'PROVISIONAL' }
@@ -86,6 +94,39 @@ class G0G3CoverageLedgerTest < Minitest::Test
       assert_nil row.dig('workflow_binding', 'authority_reference')
     end
     assert capabilities.reject { |row| expected.key?(row.fetch('requirement_id')) }.all? { |row| row.dig('workflow_binding', 'scenario_ids').empty? }
+  end
+
+  def test_exact_reporting_capabilities_are_provisionally_bound_to_e2e_15
+    expected_paths = %w[
+      routes/web.php
+      app/Http/Controllers/Outpatient/OutpatientRecapController.php
+      resources/js/pages/pendaftaran/rekap.tsx
+      tests/Feature/Outpatient/OutpatientPrintAndRecapTest.php
+      tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php
+      docs/operations/T1_OPERATIONAL_PAGINATION_EXPORT_EVIDENCE_2026-08-26.md
+      docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md
+      docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md
+      docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md
+    ]
+    rows = @compiler.build.fetch('capabilities').select { |row| %w[PAR-RPT-016 PAR-RPT-019].include?(row.fetch('requirement_id')) }
+
+    assert_equal 2, rows.length
+    rows.each do |row|
+      evidence = row.fetch('engineering_evidence')
+
+      assert_equal 'PARTIAL', evidence.fetch('runtime_availability')
+      assert_equal 'PARTIAL_PASS', evidence.fetch('automated_evidence')
+      assert_equal({ 'sqlite' => 'PASS', 'postgresql_17' => 'PASS', 'mysql_8_4' => 'PASS', 'mysql_other' => 'COMPATIBILITY_ONLY' }, evidence.fetch('database_engine_evidence'))
+      assert_equal 'HISTORICAL_PARTIAL', evidence.fetch('hosted_uat')
+      assert_equal 'PARTIAL', evidence.fetch('reconciliation')
+      assert_equal 'PENDING', evidence.fetch('defect_status')
+      assert_equal 'NOT_READY', evidence.fetch('owner_acceptance')
+      assert_equal expected_paths, evidence.fetch('evidence_paths')
+      assert_equal({ 'status' => 'PROVISIONAL', 'scenario_ids' => ['E2E-15'], 'authority_reference' => nil }, row.fetch('workflow_binding'))
+      assert_equal 'PENDING', row.dig('reference_presence', 'accountable_owner_reference')
+      assert_equal 'PENDING', row.dig('reference_presence', 'approval_reference')
+      assert_equal 'PENDING', row.dig('reference_presence', 'release_evidence_reference')
+    end
   end
 
   def test_bg03_capability_evidence_remains_partial_unaccepted_and_unpublished
@@ -194,6 +235,27 @@ class G0G3CoverageLedgerTest < Minitest::Test
     assert_match(/invalid value/, error.message)
   end
 
+  def test_rejects_artifact_id_or_snapshot_date_mismatch
+    artifact_mismatch = deep_copy(@overlay)
+    artifact_mismatch['artifact_id'] = 'G0-G3-COVERAGE-EVIDENCE-MAP-2026-08-26'
+    assert_raises(G0G3CoverageLedger::ContractError) { @compiler.build(overlay: artifact_mismatch) }
+
+    date_mismatch = deep_copy(@overlay)
+    date_mismatch['snapshot_date'] = '2026-08-26'
+    assert_raises(G0G3CoverageLedger::ContractError) { @compiler.build(overlay: date_mismatch) }
+  end
+
+  def test_rejects_evidence_later_than_snapshot_without_rejecting_historical_links
+    historical = deep_copy(@overlay)
+    historical.fetch('workflows').first['evidence_paths'] = ['docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md']
+    assert @compiler.build(overlay: historical)
+
+    future = deep_copy(@overlay)
+    future.fetch('workflows').first['evidence_paths'] = ['docs/operations/HYPOTHETICAL_EVIDENCE_2026-08-28.md']
+    error = assert_raises(G0G3CoverageLedger::ContractError) { @compiler.build(overlay: future) }
+    assert_match(/later than snapshot 2026-08-27/, error.message)
+  end
+
   def test_rejects_absolute_traversal_and_missing_evidence_paths
     ['/tmp/outside.json', '../outside.json', 'docs/does-not-exist.json'].each do |path|
       overlay = deep_copy(@overlay)
@@ -242,7 +304,7 @@ class G0G3CoverageLedgerTest < Minitest::Test
     ledger = @compiler.build
     sources = ledger.fetch('sources').to_h { |row| [row.fetch('source_id'), row] }
 
-    %w[manifest decision_register_A decision_register_B decision_register_C decision_register_D decision_register_E decision_register_F decision_register_G identity_registry authority_policy appointment_register decision_session_register e2e_catalogue release_index].each do |source_id|
+    %w[evidence_map manifest decision_register_A decision_register_B decision_register_C decision_register_D decision_register_E decision_register_F decision_register_G identity_registry authority_policy appointment_register decision_session_register e2e_catalogue release_index].each do |source_id|
       assert_match(/\A[0-9a-f]{64}\z/, sources.fetch(source_id).fetch('sha256'))
     end
   end

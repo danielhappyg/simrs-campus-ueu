@@ -1,0 +1,868 @@
+{
+  "schema_version": 1,
+  "artifact_id": "G0-G3-COVERAGE-EVIDENCE-MAP-2026-08-27",
+  "snapshot_date": "2026-08-27",
+  "data_boundary": "synthetic_only",
+  "capability_defaults": {
+    "runtime_availability": "NOT_IMPLEMENTED",
+    "automated_evidence": "NO_COVERAGE",
+    "database_engine_evidence": {
+      "sqlite": "NOT_RUN",
+      "postgresql_17": "NOT_RUN",
+      "mysql_8_4": "NOT_RUN",
+      "mysql_other": "NOT_RUN"
+    },
+    "hosted_uat": "NOT_RUN",
+    "reconciliation": "NOT_STARTED",
+    "defect_status": "PENDING",
+    "owner_acceptance": "NOT_READY",
+    "evidence_paths": [
+
+    ]
+  },
+  "workflow_binding_default": {
+    "status": "PENDING",
+    "scenario_ids": [
+
+    ],
+    "authority_reference": null
+  },
+  "capability_overrides": {
+    "PAR-REG-003": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "HISTORICAL_PARTIAL",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+          "tests/Feature/Registration/DailyQueueAllocatorTest.php",
+          "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+          "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_POSTGRESQL_QUERY_PLAN_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+          "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md",
+          "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-01",
+          "E2E-03"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-CLN-004": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "HISTORICAL_PARTIAL",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+          "tests/Feature/Outpatient/StructuredOutpatientDocumentationTest.php",
+          "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+          "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md",
+          "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-03"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-CLN-006": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "HISTORICAL_PARTIAL",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+          "tests/Feature/Outpatient/OutpatientLabFlowTest.php",
+          "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+          "docs/operations/TEACHING_UAT_LAB_SLICE_2026-08-22.md",
+          "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-03",
+          "E2E-05"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-RMIK-001": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "HISTORICAL_PARTIAL",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+          "tests/Feature/Outpatient/StructuredOutpatientDocumentationTest.php",
+          "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md",
+          "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md",
+          "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-03",
+          "E2E-12"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-ADM-001": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "NOT_RUN"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Authorization/RoleCapabilityDenialTest.php",
+          "tests/Feature/Authorization/ReconcileRebuildAdminCommandTest.php",
+          "tests/Unit/Support/PrivilegedAccess/PrivilegedAccessScopeRegistryTest.php",
+          "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+          "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-16"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-ADM-002": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "NOT_RUN"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Authorization/ReconcileRebuildAdminCommandTest.php",
+          "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+          "tests/Unit/Support/PrivilegedAccess/PrivilegedAccessConfigurationTest.php",
+          "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-16"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-ADM-037": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "NOT_RUN"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Audit/AuditRecorderSafetyTest.php",
+          "tests/Feature/RequestCorrelationTest.php",
+          "tests/Feature/PrivilegedAccess/SecurityLedgerWriterTest.php",
+          "tests/Feature/PrivilegedAccess/ProtectedSecurityFactsDatabaseTest.php",
+          "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+          "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-16"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-REG-002": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "NOT_RUN"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
+          "tests/Feature/Registration/DailyQueueAllocatorTest.php",
+          "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-01",
+          "E2E-02"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-CLN-002": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "NOT_RUN"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "NOT_STARTED",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-02"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-CLN-003": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "NOT_RUN"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "NOT_STARTED",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Emergency/EmergencyFlowTest.php",
+          "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
+          "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-02"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-REG-001": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Inpatient/ContinuousInpatientTeachingJourneyTest.php",
+          "tests/Feature/Registration/DailyQueueAllocatorTest.php",
+          "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+          "docs/operations/T1_CONTINUOUS_INPATIENT_SCAFFOLD_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-01",
+          "E2E-04"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-CLN-005": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "NOT_RUN",
+        "reconciliation": "NOT_STARTED",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_ACCEPTED",
+        "evidence_paths": [
+          "tests/Feature/Inpatient/ContinuousInpatientTeachingJourneyTest.php",
+          "docs/operations/T1_CONTINUOUS_INPATIENT_SCAFFOLD_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-04"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-RPT-016": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "HISTORICAL_PARTIAL",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_READY",
+        "evidence_paths": [
+          "routes/web.php",
+          "app/Http/Controllers/Outpatient/OutpatientRecapController.php",
+          "resources/js/pages/pendaftaran/rekap.tsx",
+          "tests/Feature/Outpatient/OutpatientPrintAndRecapTest.php",
+          "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+          "docs/operations/T1_OPERATIONAL_PAGINATION_EXPORT_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+          "docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-15"
+        ],
+        "authority_reference": null
+      }
+    },
+    "PAR-RPT-019": {
+      "engineering_evidence": {
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "database_engine_evidence": {
+          "sqlite": "PASS",
+          "postgresql_17": "PASS",
+          "mysql_8_4": "PASS",
+          "mysql_other": "COMPATIBILITY_ONLY"
+        },
+        "hosted_uat": "HISTORICAL_PARTIAL",
+        "reconciliation": "PARTIAL",
+        "defect_status": "PENDING",
+        "owner_acceptance": "NOT_READY",
+        "evidence_paths": [
+          "routes/web.php",
+          "app/Http/Controllers/Outpatient/OutpatientRecapController.php",
+          "resources/js/pages/pendaftaran/rekap.tsx",
+          "tests/Feature/Outpatient/OutpatientPrintAndRecapTest.php",
+          "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+          "docs/operations/T1_OPERATIONAL_PAGINATION_EXPORT_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+          "docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md"
+        ]
+      },
+      "workflow_binding": {
+        "status": "PROVISIONAL",
+        "scenario_ids": [
+          "E2E-15"
+        ],
+        "authority_reference": null
+      }
+    }
+  },
+  "workflows": [
+    {
+      "workflow_id": "E2E-01",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "COMPATIBILITY_ONLY"
+      },
+      "hosted_uat": "HISTORICAL_PARTIAL",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_ACCEPTED",
+      "evidence_paths": [
+        "tests/Feature/Outpatient/OutpatientFlowTest.php",
+        "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+        "tests/Feature/Registration/DailyQueueAllocatorTest.php",
+        "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+        "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_POSTGRESQL_QUERY_PLAN_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+        "docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md"
+      ],
+      "note": "Bounded registration mechanics and one global Asia/Jakarta daily queue counter across RJ, IGD and RI have current local evidence; the complete pre-arrival, referral, consent, identity, cancellation and label workflow is not proven."
+    },
+    {
+      "workflow_id": "E2E-02",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+        "tests/Feature/Emergency/EmergencyFlowTest.php",
+        "tests/Feature/Emergency/ContinuousEmergencyTeachingJourneyTest.php",
+        "tests/Feature/Registration/DailyQueueAllocatorTest.php",
+        "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+        "docs/operations/T1_CONTINUOUS_EMERGENCY_SCAFFOLD_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_IGD_RI_NATIVE_BROWSER_REHEARSAL_2026-08-27.md"
+      ],
+      "note": "The current emergency scaffold has one continuous synthetic registrar-to-nurse-to-physician route test, wrong-role denial, shared daily registration queue, dual exact-engine PASS, and a bounded local role/browser rehearsal. Triage facts, diagnostics, medication, disposition branches, downstream reconciliation, complete accessibility, hosted execution and owner acceptance remain unproven."
+    },
+    {
+      "workflow_id": "E2E-03",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "COMPATIBILITY_ONLY"
+      },
+      "hosted_uat": "HISTORICAL_PARTIAL",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_ACCEPTED",
+      "evidence_paths": [
+        "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+        "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+        "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md",
+        "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+      ],
+      "note": "The unpublished continuous outpatient contract has current local SQLite, PostgreSQL 17.10 and exact-engine MySQL 8.4 evidence. Evidence remains partial, the MySQL run used host PHP 8.5.7 rather than CI PHP 8.3, and hosted evidence remains historical."
+    },
+    {
+      "workflow_id": "E2E-04",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "COMPATIBILITY_ONLY"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+        "tests/Feature/Inpatient/ContinuousInpatientTeachingJourneyTest.php",
+        "tests/Feature/Registration/DailyQueueAllocatorTest.php",
+        "tests/Feature/Database/DailyQueueAllocatorMigrationTest.php",
+        "docs/operations/T1_CONTINUOUS_INPATIENT_SCAFFOLD_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_POSTGRESQL_DAILY_QUEUE_CONCURRENCY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+      ],
+      "note": "The inpatient scaffold and shared daily registration queue passed current local SQLite, PostgreSQL 17.10 and exact-engine MySQL 8.4 evidence. The MySQL run used host PHP 8.5.7 rather than CI PHP 8.3 and does not prove transfer, discharge or downstream ledgers."
+    },
+    {
+      "workflow_id": "E2E-05",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "COMPATIBILITY_ONLY"
+      },
+      "hosted_uat": "HISTORICAL_PARTIAL",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_ACCEPTED",
+      "evidence_paths": [
+        "tests/Feature/Outpatient/OutpatientLabFlowTest.php",
+        "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+        "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+        "docs/operations/TEACHING_UAT_LAB_SLICE_2026-08-22.md",
+        "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md"
+      ],
+      "note": "A bounded outpatient laboratory slice exists, but the complete laboratory, pathology and microbiology workflow is not proven."
+    },
+    {
+      "workflow_id": "E2E-06",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "No complete radiology workflow evidence is recorded."
+    },
+    {
+      "workflow_id": "E2E-07",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "No blood-bank issue, transfusion traceability or reconciliation workflow evidence is recorded."
+    },
+    {
+      "workflow_id": "E2E-08",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "No complete nutrition or allied-health referral-to-outcome workflow evidence is recorded."
+    },
+    {
+      "workflow_id": "E2E-09",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "No complete surgery, anaesthesia, recovery, specimen and charge workflow evidence is recorded."
+    },
+    {
+      "workflow_id": "E2E-10",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "The complete cross-setting prescription, verification, dispense, return and reversal workflow is not implemented."
+    },
+    {
+      "workflow_id": "E2E-11",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "No perpetual GF warehouse and inventory workflow evidence is recorded."
+    },
+    {
+      "workflow_id": "E2E-12",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "COMPATIBILITY_ONLY"
+      },
+      "hosted_uat": "HISTORICAL_PARTIAL",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_ACCEPTED",
+      "evidence_paths": [
+        "tests/Feature/Outpatient/StructuredOutpatientDocumentationTest.php",
+        "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+        "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/new-simrs-rebuild/phase-1/STRUCTURED_RJ_DOCUMENTATION_RM_COMPLETENESS_FR_PACK.md",
+        "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md",
+        "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+      ],
+      "note": "Outpatient documentation and RMIK completeness mechanics are partial; full assembly, locking, disclosure and retention are not proven."
+    },
+    {
+      "workflow_id": "E2E-13",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "Claims, BPJS and grouping remain simulation-only future scope with no complete workflow evidence."
+    },
+    {
+      "workflow_id": "E2E-14",
+      "runtime_availability": "NOT_IMPLEMENTED",
+      "automated_evidence": "NO_COVERAGE",
+      "database_engine_evidence": {
+        "sqlite": "NOT_RUN",
+        "postgresql_17": "NOT_RUN",
+        "mysql_8_4": "NOT_RUN",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "NOT_RUN",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+
+      ],
+      "note": "No complete billing, cashier, settlement, reversal and revenue reconciliation workflow evidence is recorded."
+    },
+    {
+      "workflow_id": "E2E-15",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "COMPATIBILITY_ONLY"
+      },
+      "hosted_uat": "HISTORICAL_PARTIAL",
+      "reconciliation": "PARTIAL",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_READY",
+      "evidence_paths": [
+        "tests/Feature/Outpatient/OutpatientPrintAndRecapTest.php",
+        "tests/Feature/Outpatient/ContinuousOutpatientTeachingJourneyTest.php",
+        "docs/operations/T1_CONTINUOUS_OUTPATIENT_TEACHING_JOURNEY_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_ACCESSIBILITY_ENGINEERING_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_NATIVE_BROWSER_ACCESSIBILITY_REHEARSAL_2026-08-27.md",
+        "docs/operations/TEACHING_UAT_CETAK_REKAP_METADATA_2026-08-22.md",
+        "docs/operations/TEACHING_UAT_CONTINUOUS_RJ_LIFECYCLE_2026-08-24.md"
+      ],
+      "note": "Bounded outpatient projections exist; the complete clinical, operational, statutory and management reporting catalogue is not implemented or reconciled."
+    },
+    {
+      "workflow_id": "E2E-16",
+      "runtime_availability": "PARTIAL",
+      "automated_evidence": "PARTIAL_PASS",
+      "database_engine_evidence": {
+        "sqlite": "PASS",
+        "postgresql_17": "PASS",
+        "mysql_8_4": "PASS",
+        "mysql_other": "NOT_RUN"
+      },
+      "hosted_uat": "HISTORICAL_PARTIAL",
+      "reconciliation": "NOT_STARTED",
+      "defect_status": "PENDING",
+      "owner_acceptance": "NOT_ACCEPTED",
+      "evidence_paths": [
+        "tests/Feature/Authorization/RoleCapabilityDenialTest.php",
+        "tests/Feature/Authorization/ReconcileRebuildAdminCommandTest.php",
+        "tests/Feature/Audit/AuditRecorderSafetyTest.php",
+        "tests/Feature/RequestCorrelationTest.php",
+        "tests/Feature/PrivilegedAccess/SecurityLedgerWriterTest.php",
+        "tests/Feature/PrivilegedAccess/ProtectedSecurityFactsDatabaseTest.php",
+        "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+        "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+        "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+        "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+        "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+      ],
+      "note": "The current bounded administration, audit and BG-03 shadow-control slice passes local PostgreSQL 17 and exact MySQL 8.4 execution. Reconciliation remains not started; hosted BG-03 execution, master-data breadth, integration retry/reconciliation and IoT remain incomplete, and production targets stay disabled."
+    }
+  ]
+}

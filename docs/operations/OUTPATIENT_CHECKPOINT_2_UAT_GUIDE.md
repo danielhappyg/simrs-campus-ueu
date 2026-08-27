@@ -1,14 +1,19 @@
 # Outpatient Checkpoint 2 UAT Facilitator Guide
 
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> This guide preserves UAT steps for an earlier outpatient prototype/reference increment. Current `HEAD` does **not** contain the complete routes/runtime assumed here, including the computer-assisted-coding and E-Klaim paths. Do not schedule or execute this guide as current UAT. For current status, inspect the [current route surface](../../routes/web.php), [T1 local evidence boundary](T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](../new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
 - **Status:** Working draft for Daniel's review before stakeholder scheduling
 - **Scope:** one shared synthetic outpatient case in SIMRS Campus UEU
 - **Decision authority:** Daniel Happy Putra, project manager/PIC
 - **Evidence boundary:** teaching workflow acceptance only; never clinical-use approval
-- **Hosted environment:** isolated synthetic run (local or the current Vercel + Supabase demo). Campus production hosting is TBD. See [Current hosting posture](CURRENT_HOSTING_POSTURE.md).
+- **Historical hosted-environment note:** the earlier guide allowed an isolated local run or the then-current Vercel + Supabase demo; this is not a current environment instruction. See [Current hosting posture](CURRENT_HOSTING_POSTURE.md).
 
 ## 1. Purpose
 
-This guide turns Checkpoint 2 into a bounded end-to-end review of the working reference application. Participants act through the same synthetic encounter in their assigned roles and record evidence against defined workflow, safety, terminology, authorization, correction, coding, reporting, and learning questions.
+Historically, this guide turned Checkpoint 2 into a bounded end-to-end review of the earlier reference application. Participants acted through the same synthetic encounter in their assigned roles and recorded evidence against defined workflow, safety, terminology, authorization, correction, coding, reporting, and learning questions. Those steps are retained as design provenance only.
 
 The session is not a blank-sheet menu workshop. Suggestions are evaluated against an observed task or failed acceptance condition. Daniel decides the corrective scope after the session.
 
@@ -362,7 +367,7 @@ Run each correction in its own fresh disposable fixture. Never prepare diagnosis
 5. RMIK repeats completeness review; prior procedure/coding artifacts remain immutable/stale.
 6. Coder and RMIK supervisor review a new ICD-9-CM chain.
 
-For both exercises, record the local decision on responsibility and timing (`VAL-A13`, `VAL-A14`, and the procedure-correction policy). The implementation is a working reference, not a pre-approved institutional policy.
+For both historical exercises, the guide required a local decision on responsibility and timing (`VAL-A13`, `VAL-A14`, and the procedure-correction policy). The earlier implementation was a working reference, not a pre-approved institutional policy, and is not present in current `HEAD`.
 
 ## 8. Structured issue record
 
@@ -429,12 +434,12 @@ Checkpoint 2 acceptance does not authorize a faculty pilot. Checkpoint 3 still r
 - The longitudinal record is a curated, read-only teaching projection with a 300-event display cap; it is not a legal record, clinical decision engine, or external interoperability transmission.
 - The interoperability page is a deterministic local FHIR R4-aligned `collection` preview. It has no national identities, external-profile validator, endpoint, credential, transmission queue, legal-document status, or SATUSEHAT conformance evidence.
 - Native print/PDF pagination review remains pending.
-- Full native keyboard traversal remains pending. Automated regression now guards the complete sign-in Tab order, focusable password control, and programmatic validation-error associations. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. A later single retained browser tab/session repeated both complete branches across fresh isolated fixtures and ended with an empty retained warning/error console log. Stakeholder UAT is still required.
-- The unsaved-clinical-draft guard now has bounded native-browser evidence for visible navigation, marked in-session Back/Forward, all three choices, append-only save-before-leave, no-version discard, expired-session recovery, separate-tab same-account reauthentication, authorized retry, 390×844 containment/focus, and a deliberate local-server outage. During that outage the failed save stayed on the encounter, retained the local values, exposed a generic retry alert, and succeeded through the authoritative endpoint after restart; the only retained error was the expected failed request. A dirty reload was blocked with the form intact, but the automation surface could not inspect the browser-owned prompt or wording. Validation-failure rehearsal, every long form, full sequential keyboard traversal, browser-owned unload wording, and stakeholder UAT remain pending.
-- The multi-session work-queue selector has backend, React interaction, automated accessibility, and bounded native-browser evidence with two simultaneous disposable sessions. The development rehearsal verified fail-closed no-selection and invalid-selection behavior, exact URL/session/task provenance, desktop/mobile containment, and empty retained warning/error logs. Full native sequential keyboard traversal and stakeholder UAT remain pending.
-- No production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy is implemented.
+- At the time of this guide, full native keyboard traversal remained pending. Automated regression guarded the complete sign-in Tab order, focusable password control, and programmatic validation-error associations. Internal browser rehearsal completed both functional correction routes through successor approval, replacement RMIK review, human coding review, resolution, and finalization. A later single retained browser tab/session repeated both complete branches across fresh isolated fixtures and ended with an empty retained warning/error console log. Stakeholder UAT was still required.
+- The historical unsaved-clinical-draft guard had bounded native-browser evidence for visible navigation, marked in-session Back/Forward, all three choices, append-only save-before-leave, no-version discard, expired-session recovery, separate-tab same-account reauthentication, authorized retry, 390×844 containment/focus, and a deliberate local-server outage. During that outage the failed save stayed on the encounter, retained the local values, exposed a generic retry alert, and succeeded through the authoritative endpoint after restart; the only retained error was the expected failed request. A dirty reload was blocked with the form intact, but the automation surface could not inspect the browser-owned prompt or wording. Validation-failure rehearsal, every long form, full sequential keyboard traversal, browser-owned unload wording, and stakeholder UAT remained pending.
+- The historical multi-session work-queue selector had backend, React interaction, automated accessibility, and bounded native-browser evidence with two simultaneous disposable sessions. The development rehearsal verified fail-closed no-selection and invalid-selection behavior, exact URL/session/task provenance, desktop/mobile containment, and empty retained warning/error logs. Full native sequential keyboard traversal and stakeholder UAT remained pending.
+- At the time of this guide, no production SATUSEHAT/BPJS connection, complete billing/INA-CBG engine, disclosure workflow, or retention/reset policy was implemented.
 - Emergency, inpatient, nutrition, psychology, physiotherapy, and other deferred programs/modules are not part of this checkpoint.
-- The outpatient reference journey is on `main`. Checkpoint 2 may use a local isolated fixture or the current Vercel + Supabase synthetic demo. Campus staging deployment/rollback remains pending IT inventory and a separate hosting decision.
+- At the time of this guide, the outpatient reference journey was recorded on the then-current `main`, and Checkpoint 2 could use a local isolated fixture or the then-current Vercel + Supabase synthetic demo. That historical statement is not authorization or evidence for a current run; consult the linked T1 records and current route surface above.
 
 ## 12. Related contracts
 

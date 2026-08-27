@@ -1,6 +1,11 @@
 # ADR-013: E-Klaim Educational Adapter and Never-Sent Simulation
 
-**Status:** Accepted for the campus simulation increment  
+> [!CAUTION]
+> **HISTORICAL REFERENCE — NOT CURRENT CLEAN-SLATE RUNTIME EVIDENCE**
+>
+> This ADR preserves a decision for an earlier prototype/reference increment. Current `HEAD` does **not** contain the E-Klaim educational-adapter routes or runtime described below. Its historical acceptance does not establish current implementation, owner acceptance, deployment, or production readiness. For current status, inspect the [current route surface](../../routes/web.php), [T1 local evidence boundary](../operations/T1_LOCAL_MILESTONE_APPROVAL_PACK_2026-08-26.md), [production-promotion readiness record](../operations/T1_PRODUCTION_PROMOTION_READINESS_2026-08-27.md), and [G0–G3 coverage ledger](../new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md).
+
+**Historical status:** Accepted for the earlier campus simulation increment; not implemented in current `HEAD`
 **Date:** 2026-07-21  
 **Deciders:** Product owner and SIMRS Campus UEU engineering maintainers
 

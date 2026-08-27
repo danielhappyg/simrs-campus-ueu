@@ -48,6 +48,9 @@ jobs:
       - name: Validate parity governance integrity
         run: ruby scripts/validate-parity-governance.rb --mode integrity
 
+      - name: Test current G0-G3 coverage ledger contract
+        run: ruby tests/Documentation/G0G3CoverageLedgerTest.rb
+
       - name: Test Production promotion readiness preflight contract
         run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
 
@@ -56,6 +59,9 @@ jobs:
 
       - name: Test temporary teaching-role access runbook contract
         run: ruby tests/Documentation/TeachingRoleAccessRunbookTest.rb
+
+      - name: Test historical workflow artifact boundary
+        run: ruby tests/Documentation/HistoricalWorkflowArtifactBoundaryTest.rb
 
       - name: Reject tracked credential files
         shell: ruby {0}
