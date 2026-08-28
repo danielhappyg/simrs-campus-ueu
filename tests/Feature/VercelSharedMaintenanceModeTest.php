@@ -27,6 +27,10 @@ class VercelSharedMaintenanceModeTest extends TestCase
 
         $this->assertIsString($entrypoint);
         $this->assertStringContainsString(
+            "define('SIMRS_VERCEL_EDGE_ENTRYPOINT', true);",
+            $entrypoint,
+        );
+        $this->assertStringContainsString(
             <<<'PHP'
 $setDefaultEnvironment('APP_MAINTENANCE_DRIVER', 'cache');
 PHP,

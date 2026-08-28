@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureCapability;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ProtectTeachingRoleAuthenticationPaths;
+use App\Support\Http\DeploymentHostBoundary;
 use App\Support\Http\RequestCorrelation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
@@ -27,10 +28,29 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
-        // The deployment edge terminates TLS before forwarding requests.
-        // Trust only the immediate proxy so URL generation retains HTTPS
-        // without accepting spoofed forwarding headers from arbitrary hops.
-        $middleware->trustProxies(at: 'REMOTE_ADDR');
+        // Reject syntactically valid but unassigned Host values before they can
+        // influence password-reset URLs or canonical-host access leases.
+        $middleware->trustHosts(
+            at: static fn (): array => DeploymentHostBoundary::patterns(),
+            subdomains: false,
+        );
+
+        if (defined('SIMRS_VERCEL_EDGE_ENTRYPOINT')) {
+            // Vercel overwrites X-Forwarded-For and supplies X-Forwarded-Proto.
+            // Host, port and prefix remain request-owned: never let forwarding
+            // variants of those values affect access leases or generated URLs.
+            $middleware->trustProxies(
+                at: 'REMOTE_ADDR',
+                headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO,
+            );
+        } elseif (getenv('RENDER') === 'true') {
+            // Render also terminates TLS at its edge. Its X-Forwarded-For chain
+            // is not a trusted identity boundary, so retain protocol only.
+            $middleware->trustProxies(
+                at: 'REMOTE_ADDR',
+                headers: Request::HEADER_X_FORWARDED_PROTO,
+            );
+        }
 
         $middleware->alias([
             'active.account' => EnsureAccountIsActive::class,

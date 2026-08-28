@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+// This marker is set only by the route target declared in vercel.json. The
+// application bootstrap uses it to enable the small forwarding-header subset
+// that Vercel documents as platform-generated and spoofing-resistant.
+define('SIMRS_VERCEL_EDGE_ENTRYPOINT', true);
+
 /**
  * Vercel PHP function entry point for the Laravel application.
  *
