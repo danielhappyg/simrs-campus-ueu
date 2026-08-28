@@ -10,7 +10,7 @@
 
 This record covers two release controls that can be proven safely before Hostinger access is available:
 
-1. the exact tar produced by CI is structurally and cryptographically checked before upload; and
+1. the exact tar produced by CI is structurally checked against its sidecar and embedded manifest before upload, without claiming independent promotion provenance; and
 2. a release pointer cannot change until a supplied health probe passes, while a preceding release can be selected again through the same checked switch.
 
 The implementation deliberately separates artifact verification from deployment. `ops:verify-release` reads an archive and sidecar but never extracts, transfers, migrates, optimizes, switches, or contacts a runtime. `ReleaseSwitchController` is a tested filesystem primitive, not a registered deployment command or GitHub deployment job.
@@ -45,8 +45,8 @@ php artisan test \
 
 The intended later staging sequence is:
 
-1. select a separately approved artifact from a successful `main` workflow;
-2. verify the downloaded tar and sidecar with `ops:verify-release`;
+1. select a separately approved artifact from a successful `main` workflow and record its trusted SHA-256 from independently approved artifact metadata or a promotion record;
+2. verify the downloaded tar and sidecar with `ops:verify-release --expect-archive-sha256=<trusted-digest>`, never deriving that trusted value from the downloaded tar or sidecar;
 3. extract into a new versioned release directory using a separately reviewed staging procedure;
 4. connect only approved shared environment/storage paths;
 5. apply reviewed optimization and migration steps;

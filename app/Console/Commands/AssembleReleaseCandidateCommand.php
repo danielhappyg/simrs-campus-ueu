@@ -12,23 +12,6 @@ use Throwable;
 
 class AssembleReleaseCandidateCommand extends Command
 {
-    /** @var list<string> */
-    private const GIT_PATHS = [
-        'app',
-        'artisan',
-        'bootstrap',
-        'composer.json',
-        'composer.lock',
-        'config',
-        'database/factories',
-        'database/migrations',
-        'database/seeders',
-        'public',
-        'resources',
-        'routes',
-        'storage',
-    ];
-
     protected $signature = 'ops:assemble-release
         {manifest : Repository-relative release manifest path}
         {output : Repository-relative empty output directory}';
@@ -46,6 +29,7 @@ class AssembleReleaseCandidateCommand extends Command
             $manifestPath = $this->resolvePath((string) $this->argument('manifest'));
             $outputPath = $this->resolvePath((string) $this->argument('output'));
             $manifest = $this->readManifest($manifestPath);
+            $this->assertCleanTrackedSource();
             $commit = trim($this->git(['rev-parse', 'HEAD']));
 
             if (! hash_equals($commit, $manifest['source']['commit'])) {
@@ -58,14 +42,10 @@ class AssembleReleaseCandidateCommand extends Command
                 throw new RuntimeException('The release manifest identifier does not match its commit.');
             }
 
-            $trackedFiles = array_values(array_filter(
-                explode("\0", $this->git(['ls-files', '-z', '--', ...self::GIT_PATHS])),
-                fn (string $path): bool => $path !== '',
-            ));
             $result = $this->assembler->assemble(
                 sourceRoot: base_path(),
                 outputRoot: $outputPath,
-                trackedRuntimeFiles: $trackedFiles,
+                runtimeFiles: $manifest['integrity']['runtimeFiles'],
                 manifestPath: $manifestPath,
             );
 
@@ -90,9 +70,10 @@ class AssembleReleaseCandidateCommand extends Command
 
     /**
      * @return array{
-     *     schemaVersion: 1,
+     *     schemaVersion: 2,
      *     releaseId: string,
      *     source: array{commit: string},
+     *     integrity: array{runtimeFilesSha256: string, runtimeFiles: list<array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}>},
      *     deployment: array{status: 'NOT_DEPLOYED'}
      * }
      */
@@ -105,20 +86,67 @@ class AssembleReleaseCandidateCommand extends Command
         $manifest = json_decode(File::get($path), true, flags: JSON_THROW_ON_ERROR);
 
         if (! is_array($manifest)
-            || ($manifest['schemaVersion'] ?? null) !== 1
+            || ($manifest['schemaVersion'] ?? null) !== 2
             || ! is_string($manifest['releaseId'] ?? null)
             || ! is_string($manifest['source']['commit'] ?? null)
+            || ! is_array($manifest['integrity']['runtimeFiles'] ?? null)
+            || ! array_is_list($manifest['integrity']['runtimeFiles'])
+            || ! is_string($manifest['integrity']['runtimeFilesSha256'] ?? null)
             || ($manifest['deployment']['status'] ?? null) !== 'NOT_DEPLOYED'
         ) {
             throw new RuntimeException('The release manifest does not match the required non-deployed schema.');
         }
 
+        $runtimeFiles = [];
+        $paths = [];
+
+        foreach ($manifest['integrity']['runtimeFiles'] as $runtimeFile) {
+            if (! is_array($runtimeFile)
+                || ! is_string($runtimeFile['path'] ?? null)
+                || ! is_string($runtimeFile['sha256'] ?? null)
+                || ! is_int($runtimeFile['mode'] ?? null)
+                || ! in_array($runtimeFile['source'] ?? null, ['tracked', 'generated'], true)
+                || ! ReleaseCandidateAssembler::isAllowedRuntimePath($runtimeFile['path'])
+                || preg_match('/\A[a-f0-9]{64}\z/', $runtimeFile['sha256']) !== 1
+                || $runtimeFile['mode'] < 0
+                || $runtimeFile['mode'] > 0777
+                || isset($paths[$runtimeFile['path']])
+            ) {
+                throw new RuntimeException('The release manifest runtime file set is invalid.');
+            }
+
+            $paths[$runtimeFile['path']] = true;
+            $runtimeFiles[] = [
+                'path' => $runtimeFile['path'],
+                'sha256' => $runtimeFile['sha256'],
+                'mode' => $runtimeFile['mode'],
+                'source' => $runtimeFile['source'],
+            ];
+        }
+
+        if ($runtimeFiles === []
+            || ! hash_equals($manifest['integrity']['runtimeFilesSha256'], ReleaseCandidateAssembler::runtimeFilesDigest($runtimeFiles))
+        ) {
+            throw new RuntimeException('The release manifest runtime file-set digest is invalid.');
+        }
+
         return [
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'releaseId' => $manifest['releaseId'],
             'source' => ['commit' => $manifest['source']['commit']],
+            'integrity' => [
+                'runtimeFilesSha256' => $manifest['integrity']['runtimeFilesSha256'],
+                'runtimeFiles' => $runtimeFiles,
+            ],
             'deployment' => ['status' => 'NOT_DEPLOYED'],
         ];
+    }
+
+    private function assertCleanTrackedSource(): void
+    {
+        if (trim($this->git(['status', '--porcelain=v1', '--untracked-files=no'])) !== '') {
+            throw new RuntimeException('Tracked source must be clean before assembling a release candidate.');
+        }
     }
 
     /** @param list<string> $arguments */

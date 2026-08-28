@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\ReleaseCandidateAssembler;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -38,10 +39,15 @@ class AssembleReleaseCandidateCommandTest extends TestCase
         }
 
         $commit = trim(Process::path($this->source)->run(['git', 'rev-parse', 'HEAD'])->output());
+        $runtimeFiles = $this->runtimeFiles(['app/Example.php', 'artisan']);
         $this->putSourceFile('release-manifest.json', json_encode([
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'releaseId' => 'simrs-campus-ueu-'.substr($commit, 0, 12),
             'source' => ['commit' => $commit],
+            'integrity' => [
+                'runtimeFilesSha256' => ReleaseCandidateAssembler::runtimeFilesDigest($runtimeFiles),
+                'runtimeFiles' => $runtimeFiles,
+            ],
             'deployment' => ['status' => 'NOT_DEPLOYED'],
         ], JSON_THROW_ON_ERROR));
         app()->setBasePath($this->source);
@@ -76,9 +82,10 @@ class AssembleReleaseCandidateCommandTest extends TestCase
     public function test_command_refuses_a_manifest_for_another_commit(): void
     {
         $this->putSourceFile('release-manifest.json', json_encode([
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'releaseId' => 'simrs-campus-ueu-invalid',
             'source' => ['commit' => str_repeat('0', 40)],
+            'integrity' => $this->manifestIntegrity(),
             'deployment' => ['status' => 'NOT_DEPLOYED'],
         ], JSON_THROW_ON_ERROR));
 
@@ -95,9 +102,10 @@ class AssembleReleaseCandidateCommandTest extends TestCase
     {
         $commit = trim(Process::path($this->source)->run(['git', 'rev-parse', 'HEAD'])->output());
         $this->putSourceFile('release-manifest.json', json_encode([
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'releaseId' => 'simrs-campus-ueu-wrong',
             'source' => ['commit' => $commit],
+            'integrity' => $this->manifestIntegrity(),
             'deployment' => ['status' => 'NOT_DEPLOYED'],
         ], JSON_THROW_ON_ERROR));
 
@@ -110,10 +118,62 @@ class AssembleReleaseCandidateCommandTest extends TestCase
         $this->assertDirectoryDoesNotExist($this->source.'/storage/release-candidate');
     }
 
+    public function test_command_refuses_dirty_tracked_source_before_assembly(): void
+    {
+        $this->putSourceFile('app/Example.php', '<?php // changed after manifest');
+
+        $exitCode = Artisan::call('ops:assemble-release', [
+            'manifest' => 'release-manifest.json',
+            'output' => 'storage/release-candidate',
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('Tracked source must be clean', Artisan::output());
+        $this->assertDirectoryDoesNotExist($this->source.'/storage/release-candidate');
+    }
+
     private function putSourceFile(string $path, string $contents): void
     {
         $absolute = $this->source.'/'.$path;
         File::ensureDirectoryExists(dirname($absolute));
         File::put($absolute, $contents);
+    }
+
+    private function manifestIntegrity(): array
+    {
+        $runtimeFiles = $this->runtimeFiles(['app/Example.php', 'artisan']);
+
+        return [
+            'runtimeFilesSha256' => ReleaseCandidateAssembler::runtimeFilesDigest($runtimeFiles),
+            'runtimeFiles' => $runtimeFiles,
+        ];
+    }
+
+    /** @param list<string> $trackedPaths */
+    private function runtimeFiles(array $trackedPaths): array
+    {
+        $files = [];
+
+        foreach ($trackedPaths as $path) {
+            $absolute = $this->source.'/'.$path;
+            $files[] = [
+                'path' => $path,
+                'sha256' => hash_file('sha256', $absolute),
+                'mode' => fileperms($absolute) & 0777,
+                'source' => 'tracked',
+            ];
+        }
+
+        foreach (['vendor/autoload.php', 'public/build/manifest.json'] as $path) {
+            $absolute = $this->source.'/'.$path;
+            $files[] = [
+                'path' => $path,
+                'sha256' => hash_file('sha256', $absolute),
+                'mode' => fileperms($absolute) & 0777,
+                'source' => 'generated',
+            ];
+        }
+
+        return $files;
     }
 }

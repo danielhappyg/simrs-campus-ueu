@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\ReleaseCandidateAssembler;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use PharData;
@@ -39,7 +40,7 @@ class VerifyReleaseArtifactCommandTest extends TestCase
         chmod($candidate.'/artisan', 0755);
         $migration = 'database/migrations/2026_01_01_000000_create_example.php';
         File::put($candidate.'/release-manifest.json', json_encode([
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'artifactKind' => 'laravel-release-candidate',
             'application' => 'simrs-campus-ueu',
             'releaseId' => 'simrs-campus-ueu-'.substr($commit, 0, 12),
@@ -52,6 +53,8 @@ class VerifyReleaseArtifactCommandTest extends TestCase
                 'composerLockSha256' => hash_file('sha256', $candidate.'/composer.lock'),
                 'npmLockSha256' => str_repeat('f', 64),
                 'assetManifestSha256' => hash_file('sha256', $candidate.'/public/build/manifest.json'),
+                'runtimeFilesSha256' => ReleaseCandidateAssembler::runtimeFilesDigest($this->runtimeFiles($candidate)),
+                'runtimeFiles' => $this->runtimeFiles($candidate),
             ],
             'migrations' => [[
                 'path' => $migration,
@@ -88,6 +91,7 @@ class VerifyReleaseArtifactCommandTest extends TestCase
         $exitCode = Artisan::call('ops:verify-release', [
             'archive' => $this->archiveRelative,
             'checksum' => $this->checksumRelative,
+            '--expect-archive-sha256' => hash_file('sha256', $this->root.'/simrs-campus-ueu-'.str_repeat('d', 40).'.tar'),
         ]);
         $output = Artisan::output();
 
@@ -101,9 +105,60 @@ class VerifyReleaseArtifactCommandTest extends TestCase
         $exitCode = Artisan::call('ops:verify-release', [
             'archive' => '../candidate.tar',
             'checksum' => '../candidate.tar.sha256',
+            '--expect-archive-sha256' => str_repeat('a', 64),
         ]);
 
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('repository-relative', Artisan::output());
+    }
+
+    public function test_command_requires_a_trusted_digest_outside_build_only_mode(): void
+    {
+        $exitCode = Artisan::call('ops:verify-release', [
+            'archive' => $this->archiveRelative,
+            'checksum' => $this->checksumRelative,
+        ]);
+
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('trusted expected', Artisan::output());
+    }
+
+    public function test_command_allows_explicit_structural_build_verification_without_promotion_provenance(): void
+    {
+        $exitCode = Artisan::call('ops:verify-release', [
+            'archive' => $this->archiveRelative,
+            'checksum' => $this->checksumRelative,
+            '--build-only' => true,
+        ]);
+
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('STRUCTURALLY_VERIFIED', Artisan::output());
+        $this->assertStringNotContainsString('trusted digest matched', Artisan::output());
+    }
+
+    private function runtimeFiles(string $candidate): array
+    {
+        $paths = [
+            'artisan',
+            'composer.lock',
+            'database/migrations/2026_01_01_000000_create_example.php',
+            'public/build/manifest.json',
+            'vendor/autoload.php',
+        ];
+        $files = [];
+
+        foreach ($paths as $path) {
+            $absolute = $candidate.'/'.$path;
+            $files[] = [
+                'path' => $path,
+                'sha256' => hash_file('sha256', $absolute),
+                'mode' => fileperms($absolute) & 0777,
+                'source' => in_array($path, ['vendor/autoload.php', 'public/build/manifest.json'], true)
+                    ? 'generated'
+                    : 'tracked',
+            ];
+        }
+
+        return $files;
     }
 }

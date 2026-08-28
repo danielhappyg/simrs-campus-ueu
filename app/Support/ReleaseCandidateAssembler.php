@@ -22,18 +22,19 @@ class ReleaseCandidateAssembler
         'resources/',
         'routes/',
         'storage/',
+        'vendor/',
     ];
 
     public function __construct(private readonly Filesystem $files) {}
 
     /**
-     * @param  list<string>  $trackedRuntimeFiles
+     * @param  list<array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}>  $runtimeFiles
      * @return array{trackedFiles: int, generatedFiles: int}
      */
     public function assemble(
         string $sourceRoot,
         string $outputRoot,
-        array $trackedRuntimeFiles,
+        array $runtimeFiles,
         string $manifestPath,
     ): array {
         if ($this->files->isDirectory($outputRoot)
@@ -44,48 +45,60 @@ class ReleaseCandidateAssembler
 
         $this->files->ensureDirectoryExists($outputRoot);
 
-        foreach ($trackedRuntimeFiles as $relativePath) {
-            if (! $this->isAllowedTrackedPath($relativePath)) {
-                throw new RuntimeException('A tracked file is outside the runtime release allowlist.');
+        $trackedFiles = 0;
+        $generatedFiles = 0;
+
+        foreach ($runtimeFiles as $runtimeFile) {
+            $relativePath = $runtimeFile['path'];
+
+            if (! self::isAllowedRuntimePath($relativePath)) {
+                throw new RuntimeException('A runtime file is outside the release allowlist.');
             }
+
+            $this->assertSourceMatchesManifest($sourceRoot.'/'.$relativePath, $runtimeFile);
 
             $this->copyFile(
                 $sourceRoot.'/'.$relativePath,
                 $outputRoot.'/'.$relativePath,
             );
+
+            if ($runtimeFile['source'] === 'tracked') {
+                $trackedFiles++;
+            } else {
+                $generatedFiles++;
+            }
         }
 
-        $generatedFiles = $this->copyTree(
-            $sourceRoot.'/vendor',
-            $outputRoot.'/vendor',
-        );
-        $generatedFiles += $this->copyTree(
-            $sourceRoot.'/public/build',
-            $outputRoot.'/public/build',
-        );
         $this->copyFile($manifestPath, $outputRoot.'/release-manifest.json');
 
         return [
-            'trackedFiles' => count($trackedRuntimeFiles),
+            'trackedFiles' => $trackedFiles,
             'generatedFiles' => $generatedFiles,
         ];
     }
 
-    private function copyTree(string $source, string $destination): int
+    /**
+     * @param  array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}  $runtimeFile
+     */
+    private function assertSourceMatchesManifest(string $source, array $runtimeFile): void
     {
-        $files = $this->files->allFiles($source, true);
-
-        foreach ($files as $file) {
-            $this->copyFile(
-                $file->getPathname(),
-                $destination.'/'.$file->getRelativePathname(),
-            );
+        if (! is_file($source) || ! is_readable($source) || is_link($source)) {
+            throw new RuntimeException('A manifest-bound runtime file is missing, unreadable, or a symlink.');
         }
 
-        return count($files);
+        $hash = hash_file('sha256', $source);
+        $mode = fileperms($source);
+
+        if ($hash === false
+            || $mode === false
+            || ! hash_equals($runtimeFile['sha256'], $hash)
+            || $runtimeFile['mode'] !== ($mode & 0777)
+        ) {
+            throw new RuntimeException('A manifest-bound runtime file changed before assembly.');
+        }
     }
 
-    private function isAllowedTrackedPath(string $path): bool
+    public static function isAllowedRuntimePath(string $path): bool
     {
         $normalized = str_replace('\\', '/', $path);
         $segments = explode('/', $normalized);
@@ -103,6 +116,22 @@ class ReleaseCandidateAssembler
         }
 
         return false;
+    }
+
+    /**
+     * @param  list<array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}>  $runtimeFiles
+     */
+    public static function runtimeFilesDigest(array $runtimeFiles): string
+    {
+        $lines = [];
+
+        foreach ($runtimeFiles as $runtimeFile) {
+            $lines[] = $runtimeFile['path']."\0".sprintf('%04o', $runtimeFile['mode'])."\0".$runtimeFile['sha256']."\n";
+        }
+
+        sort($lines, SORT_STRING);
+
+        return hash('sha256', implode('', $lines));
     }
 
     private function copyFile(string $source, string $destination): void

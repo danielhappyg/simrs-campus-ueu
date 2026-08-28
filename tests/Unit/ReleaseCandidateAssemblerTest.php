@@ -47,7 +47,7 @@ class ReleaseCandidateAssemblerTest extends TestCase
         $result = app(ReleaseCandidateAssembler::class)->assemble(
             sourceRoot: $this->source,
             outputRoot: $this->output,
-            trackedRuntimeFiles: ['app/Example.php', 'artisan'],
+            runtimeFiles: $this->runtimeFiles(['app/Example.php', 'artisan']),
             manifestPath: $this->source.'/release-manifest.json',
         );
 
@@ -72,7 +72,7 @@ class ReleaseCandidateAssemblerTest extends TestCase
         app(ReleaseCandidateAssembler::class)->assemble(
             sourceRoot: $this->source,
             outputRoot: $this->output,
-            trackedRuntimeFiles: ['.env'],
+            runtimeFiles: $this->runtimeFiles(['.env']),
             manifestPath: $this->source.'/release-manifest.json',
         );
     }
@@ -84,7 +84,12 @@ class ReleaseCandidateAssemblerTest extends TestCase
         app(ReleaseCandidateAssembler::class)->assemble(
             sourceRoot: $this->source,
             outputRoot: $this->output,
-            trackedRuntimeFiles: ['app/../.env'],
+            runtimeFiles: [[
+                'path' => 'app/../.env',
+                'sha256' => hash_file('sha256', $this->source.'/.env'),
+                'mode' => 0644,
+                'source' => 'tracked',
+            ]],
             manifestPath: $this->source.'/release-manifest.json',
         );
     }
@@ -97,7 +102,12 @@ class ReleaseCandidateAssemblerTest extends TestCase
         app(ReleaseCandidateAssembler::class)->assemble(
             sourceRoot: $this->source,
             outputRoot: $this->output,
-            trackedRuntimeFiles: ['app/Leak.php'],
+            runtimeFiles: [[
+                'path' => 'app/Leak.php',
+                'sha256' => hash_file('sha256', $this->source.'/.env'),
+                'mode' => 0644,
+                'source' => 'tracked',
+            ]],
             manifestPath: $this->source.'/release-manifest.json',
         );
     }
@@ -109,7 +119,28 @@ class ReleaseCandidateAssemblerTest extends TestCase
         app(ReleaseCandidateAssembler::class)->assemble(
             sourceRoot: $this->source,
             outputRoot: $this->output,
-            trackedRuntimeFiles: ['app/Missing.php'],
+            runtimeFiles: [[
+                'path' => 'app/Missing.php',
+                'sha256' => str_repeat('0', 64),
+                'mode' => 0644,
+                'source' => 'tracked',
+            ]],
+            manifestPath: $this->source.'/release-manifest.json',
+        );
+    }
+
+    public function test_it_refuses_a_manifest_bound_file_that_changes_before_copying(): void
+    {
+        $runtimeFiles = $this->runtimeFiles(['app/Example.php']);
+        $this->putSourceFile('app/Example.php', '<?php // changed');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('manifest-bound runtime file changed');
+
+        app(ReleaseCandidateAssembler::class)->assemble(
+            sourceRoot: $this->source,
+            outputRoot: $this->output,
+            runtimeFiles: $runtimeFiles,
             manifestPath: $this->source.'/release-manifest.json',
         );
     }
@@ -123,7 +154,7 @@ class ReleaseCandidateAssemblerTest extends TestCase
         app(ReleaseCandidateAssembler::class)->assemble(
             sourceRoot: $this->source,
             outputRoot: $this->output,
-            trackedRuntimeFiles: ['app/Example.php'],
+            runtimeFiles: $this->runtimeFiles(['app/Example.php']),
             manifestPath: $this->source.'/release-manifest.json',
         );
     }
@@ -133,5 +164,33 @@ class ReleaseCandidateAssemblerTest extends TestCase
         $absolute = $this->source.'/'.$path;
         File::ensureDirectoryExists(dirname($absolute));
         File::put($absolute, $contents);
+    }
+
+    /** @param list<string> $trackedPaths */
+    private function runtimeFiles(array $trackedPaths): array
+    {
+        $files = [];
+
+        foreach ($trackedPaths as $path) {
+            $absolute = $this->source.'/'.$path;
+            $files[] = [
+                'path' => $path,
+                'sha256' => hash_file('sha256', $absolute),
+                'mode' => fileperms($absolute) & 0777,
+                'source' => 'tracked',
+            ];
+        }
+
+        foreach (['vendor/autoload.php', 'public/build/manifest.json'] as $path) {
+            $absolute = $this->source.'/'.$path;
+            $files[] = [
+                'path' => $path,
+                'sha256' => hash_file('sha256', $absolute),
+                'mode' => fileperms($absolute) & 0777,
+                'source' => 'generated',
+            ];
+        }
+
+        return $files;
     }
 }

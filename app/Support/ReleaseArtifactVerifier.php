@@ -31,12 +31,24 @@ class ReleaseArtifactVerifier
      *     fileCount: int
      * }
      */
-    public function verify(string $archivePath, string $checksumPath): array
-    {
+    public function verify(
+        string $archivePath,
+        string $checksumPath,
+        ?string $expectedArchiveSha256 = null,
+        bool $buildOnly = false,
+    ): array {
+        if (! $buildOnly && $expectedArchiveSha256 === null) {
+            throw new RuntimeException('Promotion verification requires a trusted expected SHA-256 digest.');
+        }
+
+        if ($buildOnly && $expectedArchiveSha256 !== null) {
+            throw new RuntimeException('Build-only verification cannot claim trusted promotion provenance.');
+        }
+
         $this->assertReadableRegularFile($archivePath, 'release archive');
         $this->assertReadableRegularFile($checksumPath, 'checksum sidecar');
 
-        $archiveHash = $this->verifyChecksum($archivePath, $checksumPath);
+        $archiveHash = $this->verifyChecksum($archivePath, $checksumPath, $expectedArchiveSha256);
         $entries = $this->readEntries($archivePath);
 
         foreach (self::REQUIRED_FILES as $required) {
@@ -51,6 +63,20 @@ class ReleaseArtifactVerifier
 
         if (! hash_equals($expectedReleaseId, $manifest['releaseId'])) {
             throw new RuntimeException('The release manifest identifier does not match its commit.');
+        }
+
+        if (! hash_equals(
+            $manifest['integrity']['runtimeFilesSha256'],
+            ReleaseCandidateAssembler::runtimeFilesDigest($manifest['integrity']['runtimeFiles']),
+        )) {
+            throw new RuntimeException('The release manifest runtime file-set digest is invalid.');
+        }
+
+        $this->assertExactRuntimeFileSet($entries, $manifest['integrity']['runtimeFiles']);
+
+        foreach ($manifest['integrity']['runtimeFiles'] as $runtimeFile) {
+            $this->assertEntryHash($entries, $runtimeFile['path'], $runtimeFile['sha256']);
+            $this->assertEntryMode($entries, $runtimeFile['path'], $runtimeFile['mode']);
         }
 
         $this->assertEntryHash(
@@ -97,7 +123,7 @@ class ReleaseArtifactVerifier
         }
     }
 
-    private function verifyChecksum(string $archivePath, string $checksumPath): string
+    private function verifyChecksum(string $archivePath, string $checksumPath, ?string $expectedArchiveSha256): string
     {
         $contents = file_get_contents($checksumPath);
 
@@ -112,6 +138,13 @@ class ReleaseArtifactVerifier
 
         if ($actual === false || ! hash_equals($matches[1], $actual)) {
             throw new RuntimeException('The release archive checksum does not match its sidecar.');
+        }
+
+        if ($expectedArchiveSha256 !== null
+            && (preg_match('/\A[a-f0-9]{64}\z/', $expectedArchiveSha256) !== 1
+                || ! hash_equals($expectedArchiveSha256, $actual))
+        ) {
+            throw new RuntimeException('The release archive does not match the trusted expected SHA-256 digest.');
         }
 
         return $actual;
@@ -192,7 +225,12 @@ class ReleaseArtifactVerifier
      * @return array{
      *     releaseId: string,
      *     source: array{commit: string},
-     *     integrity: array{composerLockSha256: string, assetManifestSha256: string},
+     *     integrity: array{
+     *         composerLockSha256: string,
+     *         assetManifestSha256: string,
+     *         runtimeFilesSha256: string,
+     *         runtimeFiles: list<array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}>
+     *     },
      *     migrations: list<array{path: string, sha256: string}>
      * }
      */
@@ -208,7 +246,7 @@ class ReleaseArtifactVerifier
         $commit = is_array($manifest) ? ($manifest['source']['commit'] ?? null) : null;
 
         if (! is_array($manifest)
-            || ($manifest['schemaVersion'] ?? null) !== 1
+            || ($manifest['schemaVersion'] ?? null) !== 2
             || ($manifest['artifactKind'] ?? null) !== 'laravel-release-candidate'
             || ($manifest['application'] ?? null) !== 'simrs-campus-ueu'
             || ! is_string($releaseId)
@@ -234,6 +272,44 @@ class ReleaseArtifactVerifier
             $manifest['integrity']['assetManifestSha256'] ?? null,
             'asset manifest',
         );
+        $runtimeFilesDigest = $this->sha256Value(
+            $manifest['integrity']['runtimeFilesSha256'] ?? null,
+            'runtime file-set',
+        );
+        $runtimeFiles = [];
+        $runtimePaths = [];
+
+        if (! is_array($manifest['integrity']['runtimeFiles'] ?? null)
+            || ! array_is_list($manifest['integrity']['runtimeFiles'])
+            || $manifest['integrity']['runtimeFiles'] === []
+        ) {
+            throw new RuntimeException('The release manifest runtime file set is invalid.');
+        }
+
+        foreach ($manifest['integrity']['runtimeFiles'] as $runtimeFile) {
+            $path = is_array($runtimeFile) ? ($runtimeFile['path'] ?? null) : null;
+            $mode = is_array($runtimeFile) ? ($runtimeFile['mode'] ?? null) : null;
+            $source = is_array($runtimeFile) ? ($runtimeFile['source'] ?? null) : null;
+
+            if (! is_string($path)
+                || ! is_int($mode)
+                || ! in_array($source, ['tracked', 'generated'], true)
+                || ! ReleaseCandidateAssembler::isAllowedRuntimePath($path)
+                || $mode < 0
+                || $mode > 0777
+                || isset($runtimePaths[$path])
+            ) {
+                throw new RuntimeException('The release manifest runtime file set is invalid.');
+            }
+
+            $runtimePaths[$path] = true;
+            $runtimeFiles[] = [
+                'path' => $path,
+                'sha256' => $this->sha256Value($runtimeFile['sha256'] ?? null, 'runtime file'),
+                'mode' => $mode,
+                'source' => $source,
+            ];
+        }
         $migrations = [];
 
         foreach ($manifest['migrations'] as $migration) {
@@ -258,6 +334,8 @@ class ReleaseArtifactVerifier
             'integrity' => [
                 'composerLockSha256' => $composerHash,
                 'assetManifestSha256' => $assetHash,
+                'runtimeFilesSha256' => $runtimeFilesDigest,
+                'runtimeFiles' => $runtimeFiles,
             ],
             'migrations' => $migrations,
         ];
@@ -274,6 +352,31 @@ class ReleaseArtifactVerifier
 
         if (! hash_equals($expectedHash, $actualHash)) {
             throw new RuntimeException($path.' does not match the release manifest hash.');
+        }
+    }
+
+    /** @param array<string, PharFileInfo> $entries */
+    private function assertEntryMode(array $entries, string $path, int $expectedMode): void
+    {
+        if (! isset($entries[$path]) || (($entries[$path]->getPerms() & 0777) !== $expectedMode)) {
+            throw new RuntimeException($path.' does not match the release manifest mode.');
+        }
+    }
+
+    /**
+     * @param  array<string, PharFileInfo>  $entries
+     * @param  list<array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}>  $runtimeFiles
+     */
+    private function assertExactRuntimeFileSet(array $entries, array $runtimeFiles): void
+    {
+        $expected = ['release-manifest.json' => true];
+
+        foreach ($runtimeFiles as $runtimeFile) {
+            $expected[$runtimeFile['path']] = true;
+        }
+
+        if (array_diff_key($entries, $expected) !== [] || array_diff_key($expected, $entries) !== []) {
+            throw new RuntimeException('The release archive runtime file set does not exactly match its manifest.');
         }
     }
 

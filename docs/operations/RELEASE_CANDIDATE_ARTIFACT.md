@@ -23,11 +23,12 @@ The JSON records:
 
 - exact Git commit, tree, and commit time;
 - SHA-256 for `composer.lock`, `package-lock.json`, and `public/build/manifest.json`;
+- a stable, complete runtime file set of path, SHA-256, and permission mode, plus its aggregate SHA-256; this binds every copied tracked source file, installed dependency, and built asset before assembly;
 - every migration filename and SHA-256 in stable filename order;
 - permanent `SIMULATION` and synthetic-only boundaries; and
 - `NOT_DEPLOYED`, `/up`, deploy-time optimization, and separate-promotion-approval markers.
 
-It intentionally records no build-machine path, environment value, credential, key, account identifier, database coordinate, or evidence text. The output path must remain repository-relative, outside `public/`, and free of path traversal. A supplied commit must match `HEAD`.
+It intentionally records no build-machine path, environment value, credential, key, account identifier, database coordinate, or evidence text. The output path must remain repository-relative, outside `public/`, and free of path traversal. A supplied commit must match `HEAD`. Generation and assembly both refuse a dirty tracked worktree; untracked manifest/output files are deliberately excluded from that proof.
 
 Assemble the runtime tree into a new empty directory:
 
@@ -45,13 +46,21 @@ The assembler copies only:
 
 It refuses tracked paths outside its runtime allowlist and refuses to merge into a non-empty output directory. Because the tracked list comes from Git, untracked `deliverables/`, runtime logs, local databases, and developer files cannot enter through a broad workspace copy.
 
-Verify the finished tar and its standard SHA-256 sidecar before upload or any later staging consideration:
+CI performs only structural verification while creating the candidate:
 
 ```bash
-php artisan ops:verify-release <release>.tar <release>.tar.sha256
+php artisan ops:verify-release <release>.tar <release>.tar.sha256 --build-only
 ```
 
-The verifier refuses a missing, unreadable, or symlinked input; a malformed sidecar; a filename or digest mismatch; an unsafe archive root, path, or link; forbidden runtime content; a missing required runtime file; an invalid or non-simulation manifest; a manifest/commit identifier mismatch; and a mismatch in the archived Composer lock, asset manifest, or any migration hash. Success reports `VERIFIED` while retaining the embedded `NOT_DEPLOYED` status.
+`STRUCTURALLY_VERIFIED` is intentionally not a promotion claim: it checks the sidecar, archive safety, simulation-only manifest, and the exact manifest-bound runtime file set, including every file hash and mode, but it has no independent provenance anchor.
+
+Before promotion or any deployment handoff, verify against an independently supplied trusted digest:
+
+```bash
+php artisan ops:verify-release <release>.tar <release>.tar.sha256 --expect-archive-sha256=<trusted-64-lowercase-hex-digest>
+```
+
+The trusted value must come from a separately approved promotion record or artifact metadata captured outside the downloaded tar and sidecar; it must never be copied from the sidecar or calculated from the same untrusted download. Outside `--build-only`, the command fails closed without it. The verifier refuses a missing, unreadable, or symlinked input; malformed sidecar; sidecar, expected-digest, filename, or archive mismatch; unsafe archive root, path, or link; forbidden or unlisted runtime content; a missing required runtime file; an invalid or non-simulation manifest; a manifest/commit identifier mismatch; or any mismatch in the archived file set, per-file hash, or permission mode. Only this expected-digest path reports `VERIFIED`, while retaining the embedded `NOT_DEPLOYED` status.
 
 ## Explicit exclusions
 
@@ -80,7 +89,7 @@ The non-deploying `release-candidate` job:
 6. asserts the required files and high-risk exclusions;
 7. creates a name-sorted POSIX `ustar` archive with commit-time timestamps and normalized numeric ownership;
 8. writes a SHA-256 sidecar;
-9. runs `ops:verify-release` against the finished tar and sidecar; and
+9. runs `ops:verify-release --build-only` against the finished tar and sidecar; and
 10. uploads an immutable artifact named with the complete checked-out commit for 14 days.
 
 GitHub's artifact action reports its own artifact ID, URL, and SHA-256 digest. The tar wrapper is retained because GitHub notes that direct artifact upload does not preserve original file permissions; the tar retains the executable mode needed by `artisan`.
@@ -140,7 +149,7 @@ This closes the reusable artifact-verification development control. It does not 
 
 After actual Hostinger preflight evidence and separate authorization, staging must still prove:
 
-1. a newly approved `main` artifact is selected, downloaded, and passes `ops:verify-release` against its sidecar and embedded manifest;
+1. a newly approved `main` artifact is selected and downloaded, its trusted SHA-256 is recorded from independently approved artifact metadata or a promotion record, and it passes `ops:verify-release --expect-archive-sha256=<trusted-digest>` against that value, its sidecar, and its embedded manifest;
 2. the exact commit and migration set are recorded before deployment;
 3. a backup exists and its restore procedure is available;
 4. shared environment/storage paths are connected safely;

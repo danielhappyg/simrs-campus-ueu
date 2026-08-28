@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\ReleaseCandidateAssembler;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
@@ -11,6 +12,23 @@ use Throwable;
 
 class GenerateReleaseManifestCommand extends Command
 {
+    /** @var list<string> */
+    private const GIT_PATHS = [
+        'app',
+        'artisan',
+        'bootstrap',
+        'composer.json',
+        'composer.lock',
+        'config',
+        'database/factories',
+        'database/migrations',
+        'database/seeders',
+        'public',
+        'resources',
+        'routes',
+        'storage',
+    ];
+
     protected $signature = 'ops:release-manifest
         {output : Repository-relative destination for the JSON manifest}
         {--commit= : Expected full Git commit SHA}';
@@ -21,6 +39,7 @@ class GenerateReleaseManifestCommand extends Command
     {
         try {
             $outputPath = $this->resolveOutputPath((string) $this->argument('output'));
+            $this->assertCleanTrackedSource();
             $commit = $this->git(['rev-parse', 'HEAD']);
             $expectedCommit = trim((string) $this->option('commit'));
 
@@ -47,8 +66,9 @@ class GenerateReleaseManifestCommand extends Command
             }
 
             sort($migrationFiles, SORT_STRING);
+            $runtimeFiles = $this->runtimeFiles();
             $manifest = [
-                'schemaVersion' => 1,
+                'schemaVersion' => 2,
                 'artifactKind' => 'laravel-release-candidate',
                 'application' => 'simrs-campus-ueu',
                 'releaseId' => 'simrs-campus-ueu-'.substr($commit, 0, 12),
@@ -61,6 +81,8 @@ class GenerateReleaseManifestCommand extends Command
                     'composerLockSha256' => $this->sha256($requiredFiles['composer.lock']),
                     'npmLockSha256' => $this->sha256($requiredFiles['package-lock.json']),
                     'assetManifestSha256' => $this->sha256($requiredFiles['public/build/manifest.json']),
+                    'runtimeFilesSha256' => ReleaseCandidateAssembler::runtimeFilesDigest($runtimeFiles),
+                    'runtimeFiles' => $runtimeFiles,
                 ],
                 'migrations' => array_map(
                     fn (string $path): array => [
@@ -140,5 +162,91 @@ class GenerateReleaseManifestCommand extends Command
         }
 
         return $hash;
+    }
+
+    private function assertCleanTrackedSource(): void
+    {
+        if (trim($this->gitRaw(['status', '--porcelain=v1', '--untracked-files=no'])) !== '') {
+            throw new RuntimeException('Tracked source must be clean before generating a release manifest.');
+        }
+    }
+
+    /** @return list<array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}> */
+    private function runtimeFiles(): array
+    {
+        $runtimeFiles = [];
+        $trackedPaths = array_values(array_filter(
+            explode("\0", $this->gitRaw(['ls-files', '-z', '--', ...self::GIT_PATHS])),
+            fn (string $path): bool => trim($path) !== '',
+        ));
+
+        foreach ($trackedPaths as $path) {
+            $runtimeFiles[$path] = $this->runtimeFile($path, 'tracked');
+        }
+
+        foreach (['vendor', 'public/build'] as $directory) {
+            if (! is_dir(base_path($directory))) {
+                throw new RuntimeException($directory.' is required for a release candidate.');
+            }
+
+            foreach (File::allFiles(base_path($directory), true) as $file) {
+                $relativePath = str_replace('\\', '/', $file->getRelativePathname());
+
+                if ($relativePath === '') {
+                    throw new RuntimeException('A runtime file has an invalid relative path.');
+                }
+
+                $path = $directory.'/'.$relativePath;
+
+                if (! isset($runtimeFiles[$path])) {
+                    $runtimeFiles[$path] = $this->runtimeFile($path, 'generated');
+                }
+            }
+        }
+
+        ksort($runtimeFiles, SORT_STRING);
+
+        return array_values($runtimeFiles);
+    }
+
+    /**
+     * @param  'tracked'|'generated'  $source
+     * @return array{path: string, sha256: string, mode: int, source: 'tracked'|'generated'}
+     */
+    private function runtimeFile(string $path, string $source): array
+    {
+        $normalized = str_replace('\\', '/', $path);
+        $absolute = base_path($normalized);
+        $mode = fileperms($absolute);
+        $hash = hash_file('sha256', $absolute);
+
+        if (! ReleaseCandidateAssembler::isAllowedRuntimePath($normalized)
+            || ! is_file($absolute)
+            || ! is_readable($absolute)
+            || is_link($absolute)
+            || $mode === false
+            || $hash === false
+        ) {
+            throw new RuntimeException('A runtime file is missing, unsafe, or outside the release allowlist.');
+        }
+
+        return [
+            'path' => $normalized,
+            'sha256' => $hash,
+            'mode' => $mode & 0777,
+            'source' => $source,
+        ];
+    }
+
+    /** @param list<string> $arguments */
+    private function gitRaw(array $arguments): string
+    {
+        $result = Process::path(base_path())->run(['git', ...$arguments]);
+
+        if (! $result->successful()) {
+            throw new RuntimeException('Git release metadata could not be read.');
+        }
+
+        return $result->output();
     }
 }
