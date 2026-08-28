@@ -8,6 +8,7 @@ use App\Support\Authorization\TeachingRoleAccessManager;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Timebox;
 use Illuminate\Testing\TestResponse;
 use Laravel\Fortify\Features;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -99,6 +100,45 @@ class PasswordResetTest extends TestCase
         $this->assertGenericResetLinkResponse($first);
         $this->assertGenericResetLinkResponse($limited);
         $this->assertCount(1, Notification::sent($user, ResetPassword::class));
+    }
+
+    public function test_managed_reset_link_request_uses_the_password_broker_timebox_without_delivery(): void
+    {
+        Notification::fake();
+        config(['auth.timebox_duration' => 345678]);
+        $timebox = $this->recordingTimebox();
+        $this->app->instance(Timebox::class, $timebox);
+        $managedEmail = (string) array_key_first(TeachingRoleAccessManager::ROSTER);
+
+        $response = $this->resetLinkRequest($managedEmail, '198.51.100.32');
+
+        $this->assertGenericResetLinkResponse($response);
+        $this->assertSame([345678], $timebox->durations);
+        Notification::assertNothingSent();
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => $managedEmail]);
+    }
+
+    public function test_custom_limited_reset_link_request_uses_the_password_broker_timebox_without_redelivery(): void
+    {
+        Notification::fake();
+        config([
+            'auth.passwords.users.throttle' => 0,
+            'auth.timebox_duration' => 456789,
+            'fortify.password_reset_rate_limits.email_ip_per_minute' => 1,
+            'fortify.password_reset_rate_limits.ip_per_minute' => 100,
+        ]);
+        $timebox = $this->recordingTimebox();
+        $this->app->instance(Timebox::class, $timebox);
+        $user = User::factory()->create();
+
+        $delivered = $this->resetLinkRequest($user->email, '198.51.100.33');
+        $limited = $this->resetLinkRequest($user->email, '198.51.100.33');
+
+        $this->assertGenericResetLinkResponse($delivered);
+        $this->assertGenericResetLinkResponse($limited);
+        $this->assertSame([456789], $timebox->durations);
+        $this->assertCount(1, Notification::sent($user, ResetPassword::class));
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
     }
 
     public function test_wider_ip_limit_is_consumed_before_the_managed_roster_fence(): void
@@ -193,5 +233,22 @@ class PasswordResetTest extends TestCase
             ->assertRedirect(route('password.request'))
             ->assertSessionHas('status', IndistinguishablePasswordResetLinkResponse::MESSAGE)
             ->assertSessionHasNoErrors();
+    }
+
+    /** @return Timebox&object{durations: list<int>} */
+    private function recordingTimebox(): Timebox
+    {
+        return new class extends Timebox
+        {
+            /** @var list<int> */
+            public array $durations = [];
+
+            public function call(callable $callback, int $microseconds): mixed
+            {
+                $this->durations[] = $microseconds;
+
+                return $callback($this);
+            }
+        };
     }
 }

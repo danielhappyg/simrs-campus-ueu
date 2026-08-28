@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Support\Timebox;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -41,7 +42,10 @@ class ProtectTeachingRoleAuthenticationPaths
         'passkey.destroy',
     ];
 
-    public function __construct(private readonly TeachingRoleAccessLeaseGuard $leaseGuard) {}
+    public function __construct(
+        private readonly TeachingRoleAccessLeaseGuard $leaseGuard,
+        private readonly Timebox $timebox,
+    ) {}
 
     /**
      * @param  Closure(Request): Response  $next
@@ -144,8 +148,13 @@ class ProtectTeachingRoleAuthenticationPaths
 
     private function passwordResetLinkResponse(Request $request): Response
     {
+        $status = $this->timebox->call(
+            static fn (): string => Password::RESET_LINK_SENT,
+            (int) config('auth.timebox_duration', 200000),
+        );
+
         return app(SuccessfulPasswordResetLinkRequestResponse::class, [
-            'status' => Password::RESET_LINK_SENT,
+            'status' => $status,
         ])->toResponse($request);
     }
 

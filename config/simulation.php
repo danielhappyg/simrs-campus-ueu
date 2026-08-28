@@ -25,9 +25,15 @@ return [
 
     'recap_csv_max_rows' => (int) env('RECAP_CSV_MAX_ROWS', 5000),
 
+    'recap_csv_max_bytes' => (int) env('RECAP_CSV_MAX_BYTES', 10_000_000),
+
+    'recap_csv_max_execution_seconds' => (int) env('RECAP_CSV_MAX_EXECUTION_SECONDS', 30),
+
     'recap_csv_user_attempts_per_minute' => (int) env('RECAP_CSV_USER_ATTEMPTS_PER_MINUTE', 3),
 
     'recap_csv_global_attempts_per_minute' => (int) env('RECAP_CSV_GLOBAL_ATTEMPTS_PER_MINUTE', 30),
+
+    'recap_csv_max_active_exports' => (int) env('RECAP_CSV_MAX_ACTIVE_EXPORTS', 2),
 
     'recap_csv_lock_seconds' => (int) env('RECAP_CSV_LOCK_SECONDS', 120),
 

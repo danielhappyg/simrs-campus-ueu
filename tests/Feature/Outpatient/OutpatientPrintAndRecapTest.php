@@ -452,6 +452,113 @@ class OutpatientPrintAndRecapTest extends TestCase
         }
     }
 
+    public function test_recap_csv_enforces_the_global_active_export_ceiling_across_users(): void
+    {
+        config([
+            'simulation.recap_csv_user_attempts_per_minute' => 100,
+            'simulation.recap_csv_global_attempts_per_minute' => 100,
+            'simulation.recap_csv_max_active_exports' => 1,
+        ]);
+        $firstRegistrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $secondRegistrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $firstUserLock = Cache::lock('recap-csv:active:'.hash('sha256', $firstRegistrar->public_id), 120);
+        $globalLock = Cache::lock('recap-csv:active:global:1', 120);
+        $this->assertTrue($firstUserLock->get());
+        $this->assertTrue($globalLock->get());
+
+        $parameters = [
+            'format' => 'csv',
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ];
+
+        try {
+            $this->actingAs($secondRegistrar)
+                ->get(route('pendaftaran.rekap', $parameters))
+                ->assertRedirect()
+                ->assertSessionHas('error', 'Batas ekspor CSV bersamaan tercapai. Tunggu hingga salah satu ekspor selesai.');
+        } finally {
+            $globalLock->release();
+            $firstUserLock->release();
+        }
+
+        $response = $this->actingAs($secondRegistrar)->get(route('pendaftaran.rekap', $parameters));
+        $response->assertOk();
+        $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
+    }
+
+    public function test_recap_csv_releases_owner_safe_user_and_global_slots_before_slow_download_output(): void
+    {
+        config([
+            'simulation.recap_csv_user_attempts_per_minute' => 100,
+            'simulation.recap_csv_global_attempts_per_minute' => 100,
+            'simulation.recap_csv_max_active_exports' => 1,
+        ]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $response = $this->actingAs($registrar)->get(route('pendaftaran.rekap', [
+            'format' => 'csv',
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ]));
+        $response->assertOk();
+
+        $userLock = Cache::lock('recap-csv:active:'.hash('sha256', $registrar->public_id), 120);
+        $globalLock = Cache::lock('recap-csv:active:global:1', 120);
+        $this->assertTrue($userLock->get());
+        $this->assertTrue($globalLock->get());
+
+        try {
+            $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
+        } finally {
+            $globalLock->release();
+            $userLock->release();
+        }
+    }
+
+    public function test_recap_csv_refuses_output_above_the_byte_ceiling(): void
+    {
+        config(['simulation.recap_csv_max_bytes' => 10]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'format' => 'csv',
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+            ]))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Ekspor CSV sinkron dibatasi maksimal 10 byte. Persempit filter sebelum mencoba kembali.');
+    }
+
+    public function test_recap_csv_enforces_its_execution_ceiling_when_the_configured_lease_is_shorter(): void
+    {
+        config([
+            'simulation.recap_csv_lock_seconds' => 1,
+            'simulation.recap_csv_max_execution_seconds' => 1,
+        ]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $delayed = false;
+        DB::listen(function (QueryExecuted $query) use (&$delayed): void {
+            if ($delayed || ! str_contains(strtolower($query->sql), 'from "encounters"')) {
+                return;
+            }
+
+            $delayed = true;
+            usleep(1_100_000);
+        });
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'format' => 'csv',
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+            ]))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Ekspor CSV sinkron melebihi batas waktu 1 detik. Persempit filter sebelum mencoba kembali.');
+
+        $this->assertTrue($delayed);
+    }
+
     public function test_recap_csv_cutoff_excludes_rows_inserted_after_the_bounded_probe_snapshot(): void
     {
         config(['simulation.recap_csv_max_rows' => 5]);

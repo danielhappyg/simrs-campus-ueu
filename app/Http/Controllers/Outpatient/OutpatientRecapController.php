@@ -201,6 +201,12 @@ class OutpatientRecapController extends Controller
         $userKey = hash('sha256', (string) $request->user()->public_id);
         $userAttempts = max(1, (int) config('simulation.recap_csv_user_attempts_per_minute', 3));
         $globalAttempts = max(1, (int) config('simulation.recap_csv_global_attempts_per_minute', 30));
+        $maximumExecutionSeconds = max(1, (int) config('simulation.recap_csv_max_execution_seconds', 30));
+        // The lease must outlive every permitted synchronous build; download speed is outside the lease.
+        $lockSeconds = max(
+            $maximumExecutionSeconds + 5,
+            max(1, (int) config('simulation.recap_csv_lock_seconds', 120)),
+        );
 
         if (! RateLimiter::attempt('recap-csv:user:'.$userKey, $userAttempts, fn (): bool => true, 60)
             || ! RateLimiter::attempt('recap-csv:global', $globalAttempts, fn (): bool => true, 60)
@@ -211,59 +217,119 @@ class OutpatientRecapController extends Controller
             );
         }
 
-        $lock = Cache::lock(
+        $userLock = Cache::lock(
             'recap-csv:active:'.$userKey,
-            max(30, (int) config('simulation.recap_csv_lock_seconds', 120)),
+            $lockSeconds,
         );
 
-        if (! $lock->get()) {
+        if (! $userLock->get()) {
             return $this->rejectCsvExport(
                 $request,
                 'Satu ekspor CSV untuk akun ini masih berjalan. Tunggu hingga selesai.',
             );
         }
 
-        try {
-            $maximumRows = max(1, (int) config('simulation.recap_csv_max_rows', 5000));
-            $exportCutoffId = (int) ((clone $query)->toBase()->max('id') ?? 0);
-            $exceedsMaximumRows = $exportCutoffId > 0
-                && (clone $query)
-                    ->where('id', '<=', $exportCutoffId)
-                    ->reorder('id')
-                    ->offset($maximumRows)
-                    ->limit(1)
-                    ->exists();
+        $globalLock = $this->acquireGlobalExportSlot(
+            max(1, (int) config('simulation.recap_csv_max_active_exports', 2)),
+            $lockSeconds,
+        );
+        if ($globalLock === null) {
+            $this->releaseExportLock($userLock);
 
-            if ($exceedsMaximumRows) {
-                $this->releaseExportLock($lock);
-
-                return $this->rejectCsvExport(
-                    $request,
-                    sprintf(
-                        'Ekspor CSV sinkron dibatasi maksimal %s baris. Persempit filter sebelum mencoba kembali.',
-                        number_format($maximumRows, 0, ',', '.'),
-                    ),
-                );
-            }
-        } catch (\Throwable $exception) {
-            $this->releaseExportLock($lock);
-
-            throw $exception;
+            return $this->rejectCsvExport(
+                $request,
+                'Batas ekspor CSV bersamaan tercapai. Tunggu hingga salah satu ekspor selesai.',
+            );
         }
 
-        return response()->streamDownload(function () use ($query, $exportCutoffId, $lock): void {
-            $handle = fopen('php://output', 'wb');
-            try {
-                if ($handle === false) {
-                    throw new \RuntimeException('Keluaran CSV tidak dapat dibuka.');
-                }
+        try {
+            $maximumRows = max(1, (int) config('simulation.recap_csv_max_rows', 5000));
+            [$csv, $error] = $this->buildCsv(
+                $query,
+                $maximumRows,
+                max(1, (int) config('simulation.recap_csv_max_bytes', 10_000_000)),
+                microtime(true) + $maximumExecutionSeconds,
+                $maximumExecutionSeconds,
+            );
+            if ($error !== null) {
+                return $this->rejectCsvExport($request, $error);
+            }
+        } finally {
+            $this->releaseExportLock($globalLock);
+            $this->releaseExportLock($userLock);
+        }
 
-                fputcsv($handle, ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status']);
+        return response()->streamDownload(static function () use ($csv): void {
+            echo $csv;
+        }, 'rekap-pendaftaran.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
 
-                if ($exportCutoffId === 0) {
-                    return;
-                }
+    private function acquireGlobalExportSlot(int $maximumActiveExports, int $lockSeconds): ?Lock
+    {
+        for ($slot = 1; $slot <= $maximumActiveExports; $slot++) {
+            $lock = Cache::lock('recap-csv:active:global:'.$slot, $lockSeconds);
 
+            if ($lock->get()) {
+                return $lock;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  Builder<Encounter>  $query
+     * @return array{string, ?string}
+     */
+    private function buildCsv(
+        Builder $query,
+        int $maximumRows,
+        int $maximumBytes,
+        float $deadline,
+        int $maximumExecutionSeconds,
+    ): array {
+        $exportCutoffId = (int) ((clone $query)->toBase()->max('id') ?? 0);
+        if ($this->csvDeadlineExceeded($deadline)) {
+            return ['', $this->csvExecutionLimitMessage($maximumExecutionSeconds)];
+        }
+
+        $exceedsMaximumRows = $exportCutoffId > 0
+            && (clone $query)
+                ->where('id', '<=', $exportCutoffId)
+                ->reorder('id')
+                ->offset($maximumRows)
+                ->limit(1)
+                ->exists();
+        if ($exceedsMaximumRows) {
+            return ['', sprintf(
+                'Ekspor CSV sinkron dibatasi maksimal %s baris. Persempit filter sebelum mencoba kembali.',
+                number_format($maximumRows, 0, ',', '.'),
+            )];
+        }
+        if ($this->csvDeadlineExceeded($deadline)) {
+            return ['', $this->csvExecutionLimitMessage($maximumExecutionSeconds)];
+        }
+
+        $handle = fopen('php://temp/maxmemory:1048576', 'w+b');
+        if ($handle === false) {
+            throw new \RuntimeException('Keluaran CSV tidak dapat dibuka.');
+        }
+
+        try {
+            $error = $this->writeCsvRow(
+                $handle,
+                ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status'],
+                $maximumBytes,
+                $deadline,
+                $maximumExecutionSeconds,
+            );
+            if ($error !== null) {
+                return ['', $error];
+            }
+
+            if ($exportCutoffId > 0) {
                 $encounters = $query
                     ->where('id', '<=', $exportCutoffId)
                     ->lazyByIdDesc(500);
@@ -271,7 +337,7 @@ class OutpatientRecapController extends Controller
                 foreach ($encounters as $encounter) {
                     $row = $this->encounterSummary($encounter);
                     $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
-                    fputcsv($handle, array_map($this->spreadsheetSafe(...), [
+                    $error = $this->writeCsvRow($handle, array_map($this->spreadsheetSafe(...), [
                         $row['registered_at'],
                         $row['queue_number'] ?? '',
                         $patient['medical_record_number'] ?? '',
@@ -282,17 +348,72 @@ class OutpatientRecapController extends Controller
                         $row['doctor_name'] ?? '',
                         $row['payer_label'] ?? $row['payer_type'],
                         $row['status'],
-                    ]));
+                    ]), $maximumBytes, $deadline, $maximumExecutionSeconds);
+
+                    if ($error !== null) {
+                        return ['', $error];
+                    }
                 }
-            } finally {
-                if (is_resource($handle)) {
-                    fclose($handle);
-                }
-                $this->releaseExportLock($lock);
             }
-        }, 'rekap-pendaftaran.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+
+            rewind($handle);
+            $csv = stream_get_contents($handle);
+            if ($csv === false) {
+                throw new \RuntimeException('Keluaran CSV tidak dapat dibaca.');
+            }
+            if ($this->csvDeadlineExceeded($deadline)) {
+                return ['', $this->csvExecutionLimitMessage($maximumExecutionSeconds)];
+            }
+
+            return [$csv, null];
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  list<string>  $fields
+     */
+    private function writeCsvRow(
+        mixed $handle,
+        array $fields,
+        int $maximumBytes,
+        float $deadline,
+        int $maximumExecutionSeconds,
+    ): ?string {
+        if ($this->csvDeadlineExceeded($deadline)) {
+            return $this->csvExecutionLimitMessage($maximumExecutionSeconds);
+        }
+        if (fputcsv($handle, $fields) === false) {
+            throw new \RuntimeException('Keluaran CSV tidak dapat ditulis.');
+        }
+        if (ftell($handle) > $maximumBytes) {
+            return sprintf(
+                'Ekspor CSV sinkron dibatasi maksimal %s byte. Persempit filter sebelum mencoba kembali.',
+                number_format($maximumBytes, 0, ',', '.'),
+            );
+        }
+
+        return $this->csvDeadlineExceeded($deadline)
+            ? $this->csvExecutionLimitMessage($maximumExecutionSeconds)
+            : null;
+    }
+
+    /**
+     * @phpstan-impure Depends on the current wall-clock time.
+     */
+    private function csvDeadlineExceeded(float $deadline): bool
+    {
+        return microtime(true) >= $deadline;
+    }
+
+    private function csvExecutionLimitMessage(int $maximumExecutionSeconds): string
+    {
+        return sprintf(
+            'Ekspor CSV sinkron melebihi batas waktu %s detik. Persempit filter sebelum mencoba kembali.',
+            number_format($maximumExecutionSeconds, 0, ',', '.'),
+        );
     }
 
     private function releaseExportLock(Lock $lock): void
@@ -300,7 +421,7 @@ class OutpatientRecapController extends Controller
         try {
             $lock->release();
         } catch (\Throwable) {
-            // The lock has a short TTL and remains fail-safe if the cache backend becomes unavailable.
+            // A bounded lease remains fail-safe if the cache backend becomes unavailable.
         }
     }
 

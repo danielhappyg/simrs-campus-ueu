@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use PDO;
+use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 class ImportWilayahCommandTest extends TestCase
@@ -214,54 +216,148 @@ class ImportWilayahCommandTest extends TestCase
         $this->assertDatabaseHas('wilayah_districts', ['code' => '317301', 'name' => 'Kebon Jeruk']);
     }
 
-    public function test_bundled_ibnux_source_passes_complete_hierarchy_validation(): void
+    public function test_upsert_buffers_span_village_source_file_boundaries(): void
     {
-        $upsertQueries = [
-            'wilayah_provinces' => 0,
-            'wilayah_regencies' => 0,
-            'wilayah_districts' => 0,
-            'wilayah_villages' => 0,
-        ];
-        DB::listen(function (QueryExecuted $query) use (&$upsertQueries): void {
+        $this->writeBufferedVillageHierarchy();
+        $villageUpsertQueries = 0;
+        DB::listen(function (QueryExecuted $query) use (&$villageUpsertQueries): void {
             $sql = strtolower(ltrim($query->sql));
-            if (! str_starts_with($sql, 'insert')) {
-                return;
-            }
-
-            foreach (array_keys($upsertQueries) as $table) {
-                if (str_contains($sql, '"'.$table.'"')) {
-                    $upsertQueries[$table]++;
-
-                    return;
-                }
+            if (str_starts_with($sql, 'insert') && str_contains($sql, '"wilayah_villages"')) {
+                $villageUpsertQueries++;
             }
         });
 
         $exitCode = Artisan::call('wilayah:import', [
-            '--path' => resource_path('data/wilayah/ibnux'),
+            '--path' => $this->sourcePath,
             '--fresh' => true,
         ]);
 
         $this->assertSame(0, $exitCode, Artisan::output());
-        $rowCounts = [
-            'wilayah_provinces' => DB::table('wilayah_provinces')->count(),
-            'wilayah_regencies' => DB::table('wilayah_regencies')->count(),
-            'wilayah_districts' => DB::table('wilayah_districts')->count(),
-            'wilayah_villages' => DB::table('wilayah_villages')->count(),
-        ];
-        $this->assertGreaterThan(30, $rowCounts['wilayah_provinces']);
-        $this->assertGreaterThan(400, $rowCounts['wilayah_regencies']);
-        $this->assertGreaterThan(6000, $rowCounts['wilayah_districts']);
-        $this->assertGreaterThan(70_000, $rowCounts['wilayah_villages']);
+        $this->assertDatabaseCount('wilayah_villages', 603);
+        $this->assertSame(
+            2,
+            $villageUpsertQueries,
+            'Three source files totalling 603 villages should flush one 500-row chunk and one remainder.',
+        );
+    }
 
-        foreach ($rowCounts as $table => $rowCount) {
-            $this->assertSame(
-                (int) ceil($rowCount / 500),
-                $upsertQueries[$table],
-                "{$table} should use only full cross-file chunks plus one remainder upsert.",
+    public function test_bundled_ibnux_source_passes_complete_hierarchy_validation_in_fresh_process(): void
+    {
+        $databasePath = tempnam(storage_path('framework/testing'), 'wilayah-bundled-');
+        $this->assertNotFalse($databasePath);
+
+        $environment = [
+            'APP_ENV' => 'testing',
+            'APP_MODE' => 'SIMULATION',
+            'APP_SYNTHETIC_ONLY' => 'true',
+            'APP_MAINTENANCE_DRIVER' => 'file',
+            'BCRYPT_ROUNDS' => '4',
+            'BROADCAST_CONNECTION' => 'null',
+            'CACHE_STORE' => 'array',
+            'DB_CONNECTION' => 'sqlite',
+            'DB_DATABASE' => $databasePath,
+            'DB_URL' => '',
+            'MAIL_MAILER' => 'array',
+            'QUEUE_CONNECTION' => 'sync',
+            'SESSION_DRIVER' => 'array',
+            'PULSE_ENABLED' => 'false',
+            'TELESCOPE_ENABLED' => 'false',
+            'NIGHTWATCH_ENABLED' => 'false',
+        ];
+
+        try {
+            $migration = new Process([
+                PHP_BINARY,
+                '-d',
+                'memory_limit=128M',
+                base_path('artisan'),
+                'migrate:fresh',
+                '--force',
+                '--no-interaction',
+            ], base_path(), $environment, null, 120);
+            $migration->run();
+            $this->assertSame(0, $migration->getExitCode(), $this->processOutput($migration));
+
+            $import = new Process([
+                PHP_BINARY,
+                '-d',
+                'memory_limit=128M',
+                base_path('artisan'),
+                'wilayah:import',
+                '--path',
+                resource_path('data/wilayah/ibnux'),
+                '--fresh',
+                '--no-interaction',
+            ], base_path(), $environment, null, 120);
+            $import->run();
+            $this->assertSame(0, $import->getExitCode(), $this->processOutput($import));
+
+            $connection = new PDO('sqlite:'.$databasePath);
+            $expectedRowCounts = [
+                'wilayah_provinces' => 38,
+                'wilayah_regencies' => 514,
+                'wilayah_districts' => 7285,
+                'wilayah_villages' => 83_762,
+            ];
+
+            foreach ($expectedRowCounts as $table => $expectedRowCount) {
+                $statement = $connection->query("select count(*) from {$table}");
+                if ($statement === false) {
+                    $this->fail("Could not query {$table} row count.");
+                }
+
+                $actualRowCount = $statement->fetchColumn();
+                $this->assertSame($expectedRowCount, (int) $actualRowCount, "Unexpected {$table} row count.");
+            }
+        } finally {
+            unset($connection);
+            File::delete([
+                $databasePath,
+                $databasePath.'-journal',
+                $databasePath.'-shm',
+                $databasePath.'-wal',
+            ]);
+        }
+    }
+
+    private function processOutput(Process $process): string
+    {
+        return trim($process->getOutput().PHP_EOL.$process->getErrorOutput());
+    }
+
+    private function writeBufferedVillageHierarchy(): void
+    {
+        File::put(
+            $this->sourcePath.'/provinsi.json',
+            json_encode([['id' => '31', 'nama' => 'DKI Jakarta']], JSON_THROW_ON_ERROR),
+        );
+        File::put(
+            $this->sourcePath.'/kabupaten/31.json',
+            json_encode([['id' => '3173', 'nama' => 'Kota Jakarta Barat']], JSON_THROW_ON_ERROR),
+        );
+
+        $districts = [];
+        for ($district = 1; $district <= 3; $district++) {
+            $districtCode = '3173'.str_pad((string) $district, 2, '0', STR_PAD_LEFT);
+            $districts[] = ['id' => $districtCode, 'nama' => "District {$district}"];
+            $villages = [];
+            for ($village = 1; $village <= 201; $village++) {
+                $villages[] = [
+                    'id' => $districtCode.str_pad((string) $village, 4, '0', STR_PAD_LEFT),
+                    'nama' => "Village {$district}-{$village}",
+                ];
+            }
+
+            File::put(
+                $this->sourcePath."/kelurahan/{$districtCode}.json",
+                json_encode($villages, JSON_THROW_ON_ERROR),
             );
         }
-        $this->assertLessThan(200, array_sum($upsertQueries));
+
+        File::put(
+            $this->sourcePath.'/kecamatan/3173.json',
+            json_encode($districts, JSON_THROW_ON_ERROR),
+        );
     }
 
     private function writeValidHierarchy(): void
