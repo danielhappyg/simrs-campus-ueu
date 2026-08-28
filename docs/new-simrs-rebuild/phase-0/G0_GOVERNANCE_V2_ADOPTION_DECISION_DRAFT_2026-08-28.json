@@ -1,0 +1,73 @@
+{
+  "artifact_type": "g0_governance_v2_adoption_decision_draft",
+  "schema_version": 1,
+  "artifact_id": "G0-GOVERNANCE-V2-ADOPTION-DECISION-DRAFT-2026-08-28",
+  "status": "pending_product_owner_decision",
+  "effect": "none",
+  "data_boundary": "synthetic_only",
+  "planning_head": "24bbd9e605d84ad756afcae9555b0f9f97198dbc",
+  "proposal": {
+    "path": "docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md",
+    "sha256": "f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695",
+    "recorded_status": "proposal_not_approved_not_authoritative"
+  },
+  "architecture": {
+    "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+    "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+    "recorded_status": "proposed_not_approved_no_implementation_authority"
+  },
+  "required_decider": {
+    "identity": "Daniel Happy Putra",
+    "authority_capacity": "product_owner",
+    "decision_status": "pending",
+    "selected_option": null,
+    "allowed_options": [
+      "approve_as_written",
+      "approve_with_revisions",
+      "retain_v1",
+      "reject_or_defer"
+    ],
+    "decision_reference": null,
+    "decision_message_sha256": null,
+    "decided_at": null,
+    "conditions": []
+  },
+  "requested_reply": "Approve proportional G0 governance v2 as written in `G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md`. Preserve all 268 capability identities and traceability; require attributable product and affected-domain approval; require independent review for material clinical, security, privacy, financial, integration, and recovery risk; preserve the synthetic-only and no-live-integration boundaries; retain v1 as historical never-activated evidence; and do not treat this approval as a capability disposition, workflow implementation approval, deployment approval, or G3 acceptance. I also accept ADR-018 at SHA-256 cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962 as the proposed implementation architecture for local governance-v2 implementation only.",
+  "canonical_approval_scope": {
+    "governance_v2_local_implementation": "requested",
+    "consumer_activation": "separate_decision_required",
+    "capability_disposition": "separate_owner_decisions_required",
+    "slice_implementation": "separate_owner_decision_required",
+    "deployment": "separate_decision_required",
+    "hosted_migration": "separate_decision_required",
+    "real_patient_data": "prohibited",
+    "live_integration": "prohibited",
+    "domain_acceptance": "separate_decision_required",
+    "g3_acceptance": "separate_decision_required"
+  },
+  "authorization": {
+    "governance_v2_local_implementation": false,
+    "consumer_activation": false,
+    "capability_disposition": false,
+    "slice_implementation": false,
+    "deployment": false,
+    "hosted_migration": false,
+    "real_patient_data": false,
+    "live_integration": false,
+    "domain_acceptance": false,
+    "g3_acceptance": false
+  },
+  "approval_record_rules": [
+    "Do not mutate this draft into an approval record.",
+    "After an explicit product-owner decision, create G0_GOVERNANCE_V2_ADOPTION_DECISION.json as a new immutable artifact.",
+    "Bind the canonical artifact to the exact proposal SHA, ADR SHA, selected option, decision message SHA, attributable reference, conditions, and decision time.",
+    "Approval as written may authorize local governance-v2 implementation only; it cannot authorize activation, capability dispositions, deployment, real data, live integrations, domain acceptance, or G3.",
+    "Any revision changes the proposal or ADR SHA and requires renewed review before implementation."
+  ],
+  "secret_handling": {
+    "credentials_permitted": false,
+    "tokens_permitted": false,
+    "private_keys_permitted": false,
+    "connection_strings_permitted": false
+  }
+}

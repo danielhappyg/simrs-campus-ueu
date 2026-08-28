@@ -47,6 +47,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Validate local Markdown links and fenced blocks
         shell: ruby {0}
@@ -81,6 +83,9 @@ jobs:
 
       - name: Test current G0-G3 coverage ledger contract
         run: ruby tests/Documentation/G0G3CoverageLedgerTest.rb
+
+      - name: Test proportional G0 governance v2 adoption decision draft
+        run: ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
 
       - name: Test Production promotion readiness preflight contract
         run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
