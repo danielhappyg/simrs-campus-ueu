@@ -101,7 +101,7 @@ Record only pass/fail or non-secret identifiers. Never retain `.env` contents, d
 | Session/cache and the maintenance command use the same Production-demo database, schema, cache table and cache prefix; Preview has no Production credential | `PARTIAL — future Production DB/schema/session/cache controls pass; seven sensitive keys are Production-only and Preview has a distinct APP_KEY; historical immutable Previews retain the prior database credential until rotation/revocation is proven` | Blocker |
 | Simulation makes no external password-breach request and cannot select a default network mail transport | `LOCAL PASS — e81bf19…3880; independent security re-review GO; full suite 506 tests / 6,415 assertions. Deployment-effective proof PENDING` | Blocker until replacement Preview/Production evidence |
 | Historical Preview database credential is rotated or revoked and older immutable Preview deployments can no longer authenticate | `PENDING` | Blocker before promotion or migration |
-| All prohibited live integrations disabled | `PENDING` | Blocker |
+| All prohibited live integrations disabled | `LOCAL TECHNICAL PASS — T1_INTEGRATION_DISABLEMENT_INVENTORY_2026-08-28.md; no client, endpoint, credential or actionable route found; Production-effective recheck PENDING` | Blocker until action-time recheck |
 | Independent reviewer, backup custodian, access expiry and recovery path complete | `PENDING` | Blocker |
 | Frozen predecessor query returns the one exact accepted result | `PENDING` | Blocker |
 | Pre-preservation and post-acceptance SQL both exist, have been independently reviewed, and their exact hashes match section 1 | `PENDING` | Blocker |
@@ -275,6 +275,7 @@ The cutover closes only when the public permitted and denied synthetic checks pa
 - [Pre-migration preservation SQL](T1_NINE_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-27.sql)
 - [Post-migration acceptance SQL](T1_NINE_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-27.sql)
 - [Vercel environment-scope and replacement-Preview result](T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json)
+- [Integration disablement inventory](T1_INTEGRATION_DISABLEMENT_INVENTORY_2026-08-28.md)
 - [Vercel + Supabase synthetic demo runbook](VERCEL_SUPABASE_DEMO.md)
 - [Temporary teaching-role access runbook](T1_TEACHING_ROLE_ACCESS_RUNBOOK_2026-08-27.md)
 - [25 August BG-02c4b G1 execution-control record](BG_02C4B_G1_CUTOVER_EXECUTION_CONTROL_2026-08-25.md)
