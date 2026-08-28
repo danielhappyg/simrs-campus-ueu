@@ -1,0 +1,449 @@
+{
+  "artifact_type": "g0_governance_v2_contract",
+  "schema_version": 1,
+  "contract_id": "G0-GOVERNANCE-V2-CONTRACT-1",
+  "profile": "v2",
+  "validator": {
+    "contract_name": "g0_proportional_governance_v2",
+    "version": "1.0.0",
+    "closed_schema": true,
+    "unknown_fields": "reject",
+    "duplicate_keys": "reject",
+    "wrong_types": "reject",
+    "secret_like_content": "reject_without_echoing_value"
+  },
+  "adopted_sources": {
+    "proposal": {
+      "path": "docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md",
+      "sha256": "f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695"
+    },
+    "architecture": {
+      "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+      "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962"
+    },
+    "adoption_decision": {
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json",
+      "sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3"
+    }
+  },
+  "boundary": {
+    "data_boundary": "synthetic_only",
+    "required_app_mode": "SIMULATION",
+    "real_patient_data_authorized": false,
+    "live_integrations_authorized": false,
+    "prohibited_live_integrations": [
+      "BPJS",
+      "VClaim",
+      "SATUSEHAT",
+      "payment",
+      "LIS",
+      "PACS",
+      "device",
+      "other_production_integration"
+    ],
+    "v2_decision_can_override_boundary": false,
+    "future_boundary_change_requires": [
+      "separate_governance_instrument_outside_v2",
+      "explicit_user_authorization"
+    ]
+  },
+  "universe": {
+    "required_capability_count": 268,
+    "requirement_id_pattern": "\\APAR-[A-Z]+-[0-9]{3}\\z",
+    "canonical_order_source": "docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json",
+    "dependency_order": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G"
+    ],
+    "stable_identity_required": true,
+    "exactly_one_expanded_row_per_capability": true,
+    "missing_ids": "reject",
+    "duplicate_ids": "reject",
+    "unknown_ids": "reject"
+  },
+  "closed_values": {
+    "batches": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G"
+    ],
+    "governance_states": [
+      "PENDING",
+      "DISCOVERY",
+      "PROPOSED",
+      "REVISION_REQUIRED",
+      "PROPOSAL_REJECTED",
+      "AUTHORIZED_FOR_SYNTHETIC_BUILD",
+      "DEFERRED",
+      "RETIRED",
+      "EXCLUDED"
+    ],
+    "terminal_governance_states": [
+      "AUTHORIZED_FOR_SYNTHETIC_BUILD",
+      "DEFERRED",
+      "RETIRED",
+      "EXCLUDED"
+    ],
+    "nonterminal_governance_states": [
+      "PENDING",
+      "DISCOVERY",
+      "PROPOSED",
+      "REVISION_REQUIRED",
+      "PROPOSAL_REJECTED"
+    ],
+    "owner_states": [
+      "DRAFT",
+      "READY_FOR_REVIEW",
+      "APPROVED",
+      "REVISE",
+      "DEFER",
+      "REJECT"
+    ],
+    "owner_outcomes": [
+      "approve",
+      "defer",
+      "revise",
+      "reject"
+    ],
+    "canonical_dispositions": [
+      "reproduce",
+      "replace",
+      "consolidate",
+      "retire",
+      "exclude"
+    ],
+    "engineering_states": [
+      "NOT_IMPLEMENTED",
+      "PARTIAL",
+      "IMPLEMENTED"
+    ],
+    "evidence_states": [
+      "NOT_RUN",
+      "PARTIAL_PASS",
+      "COMPLETE_PASS"
+    ],
+    "acceptance_states": [
+      "NOT_READY",
+      "NOT_ACCEPTED",
+      "PASS",
+      "FAIL"
+    ],
+    "tiers": [
+      "T1_STANDARD",
+      "T2_DOMAIN_CRITICAL",
+      "T3_INDEPENDENT_CONTROL"
+    ],
+    "consequence_flags": [
+      "clinical_or_rm_lifecycle",
+      "diagnostic",
+      "medication",
+      "inventory_without_valuation",
+      "tariff_or_charge_without_money_movement",
+      "claims_simulation",
+      "report_formula",
+      "correction_or_amendment",
+      "denial_behavior",
+      "cross_domain_control",
+      "implementer_is_approver",
+      "privileged_access_or_security",
+      "privacy_or_export",
+      "money_movement_or_stock_valuation",
+      "clinical_safety_override",
+      "external_integration",
+      "migration_restore_or_retained_write_recovery",
+      "statutory_output"
+    ],
+    "t2_consequence_flags": [
+      "clinical_or_rm_lifecycle",
+      "diagnostic",
+      "medication",
+      "inventory_without_valuation",
+      "tariff_or_charge_without_money_movement",
+      "claims_simulation",
+      "report_formula",
+      "correction_or_amendment",
+      "denial_behavior",
+      "cross_domain_control",
+      "implementer_is_approver"
+    ],
+    "t3_consequence_flags": [
+      "privileged_access_or_security",
+      "privacy_or_export",
+      "money_movement_or_stock_valuation",
+      "clinical_safety_override",
+      "external_integration",
+      "migration_restore_or_retained_write_recovery",
+      "statutory_output"
+    ],
+    "t2_independent_review_trigger_flags": [
+      "cross_domain_control",
+      "implementer_is_approver"
+    ],
+    "authority_capacities": [
+      "product_authority",
+      "accountable_domain_authority",
+      "materially_affected_co_owner",
+      "independent_control_authority"
+    ],
+    "accepted_attribution_methods": [
+      "signed_institutional_document_or_approved_meeting_record",
+      "protected_repository_decision_record",
+      "approved_immutable_ticket_or_workflow_record",
+      "optional_detached_cryptographic_signature"
+    ]
+  },
+  "governance_transitions": [
+    {
+      "from": "PENDING",
+      "to": [
+        "DISCOVERY"
+      ]
+    },
+    {
+      "from": "DISCOVERY",
+      "to": [
+        "PROPOSED"
+      ]
+    },
+    {
+      "from": "PROPOSED",
+      "to": [
+        "REVISION_REQUIRED",
+        "PROPOSAL_REJECTED",
+        "AUTHORIZED_FOR_SYNTHETIC_BUILD",
+        "DEFERRED",
+        "RETIRED",
+        "EXCLUDED"
+      ]
+    },
+    {
+      "from": "REVISION_REQUIRED",
+      "to": [
+        "DISCOVERY",
+        "PROPOSED"
+      ]
+    },
+    {
+      "from": "PROPOSAL_REJECTED",
+      "to": [
+        "DISCOVERY",
+        "PROPOSED"
+      ]
+    }
+  ],
+  "owner_outcome_rules": [
+    {
+      "owner_outcome": "approve",
+      "allowed_dispositions": [
+        "reproduce",
+        "replace",
+        "consolidate"
+      ],
+      "governance_state": "AUTHORIZED_FOR_SYNTHETIC_BUILD",
+      "g0_terminal": true,
+      "required_deferral_fields": []
+    },
+    {
+      "owner_outcome": "approve",
+      "allowed_dispositions": [
+        "retire"
+      ],
+      "governance_state": "RETIRED",
+      "g0_terminal": true,
+      "required_deferral_fields": []
+    },
+    {
+      "owner_outcome": "approve",
+      "allowed_dispositions": [
+        "exclude"
+      ],
+      "governance_state": "EXCLUDED",
+      "g0_terminal": true,
+      "required_deferral_fields": []
+    },
+    {
+      "owner_outcome": "defer",
+      "allowed_dispositions": [],
+      "governance_state": "DEFERRED",
+      "g0_terminal": true,
+      "required_deferral_fields": [
+        "unresolved_owner",
+        "reason",
+        "review_trigger",
+        "review_date"
+      ]
+    },
+    {
+      "owner_outcome": "revise",
+      "allowed_dispositions": [],
+      "governance_state": "REVISION_REQUIRED",
+      "g0_terminal": false,
+      "required_deferral_fields": []
+    },
+    {
+      "owner_outcome": "reject",
+      "allowed_dispositions": [],
+      "governance_state": "PROPOSAL_REJECTED",
+      "g0_terminal": false,
+      "required_deferral_fields": []
+    }
+  ],
+  "tier_derivation": {
+    "precedence_high_to_low": [
+      "T3_INDEPENDENT_CONTROL",
+      "T2_DOMAIN_CRITICAL",
+      "T1_STANDARD"
+    ],
+    "t3_when_any_true": "closed_values.t3_consequence_flags",
+    "t2_when_any_true_and_no_t3": "closed_values.t2_consequence_flags",
+    "t1_when_all_false": "closed_values.consequence_flags",
+    "declared_tier_must_equal_derived_tier": true,
+    "every_flag_required": true,
+    "flag_values_must_be_boolean": true,
+    "unknown_flags": "reject",
+    "conflicting_declarations": "reject"
+  },
+  "authority_rules": {
+    "all_tiers_require": [
+      "product_authority",
+      "accountable_domain_authority"
+    ],
+    "t1": {
+      "tier": "T1_STANDARD",
+      "require_all_materially_affected_co_owners": false,
+      "independent_review": "not_required"
+    },
+    "t2": {
+      "tier": "T2_DOMAIN_CRITICAL",
+      "require_all_materially_affected_co_owners": true,
+      "independent_review": "required_when_any_t2_independent_review_trigger_flag_true",
+      "independent_control_authority_capacity_required": false
+    },
+    "t3": {
+      "tier": "T3_INDEPENDENT_CONTROL",
+      "require_all_materially_affected_co_owners": true,
+      "independent_review": "always_required",
+      "independent_control_authority_capacity_required": true
+    },
+    "independent_reviewer_must_be_distinct_from": [
+      "implementation_executor",
+      "decision_authors",
+      "approvers"
+    ],
+    "product_and_domain_capacity_same_person": {
+      "allowed_only_when_both_capacities_and_scopes_explicitly_recorded": true,
+      "counts_as_two_people_for_quorum": false
+    },
+    "non_owner_substitutes_forbidden": [
+      "agent",
+      "implementation_author",
+      "passing_test",
+      "deployment",
+      "technical_reviewer"
+    ],
+    "invalid_authority_records": [
+      "blank",
+      "placeholder",
+      "organizational_only",
+      "stale",
+      "conflicting",
+      "unverifiable"
+    ],
+    "invalid_authority_effect": "fail_closed"
+  },
+  "family_decision_rules": {
+    "covered_requirement_ids_must_be_enumerated": true,
+    "required_identical_dimensions": [
+      "owners",
+      "disposition",
+      "target_pattern",
+      "evidence_boundary",
+      "conditions",
+      "acceptance_contract",
+      "consequence_map",
+      "derived_tier",
+      "downstream_effects",
+      "independent_review_requirement"
+    ],
+    "family_tier_rule": "maximum_derived_member_tier",
+    "mixed_risk_member_requires_per_row_exception": true,
+    "per_row_exception_requires_own_owner_record": true,
+    "per_row_exception_overrides_family_default": true,
+    "expanded_rows_must_retain_complete_consequence_map": true,
+    "silent_inheritance": "reject"
+  },
+  "correction_history_rules": {
+    "append_only": true,
+    "predecessor_event_sha256_required": true,
+    "supersession_reference_required": true,
+    "forked_history": "reject",
+    "broken_history": "reject",
+    "historical_bytes_mutable": false
+  },
+  "gate_rules": {
+    "project_g0_open_value": "OPEN",
+    "project_g0_pass_value": "PASS",
+    "project_g0_pass_requires": [
+      "exactly_268_unique_expanded_rows_in_canonical_order",
+      "every_row_in_terminal_governance_state",
+      "every_required_owner_present_and_attributable",
+      "every_required_approval_present_and_hash_valid",
+      "every_required_evidence_reference_present_and_hash_valid",
+      "every_declared_tier_equals_derived_tier",
+      "every_required_independent_review_satisfies_identity_and_capacity_rules",
+      "all_source_and_artifact_hashes_current"
+    ],
+    "incomplete_or_invalid_project_g0": "OPEN",
+    "slice_authorization_closes_project_g0": false,
+    "authorized_slice_authorizes_only_bounded_synthetic_build": true,
+    "authorized_slice_does_not_authorize": [
+      "deployment",
+      "hosted_migration",
+      "real_patient_data",
+      "live_integration",
+      "domain_acceptance",
+      "g3_acceptance"
+    ],
+    "g3_requires_g0_pass": true,
+    "g3_additional_requirements": [
+      "current_exact_sha_automated_evidence",
+      "hosted_role_based_uat",
+      "reconciliation",
+      "backup_restore",
+      "security",
+      "accessibility",
+      "performance",
+      "defect_closure",
+      "owner_acceptance"
+    ]
+  },
+  "separation_rules": {
+    "state_dimensions_are_independent": [
+      "governance",
+      "owner",
+      "engineering",
+      "evidence",
+      "acceptance"
+    ],
+    "owner_approval_proves_implementation": false,
+    "implementation_proves_owner_acceptance": false,
+    "deployment_proves_g3": false,
+    "engineering_overlay_can_confer_owner_authority": false,
+    "engineering_overlay_can_promote_g0": false,
+    "engineering_overlay_can_promote_g3": false,
+    "adoption_authorizes_consumer_activation": false,
+    "adoption_authorizes_capability_disposition": false,
+    "adoption_authorizes_slice_implementation": false,
+    "adoption_authorizes_deployment": false,
+    "adoption_authorizes_g3_acceptance": false
+  }
+}

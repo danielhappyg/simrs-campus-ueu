@@ -1,0 +1,202 @@
+{
+  "artifact_type": "g0_governance_v1_historical_hash_manifest",
+  "schema_version": 1,
+  "artifact_id": "G0-GOVERNANCE-V1-HISTORICAL-HASH-MANIFEST",
+  "status": "immutable_historical_integrity_reference",
+  "effect": "none_no_activation_or_authority",
+  "purpose": "Preserve the exact ordered byte hashes of the closed governance-v1 artifact and test inventory at the accepted ADR-018 planning baseline.",
+  "profile": "v1",
+  "planning_baseline": {
+    "git_commit": "ad326cf2e9b36e6864e029adba10bd0d86a0cbc4",
+    "repository_origin": "https://github.com/danielhappyg/simrs-campus-ueu.git",
+    "byte_source": "git_show_exact_path_at_planning_baseline",
+    "source_adr_path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+    "source_adr_sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+    "source_inventory_section": "Closed v1 preservation inventory at the planning baseline"
+  },
+  "inventory_contract": {
+    "closed": true,
+    "ordered": true,
+    "expected_file_count": 30,
+    "path_selection": "explicit_exact_paths_only",
+    "glob_semantics": "prohibited",
+    "directory_walk_semantics": "prohibited",
+    "later_working_tree_bytes_are_not_sources": true,
+    "later_commit_bytes_are_not_sources": true
+  },
+  "historical_meaning": {
+    "immutable": true,
+    "profile_status": "historical_never_activated",
+    "reinterpretation_permitted": false,
+    "owner_authority_effect": "none",
+    "consumer_selection_effect": "none",
+    "gate_effect": "none"
+  },
+  "boundary": {
+    "data_scope": "synthetic_only",
+    "real_patient_data_authorized": false,
+    "live_integrations_authorized": false,
+    "prohibited_live_integrations": [
+      "BPJS",
+      "VClaim",
+      "SATUSEHAT",
+      "payment",
+      "LIS",
+      "PACS",
+      "device",
+      "other_production_integration"
+    ]
+  },
+  "files": [
+    {
+      "order": 1,
+      "path": "docs/new-simrs-rebuild/phase-0/PARITY_MATRIX_BASELINE.json",
+      "sha256": "38e5889889ba23b5b7e4b59af9e669161b87b5c5b6e8c7cb3113f086c3af11ae"
+    },
+    {
+      "order": 2,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json",
+      "sha256": "59b0f05b94e2a659b342016c5b9e5e9e011f3a8e4c0f0efd3dda12a7b65fa9ca"
+    },
+    {
+      "order": 3,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "a5c1e01686fdb576026802331d3228df9a6335f6f7176b7c023c459bfc532098"
+    },
+    {
+      "order": 4,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "3db0a698be4f7729f24f997dbbc54e69c7c98442237fb7a9d4b12358971eeb1f"
+    },
+    {
+      "order": 5,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "7b97e8cc5169ff848dc5ca524281f93ad5b42b0a2134acc52cf91368cc580775"
+    },
+    {
+      "order": 6,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "da057e99d9d7d2349662f532605efec87edf220deb885783852088a2975c6287"
+    },
+    {
+      "order": 7,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "10778f021fc23f7fac0d3dfbdaacd8574cc424aaa76788afd7a26ba9f426a93b"
+    },
+    {
+      "order": 8,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "d2e78446dc2aa84162c8229dec8ab809bd45ace51a8fc6a313da95286503b795"
+    },
+    {
+      "order": 9,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "53bef20b3f509c543213e649b2d5f6644e9dbe00a7dae34d209c57a93137612e"
+    },
+    {
+      "order": 10,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "1f5b1c82fd342bddbc1da3949542be026d0909052749715878e10d0af21bcf2c"
+    },
+    {
+      "order": 11,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "0cd2059ce381dcd65bda6ae00a08a43d2b4592771a34dba2277b2725a25e004e"
+    },
+    {
+      "order": 12,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_C_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "f95417dfb63f2d65202577a78245d3f19405e30770fba0fd95c4659691e4781f"
+    },
+    {
+      "order": 13,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_D_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "7144bc8b22f25beab7e51b0840450b52a4e9365fb02cc91bd139f8e88231cc10"
+    },
+    {
+      "order": 14,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_E_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "19e8037d03dc9baa37f7653c3e8b411ddfb010affcd97c1ed428fc980516286d"
+    },
+    {
+      "order": 15,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_F_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "e03dacd43c04cfb6c58ff952334a42cae0f7505c2ff030c7f376d9348fa5aa54"
+    },
+    {
+      "order": 16,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "ffa4f1870ca91184437962698c47b70a41fcc0df1fb3d13facdf5193c705c5da"
+    },
+    {
+      "order": 17,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_GOVERNANCE_SNAPSHOT_PLAN_2026-08-25.json",
+      "sha256": "3ab2abd46fdcbbd7f13ff6bd87857834c88e1cc373894bbe78fa54ae0a440ee0"
+    },
+    {
+      "order": 18,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_INSTITUTIONAL_IDENTITY_KEY_REGISTRY_2026-08-26.json",
+      "sha256": "ba0cc0002a23a6fb04fa645c7c8089e8e5ce8d5a3ca7752fac023ae304eeb206"
+    },
+    {
+      "order": 19,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json",
+      "sha256": "bd43a7f0fbfc6f3a6f571c6077f7ac4722cd241006358c7fd325c0a27c37cc75"
+    },
+    {
+      "order": 20,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_REGISTER_2026-08-25.json",
+      "sha256": "85697fd4c1979f6447e1e0b1ab0cf761ca8c8755941c9059795aea95cb77f008"
+    },
+    {
+      "order": 21,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_DECISION_SESSION_REGISTER_2026-08-25.json",
+      "sha256": "a86576e0bb80171b275a1f7b7d8dde92ecf3bcc0856a4b386481ef68746117b3"
+    },
+    {
+      "order": 22,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_DECISION_EVIDENCE_2026-08-25/README.md",
+      "sha256": "025f05437688815077754d57e82010441329dcaeeb4ce843c2888427770954e3"
+    },
+    {
+      "order": 23,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_OWNER_APPOINTMENT_PACK_2026-08-25.md",
+      "sha256": "9beb1ce52abec72ab829d479e0d4835409ca8356b3217818bb04286a663310b1"
+    },
+    {
+      "order": 24,
+      "path": "docs/new-simrs-rebuild/phase-0/G0_S0_INSTITUTIONAL_AUTHORITY_INTAKE_2026-08-26.md",
+      "sha256": "3b67978695b8729463d52e6bb6063713bcd70fb763e418381372f8c30e545a90"
+    },
+    {
+      "order": 25,
+      "path": "scripts/validate-parity-governance.rb",
+      "sha256": "251cd15d947ea14b517f56ac23aee143faa91d59ce349d96756c8e88378cf65f"
+    },
+    {
+      "order": 26,
+      "path": "scripts/generate-g0-owner-governance-snapshot.rb",
+      "sha256": "a6c0e229123e30d02777a6f085c2da94062ada22e7a1676cea6ed77c1fab3a86"
+    },
+    {
+      "order": 27,
+      "path": "scripts/validate-g0-s0-intake.rb",
+      "sha256": "d90e5452c63d61162e7683a2999fea89a3cb2e76c25048af3e907e03eb165ee5"
+    },
+    {
+      "order": 28,
+      "path": "tests/Documentation/ParityGovernanceValidatorTest.rb",
+      "sha256": "92441766a024eabe9462767f58d4985b87a5da9a636c22d67c4cab973c35e182"
+    },
+    {
+      "order": 29,
+      "path": "tests/Documentation/G0OwnerGovernanceSnapshotGeneratorTest.rb",
+      "sha256": "a9f28a2fe4d682274aa1c18a71144c850c1f3a0c42423a6d7673a191dcffda51"
+    },
+    {
+      "order": 30,
+      "path": "tests/Documentation/G0S0IntakeContractTest.rb",
+      "sha256": "0d3de612c2a937434530c4c1d02477df57afcf264877475c3dbc1a63126b7be7"
+    }
+  ]
+}
