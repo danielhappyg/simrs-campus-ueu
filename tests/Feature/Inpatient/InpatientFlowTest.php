@@ -92,9 +92,8 @@ class InpatientFlowTest extends TestCase
             'queue_date' => now()->toDateString(),
             'last_number' => 1,
         ]);
-        $this->assertDatabaseHas('daily_queue_counters', [
-            'queue_date' => '1000-01-01',
-            'last_number' => 0,
+        $this->assertDatabaseHas('inpatient_bed_claim_mutexes', [
+            'bed_code' => $ward['beds'][0],
         ]);
 
         $this->actingAs($registrar)
@@ -149,6 +148,7 @@ class InpatientFlowTest extends TestCase
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('audit_events', 0);
         $this->assertDatabaseCount('daily_queue_counters', 0);
+        $this->assertDatabaseCount('inpatient_bed_claim_mutexes', 0);
     }
 
     public function test_second_admit_same_bed_blocked_while_first_open(): void
@@ -181,6 +181,9 @@ class InpatientFlowTest extends TestCase
         $this->assertDatabaseHas('daily_queue_counters', [
             'queue_date' => now()->toDateString(),
             'last_number' => 1,
+        ]);
+        $this->assertDatabaseHas('inpatient_bed_claim_mutexes', [
+            'bed_code' => $bed,
         ]);
     }
 

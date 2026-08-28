@@ -10,7 +10,7 @@
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
-        "test:unit": "vitest run",
+        "test:unit": "vitest run --maxWorkers=1",
         "test:unit:coverage": "vitest run --coverage",
         "test:unit:watch": "vitest",
         "types:check": "tsc --noEmit"

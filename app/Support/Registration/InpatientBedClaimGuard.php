@@ -2,16 +2,14 @@
 
 namespace App\Support\Registration;
 
-use App\Models\DailyQueueCounter;
 use App\Models\Encounter;
+use App\Models\InpatientBedClaimMutex;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use RuntimeException;
 
 final class InpatientBedClaimGuard
 {
-    private const GLOBAL_MUTEX_DATE = '1000-01-01';
-
     public function assertAvailable(string $bedCode): void
     {
         if (DB::connection()->transactionLevel() < 1) {
@@ -20,21 +18,20 @@ final class InpatientBedClaimGuard
 
         $now = now((string) config('app.timezone', 'Asia/Jakarta'));
 
-        // A stable row provides one database-portable mutex across dates, including claims
-        // that overlap midnight. The subsequent occupancy rows remain locked until commit.
-        DailyQueueCounter::query()->insertOrIgnore([
-            'queue_date' => self::GLOBAL_MUTEX_DATE,
-            'last_number' => 0,
+        // Each bed has its own stable mutex row. Concurrent claims for the same bed
+        // serialize until commit, while unrelated beds can be admitted independently.
+        InpatientBedClaimMutex::query()->insertOrIgnore([
+            'bed_code' => $bedCode,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
 
-        $mutex = DailyQueueCounter::query()
-            ->where('queue_date', self::GLOBAL_MUTEX_DATE)
+        $mutex = InpatientBedClaimMutex::query()
+            ->whereKey($bedCode)
             ->lockForUpdate()
             ->first();
 
-        if (! $mutex instanceof DailyQueueCounter) {
+        if (! $mutex instanceof InpatientBedClaimMutex) {
             throw new RuntimeException('Inpatient bed claim mutex could not be locked.');
         }
 

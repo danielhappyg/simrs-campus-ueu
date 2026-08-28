@@ -36,6 +36,7 @@ storage/pail/
 storage/app/recovery-rehearsals/
 storage/app/query-plan-rehearsals/
 storage/app/queue-allocation-rehearsals/
+storage/app/inpatient-bed-claim-rehearsals/
 storage/app/portability-rehearsals/
 database/*.sqlite
 
