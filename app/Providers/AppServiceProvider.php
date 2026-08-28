@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureSimulationEgressGuards();
         $this->configurePostgresSearchPath();
         $this->configureAuthorization();
     }
@@ -46,15 +47,39 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
+        Password::defaults(function (): ?Password {
+            if (! app()->isProduction()) {
+                return null;
+            }
+
+            $rule = Password::min(12)
                 ->mixedCase()
                 ->letters()
                 ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
-        );
+                ->symbols();
+
+            return config('simulation.mode') === 'SIMULATION'
+                ? $rule
+                : $rule->uncompromised();
+        });
+    }
+
+    /**
+     * Keep synthetic simulation notifications inside the application boundary.
+     */
+    protected function configureSimulationEgressGuards(): void
+    {
+        if (config('simulation.mode') !== 'SIMULATION') {
+            return;
+        }
+
+        $mailer = config('mail.driver', config('mail.default'));
+        $safeMailer = in_array($mailer, ['array', 'log'], true) ? $mailer : 'log';
+
+        config([
+            'mail.default' => $safeMailer,
+            'mail.driver' => $safeMailer,
+        ]);
     }
 
     /**
