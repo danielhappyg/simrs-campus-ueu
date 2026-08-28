@@ -11,15 +11,30 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
   PROPOSAL_PATH = File.join(PHASE, 'G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md')
   ADR_PATH = File.join(ROOT, 'docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md')
   ADOPTION_DRAFT_PATH = File.join(PHASE, 'G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json')
+  CI_PATH = File.join(ROOT, '.github/workflows/documentation-checks.yml')
   PLANNING_HEAD = '19c0029730a36115f718fa48468dc56c3f722a05'
   INPUTS = {
     'docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md' => PROPOSAL_PATH,
     'docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md' => ADR_PATH,
     'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json' => ADOPTION_DRAFT_PATH
   }.freeze
+  CURRENT_V2_PLANNING_TESTS = %w[
+    tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
+    tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
+    tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
+    tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
+  ].freeze
+  CURRENT_PRE_ADOPTION_CI_COMMANDS = [
+    'ruby tests/Documentation/ParityGovernanceValidatorTest.rb',
+    'ruby scripts/validate-parity-governance.rb --mode integrity',
+    'ruby -Itests tests/Documentation/G0OwnerGovernanceSnapshotGeneratorTest.rb',
+    'ruby -Itests tests/Documentation/G0S0IntakeContractTest.rb',
+    'ruby tests/Documentation/G0G3CoverageLedgerTest.rb'
+  ].freeze
 
   def setup
     @blueprint = File.read(BLUEPRINT_PATH)
+    @ci = File.read(CI_PATH)
   end
 
   def test_blueprint_is_explicitly_planning_only_and_fail_closed
@@ -112,6 +127,27 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     required_commands.each { |test_file| assert_includes @blueprint, test_file }
     assert_includes @blueprint, 'ruby scripts/validate-parity-governance.rb --mode integrity'
     assert_includes @blueprint, 'ruby scripts/validate-g0-governance.rb --profile dual --mode integrity --source candidate'
+  end
+
+  def test_current_ci_runs_pre_adoption_contracts_in_fail_closed_order
+    workflow_commands = @ci.scan(/^\s+run:\s+([^\n]+)$/).flatten.map(&:strip)
+    governance_commands = workflow_commands.select { |command| CURRENT_PRE_ADOPTION_CI_COMMANDS.include?(command) }
+
+    assert_equal CURRENT_PRE_ADOPTION_CI_COMMANDS, governance_commands
+    assert_includes @ci, 'fetch-depth: 0'
+    assert_includes @ci, 'shell: ruby -Itests {0}'
+    CURRENT_V2_PLANNING_TESTS.each { |path| assert_includes @ci, path }
+    assert_includes @ci, 'abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required'
+    refute_includes @ci, 'continue-on-error:'
+    refute_includes @ci, 'select-g0-governance-consumer.rb'
+  end
+
+  def test_current_v2_planning_contract_discovery_is_closed_and_complete
+    discovered = Dir[File.join(ROOT, 'tests/Documentation/G0*V2*Test.rb')]
+      .sort
+      .map { |path| path.delete_prefix("#{ROOT}/") }
+
+    assert_equal CURRENT_V2_PLANNING_TESTS, discovered
   end
 
   def test_blueprint_has_balanced_fences_and_no_secret_material

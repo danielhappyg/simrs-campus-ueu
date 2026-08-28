@@ -75,20 +75,33 @@ jobs:
           abort(failures.join("\n")) unless failures.empty?
           puts "Validated #{files.length} Markdown files"
 
+      - name: Test all proportional G0 governance v2 planning contracts
+        shell: ruby -Itests {0}
+        run: |
+          required = %w[
+            tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
+            tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
+            tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
+            tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
+          ]
+          actual = Dir["tests/Documentation/G0*V2*Test.rb"].sort
+          abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required
+          actual.each { |file| require File.expand_path(file) }
+
       - name: Test parity governance validator
         run: ruby tests/Documentation/ParityGovernanceValidatorTest.rb
 
       - name: Validate parity governance integrity
         run: ruby scripts/validate-parity-governance.rb --mode integrity
 
+      - name: Test owner-governance snapshot generator compatibility
+        run: ruby -Itests tests/Documentation/G0OwnerGovernanceSnapshotGeneratorTest.rb
+
+      - name: Test G0/S0 institutional intake compatibility
+        run: ruby -Itests tests/Documentation/G0S0IntakeContractTest.rb
+
       - name: Test current G0-G3 coverage ledger contract
         run: ruby tests/Documentation/G0G3CoverageLedgerTest.rb
-
-      - name: Test proportional G0 governance v2 adoption decision draft
-        run: ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
-
-      - name: Test proportional G0 governance v2 implementation blueprint
-        run: ruby -Itests tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
 
       - name: Test Production promotion readiness preflight contract
         run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
