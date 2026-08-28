@@ -75,13 +75,15 @@ jobs:
           abort(failures.join("\n")) unless failures.empty?
           puts "Validated #{files.length} Markdown files"
 
-      - name: Test all proportional G0 governance v2 planning contracts
+      - name: Test all proportional G0 governance v2 planning and adoption contracts
         shell: ruby -Itests {0}
         run: |
           required = %w[
             tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
+            tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
             tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
+            tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
             tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
           ]
           actual = Dir["tests/Documentation/G0*V2*Test.rb"].sort

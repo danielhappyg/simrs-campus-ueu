@@ -18,10 +18,12 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     'docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md' => ADR_PATH,
     'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json' => ADOPTION_DRAFT_PATH
   }.freeze
-  CURRENT_V2_PLANNING_TESTS = %w[
+  CURRENT_V2_GOVERNANCE_TESTS = %w[
     tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
+    tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
     tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
     tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
+    tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
     tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
   ].freeze
   CURRENT_PRE_ADOPTION_CI_COMMANDS = [
@@ -110,6 +112,7 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     required_commands = %w[
       G0ProportionalGovernanceV2ProposalTest.rb
       G0GovernanceV2ArchitectureDecisionTest.rb
+      G0GovernanceV2IndependentReviewTest.rb
       G0GovernanceV2AdoptionDecisionDraftTest.rb
       G0GovernanceV2ImplementationBlueprintTest.rb
       G0GovernanceV2AdoptionDecisionTest.rb
@@ -136,18 +139,18 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     assert_equal CURRENT_PRE_ADOPTION_CI_COMMANDS, governance_commands
     assert_includes @ci, 'fetch-depth: 0'
     assert_includes @ci, 'shell: ruby -Itests {0}'
-    CURRENT_V2_PLANNING_TESTS.each { |path| assert_includes @ci, path }
+    CURRENT_V2_GOVERNANCE_TESTS.each { |path| assert_includes @ci, path }
     assert_includes @ci, 'abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required'
     refute_includes @ci, 'continue-on-error:'
     refute_includes @ci, 'select-g0-governance-consumer.rb'
   end
 
-  def test_current_v2_planning_contract_discovery_is_closed_and_complete
+  def test_current_v2_governance_contract_discovery_is_closed_and_complete
     discovered = Dir[File.join(ROOT, 'tests/Documentation/G0*V2*Test.rb')]
       .sort
       .map { |path| path.delete_prefix("#{ROOT}/") }
 
-    assert_equal CURRENT_V2_PLANNING_TESTS, discovered
+    assert_equal CURRENT_V2_GOVERNANCE_TESTS, discovered
   end
 
   def test_blueprint_has_balanced_fences_and_no_secret_material

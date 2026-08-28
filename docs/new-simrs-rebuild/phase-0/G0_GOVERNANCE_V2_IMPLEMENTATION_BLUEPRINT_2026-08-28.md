@@ -129,6 +129,7 @@ Add explicit CI steps only after their referenced files exist. Preserve full-his
 ```text
 ruby -Itests tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
 ruby -Itests tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
+ruby -Itests tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
 ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
 ruby -Itests tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
 ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb

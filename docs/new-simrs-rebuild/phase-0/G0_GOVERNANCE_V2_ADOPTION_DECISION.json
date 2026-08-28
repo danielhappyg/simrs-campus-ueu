@@ -1,0 +1,119 @@
+{
+  "artifact_type": "g0_governance_v2_adoption_decision",
+  "schema_version": 1,
+  "artifact_id": "G0-GOVERNANCE-V2-ADOPTION-DECISION-2026-08-29",
+  "status": "approved_as_written",
+  "effect": "authorizes_local_governance_v2_implementation_only",
+  "data_boundary": "synthetic_only",
+  "planning_head": "e2d933c8929906bd15f52c8c5a6283d45b3fbf86",
+  "proposal": {
+    "path": "docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md",
+    "sha256": "f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695",
+    "decision_effect": "adopted_as_written"
+  },
+  "architecture": {
+    "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+    "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+    "decision_effect": "accepted_for_local_governance_v2_implementation"
+  },
+  "adoption_draft": {
+    "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json",
+    "sha256": "aa78fea02ab0d0d1098c8b5a7e40a3ad6734a5336f6d4aaaeef6e666baf7f9bd",
+    "recorded_status": "historical_pending_no_effect"
+  },
+  "independent_review": {
+    "path": "docs/operations/G0_GOVERNANCE_V2_INDEPENDENT_TECHNICAL_SECURITY_REVIEW_2026-08-29.md",
+    "sha256": "ed99ed8f4bacf3dcd6de9e0ae455faf4c899f9be37c45bfe37041a07558e18a4",
+    "review_id": "G0-GOV-V2-INDEPENDENT-REVIEW-2026-08-29-CODEX-HUBBLE-2",
+    "reviewer_identity": "Independent Codex technical/security reviewer (Hubble the 2nd)",
+    "reviewer_kind": "ai_agent_not_human_or_owner_authority",
+    "reviewer_agent_path": "/root/ci_portability_review",
+    "reviewed_proposal_sha256": "f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695",
+    "reviewed_architecture_sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+    "verdict": "PASS",
+    "verdict_scope": "gate_a_local_governance_v2_implementation_readiness_only",
+    "reviewed_at": "2026-08-29T04:06:17+07:00",
+    "authority_effect": "none_review_evidence_only"
+  },
+  "effectiveness": {
+    "prior_status": "approved_pending_required_review",
+    "effective_status": "approved_as_written",
+    "required_prerequisites": [
+      "attributable_product_owner_approve_as_written",
+      "independent_technical_security_review_pass"
+    ],
+    "owner_approval_observed_at": "2026-08-29T03:58:45+07:00",
+    "independent_review_completed_at": "2026-08-29T04:06:17+07:00",
+    "effective_at": "2026-08-29T04:14:52+07:00",
+    "effective_at_basis": "first_local_record_after_both_prerequisites_were_satisfied",
+    "transition_basis": "owner_approve_as_written_became_effective_after_required_review_passed_without_changes_or_blockers"
+  },
+  "decider": {
+    "identity": "Daniel Happy Putra",
+    "authority_capacity": "product_owner",
+    "approval_status_when_observed": "approved_pending_required_review",
+    "selected_option": "approve_as_written",
+    "decision_reference": "codex_thread:01a02b58-641d-7090-aad4-00871c7ddf47#decision-message-sha256:a1305f42adefd687116d677cc6600ae138a8dc267194b7b2b87762984bc0501e",
+    "decision_message": "I approve everything, the system remains synthetic but ther are no need to said it like that on fron of the system, this will be used like a reala system like what sahabat built.\nfor the other thing, I approve the governance-v2 proposal and ADR-018 exactly as stated in the approval block. Proceed with local implementation under those boundaries.",
+    "decision_message_encoding": "exact_utf8_with_one_lf_and_no_trailing_newline",
+    "decision_message_sha256": "a1305f42adefd687116d677cc6600ae138a8dc267194b7b2b87762984bc0501e",
+    "source_message_at": null,
+    "recorded_at": "2026-08-29T03:58:45+07:00",
+    "recorded_at_basis": "first_local_record_after_attributable_product_owner_thread_message_source_timestamp_unavailable",
+    "conditions": [
+      "The phrase 'I approve everything' is constrained by the same-message synthetic boundary and the exact approval-block reference; it does not expand authority beyond approved_scope.",
+      "The operational UI should present as a realistic hospital SIMRS without a persistent front-of-screen simulation banner.",
+      "Synthetic-data controls, a compact global teaching status, report/export watermarks, honest stubs, and no-live-integration safeguards remain mandatory.",
+      "Like Sahabat means comparable hospital-workflow familiarity only; UEU identity is retained and no vendor branding, code, assets, or data may be copied."
+    ]
+  },
+  "approved_scope": {
+    "governance_v2_local_implementation": "authorized",
+    "consumer_activation": "separate_decision_required",
+    "capability_disposition": "separate_owner_decisions_required",
+    "slice_implementation": "separate_owner_decision_required",
+    "deployment": "separate_decision_required",
+    "hosted_migration": "separate_decision_required",
+    "real_patient_data": "prohibited",
+    "live_integration": "prohibited",
+    "domain_acceptance": "separate_decision_required",
+    "g3_acceptance": "separate_decision_required"
+  },
+  "authorization": {
+    "governance_v2_local_implementation": true,
+    "consumer_activation": false,
+    "capability_disposition": false,
+    "slice_implementation": false,
+    "deployment": false,
+    "hosted_migration": false,
+    "real_patient_data": false,
+    "live_integration": false,
+    "domain_acceptance": false,
+    "g3_acceptance": false
+  },
+  "presentation_direction": {
+    "hospital_realism_required": true,
+    "persistent_simulation_banner_required": false,
+    "compact_global_teaching_status_required": true,
+    "compact_global_teaching_status_placement": "authenticated_shell_and_patient_context",
+    "synthetic_data_guardrails_required": true,
+    "teaching_context_disclosure_required": true,
+    "full_teaching_context_disclosure_placement": "login_help_about_and_operations_surfaces",
+    "report_export_simulation_watermark_required": true,
+    "honest_stub_labels_required": true,
+    "vendor_visual_clone_prohibited": true,
+    "effect_on_data_boundary": "none",
+    "ui_preference_implementation_authority": "requires_separate_capability_slice_decision"
+  },
+  "immutability": {
+    "record_mutable": false,
+    "correction_method": "append_new_superseding_decision_bound_to_this_artifact_sha256",
+    "draft_mutated": false
+  },
+  "secret_handling": {
+    "credentials_permitted": false,
+    "tokens_permitted": false,
+    "private_keys_permitted": false,
+    "connection_strings_permitted": false
+  }
+}
