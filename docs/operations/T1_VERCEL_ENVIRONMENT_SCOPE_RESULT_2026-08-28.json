@@ -1,7 +1,7 @@
 {
-  "status": "TECHNICAL_ENVIRONMENT_SCOPE_PASS_REPLACEMENT_PREVIEW_PENDING",
-  "recorded_at_utc": "2026-08-28T02:14:15Z",
-  "recorded_at_asia_jakarta": "2026-08-28T09:14:15+07:00",
+  "status": "TECHNICAL_ENVIRONMENT_SCOPE_AND_REPLACEMENT_PREVIEW_PASS",
+  "recorded_at_utc": "2026-08-28T02:25:55Z",
+  "recorded_at_asia_jakarta": "2026-08-28T09:25:55+07:00",
   "boundary": "SIMRS Campus UEU synthetic teaching simulation only",
   "project": {
     "team": "danielhappyg",
@@ -24,12 +24,21 @@
     "promotion_allowed": false,
     "superseded_reason": "A later local release adds reviewed simulation-egress containment and must receive a new exact Git-backed Preview before cutover."
   },
-  "local_release_candidate": {
-    "git_sha": "e81bf19fb1cc9918d103743edd2e1f5b48893880",
+  "replacement_release_candidate": {
+    "application_security_sha": "e81bf19fb1cc9918d103743edd2e1f5b48893880",
+    "release_carrier_sha": "c63c017a1e9dc2bd2922ce9fc9235b7cc90703db",
     "contains_simulation_egress_containment": true,
-    "github_push_completed": false,
-    "replacement_preview_deployment_id": null,
-    "replacement_preview_status": "PENDING"
+    "github_push_completed": true,
+    "replacement_preview_deployment_id": "dpl_4UH2VjQwwo2ccUxHoauhFv1Qp1vt",
+    "replacement_preview_url": "https://simrs-campus-ueu-demo-qp78frsde-danielhappyg.vercel.app",
+    "replacement_preview_status": "READY",
+    "replacement_preview_target": "preview",
+    "replacement_preview_source": "git",
+    "replacement_preview_created_at_utc": "2026-08-28T02:21:13.156Z",
+    "replacement_preview_created_at_asia_jakarta": "2026-08-28T09:21:13.156+07:00",
+    "git_provider": "github",
+    "git_ref": "main",
+    "git_source_sha": "c63c017a1e9dc2bd2922ce9fc9235b7cc90703db"
   },
   "environment_scope": {
     "explicit_production_configuration": {
@@ -86,6 +95,16 @@
       "preview_app_key_type": "sensitive",
       "secret_values_read_or_exported": false,
       "applies_to_new_deployments_only": true
+    },
+    "mail_transport": {
+      "production_value": "log",
+      "production_target": [
+        "production"
+      ],
+      "production_type": "encrypted",
+      "preview_record_separate": true,
+      "evidence_type": "operator configuration action plus post-action key/type/target metadata",
+      "value_is_non_secret_runbook_control": true
     }
   },
   "preview_isolation_reasoning": {
@@ -102,10 +121,14 @@
   },
   "allowed_preview_smoke": {
     "evidence_type": "operator-observed Vercel protection-bypass requests",
+    "deployment_id": "dpl_4UH2VjQwwo2ccUxHoauhFv1Qp1vt",
     "/up": 200,
     "/favicon.svg": 200,
+    "/login": 500,
     "deployment_protection_bypass_used": true,
-    "database_backed_login_not_tested": true
+    "preview_has_production_database_credential": false,
+    "database_backed_login_used_as_acceptance_evidence": false,
+    "login_observation": "Unavailable without a Preview database/session backend; this is not application acceptance."
   },
   "superseded_candidates": [
     {
@@ -140,12 +163,11 @@
     "sensitive_environment_values_read": false
   },
   "remaining_blockers": [
-    "One batched GitHub push and an exact replacement Git-backed Preview for local release e81bf19fb1cc9918d103743edd2e1f5b48893880",
     "Named independent human reviewer",
     "Explicit backup/restore custodian appointment and retention acceptance",
     "Short-lived access reference, expiry, revocation and recovery evidence",
     "Rotate or revoke the historical Supabase database credential under maintenance and prove older immutable Preview deployments can no longer authenticate",
-    "Action-time integration-disablement inventory, deployment-effective simulation-egress verification and remaining environment identity checks",
+    "Action-time integration-disablement inventory, Production-effective simulation-egress verification and remaining environment identity checks",
     "Frozen predecessor query and the later maintenance, writer-drain, backup B, migration and acceptance chain"
   ]
 }
