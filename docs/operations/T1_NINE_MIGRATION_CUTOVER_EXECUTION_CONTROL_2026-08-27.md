@@ -24,6 +24,7 @@ This is a new date-specific execution record. It does not replace the 25 August 
 | Supabase project reference | `xbmsfvstcpngizcplqyg` | Exact target; action-time target binding still required |
 | Predecessor preflight SQL | `T1_PRODUCTION_PROMOTION_READINESS_PREFLIGHT_2026-08-27.sql` | SHA-256 `a70ff74908a6eac5bf04f5313f38f5abf0f8985b9cd56d91cfdfdae77a1a6d4c` |
 | Sanitized predecessor result | `T1_PRODUCTION_PROMOTION_READINESS_RESULT_2026-08-27.json` | SHA-256 `8564d3bc4252706690c6a1b6b15dedf1041e927552baae9c98d6a81854d31be1`; status `PRE_MIGRATION_CONTRACT_MATCH` |
+| Refreshed sanitized predecessor result | `T1_PRODUCTION_PROMOTION_READINESS_RESULT_2026-08-28.json` | SHA-256 `4a98bcd33ce69109da0666d1565b62030d5222cab64067973d8d7d304a62e671`; status `PRE_MIGRATION_CONTRACT_MATCH`; `promotion_authorized=false` |
 | Pre-migration preservation SQL | `T1_NINE_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-27.sql` | SHA-256 `10a662bb57123ad475d0f97f713877938b7b475c84fa7f55741c5bf0905de612`; action-time byte equality and independent review remain blocking |
 | Post-migration acceptance SQL | `T1_NINE_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-27.sql` | SHA-256 `346807a8bfa005caa906f5c33ceb1324eb38c8b3901a97a51c133e143c9e5336`; action-time byte equality and independent review remain blocking |
 | Vercel environment-scope result | `T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json` | SHA-256 `b15a6a98104d4bc0e69f78b9f045b0163c671fbeaf4876cf6804559b0ff1592b`; contains no secret value |
@@ -103,7 +104,7 @@ Record only pass/fail or non-secret identifiers. Never retain `.env` contents, d
 | Historical Preview database credential is rotated or revoked and older immutable Preview deployments can no longer authenticate | `PENDING` | Blocker before promotion or migration |
 | All prohibited live integrations disabled | `LOCAL TECHNICAL PASS — T1_INTEGRATION_DISABLEMENT_INVENTORY_2026-08-28.md; no client, endpoint, credential or actionable route found; Production-effective recheck PENDING` | Blocker until action-time recheck |
 | Independent reviewer, backup custodian, access expiry and recovery path complete | `PENDING` | Blocker |
-| Frozen predecessor query returns the one exact accepted result | `PENDING` | Blocker |
+| Frozen predecessor query returns the one exact accepted result | `EARLY READ-ONLY EVIDENCE ONLY — exact contract match refreshed 2026-08-28T02:40:59.84523Z through the authenticated Supabase project connector; action-time gate remains PENDING and promotion remains unauthorized` | Require immediate pre-maintenance recheck after reviewer/custodian/access gates |
 | Pre-preservation and post-acceptance SQL both exist, have been independently reviewed, and their exact hashes match section 1 | `PENDING` | Blocker |
 | External target-receipt procedure is frozen to project `xbmsfvstcpngizcplqyg`, the approved Production endpoint and CA trust evidence | `TECHNICAL PASS — procedure SHA 869ecf1…ff6c1, shared session pooler, verify-full TLS, CA SHA 7007235…3b7; named human reconciliation remains PENDING` | Blocker until role/review complete |
 
@@ -152,7 +153,7 @@ The maintenance marker is database-cache-backed because Vercel functions do not 
 | ---: | --- | --- |
 | 1 | Freeze release, deployment, migration and SQL hashes; complete operator/reviewer/custodian/access fields | `PARTIAL — technical identities refrozen; reviewer/custodian/access fields PENDING` |
 | 2 | Refresh Production, Preview, Supabase, environment and integration inventory with no drift | `PARTIAL — seven sensitive keys narrowed to Production, Preview has a distinct APP_KEY, explicit Production controls refreshed; replacement Preview, historical credential revocation and action-time integration inventory PENDING` |
-| 3 | Run frozen predecessor query once; require exact `PRE_MIGRATION_CONTRACT_MATCH` | `PENDING` |
+| 3 | Run frozen predecessor query once; require exact `PRE_MIGRATION_CONTRACT_MATCH` | `PENDING — an early read-only exact match was retained at 2026-08-28T02:40:59.84523Z, but action-time execution must be rerun immediately before maintenance after reviewer/custodian/access gates are complete` |
 | 4 | Complete backup A and independent restore receipt A | `PENDING` |
 | 5 | From the exact release checkout, activate shared database-cache maintenance without bypass | `PENDING` |
 | 6 | Verify the same marker from a second request path; require `/login=503` | `PENDING` |
@@ -276,6 +277,7 @@ The cutover closes only when the public permitted and denied synthetic checks pa
 - [Post-migration acceptance SQL](T1_NINE_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-27.sql)
 - [Vercel environment-scope and replacement-Preview result](T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json)
 - [Integration disablement inventory](T1_INTEGRATION_DISABLEMENT_INVENTORY_2026-08-28.md)
+- [Refreshed sanitized predecessor result](T1_PRODUCTION_PROMOTION_READINESS_RESULT_2026-08-28.json)
 - [Vercel + Supabase synthetic demo runbook](VERCEL_SUPABASE_DEMO.md)
 - [Temporary teaching-role access runbook](T1_TEACHING_ROLE_ACCESS_RUNBOOK_2026-08-27.md)
 - [25 August BG-02c4b G1 execution-control record](BG_02C4B_G1_CUTOVER_EXECUTION_CONTROL_2026-08-25.md)
