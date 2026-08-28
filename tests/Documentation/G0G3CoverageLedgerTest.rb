@@ -203,6 +203,13 @@ class G0G3CoverageLedgerTest < Minitest::Test
     assert_raises(G0G3CoverageLedger::ContractError) { @compiler.check_serialized!("{}\n") }
   end
 
+  def test_serialization_normalizes_empty_collections_across_json_runtimes
+    serialized = @compiler.serialized
+
+    refute_match(/\[\n\s*\]/, serialized)
+    refute_match(/\{\n\s*\}/, serialized)
+  end
+
   def test_rejects_malformed_and_duplicate_json
     assert_raises(G0G3CoverageLedger::ContractError) { @compiler.parse_json('{', 'fixture') }
     error = assert_raises(G0G3CoverageLedger::ContractError) { @compiler.parse_json('{"a":1,"a":2}', 'fixture') }

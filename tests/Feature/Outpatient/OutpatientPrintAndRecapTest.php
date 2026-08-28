@@ -548,7 +548,8 @@ class OutpatientPrintAndRecapTest extends TestCase
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $delayed = false;
         DB::listen(function (QueryExecuted $query) use (&$delayed): void {
-            if ($delayed || ! str_contains(strtolower($query->sql), 'from "encounters"')) {
+            $sql = $this->normalizedSql($query);
+            if ($delayed || ! $this->selectsFrom($sql, 'encounters')) {
                 return;
             }
 
@@ -614,11 +615,11 @@ class OutpatientPrintAndRecapTest extends TestCase
 
         $lateRowInserted = false;
         DB::listen(function (QueryExecuted $query) use (&$lateRowInserted, $latePatient, $registrar): void {
-            $sql = strtolower($query->sql);
+            $sql = $this->normalizedSql($query);
             if ($lateRowInserted
-                || ! str_contains($sql, 'from "encounters"')
-                || (! str_contains($sql, 'max("id")')
-                    && (! str_contains($sql, 'select "id"') || ! str_contains($sql, 'limit')))) {
+                || ! $this->selectsFrom($sql, 'encounters')
+                || (! str_contains($sql, 'max(id)')
+                    && (! str_contains($sql, 'select id') || ! str_contains($sql, 'limit')))) {
                 return;
             }
 
@@ -659,6 +660,19 @@ class OutpatientPrintAndRecapTest extends TestCase
         $user->roles()->sync([$role->id]);
 
         return $user;
+    }
+
+    private function normalizedSql(QueryExecuted $query): string
+    {
+        return str_replace(['"', '`'], '', strtolower($query->sql));
+    }
+
+    private function selectsFrom(string $sql, string $table): bool
+    {
+        return preg_match(
+            '/\\bfrom\\s+(?:[a-z0-9_]+\\.)?'.preg_quote($table, '/').'\\b/',
+            $sql,
+        ) === 1;
     }
 
     /**

@@ -107,7 +107,9 @@ class G0G3CoverageLedger
   end
 
   def serialized(overlay: nil)
-    JSON.pretty_generate(build(overlay: overlay)) + "\n"
+    JSON.pretty_generate(build(overlay: overlay))
+      .gsub(/\[\n\s*\]/, '[]')
+      .gsub(/\{\n\s*\}/, '{}') + "\n"
   end
 
   def check!
@@ -140,7 +142,12 @@ class G0G3CoverageLedger
 
     value
   rescue JSON::ParserError => e
-    raise ContractError, "#{label}: invalid JSON: #{e.message}"
+    detail = if e.message.match?(/duplicate(?: JSON object)? key/i)
+               'duplicate JSON object key'
+             else
+               e.message
+             end
+    raise ContractError, "#{label}: invalid JSON: #{detail}"
   end
 
   private

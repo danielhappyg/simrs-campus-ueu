@@ -221,8 +221,8 @@ class ImportWilayahCommandTest extends TestCase
         $this->writeBufferedVillageHierarchy();
         $villageUpsertQueries = 0;
         DB::listen(function (QueryExecuted $query) use (&$villageUpsertQueries): void {
-            $sql = strtolower(ltrim($query->sql));
-            if (str_starts_with($sql, 'insert') && str_contains($sql, '"wilayah_villages"')) {
+            $sql = str_replace(['"', '`'], '', strtolower(ltrim($query->sql)));
+            if (preg_match('/\Ainsert\s+into\s+(?:[a-z0-9_]+\.)?wilayah_villages\b/', $sql) === 1) {
                 $villageUpsertQueries++;
             }
         });
@@ -243,6 +243,17 @@ class ImportWilayahCommandTest extends TestCase
 
     public function test_bundled_ibnux_source_passes_complete_hierarchy_validation_in_fresh_process(): void
     {
+        $sourcePath = resource_path('data/wilayah/ibnux');
+        if (! File::isDirectory($sourcePath)) {
+            $this->markTestSkipped(
+                'The optional full ibnux source is not tracked; fetch it before running this dataset validation.',
+            );
+        }
+        $this->assertTrue(
+            File::isReadable($sourcePath.'/provinsi.json'),
+            'An installed full ibnux source must include a readable provinsi.json root.',
+        );
+
         $databasePath = tempnam(storage_path('framework/testing'), 'wilayah-bundled-');
         $this->assertNotFalse($databasePath);
 
@@ -285,7 +296,7 @@ class ImportWilayahCommandTest extends TestCase
                 base_path('artisan'),
                 'wilayah:import',
                 '--path',
-                resource_path('data/wilayah/ibnux'),
+                $sourcePath,
                 '--fresh',
                 '--no-interaction',
             ], base_path(), $environment, null, 120);

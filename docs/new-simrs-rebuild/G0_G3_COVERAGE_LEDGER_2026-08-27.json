@@ -319,9 +319,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -337,9 +335,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -361,9 +357,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -379,9 +373,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -403,9 +395,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -421,9 +411,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -445,9 +433,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -463,9 +449,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -487,9 +471,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -505,9 +487,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -529,9 +509,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -547,9 +525,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -571,9 +547,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -589,9 +563,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -613,9 +585,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -631,9 +601,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -655,9 +623,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -673,9 +639,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -697,9 +661,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -715,9 +677,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -739,9 +699,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -757,9 +715,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -830,9 +786,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -848,9 +802,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -872,9 +824,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -890,9 +840,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -914,9 +862,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -932,9 +878,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -956,9 +900,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -974,9 +916,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -998,9 +938,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1016,9 +954,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1040,9 +976,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1058,9 +992,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1082,9 +1014,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1100,9 +1030,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1124,9 +1052,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1142,9 +1068,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1166,9 +1090,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1184,9 +1106,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1362,9 +1282,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1380,9 +1298,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1404,9 +1320,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1422,9 +1336,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1446,9 +1358,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1464,9 +1374,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1488,9 +1396,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1506,9 +1412,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1530,9 +1434,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1548,9 +1450,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1572,9 +1472,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1590,9 +1488,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1614,9 +1510,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1632,9 +1526,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1656,9 +1548,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1674,9 +1564,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1698,9 +1586,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1716,9 +1602,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1740,9 +1624,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1758,9 +1640,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -1782,9 +1662,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -1800,9 +1678,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2013,9 +1889,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2031,9 +1905,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2105,9 +1977,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2123,9 +1993,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2147,9 +2015,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2165,9 +2031,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2189,9 +2053,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2207,9 +2069,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2231,9 +2091,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2249,9 +2107,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2273,9 +2129,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2291,9 +2145,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2315,9 +2167,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2333,9 +2183,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2357,9 +2205,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2375,9 +2221,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2399,9 +2243,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2417,9 +2259,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2492,9 +2332,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2510,9 +2348,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2534,9 +2370,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2552,9 +2386,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2576,9 +2408,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2594,9 +2424,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2618,9 +2446,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2636,9 +2462,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2660,9 +2484,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2678,9 +2500,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2702,9 +2522,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2720,9 +2538,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2744,9 +2560,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2762,9 +2576,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2786,9 +2598,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2804,9 +2614,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2828,9 +2636,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2846,9 +2652,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2870,9 +2674,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2888,9 +2690,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2912,9 +2712,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2930,9 +2728,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2954,9 +2750,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -2972,9 +2766,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -2996,9 +2788,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3014,9 +2804,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3038,9 +2826,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3056,9 +2842,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3080,9 +2864,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3098,9 +2880,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3122,9 +2902,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3140,9 +2918,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3164,9 +2940,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3182,9 +2956,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3206,9 +2978,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3224,9 +2994,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3248,9 +3016,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3266,9 +3032,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3290,9 +3054,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3308,9 +3070,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3332,9 +3092,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3350,9 +3108,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3374,9 +3130,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3392,9 +3146,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3416,9 +3168,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3434,9 +3184,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3458,9 +3206,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3476,9 +3222,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3500,9 +3244,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3518,9 +3260,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3542,9 +3282,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3560,9 +3298,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3584,9 +3320,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3602,9 +3336,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3626,9 +3358,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3644,9 +3374,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3668,9 +3396,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3686,9 +3412,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3710,9 +3434,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3728,9 +3450,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3752,9 +3472,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3770,9 +3488,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3794,9 +3510,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3812,9 +3526,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3836,9 +3548,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3854,9 +3564,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3878,9 +3586,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3896,9 +3602,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3920,9 +3624,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3938,9 +3640,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -3962,9 +3662,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -3980,9 +3678,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4004,9 +3700,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4022,9 +3716,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4046,9 +3738,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4064,9 +3754,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4088,9 +3776,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4106,9 +3792,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4130,9 +3814,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4148,9 +3830,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4172,9 +3852,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4190,9 +3868,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4214,9 +3890,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4232,9 +3906,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4256,9 +3928,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4274,9 +3944,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4298,9 +3966,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4316,9 +3982,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4340,9 +4004,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4358,9 +4020,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4382,9 +4042,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4400,9 +4058,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4424,9 +4080,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4442,9 +4096,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4466,9 +4118,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4484,9 +4134,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4508,9 +4156,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4526,9 +4172,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4550,9 +4194,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4568,9 +4210,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4592,9 +4232,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4610,9 +4248,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4634,9 +4270,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4652,9 +4286,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4676,9 +4308,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4694,9 +4324,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4718,9 +4346,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4736,9 +4362,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4760,9 +4384,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4778,9 +4400,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4802,9 +4422,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4820,9 +4438,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4844,9 +4460,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4862,9 +4476,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4886,9 +4498,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4904,9 +4514,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4928,9 +4536,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4946,9 +4552,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -4970,9 +4574,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -4988,9 +4590,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5012,9 +4612,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5030,9 +4628,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5054,9 +4650,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5072,9 +4666,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5096,9 +4688,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5114,9 +4704,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5138,9 +4726,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5156,9 +4742,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5180,9 +4764,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5198,9 +4780,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5222,9 +4802,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5240,9 +4818,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5264,9 +4840,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5282,9 +4856,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5306,9 +4878,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5324,9 +4894,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5348,9 +4916,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5366,9 +4932,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5390,9 +4954,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5408,9 +4970,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5432,9 +4992,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5450,9 +5008,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5474,9 +5030,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5492,9 +5046,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5516,9 +5068,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5534,9 +5084,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5558,9 +5106,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5576,9 +5122,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5600,9 +5144,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5618,9 +5160,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5642,9 +5182,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5660,9 +5198,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5684,9 +5220,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5702,9 +5236,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5726,9 +5258,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5744,9 +5274,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5768,9 +5296,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5786,9 +5312,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5810,9 +5334,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5828,9 +5350,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5852,9 +5372,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5870,9 +5388,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5894,9 +5410,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5912,9 +5426,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5936,9 +5448,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5954,9 +5464,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -5978,9 +5486,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -5996,9 +5502,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6020,9 +5524,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6038,9 +5540,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6062,9 +5562,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6080,9 +5578,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6104,9 +5600,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6122,9 +5616,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6146,9 +5638,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6164,9 +5654,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6188,9 +5676,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6206,9 +5692,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6230,9 +5714,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6248,9 +5730,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6272,9 +5752,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6290,9 +5768,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6314,9 +5790,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6332,9 +5806,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6356,9 +5828,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6374,9 +5844,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6398,9 +5866,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6416,9 +5882,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6440,9 +5904,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6458,9 +5920,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6482,9 +5942,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6500,9 +5958,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6524,9 +5980,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6542,9 +5996,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6566,9 +6018,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6584,9 +6034,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6608,9 +6056,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6626,9 +6072,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6650,9 +6094,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6668,9 +6110,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6692,9 +6132,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6710,9 +6148,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6734,9 +6170,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6752,9 +6186,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6776,9 +6208,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6794,9 +6224,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6818,9 +6246,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6836,9 +6262,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6860,9 +6284,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6878,9 +6300,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6902,9 +6322,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6920,9 +6338,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6944,9 +6360,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -6962,9 +6376,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -6986,9 +6398,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7004,9 +6414,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7028,9 +6436,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7046,9 +6452,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7070,9 +6474,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7088,9 +6490,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7112,9 +6512,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7130,9 +6528,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7154,9 +6550,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7172,9 +6566,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7196,9 +6588,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7214,9 +6604,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7238,9 +6626,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7256,9 +6642,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7330,9 +6714,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7348,9 +6730,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7372,9 +6752,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7390,9 +6768,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7464,9 +6840,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7482,9 +6856,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7506,9 +6878,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7524,9 +6894,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7548,9 +6916,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7566,9 +6932,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7590,9 +6954,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7608,9 +6970,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7632,9 +6992,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7650,9 +7008,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7674,9 +7030,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7692,9 +7046,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7716,9 +7068,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7734,9 +7084,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7758,9 +7106,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7776,9 +7122,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7800,9 +7144,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7818,9 +7160,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7842,9 +7182,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7860,9 +7198,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7884,9 +7220,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7902,9 +7236,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7926,9 +7258,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7944,9 +7274,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -7968,9 +7296,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -7986,9 +7312,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8010,9 +7334,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8028,9 +7350,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8052,9 +7372,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8070,9 +7388,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8094,9 +7410,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8112,9 +7426,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8136,9 +7448,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8154,9 +7464,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8178,9 +7486,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8196,9 +7502,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8220,9 +7524,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8238,9 +7540,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8262,9 +7562,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8280,9 +7578,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8304,9 +7600,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8322,9 +7616,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8346,9 +7638,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8364,9 +7654,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8388,9 +7676,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8406,9 +7692,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8430,9 +7714,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8448,9 +7730,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8472,9 +7752,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8490,9 +7768,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8514,9 +7790,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8532,9 +7806,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8556,9 +7828,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8574,9 +7844,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8598,9 +7866,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8616,9 +7882,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8640,9 +7904,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8658,9 +7920,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8682,9 +7942,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8700,9 +7958,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8724,9 +7980,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8742,9 +7996,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8766,9 +8018,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8784,9 +8034,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8808,9 +8056,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8826,9 +8072,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8850,9 +8094,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8868,9 +8110,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8892,9 +8132,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8910,9 +8148,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8934,9 +8170,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8952,9 +8186,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -8976,9 +8208,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -8994,9 +8224,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9018,9 +8246,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9036,9 +8262,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9060,9 +8284,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9078,9 +8300,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9102,9 +8322,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9120,9 +8338,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9144,9 +8360,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9162,9 +8376,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9186,9 +8398,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9204,9 +8414,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9228,9 +8436,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9246,9 +8452,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9270,9 +8474,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9288,9 +8490,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9312,9 +8512,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9330,9 +8528,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9354,9 +8550,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9372,9 +8566,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9396,9 +8588,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9414,9 +8604,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9438,9 +8626,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9456,9 +8642,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9480,9 +8664,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9498,9 +8680,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9522,9 +8702,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9540,9 +8718,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9564,9 +8740,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9582,9 +8756,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9606,9 +8778,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9624,9 +8794,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9648,9 +8816,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9666,9 +8832,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9690,9 +8854,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9708,9 +8870,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9732,9 +8892,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9750,9 +8908,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9774,9 +8930,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9792,9 +8946,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9816,9 +8968,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9834,9 +8984,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9858,9 +9006,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9876,9 +9022,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9900,9 +9044,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9918,9 +9060,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9942,9 +9082,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -9960,9 +9098,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -9984,9 +9120,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10002,9 +9136,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10026,9 +9158,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10044,9 +9174,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10068,9 +9196,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10086,9 +9212,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10110,9 +9234,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10128,9 +9250,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10152,9 +9272,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10170,9 +9288,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10194,9 +9310,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10212,9 +9326,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10236,9 +9348,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10254,9 +9364,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10278,9 +9386,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10296,9 +9402,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10320,9 +9424,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10338,9 +9440,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10362,9 +9462,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10380,9 +9478,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10404,9 +9500,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10422,9 +9516,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10446,9 +9538,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10464,9 +9554,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10488,9 +9576,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10506,9 +9592,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10530,9 +9614,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10548,9 +9630,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10572,9 +9652,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10590,9 +9668,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10614,9 +9690,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10632,9 +9706,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10656,9 +9728,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10674,9 +9744,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10698,9 +9766,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10716,9 +9782,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10740,9 +9804,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10758,9 +9820,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10782,9 +9842,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10800,9 +9858,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10824,9 +9880,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10842,9 +9896,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10866,9 +9918,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10884,9 +9934,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10908,9 +9956,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10926,9 +9972,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10950,9 +9994,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -10968,9 +10010,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -10992,9 +10032,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11010,9 +10048,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11034,9 +10070,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11052,9 +10086,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11076,9 +10108,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11094,9 +10124,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11118,9 +10146,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11136,9 +10162,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11160,9 +10184,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11178,9 +10200,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11202,9 +10222,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11220,9 +10238,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11244,9 +10260,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11262,9 +10276,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11286,9 +10298,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11304,9 +10314,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11328,9 +10336,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11346,9 +10352,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11370,9 +10374,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11388,9 +10390,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11412,9 +10412,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11430,9 +10428,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11454,9 +10450,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11472,9 +10466,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11496,9 +10488,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11514,9 +10504,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     },
     {
@@ -11538,9 +10526,7 @@
       },
       "workflow_binding": {
         "status": "PENDING",
-        "scenario_ids": [
-
-        ],
+        "scenario_ids": [],
         "authority_reference": null
       },
       "engineering_evidence": {
@@ -11556,9 +10542,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ]
+        "evidence_paths": []
       }
     }
   ],
@@ -11781,9 +10765,7 @@
         "row_index": 5,
         "row_sha256": "caa2c387c68db69331eb441296f39c04c8b8306946f3a5582adac997ccc62753"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -11797,9 +10779,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "No complete radiology workflow evidence is recorded."
       }
     },
@@ -11813,9 +10793,7 @@
         "row_index": 6,
         "row_sha256": "9b342d5b2eaaa5c874f64ed308239f576a5cc32b9bc5c8ac94116d4a3913e0ad"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -11829,9 +10807,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "No blood-bank issue, transfusion traceability or reconciliation workflow evidence is recorded."
       }
     },
@@ -11845,9 +10821,7 @@
         "row_index": 7,
         "row_sha256": "01beaa8481c101a8001fa47f305960ee1dfb01b316568c90da82bbd0a184676e"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -11861,9 +10835,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "No complete nutrition or allied-health referral-to-outcome workflow evidence is recorded."
       }
     },
@@ -11877,9 +10849,7 @@
         "row_index": 8,
         "row_sha256": "5e7836e65648218081e543b033c100e7d6ae8093bdb02332cf421db13d3ea4e5"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -11893,9 +10863,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "No complete surgery, anaesthesia, recovery, specimen and charge workflow evidence is recorded."
       }
     },
@@ -11909,9 +10877,7 @@
         "row_index": 9,
         "row_sha256": "499254b0c23a6dadc3b49511981bc4838f7e542f476190b74d078cfed5064374"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -11925,9 +10891,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "The complete cross-setting prescription, verification, dispense, return and reversal workflow is not implemented."
       }
     },
@@ -11941,9 +10905,7 @@
         "row_index": 10,
         "row_sha256": "921371f38cb02d3d5cfc691ada4ca99f6201e5a8a46b1019d04f98e130554d4b"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -11957,9 +10919,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "No perpetual GF warehouse and inventory workflow evidence is recorded."
       }
     },
@@ -12012,9 +10972,7 @@
         "row_index": 12,
         "row_sha256": "65786610135c75a50bd9577a60b90f7ea2c981ed78fde7dce0349c0d2a68059b"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -12028,9 +10986,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "Claims, BPJS and grouping remain simulation-only future scope with no complete workflow evidence."
       }
     },
@@ -12044,9 +11000,7 @@
         "row_index": 13,
         "row_sha256": "adb27c15283e4129c79a4f8a560025973f2e6aa4a1acb7e22a89411b6ac89867"
       },
-      "capability_ids": [
-
-      ],
+      "capability_ids": [],
       "engineering_evidence": {
         "runtime_availability": "NOT_IMPLEMENTED",
         "automated_evidence": "NO_COVERAGE",
@@ -12060,9 +11014,7 @@
         "reconciliation": "NOT_STARTED",
         "defect_status": "PENDING",
         "owner_acceptance": "NOT_READY",
-        "evidence_paths": [
-
-        ],
+        "evidence_paths": [],
         "note": "No complete billing, cashier, settlement, reversal and revenue reconciliation workflow evidence is recorded."
       }
     },
