@@ -87,6 +87,9 @@ jobs:
       - name: Test proportional G0 governance v2 adoption decision draft
         run: ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
 
+      - name: Test proportional G0 governance v2 implementation blueprint
+        run: ruby -Itests tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
+
       - name: Test Production promotion readiness preflight contract
         run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
 

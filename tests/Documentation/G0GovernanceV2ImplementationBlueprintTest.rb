@@ -1,0 +1,129 @@
+# frozen_string_literal: true
+
+require 'digest'
+require 'minitest/autorun'
+require 'open3'
+
+class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
+  ROOT = File.expand_path('../..', __dir__)
+  PHASE = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0')
+  BLUEPRINT_PATH = File.join(PHASE, 'G0_GOVERNANCE_V2_IMPLEMENTATION_BLUEPRINT_2026-08-28.md')
+  PROPOSAL_PATH = File.join(PHASE, 'G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md')
+  ADR_PATH = File.join(ROOT, 'docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md')
+  ADOPTION_DRAFT_PATH = File.join(PHASE, 'G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json')
+  PLANNING_HEAD = '19c0029730a36115f718fa48468dc56c3f722a05'
+  INPUTS = {
+    'docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md' => PROPOSAL_PATH,
+    'docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md' => ADR_PATH,
+    'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json' => ADOPTION_DRAFT_PATH
+  }.freeze
+
+  def setup
+    @blueprint = File.read(BLUEPRINT_PATH)
+  end
+
+  def test_blueprint_is_explicitly_planning_only_and_fail_closed
+    assert_includes @blueprint, '**Status:** `PLANNING ONLY / AWAITING PRODUCT-OWNER ADOPTION / NOT AUTHORITATIVE`'
+    assert_includes @blueprint, '**Effect:** None.'
+    assert_includes @blueprint, '**Data boundary:** `APP_MODE=SIMULATION`, synthetic teaching data only.'
+    assert_includes @blueprint, "**Planning head:** `#{PLANNING_HEAD}`"
+    assert_includes @blueprint, 'Until Gate A is recorded in a new immutable `G0_GOVERNANCE_V2_ADOPTION_DECISION.json`, only review, revision, and validation of planning artifacts are allowed.'
+  end
+
+  def test_bound_proposal_and_adr_hashes_are_current
+    assert_includes @blueprint, Digest::SHA256.file(PROPOSAL_PATH).hexdigest
+    assert_includes @blueprint, Digest::SHA256.file(ADR_PATH).hexdigest
+    assert_includes File.read(PROPOSAL_PATH), '**Status:** `PROPOSAL / NOT APPROVED / NOT AUTHORITATIVE`'
+    assert_includes File.read(ADR_PATH), 'Status: **Proposed / not approved / no implementation authority**'
+  end
+
+  def test_planning_head_is_reachable_and_owns_every_bound_input
+    assert_git_success 'cat-file', '-e', "#{PLANNING_HEAD}^{commit}"
+    assert_git_success 'merge-base', '--is-ancestor', PLANNING_HEAD, 'HEAD'
+
+    INPUTS.each do |repository_path, current_path|
+      source_bytes, status = Open3.capture2('git', 'show', "#{PLANNING_HEAD}:#{repository_path}", chdir: ROOT)
+      assert status.success?, "planning head is missing #{repository_path}"
+      assert_equal File.binread(current_path), source_bytes.b
+    end
+  end
+
+  def test_dependency_order_and_separate_authority_gates_are_locked
+    expected_waves = (0..7).map { |number| "### Wave #{number}" }
+    positions = expected_waves.map do |heading|
+      position = @blueprint.index(heading)
+      refute_nil position, "missing #{heading}"
+      position
+    end
+    assert_equal positions.sort, positions
+
+    %w[Adoption Activation Capability/slice Deployment].each do |gate|
+      assert_match(/^\| [A-D]\. #{Regexp.escape(gate)} \|/, @blueprint)
+    end
+    assert_match(/^\| E\. G3 acceptance \|/, @blueprint)
+    assert_includes @blueprint, 'Activation does not approve any capability.'
+    assert_includes @blueprint, 'No later node may supply evidence for an earlier authority gate.'
+    assert_includes @blueprint, 'T2 triggers independent review only when `implementer_is_approver` or `cross_domain_control` is true, while T3 always requires a distinct independent-control authority separated from executor, authors, and approvers'
+    assert_includes @blueprint, 'complete required defect closure, including no open P0 and no accepted or unaccepted P1'
+  end
+
+  def test_required_fail_closed_and_recovery_invariants_are_present
+    required = [
+      'a failed transaction leaves the previous pointer byte-identical',
+      'failed readback makes consumers fail closed until explicit recovery',
+      'Rollback and recovery never reactivate v1',
+      'requires held-selection path/SHA only for `held`, and forbids it for `disabled`',
+      'every loser returns the stable documented conflict exit/reason',
+      'forces every current schema-v2 G0 and G3 verdict to `OPEN`',
+      'No engineering overlay, receipt, journal, comparator, or ledger source can confer owner authority',
+      'CI must not contain an activation command or `continue-on-error` for a governance check'
+    ]
+    required.each { |invariant| assert_includes @blueprint, invariant }
+  end
+
+  def test_candidate_dispatch_precedes_active_pointer_resolution
+    candidate_wave = @blueprint.index('### Wave 4 — candidate-only observation and profile dispatch')
+    pointer_wave = @blueprint.index('### Wave 5 — selector mechanics in isolated fixtures only')
+    refute_nil candidate_wave
+    refute_nil pointer_wave
+    assert_operator candidate_wave, :<, pointer_wave
+    assert_includes @blueprint, 'reject rather than stub or duplicate `--source active` behavior until Wave 5 supplies the shared read-only pointer resolver'
+    assert_includes @blueprint, 'complete the dispatcher’s `v2|dual --source active` matrix by delegating to it'
+  end
+
+  def test_ci_matrix_explicitly_retains_current_and_future_contracts
+    required_commands = %w[
+      G0ProportionalGovernanceV2ProposalTest.rb
+      G0GovernanceV2ArchitectureDecisionTest.rb
+      G0GovernanceV2AdoptionDecisionDraftTest.rb
+      G0GovernanceV2ImplementationBlueprintTest.rb
+      G0GovernanceV2AdoptionDecisionTest.rb
+      ParityGovernanceValidatorTest.rb
+      G0OwnerGovernanceSnapshotGeneratorTest.rb
+      G0S0IntakeContractTest.rb
+      G0ProportionalGovernanceV2ValidatorTest.rb
+      G0ProportionalGovernanceV2GeneratorTest.rb
+      G0ProportionalGovernanceV2MigrationTest.rb
+      G0GovernanceConsumerPointerTest.rb
+      G0GovernanceProfileDispatchTest.rb
+      G0G3CoverageEvidenceMapV2Test.rb
+      G0G3CoverageLedgerTest.rb
+    ]
+    required_commands.each { |test_file| assert_includes @blueprint, test_file }
+    assert_includes @blueprint, 'ruby scripts/validate-parity-governance.rb --mode integrity'
+    assert_includes @blueprint, 'ruby scripts/validate-g0-governance.rb --profile dual --mode integrity --source candidate'
+  end
+
+  def test_blueprint_has_balanced_fences_and_no_secret_material
+    assert_predicate @blueprint.scan(/^```/).length, :even?
+    secret_pattern = /(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|postgres(?:ql)?:\/\/[^\s:]+:[^\s@]+@|(?:password|passwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token)["']?\s*(?::|=)\s*["']?[^\s,;}"']+)/i
+    refute_match secret_pattern, @blueprint
+  end
+
+  private
+
+  def assert_git_success(*arguments)
+    _output, status = Open3.capture2e('git', *arguments, chdir: ROOT)
+    assert status.success?, "git #{arguments.join(' ')} failed"
+  end
+end
