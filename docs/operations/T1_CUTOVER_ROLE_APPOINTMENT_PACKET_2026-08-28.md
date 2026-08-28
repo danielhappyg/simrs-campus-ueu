@@ -6,7 +6,7 @@
 
 ## Why this packet exists
 
-The technical remediation batch and exact-SHA security diff scan are complete locally, but `T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md` still blocks execution until a named independent reviewer, backup/restore custodian, temporary-access expiry, and recovery path are accepted.
+The technical remediation batch, exact-SHA security diff scan, and local ten-migration cutover-control refreeze are complete, but `T1_TEN_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-28.md` still blocks execution until a named independent reviewer, backup/restore custodian, temporary-access expiry, and recovery path are accepted.
 
 The small-team RACI permits one person to hold multiple roles when approvals remain distinct. This proposal therefore uses Daniel Happy Putra as the human authority and custodian while keeping the execution operator separate as the Codex orchestrator. The proposal is not effective until Daniel explicitly accepts each responsibility below.
 
@@ -60,7 +60,7 @@ Until that acceptance is recorded, every proposed appointment above remains `PEN
 
 - Security remediation register: `G3_SECURITY_REMEDIATION_REGISTER_2026-08-28.md`
 - Sealed security diff scan: `de0afb55-7377-4370-886b-8f8046cc0da6`, exact range `c63c017a1e9dc2bd2922ce9fc9235b7cc90703db..0fa00978973e86f4a2375a6dfc2e07ce380cf1b9`
-- Cutover execution control: `T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md`
+- Current cutover execution control: `T1_TEN_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-28.md`
+- Historical superseded cutover control: `T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md`
 - Teaching-role access runbook: `T1_TEACHING_ROLE_ACCESS_RUNBOOK_2026-08-27.md`
 - Current hosting posture: `CURRENT_HOSTING_POSTURE.md`
-

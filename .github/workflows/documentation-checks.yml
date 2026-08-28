@@ -13,6 +13,18 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.10
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready --username=postgres --dbname=postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -53,6 +65,21 @@ jobs:
 
       - name: Test Production promotion readiness preflight contract
         run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
+
+      - name: Test ten-migration cutover control contract
+        run: ruby tests/Documentation/TenMigrationCutoverContractTest.rb
+
+      - name: Parse ten-migration SQL with PostgreSQL 17.10
+        env:
+          SIMRS_TEN_MIGRATION_POSTGRES17: '1'
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGDATABASE: postgres
+          PGUSER: postgres
+        run: ruby tests/Documentation/TenMigrationPostgres17SqlContractTest.rb
+
+      - name: Test local portability execution-source binding
+        run: ruby tests/Documentation/LocalPortabilityFullSuiteHarnessContractTest.rb
 
       - name: Test hosted Structured RJ/RM UAT protocol contract
         run: ruby tests/Documentation/HostedStructuredRjRmUatProtocolTest.rb

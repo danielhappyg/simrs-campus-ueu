@@ -144,7 +144,7 @@ class LocalPortabilityFullSuiteHarnessContractTest < Minitest::Test
 
     execution = Harness.current_execution_bindings
     assert_equal first, execution.fetch('backend_execution_source_set')
-    assert_equal 21, execution.dig('migration_set', 'file_count')
+    assert_equal 23, execution.dig('migration_set', 'file_count')
     assert_match(/\A[0-9a-f]{64}\z/, execution.dig('migration_set', 'sha256'))
     assert_match(/\A[0-9a-f]{64}\z/, execution.fetch('harness_sha256'))
     assert_match(/\A[0-9a-f]{64}\z/, execution.fetch('workflow_test_catalog_sha256'))

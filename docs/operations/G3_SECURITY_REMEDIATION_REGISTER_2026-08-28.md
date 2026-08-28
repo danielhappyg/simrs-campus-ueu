@@ -77,7 +77,7 @@ The following remain open and prevent any G3 acceptance claim:
 3. Treat opaque passkey handles as ephemeral across `APP_KEY` rotation; refreshing the security page issues valid replacements.
 4. Rotate or revoke the historical database credential during the controlled maintenance window and prove older immutable Preview deployments can no longer authenticate.
 5. Complete named reviewer, backup custodian, access expiry/recovery, backup/restore, exact-SHA migration, hosted role UAT, reconciliation, accessibility, performance, operations and owner/domain sign-offs.
-6. Replace the historical nine-migration cutover packet with a new exact ten-migration manifest and refrozen preservation/post-acceptance/rollback evidence before any hosted migration.
+6. The historical nine-migration packet has been superseded locally by the exact ten-migration manifest and refrozen preflight/preservation/post-acceptance/rollback control chain. Hosted predecessor execution, independent review, final carrier/Preview binding, and action-time receipts remain blocking.
 
 ## Safety boundary
 
@@ -85,7 +85,8 @@ All work remains `APP_MODE=SIMULATION` and synthetic-only. No real patient data 
 
 ## References
 
-- [Nine-migration cutover execution control](T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md)
+- [Current ten-migration cutover execution control](T1_TEN_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-28.md)
+- [Historical nine-migration cutover execution control](T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md)
 - [Release candidate artifact contract](RELEASE_CANDIDATE_ARTIFACT.md)
 - [Integration disablement inventory](T1_INTEGRATION_DISABLEMENT_INVENTORY_2026-08-28.md)
 - [Vercel environment-scope result](T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json)

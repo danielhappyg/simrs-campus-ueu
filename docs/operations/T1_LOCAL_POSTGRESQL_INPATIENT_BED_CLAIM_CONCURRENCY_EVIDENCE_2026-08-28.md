@@ -95,7 +95,7 @@ The readable report is retained outside the repository at the scanner-owned path
 
 ## Release consequence
 
-The existing nine-migration cutover packet is no longer executable for this candidate. The new migration changes the ordered manifest, expected ledger, post-migration schema contract, preservation/acceptance SQL, rollback evidence, exact release SHA, and Preview identity. A new ten-migration packet must be frozen and independently accepted before any maintenance or hosted migration.
+The existing nine-migration cutover packet is no longer executable for this candidate. The new migration changes the ordered manifest, expected ledger, post-migration schema contract, preservation/acceptance SQL, rollback evidence, exact release SHA, and Preview identity. The local [ten-migration cutover packet](T1_TEN_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-28.md) now freezes the replacement contract; independent acceptance, exact carrier/Preview binding, and action-time receipts remain required before any maintenance or hosted migration.
 
 ## Remaining boundary
 
