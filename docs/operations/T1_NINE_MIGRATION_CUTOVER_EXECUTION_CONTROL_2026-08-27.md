@@ -6,7 +6,7 @@
 **Data posture:** `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`; no real or plausibly real patient data
 **External posture:** Klaim, BPJS/VClaim, SATUSEHAT, Apotek, LIS, PACS, payment and every other live production integration remain disabled
 
-This is a new date-specific execution record. It does not replace the 25 August BG-02c4b packet or turn historical evidence into current approval. A blank, `PENDING`, ambiguous, mismatched or unavailable value is a stop condition. Nothing in this document records that a backup, restore, migration, promotion, teaching-access activation, reopen or rollback has occurred.
+This is a new date-specific execution record. It does not replace the 25 August BG-02c4b packet or turn historical evidence into current approval. A blank, `PENDING`, ambiguous, mismatched or unavailable value is a stop condition. This document records the technical pre-maintenance backup and isolated restore in Receipt A; it does not record that maintenance, migration, promotion, teaching-access activation, reopen or rollback has occurred.
 
 ## 1. Frozen release and evidence identities
 
@@ -15,9 +15,9 @@ This is a new date-specific execution record. It does not replace the 25 August 
 | Runtime/application candidate SHA | `c668cdc4434ac7a2958510b1511d6b1c431e8190` | Frozen application bytes |
 | Repository/release carrier SHA | `a9e963de2c77cbd1a878ee32769a9da6a9d6d420` | Frozen; direct parent is the runtime SHA above |
 | Candidate relationship | Release carrier changes only the production-readiness record/result and its documentation contract test relative to the runtime candidate | No runtime substitution |
-| Exact Preview deployment | `dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH` | Frozen; no replacement deployment may be substituted |
-| Exact Preview URL | `https://simrs-campus-ueu-demo-351g6t8rn-danielhappyg.vercel.app` | Frozen exact URL |
-| Preview observation | `READY`, target `preview`, created `2026-08-27 13:08:39 Asia/Jakarta` | Read-only CLI observation at packet preparation; refresh at action time |
+| Exact Preview deployment | `dpl_5bky2exRuW5HHgVbkr5GfxT7HWJh` | Refrozen 2026-08-28 after correcting Preview database-credential scope; no replacement deployment may be substituted |
+| Exact Preview URL | `https://simrs-campus-ueu-demo-3k55ny9g8-danielhappyg.vercel.app` | Refrozen exact URL |
+| Preview observation | `READY`, target `preview`, created `2026-08-28 05:29:40 Asia/Jakarta` | Git-backed redeploy of the original candidate after the Production-only environment correction; refresh at action time |
 | Required Preview source binding | Full Git source SHA `a9e963de2c77cbd1a878ee32769a9da6a9d6d420`; runtime parent `c668cdc4434ac7a2958510b1511d6b1c431e8190` | `PENDING` action-time metadata equality; never infer from branch, URL or timestamp |
 | Current public Production baseline | SHA `42ab482de577fe38cef539a74f0b749d64485b19`; deployment `dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q` | Historical comparison point; refresh before cutover |
 | Public canonical URL | `https://simrs-campus-ueu-demo.vercel.app` | Must remain the only public Production alias after one authorized promotion |
@@ -26,8 +26,11 @@ This is a new date-specific execution record. It does not replace the 25 August 
 | Sanitized predecessor result | `T1_PRODUCTION_PROMOTION_READINESS_RESULT_2026-08-27.json` | SHA-256 `8564d3bc4252706690c6a1b6b15dedf1041e927552baae9c98d6a81854d31be1`; status `PRE_MIGRATION_CONTRACT_MATCH` |
 | Pre-migration preservation SQL | `T1_NINE_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-27.sql` | SHA-256 `10a662bb57123ad475d0f97f713877938b7b475c84fa7f55741c5bf0905de612`; action-time byte equality and independent review remain blocking |
 | Post-migration acceptance SQL | `T1_NINE_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-27.sql` | SHA-256 `346807a8bfa005caa906f5c33ceb1324eb38c8b3901a97a51c133e143c9e5336`; action-time byte equality and independent review remain blocking |
+| Vercel environment-scope result | `T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json` | SHA-256 `abbb210cc73f198f298cc150699e4aed056818735fa009b5e312b6e81e7b25c3`; contains no secret value |
 
 The Preview observation proves identity, URL, target and readiness only. It does not prove current source binding, database compatibility, authenticated behavior or authorization. Preview must not receive Production database credentials.
+
+The original Preview `dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH` is superseded and prohibited because operator-observed, non-secret Vercel CLI metadata before the scope correction showed that its immutable build was created after `DB_URL` had been targeted to both Production and Preview. The local CLI deployment `dpl_VPNjBRUTBXnb68oxdr7sySbRE2Sr` is also prohibited as a release candidate because it lacked the required GitHub source-binding metadata. `T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json` records the refreeze and the non-secret runbook configuration actions without any secret environment value.
 
 ## 2. Authority and separation of duties
 
@@ -87,19 +90,20 @@ Record only pass/fail or non-secret identifiers. Never retain `.env` contents, d
 
 | Gate | Action-time evidence | Status |
 | --- | --- | --- |
-| Clean checkout is exactly release SHA `a9e963…d420`; runtime parent is exactly `c668cd…8190` | `PENDING` | Blocker |
-| All nine migration hashes match section 4 | `PENDING` | Blocker |
-| Exact Preview deployment/URL is still `READY`, target `preview`, source SHA exactly `a9e963…d420` | `PENDING` | Blocker |
-| Current public Production deployment/SHA refreshed and compatible with the predecessor | `PENDING` | Blocker |
-| PostgreSQL major 17, project `xbmsfvstcpngizcplqyg`, schema `laravel`, exact target binding | `PENDING` | Blocker |
-| `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, `DEMO_SEED_ENABLED=false` | `PENDING` | Blocker |
-| `APP_MAINTENANCE_DRIVER=cache`, `APP_MAINTENANCE_STORE=database` | `PENDING` | Blocker |
-| Session/cache and the maintenance command use the same Production-demo database, schema, cache table and cache prefix; Preview has no Production credential | `PENDING` | Blocker |
+| Clean checkout is exactly release SHA `a9e963…d420`; runtime parent is exactly `c668cd…8190` | `PASS — /private/tmp/simrs-cutover-a9e963d, clean detached checkout, verified 2026-08-28` | Retain action-time recheck |
+| All nine migration hashes match section 4 | `PASS — all nine exact file hashes reverified from the clean detached checkout` | Retain action-time recheck |
+| Exact Preview deployment/URL is still `READY`, target `preview`, source SHA exactly `a9e963…d420` | `PASS — dpl_5bky2exRuW5HHgVbkr5GfxT7HWJh; exact GitHub SHA; /up=200; /favicon.svg=200` | Refrozen identity; recheck before promotion |
+| Current public Production deployment/SHA refreshed and compatible with the predecessor | `PARTIAL — dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q / 42ab482…b19 READY; /up=200; /login=200. Action-time predecessor compatibility remains PENDING` | Blocker |
+| PostgreSQL major 17, project `xbmsfvstcpngizcplqyg`, schema `laravel`, exact target binding | `TECHNICAL PASS in Receipt A — shared session pooler, verify-full TLS and pinned CA; independent reviewer reconciliation remains PENDING` | Blocker until role/review complete |
+| `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, `DEMO_SEED_ENABLED=false` | `PASS for the next Production build — explicitly written as Production-only non-secret runbook controls and verified as three distinct encrypted Production metadata records` | Retain pre-promotion metadata recheck |
+| `APP_MAINTENANCE_DRIVER=cache`, `APP_MAINTENANCE_STORE=database` | `PASS for the next Production build — explicitly written as Production-only non-secret runbook controls and verified as two distinct encrypted Production metadata records` | Retain pre-promotion metadata recheck |
+| Session/cache and the maintenance command use the same Production-demo database, schema, cache table and cache prefix; Preview has no Production credential | `PARTIAL — future Production DB/schema/session/cache controls and replacement-Preview isolation pass; historical immutable Previews retain the prior credential until rotation/revocation is proven` | Blocker |
+| Historical Preview database credential is rotated or revoked and older immutable Preview deployments can no longer authenticate | `PENDING` | Blocker before promotion or migration |
 | All prohibited live integrations disabled | `PENDING` | Blocker |
 | Independent reviewer, backup custodian, access expiry and recovery path complete | `PENDING` | Blocker |
 | Frozen predecessor query returns the one exact accepted result | `PENDING` | Blocker |
 | Pre-preservation and post-acceptance SQL both exist, have been independently reviewed, and their exact hashes match section 1 | `PENDING` | Blocker |
-| External target-receipt procedure is frozen to project `xbmsfvstcpngizcplqyg`, the approved Production endpoint and CA trust evidence | `PENDING` | Blocker |
+| External target-receipt procedure is frozen to project `xbmsfvstcpngizcplqyg`, the approved Production endpoint and CA trust evidence | `TECHNICAL PASS — procedure SHA 869ecf1…ff6c1, shared session pooler, verify-full TLS, CA SHA 7007235…3b7; named human reconciliation remains PENDING` | Blocker until role/review complete |
 
 ## 6. Backup A and post-drain backup B
 
@@ -109,15 +113,15 @@ Use the secret-safe PostgreSQL 17 backup and isolated-restore controls in the 25
 
 | Required evidence | Recorded value |
 | --- | --- |
-| Backup A ID / unique attempt ID / source snapshot / cutoff | `PENDING` |
-| Production target-binding evidence and authorized service/config hashes | `PENDING` |
-| Encrypted archive SHA-256 / exact bytes / recipients-set hash | `PENDING` |
-| Exporter/query/dump completion unambiguous | `PENDING` |
-| Empty isolated PostgreSQL 17 restore target A | `PENDING` |
-| Source-versus-restore acceptance equality | `PENDING` |
-| Externally target-bound source receipt: project/endpoint/CA/service binding | `PENDING` |
-| Operator / custodian / independent reviewer / timestamps | `PENDING` |
-| Receipt A verdict | `PENDING — must be PASS before maintenance or promotion` |
+| Backup A ID / unique attempt ID / source snapshot / cutoff | `simrs-xbmsfvstcpngizcplqyg-laravel-20260827T220111Z`; snapshot-ID SHA-256 `284cc841…cbf03`; `2026-08-27T22:01:11Z` to `22:01:26Z` |
+| Production target-binding evidence and authorized service/config hashes | Project `xbmsfvstcpngizcplqyg`; `aws-0-ap-southeast-1.pooler.supabase.com:5432`; shared-session-pooler; `sslmode=verify-full`; CA SHA-256 `70072358…3b7`; procedure SHA-256 `869ecf1c…ff6c1` |
+| Encrypted archive SHA-256 / exact bytes / recipients-set hash | `d7501c3d…bbceb` / `228355` / recipient SHA-256 `601b128e…958d2`; no private identity or plaintext retained in this packet |
+| Exporter/query/dump completion unambiguous | `PASS` — manifest commit marker published last; acceptance, dump and canonical hashes share the exported snapshot |
+| Empty isolated PostgreSQL 17 restore target A | `PASS` — fresh isolated PostgreSQL 17 target; TCP disabled; no plaintext dump written |
+| Source-versus-restore acceptance equality | `PASS` — acceptance `285ad1ed…cc07`; schema `4c81f5b9…e866`; data `c61d56bb…20b8`, each exactly equal source versus restore |
+| Externally target-bound source receipt: project/endpoint/CA/service binding | `TECHNICAL PASS` — manifest `PASS`, exact project/endpoint/verify-full CA/session context recorded without credential values |
+| Operator / custodian / independent reviewer / timestamps | Operator `Codex orchestrator`; manifest proposes custodian `Daniel Happy Putra`; independent human reviewer and explicit custodian acceptance remain `PENDING`; technical timestamps above |
+| Receipt A verdict | `TECHNICAL PASS / GOVERNANCE NO-GO` — backup and isolated restore passed; separation-of-duties fields still block maintenance or promotion |
 
 ### Receipt B — final post-drain recovery point
 
@@ -144,13 +148,14 @@ The maintenance marker is database-cache-backed because Vercel functions do not 
 
 | Order | Gate / action | Evidence / status |
 | ---: | --- | --- |
-| 1 | Freeze release, deployment, migration and SQL hashes; complete operator/reviewer/custodian/access fields | `PENDING` |
-| 2 | Refresh Production, Preview, Supabase, environment and integration inventory with no drift | `PENDING` |
+| 1 | Freeze release, deployment, migration and SQL hashes; complete operator/reviewer/custodian/access fields | `PARTIAL — technical identities refrozen; reviewer/custodian/access fields PENDING` |
+| 2 | Refresh Production, Preview, Supabase, environment and integration inventory with no drift | `PARTIAL — deployment, replacement-Preview isolation and explicit Production runbook controls refreshed; historical credential revocation and integration inventory PENDING` |
 | 3 | Run frozen predecessor query once; require exact `PRE_MIGRATION_CONTRACT_MATCH` | `PENDING` |
 | 4 | Complete backup A and independent restore receipt A | `PENDING` |
 | 5 | From the exact release checkout, activate shared database-cache maintenance without bypass | `PENDING` |
 | 6 | Verify the same marker from a second request path; require `/login=503` | `PENDING` |
-| 7 | Promote only `dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH` once to Production; require `/up=200`, `/login=503` | `PENDING` |
+| 6A | While maintenance is independently visible, rotate/revoke the historical Supabase database credential, replace the Production-only `DB_URL` through a secret-safe channel, and prove older immutable Preview deployments can no longer authenticate | `PENDING` |
+| 7 | Promote only `dpl_5bky2exRuW5HHgVbkr5GfxT7HWJh` once to Production; require `/up=200`, `/login=503` | `PENDING` |
 | 8 | Verify public alias deployment/source equals the frozen candidate; no other alias/deployment substituted | `PENDING` |
 | 9 | Wait more than 60 seconds plus approved margin and prove no old database writer remains | `PENDING` |
 | 10 | Complete post-drain backup B and independent restore receipt B | `PENDING` |
@@ -267,6 +272,7 @@ The cutover closes only when the public permitted and denied synthetic checks pa
 - [Frozen predecessor preflight SQL](T1_PRODUCTION_PROMOTION_READINESS_PREFLIGHT_2026-08-27.sql)
 - [Pre-migration preservation SQL](T1_NINE_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-27.sql)
 - [Post-migration acceptance SQL](T1_NINE_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-27.sql)
+- [Vercel environment-scope and replacement-Preview result](T1_VERCEL_ENVIRONMENT_SCOPE_RESULT_2026-08-28.json)
 - [Vercel + Supabase synthetic demo runbook](VERCEL_SUPABASE_DEMO.md)
 - [Temporary teaching-role access runbook](T1_TEACHING_ROLE_ACCESS_RUNBOOK_2026-08-27.md)
 - [25 August BG-02c4b G1 execution-control record](BG_02C4B_G1_CUTOVER_EXECUTION_CONTROL_2026-08-25.md)

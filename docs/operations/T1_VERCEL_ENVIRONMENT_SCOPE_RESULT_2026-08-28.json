@@ -1,0 +1,123 @@
+{
+  "status": "TECHNICAL_ENVIRONMENT_SCOPE_PASS",
+  "recorded_at_utc": "2026-08-28T01:33:38.419Z",
+  "recorded_at_asia_jakarta": "2026-08-28T08:33:38+07:00",
+  "boundary": "SIMRS Campus UEU synthetic teaching simulation only",
+  "project": {
+    "team": "danielhappyg",
+    "name": "simrs-campus-ueu-demo",
+    "project_id": "prj_hCjtp0m6zLLOnILBaPvFLj9ZDXDh"
+  },
+  "accepted_preview_candidate": {
+    "deployment_id": "dpl_5bky2exRuW5HHgVbkr5GfxT7HWJh",
+    "url": "https://simrs-campus-ueu-demo-3k55ny9g8-danielhappyg.vercel.app",
+    "target": "preview",
+    "state": "READY",
+    "created_at_utc": "2026-08-27T22:29:40.124Z",
+    "created_at_asia_jakarta": "2026-08-28T05:29:40.124+07:00",
+    "git_provider": "github",
+    "git_ref": "main",
+    "git_source_sha": "a9e963de2c77cbd1a878ee32769a9da6a9d6d420",
+    "runtime_parent_sha": "c668cdc4434ac7a2958510b1511d6b1c431e8190",
+    "action": "redeploy",
+    "original_deployment_id": "dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH"
+  },
+  "environment_scope": {
+    "explicit_production_configuration": {
+      "evidence_type": "operator configuration actions plus post-action Vercel key/type/target metadata",
+      "metadata_type": "encrypted",
+      "targets": [
+        "production"
+      ],
+      "values_are_non_secret_runbook_controls": true,
+      "values": {
+        "APP_ENV": "production",
+        "APP_DEBUG": "false",
+        "APP_MODE": "SIMULATION",
+        "APP_SYNTHETIC_ONLY": "true",
+        "APP_MAINTENANCE_DRIVER": "cache",
+        "APP_MAINTENANCE_STORE": "database",
+        "DB_CONNECTION": "pgsql",
+        "DB_SCHEMA": "laravel",
+        "DB_SSLMODE": "require",
+        "SESSION_DRIVER": "database",
+        "SESSION_TABLE": "sessions",
+        "SESSION_ENCRYPT": "true",
+        "SESSION_SECURE_COOKIE": "true",
+        "CACHE_STORE": "database",
+        "QUEUE_CONNECTION": "sync",
+        "LOG_CHANNEL": "stderr",
+        "LOG_LEVEL": "warning",
+        "DEMO_SEED_ENABLED": "false"
+      },
+      "post_action_metadata_count": 18
+    },
+    "DB_URL": {
+      "value_recorded": false,
+      "type": "sensitive",
+      "targets": [
+        "production"
+      ],
+      "created_at_utc": "2026-08-27T22:25:51.140Z",
+      "created_before_accepted_preview": true
+    }
+  },
+  "preview_isolation_reasoning": {
+    "historical_scope_evidence_type": "operator-observed Vercel CLI metadata before the combined record was corrected; no value was exposed or retained",
+    "historical_db_url_targets_observed": [
+      "production",
+      "preview"
+    ],
+    "historical_db_url_created_at_utc": "2026-08-19T23:05:59.421Z",
+    "db_url_preview_scope_removed_before_candidate_creation": true,
+    "candidate_created_after_production_only_db_url_record": true,
+    "environment_changes_are_not_retroactive": true,
+    "preview_database_backed_routes_not_used_as_acceptance_evidence": true
+  },
+  "allowed_preview_smoke": {
+    "evidence_type": "operator-observed Vercel protection-bypass requests",
+    "/up": 200,
+    "/favicon.svg": 200,
+    "deployment_protection_bypass_used": true,
+    "database_backed_login_not_tested": true
+  },
+  "superseded_candidates": [
+    {
+      "deployment_id": "dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH",
+      "url": "https://simrs-campus-ueu-demo-351g6t8rn-danielhappyg.vercel.app",
+      "reason": "Rejected because the Production DB_URL record also targeted Preview before this immutable deployment was created."
+    },
+    {
+      "deployment_id": "dpl_VPNjBRUTBXnb68oxdr7sySbRE2Sr",
+      "url": "https://simrs-campus-ueu-demo-3qtihjhps-danielhappyg.vercel.app",
+      "reason": "Rejected as the release candidate because the local CLI deployment did not carry the required GitHub source-binding metadata, despite matching local Git bytes."
+    },
+    {
+      "deployment_id": "dpl_GY6AAiymWsmsRBGHKvYdodqJx9Gq",
+      "url": "https://simrs-campus-ueu-demo-bhz9ifbs8-danielhappyg.vercel.app",
+      "reason": "Rejected as a duplicate redeploy produced during the interrupted command; the later exact Git-backed candidate is the sole refrozen identity."
+    }
+  ],
+  "current_public_production": {
+    "deployment_id": "dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q",
+    "url": "https://simrs-campus-ueu-demo-j7ggq44ha-danielhappyg.vercel.app",
+    "canonical_url": "https://simrs-campus-ueu-demo.vercel.app",
+    "state": "READY",
+    "git_source_sha": "42ab482de577fe38cef539a74f0b749d64485b19",
+    "/up": 200,
+    "/login": 200
+  },
+  "secret_handling": {
+    "environment_values_exported": false,
+    "database_url_recorded": false,
+    "password_recorded": false
+  },
+  "remaining_blockers": [
+    "Named independent human reviewer",
+    "Explicit backup/restore custodian appointment and retention acceptance",
+    "Short-lived access reference, expiry, revocation and recovery evidence",
+    "Rotate or revoke the historical Supabase database credential under maintenance and prove older immutable Preview deployments can no longer authenticate",
+    "Action-time integration-disablement inventory and remaining environment identity checks",
+    "Frozen predecessor query and the later maintenance, writer-drain, backup B, migration and acceptance chain"
+  ]
+}
