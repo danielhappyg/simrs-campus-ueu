@@ -81,6 +81,9 @@ jobs:
       - name: Test local portability execution-source binding
         run: ruby tests/Documentation/LocalPortabilityFullSuiteHarnessContractTest.rb
 
+      - name: Test disposable PostgreSQL shared-state harness contract
+        run: ruby tests/Documentation/LocalPostgresSharedStateHarnessContractTest.rb
+
       - name: Test hosted Structured RJ/RM UAT protocol contract
         run: ruby tests/Documentation/HostedStructuredRjRmUatProtocolTest.rb
 

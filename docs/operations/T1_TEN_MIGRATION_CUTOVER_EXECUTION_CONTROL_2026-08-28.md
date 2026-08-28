@@ -23,6 +23,7 @@ No maintenance, hosted migration, Vercel promotion, teaching-role activation, re
 | Pre-migration preservation SQL | `T1_TEN_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-28.sql` | SHA-256 `f95d5c18ed64f15ad01e04600550259fb52552320a8a4c11da480dd94ba95ed8`; independent review and action-time byte equality required |
 | Post-migration acceptance SQL | `T1_TEN_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-28.sql` | SHA-256 `8c52504779f701e1c770aea07580d9f6658c5e00024134bc1742e8eb799c95af`; independent review and action-time byte equality required |
 | Local PostgreSQL bed-claim concurrency evidence | `T1_LOCAL_POSTGRESQL_INPATIENT_BED_CLAIM_CONCURRENCY_EVIDENCE_2026-08-28.md` | PASS locally; explicitly not hosted proof |
+| Local PostgreSQL shared application-state evidence | `T1_LOCAL_TRUSTED_EDGE_SHARED_MAINTENANCE_VALIDATION_2026-08-28.md` | Exact PostgreSQL 17.10 private-schema maintenance/cache/lock/session PASS; Supabase/PgBouncer and hosted multi-instance proof still pending |
 | Local PostgreSQL 17.10 catalog rehearsal | All 23 repository migrations applied to one generated empty `laravel` schema; 42 base tables, 55 candidate-table indexes, and 56 candidate-table constraints (`f=17`, `p=11`, `u=28`) observed; generated database removed and absence rechecked | `LOCAL PASS`; not predecessor-ledger, hosted, backup, or promotion evidence |
 
 The final release carrier and Preview identity cannot be populated from a local-only commit. They are frozen only after the user-authorized batched push creates one clean remote SHA and Vercel reports a Git-backed Preview built from that same SHA.
@@ -146,4 +147,5 @@ If the user is away, all missing evidence fails closed. The operator may complet
 - [Ten-migration post-acceptance SQL](T1_TEN_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-28.sql)
 - [Cutover role appointment packet](T1_CUTOVER_ROLE_APPOINTMENT_PACKET_2026-08-28.md)
 - [Local inpatient bed-claim concurrency evidence](T1_LOCAL_POSTGRESQL_INPATIENT_BED_CLAIM_CONCURRENCY_EVIDENCE_2026-08-28.md)
+- [Local trusted-edge and PostgreSQL shared-state evidence](T1_LOCAL_TRUSTED_EDGE_SHARED_MAINTENANCE_VALIDATION_2026-08-28.md)
 - [G3 security remediation register](G3_SECURITY_REMEDIATION_REGISTER_2026-08-28.md)
