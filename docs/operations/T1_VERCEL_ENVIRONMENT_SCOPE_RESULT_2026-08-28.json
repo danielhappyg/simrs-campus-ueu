@@ -1,14 +1,14 @@
 {
-  "status": "TECHNICAL_ENVIRONMENT_SCOPE_PASS",
-  "recorded_at_utc": "2026-08-28T01:33:38.419Z",
-  "recorded_at_asia_jakarta": "2026-08-28T08:33:38+07:00",
+  "status": "TECHNICAL_ENVIRONMENT_SCOPE_PASS_REPLACEMENT_PREVIEW_PENDING",
+  "recorded_at_utc": "2026-08-28T02:14:15Z",
+  "recorded_at_asia_jakarta": "2026-08-28T09:14:15+07:00",
   "boundary": "SIMRS Campus UEU synthetic teaching simulation only",
   "project": {
     "team": "danielhappyg",
     "name": "simrs-campus-ueu-demo",
     "project_id": "prj_hCjtp0m6zLLOnILBaPvFLj9ZDXDh"
   },
-  "accepted_preview_candidate": {
+  "superseded_preview_candidate": {
     "deployment_id": "dpl_5bky2exRuW5HHgVbkr5GfxT7HWJh",
     "url": "https://simrs-campus-ueu-demo-3k55ny9g8-danielhappyg.vercel.app",
     "target": "preview",
@@ -20,7 +20,16 @@
     "git_source_sha": "a9e963de2c77cbd1a878ee32769a9da6a9d6d420",
     "runtime_parent_sha": "c668cdc4434ac7a2958510b1511d6b1c431e8190",
     "action": "redeploy",
-    "original_deployment_id": "dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH"
+    "original_deployment_id": "dpl_2ZrGq1tepp9Hf863hruJk4YTJGnH",
+    "promotion_allowed": false,
+    "superseded_reason": "A later local release adds reviewed simulation-egress containment and must receive a new exact Git-backed Preview before cutover."
+  },
+  "local_release_candidate": {
+    "git_sha": "e81bf19fb1cc9918d103743edd2e1f5b48893880",
+    "contains_simulation_egress_containment": true,
+    "github_push_completed": false,
+    "replacement_preview_deployment_id": null,
+    "replacement_preview_status": "PENDING"
   },
   "environment_scope": {
     "explicit_production_configuration": {
@@ -60,6 +69,23 @@
       ],
       "created_at_utc": "2026-08-27T22:25:51.140Z",
       "created_before_accepted_preview": true
+    },
+    "preview_secret_isolation": {
+      "evidence_type": "post-action Vercel environment-variable identifier/type/target metadata only",
+      "action_at_utc": "2026-08-28T02:14:15Z",
+      "production_only_sensitive_keys": [
+        "APP_KEY",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "DEMO_ACCOUNT_PASSWORD",
+        "MAIL_PASSWORD",
+        "MAIL_USERNAME",
+        "REDIS_PASSWORD"
+      ],
+      "distinct_preview_app_key_present": true,
+      "preview_app_key_type": "sensitive",
+      "secret_values_read_or_exported": false,
+      "applies_to_new_deployments_only": true
     }
   },
   "preview_isolation_reasoning": {
@@ -110,14 +136,16 @@
   "secret_handling": {
     "environment_values_exported": false,
     "database_url_recorded": false,
-    "password_recorded": false
+    "password_recorded": false,
+    "sensitive_environment_values_read": false
   },
   "remaining_blockers": [
+    "One batched GitHub push and an exact replacement Git-backed Preview for local release e81bf19fb1cc9918d103743edd2e1f5b48893880",
     "Named independent human reviewer",
     "Explicit backup/restore custodian appointment and retention acceptance",
     "Short-lived access reference, expiry, revocation and recovery evidence",
     "Rotate or revoke the historical Supabase database credential under maintenance and prove older immutable Preview deployments can no longer authenticate",
-    "Action-time integration-disablement inventory and remaining environment identity checks",
+    "Action-time integration-disablement inventory, deployment-effective simulation-egress verification and remaining environment identity checks",
     "Frozen predecessor query and the later maintenance, writer-drain, backup B, migration and acceptance chain"
   ]
 }
