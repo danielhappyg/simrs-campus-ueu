@@ -1,5 +1,7 @@
 # T1 nine-migration hosted cutover — execution control packet — 2026-08-27
 
+> **SUPERSEDED FOR THE LOCAL `28ab1d8` CANDIDATE — DO NOT EXECUTE.** This packet remains historical evidence for release carrier `c63c017`. Commit `28ab1d8122f59bd36ffbb5909650efdc07438334` adds `2026_08_28_000100_create_inpatient_bed_claim_mutexes`; therefore the ordered manifest, expected ledger, pre/post SQL, rollback evidence, release SHA, and deployment identity below no longer authorize the current local candidate. A new ten-migration packet is required.
+
 **Current decision:** `NO-GO / NOT EXECUTED` until every blocking `PENDING` field in this packet is completed from action-time evidence
 **Authorized scope:** one controlled migration-and-promotion attempt for the exact frozen release identities below
 **Boundary:** SIMRS Campus UEU synthetic teaching simulation only

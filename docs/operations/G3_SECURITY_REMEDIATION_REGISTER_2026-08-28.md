@@ -2,7 +2,7 @@
 
 ## Status
 
-**LOCAL TECHNICAL REMEDIATION PASS / SEALED DIFF: 0 REPORTABLE, 2 LOW DEFERRED / NOT PUSHED / NOT DEPLOYED / G3 NOT ACCEPTED**
+**LOCAL TECHNICAL REMEDIATION PASS / SEALED DIFFS: 0 REPORTABLE, 1 LOW DEFERRED / NOT PUSHED / NOT DEPLOYED / G3 NOT ACCEPTED**
 
 This register records remediation of the eight findings from the sealed offline Standard scan of exact release carrier `c63c017a1e9dc2bd2922ce9fc9235b7cc90703db` (scan ID `167dd03f-70c6-4ab3-8989-3f741848c07b`). It does not authorize a push, migration, maintenance window, Vercel promotion, credential use, or G3 acceptance.
 
@@ -58,7 +58,13 @@ Codex Security diff scan `de0afb55-7377-4370-886b-8f8046cc0da6` was sealed over 
 - Final findings: `0` reportable; no P0, P1, P2, or P3 finding.
 - Coverage: partial only because two deployment/runtime facts remain deliberately unresolved, both calibrated low severity.
 - Deferred proof 1: confirm every supported edge overwrites attacker-supplied forwarding headers, blocks direct-origin access, and shares atomic rate-limit/cache state.
-- Deferred proof 2: measure distinct-bed admission lock waits against disposable PostgreSQL and the intended worker/connection topology.
+- Deferred proof 2 is now **closed locally** by commit `28ab1d8122f59bd36ffbb5909650efdc07438334` and the [local PostgreSQL inpatient bed-claim concurrency evidence](T1_LOCAL_POSTGRESQL_INPATIENT_BED_CLAIM_CONCURRENCY_EVIDENCE_2026-08-28.md). A disposable PostgreSQL `17.10` rehearsal observed a real same-bed blocker and one rejection, proved a different-bed claim committed while the first bed remained held with no bed-mutex wait, and recorded the accepted daily-counter serialization separately.
+
+The closing delta received a separate sealed Codex Security diff scan, ID `9baa507e-425c-4579-afb3-8bcb7fcff440`, over exact range `46ce2eaaa610aa10164854f761c2be38441942bb..28ab1d8122f59bd36ffbb5909650efdc07438334`. Its changed-source inventory was `6/6`, coverage was complete, and it produced `0` reportable findings. The readable report is retained at:
+
+```text
+/private/var/folders/j6/gz1z3pjj1rvblw_rqbwlhf1h0000gn/T/codex-security-scans-WS2TL9/Esa-Unggul-Hospital-Web-System-Development/28ab1d8122f59bd36ffbb5909650efdc07438334_20260828T070230Z_n6kr1ope/report.md
+```
 
 The crafted-manifest behavior was reproduced, but it was rejected as a security finding because the documented workflow has no lower-trust manifest channel: canonical CI generates and immediately consumes the fixed manifest, while approved promotion binds the finished artifact digest. Password-reset timing was also rejected under the mandatory simulation mail-egress guard and documented log mail transport. This evidence-register update is documentation-only and is outside the release runtime allowlist.
 
@@ -66,11 +72,12 @@ The crafted-manifest behavior was reproduced, but it was rejected as a security 
 
 The following remain open and prevent any G3 acceptance claim:
 
-1. Close the two low-severity deferred scan proofs: trusted-edge/header and shared-cache behavior, plus real PostgreSQL distinct-bed concurrency. SQLite tests cannot demonstrate row-lock scheduling; the stable mutex intentionally leaves a zero-valued `1000-01-01` sentinel in `daily_queue_counters`.
+1. Close the remaining low-severity trusted-edge/header and shared-cache proof. The PostgreSQL bed-concurrency proof is closed locally, and the old `1000-01-01` global sentinel is replaced by schema-qualified per-bed mutex rows in local commit `28ab1d8`.
 2. At promotion, obtain the trusted archive SHA-256 from independently approved artifact metadata or a promotion record. Never derive it from the downloaded tar or its adjacent sidecar.
 3. Treat opaque passkey handles as ephemeral across `APP_KEY` rotation; refreshing the security page issues valid replacements.
 4. Rotate or revoke the historical database credential during the controlled maintenance window and prove older immutable Preview deployments can no longer authenticate.
 5. Complete named reviewer, backup custodian, access expiry/recovery, backup/restore, exact-SHA migration, hosted role UAT, reconciliation, accessibility, performance, operations and owner/domain sign-offs.
+6. Replace the historical nine-migration cutover packet with a new exact ten-migration manifest and refrozen preservation/post-acceptance/rollback evidence before any hosted migration.
 
 ## Safety boundary
 
