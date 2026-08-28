@@ -1,0 +1,93 @@
+{
+  "artifact_id": "T1-TEN-MIGRATION-PRODUCTION-READINESS-RESULT-2026-08-28",
+  "status": "PRE_MIGRATION_CONTRACT_MATCH",
+  "promotion_authorized": false,
+  "captured_at_utc": "2026-08-28T12:43:40.019340Z",
+  "project_id": "xbmsfvstcpngizcplqyg",
+  "project_name": "simrs-campus-ueu-demo",
+  "project_region": "ap-southeast-1",
+  "database_engine": "PostgreSQL 17",
+  "schema": "laravel",
+  "execution_interface": "Supabase authenticated project connector execute_sql",
+  "query": {
+    "path": "docs/operations/T1_TEN_MIGRATION_PRODUCTION_READINESS_PREFLIGHT_2026-08-28.sql",
+    "sha256": "17e2cf2a3715d8d5a3741f59023d113079dc2aaf3e700c2a092df2366cf104a5",
+    "git_blob": "d346c885116f35ed11dfcff7e2deca7734099cf9",
+    "bytes_match_origin_main_release_carrier": true,
+    "read_only": true
+  },
+  "release_carrier_sha": "5f6a8b29a866e9e09c346808c3a00bcf76c3d6ef",
+  "facts": {
+    "postgres_17": true,
+    "exact_predecessor_ledger": true,
+    "all_candidate_migrations_pending": true,
+    "exact_audit_columns": true,
+    "exact_audit_indexes": true,
+    "exact_audit_foreign_key": true,
+    "exact_marital_status": true,
+    "exact_sequence_predecessor": true,
+    "exact_teaching_role_access_predecessor": true,
+    "exact_inpatient_bed_claim_predecessor": true,
+    "candidate_physical_state_absent": true,
+    "synthetic_only": true,
+    "all_encounters_have_registration_time": true,
+    "data_api_roles_denied": true
+  },
+  "candidate_migrations": [
+    "2026_08_21_000100_create_rebuild_foundation_tables",
+    "2026_08_22_000800_add_patient_marital_status",
+    "2026_08_22_001000_qualify_laravel_serial_sequence_defaults",
+    "2026_08_25_000100_create_break_glass_record_tables",
+    "2026_08_25_000200_create_security_ledger_tables",
+    "2026_08_25_000300_expand_audit_actor_attribution",
+    "2026_08_26_000100_add_operational_worklist_indexes",
+    "2026_08_26_000200_create_daily_queue_allocator",
+    "2026_08_27_000100_create_teaching_role_access_leases",
+    "2026_08_28_000100_create_inpatient_bed_claim_mutexes"
+  ],
+  "data_api_role_privileges": [
+    {
+      "role_name": "anon",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    },
+    {
+      "role_name": "authenticated",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    },
+    {
+      "role_name": "authenticator",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    },
+    {
+      "role_name": "service_role",
+      "schema_usage": false,
+      "schema_create": false,
+      "patient_select": false,
+      "patient_insert": false,
+      "users_select": false,
+      "audit_select": false
+    }
+  ],
+  "secret_handling": {
+    "database_password_used": false,
+    "database_url_read_or_recorded": false,
+    "environment_values_exported": false,
+    "row_level_patient_data_returned": false
+  },
+  "interpretation": "Read-only ten-migration predecessor evidence only. The result does not authorize maintenance, backup custody, migration, Vercel promotion, traffic reopen, role activation, or G3 acceptance."
+}

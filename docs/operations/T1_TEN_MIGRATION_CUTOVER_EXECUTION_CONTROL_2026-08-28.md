@@ -15,11 +15,13 @@ No maintenance, hosted migration, Vercel promotion, teaching-role activation, re
 | --- | --- | --- |
 | Runtime/application migration candidate | `28ab1d8122f59bd36ffbb5909650efdc07438334` | Local reviewed code candidate containing the bed-claim migration |
 | Local evidence carrier | `297eead3656bcf772f0cd8fce31008a0777708d3` | Local documentation commit; not pushed and not a deployable hosted identity |
-| Final repository/release carrier | `PENDING` | Must be one exact clean commit containing this complete control chain |
-| Exact Git-backed Preview deployment and URL | `PENDING` | Must be built from the final release carrier; no historical Preview may be substituted |
-| Current public Production identity | `PENDING ACTION-TIME REFRESH` | Must remain unchanged until an authorized promotion |
+| Current pushed application base | `5f6a8b29a866e9e09c346808c3a00bcf76c3d6ef` | Pushed to `origin/main`; GitHub-hosted jobs are externally blocked before execution by the account billing/spending limit and therefore are not green release evidence |
+| Current pushed-base Preview observation | `dpl_7s4Nu8k2rsFK5GopeYb4LSCCDCPP` / `https://simrs-campus-ueu-demo-7yrxvize2-danielhappyg.vercel.app` | Vercel `READY`, Preview, exact Git source SHA `5f6a8b29a866e9e09c346808c3a00bcf76c3d6ef`; `/up=200`, hostile forwarded-header `/up=200`, `/login=500` because Preview has no Production database binding; not role-UAT or promotion evidence |
+| Final repository/release carrier | `PENDING` | Must be one exact clean commit containing this complete control chain; the new hosted receipt remains local so the current pushed application base cannot be substituted |
+| Exact Git-backed Preview deployment and URL | `PENDING` | Must be built from the final release carrier; the current pushed-base Preview observation cannot be substituted |
+| Current public Production identity | `dpl_4uGZACFzKsHMnNUy6YshiJjeQN1Q` / `https://simrs-campus-ueu-demo.vercel.app` | Vercel `READY`; remains on the older database-aligned deployment and must remain unchanged until an authorized promotion; exact source SHA still requires action-time refresh |
 | Supabase project reference | `xbmsfvstcpngizcplqyg` | Project reference only; action-time endpoint, TLS, database, user, and schema binding remain required |
-| Ten-migration predecessor preflight | `T1_TEN_MIGRATION_PRODUCTION_READINESS_PREFLIGHT_2026-08-28.sql` | SHA-256 `17e2cf2a3715d8d5a3741f59023d113079dc2aaf3e700c2a092df2366cf104a5`; fresh sanitized hosted result is `NOT RUN` |
+| Ten-migration predecessor preflight | `T1_TEN_MIGRATION_PRODUCTION_READINESS_PREFLIGHT_2026-08-28.sql` | SHA-256 `17e2cf2a3715d8d5a3741f59023d113079dc2aaf3e700c2a092df2366cf104a5`; sanitized hosted result `T1_TEN_MIGRATION_PRODUCTION_READINESS_RESULT_2026-08-28.json`, SHA-256 `123ec7f0f37120e59116a8978183fa52ecb15b9dcd851e51cc9f5c89ccd474bc`, status `PRE_MIGRATION_CONTRACT_MATCH`, `promotion_authorized=false` |
 | Pre-migration preservation SQL | `T1_TEN_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-28.sql` | SHA-256 `f95d5c18ed64f15ad01e04600550259fb52552320a8a4c11da480dd94ba95ed8`; independent review and action-time byte equality required |
 | Post-migration acceptance SQL | `T1_TEN_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-28.sql` | SHA-256 `8c52504779f701e1c770aea07580d9f6658c5e00024134bc1742e8eb799c95af`; independent review and action-time byte equality required |
 | Local PostgreSQL bed-claim concurrency evidence | `T1_LOCAL_POSTGRESQL_INPATIENT_BED_CLAIM_CONCURRENCY_EVIDENCE_2026-08-28.md` | PASS locally; explicitly not hosted proof |
@@ -143,6 +145,7 @@ If the user is away, all missing evidence fails closed. The operator may complet
 
 - [Historical nine-migration packet — superseded, do not execute](T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md)
 - [Ten-migration predecessor preflight](T1_TEN_MIGRATION_PRODUCTION_READINESS_PREFLIGHT_2026-08-28.sql)
+- [Sanitized ten-migration predecessor result](T1_TEN_MIGRATION_PRODUCTION_READINESS_RESULT_2026-08-28.json)
 - [Ten-migration pre-preservation SQL](T1_TEN_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-28.sql)
 - [Ten-migration post-acceptance SQL](T1_TEN_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-28.sql)
 - [Cutover role appointment packet](T1_CUTOVER_ROLE_APPOINTMENT_PACKET_2026-08-28.md)

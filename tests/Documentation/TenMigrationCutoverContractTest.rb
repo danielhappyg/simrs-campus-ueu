@@ -2,12 +2,14 @@
 
 require 'minitest/autorun'
 require 'digest'
+require 'json'
 
 class TenMigrationCutoverContractTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   OPERATIONS = File.join(ROOT, 'docs/operations')
   PACKET_PATH = File.join(OPERATIONS, 'T1_TEN_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-28.md')
   PREFLIGHT_PATH = File.join(OPERATIONS, 'T1_TEN_MIGRATION_PRODUCTION_READINESS_PREFLIGHT_2026-08-28.sql')
+  RESULT_PATH = File.join(OPERATIONS, 'T1_TEN_MIGRATION_PRODUCTION_READINESS_RESULT_2026-08-28.json')
   PRE_PATH = File.join(OPERATIONS, 'T1_TEN_MIGRATION_PREMIGRATION_PRESERVATION_2026-08-28.sql')
   POST_PATH = File.join(OPERATIONS, 'T1_TEN_MIGRATION_POSTMIGRATION_ACCEPTANCE_2026-08-28.sql')
   HISTORICAL_PACKET_PATH = File.join(OPERATIONS, 'T1_NINE_MIGRATION_CUTOVER_EXECUTION_CONTROL_2026-08-27.md')
@@ -25,11 +27,84 @@ class TenMigrationCutoverContractTest < Minitest::Test
     '2026_08_28_000100_create_inpatient_bed_claim_mutexes' => 'c2ba20c90dcc61e6b957306258bdad0ebc40dc82272d0d600482c68a78c4da36'
   }.freeze
 
+  EXPECTED_FACTS = %w[
+    postgres_17
+    exact_predecessor_ledger
+    all_candidate_migrations_pending
+    exact_audit_columns
+    exact_audit_indexes
+    exact_audit_foreign_key
+    exact_marital_status
+    exact_sequence_predecessor
+    exact_teaching_role_access_predecessor
+    exact_inpatient_bed_claim_predecessor
+    candidate_physical_state_absent
+    synthetic_only
+    all_encounters_have_registration_time
+    data_api_roles_denied
+  ].to_h { |key| [key, true] }.freeze
+
+  EXPECTED_ROLE_PRIVILEGES = %w[anon authenticated authenticator service_role].map do |role_name|
+    {
+      'role_name' => role_name,
+      'schema_usage' => false,
+      'schema_create' => false,
+      'patient_select' => false,
+      'patient_insert' => false,
+      'users_select' => false,
+      'audit_select' => false
+    }
+  end.freeze
+
+  EXPECTED_SECRET_HANDLING = {
+    'database_password_used' => false,
+    'database_url_read_or_recorded' => false,
+    'environment_values_exported' => false,
+    'row_level_patient_data_returned' => false
+  }.freeze
+
   def setup
     @packet = File.read(PACKET_PATH)
     @preflight = File.read(PREFLIGHT_PATH)
+    @result = JSON.parse(File.read(RESULT_PATH))
     @pre = File.read(PRE_PATH)
     @post = File.read(POST_PATH)
+  end
+
+  def test_hosted_predecessor_result_is_exactly_bound_and_cannot_authorize_promotion
+    assert_includes @packet, File.basename(RESULT_PATH)
+    assert_includes @packet, Digest::SHA256.file(RESULT_PATH).hexdigest
+
+    assert_equal 'T1-TEN-MIGRATION-PRODUCTION-READINESS-RESULT-2026-08-28', @result.fetch('artifact_id')
+    assert_equal 'PRE_MIGRATION_CONTRACT_MATCH', @result.fetch('status')
+    assert_equal false, @result.fetch('promotion_authorized')
+    assert_equal '2026-08-28T12:43:40.019340Z', @result.fetch('captured_at_utc')
+    assert_equal 'xbmsfvstcpngizcplqyg', @result.fetch('project_id')
+    assert_equal 'simrs-campus-ueu-demo', @result.fetch('project_name')
+    assert_equal 'ap-southeast-1', @result.fetch('project_region')
+    assert_equal 'PostgreSQL 17', @result.fetch('database_engine')
+    assert_equal 'laravel', @result.fetch('schema')
+    assert_equal 'Supabase authenticated project connector execute_sql', @result.fetch('execution_interface')
+    assert_equal 'docs/operations/T1_TEN_MIGRATION_PRODUCTION_READINESS_PREFLIGHT_2026-08-28.sql',
+                 @result.dig('query', 'path')
+    assert_equal '17e2cf2a3715d8d5a3741f59023d113079dc2aaf3e700c2a092df2366cf104a5',
+                 @result.dig('query', 'sha256')
+    assert_equal Digest::SHA256.file(PREFLIGHT_PATH).hexdigest, @result.dig('query', 'sha256')
+    assert_equal 'd346c885116f35ed11dfcff7e2deca7734099cf9', @result.dig('query', 'git_blob')
+    assert_equal true, @result.dig('query', 'bytes_match_origin_main_release_carrier')
+    assert_equal true, @result.dig('query', 'read_only')
+    assert_equal '5f6a8b29a866e9e09c346808c3a00bcf76c3d6ef', @result.fetch('release_carrier_sha')
+    pushed_base_row = @packet.lines.find { |line| line.start_with?('| Current pushed application base |') }
+    preview_row = @packet.lines.find { |line| line.start_with?('| Current pushed-base Preview observation |') }
+    refute_nil pushed_base_row
+    refute_nil preview_row
+    assert_includes pushed_base_row, @result.fetch('release_carrier_sha')
+    assert_includes preview_row, @result.fetch('release_carrier_sha')
+    assert_equal MIGRATIONS.keys, @result.fetch('candidate_migrations')
+    assert_equal EXPECTED_FACTS, @result.fetch('facts')
+    assert_equal EXPECTED_ROLE_PRIVILEGES, @result.fetch('data_api_role_privileges')
+    assert_equal EXPECTED_SECRET_HANDLING, @result.fetch('secret_handling')
+    assert_includes @result.fetch('interpretation'), 'does not authorize'
   end
 
   def test_all_ten_migrations_are_exactly_bound
