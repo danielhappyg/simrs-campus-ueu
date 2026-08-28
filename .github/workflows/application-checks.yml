@@ -23,6 +23,23 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
+      - name: Reject tracked credential files
+        shell: ruby {0}
+        run: |
+          tracked = `git ls-files`.lines.map(&:strip)
+          forbidden_names = [".env", "pkcs11.txt"]
+          forbidden_extensions = [".key", ".pem", ".p12", ".pfx"]
+
+          rejected = tracked.select do |path|
+            basename = File.basename(path)
+            forbidden_names.include?(basename) ||
+              basename.start_with?(".env.") && basename != ".env.example" ||
+              forbidden_extensions.include?(File.extname(path))
+          end
+
+          abort("Forbidden credential-like files are tracked:\n#{rejected.join("\n")}") unless rejected.empty?
+          puts "No forbidden credential files are tracked"
+
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -211,6 +228,8 @@ jobs:
       - quality
       - mysql-integration
       - postgres-integration
+    # Build release artifacts only for the canonical mainline; PRs retain all quality and integration gates.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

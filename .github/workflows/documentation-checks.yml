@@ -2,17 +2,36 @@ name: Documentation checks
 
 on:
   pull_request:
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - 'routes/**'
+      - 'scripts/**'
+      - 'tests/Documentation/**'
+      - '.github/workflows/documentation-checks.yml'
   push:
     branches:
       - main
       - rebuild/clean-slate
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - 'routes/**'
+      - 'scripts/**'
+      - 'tests/Documentation/**'
+      - '.github/workflows/documentation-checks.yml'
 
 permissions:
   contents: read
 
+concurrency:
+  group: documentation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:17.10
@@ -92,20 +111,3 @@ jobs:
 
       - name: Test historical workflow artifact boundary
         run: ruby tests/Documentation/HistoricalWorkflowArtifactBoundaryTest.rb
-
-      - name: Reject tracked credential files
-        shell: ruby {0}
-        run: |
-          tracked = `git ls-files`.lines.map(&:strip)
-          forbidden_names = [".env", "pkcs11.txt"]
-          forbidden_extensions = [".key", ".pem", ".p12", ".pfx"]
-
-          rejected = tracked.select do |path|
-            basename = File.basename(path)
-            forbidden_names.include?(basename) ||
-              basename.start_with?(".env.") && basename != ".env.example" ||
-              forbidden_extensions.include?(File.extname(path))
-          end
-
-          abort("Forbidden credential-like files are tracked:\n#{rejected.join("\n")}") unless rejected.empty?
-          puts "No forbidden credential files are tracked"
