@@ -2,7 +2,7 @@
 
 ## Status
 
-**LOCAL TECHNICAL REMEDIATION PASS / NOT PUSHED / NOT DEPLOYED / G3 NOT ACCEPTED**
+**LOCAL TECHNICAL REMEDIATION PASS / SEALED DIFF: 0 REPORTABLE, 2 LOW DEFERRED / NOT PUSHED / NOT DEPLOYED / G3 NOT ACCEPTED**
 
 This register records remediation of the eight findings from the sealed offline Standard scan of exact release carrier `c63c017a1e9dc2bd2922ce9fc9235b7cc90703db` (scan ID `167dd03f-70c6-4ab3-8989-3f741848c07b`). It does not authorize a push, migration, maintenance window, Vercel promotion, credential use, or G3 acceptance.
 
@@ -49,17 +49,28 @@ The follow-up independent source-to-sink review of the CSV finding marked it `fi
 
 The initial full-suite reproduction of the wilayah defect exhausted the normal 128 MB PHP limit while retaining more than 71,000 village rows. The corrected two-pass import was then proved under `memory_limit=128M` and peaked at 43,515,904 bytes (41.5 MiB). Cross-file buffering reduced the bundled 91,599-row write to 186 upsert queries: 1 province, 2 regency, 15 district and 168 village upserts. The production-sized regression now launches the real migration and import commands in a fresh 128 MB child process against a disposable SQLite database, avoiding retained memory from unrelated PHPUnit cases while keeping the application command under its normal limit.
 
+## Sealed remediation diff scan
+
+Codex Security diff scan `de0afb55-7377-4370-886b-8f8046cc0da6` was sealed over exact range `c63c017a1e9dc2bd2922ce9fc9235b7cc90703db..0fa00978973e86f4a2375a6dfc2e07ce380cf1b9`.
+
+- Changed-source inventory: `22/22` reviewed and closed.
+- Discovery: four candidates; validation suppressed two and deferred two.
+- Final findings: `0` reportable; no P0, P1, P2, or P3 finding.
+- Coverage: partial only because two deployment/runtime facts remain deliberately unresolved, both calibrated low severity.
+- Deferred proof 1: confirm every supported edge overwrites attacker-supplied forwarding headers, blocks direct-origin access, and shares atomic rate-limit/cache state.
+- Deferred proof 2: measure distinct-bed admission lock waits against disposable PostgreSQL and the intended worker/connection topology.
+
+The crafted-manifest behavior was reproduced, but it was rejected as a security finding because the documented workflow has no lower-trust manifest channel: canonical CI generates and immediately consumes the fixed manifest, while approved promotion binds the finished artifact digest. Password-reset timing was also rejected under the mandatory simulation mail-egress guard and documented log mail transport. This evidence-register update is documentation-only and is outside the release runtime allowlist.
+
 ## Residual and action-time gates
 
 The following remain open and prevent any G3 acceptance claim:
 
-1. Run and retain a sealed security diff scan across exact baseline `c63c017a1e9dc2bd2922ce9fc9235b7cc90703db` through the final local remediation head; the per-finding source re-verifications do not replace that scan.
-2. Prove the inpatient mutex with real PostgreSQL concurrent transactions; SQLite feature tests cannot demonstrate row-lock scheduling. The stable mutex intentionally leaves a zero-valued `1000-01-01` sentinel in `daily_queue_counters`.
-3. At promotion, obtain the trusted archive SHA-256 from independently approved artifact metadata or a promotion record. Never derive it from the downloaded tar or its adjacent sidecar.
-4. Confirm trusted-proxy/header configuration before relying on source-IP reset budgets. Uniform HTTP outcomes and the shared minimum timebox cannot eliminate all network jitter or unusually slow synchronous mail inference.
-5. Treat opaque passkey handles as ephemeral across `APP_KEY` rotation; refreshing the security page issues valid replacements.
-6. Rotate or revoke the historical database credential during the controlled maintenance window and prove older immutable Preview deployments can no longer authenticate.
-7. Complete named reviewer, backup custodian, access expiry/recovery, backup/restore, exact-SHA migration, hosted role UAT, reconciliation, accessibility, performance, operations and owner/domain sign-offs.
+1. Close the two low-severity deferred scan proofs: trusted-edge/header and shared-cache behavior, plus real PostgreSQL distinct-bed concurrency. SQLite tests cannot demonstrate row-lock scheduling; the stable mutex intentionally leaves a zero-valued `1000-01-01` sentinel in `daily_queue_counters`.
+2. At promotion, obtain the trusted archive SHA-256 from independently approved artifact metadata or a promotion record. Never derive it from the downloaded tar or its adjacent sidecar.
+3. Treat opaque passkey handles as ephemeral across `APP_KEY` rotation; refreshing the security page issues valid replacements.
+4. Rotate or revoke the historical database credential during the controlled maintenance window and prove older immutable Preview deployments can no longer authenticate.
+5. Complete named reviewer, backup custodian, access expiry/recovery, backup/restore, exact-SHA migration, hosted role UAT, reconciliation, accessibility, performance, operations and owner/domain sign-offs.
 
 ## Safety boundary
 
