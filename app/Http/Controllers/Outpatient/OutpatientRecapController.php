@@ -11,21 +11,23 @@ use App\Support\TeachingVocabulary;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OutpatientRecapController extends Controller
 {
     private const CSV_MAX_RANGE_DAYS = 31;
 
-    public function index(Request $request): Response|StreamedResponse|RedirectResponse
+    public function index(Request $request): Response|HttpResponse|RedirectResponse
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
@@ -196,12 +198,12 @@ class OutpatientRecapController extends Controller
     /**
      * @param  Builder<Encounter>  $query
      */
-    private function csvResponse(Builder $query, Request $request): StreamedResponse|RedirectResponse
+    private function csvResponse(Builder $query, Request $request): HttpResponse|RedirectResponse
     {
         $userKey = hash('sha256', (string) $request->user()->public_id);
         $userAttempts = max(1, (int) config('simulation.recap_csv_user_attempts_per_minute', 3));
         $globalAttempts = max(1, (int) config('simulation.recap_csv_global_attempts_per_minute', 30));
-        $maximumExecutionSeconds = max(1, (int) config('simulation.recap_csv_max_execution_seconds', 30));
+        $maximumExecutionSeconds = min(300, max(1, (int) config('simulation.recap_csv_max_execution_seconds', 30)));
         // The lease must outlive every permitted synchronous build; download speed is outside the lease.
         $lockSeconds = max(
             $maximumExecutionSeconds + 5,
@@ -259,10 +261,10 @@ class OutpatientRecapController extends Controller
             $this->releaseExportLock($userLock);
         }
 
-        return response()->streamDownload(static function () use ($csv): void {
-            echo $csv;
-        }, 'rekap-pendaftaran.csv', [
+        return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="rekap-pendaftaran.csv"',
+            'Content-Length' => (string) strlen($csv),
         ]);
     }
 
@@ -284,6 +286,48 @@ class OutpatientRecapController extends Controller
      * @return array{string, ?string}
      */
     private function buildCsv(
+        Builder $query,
+        int $maximumRows,
+        int $maximumBytes,
+        float $deadline,
+        int $maximumExecutionSeconds,
+    ): array {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return $this->buildCsvContents($query, $maximumRows, $maximumBytes, $deadline, $maximumExecutionSeconds);
+        }
+
+        try {
+            return DB::transaction(function () use (
+                $query,
+                $maximumRows,
+                $maximumBytes,
+                $deadline,
+                $maximumExecutionSeconds,
+            ): array {
+                DB::statement('SET LOCAL statement_timeout = '.$this->postgresStatementTimeoutMilliseconds($maximumExecutionSeconds));
+
+                return $this->buildCsvContents(
+                    $query,
+                    $maximumRows,
+                    $maximumBytes,
+                    $deadline,
+                    $maximumExecutionSeconds,
+                );
+            });
+        } catch (QueryException $exception) {
+            if (str_contains(strtolower($exception->getMessage()), 'statement timeout')) {
+                return ['', $this->csvExecutionLimitMessage($maximumExecutionSeconds)];
+            }
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * @param  Builder<Encounter>  $query
+     * @return array{string, ?string}
+     */
+    private function buildCsvContents(
         Builder $query,
         int $maximumRows,
         int $maximumBytes,
@@ -414,6 +458,11 @@ class OutpatientRecapController extends Controller
             'Ekspor CSV sinkron melebihi batas waktu %s detik. Persempit filter sebelum mencoba kembali.',
             number_format($maximumExecutionSeconds, 0, ',', '.'),
         );
+    }
+
+    private function postgresStatementTimeoutMilliseconds(int $maximumExecutionSeconds): int
+    {
+        return max(1, ($maximumExecutionSeconds * 1000) - 250);
     }
 
     private function releaseExportLock(Lock $lock): void

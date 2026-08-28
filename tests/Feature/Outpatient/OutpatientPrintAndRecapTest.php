@@ -12,11 +12,14 @@ use App\Support\Authorization\RoleCapabilityMatrix;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
 use Mockery\CompositeExpectation;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
 class OutpatientPrintAndRecapTest extends TestCase
@@ -174,7 +177,10 @@ class OutpatientPrintAndRecapTest extends TestCase
 
         $csv->assertOk();
         $csv->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $csvContent = $csv->streamedContent();
+        $csv->assertHeader('content-disposition', 'attachment; filename="rekap-pendaftaran.csv"');
+        $csvContent = $this->csvContent($csv);
+        $csv->assertHeader('content-length', (string) strlen($csvContent));
+        $this->assertNotInstanceOf(StreamedResponse::class, $csv->baseResponse);
         $this->assertStringContainsString('Walk-in', $csvContent);
         $this->assertStringNotContainsString('RGN-ONLINE-1', $csvContent);
     }
@@ -228,7 +234,7 @@ class OutpatientPrintAndRecapTest extends TestCase
         $csv = $this->actingAs($registrar)
             ->get(route('pendaftaran.rekap', [...$filters, 'format' => 'csv', 'page' => 2]));
         $csv->assertOk();
-        $lines = array_values(array_filter(explode("\n", trim($csv->streamedContent()))));
+        $lines = array_values(array_filter(explode("\n", trim($this->csvContent($csv)))));
         $this->assertCount(502, $lines, 'CSV must contain its header and all 501 filtered rows, independent of screen page.');
     }
 
@@ -265,7 +271,7 @@ class OutpatientPrintAndRecapTest extends TestCase
             'date_from' => now()->toDateString(),
             'date_to' => now()->toDateString(),
         ]));
-        $content = $csv->streamedContent();
+        $content = $this->csvContent($csv);
 
         $this->assertStringContainsString("'+SYNTH-FORMULA", $content);
         $this->assertStringContainsString("'=HYPERLINK", $content);
@@ -349,8 +355,11 @@ class OutpatientPrintAndRecapTest extends TestCase
         ]));
 
         $response->assertOk();
+        $this->assertNotInstanceOf(StreamedResponse::class, $response->baseResponse);
+        $response->assertHeader('content-disposition', 'attachment; filename="rekap-pendaftaran.csv"');
+        $response->assertHeader('content-length', (string) strlen($this->csvContent($response)));
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
+        $this->assertStringContainsString('Waktu,Antrian', $this->csvContent($response));
     }
 
     public function test_recap_csv_refuses_a_result_above_the_synchronous_row_ceiling(): void
@@ -398,7 +407,7 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->withServerVariables(['REMOTE_ADDR' => '192.0.2.10'])
             ->get(route('pendaftaran.rekap', $parameters));
         $first->assertOk();
-        $first->streamedContent();
+        $this->csvContent($first);
 
         $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.20'])
             ->get(route('pendaftaran.rekap', $parameters))
@@ -422,7 +431,7 @@ class OutpatientPrintAndRecapTest extends TestCase
 
         $first = $this->actingAs($firstRegistrar)->get(route('pendaftaran.rekap', $parameters));
         $first->assertOk();
-        $first->streamedContent();
+        $this->csvContent($first);
 
         $this->actingAs($secondRegistrar)
             ->get(route('pendaftaran.rekap', $parameters))
@@ -484,7 +493,7 @@ class OutpatientPrintAndRecapTest extends TestCase
 
         $response = $this->actingAs($secondRegistrar)->get(route('pendaftaran.rekap', $parameters));
         $response->assertOk();
-        $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
+        $this->assertStringContainsString('Waktu,Antrian', $this->csvContent($response));
     }
 
     public function test_recap_csv_releases_owner_safe_user_and_global_slots_before_slow_download_output(): void
@@ -508,7 +517,7 @@ class OutpatientPrintAndRecapTest extends TestCase
         $this->assertTrue($globalLock->get());
 
         try {
-            $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
+            $this->assertStringContainsString('Waktu,Antrian', $this->csvContent($response));
         } finally {
             $globalLock->release();
             $userLock->release();
@@ -559,6 +568,30 @@ class OutpatientPrintAndRecapTest extends TestCase
         $this->assertTrue($delayed);
     }
 
+    public function test_recap_csv_uses_a_transaction_local_postgresql_statement_timeout_when_available(): void
+    {
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            $this->markTestSkipped('This assertion requires the configured PostgreSQL connection.');
+        }
+
+        config(['simulation.recap_csv_max_execution_seconds' => 7]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $statements = [];
+        DB::listen(function (QueryExecuted $query) use (&$statements): void {
+            $statements[] = strtolower($query->sql);
+        });
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'format' => 'csv',
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+            ]))
+            ->assertOk();
+
+        $this->assertContains('set local statement_timeout = 6750', $statements);
+    }
+
     public function test_recap_csv_cutoff_excludes_rows_inserted_after_the_bounded_probe_snapshot(): void
     {
         config(['simulation.recap_csv_max_rows' => 5]);
@@ -604,7 +637,7 @@ class OutpatientPrintAndRecapTest extends TestCase
         ]));
 
         $response->assertOk();
-        $content = $response->streamedContent();
+        $content = $this->csvContent($response);
         $this->assertTrue($lateRowInserted);
         $this->assertStringContainsString('Pasien Dalam Snapshot', $content);
         $this->assertStringNotContainsString('Pasien Setelah Snapshot', $content);
@@ -626,6 +659,19 @@ class OutpatientPrintAndRecapTest extends TestCase
         $user->roles()->sync([$role->id]);
 
         return $user;
+    }
+
+    /**
+     * @param  TestResponse<Response>  $response
+     */
+    private function csvContent(TestResponse $response): string
+    {
+        $content = $response->getContent();
+        if (! is_string($content)) {
+            $this->fail('CSV response content was not buffered as a string.');
+        }
+
+        return $content;
     }
 
     private function printableEncounter(User $registrar): Encounter
