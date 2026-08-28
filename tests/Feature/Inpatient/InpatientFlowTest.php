@@ -92,6 +92,10 @@ class InpatientFlowTest extends TestCase
             'queue_date' => now()->toDateString(),
             'last_number' => 1,
         ]);
+        $this->assertDatabaseHas('daily_queue_counters', [
+            'queue_date' => '1000-01-01',
+            'last_number' => 0,
+        ]);
 
         $this->actingAs($registrar)
             ->get(route('pendaftaran.rawat-inap.index'))
@@ -173,6 +177,11 @@ class InpatientFlowTest extends TestCase
             ->where('bed_code', $bed)
             ->where('status', '!=', Encounter::STATUS_CLOSED)
             ->count());
+        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien RI Kedua']);
+        $this->assertDatabaseHas('daily_queue_counters', [
+            'queue_date' => now()->toDateString(),
+            'last_number' => 1,
+        ]);
     }
 
     public function test_clinician_can_list_open_and_write_note(): void

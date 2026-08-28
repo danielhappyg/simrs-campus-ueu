@@ -378,7 +378,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-BWTMoIGP.js",
+    "file": "assets/app-CFB0zPg_.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -705,7 +705,7 @@
     ]
   },
   "resources/js/pages/settings/security.tsx": {
-    "file": "assets/security-DXBBFIac.js",
+    "file": "assets/security-D4evBBqS.js",
     "name": "security",
     "src": "resources/js/pages/settings/security.tsx",
     "isDynamicEntry": true,

@@ -120,6 +120,12 @@ return [
         'passkeys' => 'passkeys',
     ],
 
+    'password_reset_rate_limits' => [
+        'email_ip_per_minute' => (int) env('FORTIFY_PASSWORD_RESET_EMAIL_IP_LIMIT', 5),
+        'ip_per_minute' => (int) env('FORTIFY_PASSWORD_RESET_IP_LIMIT', 30),
+        'decay_seconds' => (int) env('FORTIFY_PASSWORD_RESET_DECAY_SECONDS', 60),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Register View Routes

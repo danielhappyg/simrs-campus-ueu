@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Support\Authentication\PasskeyRouteKey;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class SecurityController extends Controller
     /**
      * Show the user's security settings page.
      */
-    public function edit(TwoFactorAuthenticationRequest $request): Response
+    public function edit(TwoFactorAuthenticationRequest $request, PasskeyRouteKey $passkeyRouteKey): Response
     {
         $props = [
             'canManageTwoFactor' => Features::canManageTwoFactorAuthentication(),
@@ -28,7 +29,7 @@ class SecurityController extends Controller
                     ->latest()
                     ->get()
                     ->map(fn ($passkey) => [
-                        'id' => $passkey->id,
+                        'id' => $passkeyRouteKey->for($passkey),
                         'name' => $passkey->name,
                         'authenticator' => $passkey->authenticator,
                         'created_at_diff' => $passkey->created_at->diffForHumans(),

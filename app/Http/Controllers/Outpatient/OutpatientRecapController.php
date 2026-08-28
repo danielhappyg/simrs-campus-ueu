@@ -9,10 +9,13 @@ use App\Support\Authorization\Capability;
 use App\Support\Http\InertiaPagination;
 use App\Support\TeachingVocabulary;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -111,7 +114,7 @@ class OutpatientRecapController extends Controller
         }
 
         if ($isCsv) {
-            return $this->csvResponse($query);
+            return $this->csvResponse($query, $request);
         }
 
         $onlineTotal = (clone $query)
@@ -193,47 +196,112 @@ class OutpatientRecapController extends Controller
     /**
      * @param  Builder<Encounter>  $query
      */
-    private function csvResponse(Builder $query): StreamedResponse
+    private function csvResponse(Builder $query, Request $request): StreamedResponse|RedirectResponse
     {
-        $maximumId = (clone $query)->max('id');
-        $exportCutoffId = $maximumId === null ? null : (int) $maximumId;
+        $userKey = hash('sha256', (string) $request->user()->public_id);
+        $userAttempts = max(1, (int) config('simulation.recap_csv_user_attempts_per_minute', 3));
+        $globalAttempts = max(1, (int) config('simulation.recap_csv_global_attempts_per_minute', 30));
 
-        return response()->streamDownload(function () use ($query, $exportCutoffId): void {
+        if (! RateLimiter::attempt('recap-csv:user:'.$userKey, $userAttempts, fn (): bool => true, 60)
+            || ! RateLimiter::attempt('recap-csv:global', $globalAttempts, fn (): bool => true, 60)
+        ) {
+            return $this->rejectCsvExport(
+                $request,
+                'Batas permintaan ekspor CSV tercapai. Tunggu satu menit sebelum mencoba kembali.',
+            );
+        }
+
+        $lock = Cache::lock(
+            'recap-csv:active:'.$userKey,
+            max(30, (int) config('simulation.recap_csv_lock_seconds', 120)),
+        );
+
+        if (! $lock->get()) {
+            return $this->rejectCsvExport(
+                $request,
+                'Satu ekspor CSV untuk akun ini masih berjalan. Tunggu hingga selesai.',
+            );
+        }
+
+        try {
+            $maximumRows = max(1, (int) config('simulation.recap_csv_max_rows', 5000));
+            $exportCutoffId = (int) ((clone $query)->toBase()->max('id') ?? 0);
+            $exceedsMaximumRows = $exportCutoffId > 0
+                && (clone $query)
+                    ->where('id', '<=', $exportCutoffId)
+                    ->reorder('id')
+                    ->offset($maximumRows)
+                    ->limit(1)
+                    ->exists();
+
+            if ($exceedsMaximumRows) {
+                $this->releaseExportLock($lock);
+
+                return $this->rejectCsvExport(
+                    $request,
+                    sprintf(
+                        'Ekspor CSV sinkron dibatasi maksimal %s baris. Persempit filter sebelum mencoba kembali.',
+                        number_format($maximumRows, 0, ',', '.'),
+                    ),
+                );
+            }
+        } catch (\Throwable $exception) {
+            $this->releaseExportLock($lock);
+
+            throw $exception;
+        }
+
+        return response()->streamDownload(function () use ($query, $exportCutoffId, $lock): void {
             $handle = fopen('php://output', 'wb');
-            assert($handle !== false);
-            fputcsv($handle, ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status']);
+            try {
+                if ($handle === false) {
+                    throw new \RuntimeException('Keluaran CSV tidak dapat dibuka.');
+                }
 
-            if ($exportCutoffId === null) {
-                fclose($handle);
+                fputcsv($handle, ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status']);
 
-                return;
+                if ($exportCutoffId === 0) {
+                    return;
+                }
+
+                $encounters = $query
+                    ->where('id', '<=', $exportCutoffId)
+                    ->lazyByIdDesc(500);
+
+                foreach ($encounters as $encounter) {
+                    $row = $this->encounterSummary($encounter);
+                    $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
+                    fputcsv($handle, array_map($this->spreadsheetSafe(...), [
+                        $row['registered_at'],
+                        $row['queue_number'] ?? '',
+                        $patient['medical_record_number'] ?? '',
+                        $patient['full_name'] ?? '',
+                        $row['origin_label'] ?? $row['origin'],
+                        $row['booking_code'] ?? '',
+                        $row['clinic_name'],
+                        $row['doctor_name'] ?? '',
+                        $row['payer_label'] ?? $row['payer_type'],
+                        $row['status'],
+                    ]));
+                }
+            } finally {
+                if (is_resource($handle)) {
+                    fclose($handle);
+                }
+                $this->releaseExportLock($lock);
             }
-
-            $encounters = $query
-                ->where('id', '<=', $exportCutoffId)
-                ->lazyByIdDesc(500);
-
-            foreach ($encounters as $encounter) {
-                $row = $this->encounterSummary($encounter);
-                $patient = is_array($row['patient'] ?? null) ? $row['patient'] : [];
-                fputcsv($handle, array_map($this->spreadsheetSafe(...), [
-                    $row['registered_at'],
-                    $row['queue_number'] ?? '',
-                    $patient['medical_record_number'] ?? '',
-                    $patient['full_name'] ?? '',
-                    $row['origin_label'] ?? $row['origin'],
-                    $row['booking_code'] ?? '',
-                    $row['clinic_name'],
-                    $row['doctor_name'] ?? '',
-                    $row['payer_label'] ?? $row['payer_type'],
-                    $row['status'],
-                ]));
-            }
-
-            fclose($handle);
         }, 'rekap-pendaftaran.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    private function releaseExportLock(Lock $lock): void
+    {
+        try {
+            $lock->release();
+        } catch (\Throwable) {
+            // The lock has a short TTL and remains fail-safe if the cache backend becomes unavailable.
+        }
     }
 
     private function spreadsheetSafe(mixed $value): string

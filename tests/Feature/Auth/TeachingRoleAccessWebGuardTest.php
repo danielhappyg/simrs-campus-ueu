@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\Role;
 use App\Models\TeachingRoleAccessLease;
 use App\Models\User;
+use App\Support\Authentication\PasskeyRouteKey;
 use App\Support\Authorization\TeachingRoleAccessLeaseGuard;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Database\QueryException;
@@ -458,6 +459,34 @@ class TeachingRoleAccessWebGuardTest extends TestCase
             ])
             ->get(route('passkey.registration-options'))
             ->assertForbidden();
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_inactive_non_roster_passkey_login_and_management_are_blocked(): void
+    {
+        $user = User::factory()->create(['status' => 'SUSPENDED']);
+        /** @var Passkey $passkey */
+        $passkey = $user->passkeys()->create([
+            'name' => 'Suspended account passkey',
+            'credential_id' => 'suspended-account-credential',
+            'credential' => [],
+        ]);
+
+        $this->assertFalse(Passkeys::allowsLogin(Request::create('/passkeys/login', 'POST'), $passkey));
+
+        $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->get(route('passkey.registration-options'))
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->delete(route('passkey.destroy', [
+                'passkey' => app(PasskeyRouteKey::class)->for($passkey),
+            ]))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('passkeys', ['id' => $passkey->getKey()]);
         $this->assertAuthenticatedAs($user);
     }
 

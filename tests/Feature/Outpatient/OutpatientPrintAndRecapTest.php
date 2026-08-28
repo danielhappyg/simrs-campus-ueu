@@ -10,7 +10,10 @@ use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use Database\Seeders\RbacSeeder;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
 use Mockery\CompositeExpectation;
@@ -348,6 +351,156 @@ class OutpatientPrintAndRecapTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->assertStringContainsString('Waktu,Antrian', $response->streamedContent());
+    }
+
+    public function test_recap_csv_refuses_a_result_above_the_synchronous_row_ceiling(): void
+    {
+        config(['simulation.recap_csv_max_rows' => 2]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+        ]);
+        Encounter::factory()->count(3)->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+            'registered_at' => now(),
+        ]);
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                'format' => 'csv',
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+            ]))
+            ->assertRedirect(route('pendaftaran.rekap', [
+                'date_from' => now()->toDateString(),
+                'date_to' => now()->toDateString(),
+                'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            ]))
+            ->assertSessionHas('error', 'Ekspor CSV sinkron dibatasi maksimal 2 baris. Persempit filter sebelum mencoba kembali.');
+    }
+
+    public function test_recap_csv_limits_repeated_requests_per_user(): void
+    {
+        config([
+            'simulation.recap_csv_user_attempts_per_minute' => 1,
+            'simulation.recap_csv_global_attempts_per_minute' => 100,
+        ]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $parameters = [
+            'format' => 'csv',
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ];
+
+        $first = $this->actingAs($registrar)
+            ->withServerVariables(['REMOTE_ADDR' => '192.0.2.10'])
+            ->get(route('pendaftaran.rekap', $parameters));
+        $first->assertOk();
+        $first->streamedContent();
+
+        $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.20'])
+            ->get(route('pendaftaran.rekap', $parameters))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Batas permintaan ekspor CSV tercapai. Tunggu satu menit sebelum mencoba kembali.');
+    }
+
+    public function test_recap_csv_applies_a_global_request_budget_across_users(): void
+    {
+        config([
+            'simulation.recap_csv_user_attempts_per_minute' => 100,
+            'simulation.recap_csv_global_attempts_per_minute' => 1,
+        ]);
+        $firstRegistrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $secondRegistrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $parameters = [
+            'format' => 'csv',
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ];
+
+        $first = $this->actingAs($firstRegistrar)->get(route('pendaftaran.rekap', $parameters));
+        $first->assertOk();
+        $first->streamedContent();
+
+        $this->actingAs($secondRegistrar)
+            ->get(route('pendaftaran.rekap', $parameters))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Batas permintaan ekspor CSV tercapai. Tunggu satu menit sebelum mencoba kembali.');
+    }
+
+    public function test_recap_csv_refuses_a_second_concurrent_export_for_the_same_user(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $userKey = hash('sha256', $registrar->public_id);
+        $lock = Cache::lock('recap-csv:active:'.$userKey, 120);
+        $this->assertTrue($lock->get());
+
+        try {
+            $this->actingAs($registrar)
+                ->withServerVariables(['REMOTE_ADDR' => '203.0.113.30'])
+                ->get(route('pendaftaran.rekap', [
+                    'format' => 'csv',
+                    'date_from' => now()->toDateString(),
+                    'date_to' => now()->toDateString(),
+                ]))
+                ->assertRedirect()
+                ->assertSessionHas('error', 'Satu ekspor CSV untuk akun ini masih berjalan. Tunggu hingga selesai.');
+        } finally {
+            $lock->release();
+        }
+    }
+
+    public function test_recap_csv_cutoff_excludes_rows_inserted_after_the_bounded_probe_snapshot(): void
+    {
+        config(['simulation.recap_csv_max_rows' => 5]);
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $initialPatient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'full_name' => 'Pasien Dalam Snapshot',
+            'is_synthetic' => true,
+        ]);
+        $latePatient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'full_name' => 'Pasien Setelah Snapshot',
+            'is_synthetic' => true,
+        ]);
+        Encounter::factory()->create([
+            'patient_id' => $initialPatient->id,
+            'registered_by_user_id' => $registrar->id,
+            'registered_at' => now(),
+        ]);
+
+        $lateRowInserted = false;
+        DB::listen(function (QueryExecuted $query) use (&$lateRowInserted, $latePatient, $registrar): void {
+            $sql = strtolower($query->sql);
+            if ($lateRowInserted
+                || ! str_contains($sql, 'from "encounters"')
+                || (! str_contains($sql, 'max("id")')
+                    && (! str_contains($sql, 'select "id"') || ! str_contains($sql, 'limit')))) {
+                return;
+            }
+
+            $lateRowInserted = true;
+            Encounter::factory()->create([
+                'patient_id' => $latePatient->id,
+                'registered_by_user_id' => $registrar->id,
+                'registered_at' => now(),
+            ]);
+        });
+
+        $response = $this->actingAs($registrar)->get(route('pendaftaran.rekap', [
+            'format' => 'csv',
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ]));
+
+        $response->assertOk();
+        $content = $response->streamedContent();
+        $this->assertTrue($lateRowInserted);
+        $this->assertStringContainsString('Pasien Dalam Snapshot', $content);
+        $this->assertStringNotContainsString('Pasien Setelah Snapshot', $content);
     }
 
     public function test_user_without_encounter_list_cannot_open_rekap(): void

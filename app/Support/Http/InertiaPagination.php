@@ -33,8 +33,8 @@ final class InertiaPagination
             'total' => $paginator->total(),
             'from' => $paginator->firstItem(),
             'to' => $paginator->lastItem(),
-            'prev_page_url' => $paginator->previousPageUrl(),
-            'next_page_url' => $paginator->nextPageUrl(),
+            'prev_page_url' => self::relativeUrl($paginator->previousPageUrl()),
+            'next_page_url' => self::relativeUrl($paginator->nextPageUrl()),
         ];
     }
 
@@ -58,6 +58,33 @@ final class InertiaPagination
         $queryString = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         $request->session()->reflash();
 
-        return redirect()->to($request->url().($queryString === '' ? '' : '?'.$queryString));
+        $path = $request->getBaseUrl().$request->getPathInfo();
+
+        return new RedirectResponse($path.($queryString === '' ? '' : '?'.$queryString));
+    }
+
+    private static function relativeUrl(?string $url): ?string
+    {
+        if ($url === null) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+
+        if ($parts === false) {
+            return null;
+        }
+
+        $path = is_string($parts['path'] ?? null) && $parts['path'] !== ''
+            ? $parts['path']
+            : '/';
+        $query = is_string($parts['query'] ?? null) && $parts['query'] !== ''
+            ? '?'.$parts['query']
+            : '';
+        $fragment = is_string($parts['fragment'] ?? null) && $parts['fragment'] !== ''
+            ? '#'.$parts['fragment']
+            : '';
+
+        return $path.$query.$fragment;
     }
 }

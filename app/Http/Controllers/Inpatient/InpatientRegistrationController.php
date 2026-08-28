@@ -10,6 +10,8 @@ use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaAwareRules;
 use App\Support\Registration\DailyQueueAllocator;
+use App\Support\Registration\InpatientBedClaimGuard;
+use App\Support\Registration\InpatientBedUnavailable;
 use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Database\Seeders\InpatientMastersSeeder;
@@ -28,6 +30,7 @@ class InpatientRegistrationController extends Controller
     public function __construct(
         private readonly AuditRecorder $auditRecorder,
         private readonly DailyQueueAllocator $dailyQueueAllocator,
+        private readonly InpatientBedClaimGuard $bedClaimGuard,
     ) {}
 
     public function index(Request $request): Response
@@ -177,101 +180,95 @@ class InpatientRegistrationController extends Controller
             $validated['bed_code'],
         );
 
-        // Occupancy stays global so hidden contamination cannot produce a double-booked bed.
-        $bedTaken = Encounter::query()
-            ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
-            ->where('bed_code', $validated['bed_code'])
-            ->where('status', '!=', Encounter::STATUS_CLOSED)
-            ->exists();
-
-        if ($bedTaken) {
-            return redirect()
-                ->route('pendaftaran.rawat-inap.index')
-                ->withErrors(['bed_code' => 'Tempat tidur sudah dipakai kunjungan rawat inap aktif.'])
-                ->withInput();
-        }
-
         $user = $request->user();
         if (! $user instanceof User) {
             abort(403);
         }
 
-        $encounter = DB::transaction(function () use ($validated, $user): Encounter {
-            if (! empty($validated['patient_public_id'])) {
-                $patient = Patient::query()
-                    ->syntheticOnly()
-                    ->where('public_id', $validated['patient_public_id'])
-                    ->firstOrFail();
+        try {
+            $encounter = DB::transaction(function () use ($validated, $user): Encounter {
+                if (! empty($validated['patient_public_id'])) {
+                    $patient = Patient::query()
+                        ->syntheticOnly()
+                        ->where('public_id', $validated['patient_public_id'])
+                        ->firstOrFail();
 
-                if (! $patient->is_synthetic) {
-                    abort(422, 'Hanya pasien sintetis yang diizinkan.');
+                    if (! $patient->is_synthetic) {
+                        abort(422, 'Hanya pasien sintetis yang diizinkan.');
+                    }
+
+                    $patient->fill($this->patientUpdatableAttributes($validated))->save();
+                } else {
+                    $mrn = $validated['medical_record_number'] ?? null;
+                    if (! is_string($mrn) || $mrn === '') {
+                        $mrn = $this->generateMedicalRecordNumber();
+                    }
+
+                    $patient = Patient::query()->create([
+                        ...$this->patientUpdatableAttributes($validated),
+                        'medical_record_number' => $mrn,
+                        'full_name' => $validated['full_name'],
+                        'date_of_birth' => $validated['date_of_birth'],
+                        'sex' => $validated['sex'],
+                        'is_synthetic' => true,
+                        'created_by_user_id' => $user->id,
+                    ]);
                 }
 
-                $patient->fill($this->patientUpdatableAttributes($validated))->save();
-            } else {
-                $mrn = $validated['medical_record_number'] ?? null;
-                if (! is_string($mrn) || $mrn === '') {
-                    $mrn = $this->generateMedicalRecordNumber();
-                }
+                $registeredAt = now((string) config('app.timezone', 'Asia/Jakarta'));
+                $this->bedClaimGuard->assertAvailable($validated['bed_code']);
+                $queue = $this->dailyQueueAllocator->allocate($registeredAt);
 
-                $patient = Patient::query()->create([
-                    ...$this->patientUpdatableAttributes($validated),
-                    'medical_record_number' => $mrn,
-                    'full_name' => $validated['full_name'],
-                    'date_of_birth' => $validated['date_of_birth'],
-                    'sex' => $validated['sex'],
-                    'is_synthetic' => true,
-                    'created_by_user_id' => $user->id,
-                ]);
-            }
-
-            $registeredAt = now((string) config('app.timezone', 'Asia/Jakarta'));
-            $queue = $this->dailyQueueAllocator->allocate($registeredAt);
-
-            $created = Encounter::query()->create([
-                'patient_id' => $patient->id,
-                'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                'status' => Encounter::STATUS_REGISTERED,
-                'clinic_name' => $validated['ward_name'],
-                'ward_name' => $validated['ward_name'],
-                'ward_class' => $validated['ward_class'],
-                'bed_code' => $validated['bed_code'],
-                'continue_from' => $validated['continue_from'],
-                'visit_date' => $registeredAt->toDateString(),
-                'payer_type' => $validated['payer_type'],
-                'insurance_number' => $validated['insurance_number'] ?? null,
-                'queue_date' => $queue->queueDate,
-                'queue_number' => $queue->queueNumber,
-                'registered_at' => $registeredAt,
-                'registered_by_user_id' => $user->id,
-                'chief_complaint' => $validated['chief_complaint'] ?? null,
-            ]);
-
-            $created->setRelation('patient', $patient);
-
-            $event = $this->auditRecorder->record(
-                action: 'patient.register',
-                resourceType: 'encounter',
-                resourceId: $created->public_id,
-                actor: $user,
-                outcome: 'SUCCESS',
-                metadata: [
+                $created = Encounter::query()->create([
+                    'patient_id' => $patient->id,
                     'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                    'patient_public_id' => $created->patient?->public_id,
-                    'ward_name' => $created->ward_name,
-                    'ward_class' => $created->ward_class,
-                    'bed_code' => $created->bed_code,
-                    'continue_from' => $created->continue_from,
-                    'payer_type' => $created->payer_type,
-                    'queue_date' => $created->queue_date,
-                    'queue_number' => $created->queue_number,
-                ],
-            );
+                    'status' => Encounter::STATUS_REGISTERED,
+                    'clinic_name' => $validated['ward_name'],
+                    'ward_name' => $validated['ward_name'],
+                    'ward_class' => $validated['ward_class'],
+                    'bed_code' => $validated['bed_code'],
+                    'continue_from' => $validated['continue_from'],
+                    'visit_date' => $registeredAt->toDateString(),
+                    'payer_type' => $validated['payer_type'],
+                    'insurance_number' => $validated['insurance_number'] ?? null,
+                    'queue_date' => $queue->queueDate,
+                    'queue_number' => $queue->queueNumber,
+                    'registered_at' => $registeredAt,
+                    'registered_by_user_id' => $user->id,
+                    'chief_complaint' => $validated['chief_complaint'] ?? null,
+                ]);
 
-            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+                $created->setRelation('patient', $patient);
 
-            return $created;
-        }, 3);
+                $event = $this->auditRecorder->record(
+                    action: 'patient.register',
+                    resourceType: 'encounter',
+                    resourceId: $created->public_id,
+                    actor: $user,
+                    outcome: 'SUCCESS',
+                    metadata: [
+                        'care_setting' => Encounter::CARE_SETTING_INPATIENT,
+                        'patient_public_id' => $created->patient?->public_id,
+                        'ward_name' => $created->ward_name,
+                        'ward_class' => $created->ward_class,
+                        'bed_code' => $created->bed_code,
+                        'continue_from' => $created->continue_from,
+                        'payer_type' => $created->payer_type,
+                        'queue_date' => $created->queue_date,
+                        'queue_number' => $created->queue_number,
+                    ],
+                );
+
+                abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+
+                return $created;
+            }, 3);
+        } catch (InpatientBedUnavailable $exception) {
+            return redirect()
+                ->route('pendaftaran.rawat-inap.index')
+                ->withErrors(['bed_code' => $exception->getMessage()])
+                ->withInput();
+        }
 
         return redirect()
             ->route('pendaftaran.rawat-inap.index')

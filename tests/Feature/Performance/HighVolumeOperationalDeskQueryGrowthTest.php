@@ -16,6 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 class HighVolumeOperationalDeskQueryGrowthTest extends TestCase
@@ -148,7 +149,10 @@ class HighVolumeOperationalDeskQueryGrowthTest extends TestCase
                 ->where('todaysEncountersPagination.total', 101)
                 ->where('todaysEncountersPagination.from', 1)
                 ->where('todaysEncountersPagination.to', 50)
-                ->where('todaysEncountersPagination.next_page_url', fn (mixed $url): bool => is_string($url) && str_contains($url, 'encounter_page=2')));
+                ->where('todaysEncountersPagination.next_page_url', fn (mixed $url): bool => is_string($url)
+                    && str_starts_with($url, '/')
+                    && ! str_contains($url, '://')
+                    && str_contains($url, 'encounter_page=2')));
 
         $this->actingAs($registrar)
             ->get(route('pendaftaran.rawat-jalan.index', ['encounter_page' => 3]))
@@ -181,13 +185,13 @@ class HighVolumeOperationalDeskQueryGrowthTest extends TestCase
 
         $this->actingAs($registrar)
             ->get(route('pendaftaran.rawat-jalan.index', ['encounter_page' => 999]))
-            ->assertRedirect(route('pendaftaran.rawat-jalan.index', ['encounter_page' => 3]));
+            ->assertRedirect(route('pendaftaran.rawat-jalan.index', ['encounter_page' => 3], false));
         $this->actingAs($physician)
             ->get(route('pemeriksaan.rawat-jalan.index', ['page' => 999]))
-            ->assertRedirect(route('pemeriksaan.rawat-jalan.index', ['page' => 2]));
+            ->assertRedirect(route('pemeriksaan.rawat-jalan.index', ['page' => 2], false));
         $this->actingAs($nurse)
             ->get(route('pemeriksaan.laboratorium.index', ['page' => 999]))
-            ->assertRedirect(route('pemeriksaan.laboratorium.index', ['page' => 2]));
+            ->assertRedirect(route('pemeriksaan.laboratorium.index', ['page' => 2], false));
         $this->actingAs($registrar)
             ->get(route('pendaftaran.rekap', [
                 'date_from' => now()->toDateString(),
@@ -198,11 +202,26 @@ class HighVolumeOperationalDeskQueryGrowthTest extends TestCase
                 'date_from' => now()->toDateString(),
                 'date_to' => now()->toDateString(),
                 'page' => 1,
-            ]));
+            ], false));
+
+        $this->actingAs($registrar)
+            ->withHeader('Host', 'attacker.example')
+            ->get(route('pendaftaran.rawat-jalan.index', ['encounter_page' => 999], false))
+            ->assertRedirect(route('pendaftaran.rawat-jalan.index', ['encounter_page' => 3], false));
+
+        $this->actingAs($registrar)
+            ->withHeader('Host', 'attacker.example')
+            ->get(route('pendaftaran.rawat-jalan.index', [], false))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('todaysEncountersPagination.next_page_url', fn (mixed $url): bool => is_string($url)
+                    && str_starts_with($url, '/')
+                    && ! str_contains($url, 'attacker.example')
+                    && ! str_contains($url, '://')));
     }
 
     /**
-     * @return array{TestResponse, int}
+     * @return array{TestResponse<Response>, int}
      */
     private function measureRequest(callable $request): array
     {

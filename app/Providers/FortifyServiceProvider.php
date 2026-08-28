@@ -3,21 +3,31 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Responses\IndistinguishablePasswordResetLinkResponse;
+use App\Http\Responses\OpaquePasskeyRegistrationResponse;
 use App\Models\User;
+use App\Support\Authentication\PasskeyRouteKey;
 use App\Support\Authorization\TeachingRoleAccessLeaseGuard;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Contracts\PasskeyRegistrationResponse;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\Passkey;
 use Laravel\Passkeys\Passkeys;
@@ -29,7 +39,15 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            SuccessfulPasswordResetLinkRequestResponse::class,
+            IndistinguishablePasswordResetLinkResponse::class,
+        );
+        $this->app->bind(
+            FailedPasswordResetLinkRequestResponse::class,
+            IndistinguishablePasswordResetLinkResponse::class,
+        );
+        $this->app->bind(PasskeyRegistrationResponse::class, OpaquePasskeyRegistrationResponse::class);
     }
 
     /**
@@ -39,8 +57,28 @@ class FortifyServiceProvider extends ServiceProvider
     {
         $this->configureActions();
         $this->configureAuthentication();
+        $this->configurePasskeyRouteBinding();
         $this->configureViews();
         $this->configureRateLimiting();
+    }
+
+    /**
+     * Resolve package passkey routes by an opaque, owner-scoped handle.
+     */
+    private function configurePasskeyRouteBinding(): void
+    {
+        Route::bind('passkey', function (string $value): Passkey {
+            $user = Auth::guard(Config::string('passkeys.guard'))->user();
+            $passkey = $user instanceof PasskeyUser
+                ? app(PasskeyRouteKey::class)->resolveFor($user, $value)
+                : null;
+
+            if (! $passkey instanceof Passkey) {
+                throw (new ModelNotFoundException)->setModel(Passkey::class, [$value]);
+            }
+
+            return $passkey;
+        });
     }
 
     /**
@@ -89,8 +127,9 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Passkeys::authorizeLoginUsing(function (Request $request, PasskeyUser $user, Passkey $passkey): bool {
-            return ! $user instanceof User
-                || ! app(TeachingRoleAccessLeaseGuard::class)->isRosterAccount($user);
+            return $user instanceof User
+                && $user->status === 'ACTIVE'
+                && ! app(TeachingRoleAccessLeaseGuard::class)->isRosterAccount($user);
         });
 
         Event::listen(Login::class, function (Login $event): void {

@@ -8,6 +8,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -46,13 +48,15 @@ class ProtectTeachingRoleAuthenticationPaths
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->routeIs('password.email')
-            && $this->leaseGuard->isRosterAccount((string) $request->input('email'))) {
-            // Return Fortify's ordinary success response without issuing a token.
-            // This keeps the reset request non-enumerating for the managed roster.
-            return app(SuccessfulPasswordResetLinkRequestResponse::class, [
-                'status' => Password::RESET_LINK_SENT,
-            ])->toResponse($request);
+        if ($request->routeIs('password.email')) {
+            $requestLimited = $this->passwordResetRequestIsLimited($request);
+
+            if ($requestLimited
+                || $this->leaseGuard->isRosterAccount((string) $request->input('email'))) {
+                // Rate limiting is deliberately evaluated before the roster fence.
+                // Every suppressed request returns Fortify's generic public response.
+                return $this->passwordResetLinkResponse($request);
+            }
         }
 
         if (($request->routeIs('password.reset') || $request->routeIs('password.update'))
@@ -68,6 +72,13 @@ class ProtectTeachingRoleAuthenticationPaths
         }
 
         $user = $request->user();
+
+        if ($user instanceof User
+            && $user->status !== 'ACTIVE'
+            && ! $this->leaseGuard->isRosterAccount($user)
+            && $request->routeIs(...self::MANAGED_AUTHENTICATED_ROUTES)) {
+            abort(403, 'Akun tidak aktif. Hubungi administrator SIMRS Campus UEU.');
+        }
 
         if ($user instanceof User && $this->leaseGuard->isRosterAccount($user)) {
             $fresh = $user->fresh();
@@ -113,6 +124,29 @@ class ProtectTeachingRoleAuthenticationPaths
         }
 
         return $response;
+    }
+
+    private function passwordResetRequestIsLimited(Request $request): bool
+    {
+        $normalizedEmail = Str::lower(trim((string) $request->input('email')));
+        $ipAddress = (string) ($request->ip() ?? 'unknown');
+        $decaySeconds = max(1, (int) config('fortify.password_reset_rate_limits.decay_seconds', 60));
+        $emailIpLimit = max(1, (int) config('fortify.password_reset_rate_limits.email_ip_per_minute', 5));
+        $ipLimit = max(1, (int) config('fortify.password_reset_rate_limits.ip_per_minute', 30));
+        $emailIpKey = 'password-reset:email-ip:'.hash('sha256', $normalizedEmail."\0".$ipAddress);
+        $ipKey = 'password-reset:ip:'.hash('sha256', $ipAddress);
+
+        $emailIpAttempts = RateLimiter::hit($emailIpKey, $decaySeconds);
+        $ipAttempts = RateLimiter::hit($ipKey, $decaySeconds);
+
+        return $emailIpAttempts > $emailIpLimit || $ipAttempts > $ipLimit;
+    }
+
+    private function passwordResetLinkResponse(Request $request): Response
+    {
+        return app(SuccessfulPasswordResetLinkRequestResponse::class, [
+            'status' => Password::RESET_LINK_SENT,
+        ])->toResponse($request);
     }
 
     private function challengedRosterUser(Request $request): ?User
