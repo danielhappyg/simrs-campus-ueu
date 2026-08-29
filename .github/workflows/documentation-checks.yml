@@ -75,7 +75,7 @@ jobs:
           abort(failures.join("\n")) unless failures.empty?
           puts "Validated #{files.length} Markdown files"
 
-      - name: Test all proportional G0 governance v2 planning and adoption contracts
+      - name: Test all proportional G0 governance v2 contracts
         shell: ruby -Itests {0}
         run: |
           required = %w[
@@ -84,6 +84,8 @@ jobs:
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
             tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
             tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
+            tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
+            tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
             tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
             tests/Documentation/G0ProportionalGovernanceV2ValidatorTest.rb
           ]

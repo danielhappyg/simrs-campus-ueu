@@ -24,6 +24,8 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
     tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
     tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
+    tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
+    tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
     tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
     tests/Documentation/G0ProportionalGovernanceV2ValidatorTest.rb
   ].freeze
