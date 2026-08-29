@@ -1,0 +1,382 @@
+{
+  "artifact_type": "par_preclinical_encounter_cancellation_decision_pack_draft",
+  "schema_version": 1,
+  "artifact_id": "PAR-PRECLINICAL-ENCOUNTER-CANCELLATION-DECISION-PACK-DRAFT-2026-08-29",
+  "status": "PROPOSED_PENDING_OWNER_AND_CONTROL_DECISIONS",
+  "effect": "none_decision_preparation_only",
+  "data_boundary": "synthetic_only",
+  "created_date": "2026-08-29",
+  "authority_boundary": "This artifact records recommendations and unresolved decisions only. It does not appoint an owner, dispose a capability, authorize implementation, activate a governance consumer, close G0 or G3, deploy, migrate, or authorize live integrations.",
+  "source_bindings": [
+    {
+      "role": "functional_requirement_pack",
+      "path": "docs/new-simrs-rebuild/phase-1/CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_FR_PACK_2026-08-27.md",
+      "sha256": "6da1ca2532b10e433b754a0e0ccb09bc4c3e49712bcff70b17d335324643008f",
+      "source_status": "PROPOSED_NEW_OWNER_DECISION_REQUIRED",
+      "authority_effect": "none"
+    },
+    {
+      "role": "companion_architecture_decision",
+      "path": "docs/operations/ADR_CROSS_SETTING_PRECLINICAL_ENCOUNTER_CANCELLATION_2026-08-27.md",
+      "sha256": "9d5d0042fe79eaa80fb6f7f9441ee36f35a4e43f20db0bad3737ce7cbebb1335",
+      "source_status": "PROPOSED_NO_IMPLEMENTATION_APPROVAL",
+      "authority_effect": "none"
+    },
+    {
+      "role": "governance_v2_proposal",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md",
+      "sha256": "f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695",
+      "source_status": "adopted_for_gate_a_local_implementation_only",
+      "authority_effect": "no_capability_disposition"
+    },
+    {
+      "role": "governance_v2_adr",
+      "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+      "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+      "source_status": "accepted_for_gate_a_local_implementation_only",
+      "authority_effect": "no_capability_disposition"
+    },
+    {
+      "role": "governance_v2_contract",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json",
+      "sha256": "eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca",
+      "source_status": "implemented_validation_contract",
+      "authority_effect": "none_without_valid_decision_events"
+    },
+    {
+      "role": "engineering_evidence_map_v2",
+      "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json",
+      "sha256": "3b1005a31087896b412a8f64a3dbfced2c0ab655be78c32abd7c0743ae3811d5",
+      "source_status": "engineering_evidence_only",
+      "authority_effect": "never_owner_acceptance"
+    },
+    {
+      "role": "coverage_ledger_v2",
+      "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json",
+      "sha256": "690becdf75a08d17b992d8dad754313f33d0f9c8ea2c692b9b12b8b837f43ac5",
+      "source_status": "g0_g3_open_pointer_missing",
+      "authority_effect": "none"
+    },
+    {
+      "role": "batch_b_registration_source_register",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "3db0a698be4f7729f24f997dbbc54e69c7c98442237fb7a9d4b12358971eeb1f",
+      "source_status": "historical_v1_all_pending",
+      "authority_effect": "none"
+    },
+    {
+      "role": "batch_g_reporting_source_register",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "53bef20b3f509c543213e649b2d5f6644e9dbe00a7dae34d209c57a93137612e",
+      "source_status": "historical_v1_all_pending_with_unresolved_source_id_defect",
+      "authority_effect": "none"
+    }
+  ],
+  "family_scope": {
+    "family_id": "PRECLINICAL_ENCOUNTER_CANCELLATION_RJ_IGD_RI",
+    "title": "Cross-setting pre-clinical encounter cancellation",
+    "care_settings": ["RAWAT_JALAN", "IGD", "RAWAT_INAP"],
+    "primary_capability_ids": ["PAR-REG-001", "PAR-REG-002", "PAR-REG-003"],
+    "affected_dependency_ids": ["PAR-CLN-002", "PAR-CLN-003", "PAR-CLN-004", "PAR-CLN-005", "PAR-CLN-006", "PAR-CLN-007", "PAR-RMIK-001", "PAR-RMIK-002", "PAR-ADM-001", "PAR-ADM-002", "PAR-ADM-037"],
+    "reporting_dependency_ids": ["PAR-RPT-007", "PAR-RPT-013", "PAR-RPT-016", "PAR-RPT-017", "PAR-RPT-019"],
+    "workflow_ids": ["E2E-01", "E2E-02", "E2E-03", "E2E-04", "E2E-12", "E2E-15", "E2E-16"],
+    "row_decision_mode": "one_explicit_event_per_primary_row",
+    "family_inheritance_permitted": false
+  },
+  "derived_tier": {
+    "declared_tier": "T3_INDEPENDENT_CONTROL",
+    "derivation_status": "derived_from_complete_closed_consequence_map_not_approved",
+    "consequence_flags": {
+      "clinical_or_rm_lifecycle": true,
+      "diagnostic": true,
+      "medication": false,
+      "inventory_without_valuation": false,
+      "tariff_or_charge_without_money_movement": false,
+      "claims_simulation": false,
+      "report_formula": true,
+      "correction_or_amendment": true,
+      "denial_behavior": true,
+      "cross_domain_control": true,
+      "implementer_is_approver": false,
+      "privileged_access_or_security": false,
+      "privacy_or_export": true,
+      "money_movement_or_stock_valuation": false,
+      "clinical_safety_override": true,
+      "external_integration": false,
+      "migration_restore_or_retained_write_recovery": true,
+      "statutory_output": false
+    },
+    "tier_approval_status": "pending",
+    "tier_decision_reference": null
+  },
+  "primary_capability_rows": [
+    {
+      "requirement_id": "PAR-REG-001",
+      "batch": "B",
+      "entry_index": 3,
+      "entry_index_base": 0,
+      "entry_sha256": "ec52cbc9333b5ecdd4cd13bf1c42d519ad9154ef8db7f645214ee3157aef69de",
+      "current_decision_status": "pending",
+      "current_disposition": "pending",
+      "proposed_family_role": "rawat_inap_registration_cancellation",
+      "event_required": true,
+      "event_id": null,
+      "event_status": "pending",
+      "event_owner_assignment_status": "pending",
+      "event_owner_identity": null,
+      "event_owner_capacity": null,
+      "event_decision": null,
+      "event_decided_at": null,
+      "event_implementation_authorized": false
+    },
+    {
+      "requirement_id": "PAR-REG-002",
+      "batch": "B",
+      "entry_index": 4,
+      "entry_index_base": 0,
+      "entry_sha256": "7eab54bff057697be92e115691871e73dba8ca47b62079d9e64436c6d5540a99",
+      "current_decision_status": "pending",
+      "current_disposition": "pending",
+      "proposed_family_role": "igd_registration_cancellation",
+      "event_required": true,
+      "event_id": null,
+      "event_status": "pending",
+      "event_owner_assignment_status": "pending",
+      "event_owner_identity": null,
+      "event_owner_capacity": null,
+      "event_decision": null,
+      "event_decided_at": null,
+      "event_implementation_authorized": false
+    },
+    {
+      "requirement_id": "PAR-REG-003",
+      "batch": "B",
+      "entry_index": 5,
+      "entry_index_base": 0,
+      "entry_sha256": "11878c077e7d65dccd1bc186998333de632106b06999e71240c0c7c1a296d873",
+      "current_decision_status": "pending",
+      "current_disposition": "pending",
+      "proposed_family_role": "rawat_jalan_registration_cancellation",
+      "event_required": true,
+      "event_id": null,
+      "event_status": "pending",
+      "event_owner_assignment_status": "pending",
+      "event_owner_identity": null,
+      "event_owner_capacity": null,
+      "event_decision": null,
+      "event_decided_at": null,
+      "event_implementation_authorized": false
+    }
+  ],
+  "reporting_dependencies": {
+    "disposition_boundary": "dependencies_only_not_primary_dispositions_and_not_disposed_by_this_pack",
+    "rows": [
+      {"requirement_id": "PAR-RPT-007", "batch": "G", "entry_index": 9, "entry_index_base": 0, "entry_sha256": "494490dfc53835d803a9759ef555cec791e6030d4d42a015e34376f1bb8e3502", "current_decision_status": "pending", "current_disposition": "pending", "governance_disposed": false},
+      {"requirement_id": "PAR-RPT-013", "batch": "G", "entry_index": 15, "entry_index_base": 0, "entry_sha256": "3f4065fbbb301a6c88c2cc5cf2291c5b111b90338b6e81a474865e581ae26ff4", "current_decision_status": "pending", "current_disposition": "pending", "governance_disposed": false},
+      {"requirement_id": "PAR-RPT-016", "batch": "G", "entry_index": 18, "entry_index_base": 0, "entry_sha256": "39662ce62fb4a9922072729dbbef32e1a616c35a679a34d848c0a1bbce080b48", "current_decision_status": "pending", "current_disposition": "pending", "governance_disposed": false},
+      {"requirement_id": "PAR-RPT-017", "batch": "G", "entry_index": 19, "entry_index_base": 0, "entry_sha256": "c287df04d43eb34f1405a973548d036a60d55e9a66ed5b059d64caa9ff853701", "current_decision_status": "pending", "current_disposition": "pending", "governance_disposed": false},
+      {"requirement_id": "PAR-RPT-019", "batch": "G", "entry_index": 21, "entry_index_base": 0, "entry_sha256": "d0e73fc1cc512c398ffbe2ece98c1a44658ef0f9b504b0f2118eef0ee19c1c5c", "current_decision_status": "pending", "current_disposition": "pending", "governance_disposed": false}
+    ],
+    "v1_source_id_defect": {
+      "defect_id": "G0-V1-REPORTING-SOURCE-ID-AND-CLINICAL-LINEAGE-DEFECTS",
+      "status": "unresolved_requires_v2_correction_before_any_reporting_disposition_or_implementation",
+      "historical_v1_bytes_mutable": false,
+      "corrections": [
+        {"requirement_id": "PAR-RPT-007", "observed_v1_source_key": "B_RJ", "observed_v1_requirement_id": "PAR-REG-002", "observed_v1_source_entity": "outpatient_encounter_version", "required_v2_source_key": "B_RJ", "required_v2_requirement_id": "PAR-REG-003", "required_v2_source_entity": "outpatient_encounter_version", "resolution_status": "pending_v2_correction_event", "resolution_decision": null},
+        {"requirement_id": "PAR-RPT-013", "observed_v1_source_key": "B_IGD", "observed_v1_requirement_id": "PAR-REG-003", "observed_v1_source_entity": "emergency_encounter_version", "required_v2_source_key": "B_IGD", "required_v2_requirement_id": "PAR-REG-002", "required_v2_source_entity": "emergency_encounter_version", "resolution_status": "pending_v2_correction_event", "resolution_decision": null},
+        {"requirement_id": "PAR-RPT-013", "observed_v1_source_key": "C_RJ", "observed_v1_requirement_id": "PAR-CLN-004", "observed_v1_source_entity": "final_outpatient_record_version", "required_v2_source_key": "C_IGD", "required_v2_requirement_id": "PAR-CLN-003", "required_v2_source_entity": "emergency_clinical_entry", "resolution_status": "pending_owner_choice_correct_to_igd_or_remove_if_registration_only", "resolution_decision": null},
+        {"requirement_id": "PAR-RPT-016", "observed_v1_source_key": "B_RJ", "observed_v1_requirement_id": "PAR-REG-002", "observed_v1_source_entity": "outpatient_encounter_version", "required_v2_source_key": "B_RJ", "required_v2_requirement_id": "PAR-REG-003", "required_v2_source_entity": "outpatient_encounter_version", "resolution_status": "pending_v2_correction_event", "resolution_decision": null},
+        {"requirement_id": "PAR-RPT-019", "observed_v1_source_key": "B_RJ", "observed_v1_requirement_id": "PAR-REG-002", "observed_v1_source_entity": "outpatient_encounter_version", "required_v2_source_key": "B_RJ", "required_v2_requirement_id": "PAR-REG-003", "required_v2_source_entity": "outpatient_encounter_version", "resolution_status": "pending_v2_correction_event", "resolution_decision": null},
+        {"requirement_id": "PAR-RPT-019", "observed_v1_source_key": "B_IGD", "observed_v1_requirement_id": "PAR-REG-003", "observed_v1_source_entity": "emergency_encounter_version", "required_v2_source_key": "B_IGD", "required_v2_requirement_id": "PAR-REG-002", "required_v2_source_entity": "emergency_encounter_version", "resolution_status": "pending_v2_correction_event", "resolution_decision": null}
+      ],
+      "resolution_event_id": null,
+      "resolution_owner_identity": null,
+      "resolution_decision": null,
+      "resolution_implementation_authorized": false
+    }
+  },
+  "affected_dependencies": [
+    {"requirement_id": "PAR-CLN-002", "relationship": "clinical_fact_blocker", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-CLN-003", "relationship": "clinical_fact_blocker", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-CLN-004", "relationship": "outpatient_clinical_fact_blocker", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-CLN-005", "relationship": "inpatient_clinical_fact_blocker", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-CLN-006", "relationship": "diagnostic_order_or_result_blocker", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-CLN-007", "relationship": "radiology_order_or_result_blocker", "reversal_included": false, "decision_effect": "explicitly_excluded_reversal_dependency_only"},
+    {"requirement_id": "PAR-RMIK-001", "relationship": "rm_fact_blocker_and_retention_dependency", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-RMIK-002", "relationship": "coding_or_rm_fact_blocker", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-ADM-001", "relationship": "authorization_dependency", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-ADM-002", "relationship": "role_capability_dependency", "reversal_included": false, "decision_effect": "none_dependency_only"},
+    {"requirement_id": "PAR-ADM-037", "relationship": "immutable_audit_dependency", "reversal_included": false, "decision_effect": "none_dependency_only"}
+  ],
+  "excluded_domains": [
+    {"domain": "BPJS_AND_LIVE_CLAIM_CONNECTIVITY", "capability_range": "PAR-BPJS-001..PAR-BPJS-002", "policy": "no_call_no_reversal_no_success_claim", "disposition_effect": "none"},
+    {"domain": "CLAIMS", "capability_range": "PAR-CLM-001..PAR-CLM-006", "policy": "dependent_fact_hard_block_only_no_claim_reversal", "disposition_effect": "none"},
+    {"domain": "PHARMACY", "capability_range": "PAR-PHA-001..PAR-PHA-020", "policy": "dependent_fact_hard_block_only_no_prescription_dispense_or_return_reversal", "disposition_effect": "none"},
+    {"domain": "PHARMACY_IBS", "capability_range": "PAR-ORP-001", "policy": "dependent_fact_hard_block_only_no_operating_theatre_pharmacy_reversal", "disposition_effect": "none"},
+    {"domain": "INVENTORY", "capability_range": "PAR-PWH-001..PAR-PWH-023", "policy": "dependent_fact_hard_block_only_no_stock_or_lot_correction", "disposition_effect": "none"},
+    {"domain": "BILLING_AND_FINANCE", "capability_range": "PAR-FIN-001..PAR-FIN-019", "policy": "dependent_fact_hard_block_only_no_charge_payment_or_receivable_reversal", "disposition_effect": "none"}
+  ],
+  "decision_questions": [
+    {"decision_id": "CAN-01", "topic": "eligible_state", "recommendation": "Only REGISTERED is eligible.", "required_authorities": ["registration_admission", "clinical", "rmik_records"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-02", "topic": "care_start_blocker", "recommendation": "Block when any dependent fact exists regardless of encounter status.", "required_authorities": ["clinical", "rmik_records"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-03", "topic": "reason_catalogue", "recommendation": "Require a stable reason code and allow an optional Indonesian note of at most 500 characters.", "required_authorities": ["registration_admission"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-04", "topic": "permitted_reason_codes", "recommendation": "Use the four bounded reason codes in the FR pack without an ungoverned catch-all.", "required_authorities": ["registration_admission", "emergency_clinical", "facility_bed_management"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-05", "topic": "actor", "recommendation": "Require encounter.cancel; registrar is routine actor and admin is governed correction only.", "required_authorities": ["registration_admission", "product_authority"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-06", "topic": "queue_effect", "recommendation": "Preserve queue date and number; never decrement or reuse.", "required_authorities": ["registration_admission", "reporting_quality"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-07", "topic": "active_worklists", "recommendation": "Exclude CANCELLED from every active clinical, registration, diagnostic, RM, bed, and dashboard worklist.", "required_authorities": ["registration_admission", "clinical", "rmik_records"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-08", "topic": "historical_registers", "recommendation": "Retain one Dibatalkan row and separately reconcile gross, active, cancelled, and completed totals.", "required_authorities": ["reporting_quality", "registration_admission"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-09", "topic": "rawat_inap_bed_effect", "recommendation": "Release only current app occupancy while retaining original placement history.", "required_authorities": ["facility_bed_management", "registration_admission"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-10", "topic": "retry_behavior", "recommendation": "Replay the same actor key and payload; conflict on changed payload.", "required_authorities": ["security_privacy_data", "operations"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-11", "topic": "repeated_cancellation", "recommendation": "Allow only exact idempotent replay; reject a second semantic cancellation.", "required_authorities": ["registration_admission", "security_privacy_data"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-12", "topic": "downstream_facts_added_later", "recommendation": "Hard-block and route to a separately approved reversal or correction workflow.", "required_authorities": ["billing_finance", "pharmacy", "inventory", "claims"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-13", "topic": "patient_and_mrn_effect", "recommendation": "Retain patient and MRN; cancel only the encounter.", "required_authorities": ["patient_identity", "rmik_records"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-14", "topic": "schedule_capacity", "recommendation": "Make no clinic capacity restoration claim without an authoritative capacity ledger.", "required_authorities": ["outpatient_scheduling", "registration_admission"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-15", "topic": "printing", "recommendation": "Block ordinary active output and require a separately approved visibly cancelled receipt if one is needed.", "required_authorities": ["registration_admission", "rmik_records", "reporting_quality"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-16", "topic": "related_encounters", "recommendation": "Never cascade automatically across continued or related encounters.", "required_authorities": ["registration_admission", "clinical", "rmik_records"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-17", "topic": "terminal_state", "recommendation": "CANCELLED is terminal; later care requires a new encounter and queue number.", "required_authorities": ["product_authority", "registration_admission", "rmik_records"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-18", "topic": "external_systems", "recommendation": "Record local cancellation only and make no external integration call or success claim.", "required_authorities": ["product_authority", "security_privacy_data"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-19", "topic": "reset_and_recovery", "recommendation": "Permit only the named synthetic reset to remove patient-domain facts while preserving audit and security evidence.", "required_authorities": ["teaching_data_reset", "security_privacy_data", "operations"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false},
+    {"decision_id": "CAN-20", "topic": "bed_concurrency_claim", "recommendation": "Release only current app occupancy and make no full reservation, waitlist, transfer, or physical-bed parity claim.", "required_authorities": ["facility_bed_management", "operations"], "status": "pending", "recorded_choice": null, "decision_reference": null, "implementation_authorized": false}
+  ],
+  "recommended_contract": {
+    "transition": "REGISTERED->CANCELLED",
+    "terminal_state": "CANCELLED",
+    "eligible_when": ["synthetic_route_bound_encounter", "current_state_REGISTERED", "zero_approved_dependency_facts", "actor_holds_encounter.cancel", "approved_reason_code_present"],
+    "immutable_cancellation_fact": ["one_fact_per_encounter", "actor", "reason_code", "optional_bounded_note", "idempotency_key_and_digest", "request_correlation", "database_time"],
+    "preserved_history": ["encounter", "patient_and_mrn", "registration_audit", "queue_date_and_number", "payer", "clinic_or_ward_class_bed", "related_encounters"],
+    "active_projection_effect": "exclude_cancelled_from_active_worklists_and_current_app_bed_occupancy",
+    "historical_projection_effect": "retain_exactly_once_as_Dibatalkan_with_separate_control_totals",
+    "automatic_reversal_effect": "none_hard_block_if_any_dependent_fact_exists",
+    "external_effect": "none"
+  },
+  "denial_contract": {
+    "authorization_denial": {"code": "authorization.denied", "http_status": 403, "business_state_disclosed": false},
+    "business_denials": [
+      {"code": "encounter_not_registered", "http_status": 409},
+      {"code": "clinical_activity_exists", "http_status": 409},
+      {"code": "diagnostic_activity_exists", "http_status": 409},
+      {"code": "rm_activity_exists", "http_status": 409},
+      {"code": "downstream_activity_exists", "http_status": 409},
+      {"code": "idempotency_key_conflict", "http_status": 409},
+      {"code": "already_cancelled", "http_status": 409}
+    ],
+    "validation_http_status": 422,
+    "mutation_on_denial": false,
+    "free_text_in_denial_audit": false
+  },
+  "audit_contract": {
+    "success_action": "encounter.cancel",
+    "success_outcome": "SUCCESS",
+    "denial_outcome": "DENIED",
+    "atomic_with_mutation": true,
+    "safe_metadata": ["care_setting", "cancellation_public_id", "reason_code", "prior_status", "new_status", "queue_date", "queue_number", "affected_active_worklist_flags", "ri_bed_release_boolean"],
+    "excluded_metadata": ["patient_name", "mrn", "nik", "free_text_note", "clinical_content", "credentials", "session_or_cookie_values"],
+    "request_correlation_location": "top_level_request_correlation_id",
+    "audit_approval_status": "pending"
+  },
+  "reconciliation_contract": {
+    "status": "pending_owner_and_reporting_definition",
+    "one_to_one_controls": ["one_encounter", "one_cancellation_fact", "one_attributable_success_audit"],
+    "state_controls": ["prior_REGISTERED", "current_CANCELLED", "no_later_transition", "zero_dependent_facts_at_commit"],
+    "history_controls": ["queue_and_registration_unchanged", "patient_mrn_schedule_metadata_and_related_encounters_unchanged", "placement_history_retained"],
+    "projection_controls": ["active_worklists_exclude", "active_bed_occupancy_excludes", "historical_registers_include_once", "completed_service_excludes", "gross_active_cancelled_totals_reconcile"],
+    "retry_and_recovery_controls": ["no_duplicate_fact", "no_duplicate_success_audit", "no_evidence_erasure"],
+    "reporting_source_id_defect_must_be_resolved": true
+  },
+  "recovery_contract": {
+    "status": "pending_independent_control_decision",
+    "pre_fact_empty_migration_rollback": "disposable_environment_only",
+    "post_fact_runtime_rollback": "disable_route_and_capability_preserve_encounter_cancellation_and_audit_evidence",
+    "ordinary_rollback_may_delete_populated_history": false,
+    "restore_validation": ["encounter_state", "cancellation_fact", "actor", "reason", "correlation", "audit_event"],
+    "synthetic_reset_exception": "named_reset_may_remove_patient_domain_fact_but_must_preserve_append_only_audit_and_security_evidence",
+    "recovery_approval_status": "pending"
+  },
+  "required_scenarios": [
+    {"scenario_id": "CAN-SCN-01", "kind": "normal_rawat_jalan", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-02", "kind": "normal_igd", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-03", "kind": "normal_rawat_inap", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-04", "kind": "authorization_denial", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-05", "kind": "lifecycle_denial", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-06", "kind": "dependency_denial_each_family", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-07", "kind": "concurrency_first_clinical_write", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-08", "kind": "idempotency_and_conflict", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-09", "kind": "audit_outage_atomic_rollback", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-10", "kind": "reporting_reconciliation", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-11", "kind": "print_and_episode_isolation", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-12", "kind": "reset_restore_and_recovery", "status": "required_not_run"},
+    {"scenario_id": "CAN-SCN-13", "kind": "accessibility_keyboard_focus_reflow_and_labels", "status": "required_not_run"}
+  ],
+  "owner_authorities": [
+    {"capacity": "product_authority", "authority_id": "product_authority", "domain_scope": "product_scope_and_teaching_outcome", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "accountable_domain_authority", "authority_id": "registration_admission", "domain_scope": "registration_admission", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "patient_identity", "domain_scope": "patient_identity", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "outpatient_scheduling", "domain_scope": "outpatient_scheduling", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "emergency_clinical", "domain_scope": "emergency_clinical", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "facility_bed_management", "domain_scope": "facility_bed_management", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "clinical", "domain_scope": "clinical", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "rmik_records", "domain_scope": "rmik_records", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "reporting_quality", "domain_scope": "reporting_quality", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "security_privacy_data", "domain_scope": "security_privacy_and_data_governance", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "operations", "domain_scope": "technical_security_and_operations", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "billing_finance", "domain_scope": "billing_and_finance_boundary", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "pharmacy", "domain_scope": "pharmacy_boundary", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "inventory", "domain_scope": "inventory_boundary", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "claims", "domain_scope": "claims_and_bpjs_boundary", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false},
+    {"capacity": "materially_affected_co_owner", "authority_id": "teaching_data_reset", "domain_scope": "teaching_data_reset", "status": "pending", "institutional_id": null, "display_name": null, "appointment_reference": null, "decision_reference": null, "decision_recorded": false, "implementation_authorized": false}
+  ],
+  "independent_control": {
+    "required": true,
+    "required_capacity": "independent_control_authority",
+    "status": "pending",
+    "institutional_id": null,
+    "display_name": null,
+    "appointment_reference": null,
+    "review_reference": null,
+    "decision_recorded": false,
+    "implementation_authorized": false,
+    "separation_rule": "must_be_distinct_from_implementation_executor_all_decision_authors_and_all_approvers"
+  },
+  "application_truth": [
+    {"finding_id": "CAN-TRUTH-01", "status": "observed_current_application", "finding": "Capability encounter.cancel is assigned to registrar and administrator roles but no route consumes it.", "decision_effect": "none", "evidence_bindings": [{"path": "app/Support/Authorization/Capability.php", "sha256": "5b1b5ca1aa298a8ae52a42f9e58f7a2d30fdfd084119191d263410c988dc46a2"}, {"path": "app/Support/Authorization/RoleCapabilityMatrix.php", "sha256": "c8d03a9f85f8b0fa4a6515b2ff705f4a2a66771a99892926a8c6bcd671a55ed2"}, {"path": "routes/web.php", "sha256": "16143c4cdd33126544284a8b832d11c65b9bc39e30e5375285f51ec936c2aae2"}]},
+    {"finding_id": "CAN-TRUTH-02", "status": "observed_current_application", "finding": "Encounter has no CANCELLED state and no immutable cancellation fact.", "decision_effect": "none", "evidence_bindings": [{"path": "app/Models/Encounter.php", "sha256": "8c23bbd90ef8fb4f838261b87fe7e0cae50f7315a26fd7c749cdd980176474fc"}]},
+    {"finding_id": "CAN-TRUTH-03", "status": "observed_current_application", "finding": "Registration creation and success audit are atomic and queue allocation preserves a shared high-water sequence.", "decision_effect": "pattern_only_not_approval", "evidence_bindings": [{"path": "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php", "sha256": "0f7245853c1a8d80c2f05fbb16beeeaf64ce13a31600191eb986c13399911f70"}, {"path": "app/Support/Registration/DailyQueueAllocator.php", "sha256": "f5a1f0eb06133187f06429183034629e30bbd04bfe5940966245b2a0c7e3dd49"}]},
+    {"finding_id": "CAN-TRUTH-04", "status": "observed_current_application", "finding": "Clinical and RMIK worklists rely on active status sets, but no complete cross-domain care-start policy exists.", "decision_effect": "unresolved_dependency_policy", "evidence_bindings": [{"path": "app/Http/Controllers/Outpatient/OutpatientRmController.php", "sha256": "94236f9e70acea999eadd237a105cfd829b9e8590108757eaa9dce1c3a107988"}]},
+    {"finding_id": "CAN-TRUTH-05", "status": "observed_current_application", "finding": "Rawat Inap occupancy currently treats every non-CLOSED encounter as occupying the bed.", "decision_effect": "requires_owner_defined_cancellation_projection", "evidence_bindings": [{"path": "app/Support/Registration/InpatientBedClaimGuard.php", "sha256": "0f5295a91a10ddedacab65f8166a91dc88f3e836bc08911fbb3c12c1fe94a3ac"}]},
+    {"finding_id": "CAN-TRUTH-06", "status": "observed_current_application", "finding": "Current IGD and Rawat Inap note writes already use encounter-first locking through LockedClinicalEntryWriter; explicit CANCELLED denial and audit coverage for every direct writer remain future requirements.", "decision_effect": "preserve_locking_pattern_and_close_terminal_state_writer_inventory_before_implementation", "evidence_bindings": [{"path": "app/Support/Clinical/LockedClinicalEntryWriter.php", "sha256": "5be427d7284da9808434da1b3fb5525d5e876418ee7cfdec18f2e8293b5a512e"}, {"path": "app/Http/Controllers/Emergency/EmergencyExaminationController.php", "sha256": "920813b54d48971fc7754c0b36ccaaccdf30b0602d155551e9cceacd89e14850"}, {"path": "app/Http/Controllers/Inpatient/InpatientExaminationController.php", "sha256": "669fdd869fa5aaaf40dd69a445f63ccaab15f8331d3551da403aed9e43d8e299"}]},
+    {"finding_id": "CAN-TRUTH-07", "status": "evidence_boundary", "finding": "Visible vendor desks do not prove backend cancellation rules, accounting behavior, audit behavior, or data model internals.", "decision_effect": "no_vendor_inference", "evidence_bindings": []}
+  ],
+  "authorization": {
+    "owner_appointments": false,
+    "owner_decisions_recorded": false,
+    "primary_capability_dispositions": false,
+    "reporting_capability_dispositions": false,
+    "tier_accepted": false,
+    "independent_control_accepted": false,
+    "implementation": false,
+    "application_slice": false,
+    "governance_consumer_activation": false,
+    "canonical_pointer_or_selector_mutation": false,
+    "deployment": false,
+    "hosted_migration": false,
+    "real_patient_data": false,
+    "live_integration": false,
+    "g0_closure": false,
+    "g3_acceptance": false
+  },
+  "non_effect_rules": [
+    "Do not infer approval from this draft, the FR pack, the companion ADR, application code, test success, commit authorship, or family membership.",
+    "Do not mutate historical v1 register bytes or reinterpret their pending rows as disposed.",
+    "Create one attributable governance-v2 decision event for each of PAR-REG-001, PAR-REG-002, and PAR-REG-003; family inheritance is prohibited.",
+    "Resolve the reporting source-ID and clinical-lineage defects through new v2 correction events before any affected reporting disposition or implementation.",
+    "Do not run a governance selector, create a canonical pointer, activate a consumer, implement the slice, migrate, push, or deploy from this artifact.",
+    "Do not add clinical, diagnostic, RM, pharmacy, inventory, billing, claim, BPJS, VClaim, SATUSEHAT, or other live reversal behavior without separately attributable decisions."
+  ],
+  "secret_handling": {
+    "credentials_permitted": false,
+    "passwords_permitted": false,
+    "tokens_permitted": false,
+    "private_keys_permitted": false,
+    "connection_strings_permitted": false
+  }
+}

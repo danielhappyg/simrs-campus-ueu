@@ -82,12 +82,14 @@ jobs:
             tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
             tests/Documentation/G0GovernanceConsumerPointerTest.rb
             tests/Documentation/G0GovernanceProfileDispatchTest.rb
+            tests/Documentation/G0GovernanceV2ActivationDecisionDraftTest.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
             tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
             tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
             tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
+            tests/Documentation/G0PreclinicalEncounterCancellationDecisionPackDraftTest.rb
             tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
             tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
             tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
@@ -98,6 +100,7 @@ jobs:
             %w[
               tests/Documentation/G0GovernanceConsumerPointerTest.rb
               tests/Documentation/G0GovernanceProfileDispatchTest.rb
+              tests/Documentation/G0PreclinicalEncounterCancellationDecisionPackDraftTest.rb
             ]
           ).uniq.sort
           abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required
@@ -217,6 +220,12 @@ jobs:
 
       - name: Test governance v2 local observation receipt contract
         run: ruby -Itests tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
+
+      - name: Test pending governance-v2 activation decision draft
+        run: ruby -Itests tests/Documentation/G0GovernanceV2ActivationDecisionDraftTest.rb
+
+      - name: Test pending pre-clinical encounter-cancellation decision pack
+        run: ruby -Itests tests/Documentation/G0PreclinicalEncounterCancellationDecisionPackDraftTest.rb
 
       - name: Check current schema-v2 G0-G3 coverage ledger observation
         run: ruby scripts/generate-g0-g3-coverage-ledger.rb --check --snapshot-date 2026-08-29 --schema-version 2

@@ -1,0 +1,352 @@
+{
+  "artifact_type": "g0_governance_v2_activation_decision_draft",
+  "schema_version": 1,
+  "artifact_id": "G0-GOVERNANCE-V2-ACTIVATION-DECISION-DRAFT-2026-08-29",
+  "status": "pending_gate_b_decision_preparation_not_approval_ready",
+  "effect": "none_draft_only_no_consumer_activation_or_canonical_mutation",
+  "data_boundary": "synthetic_only",
+  "planning_head": "ed0ebfb54c8350cb5a750796bcfa13f5a5715a6b",
+  "gate": {
+    "gate_id": "GATE_B_CONSUMER_ACTIVATION",
+    "preparation_authorized_by": "gate_a_local_governance_v2_implementation_only",
+    "decision_authority_status": "pending_attributable_product_owner_decision",
+    "activation_status": "not_authorized_not_executed"
+  },
+  "source_bindings": [
+    {
+      "role": "governance_v2_proposal",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md",
+      "sha256": "f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695",
+      "recorded_status": "adopted_as_written_for_gate_a_local_implementation"
+    },
+    {
+      "role": "governance_v2_architecture",
+      "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+      "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+      "recorded_status": "accepted_for_gate_a_local_implementation"
+    },
+    {
+      "role": "adoption_decision_draft",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json",
+      "sha256": "aa78fea02ab0d0d1098c8b5a7e40a3ad6734a5336f6d4aaaeef6e666baf7f9bd",
+      "recorded_status": "historical_pending_no_effect"
+    },
+    {
+      "role": "independent_gate_a_review",
+      "path": "docs/operations/G0_GOVERNANCE_V2_INDEPENDENT_TECHNICAL_SECURITY_REVIEW_2026-08-29.md",
+      "sha256": "ed99ed8f4bacf3dcd6de9e0ae455faf4c899f9be37c45bfe37041a07558e18a4",
+      "recorded_status": "pass_gate_a_local_implementation_only"
+    },
+    {
+      "role": "gate_a_adoption_decision",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json",
+      "sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3",
+      "recorded_status": "approved_local_implementation_only_no_activation"
+    },
+    {
+      "role": "governance_v2_contract",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json",
+      "sha256": "eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca",
+      "recorded_status": "implemented_gate_a_contract"
+    },
+    {
+      "role": "v1_historical_hash_manifest",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json",
+      "sha256": "7b9bcf46ce0ddb26021cc84ac16bb14af3e1b8a92616535cf2b289a00b519cd3",
+      "recorded_status": "historical_never_activated_integrity_source"
+    },
+    {
+      "role": "implementation_blueprint",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_IMPLEMENTATION_BLUEPRINT_2026-08-28.md",
+      "sha256": "30cb1d33880170a5ce5aa164f37c0ec64fcbad8d69e7988af6e970c74c57fcc3",
+      "recorded_status": "gate_sequence_source"
+    },
+    {
+      "role": "local_candidate_observation",
+      "path": "docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json",
+      "sha256": "c581d09348119fb82ab812d5e2e3e45e56f6a826be5c63e60c0f7b0eb7f789ca",
+      "recorded_status": "complete_candidate_only_observation_no_effect"
+    },
+    {
+      "role": "consumer_selector_source",
+      "path": "scripts/select-g0-governance-consumer.rb",
+      "sha256": "6cb638fcd4c6fb26c74caccac6844b85427ba3afbdabcb4a84990c89beb59f34",
+      "recorded_status": "fixture_only_mutation_canonical_checkout_prohibited"
+    },
+    {
+      "role": "governance_v2_core_source",
+      "path": "scripts/g0-proportional-governance-v2.rb",
+      "sha256": "7e1806bd48a4111f3f0876cd5c52c0c25858b9a0af0e61fe47bc739a8c850bc0",
+      "recorded_status": "implemented_validation_core"
+    }
+  ],
+  "requested_operation": {
+    "operation": "activate",
+    "target_environment": "local_canonical_checkout",
+    "decision_status": "pending",
+    "selector_environment_support": "not_implemented_current_selector_accepts_isolated_test_fixture_only",
+    "decided_at": null,
+    "expires_at": null,
+    "candidate_bundle_reference": null,
+    "held_selection_reference": null,
+    "recover_outcome": null,
+    "conditions": []
+  },
+  "required_actor_attribution": {
+    "institutional_id": null,
+    "display_name": null,
+    "authority_capacity": "product_owner",
+    "decision_reference": null,
+    "decision_message": null,
+    "decision_message_encoding": null,
+    "decision_message_sha256": null,
+    "source_message_at": null,
+    "recorded_at": null,
+    "recorded_at_basis": null,
+    "attribution_status": "missing_not_self_declarable_from_commit_or_draft_authorship"
+  },
+  "derived_prior_state": {
+    "derivation_status": "preparation_only_must_be_rederived_at_operation_time",
+    "prior_state": {
+      "prior_state_reason": "initial_state",
+      "expected_prior_pointer_sha256": null,
+      "observed_unreadable_pointer_sha256": null
+    },
+    "facts": [
+      {
+        "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER.json",
+        "observed_state": "absent",
+        "authority_effect": "none"
+      },
+      {
+        "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER_RECOVERY_REQUIRED.json",
+        "observed_state": "absent",
+        "authority_effect": "none"
+      },
+      {
+        "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTIONS",
+        "observed_state": "absent",
+        "authority_effect": "none"
+      },
+      {
+        "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ACTIVATION_DECISIONS",
+        "observed_state": "absent",
+        "authority_effect": "none"
+      },
+      {
+        "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_JOURNAL",
+        "observed_state": "absent",
+        "authority_effect": "none"
+      },
+      {
+        "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTION.lock",
+        "observed_state": "absent_or_safe_inert_zero_byte_0600_single_link_current_uid",
+        "authority_effect": "none_coordination_only"
+      }
+    ],
+    "live_resolution": "pointer_missing_g0_g3_open",
+    "operation_time_revalidation_required": true
+  },
+  "observed_candidate": {
+    "observation_path": "docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json",
+    "observation_sha256": "c581d09348119fb82ab812d5e2e3e45e56f6a826be5c63e60c0f7b0eb7f789ca",
+    "bundle_id": "G0-GOVERNANCE-V2-PENDING-c20e607ee1a35561d7330c1b",
+    "bundle_manifest_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa",
+    "candidate_bundle_path": null,
+    "retained": false,
+    "decision_eligible": false,
+    "ineligibility_reasons": [
+      "observed candidate was temporary and was cleaned after read-only validation",
+      "no immutable retained candidate path and path hash are available for an operation decision",
+      "candidate observation confers no owner authority activation effect or gate closure"
+    ]
+  },
+  "required_eventual_operation_decision_schema": {
+    "schema_status": "hardening_required_not_implemented_not_selector_compatible",
+    "current_selector_exact_top_level_keys": [
+      "artifact_type",
+      "schema_version",
+      "decision_id",
+      "status",
+      "effect",
+      "data_boundary",
+      "operation",
+      "environment",
+      "actor",
+      "conditions",
+      "decided_at",
+      "expires_at",
+      "adoption_decision",
+      "prior_state",
+      "candidate_bundle",
+      "held_selection",
+      "recover_outcome"
+    ],
+    "eventual_required_top_level_keys": [
+      "artifact_type",
+      "schema_version",
+      "decision_id",
+      "status",
+      "effect",
+      "data_boundary",
+      "operation",
+      "environment",
+      "actor",
+      "conditions",
+      "decided_at",
+      "expires_at",
+      "adoption_decision",
+      "prior_state",
+      "candidate_bundle",
+      "held_selection",
+      "recover_outcome",
+      "decision_attribution",
+      "technical_evidence"
+    ],
+    "nested_exact_keys": {
+      "actor": [
+        "institutional_id",
+        "display_name",
+        "role"
+      ],
+      "prior_state": [
+        "prior_state_reason",
+        "expected_prior_pointer_sha256",
+        "observed_unreadable_pointer_sha256"
+      ],
+      "reference": [
+        "path",
+        "sha256"
+      ],
+      "decision_attribution": [
+        "decision_reference",
+        "decision_message",
+        "decision_message_encoding",
+        "decision_message_sha256",
+        "source_message_at",
+        "recorded_at",
+        "recorded_at_basis"
+      ],
+      "technical_evidence": [
+        "gate_a_adoption",
+        "local_observation",
+        "candidate_bundle",
+        "canonical_preflight",
+        "selector_contract"
+      ]
+    },
+    "approved_semantics": {
+      "artifact_type": "g0_governance_v2_consumer_operation_decision",
+      "status": "approved",
+      "effect": "authorizes_one_consumer_selection_operation",
+      "data_boundary": "synthetic_only",
+      "operation": "activate",
+      "environment": "local_canonical_checkout",
+      "one_operation_only": true,
+      "action_time_revalidation_required": true
+    },
+    "current_selector_attribution_evidence_gaps": [
+      "decision_reference",
+      "exact_decision_message",
+      "decision_message_encoding",
+      "decision_message_sha256",
+      "source_message_at_and_recorded_time_basis",
+      "hash_bound_technical_evidence_and_canonical_preflight_references"
+    ]
+  },
+  "approval_readiness": {
+    "status": "not_approval_ready",
+    "blockers": [
+      "current selector prohibits canonical-checkout mutation and accepts only isolated_test_fixture operation decisions",
+      "current selector operation-decision schema lacks attributable decision-message evidence and hash-bound technical preflight references",
+      "observed candidate was ephemeral cleaned and is not decision-eligible",
+      "attributable actor institutional identity decision reference exact message timestamps and expiry are missing",
+      "initial prior state must be rederived and bound immediately before any separately authorized operation"
+    ],
+    "selector_hardening_required": true,
+    "fresh_candidate_required": true,
+    "fresh_independent_review_required": true
+  },
+  "required_approvals": [
+    {
+      "requirement_id": "GATE-B-ATTRIBUTABLE-PRODUCT-OWNER-DECISION",
+      "requirement_kind": "authority_decision",
+      "required_capacity": "product_owner",
+      "status": "pending",
+      "evidence_reference": null,
+      "conditions": [
+        "approve one exact operation only after selector and schema hardening",
+        "bind exact retained candidate prior state actor decision message timestamps conditions and expiry"
+      ]
+    },
+    {
+      "requirement_id": "GATE-B-INDEPENDENT-TECHNICAL-SECURITY-REVIEW",
+      "requirement_kind": "independent_review",
+      "required_capacity": "independent_technical_security_reviewer",
+      "status": "pending",
+      "evidence_reference": null,
+      "conditions": [
+        "review exact hardened selector schema tests candidate and canonical preflight hashes",
+        "confirm fail-closed rollback recovery concurrency path and durability behavior"
+      ]
+    },
+    {
+      "requirement_id": "GATE-B-CANONICAL-PREFLIGHT",
+      "requirement_kind": "engineering_evidence",
+      "required_capacity": "named_execution_operator",
+      "status": "pending",
+      "evidence_reference": null,
+      "conditions": [
+        "prove supported local filesystem guarantees and exact canonical path state",
+        "retain a fresh complete candidate without creating activation authority"
+      ]
+    }
+  ],
+  "conditions": [
+    "This draft is decision preparation only and must never be renamed copied or interpreted as an approved operation decision.",
+    "Gate A adoption authorizes local governance-v2 implementation only and cannot supply Gate B activation authority.",
+    "The temporary observed candidate is not activatable; a fresh retained hash-bound candidate is required.",
+    "Canonical checkout support attribution evidence and technical-evidence binding must be implemented tested and independently reviewed before a decision request.",
+    "Activation cannot appoint owners decide capabilities authorize an application slice deploy migrate use real patient data enable a live integration close G0 or establish G3.",
+    "Any eventual approval expires and authorizes at most one exact operation after action-time prior-state revalidation."
+  ],
+  "authorization": {
+    "gate_b_operation_decision_recorded": false,
+    "consumer_activation": false,
+    "canonical_selector_mutation": false,
+    "candidate_retention": false,
+    "capability_disposition": false,
+    "slice_implementation": false,
+    "deployment": false,
+    "hosted_migration": false,
+    "real_patient_data": false,
+    "live_integration": false,
+    "domain_acceptance": false,
+    "g0_closure": false,
+    "g3_acceptance": false
+  },
+  "canonical_mutation_boundary": {
+    "canonical_authority_paths_created": false,
+    "pointer_created": false,
+    "recovery_marker_created": false,
+    "selection_created": false,
+    "activation_decision_created": false,
+    "journal_created": false,
+    "stable_lock_authority_effect": "none_coordination_only",
+    "selector_invoked": false
+  },
+  "draft_rules": [
+    "Do not mutate this draft into an approved operation decision.",
+    "Do not pass this draft to the selector as an activation decision.",
+    "Create a new immutable operation decision only after every approval-readiness blocker is closed.",
+    "Bind the future decision to exact hardened schema selector candidate preflight prior-state attribution approval condition and expiry evidence.",
+    "Re-observe all canonical authority paths immediately before the separately authorized operation and fail closed on drift.",
+    "Do not commit credentials tokens private keys connection strings or temporary candidate contents."
+  ],
+  "secret_handling": {
+    "credentials_permitted": false,
+    "tokens_permitted": false,
+    "private_keys_permitted": false,
+    "connection_strings_permitted": false
+  }
+}

@@ -22,12 +22,14 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
     tests/Documentation/G0GovernanceConsumerPointerTest.rb
     tests/Documentation/G0GovernanceProfileDispatchTest.rb
+    tests/Documentation/G0GovernanceV2ActivationDecisionDraftTest.rb
     tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
     tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
     tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
     tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
     tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
     tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
+    tests/Documentation/G0PreclinicalEncounterCancellationDecisionPackDraftTest.rb
     tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
     tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
     tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
@@ -211,6 +213,7 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
       %w[
         tests/Documentation/G0GovernanceConsumerPointerTest.rb
         tests/Documentation/G0GovernanceProfileDispatchTest.rb
+        tests/Documentation/G0PreclinicalEncounterCancellationDecisionPackDraftTest.rb
       ].map { |path| File.join(ROOT, path) }
     )
       .uniq
