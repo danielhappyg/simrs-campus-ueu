@@ -97,10 +97,18 @@ export default function RmRawatJalanShow({
         failedItems.length === 0;
 
     const saveReview = () => {
+        reviewForm.setData({
+            expected_version: review.version,
+            source_fingerprint: review.source_fingerprint,
+        });
         reviewForm.post(actions.save_review_url, { preserveScroll: true });
     };
 
     const signoff = () => {
+        signoffForm.setData({
+            expected_version: review.version,
+            source_fingerprint: review.source_fingerprint,
+        });
         signoffForm.post(actions.signoff_url, {
             preserveScroll: true,
             onSuccess: () => setDialogOpen(false),

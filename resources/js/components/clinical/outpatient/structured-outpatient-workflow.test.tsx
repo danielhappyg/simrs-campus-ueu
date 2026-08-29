@@ -56,7 +56,23 @@ vi.mock('@inertiajs/react', async () => {
         usePage: () => ({ props: { flash: {} } }),
         useForm: <T extends Record<string, unknown>>(initial: T) => {
             const [data, updateData] = React.useState(initial);
+            const dataRef = React.useRef(data);
             const initialData = React.useRef(initial);
+
+            const setData = (
+                keyOrData: keyof T | T | ((current: T) => T),
+                value?: T[keyof T],
+            ) => {
+                const next =
+                    typeof keyOrData === 'function'
+                        ? keyOrData(dataRef.current)
+                        : typeof keyOrData === 'object'
+                          ? keyOrData
+                          : { ...dataRef.current, [keyOrData]: value };
+
+                dataRef.current = next;
+                updateData(next);
+            };
 
             return {
                 data,
@@ -65,9 +81,9 @@ vi.mock('@inertiajs/react', async () => {
                 isDirty:
                     JSON.stringify(data) !==
                     JSON.stringify(initialData.current),
-                setData: (key: keyof T, value: T[keyof T]) =>
-                    updateData((current) => ({ ...current, [key]: value })),
-                post: (url: string) => submissions.push({ url, data }),
+                setData,
+                post: (url: string) =>
+                    submissions.push({ url, data: dataRef.current }),
                 reset: () => undefined,
             };
         },
@@ -340,6 +356,7 @@ describe('structured outpatient documentation', () => {
     });
 
     it('keeps RM sign-off blocked and exposes an accessible safe confirmation', async () => {
+        submissions.length = 0;
         const encounter = {
             public_id: 'enc-1',
             status: 'READY_FOR_RM',
@@ -367,7 +384,7 @@ describe('structured outpatient documentation', () => {
         const baseReview = {
             public_id: 'review-1',
             status: 'INCOMPLETE' as const,
-            version: 1,
+            version: 0,
             source_fingerprint: 'a'.repeat(64),
             checklist_items: [
                 {
@@ -433,6 +450,7 @@ describe('structured outpatient documentation', () => {
                 documentVersions={[]}
                 review={{
                     ...baseReview,
+                    version: 1,
                     status: 'COMPLETE',
                     checklist_items: [
                         {
@@ -449,6 +467,21 @@ describe('structured outpatient documentation', () => {
         );
 
         await userEvent.click(
+            screen.getByRole('button', { name: 'Simpan hasil review' }),
+        );
+
+        expect(submissions).toEqual([
+            {
+                url: '/rm/enc-1/reviews',
+                data: {
+                    expected_version: 1,
+                    source_fingerprint: 'a'.repeat(64),
+                },
+            },
+        ]);
+        submissions.length = 0;
+
+        await userEvent.click(
             screen.getByRole('button', {
                 name: 'Sign-off dan tutup kunjungan',
             }),
@@ -460,6 +493,20 @@ describe('structured outpatient documentation', () => {
             }),
         ).toBeVisible();
         expect(screen.getByRole('button', { name: 'Batal' })).toBeVisible();
+
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Ya, sign-off dan tutup' }),
+        );
+
+        expect(submissions).toEqual([
+            {
+                url: '/rm/enc-1/signoff',
+                data: {
+                    expected_version: 1,
+                    source_fingerprint: 'a'.repeat(64),
+                },
+            },
+        ]);
     });
 
     it('renders a signed-off CLOSED RM record without mutation actions', () => {
