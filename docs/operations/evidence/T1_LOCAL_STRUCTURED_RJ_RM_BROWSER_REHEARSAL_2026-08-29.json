@@ -1,0 +1,199 @@
+{
+  "artifact_type": "t1_local_structured_rj_rm_browser_rehearsal_observation",
+  "schema_version": 1,
+  "receipt_id": "T1-LOCAL-STRUCTURED-RJ-RM-20260829-001",
+  "status": "local_bounded_single_account_pass",
+  "captured_at": "2026-08-29T20:27:41+07:00",
+  "data_boundary": "synthetic_only",
+  "source": {
+    "commit_sha": "8e9f8b44a4abfbfef6ed03cd3f72d1fd2661c214",
+    "tree_sha": "be93a75def7deb44655ec3da9f462da387d5b946",
+    "browser_source_state": "working_tree_bytes_subsequently_committed_not_clean_exact_sha_execution",
+    "files": [
+      {
+        "path": "resources/js/components/clinical/outpatient/structured-outpatient-workflow.test.tsx",
+        "sha256": "a7a9634725851f1388f8ea0475f6fed8b32c5417b0041be4f642d67fc5a40233"
+      },
+      {
+        "path": "resources/js/pages/rm/rawat-jalan/show.tsx",
+        "sha256": "24a7c5ac6ef0c29928ef8b029a6fea1d32657da99edcd6c15816862126b453d5"
+      }
+    ]
+  },
+  "environment": {
+    "application_mode": "SIMULATION",
+    "synthetic_only": true,
+    "database_engine": "sqlite",
+    "database_path": "database/database.sqlite",
+    "database_ignored": true,
+    "database_sha256_at_capture": "c6e17e560cd883de067c185a85da6f03aca831cafaea5b6ceb07c3405a1f3aec",
+    "local_origin": "http://127.0.0.1:8000",
+    "browser_product_version": null,
+    "browser_surface": "codex_in_app_browser_desktop_viewport",
+    "migrations_applied_for_rehearsal": [
+      "2026_08_26_000100_add_operational_worklist_indexes",
+      "2026_08_26_000200_create_daily_queue_allocator",
+      "2026_08_27_000100_create_teaching_role_access_leases",
+      "2026_08_28_000100_create_inpatient_bed_claim_mutexes"
+    ],
+    "seeded_counts": {
+      "teaching_users": 6,
+      "synthetic_patients": 36,
+      "synthetic_encounters": 36
+    }
+  },
+  "journey": {
+    "account_boundary": "one_multi_role_teaching_account_not_role_separation_evidence",
+    "medical_record_number": "SYNTH-CENSUS-006",
+    "encounter_public_id": "01M16S987B93TT0Z5ZN9KJG9QD",
+    "clinic": "Poliklinik Gigi",
+    "final_encounter_state": "CLOSED",
+    "document_heads": 2,
+    "document_versions": 4,
+    "rm_completeness_reviews": 2,
+    "persisted_checklist_items": 14,
+    "active_lab_orders": 0,
+    "final_review_version": 2,
+    "final_review_state": "SIGNED_OFF",
+    "mutation_controls_after_closure": 0,
+    "editable_controls_after_closure": 0,
+    "browser_console_warning_error_count": 0
+  },
+  "audit_events": [
+    {
+      "action": "clinical.nursing.draft.save",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:57:25+07:00",
+      "resource_public_id": "01M16SHAN6QN9A0W6WRMWRRPE4"
+    },
+    {
+      "action": "clinical.nursing.finalize",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:57:36+07:00",
+      "resource_public_id": "01M16SHAN6QN9A0W6WRMWRRPE4"
+    },
+    {
+      "action": "clinical.medical.draft.save",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:57:50+07:00",
+      "resource_public_id": "01M16SJ26ZJPQ838B8CMCS3TJ6"
+    },
+    {
+      "action": "clinical.medical.finalize",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:58:01+07:00",
+      "resource_public_id": "01M16SJ26ZJPQ838B8CMCS3TJ6"
+    },
+    {
+      "action": "clinical.lab.order.create",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:58:29+07:00",
+      "resource_public_id": "01M16SK8HDRXZZ372N5HV5VHRZ"
+    },
+    {
+      "action": "clinical.lab.result.write",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:59:29+07:00",
+      "resource_public_id": "01M16SK8HDRXZZ372N5HV5VHRZ"
+    },
+    {
+      "action": "rmik.completeness.review.save",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T19:59:54+07:00",
+      "resource_public_id": "01M16SNW2B58QRMFTTJ65XXEDB"
+    },
+    {
+      "action": "rmik.completeness.signoff",
+      "outcome": "SUCCESS",
+      "recorded_at": "2026-08-29T20:09:15+07:00",
+      "resource_public_id": "01M16T6ZKB4K0Z44A9N4JNNHA5"
+    }
+  ],
+  "defect_observation": {
+    "reason": "retained_inertia_form_submitted_mount_time_review_version_zero",
+    "pre_fix_encounter_state": "READY_FOR_RM",
+    "pre_fix_latest_review_version": 1,
+    "pre_fix_latest_review_state": "DRAFT",
+    "pre_fix_signoff_audit_count": 0,
+    "correction": "refresh_current_review_version_and_fingerprint_before_review_save_and_signoff_post",
+    "post_fix_signoff_audit_count": 1
+  },
+  "automated_verification": [
+    {
+      "check": "focused_outpatient_php_suites",
+      "result": "PASS",
+      "tests": 36,
+      "assertions": 556,
+      "retention": "transient_command_output_summarized_in_receipt"
+    },
+    {
+      "check": "frontend_unit_suite",
+      "result": "PASS",
+      "files": 12,
+      "tests": 45,
+      "retention": "transient_command_output_summarized_in_receipt"
+    },
+    {
+      "check": "typescript",
+      "result": "PASS",
+      "retention": "transient_command_output_summarized_in_receipt"
+    },
+    {
+      "check": "eslint_changed_frontend_files",
+      "result": "PASS",
+      "retention": "transient_command_output_summarized_in_receipt"
+    },
+    {
+      "check": "prettier_changed_frontend_files",
+      "result": "PASS",
+      "retention": "transient_command_output_summarized_in_receipt"
+    }
+  ],
+  "independent_review_observation": {
+    "result": "PASS_NO_P1_P2",
+    "retention": "transient_unretained_task_observation_not_external_attestation",
+    "review_reference": null,
+    "review_sha256": null
+  },
+  "gate_binding": {
+    "ledger_path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json",
+    "ledger_sha256": "0f312713000b0092de313baee2d3cc6d34695c2fefd717c620871268045ac58c",
+    "ledger_role": "latest_retained_schema_v2_observation_not_current_after_engineering_projection_drift",
+    "currentness_check_command": "ruby scripts/generate-g0-g3-coverage-ledger.rb --check --snapshot-date 2026-08-29 --schema-version 2",
+    "currentness_check_observed_at": "2026-08-29T20:32:49+07:00",
+    "currentness_check_result": "FAIL_STALE_ENGINEERING_PROJECTION",
+    "currentness_check_error": "$.engineering_evidence_map_v2: generated document differs from exact engineering projection",
+    "canonical_pointer_path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER.json",
+    "canonical_pointer_present_at_check": false,
+    "recovery_marker_present_at_check": false,
+    "retained_ledger_governance_profile_status": "unavailable",
+    "retained_ledger_governance_reason_code": "pointer_missing",
+    "capabilities_total": 268,
+    "retained_ledger_governance_pointers_present": 0,
+    "retained_ledger_governance_rows_pending": 268,
+    "retained_ledger_implementation_authorized_rows": 0,
+    "retained_ledger_g0_status": "OPEN",
+    "retained_ledger_g3_status": "OPEN",
+    "current_fail_closed_conclusion": "G0_AND_G3_OPEN_UNPROVEN_NO_CURRENT_LEDGER"
+  },
+  "authority": {
+    "hosted_uat": false,
+    "role_separation_evidence": false,
+    "owner_acceptance": false,
+    "g0_closure": false,
+    "g3_acceptance": false,
+    "push": false,
+    "pull_request": false,
+    "release": false,
+    "deployment": false,
+    "hosted_migration": false,
+    "live_integrations_used": false
+  },
+  "secret_handling": {
+    "credentials_recorded": false,
+    "tokens_recorded": false,
+    "private_keys_recorded": false,
+    "connection_strings_recorded": false,
+    "real_patient_data_recorded": false
+  }
+}
