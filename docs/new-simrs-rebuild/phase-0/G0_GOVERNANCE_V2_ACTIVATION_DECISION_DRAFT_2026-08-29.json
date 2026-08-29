@@ -62,10 +62,28 @@
       "recorded_status": "gate_sequence_source"
     },
     {
-      "role": "local_candidate_observation",
-      "path": "docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json",
-      "sha256": "c581d09348119fb82ab812d5e2e3e45e56f6a826be5c63e60c0f7b0eb7f789ca",
-      "recorded_status": "complete_candidate_only_observation_no_effect"
+      "role": "retained_candidate_bundle_manifest",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CANDIDATES/2026-08-29-v1.3-b74fd990-pending-1553d79a68431e2b7434428c/G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json",
+      "sha256": "53f727db483580fc7337e8b09d990bd394d390602304ec511b4b650fbd2cfbbd",
+      "recorded_status": "retained_candidate_pending_no_authority"
+    },
+    {
+      "role": "gate_b_local_observation",
+      "path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_LOCAL_OBSERVATION_2026-08-29.json",
+      "sha256": "7830d5d8386118a450efc362a9eab550d0b8cb8e4d3189fff0ef442fcdd0898e",
+      "recorded_status": "pass_observation_only_no_authority_expires_2026_08_29t08_58_48z"
+    },
+    {
+      "role": "gate_b_canonical_preflight",
+      "path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_CANONICAL_PREFLIGHT_2026-08-29.json",
+      "sha256": "063ae4dc2510e740ec577ad419c1692ac348534c962e1d185bb1f2878223d25f",
+      "recorded_status": "pass_preflight_only_no_authority_expires_2026_08_29t08_58_48z"
+    },
+    {
+      "role": "gate_b_independent_review",
+      "path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_INDEPENDENT_REVIEW_2026-08-29.json",
+      "sha256": "44af902f5e8b1e6e09aa6d16f55e667b3aecce7ef8ecf1f3952cb2163ce604c9",
+      "recorded_status": "pass_review_evidence_only_no_authority_expires_2026_08_29t08_58_48z"
     },
     {
       "role": "consumer_selector_source",
@@ -87,7 +105,10 @@
     "selector_environment_support": "implemented_but_canonical_blocked_until_external_attestation_trust_is_separately_approved_and_provisioned",
     "decided_at": null,
     "expires_at": null,
-    "candidate_bundle_reference": null,
+    "candidate_bundle_reference": {
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CANDIDATES/2026-08-29-v1.3-b74fd990-pending-1553d79a68431e2b7434428c",
+      "sha256": "53f727db483580fc7337e8b09d990bd394d390602304ec511b4b650fbd2cfbbd"
+    },
     "held_selection_reference": null,
     "recover_outcome": null,
     "conditions": []
@@ -125,17 +146,17 @@
       },
       {
         "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTIONS",
-        "observed_state": "absent",
+        "observed_state": "documentation_only_no_selection_artifacts",
         "authority_effect": "none"
       },
       {
         "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ACTIVATION_DECISIONS",
-        "observed_state": "absent",
+        "observed_state": "documentation_only_no_operation_decision_artifacts",
         "authority_effect": "none"
       },
       {
         "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_JOURNAL",
-        "observed_state": "absent",
+        "observed_state": "documentation_only_no_journal_artifacts",
         "authority_effect": "none"
       },
       {
@@ -148,17 +169,24 @@
     "operation_time_revalidation_required": true
   },
   "observed_candidate": {
-    "observation_path": "docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json",
-    "observation_sha256": "c581d09348119fb82ab812d5e2e3e45e56f6a826be5c63e60c0f7b0eb7f789ca",
-    "bundle_id": "G0-GOVERNANCE-V2-PENDING-c20e607ee1a35561d7330c1b",
-    "bundle_manifest_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa",
-    "candidate_bundle_path": null,
-    "retained": false,
+    "observation_path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_LOCAL_OBSERVATION_2026-08-29.json",
+    "observation_sha256": "7830d5d8386118a450efc362a9eab550d0b8cb8e4d3189fff0ef442fcdd0898e",
+    "canonical_preflight_path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_CANONICAL_PREFLIGHT_2026-08-29.json",
+    "canonical_preflight_sha256": "063ae4dc2510e740ec577ad419c1692ac348534c962e1d185bb1f2878223d25f",
+    "independent_review_path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_INDEPENDENT_REVIEW_2026-08-29.json",
+    "independent_review_sha256": "44af902f5e8b1e6e09aa6d16f55e667b3aecce7ef8ecf1f3952cb2163ce604c9",
+    "evidence_expires_at": "2026-08-29T08:58:48Z",
+    "bundle_id": "G0-GOVERNANCE-V2-PENDING-1553d79a68431e2b7434428c",
+    "bundle_manifest_sha256": "53f727db483580fc7337e8b09d990bd394d390602304ec511b4b650fbd2cfbbd",
+    "candidate_bundle_path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CANDIDATES/2026-08-29-v1.3-b74fd990-pending-1553d79a68431e2b7434428c",
+    "retained": true,
     "decision_eligible": false,
     "ineligibility_reasons": [
-      "observed candidate was temporary and was cleaned after read-only validation",
-      "no immutable retained candidate path and path hash are available for an operation decision",
-      "candidate observation confers no owner authority activation effect or gate closure"
+      "retained candidate observation preflight and independent review evidence confer no owner authority activation effect or gate closure",
+      "external product-owner and independent-review trust anchors are absent unapproved and unprovisioned",
+      "attributable product-owner approval for this exact operation is absent",
+      "canonical selector execution remains fail-closed while external attestation trust is unprovisioned",
+      "time-bound observation preflight and review evidence must be refreshed after 2026-08-29T08:58:48Z"
     ]
   },
   "required_eventual_operation_decision_schema": {
@@ -256,17 +284,16 @@
   "approval_readiness": {
     "status": "blocked_external_attestation_unprovisioned_not_approval_ready",
     "blockers": [
-      "observed candidate was ephemeral cleaned and is not decision-eligible",
-      "fresh retained candidate and hash-bound candidate manifest do not yet exist",
-      "canonical filesystem capability and authority-path preflight has not been recorded",
-      "independent technical security review of the hardened selector exact candidate and preflight is pending",
+      "external product-owner and independent-review trust anchors are absent unapproved and unprovisioned so every canonical operation is fail-closed",
       "attributable actor institutional identity decision reference exact message timestamps and expiry are missing",
+      "attributable product-owner approval for this exact retained-candidate operation has not been recorded",
+      "canonical selector execution remains blocked until external attestation trust is separately approved and provisioned",
       "initial prior state must be rederived and bound immediately before any separately authorized operation",
-      "external product-owner and independent-review trust anchors are absent unapproved and unprovisioned so every canonical operation is fail-closed"
+      "time-bound observation preflight and independent review evidence must be refreshed after 2026-08-29T08:58:48Z"
     ],
     "selector_hardening_required": false,
-    "fresh_candidate_required": true,
-    "fresh_independent_review_required": true
+    "fresh_candidate_required": false,
+    "fresh_independent_review_required": false
   },
   "required_approvals": [
     {
@@ -276,38 +303,44 @@
       "status": "pending",
       "evidence_reference": null,
       "conditions": [
-        "approve one exact operation only after selector and schema hardening",
-        "bind exact retained candidate prior state actor decision message timestamps conditions and expiry"
+        "approve one exact operation only after external product-owner and independent-review trust anchors are separately approved and provisioned",
+        "bind exact retained candidate prior state actor decision message timestamps conditions expiry and current technical evidence"
       ]
     },
     {
       "requirement_id": "GATE-B-INDEPENDENT-TECHNICAL-SECURITY-REVIEW",
       "requirement_kind": "independent_review",
       "required_capacity": "independent_technical_security_reviewer",
-      "status": "pending",
-      "evidence_reference": null,
+      "status": "evidence_satisfied_no_authority",
+      "evidence_reference": {
+        "path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_INDEPENDENT_REVIEW_2026-08-29.json",
+        "sha256": "44af902f5e8b1e6e09aa6d16f55e667b3aecce7ef8ecf1f3952cb2163ce604c9"
+      },
       "conditions": [
-        "review exact hardened selector schema tests candidate and canonical preflight hashes",
-        "confirm fail-closed rollback recovery concurrency path and durability behavior"
+        "review evidence binds the exact hardened selector contract retained candidate local observation and canonical preflight",
+        "review evidence has no authority effect and must be refreshed after 2026-08-29T08:58:48Z"
       ]
     },
     {
       "requirement_id": "GATE-B-CANONICAL-PREFLIGHT",
       "requirement_kind": "engineering_evidence",
       "required_capacity": "named_execution_operator",
-      "status": "pending",
-      "evidence_reference": null,
+      "status": "evidence_satisfied_no_authority",
+      "evidence_reference": {
+        "path": "docs/operations/G0_GOVERNANCE_V2_GATE_B_CANONICAL_PREFLIGHT_2026-08-29.json",
+        "sha256": "063ae4dc2510e740ec577ad419c1692ac348534c962e1d185bb1f2878223d25f"
+      },
       "conditions": [
-        "prove supported local filesystem guarantees and exact canonical path state",
-        "retain a fresh complete candidate without creating activation authority"
+        "preflight proves supported local filesystem guarantees exact canonical path state and retained candidate integrity",
+        "preflight evidence has no authority effect and must be refreshed after 2026-08-29T08:58:48Z"
       ]
     }
   ],
   "conditions": [
     "This draft is decision preparation only and must never be renamed copied or interpreted as an approved operation decision.",
     "Gate A adoption authorizes local governance-v2 implementation only and cannot supply Gate B activation authority.",
-    "The temporary observed candidate is not activatable; a fresh retained hash-bound candidate is required.",
-    "Implemented canonical checkout support attribution evidence and technical-evidence binding remain non-authoritative until a fresh retained candidate preflight independent review and attributable operation decision exist.",
+    "The retained hash-bound candidate is pending and cannot activate itself or confer owner authority.",
+    "Local observation canonical preflight and independent review evidence are complete but non-authoritative and expire at 2026-08-29T08:58:48Z.",
     "Canonical selector execution is intentionally blocked before lock probe marker or write until external product-owner and independent-review trust is separately approved and provisioned.",
     "Activation cannot appoint owners decide capabilities authorize an application slice deploy migrate use real patient data enable a live integration close G0 or establish G3.",
     "Any eventual approval expires and authorizes at most one exact operation after action-time prior-state revalidation."
@@ -328,7 +361,7 @@
     "g3_acceptance": false
   },
   "canonical_mutation_boundary": {
-    "canonical_authority_paths_created": false,
+    "canonical_authority_artifacts_created": false,
     "pointer_created": false,
     "recovery_marker_created": false,
     "selection_created": false,
@@ -343,7 +376,7 @@
     "Create a new immutable operation decision only after every approval-readiness blocker is closed.",
     "Bind the future decision to exact hardened schema selector candidate preflight prior-state attribution approval condition and expiry evidence.",
     "Re-observe all canonical authority paths immediately before the separately authorized operation and fail closed on drift.",
-    "Do not commit credentials tokens private keys connection strings or temporary candidate contents."
+    "Do not commit credentials tokens private keys connection strings or external signing material."
   ],
   "secret_handling": {
     "credentials_permitted": false,

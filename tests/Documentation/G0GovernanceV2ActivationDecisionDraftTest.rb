@@ -49,8 +49,11 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
   PRIOR_STATE_KEYS = Selector::PRIOR_STATE_KEYS.freeze
   PRIOR_FACT_KEYS = %w[path observed_state authority_effect].freeze
   OBSERVED_CANDIDATE_KEYS = %w[
-    observation_path observation_sha256 bundle_id bundle_manifest_sha256
-    candidate_bundle_path retained decision_eligible ineligibility_reasons
+    observation_path observation_sha256 canonical_preflight_path
+    canonical_preflight_sha256 independent_review_path
+    independent_review_sha256 evidence_expires_at bundle_id
+    bundle_manifest_sha256 candidate_bundle_path retained decision_eligible
+    ineligibility_reasons
   ].freeze
   EVENTUAL_SCHEMA_KEYS = %w[
     schema_status current_selector_exact_top_level_keys
@@ -79,7 +82,7 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     live_integration domain_acceptance g0_closure g3_acceptance
   ].freeze
   MUTATION_BOUNDARY_KEYS = %w[
-    canonical_authority_paths_created pointer_created recovery_marker_created
+    canonical_authority_artifacts_created pointer_created recovery_marker_created
     selection_created activation_decision_created journal_created
     stable_lock_authority_effect selector_invoked
   ].freeze
@@ -104,7 +107,10 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     'governance_v2_contract' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json',
     'v1_historical_hash_manifest' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json',
     'implementation_blueprint' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_IMPLEMENTATION_BLUEPRINT_2026-08-28.md',
-    'local_candidate_observation' => 'docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json',
+    'retained_candidate_bundle_manifest' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CANDIDATES/2026-08-29-v1.3-b74fd990-pending-1553d79a68431e2b7434428c/G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json',
+    'gate_b_local_observation' => 'docs/operations/G0_GOVERNANCE_V2_GATE_B_LOCAL_OBSERVATION_2026-08-29.json',
+    'gate_b_canonical_preflight' => 'docs/operations/G0_GOVERNANCE_V2_GATE_B_CANONICAL_PREFLIGHT_2026-08-29.json',
+    'gate_b_independent_review' => 'docs/operations/G0_GOVERNANCE_V2_GATE_B_INDEPENDENT_REVIEW_2026-08-29.json',
     'consumer_selector_source' => 'scripts/select-g0-governance-consumer.rb',
     'governance_v2_core_source' => 'scripts/g0-proportional-governance-v2.rb'
   }.freeze
@@ -117,30 +123,34 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     'governance_v2_contract' => 'gate_b_operation_decision_contract_1_3_external_trust_blocked_not_activated',
     'v1_historical_hash_manifest' => 'historical_never_activated_integrity_source',
     'implementation_blueprint' => 'gate_sequence_source',
-    'local_candidate_observation' => 'complete_candidate_only_observation_no_effect',
+    'retained_candidate_bundle_manifest' => 'retained_candidate_pending_no_authority',
+    'gate_b_local_observation' => 'pass_observation_only_no_authority_expires_2026_08_29t08_58_48z',
+    'gate_b_canonical_preflight' => 'pass_preflight_only_no_authority_expires_2026_08_29t08_58_48z',
+    'gate_b_independent_review' => 'pass_review_evidence_only_no_authority_expires_2026_08_29t08_58_48z',
     'consumer_selector_source' => 'gate_b_hardened_local_canonical_support_not_invoked',
     'governance_v2_core_source' => 'gate_b_operation_decision_validation_1_3_external_trust_blocked'
   }.freeze
   EXPECTED_INELIGIBILITY_REASONS = [
-    'observed candidate was temporary and was cleaned after read-only validation',
-    'no immutable retained candidate path and path hash are available for an operation decision',
-    'candidate observation confers no owner authority activation effect or gate closure'
+    'retained candidate observation preflight and independent review evidence confer no owner authority activation effect or gate closure',
+    'external product-owner and independent-review trust anchors are absent unapproved and unprovisioned',
+    'attributable product-owner approval for this exact operation is absent',
+    'canonical selector execution remains fail-closed while external attestation trust is unprovisioned',
+    'time-bound observation preflight and review evidence must be refreshed after 2026-08-29T08:58:48Z'
   ].freeze
   EXPECTED_ATTRIBUTION_GAPS = [].freeze
   EXPECTED_READINESS_BLOCKERS = [
-    'observed candidate was ephemeral cleaned and is not decision-eligible',
-    'fresh retained candidate and hash-bound candidate manifest do not yet exist',
-    'canonical filesystem capability and authority-path preflight has not been recorded',
-    'independent technical security review of the hardened selector exact candidate and preflight is pending',
+    'external product-owner and independent-review trust anchors are absent unapproved and unprovisioned so every canonical operation is fail-closed',
     'attributable actor institutional identity decision reference exact message timestamps and expiry are missing',
+    'attributable product-owner approval for this exact retained-candidate operation has not been recorded',
+    'canonical selector execution remains blocked until external attestation trust is separately approved and provisioned',
     'initial prior state must be rederived and bound immediately before any separately authorized operation',
-    'external product-owner and independent-review trust anchors are absent unapproved and unprovisioned so every canonical operation is fail-closed'
+    'time-bound observation preflight and independent review evidence must be refreshed after 2026-08-29T08:58:48Z'
   ].freeze
   EXPECTED_CONDITIONS = [
     'This draft is decision preparation only and must never be renamed copied or interpreted as an approved operation decision.',
     'Gate A adoption authorizes local governance-v2 implementation only and cannot supply Gate B activation authority.',
-    'The temporary observed candidate is not activatable; a fresh retained hash-bound candidate is required.',
-    'Implemented canonical checkout support attribution evidence and technical-evidence binding remain non-authoritative until a fresh retained candidate preflight independent review and attributable operation decision exist.',
+    'The retained hash-bound candidate is pending and cannot activate itself or confer owner authority.',
+    'Local observation canonical preflight and independent review evidence are complete but non-authoritative and expire at 2026-08-29T08:58:48Z.',
     'Canonical selector execution is intentionally blocked before lock probe marker or write until external product-owner and independent-review trust is separately approved and provisioned.',
     'Activation cannot appoint owners decide capabilities authorize an application slice deploy migrate use real patient data enable a live integration close G0 or establish G3.',
     'Any eventual approval expires and authorizes at most one exact operation after action-time prior-state revalidation.'
@@ -151,10 +161,16 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     'Create a new immutable operation decision only after every approval-readiness blocker is closed.',
     'Bind the future decision to exact hardened schema selector candidate preflight prior-state attribution approval condition and expiry evidence.',
     'Re-observe all canonical authority paths immediately before the separately authorized operation and fail closed on drift.',
-    'Do not commit credentials tokens private keys connection strings or temporary candidate contents.'
+    'Do not commit credentials tokens private keys connection strings or external signing material.'
   ].freeze
   POST_PLANNING_HEAD_HARDENING_ROLES = %w[
-    governance_v2_contract consumer_selector_source governance_v2_core_source
+    governance_v2_contract retained_candidate_bundle_manifest gate_b_local_observation
+    gate_b_canonical_preflight gate_b_independent_review consumer_selector_source
+    governance_v2_core_source
+  ].freeze
+  POST_PLANNING_HEAD_NEW_ROLES = %w[
+    retained_candidate_bundle_manifest gate_b_local_observation
+    gate_b_canonical_preflight gate_b_independent_review
   ].freeze
   AUTHORITY_PATHS = %w[
     docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER.json
@@ -209,12 +225,15 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
 
     @draft.fetch('source_bindings').each do |binding|
       path = binding.fetch('path')
-      committed_bytes, source_status = Open3.capture2('git', 'show', "#{PLANNING_HEAD}:#{path}", chdir: ROOT)
-      assert source_status.success?, "planning head is missing #{path}"
+      committed_bytes, source_status = Open3.capture2e('git', 'show', "#{PLANNING_HEAD}:#{path}", chdir: ROOT)
       current_bytes = File.binread(File.join(ROOT, path))
-      if POST_PLANNING_HEAD_HARDENING_ROLES.include?(binding.fetch('role'))
+      if POST_PLANNING_HEAD_NEW_ROLES.include?(binding.fetch('role'))
+        refute source_status.success?, "#{path} must be new after the Gate-A planning head"
+      elsif POST_PLANNING_HEAD_HARDENING_ROLES.include?(binding.fetch('role'))
+        assert source_status.success?, "planning head is missing prior bytes for #{path}"
         refute_equal current_bytes, committed_bytes.b, "Gate-B hardening source must be newer than the Gate-A planning head"
       else
+        assert source_status.success?, "planning head is missing #{path}"
         assert_equal current_bytes, committed_bytes.b, "planning head does not own #{path}"
       end
     end
@@ -227,9 +246,13 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
       'operation', 'target_environment', 'decision_status'
     )
     assert_equal 'implemented_but_canonical_blocked_until_external_attestation_trust_is_separately_approved_and_provisioned', request.fetch('selector_environment_support')
-    %w[decided_at expires_at candidate_bundle_reference held_selection_reference recover_outcome].each do |key|
+    %w[decided_at expires_at held_selection_reference recover_outcome].each do |key|
       assert_nil request.fetch(key), key
     end
+    assert_equal({
+      'path' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CANDIDATES/2026-08-29-v1.3-b74fd990-pending-1553d79a68431e2b7434428c',
+      'sha256' => '53f727db483580fc7337e8b09d990bd394d390602304ec511b4b650fbd2cfbbd'
+    }, request.fetch('candidate_bundle_reference'))
     assert_empty request.fetch('conditions')
 
     attribution = @draft.fetch('required_actor_attribution')
@@ -257,33 +280,71 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     facts = prior.fetch('facts')
     assert_equal AUTHORITY_PATHS, facts.map { |entry| entry.fetch('path') }
     facts.each { |entry| assert_closed entry, PRIOR_FACT_KEYS }
-    facts.first(5).each { |entry| assert_equal %w[absent none], entry.values_at('observed_state', 'authority_effect') }
+    facts.first(2).each { |entry| assert_equal %w[absent none], entry.values_at('observed_state', 'authority_effect') }
+    assert_equal %w[
+      documentation_only_no_selection_artifacts
+      documentation_only_no_operation_decision_artifacts
+      documentation_only_no_journal_artifacts
+    ], facts[2, 3].map { |entry| entry.fetch('observed_state') }
+    facts[2, 3].each { |entry| assert_equal 'none', entry.fetch('authority_effect') }
     assert_equal 'absent_or_safe_inert_zero_byte_0600_single_link_current_uid', facts.last.fetch('observed_state')
     assert_equal 'none_coordination_only', facts.last.fetch('authority_effect')
 
     before = authority_inventory
-    AUTHORITY_PATHS.first(5).each { |path| assert_equal 'absent', path_state(File.join(ROOT, path)), path }
+    AUTHORITY_PATHS.first(2).each { |path| assert_equal 'absent', path_state(File.join(ROOT, path)), path }
+    AUTHORITY_PATHS[2, 3].each { |path| assert_readme_only_directory(File.join(ROOT, path)) }
     assert_safe_inert_lock_or_absent(File.join(ROOT, STABLE_LOCK_PATH))
     assert_equal before, authority_inventory
   end
 
-  def test_observed_candidate_is_exact_ephemeral_and_not_decision_eligible
+  def test_observed_candidate_and_time_bound_evidence_are_exact_retained_and_not_decision_eligible
     candidate = @draft.fetch('observed_candidate')
     assert_closed candidate, OBSERVED_CANDIDATE_KEYS
-    assert_equal 'docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json', candidate.fetch('observation_path')
-    assert_equal 'c581d09348119fb82ab812d5e2e3e45e56f6a826be5c63e60c0f7b0eb7f789ca', candidate.fetch('observation_sha256')
-    assert_equal 'G0-GOVERNANCE-V2-PENDING-c20e607ee1a35561d7330c1b', candidate.fetch('bundle_id')
-    assert_equal 'a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa', candidate.fetch('bundle_manifest_sha256')
-    assert_nil candidate.fetch('candidate_bundle_path')
-    refute candidate.fetch('retained')
+    assert_equal 'docs/operations/G0_GOVERNANCE_V2_GATE_B_LOCAL_OBSERVATION_2026-08-29.json', candidate.fetch('observation_path')
+    assert_equal '7830d5d8386118a450efc362a9eab550d0b8cb8e4d3189fff0ef442fcdd0898e', candidate.fetch('observation_sha256')
+    assert_equal 'docs/operations/G0_GOVERNANCE_V2_GATE_B_CANONICAL_PREFLIGHT_2026-08-29.json', candidate.fetch('canonical_preflight_path')
+    assert_equal '063ae4dc2510e740ec577ad419c1692ac348534c962e1d185bb1f2878223d25f', candidate.fetch('canonical_preflight_sha256')
+    assert_equal 'docs/operations/G0_GOVERNANCE_V2_GATE_B_INDEPENDENT_REVIEW_2026-08-29.json', candidate.fetch('independent_review_path')
+    assert_equal '44af902f5e8b1e6e09aa6d16f55e667b3aecce7ef8ecf1f3952cb2163ce604c9', candidate.fetch('independent_review_sha256')
+    assert_equal '2026-08-29T08:58:48Z', candidate.fetch('evidence_expires_at')
+    assert_equal 'G0-GOVERNANCE-V2-PENDING-1553d79a68431e2b7434428c', candidate.fetch('bundle_id')
+    assert_equal '53f727db483580fc7337e8b09d990bd394d390602304ec511b4b650fbd2cfbbd', candidate.fetch('bundle_manifest_sha256')
+    assert_equal 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CANDIDATES/2026-08-29-v1.3-b74fd990-pending-1553d79a68431e2b7434428c', candidate.fetch('candidate_bundle_path')
+    assert candidate.fetch('retained')
     refute candidate.fetch('decision_eligible')
     assert_equal EXPECTED_INELIGIBILITY_REASONS, candidate.fetch('ineligibility_reasons')
 
     observation = Core.parse_json_file(File.join(ROOT, candidate.fetch('observation_path')))
-    assert_equal candidate.fetch('bundle_id'), observation.dig('candidate_bundle', 'bundle_id')
-    assert_equal candidate.fetch('bundle_manifest_sha256'), observation.dig('candidate_bundle', 'artifacts', 5, 'sha256')
-    refute observation.dig('candidate_bundle', 'retained')
-    assert observation.dig('candidate_bundle', 'temporary_evidence_cleaned')
+    preflight = Core.parse_json_file(File.join(ROOT, candidate.fetch('canonical_preflight_path')))
+    review = Core.parse_json_file(File.join(ROOT, candidate.fetch('independent_review_path')))
+    candidate_reference = {
+      'path' => candidate.fetch('candidate_bundle_path'),
+      'sha256' => candidate.fetch('bundle_manifest_sha256')
+    }
+    assert_equal candidate_reference, observation.fetch('candidate_bundle')
+    assert_equal candidate_reference, preflight.fetch('candidate_bundle')
+    assert_equal candidate_reference, review.fetch('candidate_bundle')
+    assert_equal candidate.fetch('evidence_expires_at'), observation.fetch('expires_at')
+    assert_equal candidate.fetch('evidence_expires_at'), preflight.fetch('expires_at')
+    assert_equal candidate.fetch('evidence_expires_at'), review.fetch('expires_at')
+    assert_equal 'none', observation.fetch('authority_effect')
+    assert_equal 'none', preflight.fetch('authority_effect')
+    assert_equal 'none', review.fetch('authority_effect')
+    assert_equal({
+      'local_observation' => {
+        'path' => candidate.fetch('observation_path'),
+        'sha256' => candidate.fetch('observation_sha256')
+      },
+      'canonical_preflight' => {
+        'path' => candidate.fetch('canonical_preflight_path'),
+        'sha256' => candidate.fetch('canonical_preflight_sha256')
+      }
+    }, review.fetch('reviewed_evidence'))
+    manifest_path = File.join(ROOT, candidate.fetch('candidate_bundle_path'), 'G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json')
+    assert_equal candidate.fetch('bundle_manifest_sha256'), Digest::SHA256.file(manifest_path).hexdigest
+    manifest = Core.parse_json_file(manifest_path)
+    assert_equal candidate.fetch('bundle_id'), manifest.fetch('bundle_id')
+    assert_equal 'candidate_pending_not_active', manifest.fetch('status')
   end
 
   def test_eventual_schema_is_implemented_but_still_has_no_activation_authority
@@ -335,17 +396,28 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     assert_equal 'blocked_external_attestation_unprovisioned_not_approval_ready', readiness.fetch('status')
     assert_equal EXPECTED_READINESS_BLOCKERS, readiness.fetch('blockers')
     refute readiness.fetch('selector_hardening_required')
-    assert readiness.fetch('fresh_candidate_required')
-    assert readiness.fetch('fresh_independent_review_required')
+    refute readiness.fetch('fresh_candidate_required')
+    refute readiness.fetch('fresh_independent_review_required')
 
     approvals = @draft.fetch('required_approvals')
     assert_equal 3, approvals.length
-    approvals.each do |approval|
-      assert_closed approval, APPROVAL_KEYS
-      assert_equal 'pending', approval.fetch('status')
-      assert_nil approval.fetch('evidence_reference')
-      refute_empty approval.fetch('conditions')
+    approvals.each { |approval| assert_closed approval, APPROVAL_KEYS }
+    owner_approval, review_evidence, preflight_evidence = approvals
+    assert_equal 'pending', owner_approval.fetch('status')
+    assert_nil owner_approval.fetch('evidence_reference')
+    [review_evidence, preflight_evidence].each do |approval|
+      assert_equal 'evidence_satisfied_no_authority', approval.fetch('status')
+      assert_closed approval.fetch('evidence_reference'), Selector::REFERENCE_KEYS
     end
+    assert_equal({
+      'path' => 'docs/operations/G0_GOVERNANCE_V2_GATE_B_INDEPENDENT_REVIEW_2026-08-29.json',
+      'sha256' => '44af902f5e8b1e6e09aa6d16f55e667b3aecce7ef8ecf1f3952cb2163ce604c9'
+    }, review_evidence.fetch('evidence_reference'))
+    assert_equal({
+      'path' => 'docs/operations/G0_GOVERNANCE_V2_GATE_B_CANONICAL_PREFLIGHT_2026-08-29.json',
+      'sha256' => '063ae4dc2510e740ec577ad419c1692ac348534c962e1d185bb1f2878223d25f'
+    }, preflight_evidence.fetch('evidence_reference'))
+    approvals.each { |approval| refute_empty approval.fetch('conditions') }
     assert_equal %w[authority_decision independent_review engineering_evidence], approvals.map { |row| row.fetch('requirement_kind') }
     assert_equal [
       ['GATE-B-ATTRIBUTABLE-PRODUCT-OWNER-DECISION', 'product_owner'],
@@ -443,6 +515,17 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     'other'
   rescue Errno::ENOENT
     'absent'
+  end
+
+  def assert_readme_only_directory(path)
+    stat = File.lstat(path)
+    assert stat.directory?
+    refute stat.symlink?
+    assert_equal ['README.md'], Dir.children(path).sort
+    readme = File.join(path, 'README.md')
+    readme_stat = File.lstat(readme)
+    assert readme_stat.file?
+    refute readme_stat.symlink?
   end
 
   def assert_safe_inert_lock_or_absent(path)
