@@ -80,6 +80,7 @@ jobs:
         run: |
           required = %w[
             tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
+            tests/Documentation/G0GovernanceProfileDispatchTest.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
@@ -90,7 +91,10 @@ jobs:
             tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
             tests/Documentation/G0ProportionalGovernanceV2ValidatorTest.rb
           ]
-          actual = Dir["tests/Documentation/G0*V2*Test.rb"].sort
+          actual = (
+            Dir["tests/Documentation/G0*V2*Test.rb"] +
+            ["tests/Documentation/G0GovernanceProfileDispatchTest.rb"]
+          ).uniq.sort
           abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required
           actual.each { |file| require File.expand_path(file) }
 
