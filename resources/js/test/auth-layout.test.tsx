@@ -48,8 +48,8 @@ describe('authentication layout', () => {
         ).toBeInTheDocument();
         expect(
             screen.getByRole('note', {
-                name: 'Status lingkungan aplikasi',
+                name: 'Status operasional sistem',
             }),
-        ).toHaveTextContent('SIMULASI — DATA SINTETIS');
+        ).toHaveTextContent('Mode Kampus');
     });
 });

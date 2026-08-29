@@ -382,7 +382,7 @@ export default function LegacyFreeTextEncounterShow({
                                     key={label}
                                     type="button"
                                     disabled
-                                    title="Belum tersedia di demo pengajaran"
+                                    title="Belum tersedia"
                                     className="inline-flex h-8 items-center rounded-md border border-[#c5d9eb] bg-[#f8fbfe] px-2.5 text-xs font-medium text-[#64748b] opacity-70"
                                 >
                                     {label}
@@ -489,7 +489,7 @@ export default function LegacyFreeTextEncounterShow({
                                 title={
                                     live
                                         ? undefined
-                                        : 'Tab klinis lanjutan — stub pengajaran'
+                                        : 'Tab klinis lanjutan belum tersedia'
                                 }
                             >
                                 {tab}
@@ -936,7 +936,7 @@ export default function LegacyFreeTextEncounterShow({
                                                 )
                                             }
                                             required
-                                            placeholder="Tuliskan asesmen teaching/sintetis…"
+                                            placeholder="Tuliskan asesmen…"
                                         />
                                         <InputError
                                             id="clinical-entry-body-error"

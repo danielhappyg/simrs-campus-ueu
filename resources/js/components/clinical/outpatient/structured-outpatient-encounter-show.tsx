@@ -83,10 +83,6 @@ export default function StructuredOutpatientEncounterShow({
                 title={`Pemeriksaan RJ — ${encounter.patient.full_name ?? 'Kunjungan'}`}
             />
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5">
-                <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs font-medium text-foreground">
-                    SIMULASI · Data pasien sintetis · bukan pelayanan klinis
-                    nyata
-                </div>
                 {typeof flash?.error === 'string' && flash.error ? (
                     <div
                         role="alert"
@@ -117,7 +113,7 @@ export default function StructuredOutpatientEncounterShow({
                             <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="text-xl font-semibold text-foreground">
                                     {encounter.patient.full_name ??
-                                        'Pasien sintetis'}
+                                        'Nama pasien belum tersedia'}
                                 </h1>
                                 <span className="rounded-md bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground">
                                     {statusLabel[encounter.status] ??

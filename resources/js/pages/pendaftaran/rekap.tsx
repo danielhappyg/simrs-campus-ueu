@@ -118,8 +118,8 @@ export default function PendaftaranRekap({
                         Rekap pendaftaran
                     </h1>
                     <p className="mt-1 text-sm text-[#64748b]">
-                        Rekap pengajaran: walk-in vs kunjungan dengan kode
-                        booking (RegOn/online). Bukan laporan produksi BPJS.
+                        Perbandingan kunjungan walk-in dan kunjungan dengan kode
+                        booking (RegOn/online). Integrasi BPJS belum aktif.
                     </p>
                 </header>
 

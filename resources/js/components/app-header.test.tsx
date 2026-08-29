@@ -51,9 +51,9 @@ describe('application header navigation', () => {
 
         expect(
             screen.getByRole('note', {
-                name: 'Status lingkungan aplikasi',
+                name: 'Status operasional sistem',
             }),
-        ).toHaveTextContent('SIMULASI — DATA SINTETIS');
+        ).toHaveTextContent('Mode Kampus');
 
         const navs = screen.getAllByRole('navigation', {
             name: 'Navigasi modul',

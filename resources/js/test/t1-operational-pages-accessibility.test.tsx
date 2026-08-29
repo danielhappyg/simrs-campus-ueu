@@ -496,7 +496,7 @@ describe('T1 operational pages accessibility', () => {
             </main>,
         );
 
-        expectTableScrollContainment('Hasil pencarian pasien sintetis');
+        expectTableScrollContainment('Hasil pencarian pasien');
         expectTableScrollContainment('Daftar pendaftaran pasien hari ini');
 
         await expectNoWcag21Violations(container);
@@ -673,10 +673,8 @@ describe('T1 operational pages accessibility', () => {
             </main>,
         );
 
-        expectTableScrollContainment(
-            'Hasil pencarian pasien sintetis untuk rawat inap',
-        );
-        expectTableScrollContainment('Daftar pendaftaran rawat inap sintetis');
+        expectTableScrollContainment('Hasil pencarian pasien untuk rawat inap');
+        expectTableScrollContainment('Daftar pendaftaran rawat inap');
         expect(
             screen.getByRole('link', {
                 name: 'Buka pemeriksaan untuk Pasien Rawat Inap Sintetis',

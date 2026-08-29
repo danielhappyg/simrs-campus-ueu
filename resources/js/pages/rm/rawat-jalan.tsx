@@ -101,8 +101,8 @@ export default function RmRawatJalan({
                         RM · Rawat Jalan
                     </h1>
                     <p className="mt-0.5 text-xs text-[#64748b]">
-                        Antrian siap tinjau RMIK (sintetis). Filter densitas
-                        mengikuti CAP-RMIK-001.
+                        Antrian kunjungan siap ditinjau dan dilengkapi oleh
+                        petugas RMIK.
                     </p>
                 </header>
 

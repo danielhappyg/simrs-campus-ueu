@@ -181,19 +181,9 @@ export default function PemeriksaanRawatJalanIndex({
                             {title}
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Worklist pengajaran (sintetis). Densitas filter
-                            mengikuti meja SAHABAT / CAP-CLN-
-                            {isTriage
-                                ? '002'
-                                : isIgd
-                                  ? '003'
-                                  : isInpatient
-                                    ? '005'
-                                    : '004'}
-                            .
-                            {isTriage
-                                ? ' Skala triage tetap stub sampai SME confirm.'
-                                : ''}
+                            Worklist kunjungan aktif untuk pemeriksaan dan
+                            dokumentasi klinis.
+                            {isTriage ? ' Skala triage belum tersedia.' : ''}
                         </p>
                     </div>
                 </header>

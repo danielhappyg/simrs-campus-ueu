@@ -132,8 +132,8 @@ export default function PemeriksaanLaboratoriumIndex({
                             Pemeriksaan · Laboratorium
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Worklist order lab aktif (sintetis). Masukkan hasil
-                            untuk menyelesaikan order.
+                            Worklist order laboratorium aktif. Masukkan hasil
+                            pemeriksaan untuk menyelesaikan order.
                         </p>
                     </div>
                 </header>
@@ -337,12 +337,9 @@ export default function PemeriksaanLaboratoriumIndex({
                                                                     hasil: Final
                                                                 </p>
                                                                 <p className="mt-0.5">
-                                                                    Dalam
-                                                                    simulasi
-                                                                    pengajaran
-                                                                    ini, hasil
-                                                                    final tidak
-                                                                    dapat diubah
+                                                                    Hasil final
+                                                                    tidak dapat
+                                                                    diubah
                                                                     setelah
                                                                     disimpan.
                                                                     Fitur

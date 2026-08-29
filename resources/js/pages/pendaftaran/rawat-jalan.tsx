@@ -461,7 +461,7 @@ function ActionStub({ label }: { label: string }) {
         <button
             type="button"
             disabled
-            title="Belum tersedia di demo pengajaran"
+            title="Belum tersedia"
             className="inline-flex h-8 items-center rounded-md border border-[#c5d9eb] bg-[#f8fbfe] px-2.5 text-xs font-medium text-[#64748b] opacity-70"
         >
             {label}
@@ -838,9 +838,9 @@ export default function PendaftaranRawatJalan({
                                 : 'Data Pasien · Pendaftaran Rawat Jalan'}
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Meja pendaftaran pengajaran (sintetis). Referensi
-                            densitas: SIMRS SAHABAT / CAP-REG-
-                            {isIgd ? '002' : '003'}.
+                            {isIgd
+                                ? 'Kelola identitas pasien dan pendaftaran kunjungan IGD.'
+                                : 'Kelola identitas pasien dan pendaftaran rawat jalan.'}
                         </p>
                     </div>
                     {returning ? (
@@ -928,7 +928,7 @@ export default function PendaftaranRawatJalan({
                         <div className="min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[40rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Hasil pencarian pasien sintetis
+                                    Hasil pencarian pasien
                                 </caption>
                                 <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                     <tr>
@@ -1070,7 +1070,7 @@ export default function PendaftaranRawatJalan({
                                             form.setData('nik', e.target.value)
                                         }
                                         maxLength={16}
-                                        placeholder="16 digit (sintetis)"
+                                        placeholder="16 digit"
                                     />
                                 </Field>
                                 <Field
@@ -1984,12 +1984,12 @@ export default function PendaftaranRawatJalan({
                                                             e.target.value,
                                                         )
                                                     }
-                                                    placeholder="Sintetis / opsional"
+                                                    placeholder="Opsional"
                                                 />
                                                 <button
                                                     type="button"
                                                     disabled
-                                                    title="Tidak mengirim BPJS nyata"
+                                                    title="Integrasi BPJS belum aktif"
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
                                                     Cek
@@ -1997,7 +1997,7 @@ export default function PendaftaranRawatJalan({
                                                 <button
                                                     type="button"
                                                     disabled
-                                                    title="Biometrik tidak aktif di demo"
+                                                    title="Biometrik belum tersedia"
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
                                                     FR
@@ -2005,7 +2005,7 @@ export default function PendaftaranRawatJalan({
                                                 <button
                                                     type="button"
                                                     disabled
-                                                    title="Biometrik tidak aktif di demo"
+                                                    title="Biometrik belum tersedia"
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
                                                     FP

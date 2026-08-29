@@ -117,7 +117,7 @@ const registrationFieldLabels: Record<string, string> = {
     insurance_number: 'Nomor penjamin',
     continue_from: 'Asal atau kelanjutan',
     chief_complaint: 'Keluhan utama',
-    is_synthetic: 'Batas data sintetis',
+    is_synthetic: 'Validasi data pasien',
 };
 
 const registrationErrorTarget: Record<string, string> = {
@@ -310,8 +310,8 @@ export default function PendaftaranRawatInap({
                             Data Pasien · Pendaftaran Rawat Inap
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Meja pendaftaran pengajaran (sintetis). Referensi
-                            densitas: SIMRS SAHABAT / CAP-REG-001.
+                            Kelola identitas pasien, admisi, bangsal, kelas, dan
+                            tempat tidur rawat inap.
                         </p>
                     </div>
                     {selectedPatient ? (
@@ -360,8 +360,7 @@ export default function PendaftaranRawatInap({
                         <div className="mt-2 min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[40rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Hasil pencarian pasien sintetis untuk rawat
-                                    inap
+                                    Hasil pencarian pasien untuk rawat inap
                                 </caption>
                                 <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                     <tr>
@@ -931,7 +930,7 @@ export default function PendaftaranRawatInap({
                     <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[56rem] text-left text-sm">
                             <caption className="sr-only">
-                                Daftar pendaftaran rawat inap sintetis
+                                Daftar pendaftaran rawat inap
                             </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
