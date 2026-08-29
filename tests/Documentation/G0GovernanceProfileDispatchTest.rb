@@ -23,6 +23,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
   DISPATCHER = File.join(ROOT, 'scripts/validate-g0-governance.rb')
   ADOPTION = File.join(PHASE, 'G0_GOVERNANCE_V2_ADOPTION_DECISION.json')
   V1_MANIFEST = File.join(PHASE, 'G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json')
+  TEMP_PARENT = File.realpath(Dir.tmpdir)
   Core = G0ProportionalGovernanceV2
   Dispatcher = G0GovernanceProfileDispatcher
   Resolver = G0GovernanceConsumerSelector::ReadOnlyResolver
@@ -41,7 +42,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
     def ensure_fixture!
       return if @candidate
 
-      @fixture_root = Dir.mktmpdir('g0-wave4-dispatch-', '/private/tmp')
+      @fixture_root = Dir.mktmpdir('g0-wave4-dispatch-', TEMP_PARENT)
       @candidate = File.join(@fixture_root, 'candidate')
       stdout, stderr, status = Open3.capture3(
         RbConfig.ruby, GENERATOR, '--root', ROOT, '--output', @candidate,
@@ -592,7 +593,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
   end
 
   def with_selector_layout
-    Dir.mktmpdir('g0-wave5-dispatch-root-', '/private/tmp') do |root|
+    Dir.mktmpdir('g0-wave5-dispatch-root-', TEMP_PARENT) do |root|
       File.chmod(0o700, root)
       [
         G0GovernanceConsumerSelector::PHASE0_RELATIVE_PATH,
@@ -638,7 +639,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
   end
 
   def with_candidate_copy
-    Dir.mktmpdir('g0-wave4-candidate-copy-', '/private/tmp') do |temp|
+    Dir.mktmpdir('g0-wave4-candidate-copy-', TEMP_PARENT) do |temp|
       candidate = File.join(temp, 'candidate')
       FileUtils.cp_r(@candidate, candidate)
       yield candidate

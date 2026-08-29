@@ -14,6 +14,7 @@ class G0ProportionalGovernanceV2GeneratorTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   PHASE = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0')
   GENERATOR = File.join(ROOT, 'scripts/generate-g0-proportional-governance-v2.rb')
+  TEMP_PARENT = File.realpath(Dir.tmpdir)
   Generator = G0ProportionalGovernanceV2Generator
   Comparator = G0GovernanceV1V2Comparator
   Core = G0ProportionalGovernanceV2
@@ -35,7 +36,7 @@ class G0ProportionalGovernanceV2GeneratorTest < Minitest::Test
   ].freeze
 
   def setup
-    @tmpdir = Dir.mktmpdir('g0-v2-generator-', '/private/tmp')
+    @tmpdir = Dir.mktmpdir('g0-v2-generator-', TEMP_PARENT)
     @contract = Core.parse_json_file(File.join(PHASE, 'G0_GOVERNANCE_V2_CONTRACT.json'))
     @v1_manifest = Core.parse_json_file(File.join(PHASE, 'G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json'))
     @batch_manifest = Core.parse_json_file(File.join(PHASE, 'G0_PARITY_BATCH_MANIFEST.json'))

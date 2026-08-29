@@ -27,18 +27,33 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
     tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
     tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
+    tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
     tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
     tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
     tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
     tests/Documentation/G0ProportionalGovernanceV2ValidatorTest.rb
   ].freeze
-  CURRENT_PRE_ADOPTION_CI_COMMANDS = [
-    'ruby tests/Documentation/ParityGovernanceValidatorTest.rb',
+  WAVE_7_CI_COMMANDS = [
+    'ruby -Itests tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceV2IndependentReviewTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb',
+    'ruby -Itests tests/Documentation/ParityGovernanceValidatorTest.rb',
     'ruby scripts/validate-parity-governance.rb --mode integrity',
     'ruby -Itests tests/Documentation/G0OwnerGovernanceSnapshotGeneratorTest.rb',
     'ruby -Itests tests/Documentation/G0S0IntakeContractTest.rb',
-    'ruby tests/Documentation/G0G3CoverageLedgerTest.rb'
+    'ruby -Itests tests/Documentation/G0ProportionalGovernanceV2ValidatorTest.rb',
+    'ruby -Itests tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb',
+    'ruby -Itests tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceConsumerPointerTest.rb',
+    'ruby -Itests tests/Documentation/G0GovernanceProfileDispatchTest.rb',
+    'ruby -Itests tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb',
+    'ruby -Itests tests/Documentation/G0G3CoverageLedgerTest.rb',
+    'ruby scripts/validate-g0-governance.rb --profile dual --mode integrity --source candidate --candidate-bundle "$candidate_dir" --adoption-decision docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json --json-receipt "$receipt_path"'
   ].freeze
+  OBSERVATION_RECEIPT_TEST_COMMAND = 'ruby -Itests tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb'
 
   def setup
     @blueprint = File.read(BLUEPRINT_PATH)
@@ -138,17 +153,56 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     assert_includes @blueprint, 'ruby scripts/validate-g0-governance.rb --profile dual --mode integrity --source candidate'
   end
 
-  def test_current_ci_runs_pre_adoption_contracts_in_fail_closed_order
-    workflow_commands = @ci.scan(/^\s+run:\s+([^\n]+)$/).flatten.map(&:strip)
-    governance_commands = workflow_commands.select { |command| CURRENT_PRE_ADOPTION_CI_COMMANDS.include?(command) }
+  def test_current_ci_runs_wave_7_contracts_once_in_exact_fail_closed_order
+    command_positions = WAVE_7_CI_COMMANDS.map do |command|
+      invocations = @ci.lines.count do |line|
+        stripped = line.strip
+        stripped == command || stripped == "run: #{command}"
+      end
+      assert_equal 1, invocations, "expected one CI invocation of #{command}"
+      position = @ci.index(command)
+      refute_nil position, "missing CI invocation of #{command}"
+      position
+    end
 
-    assert_equal CURRENT_PRE_ADOPTION_CI_COMMANDS, governance_commands
+    assert_equal command_positions.sort, command_positions
+    observation_contract_invocations = @ci.lines.count do |line|
+      line.strip == "run: #{OBSERVATION_RECEIPT_TEST_COMMAND}"
+    end
+    assert_equal 1, observation_contract_invocations
+    assert_operator @ci.index(WAVE_7_CI_COMMANDS.last), :<, @ci.index(OBSERVATION_RECEIPT_TEST_COMMAND)
     assert_includes @ci, 'fetch-depth: 0'
-    assert_includes @ci, 'shell: ruby -Itests {0}'
+    assert_includes @ci, 'Check proportional G0 governance v2 contract discovery'
     CURRENT_V2_GOVERNANCE_TESTS.each { |path| assert_includes @ci, path }
     assert_includes @ci, 'abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required'
+    refute_match(/actual\.each\s*\{[^}]*require/, @ci)
     refute_includes @ci, 'continue-on-error:'
     refute_includes @ci, 'select-g0-governance-consumer.rb'
+  end
+
+  def test_ci_candidate_observation_is_ephemeral_exclusive_and_pointer_neutral
+    required = [
+      'mktemp -d "$PWD/.g0-governance-v2-ci-observation.XXXXXX"',
+      'chmod 700 "$observation_root"',
+      'trap cleanup EXIT',
+      'candidate_dir="$observation_root/candidate"',
+      'receipt_path="$observation_root/dual-integrity-receipt.json"',
+      'test ! -e "$receipt_path"',
+      'ruby scripts/generate-g0-proportional-governance-v2.rb --root "$PWD" --output "$candidate_dir"',
+      '"status" => "PASS"',
+      '"reason_code" => "dual_candidate_observation_passed"',
+      'pointer_before="$(pointer_state)"',
+      'pointer_after="$(pointer_state)"',
+      'test "$pointer_before" = "$pointer_after"',
+      'rm -rf -- "$observation_root"'
+    ]
+    required.each { |contract| assert_includes @ci, contract }
+
+    assert_operator @ci.index('case "$observation_root" in'), :<, @ci.index('rm -rf -- "$observation_root"')
+    assert_operator @ci.index('pointer_before="$(pointer_state)"'), :<, @ci.index(WAVE_7_CI_COMMANDS.last)
+    assert_operator @ci.index(WAVE_7_CI_COMMANDS.last), :<, @ci.index('pointer_after="$(pointer_state)"')
+    refute_match(/--source\s+active/, @ci)
+    refute_match(/select-g0-governance-consumer\.rb/, @ci)
   end
 
   def test_current_v2_governance_contract_discovery_is_closed_and_complete

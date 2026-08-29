@@ -1,0 +1,234 @@
+{
+  "artifact_type": "g0_governance_v2_local_candidate_observation",
+  "schema_version": 1,
+  "observation_id": "G0-GOVERNANCE-V2-LOCAL-CANDIDATE-OBSERVATION-2026-08-29",
+  "observed_at": "2026-08-29T02:39:04.038436Z",
+  "status": "complete_candidate_only_local_observation",
+  "effect": "none_local_observation_only_no_activation_authority_disposition_deployment_migration_acceptance_or_gate_closure",
+  "source_revision": {
+    "repository": "simrs-campus-ueu",
+    "branch": "main",
+    "observed_head_sha": "9db0b35ef985cd16dfad1aa99cd7e59bc19df75c",
+    "wave": "wave_7_candidate_only_local_observation",
+    "worktree_scope": "canonical_sources_read_only_temporary_candidate_only",
+    "commit_effect": "none_observation_record_is_local_and_uncommitted_at_observation_time"
+  },
+  "source_bindings": [
+    {
+      "role": "adoption_decision",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json",
+      "sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3"
+    },
+    {
+      "role": "governance_v2_contract",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json",
+      "sha256": "eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca"
+    },
+    {
+      "role": "v1_historical_hash_manifest",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json",
+      "sha256": "7b9bcf46ce0ddb26021cc84ac16bb14af3e1b8a92616535cf2b289a00b519cd3"
+    },
+    {
+      "role": "candidate_generator",
+      "path": "scripts/generate-g0-proportional-governance-v2.rb",
+      "sha256": "5bcae8127ee7214f66e8d3612d885d91859d8c67f520258edc5e0c7eef1da7f0"
+    },
+    {
+      "role": "governance_v2_core",
+      "path": "scripts/g0-proportional-governance-v2.rb",
+      "sha256": "7e1806bd48a4111f3f0876cd5c52c0c25858b9a0af0e61fe47bc739a8c850bc0"
+    },
+    {
+      "role": "v1_v2_comparator",
+      "path": "scripts/compare-g0-governance-v1-v2.rb",
+      "sha256": "a148e312ea87b02d9edc67dc2b328f392e00ee4ed1471bcd779ad43a1c5b880f"
+    },
+    {
+      "role": "governance_v2_validator_cli",
+      "path": "scripts/validate-g0-proportional-governance-v2.rb",
+      "sha256": "d9e6afe34ae820ae84e77555fa0b70f58bc4ef310b8685271318a0e463449b4c"
+    },
+    {
+      "role": "governance_v1_validator",
+      "path": "scripts/validate-parity-governance.rb",
+      "sha256": "251cd15d947ea14b517f56ac23aee143faa91d59ce349d96756c8e88378cf65f"
+    },
+    {
+      "role": "profile_dispatcher",
+      "path": "scripts/validate-g0-governance.rb",
+      "sha256": "a2fec6421097f8ac4f058efc534fe5e9378949ef32182fd8f96084526c0d65a5"
+    },
+    {
+      "role": "consumer_selector_read_only_boundary",
+      "path": "scripts/select-g0-governance-consumer.rb",
+      "sha256": "6cb638fcd4c6fb26c74caccac6844b85427ba3afbdabcb4a84990c89beb59f34"
+    }
+  ],
+  "generation_observation": {
+    "command_argv": [
+      "ruby",
+      "scripts/generate-g0-proportional-governance-v2.rb",
+      "--root",
+      "<repository-root>",
+      "--output",
+      "<temporary-root>/candidate"
+    ],
+    "raw_receipt_sha256": "0f320138ecd1cacb6b283ad00336d5f5b90dada710dbce446a6539f86759f7b8",
+    "raw_receipt_retained": false,
+    "raw_receipt_exclusion_reason": "candidate_directory_contains_ephemeral_absolute_path",
+    "normalized_receipt": {
+      "status": "generated_pending_candidate",
+      "candidate_directory": "<temporary-root>/candidate",
+      "bundle_manifest_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa"
+    },
+    "normalization_contract": {
+      "source_raw_receipt_bound_by_sha256": true,
+      "only_normalized_field": "candidate_directory",
+      "normalized_candidate_directory": "<temporary-root>/candidate",
+      "ephemeral_path_not_committed": true,
+      "other_fields_byte_meaning_unchanged": true
+    },
+    "deterministic_regeneration": {
+      "performed": true,
+      "regeneration_raw_receipt_sha256": "e805b700e1cc5e2a760f0fe14c43980210e5fe9da90d588e8af1ad7b709545dd",
+      "regeneration_raw_receipt_retained": false,
+      "regeneration_path_excluded": true,
+      "bundle_manifest_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa",
+      "all_six_candidate_files_byte_identical": true
+    }
+  },
+  "candidate_bundle": {
+    "bundle_id": "G0-GOVERNANCE-V2-PENDING-c20e607ee1a35561d7330c1b",
+    "profile": "v2",
+    "status": "candidate_pending_not_active",
+    "data_boundary": "synthetic_only",
+    "effect": "none_no_activation_authority_disposition_deployment_or_acceptance",
+    "capability_count": 268,
+    "provisional_engineering_binding_count": 14,
+    "canonical_order_sha256": "6da6f5c39d6ef143b4fcf8a3eaa52218416a45a49b3cd9f54b9bf0f3de5b6750",
+    "temporary_location": "<temporary-root>/candidate",
+    "retained": false,
+    "temporary_evidence_cleaned": true,
+    "artifacts": [
+      {
+        "role": "authority_register",
+        "path": "G0_GOVERNANCE_V2_AUTHORITY_REGISTER.json",
+        "sha256": "3c3fcf68306b1093f954fe509ff8fd226884e4e554866e3540bd200458ba2d3f"
+      },
+      {
+        "role": "owner_register",
+        "path": "G0_GOVERNANCE_V2_OWNER_REGISTER.json",
+        "sha256": "9d6550f268fe02d0d1ad048a32f5a351fcdac5c5b5b20eac47a5cb75fc15c59a"
+      },
+      {
+        "role": "decision_event_register",
+        "path": "G0_GOVERNANCE_V2_DECISION_EVENT_REGISTER.json",
+        "sha256": "9f7c0261052d3f0dfdc732a5dd71015671459a523af8d8e242b6255807cb49bf"
+      },
+      {
+        "role": "expanded_decision_register",
+        "path": "G0_GOVERNANCE_V2_EXPANDED_DECISION_REGISTER.json",
+        "sha256": "edd46e50b6c6741d7ad61a39dc5f119c1d588ec63ce624ddf17e340a69aff50a"
+      },
+      {
+        "role": "gate_register",
+        "path": "G0_GOVERNANCE_V2_GATE_REGISTER.json",
+        "sha256": "a3c3a72037dc906955cb96c3405a7a7b4338c414413878a8b51e7a56e5dccc72"
+      },
+      {
+        "role": "bundle_manifest",
+        "path": "G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json",
+        "sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa"
+      }
+    ]
+  },
+  "validation_observations": [
+    {
+      "observation": "dual_integrity",
+      "command_argv": ["ruby", "scripts/validate-g0-governance.rb", "--profile", "dual", "--mode", "integrity", "--source", "candidate", "--candidate-bundle", "<temporary-root>/candidate", "--adoption-decision", "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json", "--json-receipt", "<temporary-root>/dual-integrity-receipt.json"],
+      "raw_receipt_sha256": "8c39170e6de35956e5a224a8f266928559b38f505fd20ab25bc32070e4c74a00",
+      "raw_receipt": {"activation_sha256": null, "actor": "local_operator", "adoption_sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3", "bundle_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa", "finished_at": "2026-08-29T02:38:12.842801Z", "message": "Dual candidate observation passed without changing the active consumer.", "mode": "integrity", "operation": "validate", "operation_id": "G0-VALIDATE-21869D6FCD5EF01842773D7F", "planning_baseline": "e2d933c8929906bd15f52c8c5a6283d45b3fbf86", "prior_pointer_sha256": null, "profile": "dual", "reason_code": "dual_candidate_observation_passed", "schema_version": 1, "secret_scan_passed": true, "selection_sha256": null, "source": "candidate", "started_at": "2026-08-29T02:38:09.374933Z", "status": "PASS", "validator_contract": {"comparison": "compare-g0-governance-v1-v2/read-only-migration-parity", "dispatcher": "validate-g0-governance/1.0.0-wave4-candidate-only", "v1": "validate-parity-governance/unchanged", "v2": "g0-proportional-governance-v2/1.0.0"}}
+    },
+    {
+      "observation": "dual_g0",
+      "command_argv": ["ruby", "scripts/validate-g0-governance.rb", "--profile", "dual", "--mode", "g0", "--source", "candidate", "--candidate-bundle", "<temporary-root>/candidate", "--adoption-decision", "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json", "--json-receipt", "<temporary-root>/dual-g0-receipt.json"],
+      "raw_receipt_sha256": "0a517ff475bccbce4de71dc98a9bc89be99b8b02b62db4bb180b34cba4987f70",
+      "raw_receipt": {"activation_sha256": null, "actor": "local_operator", "adoption_sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3", "bundle_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa", "finished_at": "2026-08-29T02:38:27.480985Z", "message": "Dual candidate observation is valid and G0 remains OPEN without changing the active consumer.", "mode": "g0", "operation": "validate", "operation_id": "G0-VALIDATE-A9F5EF246221879B3DCB28DA", "planning_baseline": "e2d933c8929906bd15f52c8c5a6283d45b3fbf86", "prior_pointer_sha256": null, "profile": "dual", "reason_code": "dual_g0_observation_open", "schema_version": 1, "secret_scan_passed": true, "selection_sha256": null, "source": "candidate", "started_at": "2026-08-29T02:38:24.322682Z", "status": "OPEN", "validator_contract": {"comparison": "compare-g0-governance-v1-v2/read-only-migration-parity", "dispatcher": "validate-g0-governance/1.0.0-wave4-candidate-only", "v1": "validate-parity-governance/unchanged", "v2": "g0-proportional-governance-v2/1.0.0"}}
+    },
+    {
+      "observation": "v1_integrity",
+      "command_argv": ["ruby", "scripts/validate-g0-governance.rb", "--profile", "v1", "--mode", "integrity", "--json-receipt", "<temporary-root>/v1-integrity-receipt.json"],
+      "raw_receipt_sha256": "49cadfec1e30d27392d448ff0b98eb909b494f27741f3e37f70d253f385c4398",
+      "raw_receipt": {"activation_sha256": null, "actor": "local_operator", "adoption_sha256": null, "bundle_sha256": null, "finished_at": "2026-08-29T02:38:51.311427Z", "message": "Governance-v1 validation passed.", "mode": "integrity", "operation": "validate", "operation_id": "G0-VALIDATE-921C6BFD5CEF8E80391F37D2", "planning_baseline": "e2d933c8929906bd15f52c8c5a6283d45b3fbf86", "prior_pointer_sha256": null, "profile": "v1", "reason_code": "v1_validation_passed", "schema_version": 1, "secret_scan_passed": true, "selection_sha256": null, "source": null, "started_at": "2026-08-29T02:38:50.058679Z", "status": "PASS", "validator_contract": {"comparison": "compare-g0-governance-v1-v2/read-only-migration-parity", "dispatcher": "validate-g0-governance/1.0.0-wave4-candidate-only", "v1": "validate-parity-governance/unchanged", "v2": "g0-proportional-governance-v2/1.0.0"}}
+    },
+    {
+      "observation": "v2_integrity",
+      "command_argv": ["ruby", "scripts/validate-g0-governance.rb", "--profile", "v2", "--mode", "integrity", "--source", "candidate", "--candidate-bundle", "<temporary-root>/candidate", "--adoption-decision", "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json", "--json-receipt", "<temporary-root>/v2-integrity-receipt.json"],
+      "raw_receipt_sha256": "d2fbedcbacf0ffb7fbac02f26e224cd54d820397eb3bbbcda67fde38a3539522",
+      "raw_receipt": {"activation_sha256": null, "actor": "local_operator", "adoption_sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3", "bundle_sha256": "a48e96b39ed519906bf32a14f04fbfcf98ca83b7a791a051db7f98074a17c2fa", "finished_at": "2026-08-29T02:39:04.038436Z", "message": "Governance-v2 candidate validation passed.", "mode": "integrity", "operation": "validate", "operation_id": "G0-VALIDATE-B27529C0231BFE8F413A43F6", "planning_baseline": "e2d933c8929906bd15f52c8c5a6283d45b3fbf86", "prior_pointer_sha256": null, "profile": "v2", "reason_code": "v2_candidate_validation_passed", "schema_version": 1, "secret_scan_passed": true, "selection_sha256": null, "source": "candidate", "started_at": "2026-08-29T02:39:03.024337Z", "status": "PASS", "validator_contract": {"comparison": "compare-g0-governance-v1-v2/read-only-migration-parity", "dispatcher": "validate-g0-governance/1.0.0-wave4-candidate-only", "v1": "validate-parity-governance/unchanged", "v2": "g0-proportional-governance-v2/1.0.0"}}
+    }
+  ],
+  "integrity_assertions": {
+    "v1_integrity_status": "PASS",
+    "v1_historical_file_count": 30,
+    "v1_historical_files_unchanged": true,
+    "v2_integrity_status": "PASS",
+    "dual_integrity_status": "PASS",
+    "comparison_status": "PASS",
+    "comparison": "read_only_v1_v2_migration_parity",
+    "capability_count": 268,
+    "provisional_engineering_binding_count": 14,
+    "provisional_binding_effect": "engineering_only_no_owner_authority_tier_approval_disposition_or_gate_effect",
+    "project_g0_status": "OPEN",
+    "project_g3_status": "OPEN",
+    "project_g3_reason": "g0_is_open_and_no_active_consumer_exists",
+    "authority_effect": "none",
+    "activation_effect": "none",
+    "gate_effect": "none"
+  },
+  "authority_snapshot": {
+    "canonical_paths": [
+      {"path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER.json", "state_before": "absent", "state_after": "absent"},
+      {"path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER_RECOVERY_REQUIRED.json", "state_before": "absent", "state_after": "absent"},
+      {"path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTIONS", "state_before": "absent", "state_after": "absent"},
+      {"path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ACTIVATION_DECISIONS", "state_before": "absent", "state_after": "absent"},
+      {"path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_JOURNAL", "state_before": "absent", "state_after": "absent"},
+      {"path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTION.lock", "state_before": "absent", "state_after": "absent"}
+    ],
+    "normalized_before_snapshot_sha256": "acaeb95af891685bd21fc23786822efdd7549f277de818fa62b9ba56dfdcfd14",
+    "normalized_after_snapshot_sha256": "acaeb95af891685bd21fc23786822efdd7549f277de818fa62b9ba56dfdcfd14",
+    "pointer_sha256_before": null,
+    "pointer_sha256_after": null,
+    "unchanged": true,
+    "canonical_pointer_created": false,
+    "canonical_recovery_marker_created": false,
+    "canonical_selection_created": false,
+    "canonical_activation_decision_created": false,
+    "canonical_journal_created": false,
+    "canonical_lock_created": false
+  },
+  "authorization_boundary": {
+    "local_candidate_observation_authorized": true,
+    "consumer_activation_authorized": false,
+    "capability_disposition_authorized": false,
+    "application_slice_implementation_authorized": false,
+    "deployment_authorized": false,
+    "hosted_migration_authorized": false,
+    "real_patient_data_authorized": false,
+    "live_integration_authorized": false,
+    "domain_acceptance_authorized": false,
+    "g0_closure_authorized": false,
+    "g3_acceptance_authorized": false,
+    "external_state_effect": "none"
+  },
+  "verification": {
+    "test_path": "tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb",
+    "test_sha256": "0bbf059865b3b7fea11993824d6f127f4cf11c8a031c9b4f2fadde382c233e22",
+    "test_contract": "closed_schema_exact_hashes_duplicate_key_rejection_path_portability_deterministic_regeneration_dual_profile_receipt_replay_pointer_immutability_and_authorization_boundaries",
+    "raw_validation_receipts_embedded": true,
+    "raw_validation_receipt_hash_contract": "sha256_of_dispatcher_canonical_json_plus_lf",
+    "generator_path_normalization_was_separate_and_hash_bound": true,
+    "temporary_artifacts_committed": false
+  }
+}

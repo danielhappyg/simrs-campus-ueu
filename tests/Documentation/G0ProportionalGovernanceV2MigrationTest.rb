@@ -16,6 +16,7 @@ class G0ProportionalGovernanceV2MigrationTest < Minitest::Test
   PHASE = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0')
   CONTRACT_PATH = File.join(PHASE, 'G0_GOVERNANCE_V2_CONTRACT.json')
   V1_MANIFEST_PATH = File.join(PHASE, 'G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json')
+  TEMP_PARENT = File.realpath(Dir.tmpdir)
   Generator = G0ProportionalGovernanceV2Generator
   Comparator = G0GovernanceV1V2Comparator
   Core = G0ProportionalGovernanceV2
@@ -26,7 +27,7 @@ class G0ProportionalGovernanceV2MigrationTest < Minitest::Test
     def ensure_fixture!
       return if @candidate
 
-      @fixture_root = Dir.mktmpdir('g0-v2-migration-', '/private/tmp')
+      @fixture_root = Dir.mktmpdir('g0-v2-migration-', TEMP_PARENT)
       @candidate = File.join(@fixture_root, 'candidate')
       Generator.generate!(root: ROOT, output: @candidate)
     end
@@ -219,7 +220,7 @@ class G0ProportionalGovernanceV2MigrationTest < Minitest::Test
       assert_raises(Comparator::ComparisonError) { Comparator.load_closed_candidate!(Pathname.new(candidate)) }
     end
 
-    Dir.mktmpdir('g0-v2-candidate-link-', '/private/tmp') do |temp|
+    Dir.mktmpdir('g0-v2-candidate-link-', TEMP_PARENT) do |temp|
       link = File.join(temp, 'candidate-link')
       File.symlink(@candidate, link)
       assert_raises(Comparator::ComparisonError) { Comparator.compare!(root: ROOT, candidate_bundle: link) }
@@ -307,7 +308,7 @@ class G0ProportionalGovernanceV2MigrationTest < Minitest::Test
   end
 
   def with_candidate_copy
-    Dir.mktmpdir('g0-v2-migration-copy-', '/private/tmp') do |temp|
+    Dir.mktmpdir('g0-v2-migration-copy-', TEMP_PARENT) do |temp|
       candidate = File.join(temp, 'candidate')
       FileUtils.cp_r(@candidate, candidate)
       yield candidate

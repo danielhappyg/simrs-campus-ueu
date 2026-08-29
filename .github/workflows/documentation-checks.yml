@@ -75,8 +75,8 @@ jobs:
           abort(failures.join("\n")) unless failures.empty?
           puts "Validated #{files.length} Markdown files"
 
-      - name: Test all proportional G0 governance v2 contracts
-        shell: ruby -Itests {0}
+      - name: Check proportional G0 governance v2 contract discovery
+        shell: ruby {0}
         run: |
           required = %w[
             tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
@@ -87,6 +87,7 @@ jobs:
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
             tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
             tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
+            tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
             tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
             tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
             tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
@@ -100,10 +101,28 @@ jobs:
             ]
           ).uniq.sort
           abort("Governance v2 planning-test set drifted: #{actual.inspect}") unless actual == required
-          actual.each { |file| require File.expand_path(file) }
+          puts "Discovered #{actual.length} closed governance-v2 contract suites"
+
+      - name: Test proportional G0 governance v2 proposal contract
+        run: ruby -Itests tests/Documentation/G0ProportionalGovernanceV2ProposalTest.rb
+
+      - name: Test proportional G0 governance v2 architecture decision
+        run: ruby -Itests tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
+
+      - name: Test proportional G0 governance v2 independent review
+        run: ruby -Itests tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
+
+      - name: Test proportional G0 governance v2 adoption draft
+        run: ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
+
+      - name: Test proportional G0 governance v2 implementation blueprint
+        run: ruby -Itests tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
+
+      - name: Test proportional G0 governance v2 adoption decision
+        run: ruby -Itests tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
 
       - name: Test parity governance validator
-        run: ruby tests/Documentation/ParityGovernanceValidatorTest.rb
+        run: ruby -Itests tests/Documentation/ParityGovernanceValidatorTest.rb
 
       - name: Validate parity governance integrity
         run: ruby scripts/validate-parity-governance.rb --mode integrity
@@ -114,8 +133,90 @@ jobs:
       - name: Test G0/S0 institutional intake compatibility
         run: ruby -Itests tests/Documentation/G0S0IntakeContractTest.rb
 
+      - name: Test proportional G0 governance v2 validator
+        run: ruby -Itests tests/Documentation/G0ProportionalGovernanceV2ValidatorTest.rb
+
+      - name: Test proportional G0 governance v2 generator
+        run: ruby -Itests tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
+
+      - name: Test proportional G0 governance v2 migration parity
+        run: ruby -Itests tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb
+
+      - name: Test G0 governance consumer pointer mechanics
+        run: ruby -Itests tests/Documentation/G0GovernanceConsumerPointerTest.rb
+
+      - name: Test G0 governance profile dispatch
+        run: ruby -Itests tests/Documentation/G0GovernanceProfileDispatchTest.rb
+
+      - name: Test schema-v2 G0-G3 coverage evidence map
+        run: ruby -Itests tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
+
       - name: Test current G0-G3 coverage ledger contract
-        run: ruby tests/Documentation/G0G3CoverageLedgerTest.rb
+        run: ruby -Itests tests/Documentation/G0G3CoverageLedgerTest.rb
+
+      - name: Observe candidate-only dual governance integrity without activation
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          observation_root="$(mktemp -d "$PWD/.g0-governance-v2-ci-observation.XXXXXX")"
+          case "$observation_root" in
+            "$PWD"/.g0-governance-v2-ci-observation.*) ;;
+            *) echo "Unsafe observation directory" >&2; exit 1 ;;
+          esac
+          chmod 700 "$observation_root"
+          cleanup() {
+            rm -rf -- "$observation_root"
+          }
+          trap cleanup EXIT
+
+          candidate_dir="$observation_root/candidate"
+          receipt_path="$observation_root/dual-integrity-receipt.json"
+          pointer_path="$PWD/docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER.json"
+          pointer_state() {
+            if [ -L "$pointer_path" ]; then
+              echo "Canonical consumer pointer is a symlink" >&2
+              return 1
+            fi
+            if [ -e "$pointer_path" ]; then
+              if [ ! -f "$pointer_path" ]; then
+                echo "Canonical consumer pointer is not a regular file" >&2
+                return 1
+              fi
+              ruby -rdigest -e 'puts "present:#{Digest::SHA256.file(ARGV.fetch(0)).hexdigest}"' "$pointer_path"
+            else
+              printf '%s\n' 'absent'
+            fi
+          }
+
+          pointer_before="$(pointer_state)"
+          test ! -e "$receipt_path"
+          ruby scripts/generate-g0-proportional-governance-v2.rb --root "$PWD" --output "$candidate_dir"
+          ruby scripts/validate-g0-governance.rb --profile dual --mode integrity --source candidate --candidate-bundle "$candidate_dir" --adoption-decision docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json --json-receipt "$receipt_path"
+          test -f "$receipt_path"
+          test ! -L "$receipt_path"
+          ruby -rjson -e '
+            receipt = JSON.parse(File.binread(ARGV.fetch(0)))
+            expected = {
+              "operation" => "validate",
+              "profile" => "dual",
+              "mode" => "integrity",
+              "source" => "candidate",
+              "status" => "PASS",
+              "reason_code" => "dual_candidate_observation_passed",
+              "secret_scan_passed" => true
+            }
+            expected.each { |key, value| abort("Unexpected observation receipt #{key}") unless receipt[key] == value }
+            scan = receipt.reject { |key, _value| key == "secret_scan_passed" }.to_json
+            secret = /(?:-----BEGIN (?:RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----|\bBearer\s+[A-Za-z0-9._~+\/-]{8,}|\b(?:password|passphrase|api[_ -]?key|client[_ -]?secret|access[_ -]?token|refresh[_ -]?token|private[_ -]?key)\s*[:=]\s*[^\s,}]+)/i
+            abort("Observation receipt contains secret-like content") if scan.match?(secret)
+          ' "$receipt_path"
+          pointer_after="$(pointer_state)"
+          test "$pointer_before" = "$pointer_after"
+
+      - name: Test governance v2 local observation receipt contract
+        run: ruby -Itests tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
 
       - name: Check current schema-v2 G0-G3 coverage ledger observation
         run: ruby scripts/generate-g0-g3-coverage-ledger.rb --check --snapshot-date 2026-08-29 --schema-version 2

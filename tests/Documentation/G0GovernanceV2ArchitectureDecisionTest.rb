@@ -150,9 +150,9 @@ class G0GovernanceV2ArchitectureDecisionTest < Minitest::Test
 
   def test_current_v1_cli_ci_and_ledger_facts_are_not_misrepresented
     assert_includes @validator, "opts.on('--mode MODE', %w[integrity g0]"
-    assert_includes @ci, 'ruby tests/Documentation/ParityGovernanceValidatorTest.rb'
+    assert_includes @ci, 'ruby -Itests tests/Documentation/ParityGovernanceValidatorTest.rb'
     assert_includes @ci, 'ruby scripts/validate-parity-governance.rb --mode integrity'
-    assert_includes @ci, 'ruby tests/Documentation/G0G3CoverageLedgerTest.rb'
+    assert_includes @ci, 'ruby -Itests tests/Documentation/G0G3CoverageLedgerTest.rb'
     assert_includes @ledger_generator, "'status' => 'OPEN'"
     assert_includes @ledger_generator, "'decision_pointer' =>"
     assert_includes @adr, 'The current ledger\'s per-capability governance presence comes from immutable pending A–G rows and its formal gate is intentionally hardcoded `OPEN`.'
