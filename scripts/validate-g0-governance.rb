@@ -9,6 +9,8 @@ require 'pathname'
 require 'rbconfig'
 require 'time'
 
+require_relative 'select-g0-governance-consumer'
+
 # Thin, observation-only profile dispatcher for G0 governance validation.
 #
 # This file intentionally contains no governance rule, owner-authority rule, or
@@ -31,6 +33,9 @@ module G0GovernanceProfileDispatcher
     'v1' => 'validate-parity-governance/unchanged',
     'v2' => 'g0-proportional-governance-v2/1.0.0'
   }.freeze
+  ACTIVE_VALIDATOR_CONTRACT = VALIDATOR_CONTRACT.merge(
+    'dispatcher' => 'validate-g0-governance/1.1.0-wave5-active-read-only'
+  ).freeze
   RECEIPT_KEYS = %w[
     schema_version operation_id operation profile mode source status reason_code
     message actor started_at finished_at planning_baseline adoption_sha256
@@ -129,20 +134,77 @@ module G0GovernanceProfileDispatcher
 
   def dispatch(options, root, stdout, stderr, env)
     profile = options.fetch(:profile)
-    return active_not_ready(stdout, stderr) if options[:source] == 'active'
     return run_v1(options.fetch(:mode), root, stdout, stderr, env) if profile == 'v1'
+
+    if options[:source] == 'active'
+      begin
+        resolution = resolve_active(root, env)
+      rescue G0GovernanceConsumerSelector::ResolutionError => e
+        return active_resolution_failure(options.fetch(:mode), e.reason_code, stderr)
+      end
+      delegated = options.merge(
+        candidate_bundle: resolution.fetch(:bundle_path).to_s,
+        adoption_decision: resolution.fetch(:adoption_path).to_s
+      )
+      result = profile == 'v2' ? run_v2(delegated, root, stdout, stderr, env) : run_dual(delegated, root, stdout, stderr, env)
+      return result unless result.fetch(:exit_code).zero?
+
+      begin
+        confirmed = resolve_active(root, env)
+      rescue G0GovernanceConsumerSelector::ResolutionError => e
+        return active_resolution_failure(options.fetch(:mode), e.reason_code, stderr)
+      end
+      unless same_active_resolution?(resolution, confirmed)
+        stderr.puts('validation_failed: active_source_snapshot_changed')
+        return {
+          exit_code: 1,
+          status: 'FAIL',
+          reason_code: 'active_snapshot_changed',
+          message: 'The active consumer changed during validation; the observation failed closed without exposing stale hashes.'
+        }
+      end
+      return result.merge(active_resolution: resolution)
+    end
+
     return run_v2(options, root, stdout, stderr, env) if profile == 'v2'
 
     run_dual(options, root, stdout, stderr, env)
   end
 
-  def active_not_ready(_stdout, stderr)
-    stderr.puts('validation_not_ready: active_source_resolver_not_ready_wave5')
+  def resolve_active(root, env)
+    G0GovernanceConsumerSelector::ReadOnlyResolver.resolve_active!(root: root, env: env)
+  end
+
+  def same_active_resolution?(first, second)
+    keys = %i[
+      pointer_sha256 selection_sha256 bundle_sha256 adoption_sha256
+      operation_decision_sha256 validator_contract
+    ]
+    keys.all? { |key| first.fetch(key) == second.fetch(key) }
+  end
+
+  def active_resolution_failure(mode, reason_code, stderr)
+    if mode == 'g0' && %w[pointer_held pointer_disabled].include?(reason_code)
+      state = reason_code.delete_prefix('pointer_')
+      return {
+        exit_code: 0,
+        status: 'OPEN',
+        reason_code: "active_pointer_#{state}_g0_open",
+        message: "The validated #{state} consumer state is non-operative and forces G0 and G3 OPEN."
+      }
+    end
+
+    safe_reason = if G0GovernanceConsumerSelector::RESOLUTION_REASON_CODES.include?(reason_code)
+                    reason_code
+                  else
+                    'pointer_contract_invalid'
+                  end
+    stderr.puts("validation_failed: active_source_#{safe_reason}")
     {
       exit_code: 1,
-      status: 'NOT_READY',
-      reason_code: 'active_source_resolver_not_ready_wave5',
-      message: 'Active-source validation is unavailable until the shared read-only Wave 5 resolver exists.'
+      status: 'FAIL',
+      reason_code: "active_#{safe_reason}",
+      message: 'Active-source governance validation failed closed without exposing an unvalidated selection or bundle.'
     }
   end
 
@@ -156,6 +218,16 @@ module G0GovernanceProfileDispatcher
   def run_v2(options, root, stdout, stderr, env)
     result = run_child(v2_command(options, root), CANONICAL_ROOT, env)
     stderr.write(result.fetch(:stderr)) unless result.fetch(:exit_code).zero?
+    if options.fetch(:source) == 'active'
+      return validation_result(
+        result,
+        'active_v2_validation_passed',
+        'active_v2_validation_failed',
+        'Active governance-v2 validation',
+        open_on_success: options.fetch(:mode) == 'g0',
+        open_reason: 'active_v2_g0_open'
+      )
+    end
     validation_result(
       result,
       'v2_candidate_validation_passed',
@@ -189,16 +261,23 @@ module G0GovernanceProfileDispatcher
     codes = [v1, v2, comparison].map { |result| result.fetch(:exit_code) }
     code = codes.include?(2) ? 2 : (codes.all?(&:zero?) ? 0 : 1)
     observation_open = code.zero? && options.fetch(:mode) == 'g0'
+    active = options.fetch(:source) == 'active'
     {
       exit_code: code,
       status: observation_open ? 'OPEN' : (code.zero? ? 'PASS' : 'FAIL'),
-      reason_code: observation_open ? 'dual_g0_observation_open' : (code.zero? ? 'dual_candidate_observation_passed' : (code == 2 ? 'delegated_invalid_usage' : 'dual_candidate_observation_failed')),
+      reason_code: if observation_open
+                     active ? 'dual_active_g0_open' : 'dual_g0_observation_open'
+                   elsif code.zero?
+                     active ? 'dual_active_observation_passed' : 'dual_candidate_observation_passed'
+                   else
+                     code == 2 ? 'delegated_invalid_usage' : (active ? 'dual_active_observation_failed' : 'dual_candidate_observation_failed')
+                   end,
       message: if observation_open
-                 'Dual candidate observation is valid and G0 remains OPEN without changing the active consumer.'
+                 active ? 'Dual active observation is valid and G0 remains OPEN.' : 'Dual candidate observation is valid and G0 remains OPEN without changing the active consumer.'
                elsif code.zero?
-                 'Dual candidate observation passed without changing the active consumer.'
+                 active ? 'Dual active observation passed without changing the active consumer.' : 'Dual candidate observation passed without changing the active consumer.'
                else
-                 'Dual candidate observation failed closed without changing the active consumer.'
+                 active ? 'Dual active observation failed closed without changing the active consumer.' : 'Dual candidate observation failed closed without changing the active consumer.'
                end
     }
   end
@@ -228,20 +307,21 @@ module G0GovernanceProfileDispatcher
     stderr.write(result.fetch(:stderr))
   end
 
-  def validation_result(result, pass_reason, fail_reason, label, open_on_success: false)
+  def validation_result(result, pass_reason, fail_reason, label, open_on_success: false, open_reason: 'g0_observation_open')
     code = result.fetch(:exit_code)
     observation_open = code.zero? && open_on_success
     {
       exit_code: code,
       status: observation_open ? 'OPEN' : (code.zero? ? 'PASS' : 'FAIL'),
-      reason_code: observation_open ? 'g0_observation_open' : (code.zero? ? pass_reason : (code == 2 ? 'delegated_invalid_usage' : fail_reason)),
+      reason_code: observation_open ? open_reason : (code.zero? ? pass_reason : (code == 2 ? 'delegated_invalid_usage' : fail_reason)),
       message: observation_open ? "#{label} is valid and G0 remains OPEN." : (code.zero? ? "#{label} passed." : "#{label} failed closed.")
     }
   end
 
   def build_receipt(options, root, result, started_at, finished_at)
-    adoption_sha = options[:adoption_decision] && file_sha_if_regular(resolve_input_path(options[:adoption_decision], root))
-    bundle_sha = options[:candidate_bundle] && file_sha_if_regular(File.join(resolve_input_path(options[:candidate_bundle], root), BUNDLE_MANIFEST))
+    resolution = result[:active_resolution]
+    adoption_sha = resolution ? resolution.fetch(:adoption_sha256) : (options[:adoption_decision] && file_sha_if_regular(resolve_input_path(options[:adoption_decision], root)))
+    bundle_sha = resolution ? resolution.fetch(:bundle_sha256) : (options[:candidate_bundle] && file_sha_if_regular(File.join(resolve_input_path(options[:candidate_bundle], root), BUNDLE_MANIFEST)))
     core = {
       'schema_version' => 1,
       'operation' => 'validate',
@@ -254,11 +334,15 @@ module G0GovernanceProfileDispatcher
       'actor' => 'local_operator',
       'planning_baseline' => PLANNING_BASELINE,
       'adoption_sha256' => adoption_sha,
-      'activation_sha256' => nil,
-      'prior_pointer_sha256' => nil,
-      'selection_sha256' => nil,
+      'activation_sha256' => resolution && resolution.fetch(:operation_decision_sha256),
+      'prior_pointer_sha256' => resolution && resolution.fetch(:pointer).fetch('predecessor_pointer_sha256'),
+      'selection_sha256' => resolution && resolution.fetch(:selection_sha256),
       'bundle_sha256' => bundle_sha,
-      'validator_contract' => VALIDATOR_CONTRACT,
+      'validator_contract' => if resolution
+                                ACTIVE_VALIDATOR_CONTRACT.merge('active_resolver' => resolution.fetch(:validator_contract))
+                              else
+                                VALIDATOR_CONTRACT
+                              end,
       'secret_scan_passed' => true
     }
     operation_id = "G0-VALIDATE-#{Digest::SHA256.hexdigest(canonical_json(core))[0, 24].upcase}"

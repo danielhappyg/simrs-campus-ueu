@@ -7,10 +7,12 @@ require 'minitest/autorun'
 require 'open3'
 require 'pathname'
 require 'rbconfig'
+require 'stringio'
 require 'tmpdir'
 
 require_relative '../../scripts/g0-proportional-governance-v2'
 require_relative '../../scripts/generate-g0-proportional-governance-v2'
+require_relative '../../scripts/validate-g0-governance'
 
 class G0GovernanceProfileDispatchTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
@@ -22,6 +24,9 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
   ADOPTION = File.join(PHASE, 'G0_GOVERNANCE_V2_ADOPTION_DECISION.json')
   V1_MANIFEST = File.join(PHASE, 'G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json')
   Core = G0ProportionalGovernanceV2
+  Dispatcher = G0GovernanceProfileDispatcher
+  Resolver = G0GovernanceConsumerSelector::ReadOnlyResolver
+  ResolutionError = G0GovernanceConsumerSelector::ResolutionError
 
   RECEIPT_KEYS = %w[
     schema_version operation_id operation profile mode source status reason_code
@@ -144,30 +149,139 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
     end
   end
 
-  def test_active_source_is_stable_fail_closed_not_ready_without_pointer_resolution
+  def test_active_invalid_pointer_states_fail_closed_under_test_root_guard
     v1_before = v1_current_hashes
     authority_paths_before = authority_path_inventory
 
-    %w[v2 dual].each do |profile|
-      receipt_path = File.join(@repo_tmp, "#{profile}-active.json")
-      first = run_dispatch(
-        '--profile', profile, '--mode', 'integrity', '--source', 'active',
-        '--json-receipt', receipt_path
-      )
-      second = run_dispatch('--profile', profile, '--mode', 'integrity', '--source', 'active')
+    with_selector_layout do |root|
+      %w[pointer_missing pointer_unreadable pointer_contract_invalid pointer_recovery_required].each do |reason|
+        pointer = File.join(root, G0GovernanceConsumerSelector::POINTER_RELATIVE_PATH)
+        marker = File.join(root, G0GovernanceConsumerSelector::RECOVERY_MARKER_RELATIVE_PATH)
+        File.binwrite(pointer, "{malformed\n") if reason == 'pointer_unreadable'
+        File.binwrite(pointer, "{}\n") if reason == 'pointer_contract_invalid'
+        File.binwrite(marker, "recovery required\n") if reason == 'pointer_recovery_required'
 
-      assert_equal 1, first.fetch(:exit), first
-      assert_equal 1, second.fetch(:exit), second
-      assert_equal second.fetch(:stderr), first.fetch(:stderr)
-      assert_equal "validation_not_ready: active_source_resolver_not_ready_wave5\n", first.fetch(:stderr)
-      assert File.file?(receipt_path), 'not-ready observation should honor an exclusive receipt request'
-      stdout_receipt = JSON.parse(first.fetch(:stdout))
-      assert_equal stdout_receipt, JSON.parse(File.binread(receipt_path))
-      assert_receipt(stdout_receipt, profile: profile, mode: 'integrity', status: 'NOT_READY')
-      assert_receipt(JSON.parse(second.fetch(:stdout)), profile: profile, mode: 'integrity', status: 'NOT_READY')
+        %w[v2 dual].product(%w[integrity g0]).each do |profile, mode|
+          argv = [
+            '--profile', profile, '--mode', mode, '--source', 'active', '--root', root,
+          ]
+          receipt_path = nil
+          if reason == 'pointer_missing' && profile == 'v2' && mode == 'integrity'
+            receipt_path = File.join(root, 'active-missing-receipt.json')
+            argv.concat(['--json-receipt', receipt_path])
+          end
+          result = run_dispatch(*argv, env: { 'G0_GOVERNANCE_V2_TEST_ROOT' => '1' })
+          assert_equal 1, result.fetch(:exit), [reason, profile, mode, result]
+          assert_equal "validation_failed: active_source_#{reason}\n", result.fetch(:stderr)
+          receipt = JSON.parse(result.fetch(:stdout))
+          assert_receipt(receipt, profile: profile, mode: mode, status: 'FAIL', source: 'active')
+          assert_equal "active_#{reason}", receipt.fetch('reason_code')
+          if receipt_path
+            assert_equal result.fetch(:stdout), File.binread(receipt_path)
+            assert_equal 0o600, File.stat(receipt_path).mode & 0o777
+          end
+        end
+
+        File.unlink(pointer) if File.exist?(pointer)
+        File.unlink(marker) if File.exist?(marker)
+      end
     end
 
     assert_equal v1_before, v1_current_hashes
+    assert_equal authority_paths_before, authority_path_inventory
+  end
+
+  def test_active_held_and_disabled_force_g0_open_but_fail_integrity_without_exposing_hashes
+    authority_paths_before = authority_path_inventory
+
+    with_selector_layout do |root|
+      %w[pointer_held pointer_disabled].each do |reason|
+        Resolver.stub(:resolve_active!, ->(**_arguments) { raise ResolutionError, reason }) do
+          %w[v2 dual].each do |profile|
+            integrity = run_dispatch_in_process(
+              '--profile', profile, '--mode', 'integrity', '--source', 'active', '--root', root,
+              env: { 'G0_GOVERNANCE_V2_TEST_ROOT' => '1' }
+            )
+            assert_equal 1, integrity.fetch(:exit), integrity
+            assert_receipt(JSON.parse(integrity.fetch(:stdout)), profile: profile, mode: 'integrity', status: 'FAIL', source: 'active')
+
+            g0 = run_dispatch_in_process(
+              '--profile', profile, '--mode', 'g0', '--source', 'active', '--root', root,
+              env: { 'G0_GOVERNANCE_V2_TEST_ROOT' => '1' }
+            )
+            assert_equal 0, g0.fetch(:exit), g0
+            assert_empty g0.fetch(:stderr)
+            receipt = JSON.parse(g0.fetch(:stdout))
+            assert_receipt(receipt, profile: profile, mode: 'g0', status: 'OPEN', source: 'active')
+            assert_equal "active_#{reason}_g0_open", receipt.fetch('reason_code')
+          end
+        end
+      end
+    end
+
+    assert_equal authority_paths_before, authority_path_inventory
+  end
+
+  def test_active_dispatch_delegates_once_to_shared_resolver_and_matches_candidate_validation
+    authority_paths_before = authority_path_inventory
+    bundle_manifest = File.join(@candidate, G0ProportionalGovernanceV2Generator::FILES.fetch('bundle_manifest'))
+    resolution = {
+      bundle_path: Pathname.new(@candidate),
+      bundle_sha256: Digest::SHA256.file(bundle_manifest).hexdigest,
+      adoption_path: Pathname.new(ADOPTION),
+      adoption_sha256: Digest::SHA256.file(ADOPTION).hexdigest,
+      operation_decision_sha256: 'a' * 64,
+      pointer_sha256: 'b' * 64,
+      pointer: { 'predecessor_pointer_sha256' => 'e' * 64 },
+      selection_sha256: 'c' * 64,
+      validator_contract: {
+        'name' => 'g0_proportional_governance_v2', 'version' => '1.0.0',
+        'path' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json',
+        'sha256' => Digest::SHA256.file(File.join(PHASE, 'G0_GOVERNANCE_V2_CONTRACT.json')).hexdigest
+      }
+    }
+    calls = []
+
+    Resolver.stub(:resolve_active!, lambda { |root:, env:|
+      calls << [root.to_s, env['G0_GOVERNANCE_V2_TEST_ROOT']]
+      resolution
+    }) do
+      %w[v2 dual].product(%w[integrity g0]).each do |profile, mode|
+        candidate = run_dispatch(
+          '--profile', profile, '--mode', mode, '--source', 'candidate',
+          '--candidate-bundle', @candidate, '--adoption-decision', ADOPTION
+        )
+        active = run_dispatch_in_process('--profile', profile, '--mode', mode, '--source', 'active')
+        assert_equal candidate.fetch(:exit), active.fetch(:exit), [profile, mode, active]
+        assert_empty active.fetch(:stderr)
+        candidate_receipt = JSON.parse(candidate.fetch(:stdout))
+        assert_equal 'validate-g0-governance/1.0.0-wave4-candidate-only', candidate_receipt.fetch('validator_contract').fetch('dispatcher')
+        receipt = JSON.parse(active.fetch(:stdout))
+        assert_receipt(receipt, profile: profile, mode: mode, status: mode == 'g0' ? 'OPEN' : 'PASS', source: 'active')
+        assert_equal resolution.fetch(:adoption_sha256), receipt.fetch('adoption_sha256')
+        assert_equal resolution.fetch(:operation_decision_sha256), receipt.fetch('activation_sha256')
+        assert_equal resolution.fetch(:pointer).fetch('predecessor_pointer_sha256'), receipt.fetch('prior_pointer_sha256')
+        assert_equal resolution.fetch(:selection_sha256), receipt.fetch('selection_sha256')
+        assert_equal resolution.fetch(:bundle_sha256), receipt.fetch('bundle_sha256')
+        assert_equal 'validate-g0-governance/1.1.0-wave5-active-read-only', receipt.fetch('validator_contract').fetch('dispatcher')
+        assert_equal resolution.fetch(:validator_contract), receipt.fetch('validator_contract').fetch('active_resolver')
+        assert_empty Core.secret_locations(receipt.reject { |key, _value| key == 'secret_scan_passed' })
+      end
+    end
+
+    assert_equal 8, calls.length
+    assert calls.all? { |root, guard| root == ROOT && guard.nil? }, calls.inspect
+
+    sequence = [resolution, resolution.merge(pointer_sha256: 'd' * 64)]
+    Resolver.stub(:resolve_active!, ->(**_arguments) { sequence.shift }) do
+      changed = run_dispatch_in_process('--profile', 'v2', '--mode', 'integrity', '--source', 'active')
+      assert_equal 1, changed.fetch(:exit), changed
+      assert_equal "validation_failed: active_source_snapshot_changed\n", changed.fetch(:stderr)
+      changed_receipt = JSON.parse(changed.fetch(:stdout))
+      assert_receipt(changed_receipt, profile: 'v2', mode: 'integrity', status: 'FAIL', source: 'active')
+      assert_equal 'active_snapshot_changed', changed_receipt.fetch('reason_code')
+    end
+
     assert_equal authority_paths_before, authority_path_inventory
   end
 
@@ -395,10 +509,12 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
     refute_equal 0, guarded.fetch(:exit)
   end
 
-  def test_wave4_scripts_contain_no_selector_pointer_or_activation_mutation_logic
+  def test_dispatcher_uses_one_shared_read_only_resolver_and_contains_no_pointer_or_activation_mutation_logic
     forbidden = [
-      /select-g0-governance-consumer/,
       /G0_GOVERNANCE_CONSUMER_POINTER/,
+      /POINTER_RELATIVE_PATH/,
+      /resolve_pointer!/,
+      /\.execute!\(/,
       /File\.rename/,
       /FileUtils/,
       /LOCK_EX/,
@@ -410,12 +526,26 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
         refute_match pattern, source, "#{File.basename(path)} must not implement Wave 5 pointer/activation mechanics"
       end
     end
+
+    dispatcher_source = File.binread(DISPATCHER)
+    assert_includes dispatcher_source, "require_relative 'select-g0-governance-consumer'"
+    assert_equal 1, dispatcher_source.scan('ReadOnlyResolver.resolve_active!').length
   end
 
   private
 
-  def run_dispatch(*argv)
-    run_cli(DISPATCHER, *argv)
+  def run_dispatch(*argv, env: {})
+    run_cli(DISPATCHER, *argv, env: env)
+  end
+
+  def run_dispatch_in_process(*argv, env: {})
+    stdout = StringIO.new
+    stderr = StringIO.new
+    exit_code = Dispatcher.run_cli(
+      argv, stdout: stdout, stderr: stderr,
+      env: ENV.to_h.merge(env)
+    )
+    { stdout: stdout.string, stderr: stderr.string, exit: exit_code }
   end
 
   def run_cli(script, *argv, env: {})
@@ -443,19 +573,35 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
     JSON.parse(lines.fetch(0))
   end
 
-  def assert_receipt(receipt, profile:, mode:, status:)
+  def assert_receipt(receipt, profile:, mode:, status:, source: 'candidate')
     assert_equal RECEIPT_KEYS.sort, receipt.keys.sort
     assert_equal 1, receipt.fetch('schema_version')
     assert_equal profile, receipt.fetch('profile')
     assert_equal mode, receipt.fetch('mode')
-    assert_equal 'candidate', receipt.fetch('source') unless status == 'NOT_READY'
+    assert_equal source, receipt.fetch('source')
     assert_equal status, receipt.fetch('status')
     assert_equal true, receipt.fetch('secret_scan_passed')
+    assert_empty Core.secret_locations(receipt.reject { |key, _value| key == 'secret_scan_passed' })
     assert_equal 64, receipt.fetch('adoption_sha256').length if receipt.fetch('adoption_sha256')
-    %w[activation_sha256 prior_pointer_sha256 selection_sha256].each do |field|
-      assert_nil receipt.fetch(field)
+    if source == 'candidate' || status == 'FAIL' || (source == 'active' && status == 'OPEN' && receipt.fetch('adoption_sha256').nil?)
+      %w[activation_sha256 prior_pointer_sha256 selection_sha256].each do |field|
+        assert_nil receipt.fetch(field)
+      end
     end
     receipt
+  end
+
+  def with_selector_layout
+    Dir.mktmpdir('g0-wave5-dispatch-root-', '/private/tmp') do |root|
+      File.chmod(0o700, root)
+      [
+        G0GovernanceConsumerSelector::PHASE0_RELATIVE_PATH,
+        G0GovernanceConsumerSelector::SELECTIONS_RELATIVE_PATH,
+        G0GovernanceConsumerSelector::DECISIONS_RELATIVE_PATH,
+        G0GovernanceConsumerSelector::JOURNAL_RELATIVE_PATH
+      ].each { |relative| FileUtils.mkdir_p(File.join(root, relative)) }
+      yield root
+    end
   end
 
   def v1_current_hashes
@@ -475,9 +621,12 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
 
   def authority_path_inventory
     patterns = %w[
-      G0_GOVERNANCE_CONSUMER_POINTER.json G0_GOVERNANCE_V2_SELECTIONS
-      G0_GOVERNANCE_V2_ACTIVATION_DECISIONS G0_GOVERNANCE_V2_JOURNAL
-      G0_GOVERNANCE_V2_LOCK
+      G0_GOVERNANCE_CONSUMER_POINTER.json
+      G0_GOVERNANCE_CONSUMER_POINTER_RECOVERY_REQUIRED.json
+      G0_GOVERNANCE_CONSUMER_SELECTIONS
+      G0_GOVERNANCE_V2_ACTIVATION_DECISIONS
+      G0_GOVERNANCE_CONSUMER_JOURNAL
+      G0_GOVERNANCE_CONSUMER_SELECTION.lock
     ]
     Dir.glob(File.join(PHASE, '**', '*'), File::FNM_DOTMATCH).select do |path|
       patterns.any? { |pattern| File.basename(path).include?(pattern) }

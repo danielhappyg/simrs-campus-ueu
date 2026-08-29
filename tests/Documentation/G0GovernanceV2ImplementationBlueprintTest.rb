@@ -20,6 +20,7 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
   }.freeze
   CURRENT_V2_GOVERNANCE_TESTS = %w[
     tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
+    tests/Documentation/G0GovernanceConsumerPointerTest.rb
     tests/Documentation/G0GovernanceProfileDispatchTest.rb
     tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
     tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
@@ -153,7 +154,10 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
   def test_current_v2_governance_contract_discovery_is_closed_and_complete
     discovered = (
       Dir[File.join(ROOT, 'tests/Documentation/G0*V2*Test.rb')] +
-      [File.join(ROOT, 'tests/Documentation/G0GovernanceProfileDispatchTest.rb')]
+      %w[
+        tests/Documentation/G0GovernanceConsumerPointerTest.rb
+        tests/Documentation/G0GovernanceProfileDispatchTest.rb
+      ].map { |path| File.join(ROOT, path) }
     )
       .uniq
       .sort
