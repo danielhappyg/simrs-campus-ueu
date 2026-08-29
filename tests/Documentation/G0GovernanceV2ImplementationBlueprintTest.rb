@@ -19,6 +19,7 @@ class G0GovernanceV2ImplementationBlueprintTest < Minitest::Test
     'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION_DRAFT_2026-08-28.json' => ADOPTION_DRAFT_PATH
   }.freeze
   CURRENT_V2_GOVERNANCE_TESTS = %w[
+    tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
     tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
     tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
     tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb

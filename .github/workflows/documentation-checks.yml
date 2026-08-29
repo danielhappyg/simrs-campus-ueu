@@ -79,6 +79,7 @@ jobs:
         shell: ruby -Itests {0}
         run: |
           required = %w[
+            tests/Documentation/G0G3CoverageEvidenceMapV2Test.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
