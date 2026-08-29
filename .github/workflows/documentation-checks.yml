@@ -117,6 +117,9 @@ jobs:
       - name: Test current G0-G3 coverage ledger contract
         run: ruby tests/Documentation/G0G3CoverageLedgerTest.rb
 
+      - name: Check current schema-v2 G0-G3 coverage ledger observation
+        run: ruby scripts/generate-g0-g3-coverage-ledger.rb --check --snapshot-date 2026-08-29 --schema-version 2
+
       - name: Test Production promotion readiness preflight contract
         run: ruby tests/Documentation/ProductionPromotionReadinessPreflightContractTest.rb
 

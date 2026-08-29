@@ -1,10 +1,12 @@
 # Phase 0 — Program and repository foundation
 
-Status: **in progress** (historical demo scaffolding exists; formal institutional owner authority remains open)
-Gate: **G0 — OPEN** for Teaching Parity Release 1.0; the earlier interim ASAP-demo checkpoint was not formal parity acceptance
+Status: **in progress** (governance v2 adopted for local implementation; no active governance consumer)
+Gate: **G0 — OPEN** and **G3 — OPEN** for Teaching Parity Release 1.0
 Product owner: Daniel Happy Putra (DEC-001 confirmed for now); RMIK Department named (DEC-011)
 
-The later [G0 parity-control baseline](G0_PARITY_CONTROL_BASELINE_2026-08-25.md), [owner appointment pack](G0_OWNER_APPOINTMENT_PACK_2026-08-25.md), and machine registers supersede the older interim wording for formal G0. No named institutional appointments, S0-S7 sessions, or terminal owner decisions are currently recorded.
+The exact governance-v2 proposal and ADR-018 were adopted through [`G0_GOVERNANCE_V2_ADOPTION_DECISION.json`](G0_GOVERNANCE_V2_ADOPTION_DECISION.json). That decision authorizes local governance-v2 implementation only. It does not activate a consumer, decide a capability, authorize a slice, deploy an application, accept a hosted/domain result, close project G0, or establish G3 acceptance.
+
+As observed by the dated 2026-08-29 Wave 6 artifact, the canonical consumer pointer is absent, so the active governance resolution is `pointer_missing`. No candidate or implementation evidence is operative governance authority. That observation keeps every `governance_decision_pointer` null and both G0 and G3 `OPEN`; a later state change requires a separate authorized operation and a new dated observation.
 
 ## Purpose
 
@@ -22,6 +24,10 @@ Establish ownership, decision rights, evidence structure, environment boundaries
 | `ENVIRONMENT_AND_CREDENTIAL_BASELINE.md` | Synthetic-only and secret/endpoint boundary checklist |
 | `G0_OWNER_GOVERNANCE_SNAPSHOT_PLAN_2026-08-25.json` | Closed, digest-free snapshot identity/revision/timestamp plan for deterministic owner-policy generation |
 | `G0_S0_INSTITUTIONAL_AUTHORITY_INTAKE_2026-08-26.md` | Fail-closed institutional choice and seven/eight-person authority-roster intake for S0 |
+| `G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json` | Exact closed hash inventory that preserves v1 artifacts and tests as immutable historical evidence |
+| `G0_GOVERNANCE_V2_ADOPTION_DECISION.json` | Immutable product-owner adoption record; authority is limited to local governance-v2 implementation |
+| `G0_GOVERNANCE_V2_CONTRACT.json` | Machine-readable closed governance-v2 states, rules, tiers, outcomes, and source bindings |
+| `G0_GOVERNANCE_V2_IMPLEMENTATION_BLUEPRINT_2026-08-28.md` | Ordered implementation waves and separate authority gates; not a capability or release decision |
 
 ## Historical interim demo-scaffolding checklist
 
@@ -38,11 +44,24 @@ The checked items below describe the earlier synthetic-demo planning baseline on
 - [ ] Distinct UEU executive sponsor (interim cover accepted for ASAP demo)
 - [ ] Privacy-reviewed git intake of `docs/legacy-visual-field-capture/` (still untracked locally)
 
-## Formal G0 exit remains open
+## Separate governance and release states
 
-Formal G0 requires verified institutional identities and public keys, approved owner-authority policy, active appointments, signed S0-S7 sessions, and terminal attributable dispositions for all 268 capabilities. Current progress and fail-closed requirements are governed by `G0_PARITY_CONTROL_BASELINE_2026-08-25.md` and `G0_OWNER_APPOINTMENT_PACK_2026-08-25.md`.
+These states must never be collapsed into one readiness claim:
 
-The unsigned proposal is now generated from the explicit snapshot plan. Generate only into a new candidate directory, verify the isolated bundle, and review its hashes before promoting canonical files:
+1. **Immutable v1 historical integrity** means the closed 30-file v1 inventory still matches its planning-baseline hashes. It preserves history; v1 is not silently reactivated or rewritten by v2.
+2. **Governance-v2 adoption** is effective only for local governance implementation under the synthetic/no-live boundary.
+3. **Candidate validity** means a candidate passes the v2 contract, exact 268-row migration parity, and immutable-v1 checks. Candidate PASS is observational and does not select it.
+4. **Active consumer selection** requires a separate attributable operation decision plus successful atomic pointer publication. No such canonical selection exists now.
+5. **Capability disposition and slice authorization** require separate product-owner, affected-domain, co-owner, and independent-review/control decisions as dictated by the derived tier. Adoption and activation cannot supply these decisions.
+6. **Project G0** is recomputed across all 268 current governance entries. It remains `OPEN` unless every required owner-governance condition is complete and matches the active gate register.
+7. **Hosted and domain acceptance** require separate current, exact-SHA evidence and attributable acceptance; local tests, deployment, or file presence do not supply them.
+8. **G3** is separate from G0 and additionally requires current engineering evidence, hosted role UAT, reconciliation, recovery, security, accessibility, performance, defect closure, and owner acceptance. G3 remains `OPEN`.
+
+Engineering maps, tests, receipts, journals, generators, comparison output, and ledger evidence are non-authoritative for owner identity, capability disposition, slice authorization, or gate promotion.
+
+## Historical v1 verification
+
+The v1 authority and owner artifacts remain byte-preserved and runnable as historical integrity evidence. Their earlier institutional PKI and S0–S7 ceremony is not rewritten into proportional v2 authority. The unsigned v1 proposal generator remains available only for historical verification and candidate isolation. Generate only into a new candidate directory and verify its hashes; do not promote it as governance-v2 authority:
 
 ```bash
 ruby scripts/generate-g0-owner-governance-snapshot.rb \
@@ -53,14 +72,25 @@ ruby scripts/generate-g0-owner-governance-snapshot.rb \
   --verify-bundle /absolute/new/candidate-directory
 ```
 
-The generator refuses an existing output directory, derives all source digests from the exact A-G files, and never overwrites canonical governance artifacts. Run `ruby scripts/validate-parity-governance.rb --mode integrity` and `ruby scripts/validate-g0-s0-intake.rb --mode integrity` after reviewed promotion. `--mode g0` must remain red until real institutional approval and all 268 terminal decisions exist.
+The generator refuses an existing output directory, derives all source digests from the exact A–G files, and never overwrites canonical governance artifacts. Run `ruby scripts/validate-parity-governance.rb --mode integrity` and `ruby scripts/validate-g0-s0-intake.rb --mode integrity` to verify the preserved v1 surface. A historical v1 gate result does not select a governance consumer or promote the schema-v2 ledger.
+
+## Active-pointer and recovery behavior
+
+The schema-v2 ledger keeps the immutable `source_decision_pointer` separate from the nullable `governance_decision_pointer`. The source pointer provides A–G provenance only. A current governance pointer may be populated only through a complete, active, hash-valid pointer → selection → bundle → expanded decision chain.
+
+A missing, unreadable, recovery-required, held, disabled, ambiguous, or otherwise invalid canonical resolution forces all current governance pointers to null and project G0/G3 to `OPEN`. Rollback publishes a new `rollback_hold` selection; recovery publishes a new `recovery_hold` or `disabled` selection. None reactivates an older activation or v1, and reuse requires a fresh, separately authorized activation.
+
+Active-snapshot drift, a stale ledger binding, a changed selection/bundle/register hash, a capability row/order mismatch, or an independently recomputed gate mismatch instead makes generation or checking fail with no new ledger publication. An older mismatched ledger cannot be accepted as current evidence.
+
+See [`../G0_G3_COVERAGE_LEDGER_README.md`](../G0_G3_COVERAGE_LEDGER_README.md) for the dated schema-v2 observation and gate interpretation.
 
 ## Explicit non-goals of Phase 0
 
 - Mass generation of 268 menu pages
 - Parity dispositions beyond scaffolding (Phase 1)
-- Push, deploy, production integration enablement
+- Consumer activation, capability/slice authorization, push, deployment, hosted migration, or domain/G3 acceptance without their separate decisions
 - Old-system data migration
+- Real patient data or live BPJS, VClaim, SATUSEHAT, payment, LIS, PACS, device, or other external integration
 
 ## Related sources
 

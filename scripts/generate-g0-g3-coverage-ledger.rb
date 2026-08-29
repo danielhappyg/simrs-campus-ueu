@@ -8,6 +8,10 @@ require 'optparse'
 require 'pathname'
 require 'tempfile'
 
+require_relative 'compare-g0-governance-v1-v2'
+require_relative 'generate-g0-g3-coverage-evidence-map-v2'
+require_relative 'select-g0-governance-consumer'
+
 class G0G3CoverageLedger
   class ContractError < StandardError; end
 
@@ -480,24 +484,808 @@ class G0G3CoverageLedger
   end
 end
 
+# Schema-v2 is a separate bridge. The historical G0G3CoverageLedger class and
+# its default CLI path above remain the byte-for-byte schema-v1 contract.
+module G0G3CoverageLedgerV2
+  class Error < StandardError; end
+  class UsageError < Error; end
+
+  Core = G0ProportionalGovernanceV2
+  Comparator = G0GovernanceV1V2Comparator
+  EvidenceMap = G0G3CoverageEvidenceMapV2
+  Selector = G0GovernanceConsumerSelector
+
+  SNAPSHOT_DATE = '2026-08-29'
+  OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json'
+  EVIDENCE_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json'
+  CONTRACT_PATH = Comparator::CONTRACT_PATH
+  V1_MANIFEST_PATH = Comparator::V1_MANIFEST_PATH
+  SOURCE_MANIFEST_PATH = Comparator::SOURCE_MANIFEST_PATH
+  SOURCE_EVIDENCE_MAP_PATH = Comparator::EVIDENCE_MAP_PATH
+  OWNER_POLICY_PATH = Comparator::OWNER_POLICY_PATH
+  EXPANDED_FILE = Comparator::EXPANDED_FILE
+  GATE_FILE = Comparator::GATE_FILE
+  BUNDLE_FILE = Comparator::BUNDLE_FILE
+  EVENT_FILE = Comparator::EVENT_FILE
+
+  TOP_LEVEL_KEYS = %w[
+    artifact_type schema_version artifact_id snapshot_date data_boundary
+    authority_boundary governance_profile_binding sources capability_summary
+    workflow_summary gate_summary capabilities workflows
+  ].freeze
+  SOURCE_REFERENCE_KEYS = %w[path sha256].freeze
+  PROFILE_BINDING_KEYS = %w[
+    status reason_code pointer_revision pointer_sha256 selection_path
+    selection_sha256 bundle_manifest_path bundle_manifest_sha256
+    expanded_register_path expanded_register_sha256 gate_register_path
+    gate_register_sha256 validator_contract_path validator_contract_sha256
+    validator_contract_version
+  ].freeze
+  CAPABILITY_KEYS = %w[
+    capability_id batch source_decision_pointer governance_decision_pointer
+    governance engineering_evidence workflow_observation
+  ].freeze
+  GOVERNANCE_POINTER_KEYS = %w[
+    expanded_register_path expanded_register_sha256 entry_index_base entry_index
+    entry_sha256 decision_event_id decision_event_sha256 selection_sha256
+    bundle_manifest_sha256
+  ].freeze
+  GOVERNANCE_KEYS = %w[
+    governance_state owner_state owner_assignment_status decision_status
+    owner_record_id decision_event_id canonical_disposition derived_tier
+    g0_terminal implementation_authorized
+  ].freeze
+  G0_CRITERIA_KEYS = %w[
+    exact_268_unique_rows_in_canonical_order all_rows_terminal
+    all_required_owner_records_present all_required_decision_events_present
+    all_required_approvals_present all_required_evidence_references_hash_valid
+    all_declared_tiers_match_derivation all_required_independent_reviews_valid
+    all_source_and_artifact_hashes_current gate_register_complete_match
+  ].freeze
+  G3_CRITERIA_KEYS = %w[
+    current_exact_sha_engineering_map hosted_role_based_uat reconciliation
+    recovery security accessibility performance defect_closure owner_acceptance
+  ].freeze
+  GATE_SUMMARY_KEYS = %w[g0 g3].freeze
+  G0_KEYS = %w[status derivation_source gate_register_claim criteria reason_codes].freeze
+  G3_KEYS = %w[status requires_g0_pass evidence_authority_boundary criteria reason_codes].freeze
+  G3_CRITERION_KEYS = %w[status deployed_commit_sha evidence_pointer authority_pointer].freeze
+  G3_EVIDENCE_RECORD_KEYS = %w[
+    artifact_type schema_version criterion covered_criteria status snapshot_date
+    data_boundary deployed_commit_sha evidence_references authority_effect
+  ].freeze
+  G3_OWNER_ACCEPTANCE_KEYS = %w[
+    artifact_type schema_version decision_id status snapshot_date data_boundary
+    deployed_commit_sha institutional_id capacity accepted_criteria
+    evidence_reference authority_effect
+  ].freeze
+  GATE_STATUSES = %w[OPEN PASS].freeze
+  RESOLUTION_STATUSES = %w[active unavailable].freeze
+
+  module_function
+
+  def build(root: G0G3CoverageLedger::ROOT, env: ENV,
+            resolver: Selector::ReadOnlyResolver.method(:resolve_active!), g3_evidence: {})
+    root_path = secure_root(root)
+    sources = load_authoritative_sources(root_path)
+    source_rows = build_source_rows(root_path, sources)
+    engineering = load_engineering_map(root_path)
+    engineering_by_id = engineering.fetch('capabilities').to_h { |row| [row.fetch('capability_id'), row] }
+    canonical_ids = source_rows.map { |row| row.fetch('requirement_id') }
+    unless engineering_by_id.keys.sort == canonical_ids.sort && engineering_by_id.length == 268
+      raise Error, 'engineering evidence map capability universe drift'
+    end
+
+    resolution, resolution_reason = resolve_governance(root_path, env, resolver)
+    active = resolution && load_active_governance(root_path, resolution, source_rows)
+    if resolution
+      confirmed, confirmed_reason = resolve_governance(root_path, env, resolver)
+      unless confirmed && confirmed_reason.nil? && stable_resolution?(resolution, confirmed)
+        raise Error, 'active snapshot changed during ledger generation'
+      end
+    end
+
+    capabilities = source_rows.each_with_index.map do |source_row, index|
+      capability_id = source_row.fetch('requirement_id')
+      evidence = engineering_by_id.fetch(capability_id)
+      active_row = active && active.fetch(:expanded).fetch('entries').fetch(index)
+      {
+        'capability_id' => capability_id,
+        'batch' => source_row.fetch('batch'),
+        'source_decision_pointer' => deep_copy(source_row.fetch('source_decision_pointer')),
+        'governance_decision_pointer' => active && governance_pointer(active, resolution, index, active_row),
+        'governance' => active_row ? governance_projection(active_row) : empty_governance,
+        'engineering_evidence' => deep_copy(evidence.fetch('engineering_evidence')),
+        'workflow_observation' => deep_copy(evidence.fetch('workflow_observation'))
+      }
+    end
+
+    g0 = derive_g0(root_path, capabilities, active, sources.fetch(:contract))
+    g3 = derive_g3(root_path, g0, engineering, g3_evidence)
+    document = {
+      'artifact_type' => 'g0_g3_coverage_ledger_v2',
+      'schema_version' => 2,
+      'artifact_id' => 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29',
+      'snapshot_date' => SNAPSHOT_DATE,
+      'data_boundary' => 'synthetic_only',
+      'authority_boundary' => 'Engineering evidence never confers owner identity, approval, disposition, tier, authorization, G0, or G3. Governance is consumed only through the shared hash-valid active selector chain.',
+      'governance_profile_binding' => profile_binding(root_path, resolution, active, resolution_reason),
+      'sources' => source_records(root_path, sources, engineering),
+      'capability_summary' => capability_summary(capabilities),
+      'workflow_summary' => workflow_summary(engineering.fetch('workflows')),
+      'gate_summary' => { 'g0' => g0, 'g3' => g3 },
+      'capabilities' => capabilities,
+      'workflows' => deep_copy(engineering.fetch('workflows'))
+    }
+    validate_document!(document)
+    document
+  rescue Comparator::Error, Core::Error, EvidenceMap::Error, Selector::Error => e
+    raise Error, safe_error(e)
+  end
+
+  def serialized(**keywords)
+    Core.canonical_json(build(**keywords)) + "\n"
+  end
+
+  def check!(root: G0G3CoverageLedger::ROOT, output: OUTPUT_PATH, **keywords)
+    root_path = secure_root(root)
+    actual = safe_read(root_path, output, label: 'schema-v2 ledger')
+    expected = serialized(root: root_path.to_s, **keywords)
+    raise Error, 'stale schema-v2 ledger' unless actual == expected
+
+    true
+  end
+
+  # Publication is create-only and lock-protected. It cannot overwrite either
+  # a historical ledger or an already-published schema-v2 observation.
+  def write!(root: G0G3CoverageLedger::ROOT, output: OUTPUT_PATH, before_publish: nil, **keywords)
+    root_path = secure_root(root)
+    target = safe_new_path(root_path, output)
+    lock_path = safe_new_path(root_path, "#{output}.lock")
+    governance_lock_path = safe_new_path(root_path, Selector::LOCK_RELATIVE_PATH)
+    with_stable_lock(lock_path, File::LOCK_EX, 'schema-v2 ledger writer lock conflict') do
+      # Selector mutation takes this same inode exclusively. Holding it shared
+      # closes the resolve/serialize/publication race without mutating a pointer.
+      with_stable_lock(governance_lock_path, File::LOCK_SH, 'governance selector lock conflict') do
+        raise Error, 'schema-v2 ledger already exists' if target.exist? || target.symlink?
+        bytes = serialized(root: root_path.to_s, **keywords)
+        before_publish.call if before_publish
+        confirmation = serialized(root: root_path.to_s, **keywords)
+        raise Error, 'active snapshot changed before ledger publication' unless confirmation == bytes
+        publish_create_only!(target, bytes)
+      end
+    end
+    true
+  rescue Errno::EEXIST
+    raise Error, 'schema-v2 ledger already exists'
+  rescue SystemCallError, IOError
+    raise Error, 'schema-v2 ledger publication failed'
+  end
+
+  def with_stable_lock(path, mode, conflict_message)
+    flags = File::RDWR | File::CREAT
+    flags |= File::NOFOLLOW if defined?(File::NOFOLLOW)
+    File.open(path, flags, 0o600) do |file|
+      stat = file.stat
+      raise Error, 'ledger lock path is not a private regular file' unless stat.file? && stat.nlink == 1 && stat.uid == Process.uid
+      file.chmod(0o600)
+      raise Error, conflict_message unless file.flock(mode | File::LOCK_NB)
+      yield
+    ensure
+      file.flock(File::LOCK_UN) rescue nil
+    end
+  rescue Errno::ELOOP
+    raise Error, 'ledger lock path is unsafe'
+  end
+  private_class_method :with_stable_lock
+
+  def validate_document!(document)
+    Core.assert_closed_schema!(document, required: TOP_LEVEL_KEYS, label: '$.ledger_v2')
+    Core.assert_secret_free!(document, label: '$.ledger_v2')
+    unless document.fetch('artifact_type') == 'g0_g3_coverage_ledger_v2' &&
+           document.fetch('schema_version') == 2 && document.fetch('snapshot_date') == SNAPSHOT_DATE &&
+           document.fetch('data_boundary') == 'synthetic_only'
+      raise Error, 'schema-v2 ledger identity or boundary drift'
+    end
+    binding = document.fetch('governance_profile_binding')
+    Core.assert_closed_schema!(binding, required: PROFILE_BINDING_KEYS, label: '$.ledger_v2.governance_profile_binding')
+    raise Error, 'unknown governance profile binding status' unless RESOLUTION_STATUSES.include?(binding.fetch('status'))
+    operational_binding_keys = PROFILE_BINDING_KEYS - %w[status reason_code validator_contract_path validator_contract_sha256 validator_contract_version]
+    if binding.fetch('status') == 'unavailable'
+      unless present?(binding.fetch('reason_code')) && operational_binding_keys.all? { |key| binding.fetch(key).nil? }
+        raise Error, 'unavailable governance profile binding must be explicitly reasoned and authority-empty'
+      end
+    elsif !binding.fetch('reason_code').nil? || operational_binding_keys.any? { |key| binding.fetch(key).nil? }
+      raise Error, 'active governance profile binding is incomplete'
+    end
+    unless present?(binding.fetch('validator_contract_path')) &&
+           binding.fetch('validator_contract_sha256').to_s.match?(/\A[0-9a-f]{64}\z/) &&
+           present?(binding.fetch('validator_contract_version'))
+      raise Error, 'governance profile validator binding invalid'
+    end
+    rows = document.fetch('capabilities')
+    unless rows.is_a?(Array) && rows.length == 268 && rows.map { |row| row['capability_id'] }.uniq.length == 268
+      raise Error, 'schema-v2 ledger must contain exactly 268 unique capabilities'
+    end
+    rows.each_with_index do |row, index|
+      Core.assert_closed_schema!(row, required: CAPABILITY_KEYS, label: "$.ledger_v2.capabilities[#{index}]")
+      Core.assert_closed_schema!(row.fetch('source_decision_pointer'), required: Comparator::SOURCE_POINTER_KEYS,
+                                 label: "$.ledger_v2.capabilities[#{index}].source_decision_pointer")
+      Core.assert_closed_schema!(row.fetch('governance'), required: GOVERNANCE_KEYS,
+                                 label: "$.ledger_v2.capabilities[#{index}].governance")
+      pointer = row.fetch('governance_decision_pointer')
+      Core.assert_closed_schema!(pointer, required: GOVERNANCE_POINTER_KEYS,
+                                 label: "$.ledger_v2.capabilities[#{index}].governance_decision_pointer") if pointer
+      if binding.fetch('status') == 'active'
+        raise Error, 'active governance resolution requires every governance pointer' unless pointer
+        event_id = pointer.fetch('decision_event_id')
+        event_sha = pointer.fetch('decision_event_sha256')
+        unless (event_id.nil? && event_sha.nil?) || (present?(event_id) && event_sha.to_s.match?(/\A[0-9a-f]{64}\z/))
+          raise Error, 'governance decision event ID/SHA pair invalid'
+        end
+      elsif pointer || unavailable_governance_drift?(row.fetch('governance'))
+        raise Error, 'non-active governance resolution can populate only closed pending governance presence'
+      end
+    end
+    gate_summary = document.fetch('gate_summary')
+    Core.assert_closed_schema!(gate_summary, required: GATE_SUMMARY_KEYS, label: '$.ledger_v2.gate_summary')
+    %w[g0 g3].each do |gate|
+      raise Error, "#{gate} status vocabulary drift" unless GATE_STATUSES.include?(gate_summary.dig(gate, 'status'))
+    end
+    Core.assert_closed_schema!(gate_summary.fetch('g0'), required: G0_KEYS, label: '$.ledger_v2.gate_summary.g0')
+    Core.assert_closed_schema!(gate_summary.fetch('g3'), required: G3_KEYS, label: '$.ledger_v2.gate_summary.g3')
+    Core.assert_closed_schema!(gate_summary.dig('g0', 'criteria'), required: G0_CRITERIA_KEYS, label: '$.ledger_v2.gate_summary.g0.criteria')
+    Core.assert_closed_schema!(gate_summary.dig('g3', 'criteria'), required: G3_CRITERIA_KEYS, label: '$.ledger_v2.gate_summary.g3.criteria')
+    gate_summary.dig('g3', 'criteria').each do |criterion, value|
+      Core.assert_closed_schema!(value, required: G3_CRITERION_KEYS,
+                                 label: "$.ledger_v2.gate_summary.g3.criteria.#{criterion}")
+      raise Error, "G3 #{criterion} status vocabulary drift" unless GATE_STATUSES.include?(value.fetch('status'))
+      deployed = value.fetch('deployed_commit_sha')
+      if value.fetch('status') == 'PASS'
+        unless deployed.to_s.match?(/\A[0-9a-f]{40}\z/) && value.fetch('evidence_pointer').is_a?(Hash)
+          raise Error, "G3 #{criterion} PASS lacks exact deployed-SHA evidence"
+        end
+        if criterion == 'owner_acceptance'
+          raise Error, 'G3 owner acceptance PASS lacks authority pointer' unless value.fetch('authority_pointer').is_a?(Hash)
+        elsif value.fetch('authority_pointer')
+          raise Error, "G3 #{criterion} cannot carry owner authority"
+        end
+      elsif !deployed.nil? || !value.fetch('evidence_pointer').nil? || !value.fetch('authority_pointer').nil?
+        raise Error, "G3 #{criterion} OPEN must not retain operative evidence"
+      end
+    end
+    g0 = gate_summary.fetch('g0')
+    unless g0.fetch('criteria').values.all? { |value| value == true || value == false }
+      raise Error, 'G0 criteria must be booleans'
+    end
+    expected_g0 = g0.fetch('criteria').values.all? ? 'PASS' : 'OPEN'
+    expected_g0_reasons = g0.fetch('criteria').select { |_key, value| !value }.keys.map(&:upcase)
+    unless g0.fetch('status') == expected_g0 && g0.fetch('reason_codes') == expected_g0_reasons
+      raise Error, 'G0 summary is not its complete deterministic derivation'
+    end
+    g3 = gate_summary.fetch('g3')
+    deployed_shas = g3.fetch('criteria').values.map { |row| row.fetch('deployed_commit_sha') }.compact.uniq
+    raise Error, 'G3 criteria bind inconsistent deployed commit SHAs' if deployed_shas.length > 1
+    expected_g3 = g0.fetch('status') == 'PASS' && g3.fetch('criteria').values.all? { |row| row.fetch('status') == 'PASS' } ? 'PASS' : 'OPEN'
+    expected_g3_reasons = ([('G0_OPEN' unless g0.fetch('status') == 'PASS')] +
+      g3.fetch('criteria').select { |_key, row| row.fetch('status') != 'PASS' }.keys.map(&:upcase)).compact
+    unless g3.fetch('status') == expected_g3 && g3.fetch('reason_codes') == expected_g3_reasons
+      raise Error, 'G3 summary is not its complete deterministic derivation'
+    end
+    true
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+
+  def load_authoritative_sources(root)
+    contract = Comparator.parse_repository_json(root, CONTRACT_PATH, '$.contract')
+    v1_manifest = Comparator.parse_repository_json(root, V1_MANIFEST_PATH, '$.v1_manifest')
+    source_manifest = Comparator.parse_repository_json(root, SOURCE_MANIFEST_PATH, '$.source_manifest')
+    source_evidence_map = Comparator.parse_repository_json(root, SOURCE_EVIDENCE_MAP_PATH, '$.source_evidence_map')
+    owner_policy = Comparator.parse_repository_json(root, OWNER_POLICY_PATH, '$.owner_policy')
+    Core.validate_contract!(contract, root: root.to_s)
+    Core.verify_v1_manifest!(v1_manifest, root: root.to_s)
+    {
+      contract: contract, v1_manifest: v1_manifest, source_manifest: source_manifest,
+      source_evidence_map: source_evidence_map, owner_policy: owner_policy
+    }
+  end
+  private_class_method :load_authoritative_sources
+
+  def build_source_rows(root, sources)
+    rows = Comparator.expected_rows(
+      root, sources.fetch(:contract), sources.fetch(:source_manifest),
+      sources.fetch(:source_evidence_map), sources.fetch(:owner_policy)
+    )
+    raise Error, 'source capability universe drift' unless rows.length == 268 && rows.map { |row| row.fetch('requirement_id') }.uniq.length == 268
+    rows
+  end
+  private_class_method :build_source_rows
+
+  def load_engineering_map(root)
+    document = Core.parse_json(safe_read(root, EVIDENCE_MAP_PATH, label: 'engineering evidence map v2'), label: EVIDENCE_MAP_PATH)
+    EvidenceMap.validate_generated_document!(document, root: root.to_s)
+    document
+  end
+  private_class_method :load_engineering_map
+
+  def resolve_governance(root, env, resolver)
+    [resolver.call(root: root.to_s, env: env), nil]
+  rescue Selector::ResolutionError => e
+    pointer = root.join(Selector::POINTER_RELATIVE_PATH)
+    reason = (!pointer.exist? && !pointer.symlink?) ? 'pointer_missing' : e.reason_code
+    [nil, reason]
+  rescue Selector::Error
+    pointer = root.join(Selector::POINTER_RELATIVE_PATH)
+    reason = (!pointer.exist? && !pointer.symlink?) ? 'pointer_missing' : 'pointer_contract_invalid'
+    [nil, reason]
+  end
+  private_class_method :resolve_governance
+
+  def load_active_governance(root, resolution, source_rows)
+    bundle = resolution.fetch(:bundle_path)
+    expanded_path = secure_bundle_file(bundle, EXPANDED_FILE)
+    gate_path = secure_bundle_file(bundle, GATE_FILE)
+    manifest_path = secure_bundle_file(bundle, BUNDLE_FILE)
+    event_path = secure_bundle_file(bundle, EVENT_FILE)
+    expanded = Core.parse_json_file(expanded_path, label: '$.active.expanded_register')
+    gate = Core.parse_json_file(gate_path, label: '$.active.gate_register')
+    manifest = Core.parse_json_file(manifest_path, label: '$.active.bundle_manifest')
+    event_register = Core.parse_json_file(event_path, label: '$.active.decision_event_register')
+    Core.assert_secret_free!(expanded, label: '$.active.expanded_register')
+    Core.assert_secret_free!(gate, label: '$.active.gate_register')
+    ids = source_rows.map { |row| row.fetch('requirement_id') }
+    entries = expanded.fetch('entries')
+    unless entries.is_a?(Array) && entries.length == 268 && entries.map { |row| row['requirement_id'] } == ids
+      raise Error, 'active expanded register capability universe drift'
+    end
+    entries.zip(source_rows).each do |row, source|
+      unless row.fetch('source_decision_pointer') == source.fetch('source_decision_pointer')
+        raise Error, 'active expanded register source pointer drift'
+      end
+    end
+    expected_gate = recompute_gate_register(expanded, expanded_path)
+    raise Error, 'active gate register does not match independent 268-row derivation' unless gate == expected_gate
+    events = event_register.fetch('events')
+    raise Error, 'active decision event register schema drift' unless events.is_a?(Array)
+    events_by_id = events.to_h { |event| [event.fetch('decision_event_id'), event] }
+    raise Error, 'active decision event register contains duplicate IDs' unless events_by_id.length == events.length
+    {
+      expanded: expanded, expanded_path: expanded_path, expanded_sha256: Digest::SHA256.file(expanded_path).hexdigest,
+      gate: gate, gate_path: gate_path, gate_sha256: Digest::SHA256.file(gate_path).hexdigest,
+      manifest: manifest, manifest_path: manifest_path, manifest_sha256: Digest::SHA256.file(manifest_path).hexdigest,
+      events_by_id: events_by_id
+    }
+  rescue Core::Error, KeyError, SystemCallError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :load_active_governance
+
+  def recompute_gate_register(expanded, expanded_path)
+    rows = expanded.fetch('entries')
+    terminal = rows.count { |row| row.fetch('g0_terminal') == true }
+    authorized = rows.count { |row| row.fetch('governance_state') == 'AUTHORIZED_FOR_SYNTHETIC_BUILD' }
+    deferred = rows.count { |row| row.fetch('governance_state') == 'DEFERRED' }
+    retired = rows.count { |row| row.fetch('governance_state') == 'RETIRED' }
+    excluded = rows.count { |row| row.fetch('governance_state') == 'EXCLUDED' }
+    owners = rows.all? { |row| present?(row['owner_record_id']) && present?(row['product_authority_id']) && !Array(row['domain_authority_ids']).empty? }
+    decisions = rows.all? { |row| present?(row['decision_event_id']) }
+    approvals = rows.all? { |row| row['owner_state'] == 'APPROVED' && row['decision_status'] == 'approved' }
+    project_g0 = terminal == 268 && owners && decisions && approvals ? 'PASS' : 'OPEN'
+    {
+      'artifact_type' => 'g0_governance_v2_gate_register',
+      'schema_version' => 1,
+      'register_id' => 'G0-GOVERNANCE-V2-GATE-REGISTER',
+      'profile' => 'v2',
+      'status' => project_g0 == 'PASS' ? 'derived_pass' : 'derived_pending',
+      'effect' => 'none_no_activation_or_acceptance',
+      'data_boundary' => 'synthetic_only',
+      'source_expanded_register' => { 'path' => EXPANDED_FILE, 'sha256' => Digest::SHA256.file(expanded_path).hexdigest },
+      'project_g0' => project_g0,
+      'project_g3' => 'OPEN',
+      'counts' => {
+        'total' => rows.length, 'terminal' => terminal, 'nonterminal' => rows.length - terminal,
+        'authorized' => authorized, 'deferred' => deferred, 'retired' => retired, 'excluded' => excluded
+      },
+      'derivation' => {
+        'all_rows_terminal' => terminal == rows.length,
+        'all_required_owner_records_present' => owners,
+        'all_required_decision_events_present' => decisions,
+        'all_required_approvals_present' => approvals,
+        'provisional_engineering_binding_effect' => 'none'
+      }
+    }
+  end
+  private_class_method :recompute_gate_register
+
+  def derive_g0(root, capabilities, active, contract)
+    criteria = G0_CRITERIA_KEYS.to_h { |key| [key, false] }
+    if active
+      rows = active.fetch(:expanded).fetch('entries')
+      criteria['exact_268_unique_rows_in_canonical_order'] = rows.length == 268 && rows.map { |row| row['requirement_id'] }.uniq.length == 268
+      criteria['all_rows_terminal'] = rows.all? { |row| row['g0_terminal'] == true }
+      criteria['all_required_owner_records_present'] = rows.all? { |row| present?(row['owner_record_id']) && present?(row['product_authority_id']) && !Array(row['domain_authority_ids']).empty? }
+      criteria['all_required_decision_events_present'] = rows.all? { |row| present?(row['decision_event_id']) }
+      criteria['all_required_approvals_present'] = rows.all? { |row| row['owner_state'] == 'APPROVED' && row['decision_status'] == 'approved' }
+      criteria['all_required_evidence_references_hash_valid'] = rows.all? do |row|
+        references = Array(row['evidence_references'])
+        !references.empty? && references.each_with_index.all? do |reference, index|
+          begin
+            validated_reference(root, reference, "$.active.rows.#{row['requirement_id']}.evidence_references[#{index}]")
+            true
+          rescue Error
+            false
+          end
+        end
+      end
+      criteria['all_declared_tiers_match_derivation'] = rows.all? do |row|
+        row['consequence_map'].is_a?(Hash) && row['derived_tier'] == Core.derived_tier(row['consequence_map'], contract)
+      rescue Core::Error, KeyError
+        false
+      end
+      criteria['all_required_independent_reviews_valid'] = rows.all? do |row|
+        required = row['consequence_map'].is_a?(Hash) && Core.independent_review_required?(row['consequence_map'], contract)
+        !required || !Array(row['independent_review_ids']).empty?
+      rescue Core::Error, KeyError
+        false
+      end
+      criteria['all_source_and_artifact_hashes_current'] = true
+      independently_derived = criteria.reject { |key, _value| key == 'gate_register_complete_match' }.values.all? ? 'PASS' : 'OPEN'
+      criteria['gate_register_complete_match'] = active.dig(:gate, 'project_g0') == independently_derived
+      raise Error, 'active gate register G0 claim differs from complete independent derivation' unless criteria['gate_register_complete_match']
+    end
+    status = criteria.values.all? ? 'PASS' : 'OPEN'
+    {
+      'status' => status,
+      'derivation_source' => 'all_268_schema_v2_capability_rows',
+      'gate_register_claim' => active && active.dig(:gate, 'project_g0'),
+      'criteria' => criteria,
+      'reason_codes' => criteria.select { |_key, value| !value }.keys.map(&:upcase)
+    }
+  end
+  private_class_method :derive_g0
+
+  def derive_g3(root, g0, engineering, evidence_inputs)
+    raise Error, 'G3 evidence inputs must be an object' unless evidence_inputs.is_a?(Hash)
+    allowed_inputs = G3_CRITERIA_KEYS
+    unknown = evidence_inputs.keys - allowed_inputs
+    raise Error, 'G3 evidence inputs contain unknown criteria' unless unknown.empty?
+
+    raise Error, 'engineering evidence map capability universe drift' unless engineering.fetch('capabilities').length == 268
+    criteria = {}
+    G3_CRITERIA_KEYS.each do |criterion|
+      input = evidence_inputs[criterion]
+      criteria[criterion] = input ? validated_g3_criterion(root, criterion, input) : {
+        'status' => 'OPEN', 'deployed_commit_sha' => nil,
+        'evidence_pointer' => nil, 'authority_pointer' => nil
+      }
+    end
+    deployed_shas = criteria.values.map { |value| value.fetch('deployed_commit_sha') }.compact.uniq
+    raise Error, 'G3 evidence records do not bind one exact deployed commit SHA' if deployed_shas.length > 1
+    all_pass = criteria.values.all? { |criterion| criterion.fetch('status') == 'PASS' }
+    status = g0.fetch('status') == 'PASS' && all_pass ? 'PASS' : 'OPEN'
+    {
+      'status' => status,
+      'requires_g0_pass' => true,
+      'evidence_authority_boundary' => 'Hosted, reconciliation, recovery, security, accessibility, performance, defect, and owner-acceptance evidence must be independently hash-bound; engineering observations cannot satisfy owner acceptance.',
+      'criteria' => criteria,
+      'reason_codes' => ([('G0_OPEN' unless g0.fetch('status') == 'PASS')] + criteria.select { |_key, value| value.fetch('status') != 'PASS' }.keys.map(&:upcase)).compact
+    }
+  end
+  private_class_method :derive_g3
+
+  def validated_g3_criterion(root, criterion, input)
+    Core.assert_closed_schema!(input, required: %w[evidence_pointer authority_pointer],
+                               label: "$.g3_evidence.#{criterion}")
+    evidence = validated_reference(root, input.fetch('evidence_pointer'), "$.g3_evidence.#{criterion}.evidence_pointer")
+    evidence_record = Core.parse_json(
+      safe_read(root, evidence.fetch('path'), label: "G3 #{criterion} evidence record"),
+      label: "$.g3_evidence.#{criterion}.record"
+    )
+    Core.assert_closed_schema!(evidence_record, required: G3_EVIDENCE_RECORD_KEYS,
+                               label: "$.g3_evidence.#{criterion}.record")
+    Core.assert_secret_free!(evidence_record, label: "$.g3_evidence.#{criterion}.record")
+    covered = evidence_record.fetch('covered_criteria')
+    deployed_sha = evidence_record.fetch('deployed_commit_sha')
+    primary_criterion = evidence_record.fetch('criterion')
+    unless evidence_record.fetch('artifact_type') == 'g3_release_evidence_record' &&
+           evidence_record.fetch('schema_version') == 1 && G3_CRITERIA_KEYS.include?(primary_criterion) &&
+           covered.is_a?(Array) && covered.uniq == covered && covered.include?(criterion) &&
+           covered.include?(primary_criterion) &&
+           (covered - G3_CRITERIA_KEYS).empty? && evidence_record.fetch('status') == 'PASS' &&
+           evidence_record.fetch('snapshot_date') == SNAPSHOT_DATE &&
+           evidence_record.fetch('data_boundary') == 'synthetic_only' &&
+           deployed_sha.is_a?(String) && deployed_sha.match?(/\A[0-9a-f]{40}\z/) &&
+           evidence_record.fetch('authority_effect') == 'none_engineering_or_assurance_evidence_only'
+      raise Error, "G3 #{criterion} evidence record contract invalid"
+    end
+    evidence_references = evidence_record.fetch('evidence_references')
+    unless evidence_references.is_a?(Array) && !evidence_references.empty? && evidence_references.uniq == evidence_references
+      raise Error, "G3 #{criterion} evidence references missing"
+    end
+    evidence_references.each_with_index do |reference, index|
+      validated_reference(root, reference, "$.g3_evidence.#{criterion}.record.evidence_references[#{index}]")
+    end
+    if criterion == 'current_exact_sha_engineering_map'
+      map_reference = source_reference(root, EVIDENCE_MAP_PATH)
+      raise Error, 'G3 exact-SHA engineering evidence does not bind the current engineering map' unless evidence_references.include?(map_reference)
+    end
+    authority_value = input.fetch('authority_pointer')
+    authority = authority_value && validated_reference(root, authority_value, "$.g3_evidence.#{criterion}.authority_pointer")
+    if criterion == 'owner_acceptance'
+      raise Error, 'G3 owner acceptance requires an independent authority pointer' unless authority
+      if [EVIDENCE_MAP_PATH, SOURCE_EVIDENCE_MAP_PATH].include?(authority.fetch('path'))
+        raise Error, 'engineering evidence cannot confer owner acceptance'
+      end
+      acceptance = Core.parse_json(
+        safe_read(root, authority.fetch('path'), label: 'G3 owner acceptance authority record'),
+        label: '$.g3_evidence.owner_acceptance.authority_record'
+      )
+      Core.assert_closed_schema!(acceptance, required: G3_OWNER_ACCEPTANCE_KEYS,
+                                 label: '$.g3_evidence.owner_acceptance.authority_record')
+      Core.assert_secret_free!(acceptance, label: '$.g3_evidence.owner_acceptance.authority_record')
+      identity = acceptance.fetch('institutional_id')
+      accepted = acceptance.fetch('accepted_criteria')
+      unless acceptance.fetch('artifact_type') == 'g3_owner_acceptance_decision' &&
+             acceptance.fetch('schema_version') == 1 && acceptance.fetch('status') == 'approved' &&
+             acceptance.fetch('snapshot_date') == SNAPSHOT_DATE && acceptance.fetch('data_boundary') == 'synthetic_only' &&
+             acceptance.fetch('deployed_commit_sha') == deployed_sha && identity.is_a?(String) && !identity.strip.empty? &&
+             acceptance.fetch('capacity') == 'product_authority' && accepted == G3_CRITERIA_KEYS &&
+             acceptance.fetch('evidence_reference') == evidence &&
+             acceptance.fetch('authority_effect') == 'confers_g3_owner_acceptance_only'
+        raise Error, 'G3 owner acceptance authority record contract invalid'
+      end
+    elsif authority
+      raise Error, "G3 #{criterion} forbids an owner-authority pointer"
+    end
+    {
+      'status' => 'PASS', 'deployed_commit_sha' => deployed_sha,
+      'evidence_pointer' => evidence, 'authority_pointer' => authority
+    }
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :validated_g3_criterion
+
+  def validated_reference(root, value, label)
+    Core.assert_closed_schema!(value, required: SOURCE_REFERENCE_KEYS, label: label)
+    expected = source_reference(root, value.fetch('path'))
+    raise Error, "#{label}: stale SHA-256" unless value == expected
+    expected
+  end
+  private_class_method :validated_reference
+
+  def governance_projection(row)
+    {
+      'governance_state' => row.fetch('governance_state'),
+      'owner_state' => row.fetch('owner_state'),
+      'owner_assignment_status' => row.fetch('owner_assignment_status'),
+      'decision_status' => row.fetch('decision_status'),
+      'owner_record_id' => row.fetch('owner_record_id'),
+      'decision_event_id' => row.fetch('decision_event_id'),
+      'canonical_disposition' => row.fetch('canonical_disposition'),
+      'derived_tier' => row.fetch('derived_tier'),
+      'g0_terminal' => row.fetch('g0_terminal'),
+      'implementation_authorized' => row.fetch('implementation_authorized')
+    }
+  end
+  private_class_method :governance_projection
+
+  def empty_governance
+    {
+      'governance_state' => 'PENDING',
+      'owner_state' => 'DRAFT',
+      'owner_assignment_status' => 'pending',
+      'decision_status' => 'pending',
+      'owner_record_id' => nil,
+      'decision_event_id' => nil,
+      'canonical_disposition' => nil,
+      'derived_tier' => nil,
+      'g0_terminal' => false,
+      'implementation_authorized' => false
+    }
+  end
+  private_class_method :empty_governance
+
+  def unavailable_governance_drift?(value)
+    value != empty_governance
+  end
+  private_class_method :unavailable_governance_drift?
+
+  def governance_pointer(active, resolution, index, row)
+    event_id = row.fetch('decision_event_id')
+    event = event_id && active.fetch(:events_by_id).fetch(event_id) { raise Error, 'active decision event reference missing' }
+    {
+      'expanded_register_path' => repository_relative(resolution.fetch(:root), active.fetch(:expanded_path)),
+      'expanded_register_sha256' => active.fetch(:expanded_sha256),
+      'entry_index_base' => 0,
+      'entry_index' => index,
+      'entry_sha256' => Core.canonical_sha256(row),
+      'decision_event_id' => event_id,
+      'decision_event_sha256' => event && Core.canonical_sha256(event),
+      'selection_sha256' => resolution.fetch(:selection_sha256),
+      'bundle_manifest_sha256' => active.fetch(:manifest_sha256)
+    }
+  end
+  private_class_method :governance_pointer
+
+  def profile_binding(root, resolution, active, reason)
+    return {
+      'status' => 'unavailable', 'reason_code' => reason || 'pointer_contract_invalid',
+      'pointer_revision' => nil, 'pointer_sha256' => nil,
+      'selection_path' => nil, 'selection_sha256' => nil,
+      'bundle_manifest_path' => nil, 'bundle_manifest_sha256' => nil,
+      'expanded_register_path' => nil, 'expanded_register_sha256' => nil,
+      'gate_register_path' => nil, 'gate_register_sha256' => nil,
+      'validator_contract_path' => CONTRACT_PATH,
+      'validator_contract_sha256' => Digest::SHA256.file(root.join(CONTRACT_PATH)).hexdigest,
+      'validator_contract_version' => Core.parse_json_file(root.join(CONTRACT_PATH), label: '$.contract').dig('validator', 'version')
+    } unless resolution && active
+
+    {
+      'status' => 'active', 'reason_code' => nil,
+      'pointer_revision' => resolution.fetch(:pointer).fetch('revision'),
+      'pointer_sha256' => resolution.fetch(:pointer_sha256),
+      'selection_path' => repository_relative(root, resolution.fetch(:selection_path)),
+      'selection_sha256' => resolution.fetch(:selection_sha256),
+      'bundle_manifest_path' => repository_relative(root, active.fetch(:manifest_path)),
+      'bundle_manifest_sha256' => active.fetch(:manifest_sha256),
+      'expanded_register_path' => repository_relative(root, active.fetch(:expanded_path)),
+      'expanded_register_sha256' => active.fetch(:expanded_sha256),
+      'gate_register_path' => repository_relative(root, active.fetch(:gate_path)),
+      'gate_register_sha256' => active.fetch(:gate_sha256),
+      'validator_contract_path' => resolution.dig(:validator_contract, 'path'),
+      'validator_contract_sha256' => resolution.dig(:validator_contract, 'sha256'),
+      'validator_contract_version' => resolution.dig(:validator_contract, 'version')
+    }
+  end
+  private_class_method :profile_binding
+
+  def source_records(root, sources, engineering)
+    {
+      'governance_contract' => source_reference(root, CONTRACT_PATH),
+      'historical_hash_manifest' => source_reference(root, V1_MANIFEST_PATH),
+      'canonical_capability_order' => source_reference(root, SOURCE_MANIFEST_PATH),
+      'engineering_evidence_map_v2' => source_reference(root, EVIDENCE_MAP_PATH),
+      'engineering_evidence_map_source' => deep_copy(engineering.fetch('source_evidence_map')),
+      'source_register_count' => sources.fetch(:source_manifest).fetch('batches').length
+    }
+  end
+  private_class_method :source_records
+
+  def capability_summary(rows)
+    {
+      'total' => rows.length,
+      'unique_capability_ids' => rows.map { |row| row.fetch('capability_id') }.uniq.length,
+      'by_batch' => ('A'..'G').to_h { |batch| [batch, rows.count { |row| row.fetch('batch') == batch }] },
+      'governance_pointer_present' => rows.count { |row| !row.fetch('governance_decision_pointer').nil? }
+    }
+  end
+  private_class_method :capability_summary
+
+  def workflow_summary(rows)
+    { 'total' => rows.length, 'workflow_ids' => rows.map { |row| row.fetch('workflow_id') } }
+  end
+  private_class_method :workflow_summary
+
+  def stable_resolution?(first, second)
+    %i[pointer_sha256 selection_sha256 bundle_sha256 adoption_sha256].all? { |key| first[key] == second[key] }
+  end
+  private_class_method :stable_resolution?
+
+  def source_reference(root, relative)
+    bytes = safe_read(root, relative, label: relative)
+    { 'path' => relative, 'sha256' => Digest::SHA256.hexdigest(bytes) }
+  end
+  private_class_method :source_reference
+
+  def secure_root(root)
+    Comparator.secure_directory!(root, label: '$.root').realpath
+  rescue Comparator::Error => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :secure_root
+
+  def safe_read(root, relative, label:)
+    path = safe_existing_path(root, relative, label: label)
+    File.binread(path)
+  rescue SystemCallError
+    raise Error, "#{label}: unavailable"
+  end
+  private_class_method :safe_read
+
+  def safe_existing_path(root, relative, label:)
+    Comparator.secure_regular_file!(root.join(relative), root, label: label)
+  end
+  private_class_method :safe_existing_path
+
+  def safe_new_path(root, relative)
+    value = relative.to_s
+    raise Error, 'unsafe schema-v2 output path' if value.empty? || value.include?("\0")
+    path = Pathname.new(value)
+    raise Error, 'unsafe schema-v2 output path' if path.absolute? || path.each_filename.include?('..')
+    target = root.join(path).expand_path
+    parent = Comparator.secure_directory!(target.parent, label: '$.output.parent').realpath
+    raise Error, 'unsafe schema-v2 output path' unless target.parent.realpath == parent && target.to_s.start_with?("#{root}#{File::SEPARATOR}")
+    target
+  rescue Comparator::Error, SystemCallError, ArgumentError
+    raise Error, 'unsafe schema-v2 output path'
+  end
+  private_class_method :safe_new_path
+
+  def secure_bundle_file(bundle, name)
+    Comparator.secure_regular_file!(Pathname.new(bundle).join(name), bundle, label: "$.active.#{name}")
+  end
+  private_class_method :secure_bundle_file
+
+  def publish_create_only!(target, bytes)
+    temporary = Pathname.new("#{target}.tmp-#{Process.pid}-#{rand(1 << 32).to_s(16)}")
+    File.open(temporary, File::WRONLY | File::CREAT | File::EXCL, 0o600) do |file|
+      file.binmode
+      file.write(bytes)
+      file.flush
+      file.fsync
+    end
+    File.link(temporary, target)
+    File.open(target.parent, File::RDONLY) { |directory| directory.fsync }
+  ensure
+    temporary.delete if temporary&.file? && !temporary.symlink?
+  end
+  private_class_method :publish_create_only!
+
+  def repository_relative(root, path)
+    Pathname.new(path).realpath.relative_path_from(Pathname.new(root).realpath).to_s
+  rescue ArgumentError, SystemCallError
+    raise Error, 'resolved governance path escapes repository'
+  end
+  private_class_method :repository_relative
+
+  def deep_copy(value)
+    Marshal.load(Marshal.dump(value))
+  end
+  private_class_method :deep_copy
+
+  def present?(value)
+    value.is_a?(String) && !value.strip.empty?
+  end
+  private_class_method :present?
+
+  def safe_error(error)
+    message = error.message.to_s
+    message.match?(G0G3CoverageLedger::SECRET_PATTERN) ? 'secret-like content rejected' : message
+  end
+  private_class_method :safe_error
+end
+
 if $PROGRAM_NAME == __FILE__
-  options = { action: nil, snapshot_date: nil }
+  options = { action: nil, snapshot_date: nil, schema_version: 1 }
   parser = OptionParser.new do |opts|
-    opts.banner = 'Usage: ruby scripts/generate-g0-g3-coverage-ledger.rb (--check|--write) --snapshot-date YYYY-MM-DD'
+    opts.banner = 'Usage: ruby scripts/generate-g0-g3-coverage-ledger.rb (--check|--write) --snapshot-date YYYY-MM-DD [--schema-version 1|2]'
     opts.on('--check', 'fail unless the committed ledger is byte-for-byte current') { options[:action] = :check }
     opts.on('--write', 'atomically write the deterministic ledger') { options[:action] = :write }
     opts.on('--snapshot-date DATE', 'explicit evidence snapshot date') { |value| options[:snapshot_date] = value }
+    opts.on('--schema-version VERSION', Integer, 'explicit ledger schema version (1 or 2)') { |value| options[:schema_version] = value }
   end
   begin
     parser.parse!
     raise OptionParser::MissingArgument, '--check or --write' unless options[:action]
     raise OptionParser::MissingArgument, '--snapshot-date' unless options[:snapshot_date]
     raise OptionParser::InvalidArgument, 'unexpected positional arguments' unless ARGV.empty?
-    ledger = G0G3CoverageLedger.new(snapshot_date: options[:snapshot_date])
-    options[:action] == :check ? ledger.check! : ledger.write!
+    raise OptionParser::InvalidArgument, 'schema version must be 1 or 2' unless [1, 2].include?(options[:schema_version])
+    if options[:schema_version] == 1
+      ledger = G0G3CoverageLedger.new(snapshot_date: options[:snapshot_date])
+      options[:action] == :check ? ledger.check! : ledger.write!
+    else
+      raise OptionParser::InvalidArgument, "schema-v2 snapshot date must be #{G0G3CoverageLedgerV2::SNAPSHOT_DATE}" unless options[:snapshot_date] == G0G3CoverageLedgerV2::SNAPSHOT_DATE
+      options[:action] == :check ? G0G3CoverageLedgerV2.check! : G0G3CoverageLedgerV2.write!
+    end
     puts "G0-G3 coverage ledger #{options[:action]} passed for #{options[:snapshot_date]}"
-  rescue OptionParser::ParseError, G0G3CoverageLedger::ContractError => e
-    warn e.message
+  rescue OptionParser::ParseError, G0G3CoverageLedger::ContractError, G0G3CoverageLedgerV2::Error => e
+    message = e.message.to_s.lines.first.to_s.strip
+    if e.is_a?(G0G3CoverageLedgerV2::Error) && message.match?(G0G3CoverageLedger::SECRET_PATTERN)
+      message = 'schema-v2 ledger validation failed'
+    end
+    warn message
     exit 1
   end
 end
