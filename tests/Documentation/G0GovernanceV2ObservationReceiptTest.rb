@@ -102,6 +102,14 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
     docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTION.lock
   ].freeze
   STABLE_LOCK_PATH = 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTION.lock'
+  APPROVED_README_ONLY_SCAFFOLDS = {
+    'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_SELECTIONS' =>
+      '92904e2d96641f14fc173384f29bfa7220c5b81ef3f8a7a1f1e459be026b2772',
+    'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ACTIVATION_DECISIONS' =>
+      '9ad69888686d6481d5f7ac8311a6ad3e447c34839b47a76760ce972e8234a932',
+    'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_JOURNAL' =>
+      'eba0660498094dbaa267bbf0e88e5aa8587582ce4b246caa463b1cff9e455daa'
+  }.freeze
   EXPECTED_SOURCE_ROLES = %w[
     adoption_decision governance_v2_contract v1_historical_hash_manifest
     candidate_generator governance_v2_core v1_v2_comparator
@@ -325,6 +333,10 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
       live_path = File.join(ROOT, entry.fetch('path'))
       if entry.fetch('path') == STABLE_LOCK_PATH
         assert_safe_inert_lock_or_absent(live_path)
+      elsif APPROVED_README_ONLY_SCAFFOLDS.key?(entry.fetch('path'))
+        assert_exact_readme_only_scaffold(
+          live_path, APPROVED_README_ONLY_SCAFFOLDS.fetch(entry.fetch('path'))
+        )
       else
         assert_equal 'absent', path_state(live_path), entry.fetch('path')
       end
@@ -342,6 +354,24 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
       canonical_journal_created canonical_lock_created
     ].each do |key|
       refute snapshot.fetch(key), key
+    end
+  end
+
+  def test_readme_only_scaffold_guard_rejects_json_and_extra_children
+    relative, expected_sha = APPROVED_README_ONLY_SCAFFOLDS.first
+    source_readme = File.join(ROOT, relative, 'README.md')
+    Dir.mktmpdir('g0-observation-scaffold-', TEMP_PARENT) do |scaffold|
+      FileUtils.cp(source_readme, File.join(scaffold, 'README.md'), preserve: true)
+      assert_exact_readme_only_scaffold(scaffold, expected_sha)
+
+      json = File.join(scaffold, 'unauthorized.json')
+      File.binwrite(json, "{}\n")
+      assert_raises(Minitest::Assertion) { assert_exact_readme_only_scaffold(scaffold, expected_sha) }
+      File.unlink(json)
+
+      extra = File.join(scaffold, 'EXTRA.md')
+      File.binwrite(extra, "not approved\n")
+      assert_raises(Minitest::Assertion) { assert_exact_readme_only_scaffold(scaffold, expected_sha) }
     end
   end
 
@@ -468,6 +498,28 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
     assert_equal Process.uid, stat.uid, 'stable lock must be owned by the current process user'
     assert_equal 0, stat.size, 'stable lock must contain no bytes and confer no authority'
     assert_equal Digest::SHA256.hexdigest(''), Digest::SHA256.file(path).hexdigest
+  end
+
+  def assert_exact_readme_only_scaffold(path, expected_readme_sha256)
+    assert_equal 'directory', path_state(path), path
+    stat = File.lstat(path)
+    refute stat.symlink?, 'authority scaffold must not be a symlink'
+    assert_equal Process.uid, stat.uid, 'authority scaffold must be owned by the current process user'
+    assert_operator stat.nlink, :>, 0, 'authority scaffold link count must be sane'
+    assert_includes [0o700, 0o750, 0o755], stat.mode & 0o777,
+                    'authority scaffold mode must not permit group/world writes'
+    assert_equal ['README.md'], Dir.children(path).sort,
+                 'authority scaffold may contain only its approved README; JSON and extra children are forbidden'
+
+    readme = File.join(path, 'README.md')
+    readme_stat = File.lstat(readme)
+    assert readme_stat.file?, 'authority scaffold README must be a regular file'
+    refute readme_stat.symlink?, 'authority scaffold README must not be a symlink'
+    assert_equal Process.uid, readme_stat.uid, 'authority scaffold README must be owned by the current process user'
+    assert_equal 1, readme_stat.nlink, 'authority scaffold README must have exactly one link'
+    assert_equal 0, readme_stat.mode & 0o022, 'authority scaffold README must not be group/world writable'
+    assert_equal expected_readme_sha256, Digest::SHA256.file(readme).hexdigest,
+                 'authority scaffold README bytes must match the approved hash'
   end
 
   def deep_copy(value)
