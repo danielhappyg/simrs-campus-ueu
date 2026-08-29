@@ -83,7 +83,11 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
     )
     assert_equal 0, integrity.fetch(:exit), integrity
     assert_empty integrity.fetch(:stderr)
-    assert_receipt(parse_stdout_receipt(integrity), profile: 'v2', mode: 'integrity', status: 'PASS')
+    integrity_receipt = parse_stdout_receipt(integrity)
+    assert_receipt(integrity_receipt, profile: 'v2', mode: 'integrity', status: 'PASS')
+    assert_equal '1.3.0', integrity_receipt.dig('validator_contract', 'version')
+    assert_equal Digest::SHA256.file(File.join(PHASE, 'G0_GOVERNANCE_V2_CONTRACT.json')).hexdigest,
+                 integrity_receipt.dig('validator_contract', 'sha256')
 
     g0 = run_cli(
       V2_VALIDATOR, '--mode', 'g0', '--source', 'candidate',
@@ -236,7 +240,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
       pointer: { 'predecessor_pointer_sha256' => 'e' * 64 },
       selection_sha256: 'c' * 64,
       validator_contract: {
-        'name' => 'g0_proportional_governance_v2', 'version' => '1.0.0',
+        'name' => 'g0_proportional_governance_v2', 'version' => '1.3.0',
         'path' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json',
         'sha256' => Digest::SHA256.file(File.join(PHASE, 'G0_GOVERNANCE_V2_CONTRACT.json')).hexdigest
       }
@@ -257,6 +261,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
         assert_empty active.fetch(:stderr)
         candidate_receipt = JSON.parse(candidate.fetch(:stdout))
         assert_equal 'validate-g0-governance/1.0.0-wave4-candidate-only', candidate_receipt.fetch('validator_contract').fetch('dispatcher')
+        assert_equal 'g0-proportional-governance-v2/1.3.0', candidate_receipt.fetch('validator_contract').fetch('v2')
         receipt = JSON.parse(active.fetch(:stdout))
         assert_receipt(receipt, profile: profile, mode: mode, status: mode == 'g0' ? 'OPEN' : 'PASS', source: 'active')
         assert_equal resolution.fetch(:adoption_sha256), receipt.fetch('adoption_sha256')
@@ -264,7 +269,7 @@ class G0GovernanceProfileDispatchTest < Minitest::Test
         assert_equal resolution.fetch(:pointer).fetch('predecessor_pointer_sha256'), receipt.fetch('prior_pointer_sha256')
         assert_equal resolution.fetch(:selection_sha256), receipt.fetch('selection_sha256')
         assert_equal resolution.fetch(:bundle_sha256), receipt.fetch('bundle_sha256')
-        assert_equal 'validate-g0-governance/1.1.0-wave5-active-read-only', receipt.fetch('validator_contract').fetch('dispatcher')
+        assert_equal 'validate-g0-governance/1.3.0-wave5-active-read-only', receipt.fetch('validator_contract').fetch('dispatcher')
         assert_equal resolution.fetch(:validator_contract), receipt.fetch('validator_contract').fetch('active_resolver')
         assert_empty Core.secret_locations(receipt.reject { |key, _value| key == 'secret_scan_passed' })
       end

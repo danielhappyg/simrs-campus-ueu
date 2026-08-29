@@ -13,7 +13,7 @@ class G0PreclinicalEncounterCancellationDecisionPackDraftTest < Minitest::Test
     'docs/new-simrs-rebuild/phase-0/PAR_PRECLINICAL_ENCOUNTER_CANCELLATION_DECISION_PACK_DRAFT_2026-08-29.json'
   )
   CONTRACT_PATH = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json')
-  LEDGER_PATH = File.join(ROOT, 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json')
+  LEDGER_PATH = File.join(ROOT, 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json')
   Core = G0ProportionalGovernanceV2
 
   class PackError < StandardError; end
@@ -125,7 +125,7 @@ class G0PreclinicalEncounterCancellationDecisionPackDraftTest < Minitest::Test
     'governance_v2_adr' => 'docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md',
     'governance_v2_contract' => 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json',
     'engineering_evidence_map_v2' => 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json',
-    'coverage_ledger_v2' => 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json',
+    'coverage_ledger_v2' => 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json',
     'batch_b_registration_source_register' => 'docs/new-simrs-rebuild/phase-0/G0_BATCH_B_DECISION_REGISTER_2026-08-25.json',
     'batch_g_reporting_source_register' => 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json'
   }.freeze
@@ -134,9 +134,9 @@ class G0PreclinicalEncounterCancellationDecisionPackDraftTest < Minitest::Test
     'companion_architecture_decision' => '9d5d0042fe79eaa80fb6f7f9441ee36f35a4e43f20db0bad3737ce7cbebb1335',
     'governance_v2_proposal' => 'f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695',
     'governance_v2_adr' => 'cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962',
-    'governance_v2_contract' => 'eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca',
+    'governance_v2_contract' => 'b74fd990cb0a12692dc78bb808f688bab99924bf8f8ae80b109e72d9ba4d9bba',
     'engineering_evidence_map_v2' => '3b1005a31087896b412a8f64a3dbfced2c0ab655be78c32abd7c0743ae3811d5',
-    'coverage_ledger_v2' => '690becdf75a08d17b992d8dad754313f33d0f9c8ea2c692b9b12b8b837f43ac5',
+    'coverage_ledger_v2' => '0f312713000b0092de313baee2d3cc6d34695c2fefd717c620871268045ac58c',
     'batch_b_registration_source_register' => '3db0a698be4f7729f24f997dbbc54e69c7c98442237fb7a9d4b12358971eeb1f',
     'batch_g_reporting_source_register' => '53bef20b3f509c543213e649b2d5f6644e9dbe00a7dae34d209c57a93137612e'
   }.freeze

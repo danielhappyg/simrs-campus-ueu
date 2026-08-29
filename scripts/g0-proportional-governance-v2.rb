@@ -5,6 +5,7 @@ require 'digest'
 require 'json'
 require 'open3'
 require 'pathname'
+require 'time'
 
 # Shared, read-only validation primitives for proportional G0 governance v2.
 #
@@ -23,7 +24,7 @@ module G0ProportionalGovernanceV2
 
   SHA256_PATTERN = /\A[0-9a-f]{64}\z/.freeze
   SAFE_RELATIVE_PATH_PATTERN = /\A(?!\/)(?!.*(?:\A|\/)\.\.(?:\/|\z))[^\0]+\z/.freeze
-  CONTRACT_CANONICAL_SHA256 = 'fc73bf2703f434a685cf116c02bed316e1e972751ad6cca7918318c1b06213f4'
+  CONTRACT_CANONICAL_SHA256 = 'c39a585227e50415d40c92a466e9547b622deee289e4ad2d8058f638b60f7028'
 
   # JSON's object_class hook is invoked for every object, including nested
   # objects. Rejecting a repeated assignment here therefore closes duplicate
@@ -151,7 +152,8 @@ module G0ProportionalGovernanceV2
     artifact_type schema_version contract_id profile validator adopted_sources
     boundary universe closed_values governance_transitions owner_outcome_rules
     tier_derivation authority_rules family_decision_rules
-    correction_history_rules gate_rules separation_rules
+    correction_history_rules consumer_operation_decision_contract gate_rules
+    separation_rules
   ].freeze
   CONTRACT_VALIDATOR_KEYS = %w[
     contract_name version closed_schema unknown_fields duplicate_keys wrong_types
@@ -211,6 +213,116 @@ module G0ProportionalGovernanceV2
     append_only predecessor_event_sha256_required supersession_reference_required
     forked_history broken_history historical_bytes_mutable
   ].freeze
+  CONTRACT_CONSUMER_OPERATION_KEYS = %w[
+    schema_version artifact_type status effect data_boundary exact_top_level_keys
+    nested_exact_keys allowed_operations allowed_environments
+    required_attribution_method gate_a_decider_binding_rules decision_message_rules
+    technical_evidence_reference_rules approval_evidence_contract
+    semantic_evidence_contracts canonical_trust_state timestamp_and_expiry_rules
+  ].freeze
+  CONSUMER_OPERATION_DECISION_KEYS = %w[
+    artifact_type schema_version decision_id status effect data_boundary
+    operation environment actor conditions decided_at expires_at
+    adoption_decision approval_evidence prior_state candidate_bundle held_selection recover_outcome
+    decision_attribution technical_evidence
+  ].freeze
+  CONSUMER_OPERATION_ACTOR_KEYS = %w[identity authority_capacity decision_thread_id].freeze
+  CONSUMER_OPERATION_PRIOR_STATE_KEYS = %w[
+    prior_state_reason expected_prior_pointer_sha256
+    observed_unreadable_pointer_sha256
+  ].freeze
+  CONSUMER_OPERATION_REFERENCE_KEYS = %w[path sha256].freeze
+  CONSUMER_OPERATION_ATTRIBUTION_KEYS = %w[
+    decision_reference decision_message decision_message_encoding
+    decision_message_sha256 source_message_at recorded_at recorded_at_basis
+  ].freeze
+  CONSUMER_OPERATION_TECHNICAL_EVIDENCE_KEYS = %w[
+    gate_a_adoption local_observation candidate_bundle canonical_preflight
+    validator_contract selector_source independent_review
+  ].freeze
+  CONTRACT_CONSUMER_NESTED_KEYS = %w[
+    actor prior_state reference decision_attribution technical_evidence
+  ].freeze
+  CONTRACT_DECISION_MESSAGE_RULE_KEYS = %w[
+    encoding minimum_bytes sha256_basis reference_binding
+    reference_hash_fragment_prefix
+  ].freeze
+  CONTRACT_TECHNICAL_EVIDENCE_RULE_KEYS = %w[
+    all_exact_fields_required repository_relative_paths_only
+    regular_files_or_candidate_bundle_manifest_only sha256_basis
+  ].freeze
+  CONTRACT_GATE_A_DECIDER_RULE_KEYS = %w[
+    adoption_source actor_identity_source actor_capacity_source thread_id_source
+    required_capacity arbitrary_actor_or_thread
+  ].freeze
+  CONTRACT_APPROVAL_EVIDENCE_KEYS = %w[
+    artifact_type schema_version status effect exact_top_level_keys scope_exact_keys
+    only_consumer_selection_operation_true cross_equal_operation_fields
+  ].freeze
+  CONSUMER_APPROVAL_EVIDENCE_KEYS = %w[
+    artifact_type schema_version approval_id status effect data_boundary operation
+    environment actor conditions decided_at expires_at prior_state candidate_bundle
+    held_selection recover_outcome decision_attribution scope
+  ].freeze
+  CONSUMER_APPROVAL_SCOPE_KEYS = %w[
+    consumer_selection_operation candidate_retention capability_disposition
+    slice_implementation deployment hosted_migration real_patient_data
+    live_integration domain_acceptance g0_closure g3_acceptance
+  ].freeze
+  CONSUMER_APPROVAL_CROSS_EQUAL_KEYS = %w[
+    status effect data_boundary operation environment actor conditions decided_at
+    expires_at prior_state candidate_bundle held_selection recover_outcome
+    decision_attribution
+  ].freeze
+  CONTRACT_SEMANTIC_EVIDENCE_KEYS = %w[
+    schema_version common_exact_keys local_observation_artifact_type
+    local_observation_effect canonical_preflight_artifact_type canonical_preflight_effect
+    independent_review_artifact_type independent_review_effect status authority_effect
+    canonical_preflight_check_keys independent_reviewer_exact_keys
+    independent_reviewed_evidence_exact_keys independent_reviewer_capacity
+    independent_review_verdict fresh_at_decision_time
+  ].freeze
+  CONTRACT_CANONICAL_TRUST_STATE_KEYS = %w[
+    state canonical_environment canonical_operation_policy
+    repository_local_approval_artifacts_sufficient required_external_attestations
+    trust_anchor_status signature_implementation_authorized fixture_environment
+    fixture_requires_existing_test_guard
+  ].freeze
+  CONSUMER_EVIDENCE_COMMON_KEYS = %w[
+    artifact_type schema_version evidence_id status effect data_boundary environment
+    root observed_at expires_at candidate_bundle validator_contract selector_source
+    prior_state authority_effect
+  ].freeze
+  CONSUMER_PREFLIGHT_CHECK_KEYS = %w[
+    candidate_retained_direct_child candidate_manifest_hash_valid
+    validator_contract_hash_valid selector_source_hash_valid prior_state_matches
+    no_authority_effect filesystem_capabilities_supported no_test_controls
+  ].freeze
+  CONSUMER_REVIEWER_KEYS = %w[identity capacity].freeze
+  CONSUMER_REVIEWED_EVIDENCE_KEYS = %w[local_observation canonical_preflight].freeze
+  CONSUMER_INDEPENDENT_REVIEW_KEYS = (
+    CONSUMER_EVIDENCE_COMMON_KEYS + %w[reviewer reviewed_evidence verdict]
+  ).freeze
+  CONTRACT_TIMESTAMP_RULE_KEYS = %w[
+    format source_message_at_nullable_when_unavailable recorded_at_required
+    recorded_at_not_before_source_message_at_when_present
+    decided_at_must_equal_source_message_at expires_at_strictly_after_decided_at
+    maximum_decision_ttl_seconds maximum_evidence_ttl_seconds
+    evidence_expiry_valid_when evidence_observation_order
+    authorization_valid_when
+  ].freeze
+  CONSUMER_OPERATION_ALLOWED_OPERATIONS = %w[activate rollback disable recover].freeze
+  CONSUMER_OPERATION_ALLOWED_ENVIRONMENTS = %w[
+    isolated_test_fixture local_canonical_checkout
+  ].freeze
+  CONSUMER_OPERATION_ATTRIBUTION_METHOD = 'approved_immutable_ticket_or_workflow_record'
+  CONSUMER_OPERATION_MESSAGE_ENCODING = 'exact_utf8_bytes_no_normalization'
+  CONSUMER_OPERATION_MESSAGE_REFERENCE_PREFIX = '#decision-message-sha256:'
+  CONSUMER_OPERATION_BUNDLE_MANIFEST = 'G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json'
+  CONSUMER_MAXIMUM_DECISION_TTL_SECONDS = 7200
+  CONSUMER_MAXIMUM_EVIDENCE_TTL_SECONDS = 7200
+  CONSUMER_SELECTOR_SOURCE_PATH = 'scripts/select-g0-governance-consumer.rb'
+  CONSUMER_VALIDATOR_CONTRACT_PATH = 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json'
   CONTRACT_GATE_KEYS = %w[
     project_g0_open_value project_g0_pass_value project_g0_pass_requires
     incomplete_or_invalid_project_g0 slice_authorization_closes_project_g0
@@ -243,7 +355,7 @@ module G0ProportionalGovernanceV2
 
     validator = contract.fetch('validator')
     assert_closed_schema!(validator, required: CONTRACT_VALIDATOR_KEYS, label: '$.contract.validator')
-    unless validator.fetch('contract_name') == 'g0_proportional_governance_v2' && validator.fetch('version') == '1.0.0' &&
+    unless validator.fetch('contract_name') == 'g0_proportional_governance_v2' && validator.fetch('version') == '1.3.0' &&
            validator.fetch('closed_schema') == true &&
            validator.values_at('unknown_fields', 'duplicate_keys', 'wrong_types') == %w[reject reject reject] &&
            validator.fetch('secret_like_content') == 'reject_without_echoing_value'
@@ -275,6 +387,7 @@ module G0ProportionalGovernanceV2
     validate_contract_authority_rules!(contract)
     validate_contract_family_rules!(contract.fetch('family_decision_rules'))
     validate_contract_correction_rules!(contract.fetch('correction_history_rules'))
+    validate_contract_consumer_operation_rules!(contract)
     validate_contract_gate_rules!(contract.fetch('gate_rules'))
     validate_contract_separation_rules!(contract.fetch('separation_rules'))
     unless canonical_sha256(contract) == CONTRACT_CANONICAL_SHA256
@@ -447,6 +560,167 @@ module G0ProportionalGovernanceV2
   end
   private_class_method :validate_contract_correction_rules!
 
+  def validate_contract_consumer_operation_rules!(contract)
+    rules = contract.fetch('consumer_operation_decision_contract')
+    label = '$.contract.consumer_operation_decision_contract'
+    assert_closed_schema!(rules, required: CONTRACT_CONSUMER_OPERATION_KEYS, label: label)
+
+    unless rules.values_at('schema_version', 'artifact_type', 'status', 'effect', 'data_boundary') == [
+      1,
+      'g0_governance_v2_consumer_operation_decision',
+      'approved',
+      'authorizes_one_consumer_selection_operation',
+      'synthetic_only'
+    ]
+      raise ValidationError, "#{label}: operation-decision identity or effect changed"
+    end
+
+    assert_exact_string_array!(rules.fetch('exact_top_level_keys'), CONSUMER_OPERATION_DECISION_KEYS,
+                               label: "#{label}.exact_top_level_keys")
+    nested = rules.fetch('nested_exact_keys')
+    assert_closed_schema!(nested, required: CONTRACT_CONSUMER_NESTED_KEYS, label: "#{label}.nested_exact_keys")
+    {
+      'actor' => CONSUMER_OPERATION_ACTOR_KEYS,
+      'prior_state' => CONSUMER_OPERATION_PRIOR_STATE_KEYS,
+      'reference' => CONSUMER_OPERATION_REFERENCE_KEYS,
+      'decision_attribution' => CONSUMER_OPERATION_ATTRIBUTION_KEYS,
+      'technical_evidence' => CONSUMER_OPERATION_TECHNICAL_EVIDENCE_KEYS
+    }.each do |key, expected|
+      assert_exact_string_array!(nested.fetch(key), expected, label: "#{label}.nested_exact_keys.#{key}")
+    end
+    assert_exact_string_array!(rules.fetch('allowed_operations'), CONSUMER_OPERATION_ALLOWED_OPERATIONS,
+                               label: "#{label}.allowed_operations")
+    assert_exact_string_array!(rules.fetch('allowed_environments'), CONSUMER_OPERATION_ALLOWED_ENVIRONMENTS,
+                               label: "#{label}.allowed_environments")
+    unless rules.fetch('required_attribution_method') == CONSUMER_OPERATION_ATTRIBUTION_METHOD &&
+           contract.fetch('closed_values').fetch('accepted_attribution_methods').include?(CONSUMER_OPERATION_ATTRIBUTION_METHOD)
+      raise ValidationError, "#{label}.required_attribution_method: not the adopted attribution method"
+    end
+
+    binding = rules.fetch('gate_a_decider_binding_rules')
+    assert_closed_schema!(binding, required: CONTRACT_GATE_A_DECIDER_RULE_KEYS,
+                          label: "#{label}.gate_a_decider_binding_rules")
+    unless binding == {
+      'adoption_source' => 'adopted_sources.adoption_decision',
+      'actor_identity_source' => 'decider.identity',
+      'actor_capacity_source' => 'decider.authority_capacity',
+      'thread_id_source' => 'decider.decision_reference_codex_thread_prefix',
+      'required_capacity' => 'product_owner',
+      'arbitrary_actor_or_thread' => 'reject'
+    }
+      raise ValidationError, "#{label}.gate_a_decider_binding_rules: Gate-A decider binding changed"
+    end
+
+    message = rules.fetch('decision_message_rules')
+    assert_closed_schema!(message, required: CONTRACT_DECISION_MESSAGE_RULE_KEYS,
+                          label: "#{label}.decision_message_rules")
+    unless message == {
+      'encoding' => CONSUMER_OPERATION_MESSAGE_ENCODING,
+      'minimum_bytes' => 1,
+      'sha256_basis' => 'exact_decision_message_utf8_bytes',
+      'reference_binding' => 'decision_reference_must_end_with_hash_fragment',
+      'reference_hash_fragment_prefix' => CONSUMER_OPERATION_MESSAGE_REFERENCE_PREFIX
+    }
+      raise ValidationError, "#{label}.decision_message_rules: exact byte/hash/reference rules changed"
+    end
+
+    evidence = rules.fetch('technical_evidence_reference_rules')
+    assert_closed_schema!(evidence, required: CONTRACT_TECHNICAL_EVIDENCE_RULE_KEYS,
+                          label: "#{label}.technical_evidence_reference_rules")
+    unless evidence == {
+      'all_exact_fields_required' => true,
+      'repository_relative_paths_only' => true,
+      'regular_files_or_candidate_bundle_manifest_only' => true,
+      'sha256_basis' => 'exact_referenced_file_bytes'
+    }
+      raise ValidationError, "#{label}.technical_evidence_reference_rules: evidence binding changed"
+    end
+
+    approval = rules.fetch('approval_evidence_contract')
+    assert_closed_schema!(approval, required: CONTRACT_APPROVAL_EVIDENCE_KEYS,
+                          label: "#{label}.approval_evidence_contract")
+    unless approval.values_at('artifact_type', 'schema_version', 'status', 'effect') == [
+      'g0_governance_v2_gate_b_operation_approval', 1, 'approved',
+      'authorizes_one_consumer_selection_operation'
+    ]
+      raise ValidationError, "#{label}.approval_evidence_contract: approval identity or effect changed"
+    end
+    assert_exact_string_array!(approval.fetch('exact_top_level_keys'), CONSUMER_APPROVAL_EVIDENCE_KEYS,
+                               label: "#{label}.approval_evidence_contract.exact_top_level_keys")
+    assert_exact_string_array!(approval.fetch('scope_exact_keys'), CONSUMER_APPROVAL_SCOPE_KEYS,
+                               label: "#{label}.approval_evidence_contract.scope_exact_keys")
+    assert_exact_string_array!(approval.fetch('cross_equal_operation_fields'), CONSUMER_APPROVAL_CROSS_EQUAL_KEYS,
+                               label: "#{label}.approval_evidence_contract.cross_equal_operation_fields")
+    unless approval.fetch('only_consumer_selection_operation_true') == true
+      raise ValidationError, "#{label}.approval_evidence_contract: approval scope changed"
+    end
+
+    semantic = rules.fetch('semantic_evidence_contracts')
+    assert_closed_schema!(semantic, required: CONTRACT_SEMANTIC_EVIDENCE_KEYS,
+                          label: "#{label}.semantic_evidence_contracts")
+    unless semantic.values_at(
+      'schema_version', 'local_observation_artifact_type', 'local_observation_effect',
+      'canonical_preflight_artifact_type', 'canonical_preflight_effect',
+      'independent_review_artifact_type', 'independent_review_effect', 'status',
+      'authority_effect', 'independent_reviewer_capacity', 'independent_review_verdict',
+      'fresh_at_decision_time'
+    ) == [
+      1, 'g0_governance_v2_gate_b_local_observation', 'none_observation_only',
+      'g0_governance_v2_gate_b_canonical_preflight', 'none_preflight_only',
+      'g0_governance_v2_gate_b_independent_review', 'none_review_evidence_only',
+      'PASS', 'none', 'independent_technical_security_reviewer', 'PASS', true
+    ]
+      raise ValidationError, "#{label}.semantic_evidence_contracts: semantic evidence identity changed"
+    end
+    assert_exact_string_array!(semantic.fetch('common_exact_keys'), CONSUMER_EVIDENCE_COMMON_KEYS,
+                               label: "#{label}.semantic_evidence_contracts.common_exact_keys")
+    assert_exact_string_array!(semantic.fetch('canonical_preflight_check_keys'), CONSUMER_PREFLIGHT_CHECK_KEYS,
+                               label: "#{label}.semantic_evidence_contracts.canonical_preflight_check_keys")
+    assert_exact_string_array!(semantic.fetch('independent_reviewer_exact_keys'), CONSUMER_REVIEWER_KEYS,
+                               label: "#{label}.semantic_evidence_contracts.independent_reviewer_exact_keys")
+    assert_exact_string_array!(semantic.fetch('independent_reviewed_evidence_exact_keys'),
+                               CONSUMER_REVIEWED_EVIDENCE_KEYS,
+                               label: "#{label}.semantic_evidence_contracts.independent_reviewed_evidence_exact_keys")
+
+    trust = rules.fetch('canonical_trust_state')
+    assert_closed_schema!(trust, required: CONTRACT_CANONICAL_TRUST_STATE_KEYS,
+                          label: "#{label}.canonical_trust_state")
+    unless trust == {
+      'state' => 'unprovisioned_blocked_external_attestation_required',
+      'canonical_environment' => 'local_canonical_checkout',
+      'canonical_operation_policy' => 'reject_before_lock_probe_marker_or_write',
+      'repository_local_approval_artifacts_sufficient' => false,
+      'required_external_attestations' => %w[product_owner independent_technical_security_reviewer],
+      'trust_anchor_status' => 'absent_not_approved_not_provisioned',
+      'signature_implementation_authorized' => false,
+      'fixture_environment' => 'isolated_test_fixture',
+      'fixture_requires_existing_test_guard' => true
+    }
+      raise ValidationError, "#{label}.canonical_trust_state: fail-closed external trust state changed"
+    end
+
+    timestamps = rules.fetch('timestamp_and_expiry_rules')
+    assert_closed_schema!(timestamps, required: CONTRACT_TIMESTAMP_RULE_KEYS,
+                          label: "#{label}.timestamp_and_expiry_rules")
+    unless timestamps == {
+      'format' => 'rfc3339_with_explicit_offset',
+      'source_message_at_nullable_when_unavailable' => false,
+      'recorded_at_required' => true,
+      'recorded_at_not_before_source_message_at_when_present' => true,
+      'decided_at_must_equal_source_message_at' => true,
+      'expires_at_strictly_after_decided_at' => true,
+      'maximum_decision_ttl_seconds' => CONSUMER_MAXIMUM_DECISION_TTL_SECONDS,
+      'maximum_evidence_ttl_seconds' => CONSUMER_MAXIMUM_EVIDENCE_TTL_SECONDS,
+      'evidence_expiry_valid_when' => 'now_lt_every_semantic_evidence_expires_at',
+      'evidence_observation_order' => 'local_observation_lte_canonical_preflight_lte_independent_review_lte_source_message_at',
+      'authorization_valid_when' => 'decided_at_lte_now_and_now_lt_expires_at'
+    }
+      raise ValidationError, "#{label}.timestamp_and_expiry_rules: timestamp or expiry semantics changed"
+    end
+    true
+  end
+  private_class_method :validate_contract_consumer_operation_rules!
+
   def validate_contract_gate_rules!(rules)
     assert_closed_schema!(rules, required: CONTRACT_GATE_KEYS, label: '$.contract.gate_rules')
     assert_unique_string_array!(rules.fetch('project_g0_pass_requires'), label: '$.contract.gate_rules.project_g0_pass_requires', allow_empty: false)
@@ -473,6 +747,373 @@ module G0ProportionalGovernanceV2
   end
   private_class_method :validate_contract_separation_rules!
 
+  def validate_consumer_operation_decision!(decision, contract:, root:, now: nil, label: '$.operation_decision')
+    validate_contract_consumer_operation_rules!(contract)
+    assert_closed_schema!(decision, required: CONSUMER_OPERATION_DECISION_KEYS, label: label)
+    assert_secret_free!(decision, label: label)
+
+    rules = contract.fetch('consumer_operation_decision_contract')
+    unless decision.values_at('schema_version', 'artifact_type', 'status', 'effect', 'data_boundary') == [
+      rules.fetch('schema_version'), rules.fetch('artifact_type'), rules.fetch('status'),
+      rules.fetch('effect'), rules.fetch('data_boundary')
+    ]
+      raise ValidationError, "#{label}: operation-decision identity or authority effect is invalid"
+    end
+    assert_type!(decision.fetch('decision_id'), :nonempty_string, label: "#{label}.decision_id")
+    operation = decision.fetch('operation')
+    environment = decision.fetch('environment')
+    unless CONSUMER_OPERATION_ALLOWED_OPERATIONS.include?(operation)
+      raise ValidationError, "#{label}.operation: unknown operation"
+    end
+    unless CONSUMER_OPERATION_ALLOWED_ENVIRONMENTS.include?(environment)
+      raise ValidationError, "#{label}.environment: environment is not allowed"
+    end
+    if environment == 'local_canonical_checkout'
+      trust_state = rules.fetch('canonical_trust_state').fetch('state')
+      unless trust_state == 'unprovisioned_blocked_external_attestation_required'
+        raise ValidationError, "#{label}.environment: canonical trust state is invalid"
+      end
+      raise ValidationError, "#{label}.environment: canonical external attestation is unprovisioned"
+    end
+
+    actor = decision.fetch('actor')
+    assert_closed_schema!(actor, required: CONSUMER_OPERATION_ACTOR_KEYS, label: "#{label}.actor")
+    CONSUMER_OPERATION_ACTOR_KEYS.each do |key|
+      assert_type!(actor.fetch(key), :nonempty_string, label: "#{label}.actor.#{key}")
+    end
+    assert_unique_string_array!(decision.fetch('conditions'), label: "#{label}.conditions", allow_empty: false)
+
+    root_path = Pathname.new(root).expand_path
+    raise ValidationError, "#{label}: repository root must be an existing directory" unless root_path.directory?
+    root_path = root_path.realpath
+    adoption = validate_consumer_reference!(decision.fetch('adoption_decision'), root_path,
+                                            label: "#{label}.adoption_decision")
+    unless adoption == contract.fetch('adopted_sources').fetch('adoption_decision')
+      raise ValidationError, "#{label}.adoption_decision: must be the immutable adopted Gate-A decision"
+    end
+    adoption_document = load_consumer_json_reference!(adoption, root_path,
+                                                       label: "#{label}.adoption_decision")
+    prior = decision.fetch('prior_state')
+    validate_consumer_prior_state!(prior, label: "#{label}.prior_state")
+    candidate = validate_optional_consumer_reference!(decision.fetch('candidate_bundle'), root_path,
+                                                       label: "#{label}.candidate_bundle", allow_bundle: true)
+    held = validate_optional_consumer_reference!(decision.fetch('held_selection'), root_path,
+                                                  label: "#{label}.held_selection")
+    outcome = decision.fetch('recover_outcome')
+    valid_targets = case operation
+                    when 'activate' then !candidate.nil? && held.nil? && outcome.nil?
+                    when 'rollback' then candidate.nil? && !held.nil? && outcome.nil?
+                    when 'disable' then candidate.nil? && held.nil? && outcome.nil?
+                    when 'recover'
+                      (outcome == 'held' && candidate.nil? && !held.nil?) ||
+                        (outcome == 'disabled' && candidate.nil? && held.nil?)
+                    end
+    raise ValidationError, "#{label}: operation target references are inconsistent" unless valid_targets
+
+    attribution = decision.fetch('decision_attribution')
+    assert_closed_schema!(attribution, required: CONSUMER_OPERATION_ATTRIBUTION_KEYS,
+                          label: "#{label}.decision_attribution")
+    message = attribution.fetch('decision_message')
+    assert_type!(message, :nonempty_string, label: "#{label}.decision_attribution.decision_message")
+    unless message.encoding == Encoding::UTF_8 && message.valid_encoding? && message.bytesize >= 1
+      raise ValidationError, "#{label}.decision_attribution.decision_message: expected valid nonempty UTF-8 bytes"
+    end
+    unless attribution.fetch('decision_message_encoding') == CONSUMER_OPERATION_MESSAGE_ENCODING
+      raise ValidationError, "#{label}.decision_attribution.decision_message_encoding: exact-byte encoding rule changed"
+    end
+    message_sha = attribution.fetch('decision_message_sha256')
+    assert_type!(message_sha, :sha256, label: "#{label}.decision_attribution.decision_message_sha256")
+    unless Digest::SHA256.hexdigest(message.b) == message_sha
+      raise ValidationError, "#{label}.decision_attribution.decision_message_sha256: exact message byte hash mismatch"
+    end
+    decision_reference = attribution.fetch('decision_reference')
+    assert_type!(decision_reference, :nonempty_string, label: "#{label}.decision_attribution.decision_reference")
+    unless decision_reference.end_with?("#{CONSUMER_OPERATION_MESSAGE_REFERENCE_PREFIX}#{message_sha}")
+      raise ValidationError, "#{label}.decision_attribution.decision_reference: message hash reference mismatch"
+    end
+    unless attribution.fetch('recorded_at_basis') == CONSUMER_OPERATION_ATTRIBUTION_METHOD
+      raise ValidationError, "#{label}.decision_attribution.recorded_at_basis: attribution method is not adopted"
+    end
+
+    bind_gate_a_decider!(adoption_document, actor: actor, attribution: attribution,
+                         label: label)
+
+    decided_at = parse_explicit_rfc3339!(decision.fetch('decided_at'), label: "#{label}.decided_at")
+    expires_at = parse_explicit_rfc3339!(decision.fetch('expires_at'), label: "#{label}.expires_at")
+    recorded_at = parse_explicit_rfc3339!(attribution.fetch('recorded_at'),
+                                          label: "#{label}.decision_attribution.recorded_at")
+    source_time = parse_explicit_rfc3339!(
+      attribution.fetch('source_message_at'), label: "#{label}.decision_attribution.source_message_at"
+    )
+    unless decided_at == source_time
+      raise ValidationError, "#{label}: decided_at must equal source_message_at"
+    end
+    if recorded_at < source_time
+      raise ValidationError, "#{label}.decision_attribution.recorded_at: predates source message"
+    end
+    raise ValidationError, "#{label}.expires_at: must be strictly after decided_at" unless expires_at > decided_at
+    if expires_at - decided_at > CONSUMER_MAXIMUM_DECISION_TTL_SECONDS
+      raise ValidationError, "#{label}.expires_at: decision TTL exceeds the bounded maximum"
+    end
+    current = nil
+    unless now.nil?
+      current = now.is_a?(String) ? parse_explicit_rfc3339!(now, label: "#{label}.now") : now
+      raise ValidationError, "#{label}.now: expected Time or RFC3339 string" unless current.is_a?(Time)
+      unless decided_at <= current && current < expires_at
+        raise ValidationError, "#{label}: decision is not within its authorization window"
+      end
+    end
+
+    approval_reference = validate_consumer_reference!(decision.fetch('approval_evidence'), root_path,
+                                                       label: "#{label}.approval_evidence")
+    approval = load_consumer_json_reference!(approval_reference, root_path,
+                                             label: "#{label}.approval_evidence")
+    validate_consumer_approval_evidence!(approval, decision: decision, contract: contract,
+                                         label: "#{label}.approval_evidence_document")
+
+    evidence = decision.fetch('technical_evidence')
+    assert_closed_schema!(evidence, required: CONSUMER_OPERATION_TECHNICAL_EVIDENCE_KEYS,
+                          label: "#{label}.technical_evidence")
+    evidence.each do |key, reference|
+      validate_consumer_reference!(reference, root_path,
+                                   label: "#{label}.technical_evidence.#{key}",
+                                   allow_bundle: key == 'candidate_bundle')
+    end
+    unless evidence.fetch('gate_a_adoption') == adoption
+      raise ValidationError, "#{label}.technical_evidence.gate_a_adoption: adoption reference drift"
+    end
+    if operation == 'activate' && evidence.fetch('candidate_bundle') != candidate
+      raise ValidationError, "#{label}.technical_evidence.candidate_bundle: target reference drift"
+    end
+    validate_consumer_semantic_evidence!(
+      evidence, decision: decision, contract: contract, root_path: root_path,
+      decided_at: decided_at, current: current, label: "#{label}.technical_evidence"
+    )
+    true
+  rescue KeyError => e
+    raise ValidationError, "#{label}: missing required field #{e.key}"
+  end
+
+
+  def bind_gate_a_decider!(adoption, actor:, attribution:, label:)
+    decider = adoption.fetch('decider')
+    assert_type!(decider, Hash, label: "#{label}.adoption_decision.decider")
+    identity = decider.fetch('identity')
+    capacity = decider.fetch('authority_capacity')
+    reference = decider.fetch('decision_reference')
+    [identity, capacity, reference].each_with_index do |value, index|
+      assert_type!(value, :nonempty_string, label: "#{label}.adoption_decision.decider[#{index}]")
+    end
+    match = reference.match(/\Acodex_thread:([^#]+)#/)
+    raise ValidationError, "#{label}.adoption_decision.decider: invalid immutable Gate-A thread" unless match
+    expected = {
+      'identity' => identity,
+      'authority_capacity' => capacity,
+      'decision_thread_id' => match[1]
+    }
+    unless capacity == 'product_owner' && actor == expected
+      raise ValidationError, "#{label}.actor: must match immutable adopted Gate-A decider"
+    end
+    unless attribution.fetch('decision_reference').start_with?("codex_thread:#{match[1]}#")
+      raise ValidationError, "#{label}.decision_attribution.decision_reference: Gate-A decision thread mismatch"
+    end
+  rescue KeyError => e
+    raise ValidationError, "#{label}.adoption_decision.decider: missing required field #{e.key}"
+  end
+  private_class_method :bind_gate_a_decider!
+
+  def validate_consumer_approval_evidence!(approval, decision:, contract:, label:)
+    rules = contract.fetch('consumer_operation_decision_contract').fetch('approval_evidence_contract')
+    assert_closed_schema!(approval, required: CONSUMER_APPROVAL_EVIDENCE_KEYS, label: label)
+    assert_secret_free!(approval, label: label)
+    unless approval.values_at('artifact_type', 'schema_version', 'status', 'effect') ==
+           rules.values_at('artifact_type', 'schema_version', 'status', 'effect')
+      raise ValidationError, "#{label}: approval identity or effect is invalid"
+    end
+    assert_type!(approval.fetch('approval_id'), :nonempty_string, label: "#{label}.approval_id")
+    CONSUMER_APPROVAL_CROSS_EQUAL_KEYS.each do |key|
+      unless approval.fetch(key) == decision.fetch(key)
+        raise ValidationError, "#{label}.#{key}: approval/operation cross-binding mismatch"
+      end
+    end
+    scope = approval.fetch('scope')
+    assert_closed_schema!(scope, required: CONSUMER_APPROVAL_SCOPE_KEYS, label: "#{label}.scope")
+    CONSUMER_APPROVAL_SCOPE_KEYS.each do |key|
+      assert_type!(scope.fetch(key), :boolean, label: "#{label}.scope.#{key}")
+    end
+    unless scope.fetch('consumer_selection_operation') == true &&
+           (CONSUMER_APPROVAL_SCOPE_KEYS - ['consumer_selection_operation']).all? { |key| scope.fetch(key) == false }
+      raise ValidationError, "#{label}.scope: only one consumer selection operation may be authorized"
+    end
+  end
+  private_class_method :validate_consumer_approval_evidence!
+
+  def validate_consumer_semantic_evidence!(evidence, decision:, contract:, root_path:, decided_at:, current:, label:)
+    semantic = contract.fetch('consumer_operation_decision_contract').fetch('semantic_evidence_contracts')
+    expected_contract = evidence.fetch('validator_contract')
+    unless expected_contract.fetch('path') == CONSUMER_VALIDATOR_CONTRACT_PATH &&
+           load_consumer_json_reference!(expected_contract, root_path,
+                                         label: "#{label}.validator_contract") == contract
+      raise ValidationError, "#{label}.validator_contract: validator contract identity mismatch"
+    end
+    unless evidence.fetch('selector_source').fetch('path') == CONSUMER_SELECTOR_SOURCE_PATH
+      raise ValidationError, "#{label}.selector_source: selector source identity mismatch"
+    end
+
+    local = load_consumer_json_reference!(evidence.fetch('local_observation'), root_path,
+                                          label: "#{label}.local_observation")
+    preflight = load_consumer_json_reference!(evidence.fetch('canonical_preflight'), root_path,
+                                              label: "#{label}.canonical_preflight")
+    review = load_consumer_json_reference!(evidence.fetch('independent_review'), root_path,
+                                           label: "#{label}.independent_review")
+    local_times = validate_common_semantic_evidence!(
+      local, expected_type: semantic.fetch('local_observation_artifact_type'),
+      expected_effect: semantic.fetch('local_observation_effect'), decision: decision,
+      evidence: evidence, root_path: root_path, decided_at: decided_at,
+      label: "#{label}.local_observation_document"
+    )
+    preflight_times = validate_common_semantic_evidence!(
+      preflight, expected_type: semantic.fetch('canonical_preflight_artifact_type'),
+      expected_effect: semantic.fetch('canonical_preflight_effect'), decision: decision,
+      evidence: evidence, root_path: root_path, decided_at: decided_at,
+      label: "#{label}.canonical_preflight_document", extra_keys: ['checks']
+    )
+    checks = preflight.fetch('checks')
+    assert_closed_schema!(checks, required: CONSUMER_PREFLIGHT_CHECK_KEYS,
+                          label: "#{label}.canonical_preflight_document.checks")
+    unless CONSUMER_PREFLIGHT_CHECK_KEYS.all? { |key| checks.fetch(key) == true }
+      raise ValidationError, "#{label}.canonical_preflight_document.checks: every check must PASS"
+    end
+    review_times = validate_common_semantic_evidence!(
+      review, expected_type: semantic.fetch('independent_review_artifact_type'),
+      expected_effect: semantic.fetch('independent_review_effect'), decision: decision,
+      evidence: evidence, root_path: root_path, decided_at: decided_at,
+      label: "#{label}.independent_review_document",
+      extra_keys: %w[reviewer reviewed_evidence verdict]
+    )
+    reviewer = review.fetch('reviewer')
+    assert_closed_schema!(reviewer, required: CONSUMER_REVIEWER_KEYS,
+                          label: "#{label}.independent_review_document.reviewer")
+    unless reviewer.fetch('identity').is_a?(String) && !reviewer.fetch('identity').strip.empty? &&
+           reviewer.fetch('capacity') == semantic.fetch('independent_reviewer_capacity') &&
+           reviewer.fetch('identity') != decision.fetch('actor').fetch('identity')
+      raise ValidationError, "#{label}.independent_review_document.reviewer: reviewer is not independent"
+    end
+    reviewed = review.fetch('reviewed_evidence')
+    assert_closed_schema!(reviewed, required: CONSUMER_REVIEWED_EVIDENCE_KEYS,
+                          label: "#{label}.independent_review_document.reviewed_evidence")
+    unless reviewed == {
+      'local_observation' => evidence.fetch('local_observation'),
+      'canonical_preflight' => evidence.fetch('canonical_preflight')
+    } && review.fetch('verdict') == semantic.fetch('independent_review_verdict')
+      raise ValidationError, "#{label}.independent_review_document: review evidence or verdict mismatch"
+    end
+    observed_times = [local_times.first, preflight_times.first, review_times.first]
+    unless observed_times.each_cons(2).all? { |earlier, later| earlier <= later } &&
+           review_times.first <= decided_at
+      raise ValidationError, "#{label}: evidence observation ordering is invalid"
+    end
+    if current && [local_times.last, preflight_times.last, review_times.last].any? { |expiry| current >= expiry }
+      raise ValidationError, "#{label}: semantic evidence has expired"
+    end
+  end
+  private_class_method :validate_consumer_semantic_evidence!
+
+  def validate_common_semantic_evidence!(document, expected_type:, expected_effect:, decision:, evidence:,
+                                         root_path:, decided_at:, label:, extra_keys: [])
+    assert_closed_schema!(document, required: CONSUMER_EVIDENCE_COMMON_KEYS + extra_keys, label: label)
+    assert_secret_free!(document, label: label)
+    unless document.values_at('artifact_type', 'schema_version', 'status', 'effect', 'data_boundary',
+                               'environment', 'root', 'authority_effect') == [
+      expected_type, 1, 'PASS', expected_effect, 'synthetic_only', decision.fetch('environment'),
+      root_path.to_s, 'none'
+    ]
+      raise ValidationError, "#{label}: semantic evidence identity, environment, root, or authority changed"
+    end
+    assert_type!(document.fetch('evidence_id'), :nonempty_string, label: "#{label}.evidence_id")
+    unless document.fetch('candidate_bundle') == evidence.fetch('candidate_bundle') &&
+           document.fetch('validator_contract') == evidence.fetch('validator_contract') &&
+           document.fetch('selector_source') == evidence.fetch('selector_source') &&
+           document.fetch('prior_state') == decision.fetch('prior_state')
+      raise ValidationError, "#{label}: semantic evidence cross-binding mismatch"
+    end
+    observed = parse_explicit_rfc3339!(document.fetch('observed_at'), label: "#{label}.observed_at")
+    expires = parse_explicit_rfc3339!(document.fetch('expires_at'), label: "#{label}.expires_at")
+    unless observed <= decided_at && decided_at < expires
+      raise ValidationError, "#{label}: evidence is not fresh at decision time"
+    end
+    if expires - observed > CONSUMER_MAXIMUM_EVIDENCE_TTL_SECONDS
+      raise ValidationError, "#{label}: evidence TTL exceeds the bounded maximum"
+    end
+    [observed, expires]
+  end
+  private_class_method :validate_common_semantic_evidence!
+
+  def load_consumer_json_reference!(reference, root_path, label:)
+    validate_consumer_reference!(reference, root_path, label: label)
+    path = safe_regular_file_under_root!(root_path, reference.fetch('path'), label: label)
+    parse_json(File.binread(path), label: label)
+  end
+  private_class_method :load_consumer_json_reference!
+
+  def validate_consumer_prior_state!(prior, label: '$.prior_state')
+    assert_closed_schema!(prior, required: CONSUMER_OPERATION_PRIOR_STATE_KEYS, label: label)
+    state = prior.fetch('prior_state_reason')
+    expected = prior.fetch('expected_prior_pointer_sha256')
+    unreadable = prior.fetch('observed_unreadable_pointer_sha256')
+    valid = case state
+            when 'valid_pointer'
+              expected.is_a?(String) && SHA256_PATTERN.match?(expected) && unreadable.nil?
+            when 'initial_state', 'missing_pointer'
+              expected.nil? && unreadable.nil?
+            when 'unreadable_pointer'
+              expected.nil? && unreadable.is_a?(String) && SHA256_PATTERN.match?(unreadable)
+            else
+              false
+            end
+    raise ValidationError, "#{label}: invalid closed prior-state representation" unless valid
+
+    true
+  end
+
+  def validate_consumer_reference!(reference, root_path, label:, allow_bundle: false)
+    assert_closed_schema!(reference, required: CONSUMER_OPERATION_REFERENCE_KEYS, label: label)
+    path = reference.fetch('path')
+    unless path.is_a?(String) && SAFE_RELATIVE_PATH_PATTERN.match?(path)
+      raise ValidationError, "#{label}.path: unsafe repository-relative path"
+    end
+    sha = reference.fetch('sha256')
+    assert_type!(sha, :sha256, label: "#{label}.sha256")
+    target = root_path.join(path)
+    source = if allow_bundle && target.directory?
+               safe_regular_file_under_root!(root_path, File.join(path, CONSUMER_OPERATION_BUNDLE_MANIFEST), label: label)
+             else
+               safe_regular_file_under_root!(root_path, path, label: label)
+             end
+    unless Digest::SHA256.file(source).hexdigest == sha
+      raise ValidationError, "#{label}: referenced byte hash drift"
+    end
+    reference
+  end
+  private_class_method :validate_consumer_reference!
+
+  def validate_optional_consumer_reference!(reference, root_path, label:, allow_bundle: false)
+    return nil if reference.nil?
+
+    validate_consumer_reference!(reference, root_path, label: label, allow_bundle: allow_bundle)
+  end
+  private_class_method :validate_optional_consumer_reference!
+
+  def parse_explicit_rfc3339!(value, label:)
+    unless value.is_a?(String) && value.match?(/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})\z/)
+      raise ValidationError, "#{label}: expected RFC3339 timestamp with explicit offset"
+    end
+    Time.iso8601(value)
+  rescue ArgumentError
+    raise ValidationError, "#{label}: invalid RFC3339 timestamp"
+  end
+  private_class_method :parse_explicit_rfc3339!
+
   def assert_unique_string_array!(value, label:, allow_empty: true)
     assert_type!(value, Array, label: label)
     raise ValidationError, "#{label}: must not be empty" if !allow_empty && value.empty?
@@ -481,6 +1122,14 @@ module G0ProportionalGovernanceV2
     true
   end
   private_class_method :assert_unique_string_array!
+
+  def assert_exact_string_array!(value, expected, label:)
+    assert_unique_string_array!(value, label: label, allow_empty: false)
+    raise ValidationError, "#{label}: exact closed values or order changed" unless value == expected
+
+    true
+  end
+  private_class_method :assert_exact_string_array!
 
   def walk_json(value, path, key = nil, &block)
     yield(value, path, key)

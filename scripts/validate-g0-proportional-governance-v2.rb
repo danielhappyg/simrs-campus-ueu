@@ -201,7 +201,7 @@ module G0ProportionalGovernanceV2ValidatorCLI
                     validator_contract: nil)
     contract_receipt = validator_contract || {
       'name' => 'g0_proportional_governance_v2',
-      'version' => '1.0.0',
+      'version' => '1.3.0',
       'path' => CONTRACT_PATH,
       'sha256' => nil
     }

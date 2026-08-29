@@ -30,6 +30,8 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
     docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json
     docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md
     docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-27.json
+    docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json
+    scripts/select-g0-governance-consumer.rb
   ].freeze
 
   class << self
@@ -49,6 +51,14 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
       phase = File.join(fixture, Selector::PHASE0_RELATIVE_PATH)
       [Selector::SELECTIONS_RELATIVE_PATH, Selector::DECISIONS_RELATIVE_PATH,
        Selector::JOURNAL_RELATIVE_PATH].each { |relative| FileUtils.mkdir_p(File.join(fixture, relative)) }
+      preflight = File.join(fixture, 'docs/operations/G0_GOVERNANCE_V2_CANONICAL_PREFLIGHT.json')
+      FileUtils.mkdir_p(File.dirname(preflight))
+      File.binwrite(preflight, Core.canonical_json({
+        'artifact_type' => 'g0_governance_v2_canonical_preflight',
+        'schema_version' => 1,
+        'status' => 'pass_fixture_only',
+        'authority_effect' => 'none'
+      }) + "\n")
       Generator.generate!(root: fixture, output: File.join(fixture, 'candidate'))
       raise 'base fixture contains an active pointer' if File.exist?(File.join(fixture, Selector::POINTER_RELATIVE_PATH))
       raise 'base fixture root mode drifted' unless File.stat(fixture).mode & 0o777 == 0o700
@@ -105,6 +115,33 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
     assert_equal 'canonical_checkout_mutation_prohibited', error.reason_code
   end
 
+  def test_canonical_checkout_is_blocked_by_unprovisioned_external_attestation_before_lock_probe_marker_or_receipt
+    receipt = File.join(@root, 'canonical-trust-guard-receipt.json')
+    options = {
+      operation: 'activate',
+      activation_decision: File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ACTIVATION_DECISION_DRAFT_2026-08-29.json'),
+      candidate_bundle: @candidate,
+      prior_state: 'initial_state',
+      json_receipt: receipt
+    }
+    before = canonical_authority_inventory
+    never_lock = ->(*) { flunk('canonical trust guard reached the stable lock') }
+    never_probe = ->(*) { flunk('canonical trust guard reached the capability probe') }
+    never_marker = ->(*) { flunk('canonical trust guard reached marker reconciliation') }
+    Selector.stub(:with_exclusive_lock, never_lock) do
+      Selector::CapabilityProbe.stub(:prove!, never_probe) do
+        Selector.stub(:reconcile_recovery_marker!, never_marker) do
+          error = assert_raises(Selector::ValidationFailure) do
+            Selector.execute!(options, root: ROOT, env: {}, clock: clock)
+          end
+          assert_equal 'canonical_external_attestation_unprovisioned', error.reason_code
+        end
+      end
+    end
+    assert_equal before, canonical_authority_inventory
+    refute File.exist?(receipt)
+  end
+
   def test_initial_activation_binds_exact_decision_bundle_actor_environment_expiry_conditions_and_hashes
     decision_path, options, decision = activation_operation
     result = Selector.execute!(options, root: @root, env: guarded_env, clock: clock)
@@ -121,7 +158,7 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
     assert_equal reference(decision_path), result.fetch(:selection).fetch('operation_decision')
     assert_equal reference(decision_path).fetch('sha256'), result.fetch(:receipt).fetch('activation_sha256')
     assert_nil result.fetch(:receipt).fetch('prior_pointer_sha256')
-    assert_equal decision.fetch('actor').fetch('institutional_id'), result.fetch(:receipt).fetch('actor')
+    assert_equal decision.fetch('actor').fetch('identity'), result.fetch(:receipt).fetch('actor')
     assert_equal reference(@candidate), result.fetch(:selection).fetch('selected_bundle')
     assert_equal Digest::SHA256.file(pointer_path).hexdigest, resolution.fetch(:pointer_sha256)
     assert_equal result.fetch(:selection), resolution.fetch(:selection)
@@ -132,7 +169,7 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
   def test_operation_decision_drift_expiry_prior_state_and_secret_content_fail_before_authority
     mutations = {
       environment: ->(row) { row['environment'] = 'canonical_checkout' },
-      actor: ->(row) { row['actor']['role'] = '' },
+      actor: ->(row) { row['actor']['identity'] = 'Arbitrary Actor' },
       expiry: ->(row) { row['expires_at'] = (FIXED_TIME - 1).iso8601 },
       conditions: ->(row) { row['conditions'] = ["pass#{'word'}=fixture-sentinel"] },
       adoption: ->(row) { row['adoption_decision']['sha256'] = '0' * 64 },
@@ -154,6 +191,136 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
       assert_equal before, authority_inventory(@root), label.to_s
       refute File.exist?(options.fetch(:json_receipt)), label.to_s
     end
+  end
+
+  def test_static_decision_attribution_evidence_environment_and_target_failures_precede_probe_lock_and_writes
+    mutations = {
+      pending: ->(row) { row['status'] = 'pending' },
+      cross_environment: ->(row) { row['environment'] = 'local_canonical_checkout' },
+      stale_evidence: ->(row) { row['technical_evidence']['canonical_preflight']['sha256'] = '0' * 64 },
+      forged_attribution: lambda do |row|
+        row['decision_attribution']['decision_message'] = "#{row['decision_attribution']['decision_message']} forged"
+      end,
+      forged_reference: ->(row) { row['decision_attribution']['decision_reference'] = 'ticket:unbound' },
+      attribution_basis: ->(row) { row['decision_attribution']['recorded_at_basis'] = 'git_author' },
+      secret: ->(row) { row['conditions'] = ["pass#{'word'}=fixture-sentinel"] },
+      candidate_mismatch: ->(row) { row['technical_evidence']['candidate_bundle'] = row['technical_evidence']['local_observation'] },
+      expired: ->(row) { row['expires_at'] = (FIXED_TIME - 1).iso8601 }
+    }
+
+    mutations.each do |label, mutation|
+      reset_fixture!
+      decision_path, options, decision = activation_operation(id: "static-#{label}")
+      mutation.call(decision)
+      write_json(decision_path, decision)
+      before = authority_inventory(@root)
+      lock_before = path_inventory(File.join(@root, Selector::LOCK_RELATIVE_PATH))
+      probe = ->(*) { flunk("#{label}: capability probe ran before static rejection") }
+      Selector::CapabilityProbe.stub(:prove!, probe) do
+        assert_raises(Selector::ValidationFailure, label.to_s) do
+          Selector.execute!(options, root: @root, env: guarded_env, clock: clock)
+        end
+      end
+      assert_equal before, authority_inventory(@root), label.to_s
+      observed_lock = path_inventory(File.join(@root, Selector::LOCK_RELATIVE_PATH))
+      lock_before.nil? ? assert_nil(observed_lock, label.to_s) : assert_equal(lock_before, observed_lock, label.to_s)
+      refute File.exist?(options.fetch(:json_receipt)), label.to_s
+    end
+  end
+
+  def test_stable_lock_existing_state_is_closed_before_probe_or_authority_write
+    invalid_lock_states = {
+      nonzero: ->(path) { File.binwrite(path, "occupied\n") },
+      wrong_mode: lambda do |path|
+        File.binwrite(path, '')
+        File.chmod(0o644, path)
+      end,
+      directory: ->(path) { Dir.mkdir(path) }
+    }
+
+    invalid_lock_states.each do |label, setup_lock|
+      reset_fixture!
+      _decision, options, = activation_operation(id: "lock-#{label}")
+      lock_path = File.join(@root, Selector::LOCK_RELATIVE_PATH)
+      setup_lock.call(lock_path)
+      before = authority_inventory(@root)
+      probe = ->(*) { flunk("#{label}: capability probe ran with invalid stable lock") }
+      Selector::CapabilityProbe.stub(:prove!, probe) do
+        error = assert_raises(Selector::ValidationFailure, label.to_s) do
+          Selector.execute!(options, root: @root, env: guarded_env, clock: clock)
+        end
+        assert_equal 'lock_path_invalid', error.reason_code
+      end
+      assert_equal before, authority_inventory(@root), label.to_s
+    end
+  end
+
+  def test_full_static_authority_is_revalidated_after_lock_before_probe_or_recovery_reconciliation
+    decision_path, options, decision = activation_operation(id: 'post-lock-revalidation')
+    evidence_path = File.join(@root, decision.dig('technical_evidence', 'local_observation', 'path'))
+    original_lock = Selector.method(:with_exclusive_lock)
+    wrapped_lock = lambda do |lock_path, &operation|
+      original_lock.call(lock_path) do
+        File.binwrite(evidence_path, "{\"artifact_type\":\"tampered-after-lock\"}\n")
+        operation.call
+      end
+    end
+    probe = ->(*) { flunk('capability probe ran before post-lock revalidation rejected evidence drift') }
+    before = authority_inventory(@root)
+    Selector.stub(:with_exclusive_lock, wrapped_lock) do
+      Selector::CapabilityProbe.stub(:prove!, probe) do
+        error = assert_raises(Selector::ValidationFailure) do
+          Selector.execute!(options, root: @root, env: guarded_env, clock: clock)
+        end
+        assert_equal 'operation_decision_invalid', error.reason_code
+      end
+    end
+    assert_equal before, authority_inventory(@root)
+    refute File.exist?(options.fetch(:json_receipt))
+    assert File.file?(decision_path)
+  end
+
+  def test_operation_and_approval_sha_replay_is_rejected_from_journal_and_durable_orphan_selection
+    completed = activate_once!(id: 'history-replay-base')
+    paths = Selector::ReadOnlyResolver.canonical_paths!(Pathname.new(@root))
+    history = Selector::Journal.load!(paths, Pathname.new(@root))
+    operation_reference = completed.fetch(:selection).fetch('operation_decision')
+    approval_reference = completed.fetch(:selection).fetch('operation_approval')
+    operation_error = assert_raises(Selector::ValidationFailure) do
+      Selector::HistoryReplay.assert_unused!(paths, history, operation_reference, {
+        'path' => 'different-approval.json', 'sha256' => 'f' * 64
+      })
+    end
+    assert_equal 'operation_decision_replay', operation_error.reason_code
+    approval_error = assert_raises(Selector::ValidationFailure) do
+      Selector::HistoryReplay.assert_unused!(paths, history, {
+        'path' => 'different-decision.json', 'sha256' => 'e' * 64
+      }, approval_reference)
+    end
+    assert_equal 'operation_decision_replay', approval_error.reason_code
+
+    _decision_path, options, document = activation_operation(id: 'durable-orphan', prior: valid_prior)
+    fault_env = guarded_env.merge(Selector::TEST_FAULT_ENV => 'after_selection_directory_fsync')
+    assert_raises(Selector::DurabilityFailure) do
+      Selector.execute!(options, root: @root, env: fault_env, clock: clock)
+    end
+    replay = assert_raises(Selector::ValidationFailure) do
+      Selector.execute!(options, root: @root, env: guarded_env, clock: clock)
+    end
+    assert_equal 'operation_decision_replay', replay.reason_code
+
+    approval_replay_path = File.join(decisions_dir, 'durable-orphan-approval-replay.json')
+    approval_replay = JSON.parse(JSON.generate(document))
+    approval_replay['decision_id'] = 'G0-V2-OP-DURABLE-ORPHAN-APPROVAL-REPLAY'
+    write_json(approval_replay_path, approval_replay)
+    approval_options = options.merge(
+      activation_decision: approval_replay_path,
+      json_receipt: File.join(@root, 'receipts/durable-orphan-approval-replay.json')
+    )
+    approval_replay_error = assert_raises(Selector::ValidationFailure) do
+      Selector.execute!(approval_options, root: @root, env: guarded_env, clock: clock)
+    end
+    assert_equal 'operation_decision_replay', approval_replay_error.reason_code
   end
 
   def test_traversal_intermediate_and_final_symlinks_nonregular_files_and_unsafe_roots_fail_closed
@@ -615,9 +782,31 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
     build_operation(id: id, operation: 'recover', prior: prior, held: held, outcome: outcome)
   end
 
-  def build_operation(id:, operation:, prior:, candidate: nil, held: nil, outcome: nil)
+  def build_operation(id:, operation:, prior:, candidate: nil, held: nil, outcome: nil,
+                      environment: 'isolated_test_fixture')
     now = next_time!
     path = File.join(decisions_dir, "#{id}.json")
+    message = "Approve exactly one #{operation} operation for #{id}."
+    message_sha = Digest::SHA256.hexdigest(message)
+    adoption = JSON.parse(File.binread(File.join(@root, adoption_reference.fetch('path'))))
+    decider = adoption.fetch('decider')
+    thread_id = decider.fetch('decision_reference').match(/\Acodex_thread:([^#]+)#/)[1]
+    decided_at = now - 90
+    expires_at = now + 3600
+    actor = {
+      'identity' => decider.fetch('identity'),
+      'authority_capacity' => decider.fetch('authority_capacity'),
+      'decision_thread_id' => thread_id
+    }
+    attribution = {
+      'decision_reference' => "codex_thread:#{thread_id}#gate-b-#{id}#decision-message-sha256:#{message_sha}",
+      'decision_message' => message,
+      'decision_message_encoding' => Selector::ATTRIBUTION_ENCODING,
+      'decision_message_sha256' => message_sha,
+      'source_message_at' => decided_at.iso8601,
+      'recorded_at' => (now - 60).iso8601,
+      'recorded_at_basis' => Selector::ATTRIBUTION_TIME_BASIS
+    }
     document = {
       'artifact_type' => 'g0_governance_v2_consumer_operation_decision',
       'schema_version' => 1,
@@ -626,21 +815,90 @@ class G0GovernanceConsumerPointerTest < Minitest::Test
       'effect' => 'authorizes_one_consumer_selection_operation',
       'data_boundary' => 'synthetic_only',
       'operation' => operation,
-      'environment' => 'isolated_test_fixture',
-      'actor' => {
-        'institutional_id' => 'UEU-PRODUCT-OWNER-001',
-        'display_name' => 'Synthetic Fixture Operator',
-        'role' => 'product_owner'
-      },
+      'environment' => environment,
+      'actor' => actor,
       'conditions' => ['fixture_only', 'no_canonical_checkout_mutation'],
-      'decided_at' => (now - 60).iso8601,
-      'expires_at' => (now + 3600).iso8601,
+      'decided_at' => decided_at.iso8601,
+      'expires_at' => expires_at.iso8601,
       'adoption_decision' => adoption_reference,
+      'approval_evidence' => nil,
       'prior_state' => prior,
       'candidate_bundle' => candidate,
       'held_selection' => held,
-      'recover_outcome' => outcome
+      'recover_outcome' => outcome,
+      'decision_attribution' => attribution,
+      'technical_evidence' => nil
     }
+
+    contract_reference = reference(File.join(@root, Selector::CONTRACT_RELATIVE_PATH))
+    selector_reference = reference(File.join(@root, 'scripts/select-g0-governance-consumer.rb'))
+    candidate_evidence = reference(@candidate)
+    common = {
+      'schema_version' => 1,
+      'status' => 'PASS',
+      'data_boundary' => 'synthetic_only',
+      'environment' => environment,
+      'root' => Pathname.new(@root).realpath.to_s,
+      'observed_at' => (decided_at - 60).iso8601,
+      'expires_at' => expires_at.iso8601,
+      'candidate_bundle' => candidate_evidence,
+      'validator_contract' => contract_reference,
+      'selector_source' => selector_reference,
+      'prior_state' => prior,
+      'authority_effect' => 'none'
+    }
+    observation_path = File.join(@root, "docs/operations/gate-b-#{id}-observation.json")
+    preflight_path = File.join(@root, "docs/operations/gate-b-#{id}-preflight.json")
+    review_path = File.join(@root, "docs/operations/gate-b-#{id}-review.json")
+    write_json(observation_path, common.merge(
+      'artifact_type' => 'g0_governance_v2_gate_b_local_observation',
+      'evidence_id' => "G0-V2-OBS-#{id.upcase}",
+      'effect' => 'none_observation_only',
+      'observed_at' => (decided_at - 180).iso8601
+    ))
+    write_json(preflight_path, common.merge(
+      'artifact_type' => 'g0_governance_v2_gate_b_canonical_preflight',
+      'evidence_id' => "G0-V2-PREFLIGHT-#{id.upcase}",
+      'effect' => 'none_preflight_only',
+      'observed_at' => (decided_at - 120).iso8601,
+      'checks' => Core::CONSUMER_PREFLIGHT_CHECK_KEYS.to_h { |key| [key, true] }
+    ))
+    observation_reference = reference(observation_path)
+    preflight_reference = reference(preflight_path)
+    write_json(review_path, common.merge(
+      'artifact_type' => 'g0_governance_v2_gate_b_independent_review',
+      'evidence_id' => "G0-V2-REVIEW-#{id.upcase}",
+      'effect' => 'none_review_evidence_only',
+      'observed_at' => (decided_at - 60).iso8601,
+      'reviewer' => {
+        'identity' => 'Independent Fixture Reviewer',
+        'capacity' => 'independent_technical_security_reviewer'
+      },
+      'reviewed_evidence' => {
+        'local_observation' => observation_reference,
+        'canonical_preflight' => preflight_reference
+      },
+      'verdict' => 'PASS'
+    ))
+    document['technical_evidence'] = {
+      'gate_a_adoption' => adoption_reference,
+      'local_observation' => observation_reference,
+      'candidate_bundle' => candidate_evidence,
+      'canonical_preflight' => preflight_reference,
+      'validator_contract' => contract_reference,
+      'selector_source' => selector_reference,
+      'independent_review' => reference(review_path)
+    }
+    approval_path = File.join(decisions_dir, "#{id}-approval.json")
+    approval = {
+      'artifact_type' => 'g0_governance_v2_gate_b_operation_approval',
+      'schema_version' => 1,
+      'approval_id' => "G0-V2-APPROVAL-#{id.upcase}",
+      'scope' => Core::CONSUMER_APPROVAL_SCOPE_KEYS.to_h { |key| [key, key == 'consumer_selection_operation'] }
+    }
+    Core::CONSUMER_APPROVAL_CROSS_EQUAL_KEYS.each { |key| approval[key] = document.fetch(key) }
+    write_json(approval_path, approval)
+    document['approval_evidence'] = reference(approval_path)
     write_json(path, document)
     receipt = File.join(@root, 'receipts', "#{id}.json")
     options = {

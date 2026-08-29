@@ -10,7 +10,7 @@
     "gate_id": "GATE_B_CONSUMER_ACTIVATION",
     "preparation_authorized_by": "gate_a_local_governance_v2_implementation_only",
     "decision_authority_status": "pending_attributable_product_owner_decision",
-    "activation_status": "not_authorized_not_executed"
+    "activation_status": "blocked_external_attestation_unprovisioned_not_executed"
   },
   "source_bindings": [
     {
@@ -46,8 +46,8 @@
     {
       "role": "governance_v2_contract",
       "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json",
-      "sha256": "eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca",
-      "recorded_status": "implemented_gate_a_contract"
+      "sha256": "b74fd990cb0a12692dc78bb808f688bab99924bf8f8ae80b109e72d9ba4d9bba",
+      "recorded_status": "gate_b_operation_decision_contract_1_3_external_trust_blocked_not_activated"
     },
     {
       "role": "v1_historical_hash_manifest",
@@ -70,21 +70,21 @@
     {
       "role": "consumer_selector_source",
       "path": "scripts/select-g0-governance-consumer.rb",
-      "sha256": "6cb638fcd4c6fb26c74caccac6844b85427ba3afbdabcb4a84990c89beb59f34",
-      "recorded_status": "fixture_only_mutation_canonical_checkout_prohibited"
+      "sha256": "c28573e0d4e5da97f64477fab10e471955b2cdf9840bbabf9c43425ca4d8aa6b",
+      "recorded_status": "gate_b_hardened_local_canonical_support_not_invoked"
     },
     {
       "role": "governance_v2_core_source",
       "path": "scripts/g0-proportional-governance-v2.rb",
-      "sha256": "7e1806bd48a4111f3f0876cd5c52c0c25858b9a0af0e61fe47bc739a8c850bc0",
-      "recorded_status": "implemented_validation_core"
+      "sha256": "0f365a46656339c0ff2e2628338cdbc26e41f27f3672b4d1b78e8bfc9aac913c",
+      "recorded_status": "gate_b_operation_decision_validation_1_3_external_trust_blocked"
     }
   ],
   "requested_operation": {
     "operation": "activate",
     "target_environment": "local_canonical_checkout",
-    "decision_status": "pending",
-    "selector_environment_support": "not_implemented_current_selector_accepts_isolated_test_fixture_only",
+    "decision_status": "blocked_external_attestation_unprovisioned",
+    "selector_environment_support": "implemented_but_canonical_blocked_until_external_attestation_trust_is_separately_approved_and_provisioned",
     "decided_at": null,
     "expires_at": null,
     "candidate_bundle_reference": null,
@@ -162,7 +162,7 @@
     ]
   },
   "required_eventual_operation_decision_schema": {
-    "schema_status": "hardening_required_not_implemented_not_selector_compatible",
+    "schema_status": "implemented_contract_1_3_selector_compatible_canonical_trust_blocked",
     "current_selector_exact_top_level_keys": [
       "artifact_type",
       "schema_version",
@@ -177,10 +177,13 @@
       "decided_at",
       "expires_at",
       "adoption_decision",
+      "approval_evidence",
       "prior_state",
       "candidate_bundle",
       "held_selection",
-      "recover_outcome"
+      "recover_outcome",
+      "decision_attribution",
+      "technical_evidence"
     ],
     "eventual_required_top_level_keys": [
       "artifact_type",
@@ -196,6 +199,7 @@
       "decided_at",
       "expires_at",
       "adoption_decision",
+      "approval_evidence",
       "prior_state",
       "candidate_bundle",
       "held_selection",
@@ -205,9 +209,9 @@
     ],
     "nested_exact_keys": {
       "actor": [
-        "institutional_id",
-        "display_name",
-        "role"
+        "identity",
+        "authority_capacity",
+        "decision_thread_id"
       ],
       "prior_state": [
         "prior_state_reason",
@@ -232,7 +236,9 @@
         "local_observation",
         "candidate_bundle",
         "canonical_preflight",
-        "selector_contract"
+        "validator_contract",
+        "selector_source",
+        "independent_review"
       ]
     },
     "approved_semantics": {
@@ -245,25 +251,20 @@
       "one_operation_only": true,
       "action_time_revalidation_required": true
     },
-    "current_selector_attribution_evidence_gaps": [
-      "decision_reference",
-      "exact_decision_message",
-      "decision_message_encoding",
-      "decision_message_sha256",
-      "source_message_at_and_recorded_time_basis",
-      "hash_bound_technical_evidence_and_canonical_preflight_references"
-    ]
+    "current_selector_attribution_evidence_gaps": []
   },
   "approval_readiness": {
-    "status": "not_approval_ready",
+    "status": "blocked_external_attestation_unprovisioned_not_approval_ready",
     "blockers": [
-      "current selector prohibits canonical-checkout mutation and accepts only isolated_test_fixture operation decisions",
-      "current selector operation-decision schema lacks attributable decision-message evidence and hash-bound technical preflight references",
       "observed candidate was ephemeral cleaned and is not decision-eligible",
+      "fresh retained candidate and hash-bound candidate manifest do not yet exist",
+      "canonical filesystem capability and authority-path preflight has not been recorded",
+      "independent technical security review of the hardened selector exact candidate and preflight is pending",
       "attributable actor institutional identity decision reference exact message timestamps and expiry are missing",
-      "initial prior state must be rederived and bound immediately before any separately authorized operation"
+      "initial prior state must be rederived and bound immediately before any separately authorized operation",
+      "external product-owner and independent-review trust anchors are absent unapproved and unprovisioned so every canonical operation is fail-closed"
     ],
-    "selector_hardening_required": true,
+    "selector_hardening_required": false,
     "fresh_candidate_required": true,
     "fresh_independent_review_required": true
   },
@@ -306,7 +307,8 @@
     "This draft is decision preparation only and must never be renamed copied or interpreted as an approved operation decision.",
     "Gate A adoption authorizes local governance-v2 implementation only and cannot supply Gate B activation authority.",
     "The temporary observed candidate is not activatable; a fresh retained hash-bound candidate is required.",
-    "Canonical checkout support attribution evidence and technical-evidence binding must be implemented tested and independently reviewed before a decision request.",
+    "Implemented canonical checkout support attribution evidence and technical-evidence binding remain non-authoritative until a fresh retained candidate preflight independent review and attributable operation decision exist.",
+    "Canonical selector execution is intentionally blocked before lock probe marker or write until external product-owner and independent-review trust is separately approved and provisioned.",
     "Activation cannot appoint owners decide capabilities authorize an application slice deploy migrate use real patient data enable a live integration close G0 or establish G3.",
     "Any eventual approval expires and authorizes at most one exact operation after action-time prior-state revalidation."
   ],

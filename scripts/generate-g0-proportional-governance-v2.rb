@@ -20,6 +20,8 @@ module G0ProportionalGovernanceV2Generator
   Core = G0ProportionalGovernanceV2
 
   PHASE = 'docs/new-simrs-rebuild/phase-0'
+  RETAINED_PARENT = "#{PHASE}/G0_GOVERNANCE_V2_CANDIDATES"
+  SAFE_RETAINED_NAME_PATTERN = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z/.freeze
   CONTRACT_PATH = "#{PHASE}/G0_GOVERNANCE_V2_CONTRACT.json"
   V1_MANIFEST_PATH = "#{PHASE}/G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json"
   V1_OWNER_POLICY_PATH = "#{PHASE}/G0_OWNER_AUTHORITY_POLICY_2026-08-25.json"
@@ -61,19 +63,7 @@ module G0ProportionalGovernanceV2Generator
     output_path = new_output_path(output)
     validate_fault_point!(fault_after_publications)
 
-    sources = load_sources(root_path)
-    artifacts = build_artifacts(sources)
-    artifact_bytes = artifacts.to_h do |role, artifact|
-      [role, Core.canonical_json(artifact) + "\n"]
-    end
-    artifact_bytes['bundle_manifest'] = Core.canonical_json(
-      build_bundle_manifest(sources, artifact_bytes)
-    ) + "\n"
-
-    artifact_bytes.each do |role, bytes|
-      parsed = Core.parse_json(bytes, label: "candidate #{role}")
-      Core.assert_secret_free!(parsed, label: "candidate #{role}")
-    end
+    _sources, artifact_bytes = deterministic_candidate_bytes(root_path)
 
     publish_new_candidate!(
       output_path,
@@ -88,6 +78,46 @@ module G0ProportionalGovernanceV2Generator
     }
   rescue G0ProportionalGovernanceV2::Error => e
     raise Error, e.message
+  end
+
+  # Retained candidates are deliberately narrower than generic --output
+  # generation. The caller supplies only a safe leaf name; the repository root
+  # determines the exact parent. Retention creates evidence, never authority.
+  def generate_retained!(root:, retained_name:, fault_after_publications: nil)
+    root_path = canonical_root(root)
+    output_path = new_retained_path(root_path, retained_name)
+    validate_fault_point!(fault_after_publications)
+    _sources, artifact_bytes = deterministic_candidate_bytes(root_path)
+
+    publish_new_candidate!(
+      output_path,
+      artifact_bytes,
+      fault_after_publications: fault_after_publications
+    )
+    retained_receipt(root_path, output_path, operation: 'generate_retained_candidate')
+  rescue G0ProportionalGovernanceV2::Error => e
+    raise Error, e.message
+  end
+
+  # Read-only preflight for a previously retained candidate. Verification
+  # rejects any path outside the exact retained parent and compares all six
+  # files byte-for-byte with a fresh deterministic projection of pinned sources.
+  def verify_retained!(root:, path:)
+    root_path = canonical_root(root)
+    candidate_path = existing_retained_path(root_path, path)
+    raise Error, 'retained candidate is incomplete or invalid' unless complete_candidate?(candidate_path)
+
+    _sources, expected_bytes = deterministic_candidate_bytes(root_path)
+    PUBLICATION_ORDER.each do |role|
+      artifact = candidate_path.join(FILES.fetch(role))
+      raise Error, 'retained candidate differs from deterministic pending projection' unless File.binread(artifact) == expected_bytes.fetch(role)
+    end
+
+    retained_receipt(root_path, candidate_path, operation: 'verify_retained_candidate')
+  rescue G0ProportionalGovernanceV2::Error => e
+    raise Error, e.message
+  rescue SystemCallError
+    raise Error, 'retained candidate is unavailable'
   end
 
   def complete_candidate?(directory, allow_incomplete: false)
@@ -138,6 +168,40 @@ module G0ProportionalGovernanceV2Generator
   rescue G0ProportionalGovernanceV2::Error, KeyError, SystemCallError
     false
   end
+
+  def deterministic_candidate_bytes(root_path)
+    sources = load_sources(root_path)
+    artifacts = build_artifacts(sources)
+    artifact_bytes = artifacts.to_h do |role, artifact|
+      [role, Core.canonical_json(artifact) + "\n"]
+    end
+    artifact_bytes['bundle_manifest'] = Core.canonical_json(
+      build_bundle_manifest(sources, artifact_bytes)
+    ) + "\n"
+
+    artifact_bytes.each do |role, bytes|
+      parsed = Core.parse_json(bytes, label: "candidate #{role}")
+      Core.assert_secret_free!(parsed, label: "candidate #{role}")
+    end
+    [sources, artifact_bytes]
+  end
+  private_class_method :deterministic_candidate_bytes
+
+  def retained_receipt(root_path, output_path, operation:)
+    manifest_path = output_path.join(FILES.fetch('bundle_manifest'))
+    manifest = Core.parse_json_file(manifest_path, label: 'retained candidate bundle manifest')
+    {
+      'operation' => operation,
+      'status' => 'retained_candidate_no_authority',
+      'effect' => 'retained_candidate_no_authority',
+      'candidate_directory' => output_path.relative_path_from(root_path).to_s,
+      'bundle_manifest_sha256' => Digest::SHA256.file(manifest_path).hexdigest,
+      'bundle_id' => manifest.fetch('bundle_id')
+    }
+  rescue KeyError, SystemCallError
+    raise Error, 'retained candidate receipt unavailable'
+  end
+  private_class_method :retained_receipt
 
   def load_sources(root_path)
     contract = parse_source(root_path, CONTRACT_PATH)
@@ -628,6 +692,90 @@ module G0ProportionalGovernanceV2Generator
   end
   private_class_method :new_output_path
 
+  def new_retained_path(root_path, retained_name)
+    leaf = retained_leaf!(retained_name)
+    parent = retained_parent_path(root_path, create: true)
+    candidate = parent.join(leaf)
+    begin
+      candidate.lstat
+      raise UsageError, 'retained candidate already exists; refusing overwrite'
+    rescue Errno::ENOENT
+      candidate
+    end
+  rescue SystemCallError => e
+    raise UsageError, "retained candidate path is unavailable (#{e.class})"
+  end
+  private_class_method :new_retained_path
+
+  def existing_retained_path(root_path, raw_path)
+    value = raw_path.to_s
+    raise UsageError, '--verify-retained requires a candidate path' if value.strip.empty?
+    raise UsageError, 'retained candidate path is unsafe' if value.include?("\0")
+    input = Pathname.new(value)
+    raise UsageError, 'retained candidate path is unsafe' if input.each_filename.any? { |part| part == '..' }
+
+    parent = retained_parent_path(root_path, create: false)
+    candidate = (input.absolute? ? input : root_path.join(input)).expand_path
+    retained_leaf!(candidate.basename.to_s)
+    raise UsageError, 'retained candidate must be a direct child of the canonical retained parent' unless candidate.parent == parent
+    stat = candidate.lstat
+    unless stat.directory? && !stat.symlink? && candidate.realpath == candidate
+      raise UsageError, 'retained candidate must be a real non-symlink directory'
+    end
+    unless same_device?(candidate, parent)
+      raise UsageError, 'retained candidate must be on the phase-0 filesystem'
+    end
+    candidate
+  rescue SystemCallError => e
+    raise UsageError, "retained candidate path is unavailable (#{e.class})"
+  end
+  private_class_method :existing_retained_path
+
+  def retained_parent_path(root_path, create:)
+    phase0 = root_path.join(PHASE)
+    phase_stat = phase0.lstat
+    unless phase_stat.directory? && !phase_stat.symlink? && phase0.realpath == phase0
+      raise UsageError, 'phase-0 directory must be a real non-symlink directory'
+    end
+
+    parent = root_path.join(RETAINED_PARENT)
+    if create
+      begin
+        Dir.mkdir(parent, 0o700)
+        fsync_directory(phase0, strict: false)
+      rescue Errno::EEXIST
+        # A concurrent creator is acceptable only if the canonical checks below
+        # prove that the resulting object is the exact retained directory.
+      end
+    end
+    parent_stat = parent.lstat
+    unless parent_stat.directory? && !parent_stat.symlink? && parent.realpath == parent
+      raise UsageError, 'canonical retained parent must be a real non-symlink directory'
+    end
+    unless same_device?(parent, phase0)
+      raise UsageError, 'canonical retained parent must be on the phase-0 filesystem'
+    end
+    parent
+  rescue Errno::ENOENT
+    raise UsageError, 'canonical retained parent does not exist'
+  rescue SystemCallError => e
+    raise UsageError, "canonical retained parent is unavailable (#{e.class})"
+  end
+  private_class_method :retained_parent_path
+
+  def retained_leaf!(value)
+    unless value.is_a?(String) && SAFE_RETAINED_NAME_PATTERN.match?(value)
+      raise UsageError, 'retained candidate name must be a safe direct-child leaf'
+    end
+    value
+  end
+  private_class_method :retained_leaf!
+
+  def same_device?(left, right)
+    Pathname.new(left).lstat.dev == Pathname.new(right).lstat.dev
+  end
+  private_class_method :same_device?
+
   def safe_source(root_path, relative)
     unless relative.is_a?(String) && Core::SAFE_RELATIVE_PATH_PATTERN.match?(relative)
       raise Error, 'unsafe repository-relative source path'
@@ -713,7 +861,7 @@ module G0ProportionalGovernanceV2Generator
     options = { root: File.expand_path('..', __dir__) }
     seen = {}
     parser = OptionParser.new do |opts|
-      opts.banner = 'Usage: generate-g0-proportional-governance-v2.rb --output NEW_CANDIDATE_DIR [--root REPOSITORY_ROOT]'
+      opts.banner = 'Usage: generate-g0-proportional-governance-v2.rb (--output NEW_DIR | --retained-name SAFE_LEAF | --verify-retained PATH) [--root REPOSITORY_ROOT]'
       opts.on('--root PATH') do |value|
         raise OptionParser::InvalidOption, 'duplicate --root' if seen[:root]
         seen[:root] = true
@@ -724,11 +872,29 @@ module G0ProportionalGovernanceV2Generator
         seen[:output] = true
         options[:output] = value
       end
+      opts.on('--retained-name SAFE_LEAF') do |value|
+        raise OptionParser::InvalidOption, 'duplicate --retained-name' if seen[:retained_name]
+        seen[:retained_name] = true
+        options[:retained_name] = value
+      end
+      opts.on('--verify-retained PATH') do |value|
+        raise OptionParser::InvalidOption, 'duplicate --verify-retained' if seen[:verify_retained]
+        seen[:verify_retained] = true
+        options[:verify_retained] = value
+      end
     end
     parser.parse!(argv)
     raise UsageError, 'unexpected positional arguments' unless argv.empty?
+    selected_modes = %i[output retained_name verify_retained].count { |key| options.key?(key) }
+    raise UsageError, '--output, --retained-name, and --verify-retained are mutually exclusive' if selected_modes > 1
 
-    receipt = generate!(root: options.fetch(:root), output: options[:output])
+    receipt = if options.key?(:retained_name)
+                generate_retained!(root: options.fetch(:root), retained_name: options.fetch(:retained_name))
+              elsif options.key?(:verify_retained)
+                verify_retained!(root: options.fetch(:root), path: options.fetch(:verify_retained))
+              else
+                generate!(root: options.fetch(:root), output: options[:output])
+              end
     $stdout.write(Core.canonical_json(receipt) + "\n")
     0
   rescue OptionParser::ParseError

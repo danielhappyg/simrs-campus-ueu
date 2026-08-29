@@ -19,6 +19,8 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   RECORD_PATH = File.join(ROOT, 'docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json')
   ADOPTION_PATH = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json')
+  PUBLICATION_COMMIT = 'ed0ebfb54c8350cb5a750796bcfa13f5a5715a6b'
+  RECORD_SHA256 = 'c581d09348119fb82ab812d5e2e3e45e56f6a826be5c63e60c0f7b0eb7f789ca'
   TEMP_PARENT = File.realpath(Dir.tmpdir)
   Core = G0ProportionalGovernanceV2
   Generator = G0ProportionalGovernanceV2Generator
@@ -153,7 +155,7 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
     assert_raises(Core::ParseError) { Core.parse_json('{"duplicate":1,"duplicate":2}', label: '$.duplicate_fixture') }
   end
 
-  def test_exact_source_and_verification_test_hashes_are_current
+  def test_exact_source_and_verification_hashes_match_the_immutable_historical_observation
     bindings = @record.fetch('source_bindings')
     assert_equal EXPECTED_SOURCE_ROLES, bindings.map { |entry| entry.fetch('role') }
     observed_head = @record.dig('source_revision', 'observed_head_sha')
@@ -166,8 +168,6 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
       source_stat = File.lstat(source_path)
       assert source_stat.file?, entry.fetch('role')
       refute source_stat.symlink?, entry.fetch('role')
-      assert_equal entry.fetch('sha256'), Digest::SHA256.file(source_path).hexdigest,
-                   entry.fetch('role')
       head_bytes, git_error, git_status = Open3.capture3(
         'git', 'show', "#{observed_head}:#{entry.fetch('path')}", chdir: ROOT
       )
@@ -180,7 +180,19 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
     assert_closed verification, VERIFICATION_KEYS
     assert_equal 'tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb', verification.fetch('test_path')
     assert_match Core::SHA256_PATTERN, verification.fetch('test_sha256')
-    assert_equal verification.fetch('test_sha256'), Digest::SHA256.file(__FILE__).hexdigest
+    published_test, test_error, test_status = Open3.capture3(
+      'git', 'show', "#{PUBLICATION_COMMIT}:#{verification.fetch('test_path')}", chdir: ROOT
+    )
+    assert test_status.success?, test_error
+    assert_equal verification.fetch('test_sha256'), Digest::SHA256.hexdigest(published_test)
+    refute_equal verification.fetch('test_sha256'), Digest::SHA256.file(__FILE__).hexdigest
+
+    published_record, record_error, record_status = Open3.capture3(
+      'git', 'show', "#{PUBLICATION_COMMIT}:docs/operations/G0_GOVERNANCE_V2_LOCAL_OBSERVATION_2026-08-29.json", chdir: ROOT
+    )
+    assert record_status.success?, record_error
+    assert_equal RECORD_SHA256, Digest::SHA256.hexdigest(published_record)
+    assert_equal RECORD_SHA256, Digest::SHA256.file(RECORD_PATH).hexdigest
     assert verification.fetch('raw_validation_receipts_embedded')
     assert verification.fetch('generator_path_normalization_was_separate_and_hash_bound')
     refute verification.fetch('temporary_artifacts_committed')
@@ -333,24 +345,22 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
     end
   end
 
-  def test_fresh_regeneration_and_dispatch_replay_match_record_without_mutating_authority
+  def test_current_regeneration_is_valid_but_does_not_reinterpret_the_historical_observation
     before = authority_inventory
     Dir.mktmpdir('g0-wave7-observation-', TEMP_PARENT) do |temp_root|
       File.chmod(0o700, temp_root)
       candidate_path = File.join(temp_root, 'candidate')
       generation = Generator.generate!(root: ROOT, output: candidate_path)
       assert_equal 'generated_pending_candidate', generation.fetch('status')
-      assert_equal @record.dig('candidate_bundle', 'artifacts', 5, 'sha256'), generation.fetch('bundle_manifest_sha256')
-
-      expected_artifacts = @record.fetch('candidate_bundle').fetch('artifacts')
-      expected_artifacts.each do |entry|
-        assert_equal entry.fetch('sha256'), Digest::SHA256.file(File.join(candidate_path, entry.fetch('path'))).hexdigest,
-                     entry.fetch('role')
-      end
+      refute_equal @record.dig('candidate_bundle', 'artifacts', 5, 'sha256'), generation.fetch('bundle_manifest_sha256')
+      assert Generator.complete_candidate?(candidate_path)
       regenerated_manifest = Core.parse_json_file(
         File.join(candidate_path, Generator::FILES.fetch('bundle_manifest')),
         label: '$.wave7_regenerated_manifest'
       )
+      assert_equal '1.3.0', regenerated_manifest.dig('validator', 'version')
+      assert_equal Digest::SHA256.file(File.join(ROOT, Generator::CONTRACT_PATH)).hexdigest,
+                   regenerated_manifest.dig('validator', 'contract_sha256')
       assert_equal @record.dig('candidate_bundle', 'canonical_order_sha256'),
                    regenerated_manifest.fetch('canonical_order_sha256')
       comparison = Comparator.compare!(root: ROOT, candidate_bundle: candidate_path)
@@ -359,7 +369,7 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
         'v1_historical_file_count', 'authority_effect', 'activation_effect', 'gate_effect'
       )
 
-      replay_observations(candidate_path)
+      assert_current_observations_supersede_history(candidate_path)
       assert_equal 0o700, File.stat(temp_root).mode & 0o777
       assert_equal 0o700, File.stat(candidate_path).mode & 0o777
     end
@@ -381,7 +391,7 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
     assert_equal keys.sort, value.keys.sort
   end
 
-  def replay_observations(candidate_path)
+  def assert_current_observations_supersede_history(candidate_path)
     recorded = @record.fetch('validation_observations').to_h { |row| [row.fetch('observation'), row.fetch('raw_receipt')] }
     root = Pathname.new(ROOT).realpath
     env = ENV.to_h
@@ -398,7 +408,9 @@ class G0GovernanceV2ObservationReceiptTest < Minitest::Test
       result = Dispatcher.dispatch(options, root, stdout, stderr, env)
       assert_equal 0, result.fetch(:exit_code), "#{name}: #{stderr.string}"
       replay = Dispatcher.build_receipt(options, root, result, '2026-08-29T00:00:00.000000Z', '2026-08-29T00:00:00.000000Z')
-      assert_equal normalized_receipt(recorded.fetch(name)), normalized_receipt(replay), name
+      assert_equal 'g0-proportional-governance-v2/1.3.0', replay.dig('validator_contract', 'v2')
+      assert_equal 'validate-g0-governance/1.0.0-wave4-candidate-only', replay.dig('validator_contract', 'dispatcher')
+      refute_equal normalized_receipt(recorded.fetch(name)), normalized_receipt(replay), name
     end
   end
 

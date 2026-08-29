@@ -47,6 +47,7 @@ module G0GovernanceConsumerSelector
   DECISIONS_RELATIVE_PATH = "#{PHASE0_RELATIVE_PATH}/G0_GOVERNANCE_V2_ACTIVATION_DECISIONS"
   JOURNAL_RELATIVE_PATH = "#{PHASE0_RELATIVE_PATH}/G0_GOVERNANCE_CONSUMER_JOURNAL"
   LOCK_RELATIVE_PATH = "#{PHASE0_RELATIVE_PATH}/G0_GOVERNANCE_CONSUMER_SELECTION.lock"
+  CANDIDATES_RELATIVE_PATH = "#{PHASE0_RELATIVE_PATH}/G0_GOVERNANCE_V2_CANDIDATES"
 
   OPERATIONS = %w[activate rollback disable recover].freeze
   PRIOR_STATES = %w[valid_pointer initial_state missing_pointer unreadable_pointer].freeze
@@ -90,22 +91,23 @@ module G0GovernanceConsumerSelector
     prior_state_reason expected_prior_pointer_sha256
     observed_unreadable_pointer_sha256
   ].freeze
-  ACTOR_KEYS = %w[institutional_id display_name role].freeze
-  OPERATION_DECISION_KEYS = %w[
-    artifact_type schema_version decision_id status effect data_boundary
-    operation environment actor conditions decided_at expires_at
-    adoption_decision prior_state candidate_bundle held_selection recover_outcome
-  ].freeze
+  ACTOR_KEYS = Core::CONSUMER_OPERATION_ACTOR_KEYS
+  DECISION_ATTRIBUTION_KEYS = Core::CONSUMER_OPERATION_ATTRIBUTION_KEYS
+  TECHNICAL_EVIDENCE_KEYS = Core::CONSUMER_OPERATION_TECHNICAL_EVIDENCE_KEYS
+  OPERATION_DECISION_KEYS = Core::CONSUMER_OPERATION_DECISION_KEYS
+  ENVIRONMENTS = %w[isolated_test_fixture local_canonical_checkout].freeze
+  ATTRIBUTION_ENCODING = Core::CONSUMER_OPERATION_MESSAGE_ENCODING
+  ATTRIBUTION_TIME_BASIS = Core::CONSUMER_OPERATION_ATTRIBUTION_METHOD
   SELECTION_KEYS = %w[
     artifact_type schema_version selection_id kind status profile created_at
-    adoption_decision operation_decision prior_state selected_bundle
+    adoption_decision operation_decision operation_approval prior_state selected_bundle
     held_predecessor_selection previous_validated_selection validator_contract
     gate_effect
   ].freeze
   JOURNAL_KEYS = %w[
     artifact_type schema_version journal_id sequence operation created_at
     prior_journal_sha256 prior_pointer_sha256 prior_selection new_selection
-    operation_decision prior_state authority_effect
+    operation_decision operation_approval prior_state authority_effect
   ].freeze
   POINTER_KEYS = %w[
     artifact_type schema_version status profile revision
@@ -126,7 +128,7 @@ module G0GovernanceConsumerSelector
   module PathGuard
     module_function
 
-    def resolve_root!(raw_root, env:, mutation:)
+    def classify_root!(raw_root)
       raw = raw_root.to_s
       raise UsageError, 'root_invalid' if raw.empty? || raw.include?("\0")
       candidate = Pathname.new(raw).expand_path
@@ -134,21 +136,41 @@ module G0GovernanceConsumerSelector
       stat = candidate.lstat
       raise UsageError, 'root_invalid' unless stat.directory? && !stat.symlink?
       root = candidate.realpath
-
-      return root unless mutation
-
-      raise UsageError, 'canonical_checkout_mutation_prohibited' if root == CANONICAL_ROOT
-      raise UsageError, 'test_root_guard_required' unless env[TEST_ROOT_GUARD] == '1'
-      raise UsageError, 'test_root_mode_invalid' unless (stat.mode & 0o777) == 0o700
+      return [root, 'local_canonical_checkout'] if root == CANONICAL_ROOT
 
       temporary = Pathname.new(Dir.tmpdir).realpath
-      raise UsageError, 'test_root_not_temporary' unless inside?(root, temporary) && root != temporary
-      raise UsageError, 'fault_injection_invalid' if env[TEST_FAULT_ENV] && !FAULT_POINTS.include?(env[TEST_FAULT_ENV])
-      root
+      unless inside?(root, temporary) && root != temporary && (stat.mode & 0o777) == 0o700
+        raise UsageError, 'root_classification_invalid'
+      end
+      [root, 'isolated_test_fixture']
     rescue ValidationFailure
       raise UsageError, 'root_invalid'
     rescue SystemCallError, ArgumentError
       raise UsageError, 'root_invalid'
+    end
+
+    def resolve_root!(raw_root, env:, mutation:)
+      root, environment = classify_root!(raw_root)
+
+      return root unless mutation
+
+      raise UsageError, 'canonical_checkout_mutation_prohibited' if environment == 'local_canonical_checkout'
+      raise UsageError, 'test_root_guard_required' unless env[TEST_ROOT_GUARD] == '1'
+      raise UsageError, 'fault_injection_invalid' if env[TEST_FAULT_ENV] && !FAULT_POINTS.include?(env[TEST_FAULT_ENV])
+      root
+    end
+
+    def authorize_mutation!(root, decision_environment:, env:)
+      _resolved, classified = classify_root!(root)
+      raise ValidationFailure, 'operation_decision_environment_mismatch' unless decision_environment == classified
+
+      if classified == 'local_canonical_checkout'
+        raise UsageError, 'canonical_test_controls_rejected' if env[TEST_ROOT_GUARD] || env[TEST_FAULT_ENV]
+      else
+        raise UsageError, 'test_root_guard_required' unless env[TEST_ROOT_GUARD] == '1'
+        raise UsageError, 'fault_injection_invalid' if env[TEST_FAULT_ENV] && !FAULT_POINTS.include?(env[TEST_FAULT_ENV])
+      end
+      true
     end
 
     def exact_directory!(root, relative, reason = 'canonical_directory_invalid')
@@ -448,6 +470,21 @@ module G0GovernanceConsumerSelector
       raise ValidationFailure, 'contract_invalid'
     end
 
+    def canonical_trust_state!(contract, root_environment:)
+      trust = contract.fetch('consumer_operation_decision_contract').fetch('canonical_trust_state')
+      unless root_environment == trust.fetch('canonical_environment') &&
+             trust.fetch('state') == 'unprovisioned_blocked_external_attestation_required' &&
+             trust.fetch('canonical_operation_policy') == 'reject_before_lock_probe_marker_or_write' &&
+             trust.fetch('repository_local_approval_artifacts_sufficient') == false &&
+             trust.fetch('trust_anchor_status') == 'absent_not_approved_not_provisioned' &&
+             trust.fetch('signature_implementation_authorized') == false
+        raise ValidationFailure, 'canonical_trust_state_invalid'
+      end
+      raise ValidationFailure, 'canonical_external_attestation_unprovisioned'
+    rescue KeyError
+      raise ValidationFailure, 'canonical_trust_state_invalid'
+    end
+
     def adoption!(root, contract)
       reference = contract.fetch('adopted_sources').fetch('adoption_decision')
       path = PathGuard.repository_reference_path!(root, reference, reason: 'adoption_invalid')
@@ -495,15 +532,22 @@ module G0GovernanceConsumerSelector
       value
     end
 
-    def operation_decision!(path, root:, options:, derived_prior:, contract:, adoption_reference:, target_reference:, now:)
+    def operation_decision!(path, root:, root_environment:, options:, derived_prior:, contract:, contract_path:,
+                            adoption_reference:, target_reference:, now:)
       decision = ArtifactIO.parse_file!(path, 'operation_decision_invalid')
+      current = now.respond_to?(:call) ? now.call : now
+      Core.validate_consumer_operation_decision!(
+        decision, contract: contract, root: root.to_s, now: current,
+        label: '$.operation_decision'
+      )
       Core.assert_closed_schema!(decision, required: OPERATION_DECISION_KEYS, label: '$.operation_decision')
       ArtifactIO.assert_secret_free!(decision, 'operation_decision_secret_rejected')
       unless decision.fetch('artifact_type') == 'g0_governance_v2_consumer_operation_decision' &&
              decision.fetch('schema_version') == 1 && decision.fetch('status') == 'approved' &&
              decision.fetch('effect') == 'authorizes_one_consumer_selection_operation' &&
              decision.fetch('data_boundary') == 'synthetic_only' &&
-             decision.fetch('environment') == 'isolated_test_fixture' &&
+             ENVIRONMENTS.include?(decision.fetch('environment')) &&
+             decision.fetch('environment') == root_environment &&
              OPERATIONS.include?(decision.fetch('operation')) &&
              decision.fetch('operation') == options.fetch(:operation)
         raise ValidationFailure, 'operation_decision_invalid'
@@ -517,7 +561,6 @@ module G0GovernanceConsumerSelector
       end
       decided_at = parse_time!(decision.fetch('decided_at'), 'operation_decision_time_invalid')
       expires_at = parse_time!(decision.fetch('expires_at'), 'operation_decision_time_invalid')
-      current = now.respond_to?(:call) ? now.call : now
       raise ValidationFailure, 'operation_decision_expired' unless decided_at <= current && current < expires_at
       raise ValidationFailure, 'operation_decision_adoption_mismatch' unless decision.fetch('adoption_decision') == adoption_reference
       prior_state!(decision.fetch('prior_state'), reason: 'operation_decision_prior_state_invalid')
@@ -545,7 +588,15 @@ module G0GovernanceConsumerSelector
       raise ValidationFailure, 'operation_decision_invalid'
     end
 
-    def operation_decision_record!(decision, selection:, adoption_reference:)
+    def operation_decision_record!(decision, selection:, adoption_reference:, root: nil, root_environment: nil,
+                                   contract_path: nil)
+      if root && contract_path
+        contract = Core.parse_json(File.binread(contract_path), label: '$.contract')
+        Core.validate_consumer_operation_decision!(
+          decision, contract: contract, root: root.to_s, now: nil,
+          label: '$.operation_decision'
+        )
+      end
       Core.assert_closed_schema!(decision, required: OPERATION_DECISION_KEYS, label: '$.operation_decision')
       ArtifactIO.assert_secret_free!(decision, 'operation_decision_secret_rejected')
       operation = decision.fetch('operation')
@@ -553,8 +604,11 @@ module G0GovernanceConsumerSelector
              decision.fetch('schema_version') == 1 && decision.fetch('status') == 'approved' &&
              decision.fetch('effect') == 'authorizes_one_consumer_selection_operation' &&
              decision.fetch('data_boundary') == 'synthetic_only' &&
-             decision.fetch('environment') == 'isolated_test_fixture' && OPERATIONS.include?(operation) &&
+             ENVIRONMENTS.include?(decision.fetch('environment')) &&
+             (root_environment.nil? || decision.fetch('environment') == root_environment) &&
+             OPERATIONS.include?(operation) &&
              decision.fetch('adoption_decision') == adoption_reference &&
+             decision.fetch('approval_evidence') == selection.fetch('operation_approval') &&
              decision.fetch('prior_state') == selection.fetch('prior_state')
         raise ValidationFailure, 'operation_decision_invalid'
       end
@@ -596,6 +650,69 @@ module G0GovernanceConsumerSelector
       raise ValidationFailure, 'operation_decision_invalid'
     end
 
+    def attribution!(value, decided_at:)
+      Core.assert_closed_schema!(value, required: DECISION_ATTRIBUTION_KEYS, label: '$.operation_decision.decision_attribution')
+      message = value.fetch('decision_message')
+      sha = value.fetch('decision_message_sha256')
+      reference = value.fetch('decision_reference')
+      unless reference.is_a?(String) && !reference.strip.empty? &&
+             message.is_a?(String) && message.encoding == Encoding::UTF_8 && message.valid_encoding? &&
+             !message.empty? &&
+             value.fetch('decision_message_encoding') == ATTRIBUTION_ENCODING &&
+             SHA256_PATTERN.match?(sha.to_s) && Digest::SHA256.hexdigest(message.b) == sha &&
+             reference.end_with?("#decision-message-sha256:#{sha}")
+        raise ValidationFailure, 'operation_decision_attribution_invalid'
+      end
+
+      recorded = parse_time!(value.fetch('recorded_at'), 'operation_decision_attribution_invalid')
+      basis = value.fetch('recorded_at_basis')
+      source = parse_time!(value.fetch('source_message_at'), 'operation_decision_attribution_invalid')
+      honest = basis == ATTRIBUTION_TIME_BASIS && decided_at == source && source <= recorded
+      raise ValidationFailure, 'operation_decision_attribution_invalid' unless honest
+      value
+    rescue Core::Error, KeyError
+      raise ValidationFailure, 'operation_decision_attribution_invalid'
+    end
+
+    def technical_evidence!(value, root:, adoption_reference:, contract_path:, target_reference:, operation:)
+      Core.assert_closed_schema!(value, required: TECHNICAL_EVIDENCE_KEYS, label: '$.operation_decision.technical_evidence')
+      ArtifactIO.assert_secret_free!(value, 'operation_decision_evidence_invalid')
+      raise ValidationFailure, 'operation_decision_evidence_invalid' unless value.fetch('gate_a_adoption') == adoption_reference
+
+      PathGuard.repository_reference_path!(root, value.fetch('gate_a_adoption'), reason: 'operation_decision_evidence_invalid')
+      %w[local_observation canonical_preflight].each do |key|
+        PathGuard.repository_reference_path!(root, value.fetch(key), reason: 'operation_decision_evidence_invalid')
+      end
+      expected_contract = {
+        'path' => PathGuard.relative_path(root, contract_path),
+        'sha256' => Digest::SHA256.file(contract_path).hexdigest
+      }
+      unless value.fetch('validator_contract') == expected_contract
+        raise ValidationFailure, 'operation_decision_evidence_invalid'
+      end
+      PathGuard.repository_reference_path!(root, value.fetch('validator_contract'), reason: 'operation_decision_evidence_invalid')
+
+      candidate_evidence = value.fetch('candidate_bundle')
+      PathGuard.validate_reference_shape!(candidate_evidence, 'operation_decision_evidence_invalid')
+      candidate_directory = PathGuard.secure_directory!(
+        root.join(candidate_evidence.fetch('path')), root: root,
+        reason: 'operation_decision_evidence_invalid'
+      )
+      manifest = PathGuard.regular_file!(
+        candidate_directory.join(Comparator::BUNDLE_FILE), root: candidate_directory,
+        reason: 'operation_decision_evidence_invalid'
+      )
+      unless Digest::SHA256.file(manifest).hexdigest == candidate_evidence.fetch('sha256')
+        raise ValidationFailure, 'operation_decision_evidence_invalid'
+      end
+      if operation == 'activate' && candidate_evidence != target_reference
+        raise ValidationFailure, 'operation_decision_candidate_evidence_mismatch'
+      end
+      value
+    rescue Core::Error, KeyError
+      raise ValidationFailure, 'operation_decision_evidence_invalid'
+    end
+
     def parse_time!(value, reason)
       raise ValidationFailure, reason unless value.is_a?(String)
       Time.iso8601(value).utc
@@ -633,6 +750,7 @@ module G0GovernanceConsumerSelector
 
     def resolve_pointer!(root:, env: ENV, allow_recovery_marker: false)
       root_path = PathGuard.resolve_root!(root, env: env, mutation: false)
+      _classified_root, root_environment = PathGuard.classify_root!(root_path)
       paths = canonical_paths!(root_path)
       pointer_path = paths.fetch(:pointer)
       marker = read_recovery_marker(paths)
@@ -683,7 +801,8 @@ module G0GovernanceConsumerSelector
       )
       operation_decision = ArtifactIO.parse_file!(operation_path, 'selection_contract_invalid')
       Validators.operation_decision_record!(
-        operation_decision, selection: selection, adoption_reference: adoption_ref
+        operation_decision, selection: selection, adoption_reference: adoption_ref,
+        root: root_path, root_environment: root_environment, contract_path: contract_path
       )
 
       bundle_path = nil
@@ -801,7 +920,9 @@ module G0GovernanceConsumerSelector
              selection.fetch('profile') == pointer.fetch('profile')
         raise ResolutionError, 'selection_contract_invalid'
       end
-      %w[adoption_decision operation_decision].each { |key| PathGuard.validate_reference_shape!(selection.fetch(key), 'selection_contract_invalid') }
+      %w[adoption_decision operation_decision operation_approval].each do |key|
+        PathGuard.validate_reference_shape!(selection.fetch(key), 'selection_contract_invalid')
+      end
       %w[selected_bundle held_predecessor_selection previous_validated_selection].each do |key|
         Validators.reference_or_nil!(selection.fetch(key), 'selection_contract_invalid')
       end
@@ -830,7 +951,7 @@ module G0GovernanceConsumerSelector
 
     def validate_validator_reference!(value)
       Core.assert_closed_schema!(value, required: VALIDATOR_REFERENCE_KEYS, label: '$.validator_contract')
-      unless value.fetch('name') == 'g0_proportional_governance_v2' && value.fetch('version') == '1.0.0' &&
+      unless value.fetch('name') == 'g0_proportional_governance_v2' && value.fetch('version') == '1.3.0' &&
              value.fetch('path') == CONTRACT_RELATIVE_PATH && SHA256_PATTERN.match?(value.fetch('sha256').to_s)
         raise ValidationFailure, 'validator_contract_invalid'
       end
@@ -879,7 +1000,9 @@ module G0GovernanceConsumerSelector
         raise ValidationFailure, 'journal_contract_invalid' unless value.nil? || SHA256_PATTERN.match?(value.to_s)
       end
       %w[prior_selection].each { |key| Validators.reference_or_nil!(record.fetch(key), 'journal_contract_invalid') }
-      %w[new_selection operation_decision].each { |key| PathGuard.validate_reference_shape!(record.fetch(key), 'journal_contract_invalid') }
+      %w[new_selection operation_decision operation_approval].each do |key|
+        PathGuard.validate_reference_shape!(record.fetch(key), 'journal_contract_invalid')
+      end
       Validators.prior_state!(record.fetch('prior_state'), reason: 'journal_contract_invalid')
       Validators.parse_time!(record.fetch('created_at'), 'journal_contract_invalid')
       true
@@ -899,6 +1022,44 @@ module G0GovernanceConsumerSelector
     rescue KeyError
       raise ValidationFailure, 'rollback_predecessor_invalid'
     end
+  end
+
+  module HistoryReplay
+    module_function
+
+    def assert_unused!(paths, history, decision_reference, approval_reference)
+      decision_sha = decision_reference.fetch('sha256')
+      approval_sha = approval_reference.fetch('sha256')
+      history.each do |entry|
+        record = entry.fetch(:document)
+        reject_match!(record.fetch('operation_decision'), record.fetch('operation_approval'),
+                      decision_sha, approval_sha)
+      end
+      paths.fetch(:selections).children.select { |path| path.basename.to_s.end_with?('.json') }.each do |path|
+        selection_path = PathGuard.regular_file!(path, root: paths.fetch(:selections),
+                                                 reason: 'operation_history_invalid')
+        selection = ArtifactIO.parse_file!(selection_path, 'operation_history_invalid')
+        Core.assert_closed_schema!(selection, required: SELECTION_KEYS, label: '$.selection_history')
+        ArtifactIO.assert_secret_free!(selection, 'operation_history_invalid')
+        %w[operation_decision operation_approval].each do |key|
+          PathGuard.validate_reference_shape!(selection.fetch(key), 'operation_history_invalid')
+        end
+        reject_match!(selection.fetch('operation_decision'), selection.fetch('operation_approval'),
+                      decision_sha, approval_sha)
+      end
+      true
+    rescue Core::Error, KeyError
+      raise ValidationFailure, 'operation_history_invalid'
+    end
+
+    def reject_match!(operation_reference, approval_reference, decision_sha, approval_sha)
+      if operation_reference.fetch('sha256') == decision_sha || approval_reference.fetch('sha256') == approval_sha
+        raise ValidationFailure, 'operation_decision_replay'
+      end
+    rescue KeyError
+      raise ValidationFailure, 'operation_history_invalid'
+    end
+    private_class_method :reject_match!
   end
 
   module PriorState
@@ -945,7 +1106,7 @@ module G0GovernanceConsumerSelector
 
   def run_cli(argv, stdout: $stdout, stderr: $stderr, env: ENV, clock: -> { Time.now.utc })
     options = parse_options(argv)
-    root = PathGuard.resolve_root!(options.fetch(:root), env: env, mutation: true)
+    root = PathGuard.resolve_root!(options.fetch(:root), env: env, mutation: false)
     result = execute!(options, root: root, env: env, clock: clock)
     stdout.write(Core.canonical_json(result.fetch(:receipt)) + "\n")
     EXIT_SUCCESS
@@ -1059,16 +1220,58 @@ module G0GovernanceConsumerSelector
 
   def execute!(options, root:, env: ENV, clock: -> { Time.now.utc }, fault_hook: nil)
     validate_option_matrix!(options)
-    root_path = PathGuard.resolve_root!(root, env: env, mutation: true)
+    root_path, root_environment = PathGuard.classify_root!(root)
+    if root_environment == 'local_canonical_checkout'
+      canonical_contract, = Validators.contract!(root_path)
+      Validators.canonical_trust_state!(canonical_contract, root_environment: root_environment)
+    end
     paths = ReadOnlyResolver.canonical_paths!(root_path)
     receipt_path = receipt_target!(root_path, options.fetch(:json_receipt))
     decision_path = PathGuard.direct_child_file!(paths.fetch(:decisions), options.fetch(:activation_decision), root: root_path,
                                                  reason: 'operation_decision_path_invalid')
     started_at = timestamp(clock)
 
+    # Gate-B invariant: a canonical operation must prove all static authority,
+    # attribution, evidence and target bindings before touching the stable lock,
+    # running a write-capability probe, or creating any authority artifact.
+    contract, contract_path = Validators.contract!(root_path)
+    _adoption, _adoption_path, adoption_reference = Validators.adoption!(root_path, contract)
+    preflight_prior, preflight_resolution, preflight_history = PriorState.derive!(root_path, paths, env: env)
+    declared_prior = declared_prior_state(options)
+    raise ValidationFailure, 'declared_prior_state_mismatch' unless declared_prior == preflight_prior
+    declared_decision = ArtifactIO.parse_file!(decision_path, 'operation_decision_invalid')
+    declared_target = case options.fetch(:operation)
+                      when 'activate' then declared_decision['candidate_bundle']
+                      when 'rollback' then declared_decision['held_selection']
+                      when 'recover'
+                        options.fetch(:recover_outcome) == 'held' ? declared_decision['held_selection'] : nil
+                      end
+    # Reject malformed, pending, forged, expired or cross-environment authority
+    # before the comparatively expensive bundle/history target validation.
+    Validators.operation_decision!(
+      decision_path, root: root_path, root_environment: root_environment,
+      options: options, derived_prior: preflight_prior, contract: contract,
+      contract_path: contract_path, adoption_reference: adoption_reference,
+      target_reference: declared_target, now: clock
+    )
+    preflight_target, = target_for_operation!(
+      options, root_path, paths, preflight_resolution, preflight_history,
+      root_environment: root_environment
+    )
+    preflight_decision = Validators.operation_decision!(
+      decision_path, root: root_path, root_environment: root_environment,
+      options: options, derived_prior: preflight_prior, contract: contract,
+      contract_path: contract_path, adoption_reference: adoption_reference,
+      target_reference: preflight_target, now: clock
+    )
+    PathGuard.authorize_mutation!(
+      root_path, decision_environment: preflight_decision.fetch('environment'), env: env
+    )
+    preflight_decision_reference = reference(root_path, decision_path)
+    HistoryReplay.assert_unused!(paths, preflight_history, preflight_decision_reference,
+                                 preflight_decision.fetch('approval_evidence'))
+
     with_exclusive_lock(paths.fetch(:lock)) do
-      CapabilityProbe.prove!(paths, env: env, fault_hook: fault_hook)
-      reconcile_recovery_marker!(paths, options)
       derived_prior, prior_resolution, history = PriorState.derive!(root_path, paths, env: env)
       declared_prior = declared_prior_state(options)
       raise ValidationFailure, 'declared_prior_state_mismatch' unless declared_prior == derived_prior
@@ -1077,14 +1280,24 @@ module G0GovernanceConsumerSelector
       adoption, _adoption_path, adoption_reference = Validators.adoption!(root_path, contract)
       validator_reference = ReadOnlyResolver.validator_reference(contract, contract_path, root_path)
       target_reference, target_selection, bundle_reference = target_for_operation!(
-        options, root_path, paths, prior_resolution, history
+        options, root_path, paths, prior_resolution, history,
+        root_environment: root_environment
       )
       decision = Validators.operation_decision!(
-        decision_path, root: root_path, options: options, derived_prior: derived_prior,
-        contract: contract, adoption_reference: adoption_reference,
+        decision_path, root: root_path, root_environment: root_environment,
+        options: options, derived_prior: derived_prior,
+        contract: contract, contract_path: contract_path,
+        adoption_reference: adoption_reference,
         target_reference: target_reference, now: clock
       )
       decision_reference = reference(root_path, decision_path)
+      HistoryReplay.assert_unused!(paths, history, decision_reference,
+                                   decision.fetch('approval_evidence'))
+      PathGuard.authorize_mutation!(
+        root_path, decision_environment: decision.fetch('environment'), env: env
+      )
+      CapabilityProbe.prove!(paths, env: env, fault_hook: fault_hook)
+      reconcile_recovery_marker!(paths, options)
       now_value = timestamp(clock)
       selection = build_selection(
         options, decision, decision_reference, adoption_reference, derived_prior,
@@ -1103,7 +1316,7 @@ module G0GovernanceConsumerSelector
 
       journal = build_journal(
         options, history, prior_resolution, selection_reference, decision_reference,
-        derived_prior, now_value
+        decision.fetch('approval_evidence'), derived_prior, now_value
       )
       journal_path = paths.fetch(:journal).join(format('%08d-%s.json', journal.fetch('sequence'), journal.fetch('journal_id').downcase))
       ArtifactIO.write_exclusive!(
@@ -1241,9 +1454,11 @@ module G0GovernanceConsumerSelector
     lock = begin
       File.open(lock_path, base_flags | File::CREAT | File::EXCL, 0o600)
     rescue Errno::EEXIST
+      validate_stable_lock!(lock_path)
       File.open(lock_path, base_flags, 0o600)
     end
     begin
+      validate_open_lock!(lock_path, lock)
       raise ConflictError, CONFLICT_REASON unless lock.flock(File::LOCK_EX | File::LOCK_NB)
       yield
     ensure
@@ -1259,6 +1474,32 @@ module G0GovernanceConsumerSelector
   end
   private_class_method :with_exclusive_lock
 
+  def validate_stable_lock!(lock_path)
+    stat = lock_path.lstat
+    unless stat.file? && !stat.symlink? && stat.uid == Process.uid && stat.nlink == 1 &&
+           (stat.mode & 0o777) == 0o600 && stat.size.zero?
+      raise ValidationFailure, 'lock_path_invalid'
+    end
+    true
+  rescue SystemCallError
+    raise ValidationFailure, 'lock_path_invalid'
+  end
+  private_class_method :validate_stable_lock!
+
+  def validate_open_lock!(lock_path, handle)
+    path_stat = lock_path.lstat
+    open_stat = handle.stat
+    unless path_stat.ino == open_stat.ino && path_stat.dev == open_stat.dev &&
+           open_stat.file? && open_stat.uid == Process.uid && open_stat.nlink == 1 &&
+           (open_stat.mode & 0o777) == 0o600 && open_stat.size.zero?
+      raise ValidationFailure, 'lock_path_invalid'
+    end
+    true
+  rescue SystemCallError
+    raise ValidationFailure, 'lock_path_invalid'
+  end
+  private_class_method :validate_open_lock!
+
   def declared_prior_state(options)
     {
       'prior_state_reason' => options.fetch(:prior_state),
@@ -1268,11 +1509,15 @@ module G0GovernanceConsumerSelector
   end
   private_class_method :declared_prior_state
 
-  def target_for_operation!(options, root, paths, prior_resolution, history)
+  def target_for_operation!(options, root, paths, prior_resolution, history, root_environment:)
     case options.fetch(:operation)
     when 'activate'
       directory = PathGuard.input_path(options.fetch(:candidate_bundle), root)
       directory = PathGuard.secure_directory!(directory, root: root, reason: 'candidate_bundle_path_invalid')
+      if root_environment == 'local_canonical_checkout'
+        candidates = PathGuard.exact_directory!(root, CANDIDATES_RELATIVE_PATH, 'candidate_bundle_path_invalid')
+        raise ValidationFailure, 'candidate_bundle_path_invalid' unless directory.parent == candidates
+      end
       _manifest, sha = Validators.bundle!(root, directory)
       ref = { 'path' => PathGuard.relative_path(root, directory), 'sha256' => sha }
       [ref, nil, ref]
@@ -1334,6 +1579,7 @@ module G0GovernanceConsumerSelector
       'created_at' => created_at,
       'adoption_decision' => adoption_reference,
       'operation_decision' => decision_reference,
+      'operation_approval' => decision.fetch('approval_evidence'),
       'prior_state' => prior_state,
       'selected_bundle' => bundle_reference,
       'held_predecessor_selection' => %w[rollback_hold recovery_hold].include?(kind) ? target_reference : nil,
@@ -1344,7 +1590,8 @@ module G0GovernanceConsumerSelector
   end
   private_class_method :build_selection
 
-  def build_journal(options, history, prior_resolution, selection_reference, decision_reference, prior_state, created_at)
+  def build_journal(options, history, prior_resolution, selection_reference, decision_reference,
+                    approval_reference, prior_state, created_at)
     sequence = history.length + 1
     prior_selection = prior_resolution && prior_resolution.fetch(:pointer).fetch('selection')
     identity = {
@@ -1352,6 +1599,7 @@ module G0GovernanceConsumerSelector
       'operation' => options.fetch(:operation),
       'new_selection' => selection_reference,
       'operation_decision' => decision_reference,
+      'operation_approval' => approval_reference,
       'created_at' => created_at
     }
     {
@@ -1366,6 +1614,7 @@ module G0GovernanceConsumerSelector
       'prior_selection' => prior_selection,
       'new_selection' => selection_reference,
       'operation_decision' => decision_reference,
+      'operation_approval' => approval_reference,
       'prior_state' => prior_state,
       'authority_effect' => 'none_journal_does_not_confer_authority'
     }
@@ -1409,7 +1658,7 @@ module G0GovernanceConsumerSelector
       'status' => 'PASS',
       'reason_code' => SUCCESS_REASON,
       'message' => 'Governance consumer selection transaction published and verified.',
-      'actor' => decision.fetch('actor').fetch('institutional_id'),
+      'actor' => decision.fetch('actor').fetch('identity'),
       'planning_baseline' => adoption.fetch('planning_head'),
       'adoption_sha256' => adoption_reference.fetch('sha256'),
       'activation_sha256' => decision_reference.fetch('sha256'),

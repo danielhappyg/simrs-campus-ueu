@@ -496,7 +496,19 @@ module G0G3CoverageLedgerV2
   Selector = G0GovernanceConsumerSelector
 
   SNAPSHOT_DATE = '2026-08-29'
-  OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json'
+  ORIGINAL_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json'
+  ORIGINAL_ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29'
+  ORIGINAL_SHA256 = '690becdf75a08d17b992d8dad754313f33d0f9c8ea2c692b9b12b8b837f43ac5'
+  ORIGINAL_CONTRACT_SHA256 = 'eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca'
+  ORIGINAL_CONTRACT_VERSION = '1.0.0'
+  PREDECESSOR_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json'
+  PREDECESSOR_ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R2'
+  PREDECESSOR_SHA256 = '0b89705741bb052629593b9023f1c8d19c7827489a7e8e6ce6e46af1efd5f1c6'
+  PREDECESSOR_CONTRACT_SHA256 = '2c9cac70cdeef4f85a0fd3d31d0830af4d2dcafa9c500b43a286b4726f5786e8'
+  PREDECESSOR_CONTRACT_VERSION = '1.2.0'
+  OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json'
+  ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R3'
+  SUPERSESSION_RELATIONSHIP = 'supersedes_without_rewriting_or_reinterpreting_predecessor'
   EVIDENCE_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json'
   CONTRACT_PATH = Comparator::CONTRACT_PATH
   V1_MANIFEST_PATH = Comparator::V1_MANIFEST_PATH
@@ -513,6 +525,13 @@ module G0G3CoverageLedgerV2
     authority_boundary governance_profile_binding sources capability_summary
     workflow_summary gate_summary capabilities workflows
   ].freeze
+  SOURCE_KEYS = %w[
+    governance_contract historical_hash_manifest canonical_capability_order
+    engineering_evidence_map_v2 engineering_evidence_map_source
+    source_register_count superseded_ledger
+  ].freeze
+  ORIGINAL_SOURCE_KEYS = SOURCE_KEYS.reject { |key| key == 'superseded_ledger' }.freeze
+  SUPERSEDED_LEDGER_KEYS = %w[path sha256 artifact_id relationship].freeze
   SOURCE_REFERENCE_KEYS = %w[path sha256].freeze
   PROFILE_BINDING_KEYS = %w[
     status reason_code pointer_revision pointer_sha256 selection_path
@@ -605,7 +624,7 @@ module G0G3CoverageLedgerV2
     document = {
       'artifact_type' => 'g0_g3_coverage_ledger_v2',
       'schema_version' => 2,
-      'artifact_id' => 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29',
+      'artifact_id' => ARTIFACT_ID,
       'snapshot_date' => SNAPSHOT_DATE,
       'data_boundary' => 'synthetic_only',
       'authority_boundary' => 'Engineering evidence never confers owner identity, approval, disposition, tier, authorization, G0, or G3. Governance is consumed only through the shared hash-valid active selector chain.',
@@ -683,10 +702,14 @@ module G0G3CoverageLedgerV2
     Core.assert_closed_schema!(document, required: TOP_LEVEL_KEYS, label: '$.ledger_v2')
     Core.assert_secret_free!(document, label: '$.ledger_v2')
     unless document.fetch('artifact_type') == 'g0_g3_coverage_ledger_v2' &&
-           document.fetch('schema_version') == 2 && document.fetch('snapshot_date') == SNAPSHOT_DATE &&
+           document.fetch('schema_version') == 2 && document.fetch('artifact_id') == ARTIFACT_ID &&
+           document.fetch('snapshot_date') == SNAPSHOT_DATE &&
            document.fetch('data_boundary') == 'synthetic_only'
       raise Error, 'schema-v2 ledger identity or boundary drift'
     end
+    sources = document.fetch('sources')
+    Core.assert_closed_schema!(sources, required: SOURCE_KEYS, label: '$.ledger_v2.sources')
+    validate_superseded_ledger_reference!(sources.fetch('superseded_ledger'))
     binding = document.fetch('governance_profile_binding')
     Core.assert_closed_schema!(binding, required: PROFILE_BINDING_KEYS, label: '$.ledger_v2.governance_profile_binding')
     raise Error, 'unknown governance profile binding status' unless RESOLUTION_STATUSES.include?(binding.fetch('status'))
@@ -1148,10 +1171,115 @@ module G0G3CoverageLedgerV2
       'canonical_capability_order' => source_reference(root, SOURCE_MANIFEST_PATH),
       'engineering_evidence_map_v2' => source_reference(root, EVIDENCE_MAP_PATH),
       'engineering_evidence_map_source' => deep_copy(engineering.fetch('source_evidence_map')),
-      'source_register_count' => sources.fetch(:source_manifest).fetch('batches').length
+      'source_register_count' => sources.fetch(:source_manifest).fetch('batches').length,
+      'superseded_ledger' => verified_superseded_ledger(root)
     }
   end
   private_class_method :source_records
+
+  def verified_superseded_ledger(root)
+    verified_original_ledger(root)
+    bytes = safe_read(root, PREDECESSOR_OUTPUT_PATH, label: 'superseded schema-v2 ledger')
+    unless Digest::SHA256.hexdigest(bytes) == PREDECESSOR_SHA256
+      raise Error, 'superseded schema-v2 ledger byte hash drift'
+    end
+    predecessor = Core.parse_json(bytes, label: '$.superseded_ledger')
+    Core.assert_closed_schema!(predecessor, required: TOP_LEVEL_KEYS, label: '$.superseded_ledger')
+    unless predecessor.values_at('artifact_type', 'schema_version', 'artifact_id', 'snapshot_date', 'data_boundary') == [
+      'g0_g3_coverage_ledger_v2', 2, PREDECESSOR_ARTIFACT_ID, SNAPSHOT_DATE, 'synthetic_only'
+    ]
+      raise Error, 'superseded schema-v2 ledger identity or boundary drift'
+    end
+    predecessor_sources = predecessor.fetch('sources')
+    Core.assert_closed_schema!(predecessor_sources, required: SOURCE_KEYS,
+                               label: '$.superseded_ledger.sources')
+    validate_original_ledger_reference!(predecessor_sources.fetch('superseded_ledger'))
+    predecessor_binding = predecessor.fetch('governance_profile_binding')
+    Core.assert_closed_schema!(predecessor_binding, required: PROFILE_BINDING_KEYS,
+                               label: '$.superseded_ledger.governance_profile_binding')
+    unless predecessor_sources.dig('governance_contract', 'sha256') == PREDECESSOR_CONTRACT_SHA256 &&
+           predecessor_binding.fetch('validator_contract_sha256') == PREDECESSOR_CONTRACT_SHA256 &&
+           predecessor_binding.fetch('validator_contract_version') == PREDECESSOR_CONTRACT_VERSION
+      raise Error, 'superseded schema-v2 ledger contract binding drift'
+    end
+    superseded_ledger_reference
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :verified_superseded_ledger
+
+  def verified_original_ledger(root)
+    bytes = safe_read(root, ORIGINAL_OUTPUT_PATH, label: 'original schema-v2 ledger')
+    unless Digest::SHA256.hexdigest(bytes) == ORIGINAL_SHA256
+      raise Error, 'original schema-v2 ledger byte hash drift'
+    end
+    original = Core.parse_json(bytes, label: '$.original_ledger')
+    Core.assert_closed_schema!(original, required: TOP_LEVEL_KEYS, label: '$.original_ledger')
+    unless original.values_at('artifact_type', 'schema_version', 'artifact_id', 'snapshot_date', 'data_boundary') == [
+      'g0_g3_coverage_ledger_v2', 2, ORIGINAL_ARTIFACT_ID, SNAPSHOT_DATE, 'synthetic_only'
+    ]
+      raise Error, 'original schema-v2 ledger identity or boundary drift'
+    end
+    original_sources = original.fetch('sources')
+    Core.assert_closed_schema!(original_sources, required: ORIGINAL_SOURCE_KEYS,
+                               label: '$.original_ledger.sources')
+    original_binding = original.fetch('governance_profile_binding')
+    Core.assert_closed_schema!(original_binding, required: PROFILE_BINDING_KEYS,
+                               label: '$.original_ledger.governance_profile_binding')
+    unless original_sources.dig('governance_contract', 'sha256') == ORIGINAL_CONTRACT_SHA256 &&
+           original_binding.fetch('validator_contract_sha256') == ORIGINAL_CONTRACT_SHA256 &&
+           original_binding.fetch('validator_contract_version') == ORIGINAL_CONTRACT_VERSION
+      raise Error, 'original schema-v2 ledger contract binding drift'
+    end
+    original_ledger_reference
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :verified_original_ledger
+
+  def original_ledger_reference
+    {
+      'path' => ORIGINAL_OUTPUT_PATH,
+      'sha256' => ORIGINAL_SHA256,
+      'artifact_id' => ORIGINAL_ARTIFACT_ID,
+      'relationship' => SUPERSESSION_RELATIONSHIP
+    }
+  end
+  private_class_method :original_ledger_reference
+
+  def validate_original_ledger_reference!(reference)
+    Core.assert_closed_schema!(reference, required: SUPERSEDED_LEDGER_KEYS,
+                               label: '$.superseded_ledger.sources.superseded_ledger')
+    unless reference == original_ledger_reference
+      raise Error, 'schema-v2 predecessor chain binding drift'
+    end
+    true
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :validate_original_ledger_reference!
+
+  def superseded_ledger_reference
+    {
+      'path' => PREDECESSOR_OUTPUT_PATH,
+      'sha256' => PREDECESSOR_SHA256,
+      'artifact_id' => PREDECESSOR_ARTIFACT_ID,
+      'relationship' => SUPERSESSION_RELATIONSHIP
+    }
+  end
+  private_class_method :superseded_ledger_reference
+
+  def validate_superseded_ledger_reference!(reference)
+    Core.assert_closed_schema!(reference, required: SUPERSEDED_LEDGER_KEYS,
+                               label: '$.ledger_v2.sources.superseded_ledger')
+    unless reference == superseded_ledger_reference
+      raise Error, 'schema-v2 ledger supersession binding drift'
+    end
+    true
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :validate_superseded_ledger_reference!
 
   def capability_summary(rows)
     {
@@ -1189,6 +1317,8 @@ module G0G3CoverageLedgerV2
   def safe_read(root, relative, label:)
     path = safe_existing_path(root, relative, label: label)
     File.binread(path)
+  rescue Comparator::Error => e
+    raise Error, safe_error(e)
   rescue SystemCallError
     raise Error, "#{label}: unavailable"
   end

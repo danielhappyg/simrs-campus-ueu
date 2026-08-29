@@ -22,7 +22,7 @@ class G0ProportionalGovernanceV2ValidatorTest < Minitest::Test
   def test_current_contract_and_historical_manifest_pass
     assert Validator.validate_contract!(@contract, root: ROOT)
     assert Validator.verify_v1_manifest!(@manifest, root: ROOT)
-    assert_equal '1.0.0', @contract.dig('validator', 'version')
+    assert_equal '1.3.0', @contract.dig('validator', 'version')
     assert_equal 30, @manifest.fetch('files').length
   end
 
@@ -74,6 +74,316 @@ class G0ProportionalGovernanceV2ValidatorTest < Minitest::Test
       changed = deep_copy(@contract)
       mutation.call(changed)
       assert_validation_error(/semantic drift/) { Validator.validate_contract!(changed, root: ROOT) }
+    end
+  end
+
+  def test_consumer_operation_contract_is_closed_and_adopts_exact_gate_b_schema
+    rules = @contract.fetch('consumer_operation_decision_contract')
+    assert_equal Validator::CONSUMER_OPERATION_DECISION_KEYS, rules.fetch('exact_top_level_keys')
+    assert_equal Validator::CONSUMER_OPERATION_ALLOWED_ENVIRONMENTS, rules.fetch('allowed_environments')
+    assert_equal 'approved_immutable_ticket_or_workflow_record', rules.fetch('required_attribution_method')
+    assert_equal Validator::CONSUMER_OPERATION_ATTRIBUTION_KEYS,
+                 rules.dig('nested_exact_keys', 'decision_attribution')
+    assert_equal Validator::CONSUMER_OPERATION_TECHNICAL_EVIDENCE_KEYS,
+                 rules.dig('nested_exact_keys', 'technical_evidence')
+    assert_equal 'unprovisioned_blocked_external_attestation_required',
+                 rules.dig('canonical_trust_state', 'state')
+    refute rules.dig('canonical_trust_state', 'repository_local_approval_artifacts_sufficient')
+    refute rules.dig('canonical_trust_state', 'signature_implementation_authorized')
+
+    changed = deep_copy(@contract)
+    changed['consumer_operation_decision_contract']['allowed_environments'] << 'production'
+    assert_validation_error(/exact closed values or order changed/) do
+      Validator.validate_contract!(changed, root: ROOT)
+    end
+
+    changed = deep_copy(@contract)
+    changed['consumer_operation_decision_contract']['canonical_trust_state']['repository_local_approval_artifacts_sufficient'] = true
+    assert_validation_error(/fail-closed external trust state changed/) do
+      Validator.validate_contract!(changed, root: ROOT)
+    end
+  end
+
+  def test_consumer_operation_decision_accepts_semantically_bound_isolated_fixture
+    with_operation_fixture do |root, decision, now|
+      assert Validator.validate_consumer_operation_decision!(
+        decision, contract: @contract, root: root, now: now
+      )
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_duplicate_unknown_missing_and_environment_drift
+    assert_raises(Validator::ParseError) do
+      Validator.parse_json(
+        '{"artifact_type":"g0_governance_v2_consumer_operation_decision","operation":"activate","operation":"disable"}',
+        label: '$.operation_decision'
+      )
+    end
+
+    with_operation_fixture do |root, decision, now|
+      unknown = deep_copy(decision)
+      unknown['unexpected'] = true
+      assert_validation_error(/unknown fields unexpected/) do
+        Validator.validate_consumer_operation_decision!(unknown, contract: @contract, root: root, now: now)
+      end
+
+      missing = deep_copy(decision)
+      missing.delete('technical_evidence')
+      assert_validation_error(/missing fields technical_evidence/) do
+        Validator.validate_consumer_operation_decision!(missing, contract: @contract, root: root, now: now)
+      end
+
+      invalid_environment = deep_copy(decision)
+      invalid_environment['environment'] = 'production'
+      assert_validation_error(/environment is not allowed/) do
+        Validator.validate_consumer_operation_decision!(invalid_environment, contract: @contract, root: root, now: now)
+      end
+
+      canonical = deep_copy(decision)
+      canonical['environment'] = 'local_canonical_checkout'
+      assert_validation_error(/canonical external attestation is unprovisioned/) do
+        Validator.validate_consumer_operation_decision!(canonical, contract: @contract, root: root, now: now)
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_secret_message_hash_and_reference_drift
+    with_operation_fixture do |root, decision, now|
+      secret = deep_copy(decision)
+      secret['decision_attribution']['access_token'] = 'do-not-echo-token'
+      error = assert_validation_error(/decision_attribution.access_token/) do
+        Validator.validate_consumer_operation_decision!(secret, contract: @contract, root: root, now: now)
+      end
+      refute_includes error.message, 'do-not-echo-token'
+
+      stale_hash = deep_copy(decision)
+      stale_hash['decision_attribution']['decision_message_sha256'] = '0' * 64
+      assert_validation_error(/exact message byte hash mismatch/) do
+        Validator.validate_consumer_operation_decision!(stale_hash, contract: @contract, root: root, now: now)
+      end
+
+      stale_reference = deep_copy(decision)
+      stale_reference['decision_attribution']['decision_reference'] = 'workflow:GATE-B-OTHER'
+      assert_validation_error(/message hash reference mismatch/) do
+        Validator.validate_consumer_operation_decision!(stale_reference, contract: @contract, root: root, now: now)
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_time_expiry_and_attribution_drift
+    with_operation_fixture do |root, decision, now|
+      early_recorded = deep_copy(decision)
+      early_recorded['decision_attribution']['recorded_at'] = (now - 180).iso8601
+      assert_validation_error(/predates source message/) do
+        Validator.validate_consumer_operation_decision!(early_recorded, contract: @contract, root: root, now: now)
+      end
+
+      expired = deep_copy(decision)
+      expired['expires_at'] = now.iso8601
+      assert_validation_error(/not within its authorization window/) do
+        Validator.validate_consumer_operation_decision!(expired, contract: @contract, root: root, now: now)
+      end
+
+      invalid_offset = deep_copy(decision)
+      invalid_offset['decided_at'] = '2026-08-29T01:59:00'
+      assert_validation_error(/explicit offset/) do
+        Validator.validate_consumer_operation_decision!(invalid_offset, contract: @contract, root: root, now: now)
+      end
+
+      wrong_method = deep_copy(decision)
+      wrong_method['decision_attribution']['recorded_at_basis'] = 'protected_repository_decision_record'
+      assert_validation_error(/attribution method is not adopted/) do
+        Validator.validate_consumer_operation_decision!(wrong_method, contract: @contract, root: root, now: now)
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_reference_hash_path_prior_and_cross_binding_drift
+    with_operation_fixture do |root, decision, now|
+      stale_file = deep_copy(decision)
+      File.write(File.join(root, 'evidence/preflight.json'), '{"drift":true}')
+      assert_validation_error(/referenced byte hash drift/) do
+        Validator.validate_consumer_operation_decision!(stale_file, contract: @contract, root: root, now: now)
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      unsafe = deep_copy(decision)
+      unsafe['technical_evidence']['canonical_preflight']['path'] = '../outside.json'
+      assert_validation_error(/unsafe repository-relative path/) do
+        Validator.validate_consumer_operation_decision!(unsafe, contract: @contract, root: root, now: now)
+      end
+
+      invalid_prior = deep_copy(decision)
+      invalid_prior['prior_state']['expected_prior_pointer_sha256'] = '0' * 64
+      assert_validation_error(/invalid closed prior-state representation/) do
+        Validator.validate_consumer_operation_decision!(invalid_prior, contract: @contract, root: root, now: now)
+      end
+
+      adoption_drift = deep_copy(decision)
+      adoption_drift['technical_evidence']['gate_a_adoption'] = decision['technical_evidence']['local_observation']
+      assert_validation_error(/adoption reference drift/) do
+        Validator.validate_consumer_operation_decision!(adoption_drift, contract: @contract, root: root, now: now)
+      end
+
+      candidate_drift = deep_copy(decision)
+      candidate_drift['technical_evidence']['candidate_bundle'] = decision['technical_evidence']['local_observation']
+      assert_validation_error(/target reference drift/) do
+        Validator.validate_consumer_operation_decision!(candidate_drift, contract: @contract, root: root, now: now)
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_arbitrary_actor_thread_and_source_time
+    mutations = {
+      identity: ->(row) { row['actor']['identity'] = 'Arbitrary Actor' },
+      capacity: ->(row) { row['actor']['authority_capacity'] = 'developer' },
+      actor_thread: ->(row) { row['actor']['decision_thread_id'] = 'arbitrary-thread' },
+      attribution_thread: lambda do |row|
+        row['decision_attribution']['decision_reference'] = row['decision_attribution']['decision_reference'].sub(
+          /\Acodex_thread:[^#]+#/, 'codex_thread:arbitrary-thread#'
+        )
+      end,
+      null_source: ->(row) { row['decision_attribution']['source_message_at'] = nil },
+      implicit_offset: ->(row) { row['decision_attribution']['source_message_at'] = '2026-08-29T01:58:00' },
+      source_decision_mismatch: ->(row) { row['decision_attribution']['source_message_at'] = '2026-08-29T01:57:00Z' }
+    }
+    mutations.each do |name, mutation|
+      with_operation_fixture do |root, decision, now|
+        mutation.call(decision)
+        assert_raises(Validator::ValidationError, name.to_s) do
+          Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+        end
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_generic_or_mismatched_approval_evidence
+    with_operation_fixture do |root, decision, now|
+      rewrite_reference_json!(root, decision.fetch('approval_evidence'), { 'status' => 'approved' })
+      assert_validation_error(/missing fields/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      approval = referenced_json(root, decision.fetch('approval_evidence'))
+      approval['scope']['deployment'] = true
+      rewrite_reference_json!(root, decision.fetch('approval_evidence'), approval)
+      assert_validation_error(/only one consumer selection operation/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      approval = referenced_json(root, decision.fetch('approval_evidence'))
+      approval['actor']['identity'] = 'Arbitrary Actor'
+      rewrite_reference_json!(root, decision.fetch('approval_evidence'), approval)
+      assert_validation_error(/cross-binding mismatch/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_generic_and_semantically_drifted_local_or_preflight_evidence
+    with_operation_fixture do |root, decision, now|
+      reference = decision.fetch('technical_evidence').fetch('local_observation')
+      rewrite_reference_json!(root, reference, { 'status' => 'PASS', 'authority_effect' => 'none' })
+      assert_validation_error(/missing fields/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+
+    %w[environment root candidate_bundle validator_contract selector_source prior_state authority_effect expires_at].each do |field|
+      with_operation_fixture do |root, decision, now|
+        reference = decision.fetch('technical_evidence').fetch('local_observation')
+        document = referenced_json(root, reference)
+        document[field] = case field
+                          when 'environment' then 'local_canonical_checkout'
+                          when 'root' then '/tmp/arbitrary-root'
+                          when 'authority_effect' then 'authorizes_activation'
+                          when 'expires_at' then (Time.iso8601(decision.fetch('decided_at')) - 1).iso8601
+                          when 'prior_state' then document.fetch(field).merge('prior_state_reason' => 'missing_pointer')
+                          else decision.fetch('technical_evidence').fetch('gate_a_adoption')
+                          end
+        rewrite_reference_json!(root, reference, document)
+        assert_raises(Validator::ValidationError, field) do
+          Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+        end
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      reference = decision.fetch('technical_evidence').fetch('canonical_preflight')
+      document = referenced_json(root, reference)
+      document['checks']['no_authority_effect'] = false
+      rewrite_reference_json!(root, reference, document)
+      assert_validation_error(/every check must PASS/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_rejects_non_independent_or_nonpass_review_evidence
+    %w[verdict authority_effect reviewer].each do |field|
+      with_operation_fixture do |root, decision, now|
+        reference = decision.fetch('technical_evidence').fetch('independent_review')
+        document = referenced_json(root, reference)
+        case field
+        when 'verdict' then document['verdict'] = 'FAIL'
+        when 'authority_effect' then document['authority_effect'] = 'authorizes_activation'
+        when 'reviewer' then document['reviewer']['identity'] = decision.fetch('actor').fetch('identity')
+        end
+        rewrite_reference_json!(root, reference, document)
+        assert_raises(Validator::ValidationError, field) do
+          Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+        end
+      end
+    end
+  end
+
+  def test_consumer_operation_decision_enforces_current_evidence_expiry_order_and_bounded_ttls
+    with_operation_fixture do |root, decision, now|
+      too_long = deep_copy(decision)
+      decided = Time.iso8601(too_long.fetch('decided_at'))
+      too_long['expires_at'] = (decided + Validator::CONSUMER_MAXIMUM_DECISION_TTL_SECONDS + 1).iso8601
+      assert_validation_error(/decision TTL exceeds/) do
+        Validator.validate_consumer_operation_decision!(too_long, contract: @contract, root: root, now: now)
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      local_ref = decision.fetch('technical_evidence').fetch('local_observation')
+      local = referenced_json(root, local_ref)
+      observed = Time.iso8601(local.fetch('observed_at'))
+      local['expires_at'] = (observed + Validator::CONSUMER_MAXIMUM_EVIDENCE_TTL_SECONDS + 1).iso8601
+      rewrite_reference_json!(root, local_ref, local)
+      assert_validation_error(/evidence TTL exceeds/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      local_ref = decision.fetch('technical_evidence').fetch('local_observation')
+      local = referenced_json(root, local_ref)
+      local['expires_at'] = now.iso8601
+      rewrite_reference_json!(root, local_ref, local)
+      refresh_review_binding!(root, decision)
+      assert_validation_error(/semantic evidence has expired/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
+    end
+
+    with_operation_fixture do |root, decision, now|
+      preflight_ref = decision.fetch('technical_evidence').fetch('canonical_preflight')
+      preflight = referenced_json(root, preflight_ref)
+      local = referenced_json(root, decision.fetch('technical_evidence').fetch('local_observation'))
+      preflight['observed_at'] = (Time.iso8601(local.fetch('observed_at')) - 1).iso8601
+      rewrite_reference_json!(root, preflight_ref, preflight)
+      refresh_review_binding!(root, decision)
+      assert_validation_error(/evidence observation ordering is invalid/) do
+        Validator.validate_consumer_operation_decision!(decision, contract: @contract, root: root, now: now)
+      end
     end
   end
 
@@ -401,6 +711,170 @@ class G0ProportionalGovernanceV2ValidatorTest < Minitest::Test
       'supersedes_event_id' => supersedes_id,
       'decision' => 'approve'
     }
+  end
+
+  def with_operation_fixture
+    Dir.mktmpdir('g0-v2-operation-contract') do |root|
+      FileUtils.mkdir_p(File.join(root, 'evidence'))
+      FileUtils.mkdir_p(File.join(root, 'candidate'))
+      FileUtils.mkdir_p(File.join(root, 'docs/new-simrs-rebuild/phase-0'))
+      FileUtils.mkdir_p(File.join(root, 'scripts'))
+      File.binwrite(File.join(root, 'candidate/G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json'), '{"bundle":"candidate"}')
+      File.binwrite(File.join(root, Validator::CONSUMER_VALIDATOR_CONTRACT_PATH),
+                    Validator.canonical_json(@contract) + "\n")
+      File.binwrite(File.join(root, Validator::CONSUMER_SELECTOR_SOURCE_PATH), '# selector source')
+      adoption_reference = @contract.fetch('adopted_sources').fetch('adoption_decision')
+      adoption_path = File.join(root, adoption_reference.fetch('path'))
+      FileUtils.mkdir_p(File.dirname(adoption_path))
+      FileUtils.cp(File.join(ROOT, adoption_reference.fetch('path')), adoption_path)
+      adoption_document = JSON.parse(File.binread(adoption_path))
+
+      reference_for = lambda do |relative, bundle: false|
+        source = bundle ? File.join(root, relative, Validator::CONSUMER_OPERATION_BUNDLE_MANIFEST) : File.join(root, relative)
+        { 'path' => relative, 'sha256' => Digest::SHA256.file(source).hexdigest }
+      end
+      candidate = {
+        'path' => 'candidate',
+        'sha256' => Digest::SHA256.file(File.join(root, 'candidate/G0_GOVERNANCE_V2_BUNDLE_MANIFEST.json')).hexdigest
+      }
+      now = Time.iso8601('2026-08-29T02:00:00Z')
+      decided_at = now - 120
+      decision_thread_id = adoption_document.dig('decider', 'decision_reference').match(/\Acodex_thread:([^#]+)#/)[1]
+      message = 'Approve one exact synthetic-only Gate-B consumer activation operation.'
+      message_sha = Digest::SHA256.hexdigest(message.b)
+      attribution = {
+        'decision_reference' => "codex_thread:#{decision_thread_id}#gate-b#decision-message-sha256:#{message_sha}",
+        'decision_message' => message,
+        'decision_message_encoding' => 'exact_utf8_bytes_no_normalization',
+        'decision_message_sha256' => message_sha,
+        'source_message_at' => decided_at.iso8601,
+        'recorded_at' => (now - 60).iso8601,
+        'recorded_at_basis' => 'approved_immutable_ticket_or_workflow_record'
+      }
+      prior = {
+        'prior_state_reason' => 'initial_state',
+        'expected_prior_pointer_sha256' => nil,
+        'observed_unreadable_pointer_sha256' => nil
+      }
+      decision = {
+        'artifact_type' => 'g0_governance_v2_consumer_operation_decision',
+        'schema_version' => 1,
+        'decision_id' => 'G0-V2-GATE-B-FIXTURE-001',
+        'status' => 'approved',
+        'effect' => 'authorizes_one_consumer_selection_operation',
+        'data_boundary' => 'synthetic_only',
+        'operation' => 'activate',
+        'environment' => 'isolated_test_fixture',
+        'actor' => {
+          'identity' => adoption_document.dig('decider', 'identity'),
+          'authority_capacity' => adoption_document.dig('decider', 'authority_capacity'),
+          'decision_thread_id' => decision_thread_id
+        },
+        'conditions' => ['one_exact_operation_only', 'synthetic_only'],
+        'decided_at' => decided_at.iso8601,
+        'expires_at' => (now + 3600).iso8601,
+        'adoption_decision' => adoption_reference,
+        'approval_evidence' => nil,
+        'prior_state' => prior,
+        'candidate_bundle' => candidate,
+        'held_selection' => nil,
+        'recover_outcome' => nil,
+        'decision_attribution' => attribution,
+        'technical_evidence' => nil
+      }
+
+      contract_reference = reference_for.call(Validator::CONSUMER_VALIDATOR_CONTRACT_PATH)
+      selector_reference = reference_for.call(Validator::CONSUMER_SELECTOR_SOURCE_PATH)
+      common = {
+        'schema_version' => 1,
+        'status' => 'PASS',
+        'data_boundary' => 'synthetic_only',
+        'environment' => 'isolated_test_fixture',
+        'root' => Pathname.new(root).realpath.to_s,
+        'observed_at' => (decided_at - 60).iso8601,
+        'expires_at' => (now + 3600).iso8601,
+        'candidate_bundle' => candidate,
+        'validator_contract' => contract_reference,
+        'selector_source' => selector_reference,
+        'prior_state' => prior,
+        'authority_effect' => 'none'
+      }
+      write_fixture_json(root, 'evidence/observation.json', common.merge(
+        'artifact_type' => 'g0_governance_v2_gate_b_local_observation',
+        'evidence_id' => 'G0-V2-OBS-FIXTURE',
+        'effect' => 'none_observation_only',
+        'observed_at' => (decided_at - 180).iso8601
+      ))
+      write_fixture_json(root, 'evidence/preflight.json', common.merge(
+        'artifact_type' => 'g0_governance_v2_gate_b_canonical_preflight',
+        'evidence_id' => 'G0-V2-PREFLIGHT-FIXTURE',
+        'effect' => 'none_preflight_only',
+        'observed_at' => (decided_at - 120).iso8601,
+        'checks' => Validator::CONSUMER_PREFLIGHT_CHECK_KEYS.to_h { |key| [key, true] }
+      ))
+      observation_reference = reference_for.call('evidence/observation.json')
+      preflight_reference = reference_for.call('evidence/preflight.json')
+      write_fixture_json(root, 'evidence/review.json', common.merge(
+        'artifact_type' => 'g0_governance_v2_gate_b_independent_review',
+        'evidence_id' => 'G0-V2-REVIEW-FIXTURE',
+        'effect' => 'none_review_evidence_only',
+        'observed_at' => (decided_at - 60).iso8601,
+        'reviewer' => {
+          'identity' => 'Independent Fixture Reviewer',
+          'capacity' => 'independent_technical_security_reviewer'
+        },
+        'reviewed_evidence' => {
+          'local_observation' => observation_reference,
+          'canonical_preflight' => preflight_reference
+        },
+        'verdict' => 'PASS'
+      ))
+      decision['technical_evidence'] = {
+        'gate_a_adoption' => adoption_reference,
+        'local_observation' => observation_reference,
+        'candidate_bundle' => candidate,
+        'canonical_preflight' => preflight_reference,
+        'validator_contract' => contract_reference,
+        'selector_source' => selector_reference,
+        'independent_review' => reference_for.call('evidence/review.json')
+      }
+      approval = {
+        'artifact_type' => 'g0_governance_v2_gate_b_operation_approval',
+        'schema_version' => 1,
+        'approval_id' => 'G0-V2-APPROVAL-FIXTURE',
+        'scope' => Validator::CONSUMER_APPROVAL_SCOPE_KEYS.to_h { |key| [key, key == 'consumer_selection_operation'] }
+      }
+      Validator::CONSUMER_APPROVAL_CROSS_EQUAL_KEYS.each { |key| approval[key] = decision.fetch(key) }
+      write_fixture_json(root, 'evidence/approval.json', approval)
+      decision['approval_evidence'] = reference_for.call('evidence/approval.json')
+      yield root, decision, now
+    end
+  end
+
+  def write_fixture_json(root, relative, document)
+    path = File.join(root, relative)
+    FileUtils.mkdir_p(File.dirname(path))
+    File.binwrite(path, Validator.canonical_json(document) + "\n")
+  end
+
+  def referenced_json(root, reference)
+    JSON.parse(File.binread(File.join(root, reference.fetch('path'))))
+  end
+
+  def rewrite_reference_json!(root, reference, document)
+    write_fixture_json(root, reference.fetch('path'), document)
+    reference['sha256'] = Digest::SHA256.file(File.join(root, reference.fetch('path'))).hexdigest
+  end
+
+  def refresh_review_binding!(root, decision)
+    evidence = decision.fetch('technical_evidence')
+    review_reference = evidence.fetch('independent_review')
+    review = referenced_json(root, review_reference)
+    review['reviewed_evidence'] = {
+      'local_observation' => evidence.fetch('local_observation'),
+      'canonical_preflight' => evidence.fetch('canonical_preflight')
+    }
+    rewrite_reference_json!(root, review_reference, review)
   end
 
   def assert_validation_error(pattern, &block)

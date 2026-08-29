@@ -340,6 +340,91 @@ class G0G3CoverageLedgerTest < Minitest::Test
   end
 end
 
+class G0G3CoverageLedgerV2AppendOnlyPublicationTest < Minitest::Test
+  ROOT = File.expand_path('../..', __dir__)
+  V2 = G0G3CoverageLedgerV2
+  Core = G0ProportionalGovernanceV2
+
+  def setup
+    @original_path = File.join(ROOT, V2::ORIGINAL_OUTPUT_PATH)
+    @original_before = File.binread(@original_path)
+    @predecessor_path = File.join(ROOT, V2::PREDECESSOR_OUTPUT_PATH)
+    @predecessor_before = File.binread(@predecessor_path)
+  end
+
+  def teardown
+    assert_equal @original_before, File.binread(@original_path),
+                 'R3 publication tests must preserve the original ledger byte-for-byte'
+    assert_equal V2::ORIGINAL_SHA256, Digest::SHA256.file(@original_path).hexdigest
+    assert_equal @predecessor_before, File.binread(@predecessor_path),
+                 'R3 publication tests must preserve the R2 predecessor byte-for-byte'
+    assert_equal V2::PREDECESSOR_SHA256, Digest::SHA256.file(@predecessor_path).hexdigest
+  end
+
+  def test_r3_supersession_is_closed_hash_bound_and_preserves_complete_predecessor_chain
+    predecessor = Core.parse_json(@predecessor_before, label: '$.predecessor')
+    assert_equal V2::PREDECESSOR_ARTIFACT_ID, predecessor.fetch('artifact_id')
+    assert_equal V2::PREDECESSOR_CONTRACT_SHA256,
+                 predecessor.dig('sources', 'governance_contract', 'sha256')
+    assert_equal V2::PREDECESSOR_CONTRACT_VERSION,
+                 predecessor.dig('governance_profile_binding', 'validator_contract_version')
+    assert_equal V2.send(:original_ledger_reference), predecessor.dig('sources', 'superseded_ledger')
+    assert_equal V2.send(:original_ledger_reference),
+                 V2.send(:verified_original_ledger, Pathname.new(ROOT).realpath)
+    assert_equal V2.send(:superseded_ledger_reference),
+                 V2.send(:verified_superseded_ledger, Pathname.new(ROOT).realpath)
+
+    assert_equal 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R3', V2::ARTIFACT_ID
+    reference = V2.send(:superseded_ledger_reference)
+    assert V2.send(:validate_superseded_ledger_reference!, reference)
+
+    mutations = [
+      ->(row) { row['sha256'] = '0' * 64 },
+      ->(row) { row['artifact_id'] = 'invented' },
+      ->(row) { row['relationship'] = 'rewrites_predecessor' },
+      ->(row) { row['unknown'] = true }
+    ]
+    mutations.each do |mutation|
+      changed = Marshal.load(Marshal.dump(reference))
+      mutation.call(changed)
+      assert_raises(V2::Error) { V2.send(:validate_superseded_ledger_reference!, changed) }
+    end
+  end
+
+  def test_r3_predecessor_read_rejects_missing_drifted_and_symlinked_bytes
+    root = Pathname.new(Dir.mktmpdir('.g0-g3-ledger-predecessor-', ROOT)).realpath
+    original = root.join(V2::ORIGINAL_OUTPUT_PATH)
+    target = root.join(V2::PREDECESSOR_OUTPUT_PATH)
+    FileUtils.mkdir_p(original.parent)
+    File.binwrite(original, @original_before)
+    FileUtils.mkdir_p(target.parent)
+
+    assert_raises(V2::Error) { V2.send(:verified_superseded_ledger, root) }
+    File.binwrite(target, @predecessor_before + " ")
+    assert_raises(V2::Error) { V2.send(:verified_superseded_ledger, root) }
+    File.unlink(target)
+    File.symlink(@predecessor_path, target)
+    assert_raises(V2::Error) { V2.send(:verified_superseded_ledger, root) }
+  ensure
+    FileUtils.remove_entry_secure(root) if root && root.exist?
+  end
+
+  def test_r3_original_read_rejects_missing_drifted_and_symlinked_bytes
+    root = Pathname.new(Dir.mktmpdir('.g0-g3-ledger-original-', ROOT)).realpath
+    target = root.join(V2::ORIGINAL_OUTPUT_PATH)
+    FileUtils.mkdir_p(target.parent)
+
+    assert_raises(V2::Error) { V2.send(:verified_original_ledger, root) }
+    File.binwrite(target, @original_before + " ")
+    assert_raises(V2::Error) { V2.send(:verified_original_ledger, root) }
+    File.unlink(target)
+    File.symlink(@original_path, target)
+    assert_raises(V2::Error) { V2.send(:verified_original_ledger, root) }
+  ensure
+    FileUtils.remove_entry_secure(root) if root && root.exist?
+  end
+end
+
 class G0G3CoverageLedgerV2Test < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   V2 = G0G3CoverageLedgerV2
@@ -381,16 +466,26 @@ class G0G3CoverageLedgerV2Test < Minitest::Test
   Minitest.after_run { cleanup_candidate! }
 
   def setup
+    @historical_before = historical_v1_bytes
+    @original_before = File.binread(File.join(ROOT, V2::ORIGINAL_OUTPUT_PATH))
+    @predecessor_before = File.binread(File.join(ROOT, V2::PREDECESSOR_OUTPUT_PATH))
     self.class.ensure_candidate!
     @candidate = self.class.candidate
     @fixture_root = self.class.fixture_root
     @test_tmpdir = Dir.mktmpdir('.g0-g3-ledger-v2-case-', ROOT)
-    @historical_before = historical_v1_bytes
   end
 
   def teardown
     assert_equal @historical_before, historical_v1_bytes,
                  'schema-v2 ledger tests must preserve every historical schema-v1 byte'
+    assert_equal @original_before, File.binread(File.join(ROOT, V2::ORIGINAL_OUTPUT_PATH)),
+                 'R3 tests must preserve the original schema-v2 observation byte-for-byte'
+    assert_equal V2::ORIGINAL_SHA256,
+                 Digest::SHA256.file(File.join(ROOT, V2::ORIGINAL_OUTPUT_PATH)).hexdigest
+    assert_equal @predecessor_before, File.binread(File.join(ROOT, V2::PREDECESSOR_OUTPUT_PATH)),
+                 'R3 tests must preserve the R2 schema-v2 predecessor byte-for-byte'
+    assert_equal V2::PREDECESSOR_SHA256,
+                 Digest::SHA256.file(File.join(ROOT, V2::PREDECESSOR_OUTPUT_PATH)).hexdigest
     FileUtils.remove_entry_secure(@test_tmpdir) if @test_tmpdir && File.exist?(@test_tmpdir)
   end
 
@@ -403,6 +498,9 @@ class G0G3CoverageLedgerV2Test < Minitest::Test
     assert first.end_with?("\n")
     refute first.end_with?("\n\n")
     assert_equal V2::TOP_LEVEL_KEYS.sort, ledger.keys.sort
+    assert_equal V2::ARTIFACT_ID, ledger.fetch('artifact_id')
+    assert_equal V2::SOURCE_KEYS.sort, ledger.fetch('sources').keys.sort
+    assert_equal V2.send(:superseded_ledger_reference), ledger.dig('sources', 'superseded_ledger')
     assert_equal ['g0', 'g3'], ledger.fetch('gate_summary').keys.sort
     assert_equal %w[OPEN OPEN], ledger.fetch('gate_summary').values_at('g0', 'g3').map { |gate| gate.fetch('status') }
     assert_equal 'unavailable', ledger.dig('governance_profile_binding', 'status')
@@ -416,8 +514,13 @@ class G0G3CoverageLedgerV2Test < Minitest::Test
     assert_equal 'OPEN', ledger.dig('gate_summary', 'g3', 'criteria', 'owner_acceptance', 'status')
     assert_nil ledger.dig('gate_summary', 'g3', 'criteria', 'owner_acceptance', 'authority_pointer')
     assert_empty Core.secret_locations(ledger)
-    assert_equal first, File.binread(File.join(ROOT, V2::OUTPUT_PATH))
-    assert V2.check!
+    if File.file?(File.join(ROOT, V2::OUTPUT_PATH))
+      assert_equal first, File.binread(File.join(ROOT, V2::OUTPUT_PATH))
+      assert V2.check!
+    else
+      error = assert_raises(V2::Error) { V2.check! }
+      assert_match(/schema-v2 ledger: (?:path )?unavailable/, error.message)
+    end
     assert_historical_hashes
   end
 
@@ -600,6 +703,12 @@ class G0G3CoverageLedgerV2Test < Minitest::Test
   end
 
   def test_schema_v2_cli_contract_failure_is_sanitized_one_line_without_backtrace
+    unless File.file?(File.join(ROOT, V2::OUTPUT_PATH))
+      error = assert_raises(V2::Error) { V2.check! }
+      assert_match(/schema-v2 ledger: (?:path )?unavailable/, error.message)
+      return
+    end
+
     stdout, stderr, status = Open3.capture3(
       RbConfig.ruby, SCRIPT, '--write', '--snapshot-date', V2::SNAPSHOT_DATE,
       '--schema-version', '2', chdir: ROOT
@@ -678,7 +787,7 @@ class G0G3CoverageLedgerV2Test < Minitest::Test
         'name' => 'g0_proportional_governance_v2',
         'path' => V2::CONTRACT_PATH,
         'sha256' => Digest::SHA256.file(File.join(ROOT, V2::CONTRACT_PATH)).hexdigest,
-        'version' => '1.0.0'
+        'version' => Core.parse_json_file(File.join(ROOT, V2::CONTRACT_PATH), label: '$.contract').dig('validator', 'version')
       }
     }
   end

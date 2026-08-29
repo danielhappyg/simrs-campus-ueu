@@ -4,7 +4,9 @@ The coverage ledger is a deterministic, observation-only inventory for the 268 a
 
 ## Current state
 
-Governance v2 has been adopted only for local implementation. As observed by the dated 2026-08-29 Wave 6 artifact, there is no canonical active consumer pointer or active selection. The schema-v2 ledger therefore records `governance_profile_binding.status=unavailable`, `reason_code=pointer_missing`, `gate_summary.g0.status=OPEN`, and `gate_summary.g3.status=OPEN`; every `governance_decision_pointer` is `null`.
+Governance v2 has been adopted only for local implementation. The first dated 2026-08-29 Wave 6 artifact observed no canonical active consumer pointer or active selection. It records `governance_profile_binding.status=unavailable`, `reason_code=pointer_missing`, `gate_summary.g0.status=OPEN`, and `gate_summary.g3.status=OPEN`; every `governance_decision_pointer` is `null`.
+
+That first schema-v2 artifact is now an immutable observation bound to validator contract 1.0.0. The create-only [`G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json`](G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json) successor is bound to validator contract 1.2.0. The create-only [`G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json`](G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json) successor is bound to validator contract 1.3.0 and is the current schema-v2 observation. The original and R2 remain immutable historical evidence and are not rewritten or reinterpreted by R3.
 
 This is an expected fail-closed observation. It is not evidence of activation, deployment, hosted acceptance, domain acceptance, or release readiness.
 
@@ -12,8 +14,10 @@ This is an expected fail-closed observation. It is not evidence of activation, d
 
 - [`G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-27.json`](G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-27.json) and [`G0_G3_COVERAGE_LEDGER_2026-08-27.json`](G0_G3_COVERAGE_LEDGER_2026-08-27.json) are immutable schema-v1 historical snapshots. The preserved 2026-08-26 map and ledger are older historical snapshots. Governance v2 does not rewrite or reinterpret their bytes.
 - [`G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json`](G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json) is a closed engineering-evidence overlay. It cannot contain owner, approval, disposition, tier, pointer, or gate authority.
-- [`G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json`](G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json) is the first pointer-aware, dated schema-v2 observation. Do not edit generated ledgers manually.
-- [`scripts/generate-g0-g3-coverage-ledger.rb`](../../scripts/generate-g0-g3-coverage-ledger.rb) retains the schema-v1 path and provides the separate schema-v2 generator path. Generation never mutates the consumer pointer or any selection.
+- [`G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json`](G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json) is the first pointer-aware, dated schema-v2 observation. Its artifact ID is `G0-G3-COVERAGE-LEDGER-V2-2026-08-29`, its exact SHA-256 is `690becdf75a08d17b992d8dad754313f33d0f9c8ea2c692b9b12b8b837f43ac5`, and it must never be edited, regenerated, or reinterpreted.
+- [`G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json`](G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json) is the append-only successor. Its artifact ID is `G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R2`, its exact SHA-256 is `0b89705741bb052629593b9023f1c8d19c7827489a7e8e6ce6e46af1efd5f1c6`, and its closed `sources.superseded_ledger` record binds the predecessor path, SHA, artifact ID, and `supersedes_without_rewriting_or_reinterpreting_predecessor` relationship.
+- [`G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json`](G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json) is the next append-only successor. Its artifact ID is `G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R3`, its exact SHA-256 is `0f312713000b0092de313baee2d3cc6d34695c2fefd717c620871268045ac58c`, and its closed `sources.superseded_ledger` record binds R2 by exact path, SHA, artifact ID, and the same non-rewrite relationship.
+- [`scripts/generate-g0-g3-coverage-ledger.rb`](../../scripts/generate-g0-g3-coverage-ledger.rb) retains the schema-v1 path and provides the separate schema-v2 R3 generator path. It verifies both immutable prior observations and the exact original → R2 chain before building R3. Generation never mutates either predecessor, the consumer pointer, or any selection.
 
 ## The two capability pointers
 
@@ -61,6 +65,6 @@ ruby scripts/generate-g0-g3-coverage-ledger.rb --check --snapshot-date 2026-08-2
 ruby tests/Documentation/G0G3CoverageLedgerTest.rb
 ```
 
-The generator rejects duplicate keys, unknown fields or IDs, unsafe paths, symlinks, stale or mismatched hashes, incomplete capability/workflow catalogues, secret-looking content, and inconsistent gate results. Schema-v1 retains its existing same-directory atomic replacement behavior and retired-prototype exclusions. Schema-v2 emits deterministic bytes only to its new dated artifact and refuses to overwrite an existing output. Schema-v2 generation is read-only with respect to governance selection and is valid as current evidence only while its complete profile binding still matches the canonical pointer state.
+The schema-v2 check targets R3 and requires its exact deterministic bytes. The generator rejects duplicate keys, unknown fields or IDs, unsafe paths, symlinks, stale or mismatched predecessor hashes, incomplete capability/workflow catalogues, secret-looking content, and inconsistent gate results. Schema-v1 retains its existing same-directory atomic replacement behavior and retired-prototype exclusions. Schema-v2 emits deterministic bytes only to its new R3 artifact and refuses to overwrite an existing output. Schema-v2 generation is read-only with respect to governance selection and is valid as current evidence only while its complete profile binding still matches the canonical pointer state.
 
 All application/patient examples and test fixtures remain synthetic. Governance artifacts may contain attributable decision references and authority metadata, but never patient data or secrets. No ledger, map, decision pointer, engineering result, or gate observation authorizes real patient data or live BPJS, VClaim, SATUSEHAT, payment, LIS, PACS, device, or other external integration.

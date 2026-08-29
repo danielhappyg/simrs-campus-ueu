@@ -31,10 +31,10 @@ module G0GovernanceProfileDispatcher
     'comparison' => 'compare-g0-governance-v1-v2/read-only-migration-parity',
     'dispatcher' => 'validate-g0-governance/1.0.0-wave4-candidate-only',
     'v1' => 'validate-parity-governance/unchanged',
-    'v2' => 'g0-proportional-governance-v2/1.0.0'
+    'v2' => 'g0-proportional-governance-v2/1.3.0'
   }.freeze
   ACTIVE_VALIDATOR_CONTRACT = VALIDATOR_CONTRACT.merge(
-    'dispatcher' => 'validate-g0-governance/1.1.0-wave5-active-read-only'
+    'dispatcher' => 'validate-g0-governance/1.3.0-wave5-active-read-only'
   ).freeze
   RECEIPT_KEYS = %w[
     schema_version operation_id operation profile mode source status reason_code

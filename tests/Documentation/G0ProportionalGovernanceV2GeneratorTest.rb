@@ -242,6 +242,145 @@ class G0ProportionalGovernanceV2GeneratorTest < Minitest::Test
     assert_equal 'unchanged', File.binread(marker)
   end
 
+  def test_retained_mode_publishes_deterministic_exact_pending_bundle_with_no_authority_effect
+    first_root = retained_fixture_root('retained-first')
+    second_root = retained_fixture_root('retained-second')
+    first = Generator.generate_retained!(root: first_root, retained_name: 'candidate-001')
+    second = Generator.generate_retained!(root: second_root, retained_name: 'candidate-001')
+    relative = File.join(Generator::RETAINED_PARENT, 'candidate-001')
+    first_directory = File.join(first_root, relative)
+    second_directory = File.join(second_root, relative)
+
+    expected_receipt_keys = %w[
+      operation status effect candidate_directory bundle_manifest_sha256 bundle_id
+    ]
+    assert_equal expected_receipt_keys.sort, first.keys.sort
+    assert_equal 'generate_retained_candidate', first.fetch('operation')
+    assert_equal 'retained_candidate_no_authority', first.fetch('status')
+    assert_equal 'retained_candidate_no_authority', first.fetch('effect')
+    assert_equal relative, first.fetch('candidate_directory')
+    assert_equal first.fetch('bundle_id'), second.fetch('bundle_id')
+    assert_equal first.fetch('bundle_manifest_sha256'), second.fetch('bundle_manifest_sha256')
+    assert Generator.complete_candidate?(first_directory)
+    assert_equal Generator::FILES.values.sort, Dir.children(first_directory).sort
+
+    Generator::FILES.values.each do |name|
+      assert_equal File.binread(File.join(first_directory, name)), File.binread(File.join(second_directory, name)), name
+      artifact = Core.parse_json_file(File.join(first_directory, name))
+      assert Core.assert_secret_free!(artifact, label: name)
+    end
+
+    authority = read_candidate(first_directory, 'authority_register')
+    owner = read_candidate(first_directory, 'owner_register')
+    events = read_candidate(first_directory, 'decision_event_register')
+    expanded = read_candidate(first_directory, 'expanded_decision_register')
+    gate = read_candidate(first_directory, 'gate_register')
+    assert_equal [], authority.fetch('authorities')
+    assert_equal [], owner.fetch('owners')
+    assert_equal [], events.fetch('events')
+    assert expanded.fetch('entries').all? { |row| row.fetch('g0_terminal') == false && row.fetch('implementation_authorized') == false }
+    assert_equal 'OPEN', gate.fetch('project_g0')
+    assert_equal 'OPEN', gate.fetch('project_g3')
+    assert_equal 0, gate.dig('counts', 'terminal')
+    assert_equal 268, gate.dig('counts', 'nonterminal')
+    assert_no_runtime_authority_artifacts(first_root)
+  end
+
+  def test_retained_name_is_a_safe_direct_child_and_refuses_existing_or_symlink_leaf
+    root = retained_fixture_root('retained-paths')
+    %w[../outside nested/candidate . hidden/../candidate].each do |unsafe|
+      assert_raises(Generator::UsageError) do
+        Generator.generate_retained!(root: root, retained_name: unsafe)
+      end
+    end
+    assert_raises(Generator::UsageError) do
+      Generator.generate_retained!(root: root, retained_name: File.join(@tmpdir, 'absolute'))
+    end
+
+    retained_parent = File.join(root, Generator::RETAINED_PARENT)
+    FileUtils.mkdir_p(retained_parent, mode: 0o700)
+    existing = File.join(retained_parent, 'existing')
+    Dir.mkdir(existing, 0o700)
+    assert_raises(Generator::UsageError) do
+      Generator.generate_retained!(root: root, retained_name: 'existing')
+    end
+
+    target = File.join(@tmpdir, 'symlink-target')
+    Dir.mkdir(target, 0o700)
+    File.symlink(target, File.join(retained_parent, 'linked'))
+    assert_raises(Generator::UsageError) do
+      Generator.generate_retained!(root: root, retained_name: 'linked')
+    end
+    assert_no_runtime_authority_artifacts(root)
+  end
+
+  def test_retained_parent_rejects_symlink_and_cross_device_layouts
+    symlink_root = retained_fixture_root('retained-parent-symlink')
+    retained_parent = File.join(symlink_root, Generator::RETAINED_PARENT)
+    target = File.join(@tmpdir, 'retained-parent-target')
+    Dir.mkdir(target, 0o700)
+    File.symlink(target, retained_parent)
+    assert_raises(Generator::UsageError) do
+      Generator.generate_retained!(root: symlink_root, retained_name: 'candidate')
+    end
+
+    cross_device_root = retained_fixture_root('retained-cross-device')
+    Generator.stub(:same_device?, false) do
+      error = assert_raises(Generator::UsageError) do
+        Generator.generate_retained!(root: cross_device_root, retained_name: 'candidate')
+      end
+      assert_match(/phase-0 filesystem/, error.message)
+    end
+    assert_no_runtime_authority_artifacts(cross_device_root)
+  end
+
+  def test_verify_retained_is_read_only_direct_child_preflight_and_rejects_incomplete_or_symlink
+    root = retained_fixture_root('retained-verify')
+    generated = Generator.generate_retained!(root: root, retained_name: 'complete')
+    candidate = File.join(root, generated.fetch('candidate_directory'))
+    before = directory_hashes(candidate)
+    verified = Generator.verify_retained!(root: root, path: generated.fetch('candidate_directory'))
+
+    assert_equal 'verify_retained_candidate', verified.fetch('operation')
+    assert_equal 'retained_candidate_no_authority', verified.fetch('status')
+    assert_equal 'retained_candidate_no_authority', verified.fetch('effect')
+    assert_equal generated.fetch('bundle_id'), verified.fetch('bundle_id')
+    assert_equal before, directory_hashes(candidate)
+
+    outside = File.join(@tmpdir, 'outside-retained')
+    Dir.mkdir(outside, 0o700)
+    assert_raises(Generator::UsageError) { Generator.verify_retained!(root: root, path: outside) }
+    nested = File.join(candidate, 'nested')
+    Dir.mkdir(nested, 0o700)
+    assert_raises(Generator::UsageError) { Generator.verify_retained!(root: root, path: nested) }
+    Dir.rmdir(nested)
+
+    parent = File.join(root, Generator::RETAINED_PARENT)
+    incomplete = File.join(parent, 'incomplete')
+    Dir.mkdir(incomplete, 0o700)
+    File.binwrite(File.join(incomplete, '.incomplete'), "not usable\n")
+    assert_raises(Generator::Error) { Generator.verify_retained!(root: root, path: incomplete) }
+
+    symlink = File.join(parent, 'verify-link')
+    File.symlink(candidate, symlink)
+    assert_raises(Generator::UsageError) { Generator.verify_retained!(root: root, path: symlink) }
+    assert_no_runtime_authority_artifacts(root)
+  end
+
+  def test_retained_overwrite_refusal_preserves_all_candidate_bytes
+    root = retained_fixture_root('retained-overwrite')
+    generated = Generator.generate_retained!(root: root, retained_name: 'immutable')
+    candidate = File.join(root, generated.fetch('candidate_directory'))
+    before = directory_hashes(candidate)
+
+    error = assert_raises(Generator::UsageError) do
+      Generator.generate_retained!(root: root, retained_name: 'immutable')
+    end
+
+    assert_match(/already exists/, error.message)
+    assert_equal before, directory_hashes(candidate)
+  end
+
   def test_every_injected_partial_publication_is_explicitly_incomplete_and_never_usable
     (1..5).each do |published_count|
       output = File.join(@tmpdir, "partial-#{published_count}")
@@ -323,6 +462,29 @@ class G0ProportionalGovernanceV2GeneratorTest < Minitest::Test
     assert_empty err
     assert_equal 'generated_pending_candidate', JSON.parse(out).fetch('status')
     assert Generator.complete_candidate?(output)
+
+    root = retained_fixture_root('retained-cli')
+    out, err, status = Open3.capture3(
+      RbConfig.ruby, GENERATOR, '--root', root, '--retained-name', 'cli-retained'
+    )
+    assert_equal 0, status.exitstatus
+    assert_empty err
+    retained_receipt = JSON.parse(out)
+    assert_equal 'retained_candidate_no_authority', retained_receipt.fetch('status')
+
+    out, err, status = Open3.capture3(
+      RbConfig.ruby, GENERATOR, '--root', root,
+      '--verify-retained', retained_receipt.fetch('candidate_directory')
+    )
+    assert_equal 0, status.exitstatus
+    assert_empty err
+    assert_equal 'verify_retained_candidate', JSON.parse(out).fetch('operation')
+
+    _out, _err, status = Open3.capture3(
+      RbConfig.ruby, GENERATOR, '--output', File.join(@tmpdir, 'mutual-output'),
+      '--retained-name', 'mutual-retained'
+    )
+    assert_equal 2, status.exitstatus
   end
 
   def test_parse_and_cli_diagnostics_never_echo_secret_like_attacker_input
@@ -379,5 +541,50 @@ class G0ProportionalGovernanceV2GeneratorTest < Minitest::Test
     @v1_manifest.fetch('files').to_h do |entry|
       [entry.fetch('path'), Digest::SHA256.file(File.join(ROOT, entry.fetch('path'))).hexdigest]
     end
+  end
+
+  def retained_fixture_root(name)
+    root = File.join(@tmpdir, name)
+    Dir.mkdir(root, 0o700)
+    # The historical verifier reads immutable baseline objects with git-show.
+    # A gitdir pointer gives the isolated working tree read-only object access
+    # without copying, modifying, or linking any candidate/runtime path.
+    File.binwrite(File.join(root, '.git'), "gitdir: #{File.join(ROOT, '.git')}\n")
+    contract = Core.parse_json_file(File.join(PHASE, 'G0_GOVERNANCE_V2_CONTRACT.json'))
+    manifest = Core.parse_json_file(File.join(PHASE, 'G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json'))
+    paths = [
+      Generator::CONTRACT_PATH,
+      Generator::V1_MANIFEST_PATH,
+      Generator::EVIDENCE_MAP_PATH,
+      *contract.fetch('adopted_sources').values.map { |entry| entry.fetch('path') },
+      *manifest.fetch('files').map { |entry| entry.fetch('path') }
+    ].uniq
+    paths.each do |relative|
+      source = File.join(ROOT, relative)
+      destination = File.join(root, relative)
+      FileUtils.mkdir_p(File.dirname(destination))
+      FileUtils.copy_file(source, destination)
+    end
+    root
+  end
+
+  def directory_hashes(directory)
+    Dir.children(directory).sort.to_h do |name|
+      path = File.join(directory, name)
+      [name, File.file?(path) ? Digest::SHA256.file(path).hexdigest : 'directory']
+    end
+  end
+
+  def assert_no_runtime_authority_artifacts(root)
+    phase0 = File.join(root, Generator::PHASE)
+    forbidden = %w[
+      G0_GOVERNANCE_CONSUMER_POINTER.json
+      G0_GOVERNANCE_CONSUMER_POINTER_RECOVERY_REQUIRED.json
+      G0_GOVERNANCE_CONSUMER_SELECTIONS
+      G0_GOVERNANCE_V2_ACTIVATION_DECISIONS
+      G0_GOVERNANCE_CONSUMER_JOURNAL
+      G0_GOVERNANCE_CONSUMER_SELECTION.lock
+    ]
+    forbidden.each { |name| refute File.exist?(File.join(phase0, name)), name }
   end
 end

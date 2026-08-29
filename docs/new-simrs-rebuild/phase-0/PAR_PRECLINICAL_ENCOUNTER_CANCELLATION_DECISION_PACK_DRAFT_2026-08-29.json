@@ -39,7 +39,7 @@
     {
       "role": "governance_v2_contract",
       "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_CONTRACT.json",
-      "sha256": "eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca",
+      "sha256": "b74fd990cb0a12692dc78bb808f688bab99924bf8f8ae80b109e72d9ba4d9bba",
       "source_status": "implemented_validation_contract",
       "authority_effect": "none_without_valid_decision_events"
     },
@@ -52,8 +52,8 @@
     },
     {
       "role": "coverage_ledger_v2",
-      "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29.json",
-      "sha256": "690becdf75a08d17b992d8dad754313f33d0f9c8ea2c692b9b12b8b837f43ac5",
+      "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json",
+      "sha256": "0f312713000b0092de313baee2d3cc6d34695c2fefd717c620871268045ac58c",
       "source_status": "g0_g3_open_pointer_missing",
       "authority_effect": "none"
     },

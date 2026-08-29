@@ -5,7 +5,7 @@
   "profile": "v2",
   "validator": {
     "contract_name": "g0_proportional_governance_v2",
-    "version": "1.0.0",
+    "version": "1.3.0",
     "closed_schema": true,
     "unknown_fields": "reject",
     "duplicate_keys": "reject",
@@ -388,6 +388,233 @@
     "forked_history": "reject",
     "broken_history": "reject",
     "historical_bytes_mutable": false
+  },
+  "consumer_operation_decision_contract": {
+    "schema_version": 1,
+    "artifact_type": "g0_governance_v2_consumer_operation_decision",
+    "status": "approved",
+    "effect": "authorizes_one_consumer_selection_operation",
+    "data_boundary": "synthetic_only",
+    "exact_top_level_keys": [
+      "artifact_type",
+      "schema_version",
+      "decision_id",
+      "status",
+      "effect",
+      "data_boundary",
+      "operation",
+      "environment",
+      "actor",
+      "conditions",
+      "decided_at",
+      "expires_at",
+      "adoption_decision",
+      "approval_evidence",
+      "prior_state",
+      "candidate_bundle",
+      "held_selection",
+      "recover_outcome",
+      "decision_attribution",
+      "technical_evidence"
+    ],
+    "nested_exact_keys": {
+      "actor": [
+        "identity",
+        "authority_capacity",
+        "decision_thread_id"
+      ],
+      "prior_state": [
+        "prior_state_reason",
+        "expected_prior_pointer_sha256",
+        "observed_unreadable_pointer_sha256"
+      ],
+      "reference": [
+        "path",
+        "sha256"
+      ],
+      "decision_attribution": [
+        "decision_reference",
+        "decision_message",
+        "decision_message_encoding",
+        "decision_message_sha256",
+        "source_message_at",
+        "recorded_at",
+        "recorded_at_basis"
+      ],
+      "technical_evidence": [
+        "gate_a_adoption",
+        "local_observation",
+        "candidate_bundle",
+        "canonical_preflight",
+        "validator_contract",
+        "selector_source",
+        "independent_review"
+      ]
+    },
+    "allowed_operations": [
+      "activate",
+      "rollback",
+      "disable",
+      "recover"
+    ],
+    "allowed_environments": [
+      "isolated_test_fixture",
+      "local_canonical_checkout"
+    ],
+    "required_attribution_method": "approved_immutable_ticket_or_workflow_record",
+    "gate_a_decider_binding_rules": {
+      "adoption_source": "adopted_sources.adoption_decision",
+      "actor_identity_source": "decider.identity",
+      "actor_capacity_source": "decider.authority_capacity",
+      "thread_id_source": "decider.decision_reference_codex_thread_prefix",
+      "required_capacity": "product_owner",
+      "arbitrary_actor_or_thread": "reject"
+    },
+    "decision_message_rules": {
+      "encoding": "exact_utf8_bytes_no_normalization",
+      "minimum_bytes": 1,
+      "sha256_basis": "exact_decision_message_utf8_bytes",
+      "reference_binding": "decision_reference_must_end_with_hash_fragment",
+      "reference_hash_fragment_prefix": "#decision-message-sha256:"
+    },
+    "technical_evidence_reference_rules": {
+      "all_exact_fields_required": true,
+      "repository_relative_paths_only": true,
+      "regular_files_or_candidate_bundle_manifest_only": true,
+      "sha256_basis": "exact_referenced_file_bytes"
+    },
+    "approval_evidence_contract": {
+      "artifact_type": "g0_governance_v2_gate_b_operation_approval",
+      "schema_version": 1,
+      "status": "approved",
+      "effect": "authorizes_one_consumer_selection_operation",
+      "exact_top_level_keys": [
+        "artifact_type",
+        "schema_version",
+        "approval_id",
+        "status",
+        "effect",
+        "data_boundary",
+        "operation",
+        "environment",
+        "actor",
+        "conditions",
+        "decided_at",
+        "expires_at",
+        "prior_state",
+        "candidate_bundle",
+        "held_selection",
+        "recover_outcome",
+        "decision_attribution",
+        "scope"
+      ],
+      "scope_exact_keys": [
+        "consumer_selection_operation",
+        "candidate_retention",
+        "capability_disposition",
+        "slice_implementation",
+        "deployment",
+        "hosted_migration",
+        "real_patient_data",
+        "live_integration",
+        "domain_acceptance",
+        "g0_closure",
+        "g3_acceptance"
+      ],
+      "only_consumer_selection_operation_true": true,
+      "cross_equal_operation_fields": [
+        "status",
+        "effect",
+        "data_boundary",
+        "operation",
+        "environment",
+        "actor",
+        "conditions",
+        "decided_at",
+        "expires_at",
+        "prior_state",
+        "candidate_bundle",
+        "held_selection",
+        "recover_outcome",
+        "decision_attribution"
+      ]
+    },
+    "semantic_evidence_contracts": {
+      "schema_version": 1,
+      "common_exact_keys": [
+        "artifact_type",
+        "schema_version",
+        "evidence_id",
+        "status",
+        "effect",
+        "data_boundary",
+        "environment",
+        "root",
+        "observed_at",
+        "expires_at",
+        "candidate_bundle",
+        "validator_contract",
+        "selector_source",
+        "prior_state",
+        "authority_effect"
+      ],
+      "local_observation_artifact_type": "g0_governance_v2_gate_b_local_observation",
+      "local_observation_effect": "none_observation_only",
+      "canonical_preflight_artifact_type": "g0_governance_v2_gate_b_canonical_preflight",
+      "canonical_preflight_effect": "none_preflight_only",
+      "independent_review_artifact_type": "g0_governance_v2_gate_b_independent_review",
+      "independent_review_effect": "none_review_evidence_only",
+      "status": "PASS",
+      "authority_effect": "none",
+      "canonical_preflight_check_keys": [
+        "candidate_retained_direct_child",
+        "candidate_manifest_hash_valid",
+        "validator_contract_hash_valid",
+        "selector_source_hash_valid",
+        "prior_state_matches",
+        "no_authority_effect",
+        "filesystem_capabilities_supported",
+        "no_test_controls"
+      ],
+      "independent_reviewer_exact_keys": [
+        "identity",
+        "capacity"
+      ],
+      "independent_reviewed_evidence_exact_keys": [
+        "local_observation",
+        "canonical_preflight"
+      ],
+      "independent_reviewer_capacity": "independent_technical_security_reviewer",
+      "independent_review_verdict": "PASS",
+      "fresh_at_decision_time": true
+    },
+    "canonical_trust_state": {
+      "state": "unprovisioned_blocked_external_attestation_required",
+      "canonical_environment": "local_canonical_checkout",
+      "canonical_operation_policy": "reject_before_lock_probe_marker_or_write",
+      "repository_local_approval_artifacts_sufficient": false,
+      "required_external_attestations": [
+        "product_owner",
+        "independent_technical_security_reviewer"
+      ],
+      "trust_anchor_status": "absent_not_approved_not_provisioned",
+      "signature_implementation_authorized": false,
+      "fixture_environment": "isolated_test_fixture",
+      "fixture_requires_existing_test_guard": true
+    },
+    "timestamp_and_expiry_rules": {
+      "format": "rfc3339_with_explicit_offset",
+      "source_message_at_nullable_when_unavailable": false,
+      "recorded_at_required": true,
+      "recorded_at_not_before_source_message_at_when_present": true,
+      "decided_at_must_equal_source_message_at": true,
+      "expires_at_strictly_after_decided_at": true,
+      "maximum_decision_ttl_seconds": 7200,
+      "maximum_evidence_ttl_seconds": 7200,
+      "evidence_expiry_valid_when": "now_lt_every_semantic_evidence_expires_at",
+      "evidence_observation_order": "local_observation_lte_canonical_preflight_lte_independent_review_lte_source_message_at",
+      "authorization_valid_when": "decided_at_lte_now_and_now_lt_expires_at"
+    }
   },
   "gate_rules": {
     "project_g0_open_value": "OPEN",

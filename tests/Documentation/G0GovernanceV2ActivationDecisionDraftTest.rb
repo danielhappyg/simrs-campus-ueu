@@ -93,7 +93,7 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
   ].freeze
   EVENTUAL_TECHNICAL_EVIDENCE_KEYS = %w[
     gate_a_adoption local_observation candidate_bundle canonical_preflight
-    selector_contract
+    validator_contract selector_source independent_review
   ].freeze
   EXPECTED_SOURCE_PATHS = {
     'governance_v2_proposal' => 'docs/new-simrs-rebuild/phase-0/G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md',
@@ -114,38 +114,34 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     'adoption_decision_draft' => 'historical_pending_no_effect',
     'independent_gate_a_review' => 'pass_gate_a_local_implementation_only',
     'gate_a_adoption_decision' => 'approved_local_implementation_only_no_activation',
-    'governance_v2_contract' => 'implemented_gate_a_contract',
+    'governance_v2_contract' => 'gate_b_operation_decision_contract_1_3_external_trust_blocked_not_activated',
     'v1_historical_hash_manifest' => 'historical_never_activated_integrity_source',
     'implementation_blueprint' => 'gate_sequence_source',
     'local_candidate_observation' => 'complete_candidate_only_observation_no_effect',
-    'consumer_selector_source' => 'fixture_only_mutation_canonical_checkout_prohibited',
-    'governance_v2_core_source' => 'implemented_validation_core'
+    'consumer_selector_source' => 'gate_b_hardened_local_canonical_support_not_invoked',
+    'governance_v2_core_source' => 'gate_b_operation_decision_validation_1_3_external_trust_blocked'
   }.freeze
   EXPECTED_INELIGIBILITY_REASONS = [
     'observed candidate was temporary and was cleaned after read-only validation',
     'no immutable retained candidate path and path hash are available for an operation decision',
     'candidate observation confers no owner authority activation effect or gate closure'
   ].freeze
-  EXPECTED_ATTRIBUTION_GAPS = [
-    'decision_reference',
-    'exact_decision_message',
-    'decision_message_encoding',
-    'decision_message_sha256',
-    'source_message_at_and_recorded_time_basis',
-    'hash_bound_technical_evidence_and_canonical_preflight_references'
-  ].freeze
+  EXPECTED_ATTRIBUTION_GAPS = [].freeze
   EXPECTED_READINESS_BLOCKERS = [
-    'current selector prohibits canonical-checkout mutation and accepts only isolated_test_fixture operation decisions',
-    'current selector operation-decision schema lacks attributable decision-message evidence and hash-bound technical preflight references',
     'observed candidate was ephemeral cleaned and is not decision-eligible',
+    'fresh retained candidate and hash-bound candidate manifest do not yet exist',
+    'canonical filesystem capability and authority-path preflight has not been recorded',
+    'independent technical security review of the hardened selector exact candidate and preflight is pending',
     'attributable actor institutional identity decision reference exact message timestamps and expiry are missing',
-    'initial prior state must be rederived and bound immediately before any separately authorized operation'
+    'initial prior state must be rederived and bound immediately before any separately authorized operation',
+    'external product-owner and independent-review trust anchors are absent unapproved and unprovisioned so every canonical operation is fail-closed'
   ].freeze
   EXPECTED_CONDITIONS = [
     'This draft is decision preparation only and must never be renamed copied or interpreted as an approved operation decision.',
     'Gate A adoption authorizes local governance-v2 implementation only and cannot supply Gate B activation authority.',
     'The temporary observed candidate is not activatable; a fresh retained hash-bound candidate is required.',
-    'Canonical checkout support attribution evidence and technical-evidence binding must be implemented tested and independently reviewed before a decision request.',
+    'Implemented canonical checkout support attribution evidence and technical-evidence binding remain non-authoritative until a fresh retained candidate preflight independent review and attributable operation decision exist.',
+    'Canonical selector execution is intentionally blocked before lock probe marker or write until external product-owner and independent-review trust is separately approved and provisioned.',
     'Activation cannot appoint owners decide capabilities authorize an application slice deploy migrate use real patient data enable a live integration close G0 or establish G3.',
     'Any eventual approval expires and authorizes at most one exact operation after action-time prior-state revalidation.'
   ].freeze
@@ -156,6 +152,9 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     'Bind the future decision to exact hardened schema selector candidate preflight prior-state attribution approval condition and expiry evidence.',
     'Re-observe all canonical authority paths immediately before the separately authorized operation and fail closed on drift.',
     'Do not commit credentials tokens private keys connection strings or temporary candidate contents.'
+  ].freeze
+  POST_PLANNING_HEAD_HARDENING_ROLES = %w[
+    governance_v2_contract consumer_selector_source governance_v2_core_source
   ].freeze
   AUTHORITY_PATHS = %w[
     docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_CONSUMER_POINTER.json
@@ -186,7 +185,7 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     assert_equal 'GATE_B_CONSUMER_ACTIVATION', gate.fetch('gate_id')
     assert_equal 'gate_a_local_governance_v2_implementation_only', gate.fetch('preparation_authorized_by')
     assert_equal 'pending_attributable_product_owner_decision', gate.fetch('decision_authority_status')
-    assert_equal 'not_authorized_not_executed', gate.fetch('activation_status')
+    assert_equal 'blocked_external_attestation_unprovisioned_not_executed', gate.fetch('activation_status')
   end
 
   def test_all_gate_a_sources_are_exact_regular_hash_bound_paths
@@ -202,7 +201,7 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     assert_raises(BindingError) { assert_source_binding!(changed_hash) }
   end
 
-  def test_planning_head_is_reachable_and_owns_every_bound_source
+  def test_planning_head_is_reachable_and_gate_b_hardening_bindings_are_explicitly_newer
     _output, status = Open3.capture2e('git', 'cat-file', '-e', "#{PLANNING_HEAD}^{commit}", chdir: ROOT)
     assert status.success?, 'planning head must resolve to a commit'
     _output, status = Open3.capture2e('git', 'merge-base', '--is-ancestor', PLANNING_HEAD, 'HEAD', chdir: ROOT)
@@ -212,17 +211,22 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
       path = binding.fetch('path')
       committed_bytes, source_status = Open3.capture2('git', 'show', "#{PLANNING_HEAD}:#{path}", chdir: ROOT)
       assert source_status.success?, "planning head is missing #{path}"
-      assert_equal File.binread(File.join(ROOT, path)), committed_bytes.b, "planning head does not own #{path}"
+      current_bytes = File.binread(File.join(ROOT, path))
+      if POST_PLANNING_HEAD_HARDENING_ROLES.include?(binding.fetch('role'))
+        refute_equal current_bytes, committed_bytes.b, "Gate-B hardening source must be newer than the Gate-A planning head"
+      else
+        assert_equal current_bytes, committed_bytes.b, "planning head does not own #{path}"
+      end
     end
   end
 
   def test_requested_operation_actor_and_times_are_explicitly_pending
     request = @draft.fetch('requested_operation')
     assert_closed request, REQUESTED_OPERATION_KEYS
-    assert_equal %w[activate local_canonical_checkout pending], request.values_at(
+    assert_equal %w[activate local_canonical_checkout blocked_external_attestation_unprovisioned], request.values_at(
       'operation', 'target_environment', 'decision_status'
     )
-    assert_equal 'not_implemented_current_selector_accepts_isolated_test_fixture_only', request.fetch('selector_environment_support')
+    assert_equal 'implemented_but_canonical_blocked_until_external_attestation_trust_is_separately_approved_and_provisioned', request.fetch('selector_environment_support')
     %w[decided_at expires_at candidate_bundle_reference held_selection_reference recover_outcome].each do |key|
       assert_nil request.fetch(key), key
     end
@@ -282,12 +286,12 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     assert observation.dig('candidate_bundle', 'temporary_evidence_cleaned')
   end
 
-  def test_eventual_schema_is_exact_and_explicitly_blocked_on_attribution_and_canonical_support
+  def test_eventual_schema_is_implemented_but_still_has_no_activation_authority
     schema = @draft.fetch('required_eventual_operation_decision_schema')
     assert_closed schema, EVENTUAL_SCHEMA_KEYS
-    assert_equal 'hardening_required_not_implemented_not_selector_compatible', schema.fetch('schema_status')
+    assert_equal 'implemented_contract_1_3_selector_compatible_canonical_trust_blocked', schema.fetch('schema_status')
     assert_equal Selector::OPERATION_DECISION_KEYS, schema.fetch('current_selector_exact_top_level_keys')
-    assert_equal Selector::OPERATION_DECISION_KEYS + %w[decision_attribution technical_evidence], schema.fetch('eventual_required_top_level_keys')
+    assert_equal Selector::OPERATION_DECISION_KEYS, schema.fetch('eventual_required_top_level_keys')
 
     nested = schema.fetch('nested_exact_keys')
     assert_closed nested, NESTED_SCHEMA_KEYS
@@ -307,9 +311,9 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
     assert semantics.fetch('action_time_revalidation_required')
     assert_equal EXPECTED_ATTRIBUTION_GAPS, schema.fetch('current_selector_attribution_evidence_gaps')
 
-    selector_source = File.binread(File.join(ROOT, 'scripts/select-g0-governance-consumer.rb'))
-    assert_includes selector_source, "decision.fetch('environment') == 'isolated_test_fixture'"
-    assert_includes selector_source, "raise UsageError, 'canonical_checkout_mutation_prohibited'"
+    assert_equal %w[isolated_test_fixture local_canonical_checkout], Selector::ENVIRONMENTS
+    assert_equal Selector::OPERATION_DECISION_KEYS,
+                 @draft.dig('required_eventual_operation_decision_schema', 'eventual_required_top_level_keys')
   end
 
   def test_draft_is_not_selector_compatible_and_creates_no_authority
@@ -328,9 +332,9 @@ class G0GovernanceV2ActivationDecisionDraftTest < Minitest::Test
   def test_readiness_approvals_conditions_and_authorizations_are_closed_and_pending
     readiness = @draft.fetch('approval_readiness')
     assert_closed readiness, APPROVAL_READINESS_KEYS
-    assert_equal 'not_approval_ready', readiness.fetch('status')
+    assert_equal 'blocked_external_attestation_unprovisioned_not_approval_ready', readiness.fetch('status')
     assert_equal EXPECTED_READINESS_BLOCKERS, readiness.fetch('blockers')
-    assert readiness.fetch('selector_hardening_required')
+    refute readiness.fetch('selector_hardening_required')
     assert readiness.fetch('fresh_candidate_required')
     assert readiness.fetch('fresh_independent_review_required')
 
