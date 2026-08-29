@@ -562,7 +562,7 @@ Public keys, fingerprints, signatures, hashes, nonces, and non-secret lifecycle 
 ## 23. Post-approval sequence
 
 1. Record exact attributable product-owner approval of Section 24 and a separate independent technical/security review of this exact SHA; neither activates Gate-B.
-2. Publish a separately reviewed closed machine contract and reason-code contract while canonical operation remains blocked.
+2. Create a separately reviewed closed machine contract and reason-code contract as local working-tree artifacts only while canonical operation remains blocked; commit, push, pull request creation, release, deployment, and migration remain separately unauthorized.
 3. Implement fixture-only native contracts and tests without provisioning the canonical host.
 4. Independently review the implementation.
 5. Separately authorize root host provisioning and run native macOS acceptance.
@@ -572,6 +572,62 @@ Public keys, fingerprints, signatures, hashes, nonces, and non-secret lifecycle 
 
 ## 24. Exact approval block
 
-> Approve ADR-019 exactly as written as the append-only Gate-B root-only offline host-trust-boundary successor to the bound ADR-018 and external-trust proposal. Authorize only publication of a corresponding closed machine contract and later local fixture implementation and deterministic tests after a separate independent technical/security review of this exact ADR passes. Keep canonical mutation and resolution, request import, host provisioning, human key enrollment, consumer activation, capability or slice implementation, deployment, migration, real patient data, live integration, domain acceptance, G0 closure, and G3 acceptance unauthorized until their own later prerequisites and decisions are satisfied. This approval has no activation effect and does not change the current all-false Gate-B authorization state.
+> Approve ADR-019 exactly as written as the append-only Gate-B root-only offline host-trust-boundary successor to the bound ADR-018 and external-trust proposal. Authorize only publication in the limited sense of local working-tree artifact creation of a corresponding closed machine contract, and later local working-tree fixture implementation and deterministic tests after a separate independent technical/security review of this exact ADR passes. Commit, push, pull request creation, release, deployment, and migration remain unauthorized. Keep canonical mutation and resolution, request import, host provisioning, human key enrollment, consumer activation, capability or slice implementation, real patient data, live integration, domain acceptance, G0 closure, and G3 acceptance unauthorized until their own later prerequisites and decisions are satisfied. This approval has no activation effect and does not change the current all-false Gate-B authorization state.
 
-Approval must be a new immutable attributable artifact binding this file's exact SHA-256 plus the exact ADR-018, Gate-A adoption-decision, and external-trust-proposal SHA-256 values in Section 1. Do not edit this ADR to mark it accepted; publish a successor decision record.
+Approval must be a new immutable attributable artifact binding this file's exact SHA-256 plus the exact ADR-018, Gate-A adoption-decision, and external-trust-proposal SHA-256 values in Section 1. It must also bind the exact final-byte SHA-256 of `docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_HOST_TRUST_BOUNDARY_APPROVAL_DECISION_DRAFT_2026-08-29.json`; that pending draft cannot embed its own SHA-256, so only the later successor approval artifact supplies this binding.
+
+The successor actor must exactly match the adopted Gate-A decider: identity `Daniel Happy Putra`, capacity `product_owner`, and decision-reference prefix `codex_thread:01a02b58-641d-7090-aad4-00871c7ddf47#decision-message-sha256:`. A host/platform task record outside repository-writer control must prove that the exact pending-draft path and SHA-256 plus the exact requested reply were presented before the actor authored the approval, and must supply the exact whole-message bytes and their SHA-256. The successor must bind that external record and use non-null RFC 3339 timestamps satisfying `request_presented_at < source_message_at < recorded_at < effective_at`. `recorded_at` is the host recorder's observation time and `effective_at` is the host recorder's first effect time after exact approval plus bound review pass; neither is an actor approval event. A different actor, capacity, task/thread prefix, message byte, message hash, request context, timestamp order, null field, or unverifiable external record fails closed. Repository content, commit authorship, and a copied reply are not attribution.
+
+The future immutable successor approval SHALL contain exactly:
+
+`artifact_type`, `schema_version`, `artifact_id`, `status`, `effect`, `data_boundary`, `draft_reference`, `source_bindings`, `independent_review_reference`, `actor`, `decision_reference`, `decision_message`, `decision_message_encoding`, `decision_message_sha256`, `external_task_record_reference`, `request_presented_at`, `source_message_at`, `recorded_at`, `effective_at`, `recorded_at_basis`, `effective_at_basis`, `conditions`, `approved_scope`, `authorization`, `immutability`, and `secret_handling`.
+
+Closed values are `artifact_type: g0_governance_v2_host_trust_boundary_approval_decision`, `schema_version: 1`, `status: approved_exact_with_required_review_pass`, `effect: authorizes_local_working_tree_contract_fixture_and_tests_only`, `data_boundary: synthetic_only`, `decision_message_encoding: exact_utf8_no_trailing_newline`, `recorded_at_basis: host_recorder_observed_resolved_external_record`, `effective_at_basis: host_recorder_first_effect_after_exact_approval_and_bound_review_pass`, and `conditions: []`. `draft_reference` is exactly `path`, `sha256`; each of the four byte-sorted `source_bindings` items is exactly `role`, `path`, `sha256`; `actor` is exactly `identity`, `authority_capacity`; and `independent_review_reference` uses the separate hash-addressed schema below.
+
+`approved_scope` SHALL contain exactly `closed_machine_contract_local_creation`, `local_fixture_implementation`, and `local_deterministic_tests`. The contract value is `authorized_local_working_tree_after_exact_approval`; the fixture and test values are `authorized_local_working_tree_after_exact_approval_and_review_pass`. `authorization` SHALL contain exactly `closed_machine_contract_local_creation`, `local_fixture_implementation`, `local_deterministic_tests`, `canonical_mutation`, `canonical_resolution`, `request_import`, `host_provisioning`, `human_key_enrollment`, `consumer_activation`, `capability_disposition`, `slice_implementation`, `commit`, `push`, `pull_request`, `release`, `deployment`, `migration`, `real_patient_data`, `live_integration`, `domain_acceptance`, `g0_closure`, and `g3_acceptance`. The first three are true only in this reviewed successor profile; every other value is exactly false. `immutability` is exactly `record_mutable`, `correction_method`, with false and `append_new_hash_bound_successor`; `secret_handling` is exactly `credentials_permitted`, `tokens_permitted`, `private_keys_permitted`, `connection_strings_permitted`, all false.
+
+The hash-addressed external task-record reference SHALL contain exactly:
+
+`artifact_type`, `schema_version`, `provider_id`, `task_id`, `message_id`, `event_id`, `account_id`, `record_sha256`, and `resolver_id`.
+
+Closed reference values include `provider_id: codex`, `task_id: 01a02b58-641d-7090-aad4-00871c7ddf47`, and `message_id` byte-equal to `decision_message_sha256`. `account_id` is byte-equal to the resolved `author_account_id`; the decision reference is the fixed task prefix plus that same message ID.
+
+The resolver API's verified result SHALL contain exactly:
+
+`verification_status`, `resolver_id`, `external_verification_identity_id`, and `resolved_envelope`.
+
+It requires `verification_status: VERIFIED`; the approval resolver identity is pinned out of band as `codex-platform-trust-anchor-v1`. Returning an envelope without this verified result is rejection.
+
+The trusted resolver's resolved envelope SHALL contain exactly:
+
+`artifact_type`, `schema_version`, `record`, `record_sha256`, and `verified_result_metadata`.
+
+The resolved `record` SHALL contain exactly:
+
+`provider_id`, `task_id`, `message_id`, `event_id`, `account_id`, `author_role`, `author_account_id`, `author_identity_id`, `author_display_identity`, `request_draft_path`, `request_draft_sha256`, `requested_reply_sha256`, `request_presented_at`, `whole_message_bytes`, `whole_message_sha256`, and `source_message_at`.
+
+Approval `verified_result_metadata` SHALL contain exactly:
+
+`resolver_id`, `resolver_kind`, `verification_method`, `external_verification_identity_id`, `verification_evidence_sha256`, `verified_reference_sha256`, `verified_record_sha256`, `account_binding_status`, `bound_author_account_id`, `bound_author_identity_id`, `bound_gate_a_identity`, `bound_gate_a_capacity`, and `verified_at`.
+
+The author is closed to `author_role: user`; author display identity and bound Gate-A identity are `Daniel Happy Putra`, bound capacity is `product_owner`, and the resolver-attested author account/identity values must cross-equal the record and top-level actor. Assistant, service, system, different-account, different-identity, or unbound authors fail closed.
+
+The independent-review reference SHALL contain exactly:
+
+`artifact_type`, `schema_version`, `review_id`, `record_sha256`, and `resolver_id`.
+
+Its resolved review `record` SHALL contain exactly:
+
+`review_id`, `reviewer_identity_id`, `reviewer_display_identity`, `reviewer_capacity`, `reviewer_kind`, `reviewer_author_role`, `reviewer_account_id`, `executor_identity_id`, `reviewed_adr_sha256`, `reviewed_draft_sha256`, `review_bytes`, `review_sha256`, `verdict`, and `reviewed_at`.
+
+Review `verified_result_metadata` SHALL contain exactly:
+
+`resolver_id`, `resolver_kind`, `verification_method`, `external_verification_identity_id`, `verification_evidence_sha256`, `verified_reference_sha256`, `verified_record_sha256`, `verified_reviewer_identity_id`, `verified_reviewer_account_id`, `verified_reviewer_capacity`, `verified_reviewer_kind`, `reviewer_eligibility_status`, `verified_executor_identity_id`, and `verified_at`.
+
+The review resolver/trust anchor is separate and pinned out of band as `independent-review-platform-trust-anchor-v1`. It must return `VERIFIED` through the same closed verified-result wrapper. The resolver derives and attests reviewer identity, reviewer account, reviewer capacity, reviewer kind, reviewer eligibility, and actual executor identity rather than accepting those facts from repository-authored bytes. Closed verified values are `verified_reviewer_capacity: independent_technical_security_reviewer`, `verified_reviewer_kind: independent_not_product_owner_or_executor`, and `reviewer_eligibility_status: VERIFIED_ELIGIBLE_INDEPENDENT_REVIEWER`. The verified reviewer identity, account, capacity, kind, and executor identity must byte-equal their review-record counterparts. The review record binds this ADR and pending-draft hashes, exact review bytes and SHA-256, `verdict: PASS`, and author role `reviewer`. Reviewer identity and account must differ from product owner identity and account, and reviewer identity must differ from `verified_executor_identity_id`; a review record cannot override the actual resolver-verified executor. Missing, unresolved, authenticated-but-ineligible, self-authored, owner-authored, executor-authored, forged, hash-mismatched, cross-equality-mismatched, wrong-target, wrong-verdict, or time-invalid review fails closed.
+
+The successor validator must receive both trusted resolvers out of band as host/platform interfaces or externally keyed attestation verifiers. It calls `resolve_verified`, rejects any non-`VERIFIED` result, resolves each exact reference, requires every identifier to match, canonicalizes each `record` with `canonical_json_lf`, verifies its `record_sha256`, canonicalizes each exact reference and verifies `verified_reference_sha256`, and verifies each separately pinned external identity and evidence. Approval top-level `request_presented_at`/`source_message_at` cross-equal the resolved approval record. Here `approval_verified_at` and `review_verified_at` mean the respective verified-result metadata `verified_at` fields. Times require `request_presented_at < source_message_at <= approval_verified_at <= recorded_at < effective_at` and `reviewed_at <= review_verified_at <= recorded_at < effective_at`, all explicit-offset RFC 3339. Malformed, future-after-recording, or reordered time fails closed. An offline, embedded, repository-authored, self-claimed, missing, differently addressed, locally fabricated, byte-perfect but unresolved, unverified, or signature/attestation-identity-mismatched record fails closed.
+
+Unknown, duplicate, or missing fields at the successor top level or any nested reference, source, review, actor, scope, authorization, immutability, secret, resolved-record, or resolver-verification level fail closed. Conflicting status, effect, scope, conditions, authorization, hash, identity, or time also fails closed.
+
+Do not edit this ADR or the pending draft to mark either accepted; create a new local working-tree successor decision artifact under the same no-commit/no-push/no-PR/no-release/no-deploy/no-migrate boundary.

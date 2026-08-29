@@ -799,11 +799,71 @@ class G0GovernanceV2HostTrustBoundaryArchitectureDecisionTest < Minitest::Test
     marker = '> Approve ADR-019 exactly as written as the append-only Gate-B root-only offline host-trust-boundary successor'
     assert_equal 1, @adr.scan(marker).length
     block = @adr.lines.find { |line| line.start_with?(marker) }
+    assert_includes block, 'publication in the limited sense of local working-tree artifact creation'
     assert_includes block, 'after a separate independent technical/security review of this exact ADR passes'
+    assert_includes block, 'Commit, push, pull request creation, release, deployment, and migration remain unauthorized.'
     assert_includes block, 'Keep canonical mutation and resolution, request import, host provisioning, human key enrollment, consumer activation'
     assert_includes block, 'This approval has no activation effect'
     assert_includes block, 'current all-false Gate-B authorization state'
-    assert_includes @adr, 'Do not edit this ADR to mark it accepted; publish a successor decision record.'
+    assert_includes @adr, 'that pending draft cannot embed its own SHA-256, so only the later successor approval artifact supplies this binding'
+    assert_includes @adr, 'identity `Daniel Happy Putra`, capacity `product_owner`'
+    assert_includes @adr, 'decision-reference prefix `codex_thread:01a02b58-641d-7090-aad4-00871c7ddf47#decision-message-sha256:`'
+    assert_includes @adr, 'host/platform task record outside repository-writer control'
+    assert_includes @adr, 'exact whole-message bytes and their SHA-256'
+    assert_includes @adr, '`request_presented_at < source_message_at <= approval_verified_at <= recorded_at < effective_at`'
+    assert_includes @adr, "`recorded_at` is the host recorder's observation time"
+    assert_includes @adr, "`effective_at` is the host recorder's first effect time"
+    assert_includes @adr, 'null field, or unverifiable external record fails closed'
+    assert_includes @adr, 'no-commit/no-push/no-PR/no-release/no-deploy/no-migrate boundary'
+    assert_includes @adr, 'Do not edit this ADR or the pending draft to mark either accepted; create a new local working-tree successor decision artifact'
+    assert_equal %w[
+      artifact_type schema_version artifact_id status effect data_boundary
+      draft_reference source_bindings independent_review_reference actor
+      decision_reference decision_message decision_message_encoding
+      decision_message_sha256 external_task_record_reference request_presented_at
+      source_message_at recorded_at effective_at recorded_at_basis effective_at_basis
+      conditions approved_scope authorization immutability secret_handling
+    ], fields_after('The future immutable successor approval SHALL contain exactly:')
+    assert_equal %w[
+      artifact_type schema_version provider_id task_id message_id event_id account_id
+      record_sha256 resolver_id
+    ], fields_after('The hash-addressed external task-record reference SHALL contain exactly:')
+    assert_equal %w[verification_status resolver_id external_verification_identity_id resolved_envelope], fields_after("The resolver API's verified result SHALL contain exactly:")
+    assert_equal %w[artifact_type schema_version record record_sha256 verified_result_metadata], fields_after("The trusted resolver's resolved envelope SHALL contain exactly:")
+    assert_equal %w[
+      provider_id task_id message_id event_id account_id author_role author_account_id
+      author_identity_id author_display_identity request_draft_path
+      request_draft_sha256 requested_reply_sha256 request_presented_at
+      whole_message_bytes whole_message_sha256 source_message_at
+    ], fields_after('The resolved `record` SHALL contain exactly:')
+    assert_equal %w[
+      resolver_id resolver_kind verification_method external_verification_identity_id
+      verification_evidence_sha256 verified_reference_sha256 verified_record_sha256
+      account_binding_status bound_author_account_id bound_author_identity_id
+      bound_gate_a_identity bound_gate_a_capacity verified_at
+    ], fields_after('Approval `verified_result_metadata` SHALL contain exactly:')
+    assert_equal %w[artifact_type schema_version review_id record_sha256 resolver_id], fields_after('The independent-review reference SHALL contain exactly:')
+    assert_equal %w[
+      review_id reviewer_identity_id reviewer_display_identity reviewer_capacity
+      reviewer_kind reviewer_author_role reviewer_account_id executor_identity_id
+      reviewed_adr_sha256 reviewed_draft_sha256 review_bytes review_sha256 verdict reviewed_at
+    ], fields_after('Its resolved review `record` SHALL contain exactly:')
+    assert_equal %w[
+      resolver_id resolver_kind verification_method external_verification_identity_id
+      verification_evidence_sha256 verified_reference_sha256 verified_record_sha256
+      verified_reviewer_identity_id verified_reviewer_account_id verified_reviewer_capacity
+      verified_reviewer_kind reviewer_eligibility_status verified_executor_identity_id verified_at
+    ], fields_after('Review `verified_result_metadata` SHALL contain exactly:')
+    assert_includes @adr, '`provider_id: codex`, `task_id: 01a02b58-641d-7090-aad4-00871c7ddf47`'
+    assert_includes @adr, '`author_role: user`'
+    assert_includes @adr, '`codex-platform-trust-anchor-v1`'
+    assert_includes @adr, '`independent-review-platform-trust-anchor-v1`'
+    assert_includes @adr, '`reviewer_eligibility_status: VERIFIED_ELIGIBLE_INDEPENDENT_REVIEWER`'
+    assert_includes @adr, 'The verified reviewer identity, account, capacity, kind, and executor identity must byte-equal their review-record counterparts.'
+    assert_includes @adr, 'reviewer identity must differ from `verified_executor_identity_id`'
+    assert_includes @adr, 'a review record cannot override the actual resolver-verified executor'
+    assert_includes @adr, 'locally fabricated, byte-perfect but unresolved'
+    assert_includes @adr, 'Unknown, duplicate, or missing fields at the successor top level or any nested'
   end
 
   def test_residual_blocked_patterns_are_absent_or_rejection_only

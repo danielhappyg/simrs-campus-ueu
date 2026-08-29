@@ -1,0 +1,226 @@
+{
+  "artifact_type": "g0_governance_v2_host_trust_boundary_approval_decision_draft",
+  "schema_version": 1,
+  "artifact_id": "G0-GOVERNANCE-V2-HOST-TRUST-BOUNDARY-APPROVAL-DECISION-DRAFT-2026-08-29",
+  "status": "pending_exact_attributable_product_owner_approval_and_separate_review",
+  "effect": "none_draft_only_non_authoritative_no_activation_or_implementation_authority",
+  "data_boundary": "synthetic_only",
+  "source_bindings": [
+    {
+      "role": "host_trust_boundary_adr_019",
+      "path": "docs/adr/ADR-019-HOST-OWNED-G0-GOVERNANCE-TRUST-BOUNDARY.md",
+      "sha256": "288f8c25fe506643750f2202831b7c1e5345a805702d85d4b6393b76794cd272",
+      "recorded_status": "proposed_not_approved_not_authoritative_no_effect"
+    },
+    {
+      "role": "predecessor_adr_018",
+      "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+      "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+      "recorded_status": "accepted_for_gate_a_local_governance_v2_implementation_only"
+    },
+    {
+      "role": "gate_a_adoption_decision",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json",
+      "sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3",
+      "recorded_status": "approved_local_governance_v2_implementation_only_no_gate_b_authority"
+    },
+    {
+      "role": "external_trust_provisioning_proposal",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_EXTERNAL_TRUST_PROVISIONING_PROPOSAL_2026-08-29.md",
+      "sha256": "a5397de2333c9e107cc78175b09031450122bcada14c17afc5e30d48eccd6eea",
+      "recorded_status": "proposal_not_approved_not_authoritative_no_effect"
+    }
+  ],
+  "required_decision": {
+    "authority_capacity": "product_owner",
+    "decision_status": "pending_exact_attributable_reply",
+    "selected_option": null,
+    "actor_attribution": null,
+    "decision_reference": null,
+    "decision_message": null,
+    "decision_message_encoding": null,
+    "decision_message_sha256": null,
+    "request_presented_at": null,
+    "source_message_at": null,
+    "recorded_at": null,
+    "effective_at": null,
+    "conditions": []
+  },
+  "requested_reply": "Approve ADR-019 exactly as written as the append-only Gate-B root-only offline host-trust-boundary successor to the bound ADR-018 and external-trust proposal. Authorize only publication in the limited sense of local working-tree artifact creation of a corresponding closed machine contract, and later local working-tree fixture implementation and deterministic tests after a separate independent technical/security review of this exact ADR passes. Commit, push, pull request creation, release, deployment, and migration remain unauthorized. Keep canonical mutation and resolution, request import, host provisioning, human key enrollment, consumer activation, capability or slice implementation, real patient data, live integration, domain acceptance, G0 closure, and G3 acceptance unauthorized until their own later prerequisites and decisions are satisfied. This approval has no activation effect and does not change the current all-false Gate-B authorization state.",
+  "successor_approval_contract": {
+    "artifact_requirement": "new_immutable_local_working_tree_successor_decision_no_commit_push_pr_release_deploy_or_migrate",
+    "pending_draft_reference": {
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_HOST_TRUST_BOUNDARY_APPROVAL_DECISION_DRAFT_2026-08-29.json",
+      "sha256": null,
+      "binding_rule": "successor_must_bind_exact_sha256_of_final_pending_draft_bytes",
+      "self_hash_rule": "pending_draft_cannot_embed_its_own_sha256"
+    },
+    "required_source_sha256_bindings": {
+      "host_trust_boundary_adr_019": "288f8c25fe506643750f2202831b7c1e5345a805702d85d4b6393b76794cd272",
+      "predecessor_adr_018": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+      "gate_a_adoption_decision": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3",
+      "external_trust_provisioning_proposal": "a5397de2333c9e107cc78175b09031450122bcada14c17afc5e30d48eccd6eea"
+    },
+    "actor_requirement": {
+      "identity": "Daniel Happy Putra",
+      "authority_capacity": "product_owner",
+      "decision_reference_prefix": "codex_thread:01a02b58-641d-7090-aad4-00871c7ddf47#decision-message-sha256:",
+      "basis": "must_match_adopted_gate_a_decider_and_source"
+    },
+    "external_task_record_requirement": {
+      "control_boundary": "host_or_platform_task_record_outside_repository_writer_control",
+      "provider_id": "codex",
+      "task_id": "01a02b58-641d-7090-aad4-00871c7ddf47",
+      "author_role": "user",
+      "pinned_external_verification_identity_id": "codex-platform-trust-anchor-v1",
+      "request_context": "exact_pending_draft_path_sha256_and_requested_reply_presented_before_actor_message",
+      "whole_message_bytes_required": true,
+      "whole_message_sha256_required": true,
+      "successor_record_reference_required": true
+    },
+    "timestamp_contract": {
+      "required_order": "request_presented_at < source_message_at <= approval_verified_at <= recorded_at < effective_at; reviewed_at <= review_verified_at <= recorded_at < effective_at",
+      "format": "rfc3339_with_offset",
+      "null_or_unverifiable": "fail_closed"
+    },
+    "future_successor_schema": {
+      "top_level_keys": [
+        "artifact_type",
+        "schema_version",
+        "artifact_id",
+        "status",
+        "effect",
+        "data_boundary",
+        "draft_reference",
+        "source_bindings",
+        "independent_review_reference",
+        "actor",
+        "decision_reference",
+        "decision_message",
+        "decision_message_encoding",
+        "decision_message_sha256",
+        "external_task_record_reference",
+        "request_presented_at",
+        "source_message_at",
+        "recorded_at",
+        "effective_at",
+        "recorded_at_basis",
+        "effective_at_basis",
+        "conditions",
+        "approved_scope",
+        "authorization",
+        "immutability",
+        "secret_handling"
+      ],
+      "draft_reference_keys": ["path", "sha256"],
+      "source_binding_keys": ["role", "path", "sha256"],
+      "independent_review_reference_keys": ["artifact_type", "schema_version", "review_id", "record_sha256", "resolver_id"],
+      "actor_keys": ["identity", "authority_capacity"],
+      "approved_scope_keys": ["closed_machine_contract_local_creation", "local_fixture_implementation", "local_deterministic_tests"],
+      "authorization_keys": ["closed_machine_contract_local_creation", "local_fixture_implementation", "local_deterministic_tests", "canonical_mutation", "canonical_resolution", "request_import", "host_provisioning", "human_key_enrollment", "consumer_activation", "capability_disposition", "slice_implementation", "commit", "push", "pull_request", "release", "deployment", "migration", "real_patient_data", "live_integration", "domain_acceptance", "g0_closure", "g3_acceptance"],
+      "immutability_keys": ["record_mutable", "correction_method"],
+      "secret_handling_keys": ["credentials_permitted", "tokens_permitted", "private_keys_permitted", "connection_strings_permitted"],
+      "closed_values": {
+        "artifact_type": "g0_governance_v2_host_trust_boundary_approval_decision",
+        "schema_version": 1,
+        "status": "approved_exact_with_required_review_pass",
+        "effect": "authorizes_local_working_tree_contract_fixture_and_tests_only",
+        "data_boundary": "synthetic_only",
+        "decision_message_encoding": "exact_utf8_no_trailing_newline",
+        "recorded_at_basis": "host_recorder_observed_resolved_external_record",
+        "effective_at_basis": "host_recorder_first_effect_after_exact_approval_and_bound_review_pass",
+        "conditions": []
+      }
+    },
+    "resolver_backed_record_schemas": {
+      "reference_keys": ["artifact_type", "schema_version", "provider_id", "task_id", "message_id", "event_id", "account_id", "record_sha256", "resolver_id"],
+      "verified_result_keys": ["verification_status", "resolver_id", "external_verification_identity_id", "resolved_envelope"],
+      "resolved_envelope_keys": ["artifact_type", "schema_version", "record", "record_sha256", "verified_result_metadata"],
+      "resolved_record_keys": ["provider_id", "task_id", "message_id", "event_id", "account_id", "author_role", "author_account_id", "author_identity_id", "author_display_identity", "request_draft_path", "request_draft_sha256", "requested_reply_sha256", "request_presented_at", "whole_message_bytes", "whole_message_sha256", "source_message_at"],
+      "approval_verified_metadata_keys": ["resolver_id", "resolver_kind", "verification_method", "external_verification_identity_id", "verification_evidence_sha256", "verified_reference_sha256", "verified_record_sha256", "account_binding_status", "bound_author_account_id", "bound_author_identity_id", "bound_gate_a_identity", "bound_gate_a_capacity", "verified_at"],
+      "independent_review_reference_keys": ["artifact_type", "schema_version", "review_id", "record_sha256", "resolver_id"],
+      "independent_review_record_keys": ["review_id", "reviewer_identity_id", "reviewer_display_identity", "reviewer_capacity", "reviewer_kind", "reviewer_author_role", "reviewer_account_id", "executor_identity_id", "reviewed_adr_sha256", "reviewed_draft_sha256", "review_bytes", "review_sha256", "verdict", "reviewed_at"],
+      "review_verified_metadata_keys": ["resolver_id", "resolver_kind", "verification_method", "external_verification_identity_id", "verification_evidence_sha256", "verified_reference_sha256", "verified_record_sha256", "verified_reviewer_identity_id", "verified_reviewer_account_id", "verified_reviewer_capacity", "verified_reviewer_kind", "reviewer_eligibility_status", "verified_executor_identity_id", "verified_at"]
+    },
+    "validation_contract": {
+      "trusted_resolver_delivery": "out_of_band_host_platform_interface_or_externally_keyed_attestation_verifier",
+      "record_hash": "sha256_canonical_json_lf_of_resolved_record",
+      "reference_hash": "sha256_canonical_json_lf_of_exact_external_reference",
+      "cross_equal_times": ["request_presented_at", "source_message_at"],
+      "strict_time_order": "request_presented_at < source_message_at <= approval_verified_at <= recorded_at < effective_at; reviewed_at <= review_verified_at <= recorded_at < effective_at",
+      "approval_provider_task_author": "codex_fixed_task_user_author_account_bound_to_gate_a_decider",
+      "approval_external_verification_identity": "codex-platform-trust-anchor-v1_pinned_out_of_band",
+      "review_external_verification_identity": "independent-review-platform-trust-anchor-v1_separate_and_pinned_out_of_band",
+      "review_separation": "resolver_verified_reviewer_identity_account_capacity_kind_and_eligibility_must_cross_equal_review_record_and_differ_from_product_owner_account_identity_and_verified_actual_executor",
+      "recorded_at_semantics": "host_recorder_observation_not_actor_approval_event",
+      "effective_at_semantics": "host_recorder_first_effect_after_exact_approval_and_bound_review_pass_not_actor_event",
+      "unknown_duplicate_missing_fields": "fail_closed_at_every_level",
+      "offline_embedded_self_claimed_or_unresolved_record": "fail_closed_even_if_byte_perfect"
+    },
+    "failure_policy": "actor_capacity_thread_message_hash_request_context_time_or_external_record_mismatch_fails_closed"
+  },
+  "eventual_exact_approval_scope": {
+    "closed_machine_contract_publication": "local_working_tree_artifact_creation_only_after_new_exact_attributable_approval_no_commit_push_pr_release_deploy_or_migrate",
+    "local_fixture_implementation": "local_working_tree_only_after_new_exact_attributable_approval_and_separate_exact_adr_019_review_pass_no_commit_push_pr_release_deploy_or_migrate",
+    "local_deterministic_tests": "local_working_tree_only_after_new_exact_attributable_approval_and_separate_exact_adr_019_review_pass_no_commit_push_pr_release_deploy_or_migrate",
+    "canonical_mutation_or_resolution": "separate_later_decision_required",
+    "request_import": "separate_later_decision_required",
+    "host_provisioning": "separate_later_decision_required",
+    "human_key_enrollment": "separate_later_decision_required",
+    "consumer_activation": "separate_later_decision_required",
+    "capability_or_slice_implementation": "separate_later_decision_required",
+    "commit_push_pr_release_deployment_or_migration": "separate_later_decision_required",
+    "real_patient_data": "prohibited",
+    "live_integration": "prohibited",
+    "domain_acceptance": "separate_later_decision_required",
+    "g0_closure": "separate_later_decision_required",
+    "g3_acceptance": "separate_later_decision_required"
+  },
+  "current_boundaries": [
+    "This pending draft is non-authoritative and has no implementation activation mutation resolution local artifact creation import provisioning enrollment commit push pull-request release deployment migration or gate-closing effect.",
+    "All current SIMRS data and operations remain synthetic-only; real patient data is prohibited.",
+    "Live BPJS VClaim SATUSEHAT payment LIS PACS and device integrations remain prohibited.",
+    "Klaim BPJS and Apotek remain Soon and the failed Antrean work-queue MVP remains excluded under DEC-013.",
+    "Canonical Gate-B state remains unchanged and G0 and G3 remain open."
+  ],
+  "authorization": {
+    "adr_019_approved": false,
+    "closed_machine_contract_publication": false,
+    "local_fixture_implementation": false,
+    "local_deterministic_tests": false,
+    "canonical_mutation": false,
+    "canonical_resolution": false,
+    "request_import": false,
+    "host_provisioning": false,
+    "human_key_enrollment": false,
+    "consumer_activation": false,
+    "capability_disposition": false,
+    "slice_implementation": false,
+    "commit": false,
+    "push": false,
+    "pull_request": false,
+    "release": false,
+    "deployment": false,
+    "migration": false,
+    "real_patient_data": false,
+    "live_integration": false,
+    "domain_acceptance": false,
+    "g0_closure": false,
+    "g3_acceptance": false
+  },
+  "approval_record_rules": [
+    "Do not mutate this draft into an approval artifact.",
+    "A prior or future broad phrase such as I approve everything does not match or approve ADR-019 and cannot populate actor attribution decision message or approval time.",
+    "Only the exact requested_reply from an attributable product-owner message authored after this exact request and pending draft existed may support a new immutable approval artifact bound to this draft exact SHA-256 and all four exact source SHA-256 values.",
+    "The actor identity Daniel Happy Putra capacity product_owner and decision reference prefix codex_thread:01a02b58-641d-7090-aad4-00871c7ddf47#decision-message-sha256: must match the adopted Gate-A decider and source.",
+    "A host or platform task record outside repository-writer control must verify the exact request context whole-message bytes and SHA-256 and the strict order request_presented_at before source_message_at before recorded_at before effective_at; recorded_at and effective_at are host recorder times not actor approval events and null or unverifiable attribution fails closed.",
+    "Publication means local working-tree artifact creation only; exact approval does not authorize commit push pull request release deployment or migration, and local fixture implementation and deterministic tests additionally require a separate passing independent technical security review of this exact ADR-019 SHA-256.",
+    "No approval under this draft authorizes canonical mutation or resolution request import host provisioning human key enrollment consumer activation capability or slice implementation commit push pull request release deployment migration real patient data live integration domain acceptance G0 closure or G3 acceptance."
+  ],
+  "secret_handling": {
+    "credentials_permitted": false,
+    "tokens_permitted": false,
+    "private_keys_permitted": false,
+    "connection_strings_permitted": false
+  }
+}
