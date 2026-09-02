@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property int $id
@@ -44,6 +45,20 @@ class OutpatientClinicalDocument extends Model
         'document_state', 'definition_version', 'version', 'fields', 'finalized_at',
     ];
 
+    protected static function booted(): void
+    {
+        static::updating(static function (self $document): void {
+            if ($document->getOriginal('document_state') === self::STATE_FINAL) {
+                throw new LogicException('Final outpatient clinical documents are immutable.');
+            }
+        });
+        static::deleting(static function (self $document): void {
+            if ($document->getOriginal('document_state') === self::STATE_FINAL) {
+                throw new LogicException('Final outpatient clinical documents cannot be deleted by ordinary workflow.');
+            }
+        });
+    }
+
     /** @return BelongsTo<Encounter, $this> */
     public function encounter(): BelongsTo
     {
@@ -66,6 +81,12 @@ class OutpatientClinicalDocument extends Model
     public function versions(): HasMany
     {
         return $this->hasMany(OutpatientClinicalDocumentVersion::class);
+    }
+
+    /** @return HasMany<OutpatientPostClosureAmendmentRequest, $this> */
+    public function postClosureAmendmentRequests(): HasMany
+    {
+        return $this->hasMany(OutpatientPostClosureAmendmentRequest::class, 'original_document_id');
     }
 
     protected function casts(): array

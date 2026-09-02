@@ -1,4 +1,6 @@
+import type { ResolvedComponent } from '@inertiajs/react';
 import { createInertiaApp } from '@inertiajs/react';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import '@fontsource/plus-jakarta-sans/400.css';
 import '@fontsource/plus-jakarta-sans/500.css';
 import '@fontsource/plus-jakarta-sans/600.css';
@@ -11,8 +13,21 @@ import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'SIMRS Campus UEU';
+type PageModule = { default: ResolvedComponent };
+
+const pageModules = import.meta.glob<PageModule>([
+    './pages/**/*.tsx',
+    '!./pages/**/*.test.tsx',
+]);
 
 createInertiaApp({
+    resolve: async (name) =>
+        (
+            await resolvePageComponent<PageModule>(
+                `./pages/${name}.tsx`,
+                pageModules,
+            )
+        ).default,
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {
         switch (true) {

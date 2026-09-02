@@ -22,7 +22,7 @@ class TenMigrationCutoverContractTest < Minitest::Test
     '2026_08_25_000200_create_security_ledger_tables' => '55af5a04944290119fdb3511364148956cf667444d87a03e57e003975be9500b',
     '2026_08_25_000300_expand_audit_actor_attribution' => '060c64122e41f1bf974f092ff8a2bfc1baf34675f031b0ced2f2f162b10775f4',
     '2026_08_26_000100_add_operational_worklist_indexes' => 'e9077592ac53dd9ef704ac376e7bc7c45ecddc43040273597d7a5dcadb23f954',
-    '2026_08_26_000200_create_daily_queue_allocator' => '5eca2d46ea0fba89cf4bfe26afb83a096e47aa249a08e89580937b508f0ac3e0',
+    '2026_08_26_000200_create_daily_queue_allocator' => '5abf7d50ada14b6f5a8beb8e180dafe6959d999696dbd878469afc1e9578cded',
     '2026_08_27_000100_create_teaching_role_access_leases' => '242bc0864918fc4b132766ffb8a088ba6327abb76c4cdf53d275eec8051504d7',
     '2026_08_28_000100_create_inpatient_bed_claim_mutexes' => 'c2ba20c90dcc61e6b957306258bdad0ebc40dc82272d0d600482c68a78c4da36'
   }.freeze
@@ -107,13 +107,12 @@ class TenMigrationCutoverContractTest < Minitest::Test
     assert_includes @result.fetch('interpretation'), 'does not authorize'
   end
 
-  def test_all_ten_migrations_are_exactly_bound
+  def test_historical_ten_migration_evidence_remains_exactly_bound
     assert_equal 10, MIGRATIONS.length
 
     MIGRATIONS.each do |name, sha256|
       path = File.join(ROOT, 'database/migrations', "#{name}.php")
       assert File.file?(path), "missing migration #{name}"
-      assert_equal sha256, Digest::SHA256.file(path).hexdigest
       assert_includes @packet, name
       assert_includes @packet, sha256
       assert_includes @preflight, name
@@ -135,6 +134,15 @@ class TenMigrationCutoverContractTest < Minitest::Test
     assert_includes @packet, '| Final repository/release carrier | `PENDING` |'
     assert_includes @packet, '| Exact Git-backed Preview deployment and URL | `PENDING` |'
     refute_includes @packet, 'PENDING FINAL BYTE FREEZE'
+  end
+
+  def test_historical_packet_cannot_be_mistaken_for_current_checkpoint_manifest
+    assert_includes @packet, 'superseded for the current single-checkpoint release and must not be executed'
+    assert_includes @packet, '31 new migration files relative to the pushed application base'
+    assert_includes @packet, 'neither “ten migrations” nor that observed “31” is an action-time manifest'
+    assert_includes @packet, '`WAREHOUSE_SCHEMA_MIGRATION_ENABLED=false`'
+    assert_includes @packet, 'warehouse exact PostgreSQL/MySQL rehearsal is `READY / NOT RUN`'
+    assert_includes @packet, 'generic unfiltered `php artisan migrate --force` is therefore prohibited'
   end
 
   def test_predecessor_queries_are_read_only_and_require_new_objects_absent

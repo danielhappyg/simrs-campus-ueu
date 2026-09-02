@@ -66,6 +66,174 @@ class AuditEventSchemaRegistryTest extends TestCase
     /** @return iterable<string, array{array<string, mixed>}> */
     public static function productionEvents(): iterable
     {
+        yield 'finance tariff group creation' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_COST_COMPONENT_GROUP_CREATE',
+                'entity_type' => 'COST_COMPONENT_GROUP',
+                'state' => 'ACTIVE',
+                'version' => 1,
+                'effective_from' => null,
+                'replayed' => false,
+                'future_activation' => false,
+            ],
+        )];
+        yield 'finance tariff future item revision replay' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_TARIFF_ITEM_APPEND_VERSION',
+                'entity_type' => 'TARIFF_ITEM',
+                'state' => 'ACTIVE',
+                'version' => 2,
+                'effective_from' => '2026-10-01',
+                'replayed' => true,
+                'future_activation' => true,
+            ],
+        )];
+        yield 'finance tariff item retirement' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_TARIFF_ITEM_RETIRE',
+                'entity_type' => 'TARIFF_ITEM',
+                'state' => 'RETIRED',
+                'version' => 3,
+                'effective_from' => '2026-11-01',
+                'replayed' => false,
+                'future_activation' => true,
+            ],
+        )];
+        yield 'finance radiology tariff binding future revision' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_RADIOLOGY_TARIFF_BINDING_APPEND_VERSION',
+                'entity_type' => 'RADIOLOGY_TARIFF_BINDING',
+                'state' => 'ACTIVE',
+                'version' => 2,
+                'effective_from' => '2026-10-01',
+                'replayed' => false,
+                'future_activation' => true,
+                'care_setting' => 'OUTPATIENT',
+            ],
+        )];
+        yield 'finance radiology tariff binding integrity denial' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            resourceId: null,
+            outcome: 'DENIED',
+            reason: 'source_integrity_failure',
+            metadata: [
+                'operation' => 'FINANCE_RADIOLOGY_TARIFF_BINDING_CREATE',
+                'entity_type' => 'RADIOLOGY_TARIFF_BINDING',
+                'care_setting' => 'INPATIENT',
+            ],
+        )];
+        yield 'finance laboratory tariff binding future revision' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_LABORATORY_TARIFF_BINDING_APPEND_VERSION',
+                'entity_type' => 'LABORATORY_TARIFF_BINDING',
+                'state' => 'ACTIVE',
+                'version' => 2,
+                'effective_from' => '2026-10-01',
+                'replayed' => false,
+                'future_activation' => true,
+                'care_setting' => 'EMERGENCY',
+            ],
+        )];
+        foreach ([
+            'role_not_permitted', 'resource_not_found', 'validation_failed',
+            'stale_version', 'stale_digest', 'master_retired',
+            'active_components_remain', 'dependent_tariffs_remain', 'upstream_inactive',
+            'effective_date_not_after_latest', 'retroactive_effective_date',
+            'binding_retired', 'master_version_mismatch', 'tariff_not_effective',
+            'source_binding_invalid',
+            'idempotency_key_conflict', 'receipt_corrupt',
+            'concurrent_state_conflict',
+        ] as $reason) {
+            yield 'finance tariff denial '.$reason => [self::event(
+                'finance.tariff.mutate',
+                'finance_tariff_record',
+                true,
+                resourceId: null,
+                outcome: 'DENIED',
+                reason: $reason,
+                metadata: [
+                    'operation' => 'FINANCE_TARIFF_ITEM_APPEND_VERSION',
+                    'entity_type' => 'TARIFF_ITEM',
+                ],
+            )];
+        }
+
+        yield 'finance source sync before first version' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: ['operation' => 'FINANCE_SOURCE_SYNC', 'state' => 'OPEN_NO_VERSION', 'version' => 0],
+        )];
+        yield 'finance source sync after issue' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: ['operation' => 'FINANCE_SOURCE_SYNC', 'state' => 'NEW_SOURCE_PENDING', 'version' => 2],
+        )];
+        yield 'finance bill issue' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: ['operation' => 'FINANCE_BILL_ISSUE', 'state' => 'ISSUED_CURRENT', 'version' => 1],
+        )];
+        yield 'finance exact cash settlement bound to immutable result' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_CASH_SETTLEMENT',
+                'state' => 'ISSUED_CURRENT',
+                'version' => 1,
+                'settlement_public_id' => self::ULID,
+                'settlement_content_digest' => str_repeat('a', 64),
+                'settlement_result_digest' => str_repeat('b', 64),
+            ],
+        )];
+        yield 'finance denial before lookup' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            resourceId: null,
+            outcome: 'DENIED',
+            reason: 'role_not_permitted',
+            metadata: ['operation' => 'FINANCE_BILL_ISSUE'],
+        )];
+        yield 'finance issue denial for unresolved radiology source' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            resourceId: null,
+            outcome: 'DENIED',
+            reason: 'unresolved_radiology_source',
+            metadata: ['operation' => 'FINANCE_BILL_ISSUE'],
+        )];
+        yield 'finance issue denial for unresolved laboratory source' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            resourceId: null,
+            outcome: 'DENIED',
+            reason: 'unresolved_laboratory_source',
+            metadata: ['operation' => 'FINANCE_BILL_ISSUE'],
+        )];
+
         yield 'rebuild admin reconciliation' => [self::event(
             'authorization.rebuild_admin.reconciled',
             'user',
@@ -95,6 +263,16 @@ class AuditEventSchemaRegistryTest extends TestCase
                 'boundary' => 'synthetic_patient_graph',
                 'evidence_preserved' => true,
                 'queue_counter_high_water_preserved' => true,
+                'reset_correlation_id' => self::ULID,
+                'collection_batch_count' => 1,
+                'collection_active_slot_count' => 1,
+                'collection_member_count' => 2,
+                'collection_event_count' => 0,
+                'collection_handoff_count' => 0,
+                'collection_operation_receipt_count' => 3,
+                'collection_active_slot_digest' => str_repeat('a', 64),
+                'collection_operation_receipt_digest' => str_repeat('b', 64),
+                'collection_evidence_digest' => str_repeat('c', 64),
             ],
             reason: 'artisan_simulation_reset',
         )];
@@ -108,6 +286,16 @@ class AuditEventSchemaRegistryTest extends TestCase
                 'deleted_patients' => 2,
                 'evidence_preserved' => true,
                 'queue_counter_high_water_preserved' => true,
+                'reset_correlation_id' => self::ULID,
+                'collection_batch_count' => 1,
+                'collection_active_slot_count' => 1,
+                'collection_member_count' => 2,
+                'collection_event_count' => 0,
+                'collection_handoff_count' => 0,
+                'collection_operation_receipt_count' => 3,
+                'collection_active_slot_digest' => str_repeat('a', 64),
+                'collection_operation_receipt_digest' => str_repeat('b', 64),
+                'collection_evidence_digest' => str_repeat('c', 64),
             ],
             reason: 'artisan_simulation_reset',
         )];
@@ -244,6 +432,73 @@ class AuditEventSchemaRegistryTest extends TestCase
     /** @return iterable<string, array{array<string, mixed>}> */
     public static function invalidEvents(): iterable
     {
+        yield 'finance tariff operation entity pair is closed' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_COST_COMPONENT_CREATE',
+                'entity_type' => 'TARIFF_ITEM',
+                'state' => 'ACTIVE',
+                'version' => 1,
+                'effective_from' => null,
+                'replayed' => false,
+                'future_activation' => false,
+            ],
+        )];
+        yield 'finance tariff non-item cannot be future effective' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            metadata: [
+                'operation' => 'FINANCE_TARIFF_CATALOGUE_REVISE',
+                'entity_type' => 'TARIFF_CATALOGUE',
+                'state' => 'ACTIVE',
+                'version' => 2,
+                'effective_from' => '2026-10-01',
+                'replayed' => false,
+                'future_activation' => true,
+            ],
+        )];
+        yield 'finance tariff denial reason is closed' => [self::event(
+            'finance.tariff.mutate',
+            'finance_tariff_record',
+            true,
+            outcome: 'DENIED',
+            reason: 'invented_tariff_reason',
+            metadata: [
+                'operation' => 'FINANCE_TARIFF_ITEM_APPEND_VERSION',
+                'entity_type' => 'TARIFF_ITEM',
+            ],
+        )];
+
+        yield 'finance issue cannot use version zero' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: ['operation' => 'FINANCE_BILL_ISSUE', 'state' => 'ISSUED_CURRENT', 'version' => 0],
+        )];
+        yield 'finance pending state cannot use version zero' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: ['operation' => 'FINANCE_SOURCE_SYNC', 'state' => 'NEW_SOURCE_PENDING', 'version' => 0],
+        )];
+        yield 'finance cash settlement cannot omit immutable result binding' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            metadata: ['operation' => 'FINANCE_CASH_SETTLEMENT', 'state' => 'ISSUED_CURRENT', 'version' => 1],
+        )];
+        yield 'finance denial reason must be closed' => [self::event(
+            'finance.workflow.mutate',
+            'finance_record',
+            true,
+            outcome: 'DENIED',
+            reason: 'invented_finance_reason',
+            metadata: ['operation' => 'FINANCE_SOURCE_SYNC'],
+        )];
+
         yield 'unknown action' => [self::event('unknown.action', 'encounter', true)];
         yield 'wrong tuple resource' => [self::event('patient.register', 'patient', true)];
         yield 'invalid public id' => [self::event('clinical.note.write', 'encounter', true, resourceId: 'internal-123', metadata: [

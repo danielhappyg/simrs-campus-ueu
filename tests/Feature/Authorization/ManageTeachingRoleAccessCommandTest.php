@@ -138,7 +138,7 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
         $roster['nurse.demo@example.invalid']->delete();
 
         $this->assertSame(1, Artisan::call('teaching:role-access', $this->arguments('activate')));
-        $this->assertStringContainsString('four-account roster is incomplete', Artisan::output());
+        $this->assertStringContainsString('exact demo-account roster is incomplete', Artisan::output());
         $this->assertDatabaseCount('audit_events', 0);
     }
 
@@ -313,7 +313,10 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
         }
 
         $this->assertStringContainsString('Result: ACTIVATE completed (mutated=yes, idempotent=no, audit=recorded)', $output);
-        $this->assertStringContainsString('Roster: active=1 disabled=3 missing=0 drifted=0', $output);
+        $this->assertStringContainsString(
+            'Roster: active=1 disabled='.(count(TeachingRoleAccessManager::ROSTER) - 1).' missing=0 drifted=0',
+            $output,
+        );
         $this->assertStringNotContainsString(self::DEMO_PASSWORD, $output);
 
         $event = AuditEvent::query()->where('action', TeachingRoleAccessManager::AUDIT_ACTIVATED)->sole();
@@ -685,7 +688,10 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
         }
         $this->assertStringContainsString('status=TEACHING_ACTIVE', $output);
         $this->assertStringContainsString('sessions=1 passkeys=1 resets=1 lease=closed invariant=DRIFT', $output);
-        $this->assertStringContainsString('Roster: active=1 disabled=3 missing=0 drifted=1 sessions=1 passkeys=1 resets=1', $output);
+        $this->assertStringContainsString(
+            'Roster: active=1 disabled='.(count(TeachingRoleAccessManager::ROSTER) - 1).' missing=0 drifted=1 sessions=1 passkeys=1 resets=1',
+            $output,
+        );
         $this->assertStringNotContainsString(self::DEMO_PASSWORD, $output);
         $this->assertStringNotContainsString('synthetic-two-factor-material', $output);
         $this->assertDatabaseCount('audit_events', 0);
@@ -712,7 +718,10 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
             self::TARGET.' roles=none expected=registrar status=AMBIGUOUS',
             $output,
         );
-        $this->assertStringContainsString('Roster: active=0 disabled=3 missing=0 drifted=1', $output);
+        $this->assertStringContainsString(
+            'Roster: active=0 disabled='.(count(TeachingRoleAccessManager::ROSTER) - 1).' missing=0 drifted=1',
+            $output,
+        );
     }
 
     public function test_audit_attribution_is_whitespace_normalized_and_bounded_without_secret_or_hash_fields(): void

@@ -31,6 +31,56 @@ class MigrationAdoptionContractTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    public function test_foundation_adopts_the_registered_warehouse_audit_evolution(): void
+    {
+        $columns = [
+            ...$this->hostedAuditColumns(),
+            $this->column('warehouse_operation_snapshot', 'varchar', 'character varying(64)', true),
+            $this->column('warehouse_result_version_snapshot', 'int4', 'integer', true),
+            $this->column('warehouse_result_digest_snapshot', 'varchar', 'character varying(64)', true),
+            $this->column('warehouse_control_total_snapshot', 'int8', 'bigint', true),
+        ];
+        $indexes = [
+            ...$this->hostedAuditIndexes(),
+            $this->index('ae_warehouse_actor_uq', ['id', 'actor_user_id'], true),
+            $this->index('ae_warehouse_action_resource_uq', ['id', 'action', 'resource_type'], true),
+            $this->index('ae_warehouse_result_identity_uq', ['id', 'resource_id', 'warehouse_result_version_snapshot'], true),
+            $this->index('ae_warehouse_control_uq', ['id', 'warehouse_operation_snapshot', 'warehouse_result_digest_snapshot', 'warehouse_control_total_snapshot'], true),
+        ];
+
+        $this->mockPostgresConnection();
+        $schema = $this->mockSchema();
+        $schema->shouldReceive('hasTable')->once()->with('laravel.audit_events')->andReturnTrue();
+        $schema->shouldReceive('getColumns')->once()->with('laravel.audit_events')->andReturn($columns);
+        $schema->shouldReceive('getIndexes')->once()->with('laravel.audit_events')->andReturn($indexes);
+        $schema->shouldReceive('getForeignKeys')->once()->with('laravel.audit_events')->andReturn($this->hostedAuditForeignKeys());
+        $schema->shouldReceive('create')->never();
+
+        $this->foundationMigration()->up();
+
+        $this->addToAssertionCount(1);
+    }
+
+    public function test_foundation_rejects_partial_warehouse_audit_evolution(): void
+    {
+        $columns = [
+            ...$this->hostedAuditColumns(),
+            $this->column('warehouse_operation_snapshot', 'varchar', 'character varying(64)', true),
+        ];
+
+        $this->mockPostgresConnection();
+        $schema = $this->mockSchema();
+        $schema->shouldReceive('hasTable')->once()->with('laravel.audit_events')->andReturnTrue();
+        $schema->shouldReceive('getColumns')->once()->andReturn($columns);
+        $schema->shouldReceive('getIndexes')->once()->andReturn($this->hostedAuditIndexes());
+        $schema->shouldReceive('getForeignKeys')->once()->andReturn($this->hostedAuditForeignKeys());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('partial-warehouse-audit-columns');
+
+        $this->foundationMigration()->up();
+    }
+
     public function test_foundation_rejects_a_preexisting_table_with_incompatible_required_drift(): void
     {
         $columns = $this->hostedAuditColumns();

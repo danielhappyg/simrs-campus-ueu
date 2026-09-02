@@ -5,6 +5,7 @@ namespace Tests\Feature\Clinical;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\User;
+use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Clinical\LockedClinicalEntryWriter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -101,6 +102,66 @@ class LockedClinicalEntryWriterTest extends TestCase
         );
     }
 
+    public function test_writer_audits_a_locked_cancelled_encounter_denial_without_clinical_mutation(): void
+    {
+        $actor = User::factory()->create();
+        $encounter = Encounter::factory()->create([
+            'care_setting' => Encounter::CARE_SETTING_EMERGENCY,
+            'status' => Encounter::STATUS_CANCELLED,
+        ]);
+
+        try {
+            app(LockedClinicalEntryWriter::class)->write(
+                $encounter,
+                $actor,
+                Encounter::CARE_SETTING_EMERGENCY,
+                ClinicalEntry::TYPE_NURSING_INTAKE,
+                'Catatan yang tidak boleh disimpan.',
+            );
+            $this->fail('A cancelled encounter must reject clinical entry writes.');
+        } catch (HttpException $exception) {
+            $this->assertSame(422, $exception->getStatusCode());
+        }
+
+        $event = AuditEvent::query()->sole();
+        $this->assertSame('clinical.note.write', $event->action);
+        $this->assertSame('DENIED', $event->outcome);
+        $this->assertSame('encounter_cancelled', $event->reason);
+        $this->assertSame($encounter->public_id, $event->resource_id);
+        $this->assertSame(['care_setting' => Encounter::CARE_SETTING_EMERGENCY], $event->metadata);
+        $this->assertDatabaseCount('clinical_entries', 0);
+    }
+
+    public function test_writer_fails_closed_when_cancelled_denial_audit_cannot_persist(): void
+    {
+        $actor = User::factory()->create();
+        $encounter = Encounter::factory()->create([
+            'care_setting' => Encounter::CARE_SETTING_INPATIENT,
+            'status' => Encounter::STATUS_CANCELLED,
+        ]);
+        $recorder = Mockery::mock(AuditRecorder::class);
+        $expectation = $recorder->shouldReceive('record');
+        $this->assertInstanceOf(CompositeExpectation::class, $expectation);
+        $expectation->andReturn(null);
+        $this->app->instance(AuditRecorder::class, $recorder);
+
+        try {
+            app(LockedClinicalEntryWriter::class)->write(
+                $encounter,
+                $actor,
+                Encounter::CARE_SETTING_INPATIENT,
+                ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
+                'Catatan yang tidak boleh disimpan.',
+            );
+            $this->fail('Missing denial audit must fail closed.');
+        } catch (HttpException $exception) {
+            $this->assertSame(503, $exception->getStatusCode());
+        }
+
+        $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertDatabaseCount('audit_events', 0);
+    }
+
     public function test_audit_failure_rolls_back_entry_and_status_in_the_shared_writer(): void
     {
         $actor = User::factory()->create();
@@ -109,10 +170,11 @@ class LockedClinicalEntryWriterTest extends TestCase
             'status' => Encounter::STATUS_REGISTERED,
         ]);
         $recorder = Mockery::mock(AuditRecorder::class);
-        $expectation = $recorder->shouldReceive('record')->once();
+        $expectation = $recorder->shouldReceive('record');
         $this->assertInstanceOf(CompositeExpectation::class, $expectation);
         $expectation->andReturn(null);
-        $writer = new LockedClinicalEntryWriter($recorder);
+        $this->app->instance(AuditRecorder::class, $recorder);
+        $writer = app(LockedClinicalEntryWriter::class);
 
         try {
             $writer->write(

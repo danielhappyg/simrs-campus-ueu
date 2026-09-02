@@ -119,4 +119,72 @@ class TeachingRoleAccessMigrationTest extends TestCase
             'teaching_access_expires_at_epoch' => 1_788_000_000,
         ]);
     }
+
+    public function test_seven_account_roster_expansion_can_down_and_reapply_when_empty(): void
+    {
+        $migration = require base_path('database/migrations/2026_09_01_000100_expand_teaching_role_access_roster.php');
+
+        $migration->down();
+        $migration->up();
+
+        $this->assertTrue(Schema::hasTable('users'));
+        $this->assertTrue(Schema::hasTable('teaching_role_access_leases'));
+    }
+
+    public function test_seven_account_roster_expansion_rollback_refuses_added_identity_evidence(): void
+    {
+        User::factory()->unverified()->create([
+            'email' => 'radiologist.demo@example.invalid',
+            'status' => 'DISABLED',
+            'teaching_access_roster_key' => 'radiologist',
+            'is_system_administrator' => false,
+        ]);
+        $migration = require base_path('database/migrations/2026_09_01_000100_expand_teaching_role_access_roster.php');
+
+        try {
+            $migration->down();
+            $this->fail('Rollback should preserve an added roster identity.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('rollback refused', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'radiologist.demo@example.invalid',
+            'teaching_access_roster_key' => 'radiologist',
+        ]);
+    }
+
+    public function test_laboratory_roster_expansion_can_down_and_reapply_when_empty(): void
+    {
+        $migration = require base_path('database/migrations/2026_09_01_000300_expand_laboratory_teaching_role_access_roster.php');
+
+        $migration->down();
+        $migration->up();
+
+        $this->assertTrue(Schema::hasTable('users'));
+        $this->assertTrue(Schema::hasTable('teaching_role_access_leases'));
+    }
+
+    public function test_laboratory_roster_expansion_rollback_refuses_added_identity_evidence(): void
+    {
+        User::factory()->unverified()->create([
+            'email' => 'laboratory.verifier.demo@example.invalid',
+            'status' => 'DISABLED',
+            'teaching_access_roster_key' => 'laboratory_verifier',
+            'is_system_administrator' => false,
+        ]);
+        $migration = require base_path('database/migrations/2026_09_01_000300_expand_laboratory_teaching_role_access_roster.php');
+
+        try {
+            $migration->down();
+            $this->fail('Rollback should preserve a laboratory roster identity.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('rollback refused', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'laboratory.verifier.demo@example.invalid',
+            'teaching_access_roster_key' => 'laboratory_verifier',
+        ]);
+    }
 }

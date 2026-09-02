@@ -5,6 +5,7 @@ namespace Tests\Feature\Simulation;
 use App\Models\ClinicalEntry;
 use App\Models\DailyQueueCounter;
 use App\Models\Encounter;
+use App\Models\EncounterCancellation;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
 use App\Models\Patient;
@@ -14,12 +15,15 @@ use App\Models\User;
 use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
+use App\Support\Operations\SyntheticRecoverySnapshot;
 use App\Support\Simulation\SyntheticResetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Mockery;
 use Mockery\CompositeExpectation;
+use ReflectionMethod;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -98,7 +102,38 @@ class SimulationResetCommandTest extends TestCase
         $encounter = Encounter::factory()->create([
             'patient_id' => $patient->id,
             'registered_by_user_id' => $user->id,
+            'status' => Encounter::STATUS_CANCELLED,
         ]);
+        $cancellation = EncounterCancellation::query()->create([
+            'encounter_id' => $encounter->id,
+            'cancelled_by_user_id' => $user->id,
+            'reason_code' => EncounterCancellation::REASON_WRONG_REGISTRATION,
+            'note' => 'Data sintetis untuk uji reset.',
+            'idempotency_key' => 'reset-cancellation-fixture',
+            'payload_digest' => hash('sha256', 'reset-cancellation-fixture'),
+            'request_correlation_id' => null,
+            'cancelled_at' => now(),
+        ]);
+        $cancellationAudit = $this->app->make(AuditRecorder::class)->record(
+            action: 'encounter.cancel',
+            resourceType: 'encounter',
+            resourceId: $encounter->public_id,
+            actor: $user,
+            outcome: 'SUCCESS',
+            metadata: [
+                'care_setting' => $encounter->care_setting,
+                'cancellation_public_id' => $cancellation->public_id,
+                'reason_code' => $cancellation->reason_code,
+                'prior_status' => Encounter::STATUS_REGISTERED,
+                'new_status' => Encounter::STATUS_CANCELLED,
+                'queue_date' => (string) $encounter->queue_date,
+                'queue_number' => $encounter->queue_number,
+                'active_worklists_excluded' => true,
+                'inpatient_bed_released' => false,
+            ],
+            includeRequestFingerprint: false,
+        );
+        $this->assertNotNull($cancellationAudit);
         ClinicalEntry::factory()->create([
             'encounter_id' => $encounter->id,
             'author_user_id' => $user->id,
@@ -115,6 +150,12 @@ class SimulationResetCommandTest extends TestCase
 
         $this->assertDatabaseCount('patients', 0);
         $this->assertDatabaseCount('encounters', 0);
+        $this->assertDatabaseMissing('encounter_cancellations', ['id' => $cancellation->id]);
+        $this->assertDatabaseHas('audit_events', [
+            'id' => $cancellationAudit->id,
+            'action' => 'encounter.cancel',
+            'resource_id' => $encounter->public_id,
+        ]);
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertDatabaseHas('daily_queue_counters', [
             'queue_date' => now()->toDateString(),
@@ -160,7 +201,25 @@ class SimulationResetCommandTest extends TestCase
             $this->assertArrayNotHasKey('purge_audit', $event->metadata ?? []);
             $this->assertTrue($event->metadata['evidence_preserved']);
             $this->assertTrue($event->metadata['queue_counter_high_water_preserved']);
+            $this->assertArrayHasKey('collection_active_slot_count', $event->metadata);
+            $this->assertArrayHasKey('collection_operation_receipt_count', $event->metadata);
+            $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $event->metadata['collection_active_slot_digest']);
+            $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $event->metadata['collection_operation_receipt_digest']);
         });
+        $startedReset = $resetEvents->firstWhere('action', 'teaching.reset.started');
+        $completedReset = $resetEvents->firstWhere('action', 'teaching.reset.completed');
+        $this->assertInstanceOf(AuditEvent::class, $startedReset);
+        $this->assertInstanceOf(AuditEvent::class, $completedReset);
+        $this->assertSame($startedReset->metadata['reset_correlation_id'], $completedReset->metadata['reset_correlation_id']);
+        $pairMismatch = new ReflectionMethod(SyntheticRecoverySnapshot::class, 'teachingResetPairMismatchCount');
+        $snapshot = app(SyntheticRecoverySnapshot::class);
+        $this->assertSame(0, $pairMismatch->invoke($snapshot));
+        $tamperedMetadata = $completedReset->metadata;
+        $tamperedMetadata['reset_correlation_id'] = '01J00000000000000000000001';
+        DB::table('audit_events')->where('id', $completedReset->id)->update([
+            'metadata' => json_encode($tamperedMetadata, JSON_THROW_ON_ERROR),
+        ]);
+        $this->assertGreaterThan(0, $pairMismatch->invoke($snapshot));
     }
 
     public function test_reset_refuses_without_force(): void

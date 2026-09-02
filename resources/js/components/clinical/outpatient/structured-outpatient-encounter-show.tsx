@@ -1,9 +1,13 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
+import { LaboratoryEncounterPanel } from '@/components/clinical/laboratory/laboratory-encounter-panel';
+import { PharmacyEncounterPanel } from '@/components/clinical/pharmacy/pharmacy-encounter-panel';
+import { RadiologyEncounterPanel } from '@/components/clinical/radiology/radiology-encounter-panel';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ClinicalDocumentHistory } from './clinical-document-history';
+import { PostClosureAmendmentPanel } from './post-closure-amendment-panel';
 import { StructuredDocumentForm } from './structured-document-form';
 import type { ClinicalDocumentType, OutpatientShowProps } from './types';
 import { useUnsavedChangesGuard } from './use-unsaved-changes-guard';
@@ -27,11 +31,21 @@ export default function StructuredOutpatientEncounterShow({
     permissions,
     actions,
     labTestOptions,
+    amendmentReasonOptions = [],
+    amendments = [],
+    laboratory,
+    radiology,
+    pharmacy,
 }: OutpatientShowProps) {
     const { flash } = usePage().props;
-    const [section, setSection] = useState<'documentation' | 'lab' | 'history'>(
-        'documentation',
-    );
+    const [section, setSection] = useState<
+        | 'documentation'
+        | 'lab'
+        | 'radiology'
+        | 'pharmacy'
+        | 'history'
+        | 'amendment'
+    >('documentation');
     const [dirtyDocuments, setDirtyDocuments] = useState<
         Record<ClinicalDocumentType, boolean>
     >({ NURSING_ASSESSMENT: false, MEDICAL_ASSESSMENT: false });
@@ -214,7 +228,16 @@ export default function StructuredOutpatientEncounterShow({
                         [
                             ['documentation', 'Dokumentasi'],
                             ['lab', 'Order Lab'],
+                            ...(radiology
+                                ? ([['radiology', 'Order Rad']] as const)
+                                : []),
+                            ...(pharmacy
+                                ? ([['pharmacy', 'Resep & Obat']] as const)
+                                : []),
                             ['history', 'Riwayat'],
+                            ...(closed
+                                ? ([['amendment', 'Adendum']] as const)
+                                : []),
                         ] as const
                     ).map(([value, label]) => (
                         <button
@@ -233,19 +256,17 @@ export default function StructuredOutpatientEncounterShow({
                             {label}
                         </button>
                     ))}
-                    {['SOAP', 'Diagnosa', 'Tindakan', 'Resep', 'Order Rad'].map(
-                        (label) => (
-                            <button
-                                key={label}
-                                type="button"
-                                disabled
-                                title="Belum tersedia pada tahap ini"
-                                className="min-h-11 px-3 text-sm text-muted-foreground opacity-50"
-                            >
-                                {label} · Soon
-                            </button>
-                        ),
-                    )}
+                    {['SOAP', 'Diagnosa', 'Tindakan'].map((label) => (
+                        <button
+                            key={label}
+                            type="button"
+                            disabled
+                            title="Belum tersedia pada tahap ini"
+                            className="min-h-11 px-3 text-sm text-muted-foreground opacity-50"
+                        >
+                            {label} · Soon
+                        </button>
+                    ))}
                 </nav>
 
                 <div
@@ -328,7 +349,9 @@ export default function StructuredOutpatientEncounterShow({
                     </div>
                 ) : null}
 
-                {section === 'lab' ? (
+                {section === 'lab' && laboratory ? (
+                    <LaboratoryEncounterPanel projection={laboratory} />
+                ) : section === 'lab' ? (
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                         <section className="space-y-2 rounded-lg border border-border bg-card p-3 md:p-4">
                             <div className="flex justify-between gap-2">
@@ -457,6 +480,25 @@ export default function StructuredOutpatientEncounterShow({
                             )}
                         </section>
                     </div>
+                ) : null}
+
+                {section === 'radiology' && radiology ? (
+                    <RadiologyEncounterPanel projection={radiology} />
+                ) : null}
+
+                {section === 'pharmacy' && pharmacy ? (
+                    <PharmacyEncounterPanel projection={pharmacy} />
+                ) : null}
+
+                {section === 'amendment' ? (
+                    <PostClosureAmendmentPanel
+                        encounterClosed={closed}
+                        originalDocuments={documentation.documents}
+                        reasonOptions={amendmentReasonOptions}
+                        amendments={amendments}
+                        canRequest={Boolean(permissions.can_request_amendment)}
+                        storeUrl={actions.store_amendment_url ?? null}
+                    />
                 ) : null}
             </div>
         </>

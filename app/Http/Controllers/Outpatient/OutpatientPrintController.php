@@ -39,6 +39,21 @@ class OutpatientPrintController extends Controller
         $user = $request->user();
         assert($user !== null);
 
+        if ($encounter->isCancelled()) {
+            $event = $this->auditRecorder->record(
+                action: 'encounter.print',
+                resourceType: 'encounter',
+                resourceId: $encounter->public_id,
+                actor: $user,
+                outcome: 'DENIED',
+                reason: 'encounter_cancelled',
+                metadata: ['documents' => $documents],
+            );
+
+            abort_if($event === null, 503, 'Penolakan cetak tidak dapat direkam dalam audit.');
+            abort(409, 'Dokumen aktif tidak dapat dicetak untuk kunjungan yang telah dibatalkan.');
+        }
+
         $event = $this->auditRecorder->record(
             action: 'encounter.print',
             resourceType: 'encounter',

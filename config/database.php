@@ -3,6 +3,33 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+$warehouseConnection = static function (string $purpose): array {
+    $identity = strtoupper($purpose);
+    $driver = env('WAREHOUSE_DB_DRIVER');
+
+    return [
+        'driver' => $driver,
+        'url' => env("WAREHOUSE_{$identity}_DB_URL"),
+        'host' => env('WAREHOUSE_DB_HOST'),
+        'port' => env('WAREHOUSE_DB_PORT', $driver === 'mysql' ? '3306' : '5432'),
+        'database' => env('WAREHOUSE_DB_DATABASE'),
+        'username' => env("WAREHOUSE_{$identity}_DB_USERNAME"),
+        'password' => env("WAREHOUSE_{$identity}_DB_PASSWORD"),
+        'unix_socket' => env('WAREHOUSE_DB_SOCKET', ''),
+        'charset' => env('WAREHOUSE_DB_CHARSET', $driver === 'mysql' ? 'utf8mb4' : 'utf8'),
+        'collation' => env('WAREHOUSE_DB_COLLATION', 'utf8mb4_unicode_ci'),
+        'prefix' => '',
+        'prefix_indexes' => true,
+        'strict' => true,
+        'engine' => null,
+        'search_path' => env('WAREHOUSE_DB_SCHEMA', 'public'),
+        'sslmode' => env('WAREHOUSE_DB_SSLMODE', 'require'),
+        'options' => $driver === 'mysql' && extension_loaded('pdo_mysql') ? array_filter([
+            Mysql::ATTR_SSL_CA => env('WAREHOUSE_MYSQL_ATTR_SSL_CA'),
+        ]) : [],
+    ];
+};
+
 return [
 
     /*
@@ -114,6 +141,34 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'warehouse_runtime' => $warehouseConnection('runtime'),
+
+        'warehouse_writer' => $warehouseConnection('writer'),
+
+        'warehouse_migrator' => $warehouseConnection('migrator'),
+
+        'warehouse_reset_executor' => $warehouseConnection('reset_executor'),
+
+    ],
+
+    'warehouse_connections' => [
+        'runtime' => 'warehouse_runtime',
+        'writer' => 'warehouse_writer',
+        'migrator' => 'warehouse_migrator',
+        'reset_executor' => 'warehouse_reset_executor',
+    ],
+
+    // Exact-engine warehouse DDL is an explicit cutover action. Keeping this
+    // false lets ordinary PostgreSQL/MySQL application migrations ship the
+    // migration file without applying or recording it in the migration ledger.
+    'warehouse_schema_migration_enabled' => env('WAREHOUSE_SCHEMA_MIGRATION_ENABLED', false),
+
+    'warehouse_identities' => [
+        'runtime' => env('WAREHOUSE_RUNTIME_DB_IDENTITY'),
+        'writer' => env('WAREHOUSE_WRITER_DB_IDENTITY'),
+        'migrator' => env('WAREHOUSE_MIGRATOR_DB_IDENTITY'),
+        'reset_executor' => env('WAREHOUSE_RESET_EXECUTOR_DB_IDENTITY'),
+        'reset_owner' => env('WAREHOUSE_RESET_OWNER_DB_IDENTITY'),
     ],
 
     /*

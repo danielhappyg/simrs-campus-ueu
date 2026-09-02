@@ -37,6 +37,7 @@ class OutpatientRecapController extends Controller
         $payer = trim((string) $request->query('payer', ''));
         $origin = trim((string) $request->query('origin', ''));
         $careSetting = trim((string) $request->query('care_setting', Encounter::CARE_SETTING_OUTPATIENT));
+        $status = trim((string) $request->query('status', ''));
         $isCsv = $request->query('format') === 'csv';
 
         if ($isCsv) {
@@ -115,9 +116,24 @@ class OutpatientRecapController extends Controller
             });
         }
 
+        $controlQuery = clone $query;
+        $statusValues = array_values(array_unique([
+            ...Encounter::ACTIVE_STATUSES,
+            ...Encounter::TERMINAL_STATUSES,
+        ]));
+        if ($status !== '' && in_array($status, $statusValues, true)) {
+            $query->where('status', $status);
+        } else {
+            $status = '';
+        }
+
         if ($isCsv) {
             return $this->csvResponse($query, $request);
         }
+
+        $cancelledTotal = $controlQuery
+            ->where('status', Encounter::STATUS_CANCELLED)
+            ->count();
 
         $onlineTotal = (clone $query)
             ->whereNotNull('booking_code')
@@ -153,6 +169,7 @@ class OutpatientRecapController extends Controller
                 'payer' => $payer,
                 'origin' => $origin,
                 'care_setting' => $careSetting,
+                'status' => $status,
             ],
             'rows' => $summaries,
             'pagination' => InertiaPagination::from($page),
@@ -160,6 +177,7 @@ class OutpatientRecapController extends Controller
                 'all' => $page->total(),
                 'online' => $onlineTotal,
                 'walk_in' => $page->total() - $onlineTotal,
+                'cancelled' => $cancelledTotal,
             ],
             'clinicOptions' => $clinics,
             'payerOptions' => TeachingVocabulary::options(TeachingVocabulary::PAYER),
@@ -188,6 +206,14 @@ class OutpatientRecapController extends Controller
             'origin' => $origin,
             'origin_label' => TeachingVocabulary::label(TeachingVocabulary::ORIGIN, $origin),
             'status' => $encounter->status,
+            'status_label' => match ($encounter->status) {
+                Encounter::STATUS_REGISTERED => 'Terdaftar',
+                Encounter::STATUS_IN_EXAMINATION => 'Dalam pemeriksaan',
+                Encounter::STATUS_READY_FOR_RM => 'Siap RM',
+                Encounter::STATUS_CLOSED => 'Selesai',
+                Encounter::STATUS_CANCELLED => 'Dibatalkan',
+                default => $encounter->status,
+            },
             'patient' => [
                 'medical_record_number' => $encounter->patient?->medical_record_number,
                 'full_name' => $encounter->patient?->full_name,
@@ -364,7 +390,7 @@ class OutpatientRecapController extends Controller
         try {
             $error = $this->writeCsvRow(
                 $handle,
-                ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status'],
+                ['Waktu', 'Antrian', 'No RM', 'Nama', 'Asal', 'Kode booking', 'Poli/unit', 'Dokter', 'Penjamin', 'Status kunjungan', 'Kode status kunjungan'],
                 $maximumBytes,
                 $deadline,
                 $maximumExecutionSeconds,
@@ -391,6 +417,7 @@ class OutpatientRecapController extends Controller
                         $row['clinic_name'],
                         $row['doctor_name'] ?? '',
                         $row['payer_label'] ?? $row['payer_type'],
+                        $row['status_label'] ?? $row['status'],
                         $row['status'],
                     ]), $maximumBytes, $deadline, $maximumExecutionSeconds);
 
@@ -508,6 +535,7 @@ class OutpatientRecapController extends Controller
             'payer' => trim((string) $request->query('payer', '')),
             'origin' => trim((string) $request->query('origin', '')),
             'care_setting' => trim((string) $request->query('care_setting', Encounter::CARE_SETTING_OUTPATIENT)),
+            'status' => trim((string) $request->query('status', '')),
         ], fn (string $value): bool => $value !== '');
 
         return redirect()

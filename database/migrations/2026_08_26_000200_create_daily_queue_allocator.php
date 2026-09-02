@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Database\SchemaQualifier;
+use App\Support\Emergency\SqliteEmergencyHandoffGraphGuard;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -25,9 +26,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::table($encountersTable, function (Blueprint $table): void {
-            $table->date('queue_date')->nullable()->after('queue_number');
-        });
+        SqliteEmergencyHandoffGraphGuard::aroundEncounterTableRebuild(
+            fn () => Schema::table($encountersTable, function (Blueprint $table): void {
+                $table->date('queue_date')->nullable()->after('queue_number');
+            }),
+        );
 
         DB::transaction(function () use ($assignments, $encountersTable, $countersTable): void {
             /** @var array<string, int> $highWatermarks */
@@ -55,20 +58,24 @@ return new class extends Migration
             }
         });
 
-        Schema::table($encountersTable, function (Blueprint $table): void {
-            $table->date('queue_date')->nullable(false)->change();
-            $table->unique(['queue_date', 'queue_number'], self::ENCOUNTER_QUEUE_UNIQUE);
-        });
+        SqliteEmergencyHandoffGraphGuard::aroundEncounterTableRebuild(
+            fn () => Schema::table($encountersTable, function (Blueprint $table): void {
+                $table->date('queue_date')->nullable(false)->change();
+                $table->unique(['queue_date', 'queue_number'], self::ENCOUNTER_QUEUE_UNIQUE);
+            }),
+        );
     }
 
     public function down(): void
     {
         $encountersTable = SchemaQualifier::table('encounters');
 
-        Schema::table($encountersTable, function (Blueprint $table): void {
-            $table->dropUnique(self::ENCOUNTER_QUEUE_UNIQUE);
-            $table->dropColumn('queue_date');
-        });
+        SqliteEmergencyHandoffGraphGuard::aroundEncounterTableRebuild(
+            fn () => Schema::table($encountersTable, function (Blueprint $table): void {
+                $table->dropUnique(self::ENCOUNTER_QUEUE_UNIQUE);
+                $table->dropColumn('queue_date');
+            }),
+        );
 
         Schema::dropIfExists(SchemaQualifier::table('daily_queue_counters'));
     }

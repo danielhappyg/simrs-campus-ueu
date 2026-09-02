@@ -5,7 +5,19 @@ namespace App\Providers;
 use App\Models\User;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaQualifier;
+use App\Support\Finance\FinanceAccommodationTariffSqlWriteGuard;
+use App\Support\Finance\FinanceLaboratoryTariffSqlWriteGuard;
+use App\Support\Finance\FinanceRadiologyTariffSqlWriteGuard;
+use App\Support\Finance\FinanceSqlWriteGuard;
+use App\Support\Finance\FinanceTariffSqlWriteGuard;
+use App\Support\Inpatient\InpatientDocumentationSqlWriteGuard;
+use App\Support\Inpatient\InpatientLocationSqlWriteGuard;
+use App\Support\Inpatient\InpatientMasterSqlWriteGuard;
+use App\Support\Laboratory\LaboratorySqlWriteGuard;
+use App\Support\Pharmacy\PharmacySqlWriteGuard;
 use App\Support\PrivilegedAccess\PrivilegedAccessShadowResolver;
+use App\Support\Radiology\RadiologySqlWriteGuard;
+use App\Support\Warehouse\WarehouseSqlWriteGuard;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Date;
@@ -33,6 +45,18 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureSimulationEgressGuards();
         $this->configurePostgresSearchPath();
+        $this->configureInpatientMasterSqlWriteGuard();
+        $this->configureInpatientDocumentationSqlWriteGuard();
+        $this->configureInpatientLocationSqlWriteGuard();
+        $this->configureRadiologySqlWriteGuard();
+        $this->configureLaboratorySqlWriteGuard();
+        $this->configurePharmacySqlWriteGuard();
+        $this->configureFinanceSqlWriteGuard();
+        $this->configureFinanceTariffSqlWriteGuard();
+        $this->configureFinanceRadiologyTariffSqlWriteGuard();
+        $this->configureFinanceLaboratoryTariffSqlWriteGuard();
+        $this->configureFinanceAccommodationTariffSqlWriteGuard();
+        $this->configureWarehouseSqlWriteGuard();
         $this->configureAuthorization();
     }
 
@@ -134,6 +158,189 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
+    private function configureInpatientMasterSqlWriteGuard(): void
+    {
+        $guard = app(InpatientMasterSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureInpatientDocumentationSqlWriteGuard(): void
+    {
+        $guard = app(InpatientDocumentationSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureInpatientLocationSqlWriteGuard(): void
+    {
+        $guard = app(InpatientLocationSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureRadiologySqlWriteGuard(): void
+    {
+        $guard = app(RadiologySqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureLaboratorySqlWriteGuard(): void
+    {
+        if (! class_exists(LaboratorySqlWriteGuard::class)) {
+            return;
+        }
+
+        $guard = app(LaboratorySqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configurePharmacySqlWriteGuard(): void
+    {
+        $guard = app(PharmacySqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureFinanceSqlWriteGuard(): void
+    {
+        $guard = app(FinanceSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureFinanceTariffSqlWriteGuard(): void
+    {
+        $guard = app(FinanceTariffSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureFinanceRadiologyTariffSqlWriteGuard(): void
+    {
+        $guard = app(FinanceRadiologyTariffSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureFinanceLaboratoryTariffSqlWriteGuard(): void
+    {
+        $guard = app(FinanceLaboratoryTariffSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureFinanceAccommodationTariffSqlWriteGuard(): void
+    {
+        $guard = app(FinanceAccommodationTariffSqlWriteGuard::class);
+        $register = static function ($connection) use ($guard): void {
+            $connection->beforeExecuting(static function (string $query) use ($guard): void {
+                $guard->assertAllowed($query);
+            });
+        };
+        $register(DB::connection());
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
+    private function configureWarehouseSqlWriteGuard(): void
+    {
+        $guard = app(WarehouseSqlWriteGuard::class);
+        $registered = new \SplObjectStorage;
+        $register = static function ($connection) use ($guard, $registered): void {
+            if ($registered->contains($connection)) {
+                return;
+            }
+            $registered->attach($connection);
+            $connection->beforeExecuting(static function (string $query, array $bindings) use ($connection, $guard): void {
+                $guard->assertAllowed($query, $connection, $bindings);
+            });
+        };
+        $register(DB::connection());
+        foreach (DB::getFacadeRoot()->getConnections() as $connection) {
+            $register($connection);
+        }
+        Event::listen(ConnectionEstablished::class, static function (ConnectionEstablished $event) use ($register): void {
+            $register($event->connection);
+        });
+    }
+
     /**
      * Register capability gates from Capability constants.
      *
@@ -146,6 +353,10 @@ class AppServiceProvider extends ServiceProvider
         foreach (Capability::all() as $capability) {
             Gate::define($capability, function (?User $user) use ($capability): bool {
                 if (! $user instanceof User) {
+                    return false;
+                }
+
+                if ($user->is_system_administrator && str_starts_with($capability, 'warehouse.')) {
                     return false;
                 }
 

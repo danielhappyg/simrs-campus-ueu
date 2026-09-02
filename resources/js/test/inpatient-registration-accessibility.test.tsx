@@ -6,15 +6,16 @@ import {
     within,
 } from '@testing-library/react';
 import axe from 'axe-core';
-import type { AnchorHTMLAttributes, ReactNode } from 'react';
+import type { AnchorHTMLAttributes, ComponentProps, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import PendaftaranRawatInap from '@/pages/pendaftaran/rawat-inap';
 
 const inertiaMock = vi.hoisted(() => ({
     post: vi.fn(),
+    payload: vi.fn(),
     serverErrors: {
         full_name: 'Nama lengkap wajib diisi.',
-        bed_code: 'Tempat tidur sudah dipakai kunjungan rawat inap aktif.',
+        bed_public_id: 'Tempat tidur sudah dipakai kunjungan rawat inap aktif.',
         chief_complaint: 'Keluhan utama wajib diisi.',
     },
 }));
@@ -56,6 +57,12 @@ vi.mock('@inertiajs/react', async () => {
             );
         },
         router: { get: vi.fn() },
+        usePage: () => ({
+            props: {
+                auth: { capabilities: ['inpatient.occupancy.view'] },
+                flash: {},
+            },
+        }),
         useForm: function useForm<T extends Record<string, unknown>>(
             initialData: T,
         ) {
@@ -87,6 +94,7 @@ vi.mock('@inertiajs/react', async () => {
                 setData,
                 post: (url: string, options?: MockPostOptions) => {
                     inertiaMock.post(url);
+                    inertiaMock.payload(data);
                     setErrors(inertiaMock.serverErrors);
                     options?.onError?.(inertiaMock.serverErrors);
                 },
@@ -96,20 +104,38 @@ vi.mock('@inertiajs/react', async () => {
     };
 });
 
-function renderInpatientRegistration() {
-    return render(
+type RegistrationWards = ComponentProps<typeof PendaftaranRawatInap>['wards'];
+
+const defaultWards: RegistrationWards = [
+    {
+        public_id: 'ward-anggrek',
+        code: 'ANGGREK',
+        display_name: 'Bangsal Anggrek',
+        beds: [
+            {
+                public_id: 'bed-ang-101-a',
+                code: 'ANG-101-A',
+                display_name: 'Tempat Tidur ANG-101-A',
+                service_class: 'Kelas 1',
+            },
+            {
+                public_id: 'bed-ang-101-b',
+                code: 'ANG-101-B',
+                display_name: 'Tempat Tidur ANG-101-B',
+                service_class: 'Kelas 2',
+            },
+        ],
+    },
+];
+
+function inpatientRegistrationPage(wards: RegistrationWards = defaultWards) {
+    return (
         <main>
             <PendaftaranRawatInap
                 q=""
                 searchResults={[]}
                 todaysEncounters={[]}
-                wards={[
-                    {
-                        name: 'Bangsal Anggrek',
-                        class: 'Kelas 1',
-                        beds: ['ANG-101-A'],
-                    },
-                ]}
+                wards={wards}
                 wardOptions={[
                     {
                         value: 'Bangsal Anggrek',
@@ -129,8 +155,12 @@ function renderInpatientRegistration() {
                 }}
                 canRegister
             />
-        </main>,
+        </main>
     );
+}
+
+function renderInpatientRegistration() {
+    return render(inpatientRegistrationPage());
 }
 
 async function expectNoWcag21Violations(container: HTMLElement) {
@@ -159,10 +189,14 @@ async function expectNoWcag21Violations(container: HTMLElement) {
 describe('inpatient registration validation accessibility', () => {
     beforeEach(() => {
         inertiaMock.post.mockClear();
+        inertiaMock.payload.mockClear();
     });
 
     it('associates server errors, exposes a linked summary, and refocuses repeated failures', async () => {
         const { container } = renderInpatientRegistration();
+        expect(
+            screen.getByRole('link', { name: 'Lihat ketersediaan TT' }),
+        ).toHaveAttribute('href', '/manajemen-data/bangsal');
         const saveButton = screen.getByRole('button', {
             name: 'Simpan pendaftaran RI',
         });
@@ -179,6 +213,12 @@ describe('inpatient registration validation accessibility', () => {
         });
         expect(inertiaMock.post).toHaveBeenCalledWith(
             '/pendaftaran/rawat-inap',
+        );
+        expect(inertiaMock.payload).toHaveBeenCalledWith(
+            expect.objectContaining({
+                bed_code: 'ANG-101-A',
+                bed_public_id: 'bed-ang-101-a',
+            }),
         );
         expect(summary).toHaveAttribute('tabindex', '-1');
         expect(summary).toHaveFocus();
@@ -232,5 +272,122 @@ describe('inpatient registration validation accessibility', () => {
         expect(inertiaMock.post).toHaveBeenCalledTimes(2);
 
         await expectNoWcag21Violations(container);
+    });
+
+    it('derives the displayed and submitted class from the immutable bed selection', () => {
+        renderInpatientRegistration();
+
+        fireEvent.change(
+            screen.getByRole('combobox', { name: 'Tempat tidur' }),
+            { target: { value: 'bed-ang-101-b' } },
+        );
+
+        expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+            'Kelas 2',
+        );
+
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Simpan pendaftaran RI' }),
+        );
+
+        expect(inertiaMock.payload).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ward_name: 'Bangsal Anggrek',
+                ward_class: 'Kelas 2',
+                bed_code: 'ANG-101-B',
+                bed_public_id: 'bed-ang-101-b',
+            }),
+        );
+    });
+
+    it('distinguishes wards with the same display name by immutable ID and code', () => {
+        render(
+            inpatientRegistrationPage([
+                ...defaultWards,
+                {
+                    public_id: 'ward-anggrek-b',
+                    code: 'ANGGREK-B',
+                    display_name: 'Bangsal Anggrek',
+                    beds: [
+                        {
+                            public_id: 'bed-ang-b-301',
+                            code: 'ANG-B-301',
+                            display_name: 'Tempat Tidur ANG-B-301',
+                            service_class: 'Kelas Utama',
+                        },
+                    ],
+                },
+            ]),
+        );
+
+        fireEvent.change(document.getElementById('ward_name')!, {
+            target: { value: 'ward-anggrek-b' },
+        });
+
+        expect(document.getElementById('ward_name')).toHaveValue(
+            'ward-anggrek-b',
+        );
+        expect(
+            screen.getByRole('combobox', { name: 'Tempat tidur' }),
+        ).toHaveValue('bed-ang-b-301');
+        expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+            'Kelas Utama',
+        );
+    });
+
+    it('reconciles placement after refreshed availability and clears it when none remain', async () => {
+        const { rerender } = renderInpatientRegistration();
+
+        rerender(
+            inpatientRegistrationPage([
+                {
+                    public_id: 'ward-empty',
+                    code: 'EMPTY',
+                    display_name: 'Bangsal Tanpa TT',
+                    beds: [],
+                },
+                {
+                    public_id: 'ward-mawar',
+                    code: 'MAWAR',
+                    display_name: 'Bangsal Mawar',
+                    beds: [
+                        {
+                            public_id: 'bed-mawar-201',
+                            code: 'MWR-201',
+                            display_name: 'Tempat Tidur MWR-201',
+                            service_class: 'Kelas VIP',
+                        },
+                    ],
+                },
+            ]),
+        );
+
+        await waitFor(() =>
+            expect(document.getElementById('ward_name')).toHaveValue(
+                'ward-mawar',
+            ),
+        );
+        expect(
+            screen.getByRole('combobox', { name: 'Tempat tidur' }),
+        ).toHaveValue('bed-mawar-201');
+        expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+            'Kelas VIP',
+        );
+
+        rerender(inpatientRegistrationPage([]));
+
+        expect(
+            screen.getByText(
+                /Tidak ada tempat tidur rawat inap yang tersedia/i,
+            ),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Simpan pendaftaran RI' }),
+        ).toBeDisabled();
+        await waitFor(() =>
+            expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+                '',
+            ),
+        );
     });
 });

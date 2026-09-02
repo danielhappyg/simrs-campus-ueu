@@ -7,6 +7,8 @@ use App\Models\Patient;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Database\SchemaQualifier;
+use App\Support\Inpatient\CanonicalInpatientBedOperationLockCoordinator;
+use App\Support\Inpatient\InpatientLocationMutationScope;
 use App\Support\Registration\DailyQueueAllocator;
 use App\Support\Registration\InpatientBedClaimGuard;
 use App\Support\Registration\InpatientBedUnavailable;
@@ -38,6 +40,7 @@ final class RehearseInpatientBedClaimWorkerCommand extends Command
 
     public function handle(
         InpatientBedClaimGuard $bedClaimGuard,
+        CanonicalInpatientBedOperationLockCoordinator $inpatientLocks,
         DailyQueueAllocator $dailyQueueAllocator,
         AuditRecorder $auditRecorder,
     ): int {
@@ -54,6 +57,7 @@ final class RehearseInpatientBedClaimWorkerCommand extends Command
             try {
                 DB::transaction(function () use (
                     $bedClaimGuard,
+                    $inpatientLocks,
                     $dailyQueueAllocator,
                     $auditRecorder,
                     $actor,
@@ -67,13 +71,10 @@ final class RehearseInpatientBedClaimWorkerCommand extends Command
                     &$result,
                 ): void {
                     DB::statement("SET LOCAL lock_timeout = '8s'");
-                    $bedClaimGuard->assertAvailable($bedCode);
-
                     $registeredAt = CarbonImmutable::parse(
                         self::QUEUE_DATE.' 10:00:00',
                         (string) config('app.timezone', 'Asia/Jakarta'),
                     )->addSeconds($phase === 'queue' ? ($worker === 'A' ? 1 : 2) : 0);
-                    $allocation = $allocateQueue ? $dailyQueueAllocator->allocate($registeredAt) : null;
                     $patient = Patient::query()->create([
                         'medical_record_number' => sprintf('SYNTH-BC-%s-%s-%s', $runToken, strtoupper($phase[0]), $worker),
                         'full_name' => sprintf('Pasien Sintetis Bed Claim %s %s', ucfirst($phase), $worker),
@@ -82,7 +83,10 @@ final class RehearseInpatientBedClaimWorkerCommand extends Command
                         'is_synthetic' => true,
                         'created_by_user_id' => $actor->id,
                     ]);
-                    $encounter = Encounter::query()->create([
+                    $inpatientLocks->lockPatientClaimMutexes([(int) $patient->id]);
+                    $bedClaimGuard->assertAvailable($bedCode);
+                    $allocation = $allocateQueue ? $dailyQueueAllocator->allocate($registeredAt) : null;
+                    $encounter = InpatientLocationMutationScope::run(fn (): Encounter => Encounter::query()->create([
                         'patient_id' => $patient->id,
                         'care_setting' => Encounter::CARE_SETTING_INPATIENT,
                         'status' => Encounter::STATUS_REGISTERED,
@@ -99,7 +103,7 @@ final class RehearseInpatientBedClaimWorkerCommand extends Command
                         'registered_by_user_id' => $actor->id,
                         'chief_complaint' => 'Rehearsal konkurensi tempat tidur sintetis.',
                         'booking_code' => sprintf('SYNTH-BC-%s-%s-%s', $runToken, strtoupper($phase[0]), $worker),
-                    ]);
+                    ]));
 
                     if ($allocateQueue) {
                         $event = $auditRecorder->record(

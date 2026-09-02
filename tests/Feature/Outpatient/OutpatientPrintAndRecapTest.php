@@ -185,6 +185,75 @@ class OutpatientPrintAndRecapTest extends TestCase
         $this->assertStringNotContainsString('RGN-ONLINE-1', $csvContent);
     }
 
+    public function test_recap_retains_cancelled_history_with_a_separate_total_filter_and_csv_status(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $activePatient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'full_name' => 'Pasien Aktif Sintetis',
+            'medical_record_number' => 'SYNTH-ACTIVE-RECAP',
+        ]);
+        $cancelledPatient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'full_name' => 'Pasien Batal Sintetis',
+            'medical_record_number' => 'SYNTH-CANCELLED-RECAP',
+        ]);
+        Encounter::factory()->create([
+            'patient_id' => $activePatient->id,
+            'registered_by_user_id' => $registrar->id,
+            'status' => Encounter::STATUS_REGISTERED,
+            'registered_at' => now(),
+        ]);
+        $cancelled = Encounter::factory()->create([
+            'patient_id' => $cancelledPatient->id,
+            'registered_by_user_id' => $registrar->id,
+            'status' => Encounter::STATUS_CANCELLED,
+            'registered_at' => now(),
+        ]);
+        $filters = [
+            'date_from' => now()->toDateString(),
+            'date_to' => now()->toDateString(),
+        ];
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', $filters))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('totals.all', 2)
+                ->where('totals.cancelled', 1)
+                ->has('rows', 2));
+
+        $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [...$filters, 'status' => Encounter::STATUS_CANCELLED]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('filters.status', Encounter::STATUS_CANCELLED)
+                ->where('totals.all', 1)
+                ->where('totals.cancelled', 1)
+                ->has('rows', 1)
+                ->where('rows.0.public_id', $cancelled->public_id)
+                ->where('rows.0.status', Encounter::STATUS_CANCELLED)
+                ->where('rows.0.status_label', 'Dibatalkan'));
+
+        $csv = $this->actingAs($registrar)
+            ->get(route('pendaftaran.rekap', [
+                ...$filters,
+                'status' => Encounter::STATUS_CANCELLED,
+                'format' => 'csv',
+            ]));
+        $csv->assertOk();
+        $csvContent = $this->csvContent($csv);
+        $this->assertStringContainsString('Pasien Batal Sintetis', $csvContent);
+        $this->assertStringNotContainsString('Pasien Aktif Sintetis', $csvContent);
+        $csvRows = array_map('str_getcsv', array_values(array_filter(explode("\n", trim($csvContent)))));
+        $header = $csvRows[0];
+        $cancelledRow = $csvRows[1];
+        $this->assertSame('Status kunjungan', $header[9]);
+        $this->assertSame('Kode status kunjungan', $header[10]);
+        $this->assertSame('Dibatalkan', $cancelledRow[9]);
+        $this->assertSame(Encounter::STATUS_CANCELLED, $cancelledRow[10]);
+    }
+
     public function test_recap_totals_pages_and_csv_cover_the_complete_filtered_result(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);

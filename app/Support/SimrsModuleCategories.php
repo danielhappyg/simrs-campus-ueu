@@ -34,6 +34,7 @@ final class SimrsModuleCategories
         'pendaftaran' => '/pendaftaran/rawat-jalan',
         'pemeriksaan' => '/pemeriksaan/rawat-jalan',
         'rm' => '/rm/rawat-jalan',
+        'kasir' => '/kasir/tagihan',
     ];
 
     /**

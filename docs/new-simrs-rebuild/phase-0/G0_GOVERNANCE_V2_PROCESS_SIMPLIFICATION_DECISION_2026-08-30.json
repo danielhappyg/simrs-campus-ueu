@@ -1,0 +1,131 @@
+{
+  "artifact_type": "g0_governance_v2_process_simplification_decision",
+  "schema_version": 1,
+  "artifact_id": "G0-GOVERNANCE-V2-PROCESS-SIMPLIFICATION-DECISION-2026-08-30",
+  "status": "effective_append_only_process_simplification",
+  "effect": "revokes_adr_019_exact_wording_approval_requirement_and_reaffirms_existing_gate_a_local_governance_v2_implementation_only",
+  "data_boundary": "synthetic_only",
+  "recorded_at": "2026-08-30T04:05:27+07:00",
+  "recorded_at_basis": "first_local_record_after_product_owner_instruction_source_timestamp_unavailable",
+  "source_bindings": [
+    {
+      "role": "gate_a_adoption_decision",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ADOPTION_DECISION.json",
+      "sha256": "139bf2f952ab5c47cd34a43f80d93224e48386c57f180a799d8f206a9049c0f3",
+      "recorded_status": "approved_local_governance_v2_implementation_only"
+    },
+    {
+      "role": "adopted_adr_018",
+      "path": "docs/adr/ADR-018-PROPORTIONAL-G0-GOVERNANCE-PROFILE.md",
+      "sha256": "cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962",
+      "recorded_status": "accepted_for_gate_a_local_governance_v2_implementation_only"
+    },
+    {
+      "role": "proposed_adr_019",
+      "path": "docs/adr/ADR-019-HOST-OWNED-G0-GOVERNANCE-TRUST-BOUNDARY.md",
+      "sha256": "288f8c25fe506643750f2202831b7c1e5345a805702d85d4b6393b76794cd272",
+      "recorded_status": "proposed_not_approved_not_authoritative_no_effect"
+    },
+    {
+      "role": "external_trust_provisioning_proposal",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_EXTERNAL_TRUST_PROVISIONING_PROPOSAL_2026-08-29.md",
+      "sha256": "a5397de2333c9e107cc78175b09031450122bcada14c17afc5e30d48eccd6eea",
+      "recorded_status": "proposal_not_approved_not_authoritative_no_effect"
+    },
+    {
+      "role": "retired_exact_wording_approval_draft",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_HOST_TRUST_BOUNDARY_APPROVAL_DECISION_DRAFT_2026-08-29.json",
+      "sha256": "6a9672108fce9c8408e24576d4e5aeecba87af79b379f1e5681a81c1efc6057f",
+      "recorded_status": "historical_pending_draft_no_effect_exact_wording_path_retired"
+    },
+    {
+      "role": "activation_decision_draft",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_GOVERNANCE_V2_ACTIVATION_DECISION_DRAFT_2026-08-29.json",
+      "sha256": "182de2a2c7a673d03a0de306ee8bbc9e17539f94955c5ae9fa1df344ed3f5230",
+      "recorded_status": "pending_gate_b_decision_preparation_not_approval_ready_no_effect"
+    }
+  ],
+  "decision": {
+    "actor": {
+      "identity": "Daniel Happy Putra",
+      "authority_capacity": "product_owner",
+      "attribution_basis": "same_thread_product_owner_instruction_cross_bound_to_adopted_gate_a_decider_without_platform_account_identity_claim"
+    },
+    "decision_reference": "codex_thread:01a02b58-641d-7090-aad4-00871c7ddf47#decision-message-sha256:f2c97d3f6cd6537611c6d70aef2789d2f8ca8bd1ea3623cd5d9e5fe5ce02bb92",
+    "decision_message": "I revoke the ADR-019 exact-wording approval requirement. Simplify the governance process and continue local implementation under the established synthetic-data, no-secrets, no-live-integration, and no-premature-push/deployment boundaries.",
+    "decision_message_encoding": "exact_utf8_no_trailing_newline",
+    "decision_message_byte_length": 238,
+    "decision_message_sha256": "f2c97d3f6cd6537611c6d70aef2789d2f8ca8bd1ea3623cd5d9e5fe5ce02bb92",
+    "source_message_at": null,
+    "platform_attribution": {
+      "status": "not_asserted_unavailable",
+      "message_id": null,
+      "event_id": null,
+      "account_id": null,
+      "external_verification_identity_id": null
+    }
+  },
+  "revocation": {
+    "revoked_requirement": "adr_019_exact_wording_product_owner_reply_requirement",
+    "retired_requested_reply_sha256": "123f371f3678706f2a00f8ca050c2cfc43cee73f164fd29b19502390c3dd734d",
+    "retired_draft_sha256": "6a9672108fce9c8408e24576d4e5aeecba87af79b379f1e5681a81c1efc6057f",
+    "retirement_effect": "exact_wording_constraint_removed_for_any_future_adr_019_consideration_without_satisfying_approving_reinterpreting_or_mutating_the_historical_draft",
+    "adr_019_effect": "remains_proposed_not_approved_not_authoritative_no_effect",
+    "external_trust_effect": "remains_unapproved_unprovisioned_and_not_authoritative"
+  },
+  "continuing_authority": {
+    "governance_v2_local_implementation": "continues_under_exact_gate_a_adoption_and_adr_018_boundary",
+    "governance_process_simplification": "authorized_only_as_local_working_tree_governance_v2_implementation_under_the_same_boundary",
+    "implementation_basis": "existing_gate_a_authority_plus_this_narrow_process_direction",
+    "authority_expansion": "none_beyond_local_governance_v2_process_simplification",
+    "later_authority_rule": "operation_slice_release_deployment_migration_domain_and_gate_effects_still_require_their_own_decisions"
+  },
+  "authorization": {
+    "governance_v2_local_implementation": true,
+    "governance_process_simplification_local_implementation": true,
+    "adr_019_approval": false,
+    "closed_machine_contract_creation": false,
+    "native_root_executable_implementation": false,
+    "external_trust_implementation": false,
+    "canonical_mutation": false,
+    "canonical_resolution": false,
+    "request_import": false,
+    "host_provisioning": false,
+    "human_key_enrollment": false,
+    "consumer_activation": false,
+    "capability_disposition": false,
+    "slice_implementation": false,
+    "commit": false,
+    "push": false,
+    "pull_request": false,
+    "release": false,
+    "deployment": false,
+    "migration": false,
+    "real_patient_data": false,
+    "live_integration": false,
+    "domain_acceptance": false,
+    "g0_closure": false,
+    "g3_acceptance": false
+  },
+  "preserved_state": {
+    "immutable_predecessors": "unchanged_and_not_reinterpreted",
+    "host_trust_approval_draft": "historical_pending_no_effect_with_future_exact_wording_path_retired",
+    "activation_decision_draft": "pending_not_approval_ready_no_effect",
+    "consumer_pointer": "no_effect_no_creation_or_mutation_authorized",
+    "consumer_selection": "no_effect_no_creation_or_mutation_authorized",
+    "owner_dispositions": "no_effect_separate_owner_decisions_required",
+    "g0": "no_effect_no_closure_or_pass_claim",
+    "g3": "no_effect_no_acceptance_or_pass_claim",
+    "deployment_and_domain_acceptance": "no_effect_separate_decisions_required"
+  },
+  "immutability": {
+    "record_mutable": false,
+    "correction_method": "append_new_hash_bound_successor_decision"
+  },
+  "secret_handling": {
+    "credentials_permitted": false,
+    "tokens_permitted": false,
+    "private_keys_permitted": false,
+    "connection_strings_permitted": false
+  }
+}

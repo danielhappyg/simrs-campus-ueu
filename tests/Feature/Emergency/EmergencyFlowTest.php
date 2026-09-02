@@ -145,7 +145,7 @@ class EmergencyFlowTest extends TestCase
         $this->assertDatabaseCount('daily_queue_counters', 0);
     }
 
-    public function test_clinical_staff_can_open_igd_worklist_and_write_note(): void
+    public function test_clinical_staff_can_open_structured_igd_worklist_and_legacy_write_is_gone(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
@@ -161,8 +161,7 @@ class EmergencyFlowTest extends TestCase
             ->get(route('pemeriksaan.igd.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('pemeriksaan/rawat-jalan/index')
-                ->where('variant', 'igd')
+                ->component('pemeriksaan/igd/index')
                 ->has('encounters', 1));
 
         $this->actingAs($nurse)
@@ -170,23 +169,11 @@ class EmergencyFlowTest extends TestCase
                 'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
                 'body' => 'Triage awal pasien IGD',
             ])
-            ->assertRedirect(route('pemeriksaan.igd.show', $encounter));
+            ->assertStatus(410);
 
         $encounter->refresh();
-        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->status);
-
-        $this->assertDatabaseHas('clinical_entries', [
-            'encounter_id' => $encounter->id,
-            'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-            'body' => 'Triage awal pasien IGD',
-        ]);
-
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.note.write',
-            'resource_type' => 'encounter',
-            'resource_id' => $encounter->public_id,
-            'outcome' => 'SUCCESS',
-        ]);
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->status);
+        $this->assertDatabaseCount('clinical_entries', 0);
     }
 
     public function test_emergency_clinical_note_rolls_back_when_audit_write_fails(): void
@@ -213,7 +200,7 @@ class EmergencyFlowTest extends TestCase
                 'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
                 'body' => 'Catatan yang wajib dibatalkan',
             ])
-            ->assertStatus(503);
+            ->assertStatus(410);
 
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
@@ -233,7 +220,7 @@ class EmergencyFlowTest extends TestCase
                 'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
                 'body' => 'Permintaan tidak berwenang.',
             ])
-            ->assertForbidden();
+            ->assertStatus(410);
 
         $this->assertDatabaseCount('clinical_entries', 0);
     }
@@ -251,16 +238,11 @@ class EmergencyFlowTest extends TestCase
                 'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
                 'body' => 'Permintaan lintas layanan tidak berwenang.',
             ])
-            ->assertForbidden();
+            ->assertStatus(410);
 
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'authorization.denied',
-            'resource_type' => 'http_route',
-            'outcome' => 'DENIED',
-            'reason' => 'authorization_check_failed',
-        ]);
+        $this->assertDatabaseMissing('audit_events', ['action' => 'clinical.note.write']);
     }
 
     public function test_user_without_patient_register_gets_forbidden_on_igd_store(): void

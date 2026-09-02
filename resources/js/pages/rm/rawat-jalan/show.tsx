@@ -1,9 +1,12 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { ClinicalDocumentHistory } from '@/components/clinical/outpatient/clinical-document-history';
+import { PostClosureAmendmentPanel } from '@/components/clinical/outpatient/post-closure-amendment-panel';
 import type {
+    AmendmentReasonOption,
     ClinicalDocument,
     ClinicalDocumentVersion,
+    OutpatientAmendment,
     OutpatientEncounter,
 } from '@/components/clinical/outpatient/types';
 import { Button } from '@/components/ui/button';
@@ -50,11 +53,15 @@ type Props = {
     permissions: {
         can_save_review: boolean;
         can_signoff: boolean;
+        can_request_amendment?: boolean;
     };
     actions: {
         save_review_url: string;
         signoff_url: string;
+        store_amendment_url?: string | null;
     };
+    amendmentReasonOptions?: AmendmentReasonOption[];
+    amendments?: OutpatientAmendment[];
 };
 
 const reviewStatusLabel: Record<string, string> = {
@@ -72,6 +79,8 @@ export default function RmRawatJalanShow({
     blockers,
     permissions,
     actions,
+    amendmentReasonOptions = [],
+    amendments = [],
 }: Props) {
     const { flash } = usePage().props;
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -404,6 +413,15 @@ export default function RmRawatJalanShow({
                         </section>
                     </div>
                 </div>
+
+                <PostClosureAmendmentPanel
+                    encounterClosed={encounter.status === 'CLOSED'}
+                    originalDocuments={clinicalSources}
+                    reasonOptions={amendmentReasonOptions}
+                    amendments={amendments}
+                    canRequest={Boolean(permissions.can_request_amendment)}
+                    storeUrl={actions.store_amendment_url ?? null}
+                />
             </div>
 
             {!closed ? (

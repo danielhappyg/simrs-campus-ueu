@@ -2,8 +2,11 @@
 
 namespace Tests\Feature\Inpatient;
 
-use App\Models\ClinicalEntry;
 use App\Models\Encounter;
+use App\Models\InpatientBed;
+use App\Models\InpatientClinicalDocument;
+use App\Models\InpatientDischargeSummary;
+use App\Models\InpatientWard;
 use App\Models\Patient;
 use App\Models\Permission;
 use App\Models\Role;
@@ -11,6 +14,7 @@ use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Inpatient\InpatientMasterService;
 use Database\Seeders\InpatientMastersSeeder;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
@@ -24,12 +28,25 @@ class InpatientFlowTest extends TestCase
 {
     use RefreshDatabase;
 
+    private InpatientBed $managedBed;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->seed(RbacSeeder::class);
         $this->seed(OutpatientMastersSeeder::class);
+        $masterActor = User::factory()->create(['is_system_administrator' => true]);
+        $service = app(InpatientMasterService::class);
+        $ward = $service->createWard($masterActor, 'RI-MELATI', 'Melati', InpatientMasterService::REASON_INITIAL_SETUP, 'test-flow-ward-0001', null)->master;
+        if (! $ward instanceof InpatientWard) {
+            throw new \LogicException('Expected inpatient ward result.');
+        }
+        $bed = $service->createBed($masterActor, $ward->public_id, 'A-01', 'Tempat Tidur A-01', 'Ruang Melati', 'Kelas 1', InpatientMasterService::REASON_INITIAL_SETUP, 'test-flow-bed-a01-0001', null)->master;
+        if (! $bed instanceof InpatientBed) {
+            throw new \LogicException('Expected inpatient bed result.');
+        }
+        $this->managedBed = $bed;
     }
 
     /**
@@ -48,6 +65,7 @@ class InpatientFlowTest extends TestCase
             'ward_name' => $ward['name'],
             'ward_class' => $ward['class'],
             'bed_code' => $ward['beds'][0],
+            'bed_public_id' => $this->managedBed->public_id,
             'payer_type' => Encounter::PAYER_UMUM,
             'continue_from' => Encounter::CONTINUE_LANGSUNG,
             'chief_complaint' => 'Demam dan mual',
@@ -102,7 +120,7 @@ class InpatientFlowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('pendaftaran/rawat-inap')
                 ->has('todaysEncounters', 1)
-                ->has('wards', 3)
+                ->has('wards', 1)
                 ->where('canOpen', true)
                 ->where('todaysEncounters.0.patient.full_name', 'Pasien RI Sintetis')
                 ->where('todaysEncounters.0.bed_code', $ward['beds'][0]));
@@ -146,7 +164,7 @@ class InpatientFlowTest extends TestCase
 
         $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien RI Sintetis']);
         $this->assertDatabaseCount('encounters', 0);
-        $this->assertDatabaseCount('audit_events', 0);
+        $this->assertDatabaseMissing('audit_events', ['action' => 'patient.register']);
         $this->assertDatabaseCount('daily_queue_counters', 0);
         $this->assertDatabaseCount('inpatient_bed_claim_mutexes', 0);
     }
@@ -211,29 +229,42 @@ class InpatientFlowTest extends TestCase
             ->get(route('pemeriksaan.rawat-inap.show', $encounter))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('pemeriksaan/rawat-jalan/show')
+                ->component('pemeriksaan/rawat-inap/show')
                 ->where('variant', 'rawat-inap'));
 
         $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Observasi awal rawat inap',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'flow-nursing-draft-0001',
+                'fields' => [
+                    'nursing_observation' => 'Observasi awal rawat inap',
+                    'nursing_intervention' => 'Pemantauan',
+                    'nursing_evaluation' => 'Stabil',
+                ],
             ])
             ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter));
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
+
+        $this->actingAs($nurse)
+            ->post(route('pemeriksaan.rawat-inap.documents.finalize', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 1,
+                'idempotency_key' => 'flow-nursing-final-0001',
+            ])->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter));
 
         $encounter->refresh();
         $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->status);
 
-        $this->assertDatabaseHas('clinical_entries', [
+        $this->assertDatabaseHas('inpatient_clinical_documents', [
             'encounter_id' => $encounter->id,
-            'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-            'body' => 'Observasi awal rawat inap',
+            'document_type' => InpatientClinicalDocument::TYPE_NURSING_DAILY,
+            'document_state' => InpatientClinicalDocument::STATE_FINAL,
         ]);
 
         $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.note.write',
-            'resource_type' => 'encounter',
-            'resource_id' => $encounter->public_id,
+            'action' => 'clinical.inpatient.nursing.finalize',
+            'resource_type' => 'inpatient_clinical_document',
             'outcome' => 'SUCCESS',
         ]);
     }
@@ -258,15 +289,146 @@ class InpatientFlowTest extends TestCase
         $this->app->instance(AuditRecorder::class, $recorder);
 
         $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Catatan yang wajib dibatalkan',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'flow-audit-fail-0001',
+                'fields' => ['additional_notes' => 'Catatan yang wajib dibatalkan'],
             ])
-            ->assertStatus(503);
+            ->assertStatus(500);
 
-        $this->assertDatabaseCount('clinical_entries', 0);
+        $this->assertDatabaseCount('inpatient_clinical_documents', 0);
         $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
-        $this->assertDatabaseMissing('audit_events', ['action' => 'clinical.note.write']);
+        $this->assertDatabaseMissing('audit_events', ['action' => 'clinical.inpatient.nursing.draft.save']);
+    }
+
+    public function test_physician_uses_discharge_summary_http_contract_without_discharging_episode_or_releasing_bed(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $otherPhysician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-inap.store'), $this->registrationPayload())
+            ->assertRedirect(route('pendaftaran.rawat-inap.index'));
+        $encounter = Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->firstOrFail();
+        $bedId = $encounter->inpatient_bed_id;
+        $fields = [
+            'admission_reason' => 'Pneumonia komunitas.',
+            'significant_findings' => 'Infiltrat paru kanan, saturasi membaik.',
+            'care_and_treatment_summary' => 'Antibiotik dan terapi suportif.',
+            'condition_at_discharge' => 'Stabil dan dapat beraktivitas ringan.',
+            'follow_up_plan' => 'Kontrol poliklinik dalam tujuh hari.',
+        ];
+
+        $this->actingAs($nurse)
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.draft', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => $fields,
+                'idempotency_key' => 'http-discharge-denied-0001',
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($physician)
+            ->from(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.draft', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => [...$fields, 'admission_reason' => null],
+                'idempotency_key' => 'http-discharge-null-0001',
+            ])
+            ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertSessionHasErrors('fields.admission_reason');
+        $this->assertDatabaseCount('inpatient_discharge_summaries', 0);
+
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.draft', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => $fields,
+                'idempotency_key' => 'http-discharge-draft-0001',
+            ])
+            ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertSessionHas('success', 'Draf ringkasan pulang disimpan.');
+
+        $staleMessage = 'Ringkasan pulang telah berubah. Muat ulang sebelum melanjutkan.';
+        $this->actingAs($physician)
+            ->from(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->withHeader('X-Inertia', 'true')
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.draft', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => $fields,
+                'idempotency_key' => 'http-discharge-stale-inertia-0001',
+            ])
+            ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertSessionHasErrors(['discharge_summary' => $staleMessage]);
+        $this->withoutHeader('X-Inertia');
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.draft', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => $fields,
+                'idempotency_key' => 'http-discharge-stale-http-0001',
+            ])
+            ->assertStatus(422);
+        $this->assertSame(1, InpatientDischargeSummary::query()->firstOrFail()->version);
+
+        $this->actingAs($physician)
+            ->get(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('pemeriksaan/rawat-inap/show')
+                ->where('discharge_summary.definition_version', InpatientDischargeSummary::DEFINITION_VERSION)
+                ->where('discharge_summary.summary.state', InpatientDischargeSummary::STATE_DRAFT)
+                ->where('discharge_summary.summary.version', 1)
+                ->where('discharge_summary.summary.fields.admission_reason', $fields['admission_reason'])
+                ->where('discharge_summary.summary.assigned_physician.public_id', $physician->public_id)
+                ->where('discharge_summary.permission.can_save_draft', true)
+                ->where('discharge_summary.permission.can_finalize', true)
+                ->has('discharge_summary.versions', 1)
+                ->where('discharge_summary.versions.0.version', 1)
+                ->where('discharge_summary.versions.0.actor_name', $physician->name));
+
+        $this->actingAs($otherPhysician)
+            ->get(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('discharge_summary.permission.can_save_draft', false)
+                ->where('discharge_summary.permission.can_finalize', false)
+                ->where('discharge_summary.actions.save_draft_url', null)
+                ->where('discharge_summary.actions.finalize_url', null));
+
+        $this->actingAs($physician)
+            ->from(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.finalize', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 1,
+                'idempotency_key' => 'http-discharge-final-0001',
+                'fields' => ['follow_up_plan' => 'Pengganti yang tidak boleh diterima.'],
+            ])
+            ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertSessionHasErrors('documentation');
+        $this->assertSame(1, InpatientDischargeSummary::query()->firstOrFail()->version);
+
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-inap.discharge-summary.finalize', $encounter), [
+                'definition_version' => InpatientDischargeSummary::DEFINITION_VERSION,
+                'expected_version' => 1,
+                'idempotency_key' => 'http-discharge-final-0001',
+            ])
+            ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter))
+            ->assertSessionHas('success', 'Ringkasan pulang dijadikan Final.');
+
+        $summary = InpatientDischargeSummary::query()->with('versions')->firstOrFail();
+        $this->assertSame(InpatientDischargeSummary::STATE_FINAL, $summary->summary_state);
+        $this->assertSame(2, $summary->version);
+        $this->assertSame([1, 2], $summary->versions->sortBy('version')->pluck('version')->values()->all());
+        $this->assertSame($fields['follow_up_plan'], $summary->follow_up_plan);
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
+        $this->assertSame($bedId, $encounter->fresh()->inpatient_bed_id);
     }
 
     public function test_unauthorized_actor_is_denied_before_closed_ri_state_is_disclosed(): void
@@ -278,9 +440,11 @@ class InpatientFlowTest extends TestCase
         ]);
 
         $this->actingAs($registrar)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Permintaan tidak berwenang.',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'closed-denied-0001',
+                'fields' => [],
             ])
             ->assertForbidden();
 
@@ -296,9 +460,11 @@ class InpatientFlowTest extends TestCase
         ]);
 
         $this->actingAs($registrar)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Permintaan lintas layanan tidak berwenang.',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'setting-denied-0001',
+                'fields' => [],
             ])
             ->assertForbidden();
 

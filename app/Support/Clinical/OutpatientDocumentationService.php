@@ -7,12 +7,16 @@ use App\Models\OutpatientClinicalDocument;
 use App\Models\OutpatientClinicalDocumentVersion;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
+use App\Support\Pharmacy\PharmacyEncounterLifecycleGate;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final class OutpatientDocumentationService
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(
+        private readonly AuditRecorder $auditRecorder,
+        private readonly PharmacyEncounterLifecycleGate $pharmacy,
+    ) {}
 
     /**
      * @param  array<array-key, mixed>|null  $fields
@@ -38,9 +42,21 @@ final class OutpatientDocumentationService
                 $finalize,
                 $action,
             ): OutpatientClinicalDocument {
+                $closesClinicalEpisode = $finalize
+                    && $documentType === OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT;
+                if ($closesClinicalEpisode) {
+                    $this->pharmacy->lockInventoryForEncounter((int) $encounter->id);
+                }
                 $lockedEncounter = Encounter::query()->whereKey($encounter->id)->lockForUpdate()->firstOrFail();
 
                 abort_unless($lockedEncounter->care_setting === Encounter::CARE_SETTING_OUTPATIENT, 404);
+
+                if ($lockedEncounter->isCancelled()) {
+                    throw new OutpatientLifecycleDenial(
+                        reason: 'encounter_cancelled',
+                        message: 'Kunjungan telah dibatalkan. Catatan tidak dapat disimpan.',
+                    );
+                }
 
                 if ($lockedEncounter->status === Encounter::STATUS_CLOSED) {
                     throw new OutpatientLifecycleDenial(
@@ -95,6 +111,14 @@ final class OutpatientDocumentationService
                     );
                 }
 
+                if ($closesClinicalEpisode
+                    && $this->pharmacy->inspect($lockedEncounter)['active_prescription_public_ids'] !== []) {
+                    throw new OutpatientLifecycleDenial(
+                        reason: 'active_pharmacy_prescriptions',
+                        message: 'Pemeriksaan klinis belum dapat diselesaikan karena masih ada resep aktif.',
+                    );
+                }
+
                 $newVersion = $currentVersion + 1;
                 $state = $finalize
                     ? OutpatientClinicalDocument::STATE_FINAL
@@ -134,7 +158,7 @@ final class OutpatientDocumentationService
                     'finalized_at' => $finalizedAt,
                 ]);
 
-                if ($finalize && $documentType === OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT) {
+                if ($closesClinicalEpisode) {
                     $lockedEncounter->update(['status' => Encounter::STATUS_READY_FOR_RM]);
                 } elseif ($lockedEncounter->status === Encounter::STATUS_REGISTERED) {
                     $lockedEncounter->update(['status' => Encounter::STATUS_IN_EXAMINATION]);

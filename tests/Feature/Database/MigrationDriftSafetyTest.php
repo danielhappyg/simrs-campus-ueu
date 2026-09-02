@@ -26,6 +26,23 @@ class MigrationDriftSafetyTest extends TestCase
         $this->assertTrue(Schema::hasColumn($auditTable, 'actor_user_id'));
     }
 
+    public function test_foundation_up_still_rejects_unregistered_audit_schema_evolution(): void
+    {
+        $auditTable = SchemaQualifier::table('audit_events');
+        Schema::table($auditTable, function (Blueprint $table): void {
+            $table->string('unregistered_audit_drift')->nullable();
+            $table->unique(['id', 'outcome'], 'unregistered_audit_unique');
+        });
+
+        try {
+            $this->foundationMigration()->up();
+            $this->fail('Unregistered audit schema evolution must remain incompatible.');
+        } catch (RuntimeException $exception) {
+            $this->assertStringContainsString('unexpected-column:unregistered_audit_drift', $exception->getMessage());
+            $this->assertStringContainsString('unexpected-unique-index:unregistered_audit_unique', $exception->getMessage());
+        }
+    }
+
     public function test_foundation_down_refuses_to_drop_retained_audit_evidence(): void
     {
         $auditTable = SchemaQualifier::table('audit_events');
@@ -63,6 +80,9 @@ class MigrationDriftSafetyTest extends TestCase
             $this->markTestSkipped('MySQL DDL auto-commits; this destructive cycle is covered by clean CI migrations.');
         }
 
+        if (Schema::hasTable(SchemaQualifier::table('warehouse_suppliers'))) {
+            $this->warehouseMigration()->down();
+        }
         $this->attributionMigration()->down();
         $this->foundationMigration()->down();
         $this->assertFalse(Schema::hasTable(SchemaQualifier::table('audit_events')));
@@ -250,6 +270,11 @@ class MigrationDriftSafetyTest extends TestCase
     private function attributionMigration(): object
     {
         return require database_path('migrations/2026_08_25_000300_expand_audit_actor_attribution.php');
+    }
+
+    private function warehouseMigration(): object
+    {
+        return require database_path('migrations/2026_09_03_000200_create_medication_replenishment_warehouse_custody_tables.php');
     }
 
     private function sequenceMigration(): object

@@ -3,47 +3,46 @@
 namespace App\Support\Registration;
 
 use App\Models\Encounter;
-use App\Models\InpatientBedClaimMutex;
+use App\Support\Inpatient\CanonicalInpatientBedOperationLockCoordinator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use LogicException;
-use RuntimeException;
 
 final class InpatientBedClaimGuard
 {
-    public function assertAvailable(string $bedCode): void
+    public function __construct(private readonly CanonicalInpatientBedOperationLockCoordinator $locks) {}
+
+    public function assertAvailable(string $bedCode, ?int $bedId = null): void
+    {
+        $this->locks->lockMutexes([$bedCode]);
+        $this->assertAvailableAfterCanonicalLocks($bedCode, $bedId);
+    }
+
+    public function assertAvailableAfterCanonicalLocks(string $bedCode, ?int $bedId = null): void
+    {
+        if ($this->lockClaimsAfterCanonicalMutexes($bedCode, $bedId)->isNotEmpty()) {
+            throw new InpatientBedUnavailable('Tempat tidur sudah dipakai kunjungan rawat inap aktif.');
+        }
+    }
+
+    /** @return Collection<int, Encounter> */
+    public function lockClaimsAfterCanonicalMutexes(string $bedCode, ?int $bedId = null): Collection
     {
         if (DB::connection()->transactionLevel() < 1) {
             throw new LogicException('Inpatient bed claims require an active database transaction.');
         }
 
-        $now = now((string) config('app.timezone', 'Asia/Jakarta'));
-
-        // Each bed has its own stable mutex row. Concurrent claims for the same bed
-        // serialize until commit, while unrelated beds can be admitted independently.
-        InpatientBedClaimMutex::query()->insertOrIgnore([
-            'bed_code' => $bedCode,
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-
-        $mutex = InpatientBedClaimMutex::query()
-            ->whereKey($bedCode)
-            ->lockForUpdate()
-            ->first();
-
-        if (! $mutex instanceof InpatientBedClaimMutex) {
-            throw new RuntimeException('Inpatient bed claim mutex could not be locked.');
-        }
-
-        $occupied = Encounter::query()
+        return Encounter::query()
             ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
-            ->where('bed_code', $bedCode)
-            ->where('status', '!=', Encounter::STATUS_CLOSED)
+            ->where(function ($query) use ($bedCode, $bedId): void {
+                $query->where('bed_code', $bedCode);
+                if ($bedId !== null) {
+                    $query->orWhere('inpatient_bed_id', $bedId);
+                }
+            })
+            ->whereIn('status', Encounter::BED_OCCUPYING_STATUSES)
+            ->orderBy('id')
             ->lockForUpdate()
-            ->first(['id']) !== null;
-
-        if ($occupied) {
-            throw new InpatientBedUnavailable('Tempat tidur sudah dipakai kunjungan rawat inap aktif.');
-        }
+            ->get(['id', 'inpatient_bed_id', 'bed_code']);
     }
 }

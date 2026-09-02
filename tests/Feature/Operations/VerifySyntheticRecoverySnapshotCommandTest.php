@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Operations;
 
+use App\Support\Operations\SyntheticRecoverySnapshot;
 use Database\Seeders\RecoveryRehearsalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use ReflectionMethod;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -76,5 +78,64 @@ class VerifySyntheticRecoverySnapshotCommandTest extends TestCase
                 ? putenv('SIMRS_RECOVERY_REHEARSAL_CONFIRM')
                 : putenv('SIMRS_RECOVERY_REHEARSAL_CONFIRM='.$original);
         }
+    }
+
+    public function test_recovery_ledger_accepts_the_governed_warehouse_migration_applied_or_absent(): void
+    {
+        $expected = [
+            ['migration' => '2026_09_03_000100_expand_warehouse_teaching_role_access_roster', 'sha256' => str_repeat('a', 64)],
+            ['migration' => '2026_09_03_000200_create_medication_replenishment_warehouse_custody_tables', 'sha256' => str_repeat('b', 64)],
+        ];
+        $applied = [
+            ['migration' => $expected[0]['migration'], 'batch' => 1],
+            ['migration' => $expected[1]['migration'], 'batch' => 2],
+        ];
+        $absent = [
+            ['migration' => $expected[0]['migration'], 'batch' => 1],
+        ];
+
+        $this->invokeMigrationLedgerAssertion($applied, $expected);
+        $this->invokeMigrationLedgerAssertion($absent, $expected);
+
+        $this->addToAssertionCount(2);
+    }
+
+    public function test_recovery_ledger_rejects_every_other_missing_extra_duplicate_or_reordered_migration(): void
+    {
+        $expected = [
+            ['migration' => '2026_09_03_000100_expand_warehouse_teaching_role_access_roster', 'sha256' => str_repeat('a', 64)],
+            ['migration' => '2026_09_03_000200_create_medication_replenishment_warehouse_custody_tables', 'sha256' => str_repeat('b', 64)],
+        ];
+        $driftCases = [
+            [],
+            [['migration' => '2026_09_03_000100_unexpected', 'batch' => 1]],
+            [
+                ['migration' => $expected[0]['migration'], 'batch' => 1],
+                ['migration' => $expected[0]['migration'], 'batch' => 2],
+            ],
+            [
+                ['migration' => $expected[1]['migration'], 'batch' => 1],
+                ['migration' => $expected[0]['migration'], 'batch' => 2],
+            ],
+        ];
+
+        foreach ($driftCases as $migrationRows) {
+            try {
+                $this->invokeMigrationLedgerAssertion($migrationRows, $expected);
+                $this->fail('Only the governed warehouse migration may be absent from the recovery ledger.');
+            } catch (RuntimeException $exception) {
+                $this->assertStringContainsString('migration ledger does not match this checkout', $exception->getMessage());
+            }
+        }
+    }
+
+    /**
+     * @param  list<array{migration: string, batch: int}>  $migrationRows
+     * @param  list<array{migration: string, sha256: string}>  $expectedMigrations
+     */
+    private function invokeMigrationLedgerAssertion(array $migrationRows, array $expectedMigrations): void
+    {
+        $method = new ReflectionMethod(SyntheticRecoverySnapshot::class, 'assertMigrationLedgerMatchesCheckout');
+        $method->invoke(new SyntheticRecoverySnapshot, $migrationRows, $expectedMigrations);
     }
 }

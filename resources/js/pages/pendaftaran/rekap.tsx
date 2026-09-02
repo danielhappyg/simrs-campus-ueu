@@ -26,6 +26,7 @@ type RecapRow = {
     origin: 'ONLINE' | 'WALK_IN';
     origin_label?: string;
     status: string;
+    status_label?: string;
     patient: {
         medical_record_number: string | null;
         full_name: string | null;
@@ -40,10 +41,16 @@ type Props = {
         payer: string;
         origin: string;
         care_setting: string;
+        status: string;
     };
     rows: RecapRow[];
     pagination: OperationalPaginationMeta;
-    totals: { all: number; online: number; walk_in: number };
+    totals: {
+        all: number;
+        online: number;
+        walk_in: number;
+        cancelled: number;
+    };
     clinicOptions: Option[];
     payerOptions: Option[];
 };
@@ -134,7 +141,7 @@ export default function PendaftaranRekap({
 
                 <form
                     onSubmit={apply}
-                    className="grid min-w-0 grid-cols-1 gap-3 rounded-lg border border-[#e2e8f0] bg-white p-3 md:grid-cols-6"
+                    className="grid min-w-0 grid-cols-1 gap-3 rounded-lg border border-[#e2e8f0] bg-white p-3 md:grid-cols-7"
                 >
                     <div className="grid gap-1">
                         <Label htmlFor="date_from">Dari</Label>
@@ -215,7 +222,25 @@ export default function PendaftaranRekap({
                             </option>
                         </select>
                     </div>
-                    <div className="flex flex-wrap items-end gap-2 md:col-span-6">
+                    <div className="grid gap-1">
+                        <Label htmlFor="status">Status kunjungan</Label>
+                        <select
+                            id="status"
+                            name="status"
+                            defaultValue={filters.status}
+                            className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
+                        >
+                            <option value="">Semua</option>
+                            <option value="REGISTERED">Terdaftar</option>
+                            <option value="IN_EXAMINATION">
+                                Dalam pemeriksaan
+                            </option>
+                            <option value="READY_FOR_RM">Siap RM</option>
+                            <option value="CLOSED">Selesai</option>
+                            <option value="CANCELLED">Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-2 md:col-span-7">
                         <Button
                             type="submit"
                             className="bg-[#1b75bc] hover:bg-[#1665a3]"
@@ -245,6 +270,9 @@ export default function PendaftaranRekap({
                     <span className="rounded-md bg-[#e8f1f8] px-3 py-1.5 text-[#123b63]">
                         Walk-in {totals.walk_in}
                     </span>
+                    <span className="rounded-md bg-[#fef2f2] px-3 py-1.5 text-[#991b1b]">
+                        Dibatalkan {totals.cancelled}
+                    </span>
                 </div>
 
                 <section className="min-w-0 overflow-x-auto rounded-lg border border-[#e2e8f0] bg-white">
@@ -267,6 +295,9 @@ export default function PendaftaranRekap({
                                 <th className="px-3 py-2 font-medium">
                                     Penjamin
                                 </th>
+                                <th className="px-3 py-2 font-medium">
+                                    Status
+                                </th>
                                 <th
                                     scope="col"
                                     className="px-3 py-2 font-medium"
@@ -279,7 +310,7 @@ export default function PendaftaranRekap({
                             {rows.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={8}
+                                        colSpan={9}
                                         className="px-3 py-4 text-[#64748b]"
                                     >
                                         Tidak ada kunjungan pada filter ini.
@@ -333,15 +364,33 @@ export default function PendaftaranRekap({
                                         <td className="px-3 py-2">
                                             {row.payer_label ?? row.payer_type}
                                         </td>
-                                        <td className="px-3 py-2 text-right">
-                                            <a
-                                                href={`/pendaftaran/kunjungan/${row.public_id}/cetak?docs=bukti,antrian`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                        <td className="px-3 py-2">
+                                            <span
+                                                className={cn(
+                                                    'rounded-full px-2 py-0.5 text-[0.7rem] font-medium',
+                                                    row.status === 'CANCELLED'
+                                                        ? 'bg-[#fef2f2] text-[#991b1b]'
+                                                        : 'bg-[#f1f5f9] text-[#475569]',
+                                                )}
                                             >
-                                                Cetak
-                                            </a>
+                                                {row.status_label ?? row.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-3 py-2 text-right">
+                                            {row.status === 'CANCELLED' ? (
+                                                <span className="text-xs text-[#64748b]">
+                                                    Tidak aktif
+                                                </span>
+                                            ) : (
+                                                <a
+                                                    href={`/pendaftaran/kunjungan/${row.public_id}/cetak?docs=bukti,antrian`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                >
+                                                    Cetak
+                                                </a>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

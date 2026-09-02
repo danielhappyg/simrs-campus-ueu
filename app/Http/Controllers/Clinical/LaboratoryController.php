@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Clinical;
 
 use App\Http\Controllers\Controller;
+use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
 use App\Support\Authorization\Capability;
@@ -33,6 +34,8 @@ class LaboratoryController extends Controller
                 ->syntheticOnly()
                 ->with(['encounter.patient', 'requestedBy'])
                 ->where('status', LabServiceRequest::STATUS_ACTIVE)
+                ->whereHas('encounter', fn ($encounterQuery) => $encounterQuery
+                    ->whereIn('status', Encounter::ACTIVE_STATUSES))
                 ->orderBy('requested_at');
 
             if ($q !== '') {
@@ -115,5 +118,14 @@ class LaboratoryController extends Controller
                 'page' => $validated['page'] ?? null,
             ], fn (mixed $value): bool => $value !== null && $value !== ''))
             ->with('success', 'Hasil lab disimpan.');
+    }
+
+    /**
+     * The legacy direct-write graph remains readable but is no longer writable
+     * from HTTP. New orders and results must use the governed laboratory graph.
+     */
+    public function retiredWrite(): never
+    {
+        abort(410, 'Alur tulis laboratorium lama telah ditutup. Gunakan alur laboratorium terkelola.');
     }
 }

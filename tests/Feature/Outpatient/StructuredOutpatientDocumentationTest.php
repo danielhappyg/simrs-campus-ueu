@@ -6,7 +6,11 @@ use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\LabServiceRequest;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\OutpatientClinicalDocumentVersion;
+use App\Models\OutpatientRmCompletenessReview;
 use App\Models\Patient;
+use App\Models\PharmacyDepot;
+use App\Models\PharmacyPrescription;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditEvent;
@@ -14,12 +18,14 @@ use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
 use App\Support\Clinical\OutpatientLabLifecycle;
 use App\Support\Clinical\OutpatientRmCompletenessService;
+use App\Support\Pharmacy\PharmacyMutationScope;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
+use LogicException;
 use Mockery;
 use Mockery\CompositeExpectation;
 use Tests\TestCase;
@@ -174,14 +180,6 @@ class StructuredOutpatientDocumentationTest extends TestCase
         $this->assertDatabaseHas('audit_events', ['action' => 'rmik.completeness.signoff', 'outcome' => 'SUCCESS']);
         $signedReview = $encounter->outpatientRmCompletenessReviews()->where('version', 2)->firstOrFail();
         $storedFingerprint = $signedReview->source_fingerprint;
-        $signedReview->update(['definition_version' => 'OUTPATIENT_RM_COMPLETENESS_ARCHIVED_V0']);
-        $medical = $encounter->outpatientClinicalDocuments()
-            ->where('document_type', OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT)
-            ->firstOrFail();
-        $medical->update([
-            'version' => 99,
-            'fields' => ['anamnesis' => 'Sumber diubah setelah arsip'],
-        ]);
         LabServiceRequest::factory()->create([
             'encounter_id' => $encounter->id,
             'requested_by_user_id' => $physician->id,
@@ -192,7 +190,7 @@ class StructuredOutpatientDocumentationTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('encounter.status', Encounter::STATUS_CLOSED)
                 ->where('review.status', 'SIGNED_OFF')
-                ->where('review.definition_version', 'OUTPATIENT_RM_COMPLETENESS_ARCHIVED_V0')
+                ->where('review.definition_version', OutpatientRmCompletenessReview::DEFINITION_VERSION)
                 ->where('review.source_fingerprint', $storedFingerprint)
                 ->where('review.checklist_items', static function (mixed $items): bool {
                     if (! is_iterable($items)) {
@@ -218,6 +216,111 @@ class StructuredOutpatientDocumentationTest extends TestCase
                 ->where('encounters.0.public_id', $encounter->public_id)
                 ->where('encounters.0.status', Encounter::STATUS_CLOSED)
                 ->where('encounters.0.completeness_status', 'COMPLETE'));
+    }
+
+    public function test_active_pharmacy_prescription_blocks_medical_final_and_rm_handoff(): void
+    {
+        [$encounter, $physician] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $draftUrl = route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]);
+        $finalUrl = route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]);
+        $this->actingAs($physician)->post($draftUrl, [
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'expected_version' => 0,
+            'fields' => [
+                'anamnesis' => 'Anamnesis resep aktif.',
+                'objective_examination' => 'Pemeriksaan objektif resep aktif.',
+                'clinical_assessment' => 'Asesmen resep aktif.',
+                'care_plan' => 'Selesaikan resep sebelum episode klinis ditutup.',
+            ],
+        ])->assertRedirect();
+        PharmacyMutationScope::run(function () use ($encounter, $physician): void {
+            $depot = PharmacyDepot::query()->create([
+                'depot_code' => 'DEPO_RJ_CLOSURE',
+                'display_name' => 'Depo Rawat Jalan Penutupan',
+                'eligible_care_settings' => [Encounter::CARE_SETTING_OUTPATIENT],
+                'state' => PharmacyDepot::ACTIVE,
+                'version' => 1,
+                'current_content_digest' => str_repeat('a', 64),
+            ]);
+            PharmacyPrescription::query()->create([
+                'encounter_id' => $encounter->id,
+                'patient_id' => $encounter->patient_id,
+                'ordering_physician_user_id' => $physician->id,
+                'depot_id' => $depot->id,
+                'care_setting' => $encounter->care_setting,
+                'encounter_number_snapshot' => $encounter->public_id,
+                'location_snapshot' => $encounter->clinic_name,
+                'depot_version' => 1,
+                'depot_code_snapshot' => $depot->depot_code,
+                'status' => PharmacyPrescription::ORDERED,
+                'version' => 1,
+                'current_content_digest' => str_repeat('b', 64),
+                'ordered_at' => now(),
+            ]);
+        });
+
+        $this->actingAs($physician)->post($finalUrl, ['expected_version' => 1])->assertStatus(422);
+
+        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()?->status);
+        $this->assertSame(OutpatientClinicalDocument::STATE_DRAFT, OutpatientClinicalDocument::query()->where('encounter_id', $encounter->id)->sole()->document_state);
+        $this->assertDatabaseHas('audit_events', [
+            'action' => 'clinical.medical.finalize',
+            'resource_id' => $encounter->public_id,
+            'outcome' => 'DENIED',
+            'reason' => 'active_pharmacy_prescriptions',
+        ]);
+    }
+
+    public function test_final_documents_versions_and_rm_snapshot_evidence_reject_direct_model_mutation_and_delete(): void
+    {
+        [$encounter, $nurse] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_NURSE);
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $rmik = $this->userWithRole(RoleCapabilityMatrix::ROLE_RMIK);
+        $this->saveAndFinalize($encounter, $nurse, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT, [
+            'nursing_assessment' => 'Asesmen keperawatan sintetis.',
+        ]);
+        $this->saveAndFinalize($encounter, $physician, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT, [
+            'anamnesis' => 'Anamnesis sintetis.',
+            'objective_examination' => 'Pemeriksaan objektif sintetis.',
+            'clinical_assessment' => 'Asesmen klinis sintetis.',
+            'care_plan' => 'Rencana pelayanan sintetis.',
+        ]);
+        $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter->fresh());
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
+            'expected_version' => 0,
+            'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.signoff', $encounter), [
+            'expected_version' => 1,
+            'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
+
+        $document = OutpatientClinicalDocument::query()
+            ->where('encounter_id', $encounter->id)
+            ->where('document_type', OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT)
+            ->firstOrFail();
+        $version = OutpatientClinicalDocumentVersion::query()
+            ->where('outpatient_clinical_document_id', $document->id)
+            ->firstOrFail();
+        $review = OutpatientRmCompletenessReview::query()
+            ->where('encounter_id', $encounter->id)
+            ->where('review_state', OutpatientRmCompletenessReview::STATE_SIGNED_OFF)
+            ->firstOrFail();
+        $item = $review->items()->firstOrFail();
+
+        $this->assertLogicException(fn () => $document->update(['version' => 99]), 'document update');
+        $this->assertLogicException(fn () => $document->fresh()->delete(), 'document delete');
+        $this->assertLogicException(fn () => $version->update(['version' => 99]), 'version update');
+        $this->assertLogicException(fn () => $version->fresh()->delete(), 'version delete');
+        $this->assertLogicException(fn () => $review->update(['definition_version' => 'MUTATED']), 'review update');
+        $this->assertLogicException(fn () => $review->fresh()->delete(), 'review delete');
+        $this->assertLogicException(fn () => $item->update(['is_complete' => false]), 'item update');
+        $this->assertLogicException(fn () => $item->fresh()->delete(), 'item delete');
+
+        $this->assertSame(OutpatientClinicalDocument::STATE_FINAL, $document->fresh()->document_state);
+        $this->assertSame(2, $document->fresh()->version);
+        $this->assertSame(OutpatientRmCompletenessReview::STATE_SIGNED_OFF, $review->fresh()->review_state);
+        $this->assertTrue($item->fresh()->is_complete);
     }
 
     public function test_stale_source_and_active_lab_block_signoff_without_mutation(): void
@@ -358,6 +461,47 @@ class StructuredOutpatientDocumentationTest extends TestCase
         $this->actingAs($physician)->get('/pemeriksaan/rawat-jalan/'.$nonSyntheticEncounter->public_id)->assertNotFound();
     }
 
+    public function test_cancelled_encounter_disables_document_permissions_and_rejects_direct_document_and_rm_writes(): void
+    {
+        [$encounter, $physician] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $encounter->update(['status' => Encounter::STATUS_CANCELLED]);
+
+        $this->actingAs($physician)
+            ->get(route('pemeriksaan.rawat-jalan.show', $encounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('permissions.medical.can_save_draft', false)
+                ->where('permissions.medical.can_finalize', false)
+                ->where('permissions.can_create_lab_order', false));
+
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-jalan.documents.draft', [
+                $encounter,
+                OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
+            ]), [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => ['anamnesis' => 'Tidak boleh tersimpan.'],
+            ])
+            ->assertStatus(422);
+        $this->assertDatabaseCount('outpatient_clinical_documents', 0);
+        $this->assertDatabaseHas('audit_events', [
+            'reason' => 'encounter_cancelled',
+            'outcome' => 'DENIED',
+        ]);
+
+        $rmik = $this->userWithRole(RoleCapabilityMatrix::ROLE_RMIK);
+        $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter->fresh());
+        $this->actingAs($rmik)
+            ->post(route('rm.rawat-jalan.reviews.store', $encounter), [
+                'expected_version' => 0,
+                'source_fingerprint' => $snapshot['source_fingerprint'],
+            ])
+            ->assertStatus(422);
+        $this->assertDatabaseCount('outpatient_rm_completeness_reviews', 0);
+        $this->assertSame(Encounter::STATUS_CANCELLED, $encounter->fresh()->status);
+    }
+
     public function test_review_save_requires_concurrency_contract_and_legacy_close_bypass_is_absent(): void
     {
         [$encounter] = $this->encounterAndActor(RoleCapabilityMatrix::ROLE_NURSE);
@@ -442,7 +586,7 @@ class StructuredOutpatientDocumentationTest extends TestCase
         });
         $this->actingAs($rmik)->get(route('rm.rawat-jalan.index'))->assertOk();
 
-        $this->assertLessThanOrEqual(12, $queryCount, 'RM index issued per-encounter completeness queries.');
+        $this->assertLessThanOrEqual(13, $queryCount, 'RM index issued per-encounter completeness queries.');
     }
 
     /** @return array{Encounter, User} */
@@ -481,5 +625,15 @@ class StructuredOutpatientDocumentationTest extends TestCase
         $user->roles()->sync([$role->id]);
 
         return $user;
+    }
+
+    private function assertLogicException(callable $operation, string $label): void
+    {
+        try {
+            $operation();
+            $this->fail("Expected LogicException for {$label}.");
+        } catch (LogicException $exception) {
+            $this->assertNotSame('', $exception->getMessage(), $label);
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature\Simulation;
 
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
+use App\Models\InpatientClinicalDocument;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
 use App\Models\OutpatientClinicalDocument;
@@ -11,6 +12,7 @@ use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Inpatient\InpatientLocationMutationScope;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -99,10 +101,11 @@ class SyntheticDataBoundaryTest extends TestCase
         $this->actingAs($registrar)
             ->get(route('home'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('counts.kunjungan_hari_ini', 0)
-                ->where('counts.pasien_baru_hari_ini', 0)
-                ->where('counts.in_examination', 0)
-                ->where('counts.ready_for_rm', 0));
+                ->where('encounters.available', true)
+                ->where('encounters.totals.rawat_jalan', 0)
+                ->where('encounters.totals.igd', 0)
+                ->where('encounters.totals.rawat_inap', 0)
+                ->where('encounters.read_error', null));
 
         foreach ([
             'pendaftaran.rawat-jalan.index',
@@ -140,7 +143,7 @@ class SyntheticDataBoundaryTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->has('encounters', 0));
     }
 
-    public function test_route_binding_refuses_non_synthetic_encounters_and_lab_orders_before_mutation(): void
+    public function test_route_binding_refuses_non_synthetic_records_and_retired_lab_writes_never_mutate(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
@@ -182,7 +185,7 @@ class SyntheticDataBoundaryTest extends TestCase
             ->post(route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter), [
                 'test_code' => 'HB',
             ])
-            ->assertNotFound();
+            ->assertGone();
         $this->actingAs($registrar)
             ->get(route('pendaftaran.kunjungan.cetak', $encounter))
             ->assertNotFound();
@@ -205,17 +208,19 @@ class SyntheticDataBoundaryTest extends TestCase
             ->get(route('pemeriksaan.rawat-inap.show', $inpatientEncounter))
             ->assertNotFound();
         $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $inpatientEncounter), [
-                'entry_type' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                'body' => 'Must not be stored',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$inpatientEncounter, InpatientClinicalDocument::TYPE_MEDICAL_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'non-synthetic-ri-0001',
+                'fields' => [],
             ])
-            ->assertNotFound();
+            ->assertStatus(422);
         $this->actingAs($nurse)
             ->post(route('pemeriksaan.laboratorium.results.store', $order), [
                 'result_text' => 'Must not be stored',
                 'status' => LabDiagnosticResult::STATUS_FINAL,
             ])
-            ->assertNotFound();
+            ->assertGone();
 
         $this->assertDatabaseCount('clinical_entries', 0);
         $this->assertDatabaseCount('outpatient_clinical_documents', 0);
@@ -231,12 +236,12 @@ class SyntheticDataBoundaryTest extends TestCase
      */
     private function nonSyntheticEncounter(Patient $patient, User $registrar, array $attributes): Encounter
     {
-        return Encounter::factory()->create([
+        return InpatientLocationMutationScope::run(fn (): Encounter => Encounter::factory()->create([
             'patient_id' => $patient->id,
             'registered_by_user_id' => $registrar->id,
             'registered_at' => now(),
             ...$attributes,
-        ]);
+        ]));
     }
 
     private function userWithRole(string $roleSlug): User

@@ -7,10 +7,16 @@ use App\Models\ClinicalEntry;
 use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;
+use App\Models\InpatientBed;
+use App\Models\InpatientWard;
 use App\Models\Patient;
 use App\Models\User;
 use App\Models\WilayahProvince;
 use App\Models\WilayahVillage;
+use App\Support\Inpatient\CanonicalInpatientBedOperationLockCoordinator;
+use App\Support\Inpatient\InpatientBedTransferService;
+use App\Support\Inpatient\InpatientLocationMutationScope;
+use App\Support\Inpatient\InpatientMasterService;
 use App\Support\Registration\DailyQueueAllocator;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
@@ -169,8 +175,6 @@ class TeachingCensusSeeder extends Seeder
                         $physician,
                         $blueprint['status'],
                         $today->copy()->subDays($blueprint['days_ago']),
-                        $ward['name'],
-                        $ward['class'],
                         $bed,
                         $index,
                     );
@@ -353,28 +357,30 @@ class TeachingCensusSeeder extends Seeder
         $registeredAt = $visitDate->copy()->setTime(7 + ($index % 8), ($index * 3) % 60);
         $queue = $this->queueAssignment($marker, $registeredAt);
 
-        $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
-            ['booking_code' => $marker],
-            [
-                'patient_id' => $patient->id,
-                'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
-                'status' => $status,
-                'clinic_name' => $clinic->name,
-                'clinic_id' => $clinic->id,
-                'doctor_id' => $doctor?->id,
-                'clinic_schedule_id' => $schedule?->id,
-                'doctor_name' => $doctor?->name,
-                'schedule_label' => $schedule?->label,
-                'visit_date' => $visitDate,
-                'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
-                'payer_type' => $index % 3 === 0 ? Encounter::PAYER_BPJS : Encounter::PAYER_UMUM,
-                'insurance_number' => $index % 3 === 0 ? 'SYNTH-BPJS-'.sprintf('%04d', $index + 1) : null,
-                'queue_date' => $queue['queue_date'],
-                'queue_number' => $queue['queue_number'],
-                'registered_at' => $registeredAt,
-                'registered_by_user_id' => $registrar->id,
-                'chief_complaint' => 'Keluhan sintesis untuk uji desktop pendaftaran/pemeriksaan.',
-            ],
+        $encounter = InpatientLocationMutationScope::run(
+            fn (): Encounter => Encounter::query()->syntheticOnly()->updateOrCreate(
+                ['booking_code' => $marker],
+                [
+                    'patient_id' => $patient->id,
+                    'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+                    'status' => $status,
+                    'clinic_name' => $clinic->name,
+                    'clinic_id' => $clinic->id,
+                    'doctor_id' => $doctor?->id,
+                    'clinic_schedule_id' => $schedule?->id,
+                    'doctor_name' => $doctor?->name,
+                    'schedule_label' => $schedule?->label,
+                    'visit_date' => $visitDate,
+                    'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
+                    'payer_type' => $index % 3 === 0 ? Encounter::PAYER_BPJS : Encounter::PAYER_UMUM,
+                    'insurance_number' => $index % 3 === 0 ? 'SYNTH-BPJS-'.sprintf('%04d', $index + 1) : null,
+                    'queue_date' => $queue['queue_date'],
+                    'queue_number' => $queue['queue_number'],
+                    'registered_at' => $registeredAt,
+                    'registered_by_user_id' => $registrar->id,
+                    'chief_complaint' => 'Keluhan sintesis untuk uji desktop pendaftaran/pemeriksaan.',
+                ],
+            ),
         );
 
         $this->seedNotesIfNeeded($encounter, $nurse, $physician, $status);
@@ -435,23 +441,24 @@ class TeachingCensusSeeder extends Seeder
         User $physician,
         string $status,
         Carbon $visitDate,
-        string $wardName,
-        string $wardClass,
         string $bedCode,
         int $index,
     ): void {
         $marker = 'SYNTH-ENC-RI-'.sprintf('%03d', $index + 1);
         $this->assertSyntheticEncounterMarker($marker);
+        $candidate = InpatientBed::query()->with('ward')->where('code', $bedCode)->firstOrFail();
+        if ($candidate->state !== InpatientBed::STATE_ACTIVE
+            || $candidate->ward->state !== InpatientWard::STATE_ACTIVE) {
+            throw new RuntimeException('Teaching census refused an inactive inpatient placement master.');
+        }
         $registeredAt = $visitDate->copy()->setTime(10, ($index * 7) % 60);
         $queue = $this->queueAssignment($marker, $registeredAt);
 
         // Soft dual-book: skip creating a second OPEN stay on the same bed.
         $openConflict = Encounter::query()
             ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
-            ->where('ward_name', $wardName)
-            ->where('ward_class', $wardClass)
-            ->where('bed_code', $bedCode)
-            ->where('status', '!=', Encounter::STATUS_CLOSED)
+            ->where('inpatient_bed_id', $candidate->id)
+            ->whereIn('status', Encounter::BED_OCCUPYING_STATUSES)
             ->where('booking_code', '!=', $marker)
             ->exists();
 
@@ -459,28 +466,58 @@ class TeachingCensusSeeder extends Seeder
             $status = Encounter::STATUS_CLOSED;
         }
 
-        $encounter = Encounter::query()->syntheticOnly()->updateOrCreate(
-            ['booking_code' => $marker],
-            [
-                'patient_id' => $patient->id,
-                'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                'status' => $status,
-                'clinic_name' => $wardName,
-                'visit_date' => $visitDate,
-                'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
-                'payer_type' => Encounter::PAYER_BPJS,
-                'insurance_number' => 'SYNTH-RI-BPJS-'.sprintf('%04d', $index + 1),
-                'queue_date' => $queue['queue_date'],
-                'queue_number' => $queue['queue_number'],
-                'registered_at' => $registeredAt,
-                'registered_by_user_id' => $registrar->id,
-                'chief_complaint' => 'Rawat inap sintesis — observasi pengajaran.',
-                'ward_name' => $wardName,
-                'ward_class' => $wardClass,
-                'bed_code' => $bedCode,
-                'continue_from' => $index % 2 === 0 ? Encounter::CONTINUE_LANGSUNG : Encounter::CONTINUE_DARI_IGD,
-            ],
+        $existing = Encounter::query()->syntheticOnly()->where('booking_code', $marker)->first();
+        $alreadyOwnsTarget = $existing instanceof Encounter
+            && $existing->inpatient_bed_id === $candidate->id
+            && in_array($existing->status, Encounter::BED_OCCUPYING_STATUSES, true);
+        if (in_array($status, Encounter::BED_OCCUPYING_STATUSES, true)) {
+            app(CanonicalInpatientBedOperationLockCoordinator::class)
+                ->lockPatientClaimMutexes([(int) $patient->id]);
+        }
+        if (in_array($status, Encounter::BED_OCCUPYING_STATUSES, true) && ! $alreadyOwnsTarget) {
+            $managedBed = app(InpatientMasterService::class)->resolveActiveBedForAdmission($candidate->public_id);
+        } else {
+            $managedBed = $candidate;
+        }
+        $wardName = $managedBed->ward->display_name;
+        $wardClass = $managedBed->service_class;
+        $bedCode = $managedBed->code;
+
+        $encounter = InpatientLocationMutationScope::run(
+            fn (): Encounter => Encounter::query()->syntheticOnly()->updateOrCreate(
+                ['booking_code' => $marker],
+                [
+                    'patient_id' => $patient->id,
+                    'care_setting' => Encounter::CARE_SETTING_INPATIENT,
+                    'status' => $status,
+                    'clinic_name' => $wardName,
+                    'visit_date' => $visitDate,
+                    'admission_mode' => Encounter::ADMISSION_DATANG_SENDIRI,
+                    'payer_type' => Encounter::PAYER_BPJS,
+                    'insurance_number' => 'SYNTH-RI-BPJS-'.sprintf('%04d', $index + 1),
+                    'queue_date' => $queue['queue_date'],
+                    'queue_number' => $queue['queue_number'],
+                    'registered_at' => $registeredAt,
+                    'registered_by_user_id' => $registrar->id,
+                    'chief_complaint' => 'Rawat inap sintesis — observasi pengajaran.',
+                    'ward_name' => $wardName,
+                    'ward_class' => $wardClass,
+                    'bed_code' => $bedCode,
+                    'inpatient_bed_id' => $managedBed->id,
+                    'continue_from' => $index % 2 === 0 ? Encounter::CONTINUE_LANGSUNG : Encounter::CONTINUE_DARI_IGD,
+                ],
+            ),
         );
+
+        if ($encounter->wasRecentlyCreated) {
+            app(InpatientBedTransferService::class)->recordAdmission(
+                $encounter,
+                $managedBed->ward,
+                $managedBed,
+                $registrar,
+                null,
+            );
+        }
 
         $this->seedNotesIfNeeded($encounter, $nurse, $physician, $status);
     }

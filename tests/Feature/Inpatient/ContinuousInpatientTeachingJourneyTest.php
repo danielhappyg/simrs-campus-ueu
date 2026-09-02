@@ -2,14 +2,17 @@
 
 namespace Tests\Feature\Inpatient;
 
-use App\Models\ClinicalEntry;
 use App\Models\Encounter;
+use App\Models\InpatientBed;
+use App\Models\InpatientClinicalDocument;
+use App\Models\InpatientWard;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Inpatient\InpatientMasterService;
 use Database\Seeders\InpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,11 +23,24 @@ class ContinuousInpatientTeachingJourneyTest extends TestCase
 {
     use RefreshDatabase;
 
+    private InpatientBed $managedBed;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->seed(RbacSeeder::class);
+        $masterActor = User::factory()->create(['is_system_administrator' => true]);
+        $service = app(InpatientMasterService::class);
+        $ward = $service->createWard($masterActor, 'RI-MELATI', 'Melati', InpatientMasterService::REASON_INITIAL_SETUP, 'journey-ward-0001', null)->master;
+        if (! $ward instanceof InpatientWard) {
+            throw new \LogicException('Expected inpatient ward result.');
+        }
+        $bed = $service->createBed($masterActor, $ward->public_id, 'A-01', 'Tempat Tidur A-01', 'Ruang Melati', 'Kelas 1', InpatientMasterService::REASON_INITIAL_SETUP, 'journey-bed-a01-0001', null)->master;
+        if (! $bed instanceof InpatientBed) {
+            throw new \LogicException('Expected inpatient bed result.');
+        }
+        $this->managedBed = $bed;
     }
 
     public function test_distinct_actors_complete_the_current_synthetic_inpatient_scaffold_through_public_routes(): void
@@ -108,52 +124,74 @@ class ContinuousInpatientTeachingJourneyTest extends TestCase
                 ->where('encounters.0.bed_code', $ward['beds'][0]));
 
         $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                'body' => 'Asesmen awal keperawatan rawat inap untuk skenario sintetis.',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'journey-nurse-draft-0001',
+                'fields' => [
+                    'nursing_observation' => 'Pasien sadar dan stabil.',
+                    'nursing_intervention' => 'Pemantauan tanda klinis.',
+                    'nursing_evaluation' => 'Respons baik.',
+                ],
             ])
             ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter));
+        $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);
 
-        $nursingEntry = ClinicalEntry::query()
-            ->where('encounter_id', $encounter->id)
-            ->where('entry_type', ClinicalEntry::TYPE_NURSING_INTAKE)
-            ->sole();
-        $this->assertSame($nurse->id, $nursingEntry->author_user_id);
-        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()->status);
-        $this->assertAttributedAudit('clinical.note.write', $nurse, 'SUCCESS', null, $encounter->public_id);
-
-        $entryCountBeforeWrongRole = ClinicalEntry::query()->count();
         $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                'body' => 'Percobaan catatan medis oleh peran yang tidak berwenang.',
+            ->post(route('pemeriksaan.rawat-inap.documents.finalize', [$encounter, InpatientClinicalDocument::TYPE_NURSING_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 1,
+                'idempotency_key' => 'journey-nurse-final-0001',
+            ])->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter));
+
+        $nursingDocument = InpatientClinicalDocument::query()->where('document_type', InpatientClinicalDocument::TYPE_NURSING_DAILY)->sole();
+        $this->assertSame($nurse->id, $nursingDocument->author_user_id);
+        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()->status);
+        $this->assertAttributedAudit('clinical.inpatient.nursing.finalize', $nurse, 'SUCCESS', null, $nursingDocument->public_id);
+
+        $documentCountBeforeWrongRole = InpatientClinicalDocument::query()->count();
+        $this->actingAs($nurse)
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_MEDICAL_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'journey-wrong-role-0001',
+                'fields' => [],
             ])
             ->assertForbidden();
 
-        $this->assertSame($entryCountBeforeWrongRole, ClinicalEntry::query()->count());
+        $this->assertSame($documentCountBeforeWrongRole, InpatientClinicalDocument::query()->count());
         $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()->status);
         $this->assertAttributedAudit(
             'authorization.denied',
             $nurse,
             'DENIED',
             'authorization_check_failed',
-            'pemeriksaan.rawat-inap.entries.store',
+            'pemeriksaan.rawat-inap.documents.draft',
         );
 
         $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-inap.entries.store', $encounter), [
-                'entry_type' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                'body' => 'Asesmen medis awal rawat inap untuk skenario sintetis.',
+            ->post(route('pemeriksaan.rawat-inap.documents.draft', [$encounter, InpatientClinicalDocument::TYPE_MEDICAL_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'idempotency_key' => 'journey-medical-draft-0001',
+                'fields' => [
+                    'subjective' => 'Keluhan membaik.', 'objective' => 'Kondisi stabil.',
+                    'assessment' => 'Observasi lanjutan.', 'plan' => 'Lanjutkan pemantauan.',
+                ],
             ])
             ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter));
 
-        $medicalEntry = ClinicalEntry::query()
-            ->where('encounter_id', $encounter->id)
-            ->where('entry_type', ClinicalEntry::TYPE_MEDICAL_ASSESSMENT)
-            ->sole();
-        $this->assertSame($physician->id, $medicalEntry->author_user_id);
-        $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
-        $this->assertAttributedAudit('clinical.note.write', $physician, 'SUCCESS', null, $encounter->public_id);
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-inap.documents.finalize', [$encounter, InpatientClinicalDocument::TYPE_MEDICAL_DAILY]), [
+                'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 1,
+                'idempotency_key' => 'journey-medical-final-0001',
+            ])->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter));
+
+        $medicalDocument = InpatientClinicalDocument::query()->where('document_type', InpatientClinicalDocument::TYPE_MEDICAL_DAILY)->sole();
+        $this->assertSame($physician->id, $medicalDocument->author_user_id);
+        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()->status);
+        $this->assertAttributedAudit('clinical.inpatient.medical.finalize', $physician, 'SUCCESS', null, $medicalDocument->public_id);
 
         $this->actingAs($physician)
             ->get(route('pemeriksaan.rawat-inap.index'))
@@ -162,7 +200,7 @@ class ContinuousInpatientTeachingJourneyTest extends TestCase
                 ->where('variant', 'rawat-inap')
                 ->has('encounters', 1)
                 ->where('encounters.0.public_id', $encounter->public_id)
-                ->where('encounters.0.status', Encounter::STATUS_READY_FOR_RM)
+                ->where('encounters.0.status', Encounter::STATUS_IN_EXAMINATION)
                 ->where('encounters.0.patient.full_name', $patient->full_name));
 
         $this->actingAs($physician)
@@ -171,14 +209,14 @@ class ContinuousInpatientTeachingJourneyTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('variant', 'rawat-inap')
                 ->where('encounter.public_id', $encounter->public_id)
-                ->where('encounter.status', Encounter::STATUS_READY_FOR_RM)
-                ->has('encounter.entries', 2)
-                ->where('encounter.entries.0.entry_type', ClinicalEntry::TYPE_NURSING_INTAKE)
-                ->where('encounter.entries.0.author_name', $nurse->name)
-                ->where('encounter.entries.1.entry_type', ClinicalEntry::TYPE_MEDICAL_ASSESSMENT)
-                ->where('encounter.entries.1.author_name', $physician->name));
+                ->where('encounter.status', Encounter::STATUS_IN_EXAMINATION)
+                ->has('documentation.documents', 2)
+                ->where('documentation.documents.0.author_name', $physician->name)
+                ->where('documentation.documents.1.author_name', $nurse->name)
+                ->has('documentation.versions', 4)
+                ->has('legacyEntries', 0));
 
-        $this->assertSame(3, AuditEvent::query()->where('outcome', 'SUCCESS')->count());
+        $this->assertSame(7, AuditEvent::query()->where('outcome', 'SUCCESS')->count());
         $this->assertSame(1, AuditEvent::query()->where('outcome', 'DENIED')->count());
     }
 
@@ -198,6 +236,7 @@ class ContinuousInpatientTeachingJourneyTest extends TestCase
             'ward_name' => $ward['name'],
             'ward_class' => $ward['class'],
             'bed_code' => $ward['beds'][0],
+            'bed_public_id' => $this->managedBed->public_id,
             'payer_type' => Encounter::PAYER_UMUM,
             'continue_from' => Encounter::CONTINUE_LANGSUNG,
             'chief_complaint' => 'Demam dan mual pada skenario pengajaran sintetis.',

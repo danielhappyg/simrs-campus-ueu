@@ -53,6 +53,12 @@ class HistoricalWorkflowArtifactBoundaryTest < Minitest::Test
     ]
   }.freeze
 
+  AUTHORIZED_CURRENT_CODING_ROUTES = %w[
+    /pemeriksaan/rawat-inap/{encounter}/discharge-coding-source/draft
+    /pemeriksaan/rawat-inap/{encounter}/discharge-coding-source/finalize
+    /rm/rawat-inap/{encounter}/coding/draft
+  ].freeze
+
   def documents
     @documents ||= DOCUMENTS.to_h do |relative_path|
       [relative_path, File.read(ROOT.join(relative_path))]
@@ -107,7 +113,16 @@ class HistoricalWorkflowArtifactBoundaryTest < Minitest::Test
 
   def test_current_route_surface_has_no_historical_coding_or_eclaim_routes
     routes = File.read(ROOT.join('routes/web.php'))
+    route_paths = routes.scan(/Route::(?:get|post|put|patch|delete)\(\s*'([^']+)'/).flatten
+    coding_routes = route_paths.grep(/coding/i)
 
-    refute_match(/e[-_]?claims?|coding|terminology/i, routes)
+    assert_equal AUTHORIZED_CURRENT_CODING_ROUTES.sort, coding_routes.sort
+    route_paths.each do |path|
+      refute_match(/e[-_]?claims?|terminology/i, path, path)
+    end
+
+    %w[/eclaim /e-claim /e_claim /coding /terminology].each do |historical_path|
+      refute_includes AUTHORIZED_CURRENT_CODING_ROUTES, historical_path
+    end
   end
 end

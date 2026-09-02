@@ -9,6 +9,7 @@ use App\Models\LabServiceRequest;
 use App\Models\OutpatientClinicalDocument;
 use App\Models\OutpatientRmCompletenessReview;
 use App\Support\Authorization\Capability;
+use App\Support\Clinical\OutpatientAmendmentProjection;
 use App\Support\Clinical\OutpatientRmCompletenessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,10 @@ use Inertia\Response;
 
 class OutpatientRmController extends Controller
 {
-    public function __construct(private readonly OutpatientRmCompletenessService $completenessService) {}
+    public function __construct(
+        private readonly OutpatientRmCompletenessService $completenessService,
+        private readonly OutpatientAmendmentProjection $amendmentProjection,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -44,6 +48,10 @@ class OutpatientRmController extends Controller
                     'outpatientClinicalDocuments',
                     'outpatientRmCompletenessReviews.items',
                     'labServiceRequests',
+                    'laboratoryOrders.specimenAttempts',
+                    'laboratoryOrders.resultVersions.acknowledgement',
+                    'radiologyOrders.reportVersions.acknowledgement',
+                    'pharmacyPrescriptions.preparations.handover',
                 ])
                 ->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)
                 ->where(function ($builder): void {
@@ -163,7 +171,16 @@ class OutpatientRmController extends Controller
             'outpatientRmCompletenessReviews.items',
             'outpatientRmCompletenessReviews.reviewedBy',
             'outpatientRmCompletenessReviews.signedOffBy',
+            'outpatientPostClosureAmendmentRequests.requester',
+            'outpatientPostClosureAmendmentRequests.decidedBy',
+            'outpatientPostClosureAmendmentRequests.originalDocument',
+            'outpatientPostClosureAmendmentRequests.addendum.author',
+            'outpatientPostClosureAmendmentRequests.addendum.finalizedBy',
+            'outpatientPostClosureAmendmentRequests.renewedReviews.items',
+            'outpatientPostClosureAmendmentRequests.renewedReviews.reviewedBy',
+            'outpatientPostClosureAmendmentRequests.renewedReviews.signedOffBy',
             'labServiceRequests',
+            'pharmacyPrescriptions.preparations.handover',
         ]);
         /** @var OutpatientRmCompletenessReview|null $review */
         $review = $encounter->outpatientRmCompletenessReviews->sortByDesc('version')->first();
@@ -226,13 +243,17 @@ class OutpatientRmController extends Controller
             'review' => $reviewProjection,
             'blockers' => $blockers,
             'permissions' => [
+                ...$this->amendmentProjection->topPermissions($encounter, $user),
                 'can_save_review' => $isReviewable && $user->canCapability(Capability::RMIK_REVIEW),
                 'can_signoff' => $isReviewable && $user->canCapability(Capability::RMIK_COMPLETENESS_SIGNOFF),
             ],
             'actions' => [
+                ...$this->amendmentProjection->topActions($encounter, $user),
                 'save_review_url' => route('rm.rawat-jalan.reviews.store', $encounter),
                 'signoff_url' => route('rm.rawat-jalan.signoff', $encounter),
             ],
+            'amendmentReasonOptions' => $this->amendmentProjection->reasonOptions(),
+            'amendments' => $this->amendmentProjection->amendments($encounter, $user),
         ]);
     }
 

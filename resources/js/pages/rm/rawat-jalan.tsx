@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { CareSettingSubnav } from '@/components/care-setting-subnav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -96,6 +97,16 @@ export default function RmRawatJalan({
             <Head title="RM Rawat Jalan" />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
+                <CareSettingSubnav
+                    items={[
+                        {
+                            href: '/rm/rawat-jalan',
+                            label: 'Rawat Jalan',
+                            active: true,
+                        },
+                        { href: '/rm/rawat-inap', label: 'Rawat Inap' },
+                    ]}
+                />
                 <header>
                     <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
                         RM · Rawat Jalan

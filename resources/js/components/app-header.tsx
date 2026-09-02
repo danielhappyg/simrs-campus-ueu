@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
@@ -73,12 +73,15 @@ function SoonModuleLabel({ label }: { label: string }) {
 export function AppHeader() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const closeMobile = () => setMobileOpen(false);
+    const capabilities =
+        (usePage().props.auth as { capabilities?: string[] }).capabilities ??
+        [];
 
     const liveModules = SIMRS_MODULE_CATEGORIES.filter((category) =>
-        isLiveModule(category.slug),
+        isLiveModule(category.slug, capabilities),
     );
     const soonModules = SIMRS_MODULE_CATEGORIES.filter(
-        (category) => !isLiveModule(category.slug),
+        (category) => !isLiveModule(category.slug, capabilities),
     );
 
     return (
@@ -106,8 +109,8 @@ export function AppHeader() {
                                     Navigasi utama
                                 </SheetTitle>
                                 <SheetDescription className="text-sky-100/80">
-                                    Modul aktif: Pendaftaran, Pemeriksaan, RM.
-                                    Lainnya ditandai Soon (belum bisa dibuka).
+                                    Modul aktif mengikuti izin akun Anda. Modul
+                                    lainnya ditandai Soon (belum bisa dibuka).
                                 </SheetDescription>
                             </SheetHeader>
                             <nav
@@ -120,7 +123,10 @@ export function AppHeader() {
                                 {liveModules.map((category) => (
                                     <NavLink
                                         key={category.slug}
-                                        href={moduleHref(category.slug)}
+                                        href={moduleHref(
+                                            category.slug,
+                                            capabilities,
+                                        )}
                                         onNavigate={closeMobile}
                                     >
                                         {category.label}
@@ -156,7 +162,7 @@ export function AppHeader() {
                     {liveModules.map((category) => (
                         <NavLink
                             key={category.slug}
-                            href={moduleHref(category.slug)}
+                            href={moduleHref(category.slug, capabilities)}
                         >
                             {category.label}
                         </NavLink>

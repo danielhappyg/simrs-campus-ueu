@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
-use App\Models\LabServiceRequest;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\User;
 use App\Support\Authorization\Capability;
-use App\Support\Clinical\LabTestCatalog;
+use App\Support\Clinical\LegacyLaboratoryCompatibilityProjection;
+use App\Support\Clinical\OutpatientAmendmentProjection;
 use App\Support\Clinical\OutpatientDocumentationDefinition;
 use App\Support\Clinical\OutpatientDocumentationService;
-use App\Support\Clinical\OutpatientLabLifecycle;
 use App\Support\Http\InertiaPagination;
+use App\Support\Laboratory\LaboratoryProjection;
+use App\Support\Pharmacy\PharmacyProjection;
+use App\Support\Radiology\RadiologyProjection;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,8 +29,12 @@ use Inertia\Response;
 class OutpatientExaminationController extends Controller
 {
     public function __construct(
-        private readonly OutpatientLabLifecycle $lifecycle,
         private readonly OutpatientDocumentationService $documentationService,
+        private readonly OutpatientAmendmentProjection $amendmentProjection,
+        private readonly RadiologyProjection $radiologyProjection,
+        private readonly LaboratoryProjection $laboratoryProjection,
+        private readonly PharmacyProjection $pharmacyProjection,
+        private readonly LegacyLaboratoryCompatibilityProjection $legacyLaboratoryProjection,
     ) {}
 
     public function index(Request $request): Response|RedirectResponse
@@ -151,13 +158,20 @@ class OutpatientExaminationController extends Controller
             'outpatientClinicalDocuments.author',
             'outpatientClinicalDocuments.finalizedBy',
             'outpatientClinicalDocuments.versions.actor',
-            'labServiceRequests.requestedBy',
-            'labServiceRequests.result.enteredBy',
+            'outpatientRmCompletenessReviews',
+            'outpatientPostClosureAmendmentRequests.requester',
+            'outpatientPostClosureAmendmentRequests.decidedBy',
+            'outpatientPostClosureAmendmentRequests.originalDocument',
+            'outpatientPostClosureAmendmentRequests.addendum.author',
+            'outpatientPostClosureAmendmentRequests.addendum.finalizedBy',
+            'outpatientPostClosureAmendmentRequests.renewedReviews.items',
+            'outpatientPostClosureAmendmentRequests.renewedReviews.reviewedBy',
+            'outpatientPostClosureAmendmentRequests.renewedReviews.signedOffBy',
         ]);
 
         $user = $request->user();
         assert($user !== null);
-        $canMutate = $encounter->status !== Encounter::STATUS_CLOSED;
+        $canMutate = $encounter->isActive();
 
         return Inertia::render('pemeriksaan/rawat-jalan/show', [
             'variant' => 'rawat-jalan',
@@ -180,26 +194,6 @@ class OutpatientExaminationController extends Controller
                     'sex' => $encounter->patient?->sex,
                     'nik' => $encounter->patient?->nik,
                 ],
-                'lab_orders' => $encounter->labServiceRequests
-                    ->sortByDesc('requested_at')
-                    ->values()
-                    ->map(fn (LabServiceRequest $order): array => [
-                        'public_id' => $order->public_id,
-                        'test_code' => $order->test_code,
-                        'test_label' => $order->test_label,
-                        'clinical_question' => $order->clinical_question,
-                        'status' => $order->status,
-                        'requested_at' => $order->requested_at->toIso8601String(),
-                        'requested_by_name' => $order->requestedBy?->name,
-                        'result' => $order->result ? [
-                            'public_id' => $order->result->public_id,
-                            'status' => $order->result->status,
-                            'result_text' => $order->result->result_text,
-                            'issued_at' => $order->result->issued_at->toIso8601String(),
-                            'entered_by_name' => $order->result->enteredBy?->name,
-                        ] : null,
-                    ])
-                    ->all(),
             ],
             'legacyEntries' => $encounter->clinicalEntries
                 ->sortBy('created_at')
@@ -229,6 +223,7 @@ class OutpatientExaminationController extends Controller
                 'versions' => $this->documentVersionProjections($encounter->outpatientClinicalDocuments),
             ],
             'permissions' => [
+                ...$this->amendmentProjection->topPermissions($encounter, $user),
                 'nursing' => [
                     'can_save_draft' => $canMutate && $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
                     'can_finalize' => $canMutate && $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
@@ -237,9 +232,10 @@ class OutpatientExaminationController extends Controller
                     'can_save_draft' => $canMutate && $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
                     'can_finalize' => $canMutate && $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
                 ],
-                'can_create_lab_order' => $canMutate && $user->canCapability(Capability::CLINICAL_ORDER_CREATE),
+                'can_create_lab_order' => false,
             ],
             'actions' => [
+                ...$this->amendmentProjection->topActions($encounter, $user),
                 'nursing' => [
                     'save_draft_url' => route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]),
                     'finalize_url' => route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT]),
@@ -248,10 +244,26 @@ class OutpatientExaminationController extends Controller
                     'save_draft_url' => route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
                     'finalize_url' => route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
                 ],
-                'store_lab_order_url' => route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter),
             ],
-            'labTestOptions' => LabTestCatalog::all(),
+            'amendmentReasonOptions' => $this->amendmentProjection->reasonOptions(),
+            'amendments' => $this->amendmentProjection->amendments($encounter, $user),
+            'labTestOptions' => [],
+            'radiology' => $this->radiologyProjection->encounter($encounter, $user),
+            'laboratory' => $this->laboratoryEncounter($encounter, $user),
+            'pharmacy' => $this->pharmacyProjection->encounter($encounter, $user),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function laboratoryEncounter(Encounter $encounter, User $actor): array
+    {
+        $projection = $this->laboratoryProjection->encounter($encounter, $actor);
+        $projection['orders'] = [
+            ...$projection['orders'],
+            ...$this->legacyLaboratoryProjection->encounter($encounter, $actor),
+        ];
+
+        return $projection;
     }
 
     public function saveDraft(Request $request, Encounter $encounter, string $documentType): RedirectResponse
@@ -262,33 +274,6 @@ class OutpatientExaminationController extends Controller
     public function finalize(Request $request, Encounter $encounter, string $documentType): RedirectResponse
     {
         return $this->saveDocument($request, $encounter, $documentType, true);
-    }
-
-    public function storeLabOrder(Request $request, Encounter $encounter): RedirectResponse
-    {
-        Gate::authorize(Capability::CLINICAL_ORDER_CREATE);
-
-        $validated = $request->validate([
-            'test_code' => ['required', Rule::in(LabTestCatalog::codes())],
-            'clinical_question' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        $test = LabTestCatalog::find($validated['test_code']);
-        assert($test !== null);
-
-        $user = $request->user();
-        assert($user !== null);
-
-        $this->lifecycle->createLabOrder(
-            encounter: $encounter,
-            actor: $user,
-            test: $test,
-            clinicalQuestion: $validated['clinical_question'] ?? null,
-        );
-
-        return redirect()
-            ->route('pemeriksaan.rawat-jalan.show', $encounter)
-            ->with('success', 'Order lab disimpan.');
     }
 
     private function saveDocument(Request $request, Encounter $encounter, string $documentType, bool $finalize): RedirectResponse

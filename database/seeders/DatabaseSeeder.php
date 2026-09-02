@@ -30,6 +30,12 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(DemoActorsSeeder::class);
+        $this->call(EmergencyTriageVocabularySeeder::class);
+        $this->call(InpatientMastersSeeder::class);
+        $this->call(RadiologyMastersSeeder::class);
+        $this->call(LaboratoryMastersSeeder::class);
+        $this->call(PharmacyMastersSeeder::class);
+        $this->call(PharmacyStockSeeder::class);
         $this->call(TeachingCensusSeeder::class);
     }
 }

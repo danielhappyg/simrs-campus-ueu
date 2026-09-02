@@ -4,17 +4,18 @@ namespace App\Http\Controllers\Inpatient;
 
 use App\Http\Controllers\Controller;
 use App\Models\Encounter;
+use App\Models\InpatientBed;
 use App\Models\Patient;
 use App\Models\User;
-use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaAwareRules;
-use App\Support\Registration\DailyQueueAllocator;
-use App\Support\Registration\InpatientBedClaimGuard;
+use App\Support\Inpatient\InpatientAdmissionDenied;
+use App\Support\Inpatient\InpatientAdmissionService;
+use App\Support\Inpatient\InpatientMasterDenied;
+use App\Support\Inpatient\InpatientWardReadModel;
 use App\Support\Registration\InpatientBedUnavailable;
 use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
-use Database\Seeders\InpatientMastersSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,9 +29,8 @@ use Throwable;
 class InpatientRegistrationController extends Controller
 {
     public function __construct(
-        private readonly AuditRecorder $auditRecorder,
-        private readonly DailyQueueAllocator $dailyQueueAllocator,
-        private readonly InpatientBedClaimGuard $bedClaimGuard,
+        private readonly InpatientAdmissionService $admissionService,
+        private readonly InpatientWardReadModel $wardReadModel,
     ) {}
 
     public function index(Request $request): Response
@@ -47,7 +47,7 @@ class InpatientRegistrationController extends Controller
 
         $searchResults = [];
         $todaysEncounters = [];
-        $wards = InpatientMastersSeeder::wardsCatalogue();
+        $wards = $this->wardReadModel->registrationCatalogue();
 
         try {
             if ($search !== '') {
@@ -68,7 +68,7 @@ class InpatientRegistrationController extends Controller
 
             $encounterQuery = Encounter::query()
                 ->syntheticOnly()
-                ->with('patient')
+                ->with(['patient', 'cancellation.cancelledBy'])
                 ->where('care_setting', Encounter::CARE_SETTING_INPATIENT);
 
             if ($ward !== '') {
@@ -116,7 +116,7 @@ class InpatientRegistrationController extends Controller
             'searchResults' => $searchResults,
             'todaysEncounters' => $todaysEncounters,
             'wards' => $wards,
-            'wardOptions' => InpatientMastersSeeder::wardFilterOptions(),
+            'wardOptions' => $this->wardReadModel->filterOptions(),
             'sexOptions' => TeachingVocabulary::options(TeachingVocabulary::SEX),
             'payerOptions' => TeachingVocabulary::options(TeachingVocabulary::PAYER),
             'continueFromOptions' => TeachingVocabulary::options(TeachingVocabulary::CONTINUE_FROM),
@@ -130,6 +130,7 @@ class InpatientRegistrationController extends Controller
             ],
             'canRegister' => $request->user()?->canCapability(Capability::PATIENT_REGISTER) ?? false,
             'canOpen' => $request->user()?->canCapability(Capability::ENCOUNTER_OPEN) ?? false,
+            'canCancel' => $request->user()?->canCapability(Capability::ENCOUNTER_CANCEL) ?? false,
         ]);
     }
 
@@ -160,9 +161,10 @@ class InpatientRegistrationController extends Controller
             'medical_record_number' => ['nullable', 'string', 'max:64', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
             'nik' => ['nullable', 'string', 'max:16'],
             'phone' => ['nullable', 'string', 'max:32'],
-            'ward_name' => ['required', 'string', 'max:120'],
-            'ward_class' => ['required', 'string', 'max:120'],
-            'bed_code' => ['required', 'string', 'max:32'],
+            'bed_public_id' => ['required', 'string', 'size:26', 'regex:/\A[0-9A-HJKMNP-TV-Z]{26}\z/i', SchemaAwareRules::exists(InpatientBed::class, 'public_id')],
+            'ward_name' => ['nullable', 'string', 'max:120'],
+            'ward_class' => ['nullable', 'string', 'max:120'],
+            'bed_code' => ['nullable', 'string', 'max:64'],
             'payer_type' => ['required', Rule::in(Encounter::PAYER_VALUES)],
             'insurance_number' => ['nullable', 'string', 'max:64'],
             'continue_from' => ['required', Rule::in(Encounter::CONTINUE_FROM_VALUES)],
@@ -173,12 +175,6 @@ class InpatientRegistrationController extends Controller
         if (array_key_exists('is_synthetic', $validated) && $validated['is_synthetic'] === false) {
             abort(422, 'Hanya pasien sintetis yang diizinkan.');
         }
-
-        $this->assertValidWardSelection(
-            $validated['ward_name'],
-            $validated['ward_class'],
-            $validated['bed_code'],
-        );
 
         $user = $request->user();
         if (! $user instanceof User) {
@@ -215,58 +211,35 @@ class InpatientRegistrationController extends Controller
                     ]);
                 }
 
-                $registeredAt = now((string) config('app.timezone', 'Asia/Jakarta'));
-                $this->bedClaimGuard->assertAvailable($validated['bed_code']);
-                $queue = $this->dailyQueueAllocator->allocate($registeredAt);
-
-                $created = Encounter::query()->create([
-                    'patient_id' => $patient->id,
-                    'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                    'status' => Encounter::STATUS_REGISTERED,
-                    'clinic_name' => $validated['ward_name'],
-                    'ward_name' => $validated['ward_name'],
-                    'ward_class' => $validated['ward_class'],
-                    'bed_code' => $validated['bed_code'],
-                    'continue_from' => $validated['continue_from'],
-                    'visit_date' => $registeredAt->toDateString(),
-                    'payer_type' => $validated['payer_type'],
-                    'insurance_number' => $validated['insurance_number'] ?? null,
-                    'queue_date' => $queue->queueDate,
-                    'queue_number' => $queue->queueNumber,
-                    'registered_at' => $registeredAt,
-                    'registered_by_user_id' => $user->id,
-                    'chief_complaint' => $validated['chief_complaint'] ?? null,
-                ]);
-
-                $created->setRelation('patient', $patient);
-
-                $event = $this->auditRecorder->record(
-                    action: 'patient.register',
-                    resourceType: 'encounter',
-                    resourceId: $created->public_id,
+                return $this->admissionService->admitDirect(
+                    patient: $patient,
                     actor: $user,
-                    outcome: 'SUCCESS',
-                    metadata: [
-                        'care_setting' => Encounter::CARE_SETTING_INPATIENT,
-                        'patient_public_id' => $created->patient?->public_id,
-                        'ward_name' => $created->ward_name,
-                        'ward_class' => $created->ward_class,
-                        'bed_code' => $created->bed_code,
-                        'continue_from' => $created->continue_from,
-                        'payer_type' => $created->payer_type,
-                        'queue_date' => $created->queue_date,
-                        'queue_number' => $created->queue_number,
-                    ],
-                );
-
-                abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
-
-                return $created;
+                    bedPublicId: $validated['bed_public_id'],
+                    payerType: $validated['payer_type'],
+                    insuranceNumber: $validated['insurance_number'] ?? null,
+                    continueFrom: $validated['continue_from'],
+                    chiefComplaint: $validated['chief_complaint'] ?? null,
+                    requestCorrelationId: request()->attributes->get('request_id'),
+                )->encounter;
             }, 3);
         } catch (InpatientBedUnavailable $exception) {
             return redirect()
                 ->route('pendaftaran.rawat-inap.index')
                 ->withErrors(['bed_code' => $exception->getMessage()])
+                ->withInput();
+        } catch (InpatientMasterDenied $exception) {
+            return redirect()
+                ->route('pendaftaran.rawat-inap.index')
+                ->withErrors(['bed_public_id' => $exception->getMessage()])
+                ->withInput();
+        } catch (InpatientAdmissionDenied $exception) {
+            if ($exception->httpStatus >= 500) {
+                abort($exception->httpStatus, $exception->getMessage());
+            }
+
+            return redirect()
+                ->route('pendaftaran.rawat-inap.index')
+                ->withErrors(['patient_public_id' => $exception->getMessage()])
                 ->withInput();
         }
 
@@ -274,17 +247,6 @@ class InpatientRegistrationController extends Controller
             ->route('pendaftaran.rawat-inap.index')
             ->with('success', 'Pendaftaran rawat inap berhasil.')
             ->with('last_encounter_public_id', $encounter->public_id);
-    }
-
-    private function assertValidWardSelection(string $wardName, string $wardClass, string $bedCode): void
-    {
-        foreach (InpatientMastersSeeder::wardsCatalogue() as $ward) {
-            if ($ward['name'] === $wardName && $ward['class'] === $wardClass && in_array($bedCode, $ward['beds'], true)) {
-                return;
-            }
-        }
-
-        abort(422, 'Kombinasi bangsal, kelas, dan tempat tidur tidak valid.');
     }
 
     /**
@@ -342,11 +304,41 @@ class InpatientRegistrationController extends Controller
             'queue_number' => $encounter->queue_number,
             'registered_at' => $encounter->registered_at->toIso8601String(),
             'chief_complaint' => $encounter->chief_complaint,
+            'cancellation' => $this->cancellationSummary($encounter),
             'patient' => [
                 'public_id' => $patient?->public_id,
                 'medical_record_number' => $patient?->medical_record_number,
                 'full_name' => $patient?->full_name,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, string|null>|null
+     */
+    private function cancellationSummary(Encounter $encounter): ?array
+    {
+        if (! $encounter->relationLoaded('cancellation')) {
+            return null;
+        }
+
+        $cancellation = $encounter->getRelation('cancellation');
+        if ($cancellation === null) {
+            return null;
+        }
+
+        $cancelledAt = $cancellation->getAttribute('cancelled_at');
+        $cancelledBy = $cancellation->relationLoaded('cancelledBy')
+            ? $cancellation->getRelation('cancelledBy')
+            : null;
+
+        return [
+            'reason_code' => $cancellation->getAttribute('reason_code'),
+            'note' => $cancellation->getAttribute('note'),
+            'cancelled_at' => $cancelledAt instanceof \DateTimeInterface
+                ? $cancelledAt->format(DATE_ATOM)
+                : (is_string($cancelledAt) ? $cancelledAt : null),
+            'cancelled_by' => $cancelledBy?->getAttribute('name'),
         ];
     }
 }

@@ -6,6 +6,8 @@ Product owner: Daniel Happy Putra (DEC-001 confirmed for now); RMIK Department n
 
 The exact governance-v2 proposal and ADR-018 were adopted through [`G0_GOVERNANCE_V2_ADOPTION_DECISION.json`](G0_GOVERNANCE_V2_ADOPTION_DECISION.json). That decision authorizes local governance-v2 implementation only. It does not activate a consumer, decide a capability, authorize a slice, deploy an application, accept a hosted/domain result, close project G0, or establish G3 acceptance.
 
+The later [`G0_GOVERNANCE_V2_PROCESS_SIMPLIFICATION_DECISION_2026-08-30.json`](G0_GOVERNANCE_V2_PROCESS_SIMPLIFICATION_DECISION_2026-08-30.json) retires the proposed ADR-019 exact-wording reply requirement. Local engineering may proceed through bounded, testable slice records without waiting for that ceremony, while synthetic-data, no-secrets, no-live-integration, and no-premature-commit/push/deployment limits remain in force. ADR-019 and external trust provisioning remain unapproved and non-authoritative; the simplification does not activate a governance consumer or close G0/G3.
+
 As observed by the dated 2026-08-29 Wave 6 artifact, the canonical consumer pointer is absent, so the active governance resolution is `pointer_missing`. No candidate or implementation evidence is operative governance authority. That observation keeps every `governance_decision_pointer` null and both G0 and G3 `OPEN`; a later state change requires a separate authorized operation and a new dated observation.
 
 ## Purpose
@@ -26,8 +28,10 @@ Establish ownership, decision rights, evidence structure, environment boundaries
 | `G0_S0_INSTITUTIONAL_AUTHORITY_INTAKE_2026-08-26.md` | Fail-closed institutional choice and seven/eight-person authority-roster intake for S0 |
 | `G0_GOVERNANCE_V1_HISTORICAL_HASH_MANIFEST.json` | Exact closed hash inventory that preserves v1 artifacts and tests as immutable historical evidence |
 | `G0_GOVERNANCE_V2_ADOPTION_DECISION.json` | Immutable product-owner adoption record; authority is limited to local governance-v2 implementation |
+| `G0_GOVERNANCE_V2_PROCESS_SIMPLIFICATION_DECISION_2026-08-30.json` | Append-only product-owner direction retiring the ADR-019 exact-wording ceremony while preserving local engineering and publication boundaries |
 | `G0_GOVERNANCE_V2_CONTRACT.json` | Machine-readable closed governance-v2 states, rules, tiers, outcomes, and source bindings |
 | `G0_GOVERNANCE_V2_IMPLEMENTATION_BLUEPRINT_2026-08-28.md` | Ordered implementation waves and separate authority gates; not a capability or release decision |
+| `G0_BATCH_A_DECISION_READY_RECONCILIATION_2026-09-02.md` + `.json` | Exact 20-row dependency-root reconciliation with normalized evidence, proposed dispositions/targets, owner candidates, and normal plus denial/correction scenarios; decision-ready only, not approved or active |
 
 ## Historical interim demo-scaffolding checklist
 

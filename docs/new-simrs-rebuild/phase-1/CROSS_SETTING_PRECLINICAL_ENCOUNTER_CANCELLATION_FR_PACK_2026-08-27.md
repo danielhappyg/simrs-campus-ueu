@@ -1,6 +1,6 @@
 # Cross-setting pre-clinical encounter cancellation — FR and owner-decision pack
 
-**Status:** **PROPOSED NEW — owner decision required; no implementation approval**<br>
+**Status:** **LOCAL IMPLEMENTATION PRESENT — focused integration verification passing; domain/parity acceptance remains open**<br>
 **Date:** 2026-08-27<br>
 **Environment:** `APP_MODE=SIMULATION`; synthetic data only<br>
 **Primary parity capabilities:** `PAR-REG-001`, `PAR-REG-002`, `PAR-REG-003`<br>
@@ -22,15 +22,15 @@ REGISTERED + synthetic + no dependent fact
   -> active worklists exclude it; historical registers retain it
 ```
 
-This pack is not an approval and contains no implementation. Blank owner rows are not consent. Existing behavior—no cancellation route—remains authoritative until named authorities sign and the decision is incorporated into the governance registers.
+The product owner subsequently authorized continued local implementation within the synthetic-only, no-secret, no-live-integration, and no-premature-push/deploy boundary. That permits the bounded teaching implementation and local verification now present; it does not fill blank domain-owner rows, confer clinical/RMIK acceptance, establish Sahabat parity, close G0/G3, or authorize hosted migration/deployment. Blank owner rows are not consent.
 
 ## 2. Current evidence and unknown boundary
 
 | Current evidence | Proven | Not proven |
 | --- | --- | --- |
 | `Capability::ENCOUNTER_CANCEL` and role matrix | Registrar/admin are presently assigned a capability named `encounter.cancel`. | Eligibility, state transition, reason, separation of duty, or downstream effects. |
-| Current `Encounter` model | RJ/IGD/RI share `REGISTERED`, `IN_EXAMINATION`, `READY_FOR_RM`, and `CLOSED`. | `CANCELLED`, cancellation provenance, or vendor state vocabulary. |
-| Registration controllers | Synthetic encounter creation and success audit are atomic; queue high-water allocation is shared. | Cancellation, idempotency, denial audit, or queue/report unwind. |
+| Current `Encounter` model | RJ/IGD/RI share active states and now expose terminal `CANCELLED` with explicit active, terminal and bed-occupancy semantics. | Vendor state vocabulary or Sahabat equivalence. |
+| Cancellation implementation | One shared synthetic route, immutable cancellation fact, locked dependency check, idempotency and registered success/denial audit are locally implemented. | Domain/parity acceptance, hosted behavior or any external-system cancellation. |
 | Examination and RM code | Clinical worklists use active status sets; RJ has documents/orders/reviews; IGD/RI have clinical entries. | A complete cross-domain “care started” policy. |
 | RI registration | A bed is considered occupied by any RI encounter not `CLOSED`. | Approved release/history semantics for cancellation. |
 | Canonical registration requirements | Cancellation must retain audit; queue/bed/charge effects are explicitly unknown. | Any owner-approved cancellation rule. |
@@ -141,12 +141,12 @@ Request correlation remains the established top-level `request_correlation_id`; 
 
 ## 7. Architecture and portability acceptance contract
 
-The eventual implementation is expected to use these seams; names are proposed, not approved code:
+The local implementation uses these seams; their presence is engineering evidence, not domain/parity acceptance:
 
 - `Encounter::STATUS_CANCELLED` and explicit active, terminal, examination, and bed-occupying status helpers;
 - immutable `EncounterCancellation` model/table with one-to-one encounter constraint;
 - `EncounterCancellationService` as the only state-changing seam;
-- one semantic POST command such as `/pendaftaran/kunjungan/{encounter}/cancel`, shared by RJ, IGD, and RI registration pages rather than three implementations;
+- one semantic POST command at `/pendaftaran/kunjungan/{encounter}/batalkan`, shared by RJ, IGD, and RI registration pages rather than three implementations;
 - `AuditEventSchemaRegistry` success and denial tuples;
 - report/worklist projections that choose active versus historical status explicitly; and
 - a single dependency registry, not controller-specific `exists()` fragments.
@@ -163,7 +163,7 @@ Required implementation invariants:
 
 “Immutable cancellation fact” means no ordinary application update/delete path. It remains patient-domain evidence that the named synthetic reset may remove through an explicit FK cascade while append-only audit/security evidence is preserved. Do not add unconditional database update/delete triggers that would break the governed reset path unless a cross-engine reset-bypass design is separately reviewed.
 
-After approval, implementation must be backend-first: migration/model, dependency registry, service, audit schemas, and RJ/IGD/RI direct-writer locking/denial tests precede UI exposure. Registration UI, print, dashboard, recap, and export follow only after the domain and concurrency contracts pass.
+Implementation remains backend-first: migration/model, dependency registry, service, audit schemas, and RJ/IGD/RI direct-writer locking/denial checks precede or fail closed beneath UI exposure. Registration UI, print, dashboard, recap, export, reset and direct-writer safeguards require focused tests before this local slice is called verified.
 
 ## 8. Indonesian UI and accessibility proposal
 
@@ -172,7 +172,7 @@ After approval, implementation must be backend-first: migration/model, dependenc
 | Registration row | Show **“Batalkan Kunjungan”** only when the capability is present; disabled state explains why current facts block cancellation. |
 | Confirmation dialog | Title **“Batalkan kunjungan sebelum pelayanan?”**; show encounter identity, care setting, queue/bed consequence, reason selector, optional **“Catatan pembatalan”**, safe default **“Kembali”**, destructive action **“Batalkan Kunjungan”**. |
 | Completed state | Persistent status **“Dibatalkan”**, actor/time/reason code, queue retained, and RI message **“Tempat tidur tersedia kembali; riwayat penempatan tetap disimpan.”** |
-| Historical register | Filter **“Status kunjungan”**, option **“Dibatalkan”**, separate total, and export field with stable code. |
+| Historical register | Filter **“Status kunjungan”**, option **“Dibatalkan”**, and separate total. CSV exports the user-facing **“Status kunjungan”** value `Dibatalkan` plus the stable machine field **“Kode status kunjungan”** value `CANCELLED`. |
 | Print | Ordinary queue/SEP/gelang actions are unavailable after cancellation. Any approved cancellation receipt must be visibly watermarked **“DIBATALKAN — SIMULASI”** and cannot resemble an active service document. |
 
 The dialog must trap focus, be keyboard operable, restore focus to its trigger, expose a programmatic name/description, associate errors, announce success/failure, avoid colour-only status, preserve the simulation banner, and reflow at 320 CSS pixels. Free-text notes never enter URLs, toast titles, telemetry, or audit metadata.

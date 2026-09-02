@@ -3,56 +3,48 @@
 namespace App\Http\Controllers\Emergency;
 
 use App\Http\Controllers\Controller;
-use App\Models\Clinic;
-use App\Models\ClinicalEntry;
 use App\Models\Encounter;
+use App\Models\User;
 use App\Support\Authorization\Capability;
-use App\Support\Clinical\LockedClinicalEntryWriter;
-use Illuminate\Http\RedirectResponse;
+use App\Support\Clinical\LegacyLaboratoryCompatibilityProjection;
+use App\Support\Emergency\EmergencyProjection;
+use App\Support\Laboratory\LaboratoryProjection;
+use App\Support\Pharmacy\PharmacyProjection;
+use App\Support\Radiology\RadiologyProjection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class EmergencyExaminationController extends Controller
 {
-    public function __construct(private readonly LockedClinicalEntryWriter $clinicalEntryWriter) {}
+    public function __construct(
+        private readonly EmergencyProjection $emergencyProjection,
+        private readonly RadiologyProjection $radiologyProjection,
+        private readonly LaboratoryProjection $laboratoryProjection,
+        private readonly PharmacyProjection $pharmacyProjection,
+        private readonly LegacyLaboratoryCompatibilityProjection $legacyLaboratoryProjection,
+    ) {}
 
     public function index(Request $request): Response
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
 
         $q = trim((string) $request->query('q', ''));
-        $clinic = trim((string) $request->query('clinic', ''));
         $dateFrom = trim((string) $request->query('date_from', ''));
         $dateTo = trim((string) $request->query('date_to', ''));
+        $payer = trim((string) $request->query('payer', ''));
 
         $encounters = [];
-        $clinics = [];
-
         try {
-            $clinics = Clinic::query()
-                ->where('is_active', true)
-                ->where('code', 'IGD')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (Clinic $row): array => [
-                    'value' => $row->name,
-                    'label' => $row->name,
-                ])
-                ->all();
-
             $query = Encounter::query()
                 ->syntheticOnly()
-                ->with('patient')
+                ->with(['patient', 'emergencyTriageAssessments' => fn ($triage) => $triage->orderBy('assessment_number')])
                 ->where('care_setting', Encounter::CARE_SETTING_EMERGENCY)
                 ->whereIn('status', Encounter::EXAMINATION_STATUSES);
-
-            if ($clinic !== '') {
-                $query->where('clinic_name', $clinic);
-            }
 
             if ($dateFrom !== '') {
                 $query->whereDate('registered_at', '>=', $dateFrom);
@@ -60,6 +52,10 @@ class EmergencyExaminationController extends Controller
 
             if ($dateTo !== '') {
                 $query->whereDate('registered_at', '<=', $dateTo);
+            }
+
+            if ($payer !== '' && in_array($payer, Encounter::PAYER_VALUES, true)) {
+                $query->where('payer_type', $payer);
             }
 
             if ($q !== '') {
@@ -74,43 +70,26 @@ class EmergencyExaminationController extends Controller
                 ->orderBy('registered_at')
                 ->limit(100)
                 ->get()
-                ->map(fn (Encounter $encounter): array => [
-                    'public_id' => $encounter->public_id,
-                    'status' => $encounter->status,
-                    'clinic_name' => $encounter->clinic_name,
-                    'doctor_name' => $encounter->doctor_name,
-                    'schedule_label' => $encounter->schedule_label,
-                    'payer_type' => $encounter->payer_type,
-                    'case_type' => $encounter->case_type,
-                    'accident_type' => $encounter->accident_type,
-                    'queue_number' => $encounter->queue_number,
-                    'registered_at' => $encounter->registered_at->toIso8601String(),
-                    'visit_date' => $encounter->visit_date?->toDateString(),
-                    'chief_complaint' => $encounter->chief_complaint,
-                    'patient' => [
-                        'public_id' => $encounter->patient?->public_id,
-                        'medical_record_number' => $encounter->patient?->medical_record_number,
-                        'full_name' => $encounter->patient?->full_name,
-                        'date_of_birth' => $encounter->patient?->date_of_birth->toDateString(),
-                        'sex' => $encounter->patient?->sex,
-                    ],
-                ])
+                ->map(fn (Encounter $encounter): array => $this->emergencyProjection->worklistEncounter($encounter, $actor))
                 ->all();
         } catch (\Throwable $e) {
             report($e);
         }
 
-        return Inertia::render('pemeriksaan/rawat-jalan/index', [
-            'variant' => 'igd',
+        return Inertia::render('pemeriksaan/igd/index', [
             'indexPath' => '/pemeriksaan/igd',
             'showPathPrefix' => '/pemeriksaan/igd',
             'encounters' => $encounters,
-            'clinics' => $clinics,
+            'payerOptions' => [
+                ['value' => Encounter::PAYER_UMUM, 'label' => 'Umum'],
+                ['value' => Encounter::PAYER_BPJS, 'label' => 'BPJS'],
+                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Lainnya'],
+            ],
             'filters' => [
                 'q' => $q,
-                'clinic' => $clinic,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
+                'payer' => $payer,
             ],
             'canOpen' => $request->user()?->canCapability(Capability::ENCOUNTER_OPEN) ?? false,
         ]);
@@ -125,92 +104,33 @@ class EmergencyExaminationController extends Controller
             404,
         );
 
-        $encounter->load(['patient', 'clinicalEntries.author']);
+        $encounter->load('patient');
 
         $user = $request->user();
         assert($user !== null);
 
-        return Inertia::render('pemeriksaan/rawat-jalan/show', [
-            'variant' => 'igd',
-            'indexPath' => '/pemeriksaan/igd',
-            'showPathPrefix' => '/pemeriksaan/igd',
-            'storeEntryPath' => route('pemeriksaan.igd.entries.store', $encounter, false),
-            'encounter' => [
-                'public_id' => $encounter->public_id,
-                'status' => $encounter->status,
-                'clinic_name' => $encounter->clinic_name,
-                'doctor_name' => $encounter->doctor_name,
-                'schedule_label' => $encounter->schedule_label,
-                'payer_type' => $encounter->payer_type,
-                'case_type' => $encounter->case_type,
-                'accident_type' => $encounter->accident_type,
-                'queue_number' => $encounter->queue_number,
-                'registered_at' => $encounter->registered_at->toIso8601String(),
-                'visit_date' => $encounter->visit_date?->toDateString(),
-                'chief_complaint' => $encounter->chief_complaint,
-                'patient' => [
-                    'public_id' => $encounter->patient?->public_id,
-                    'medical_record_number' => $encounter->patient?->medical_record_number,
-                    'full_name' => $encounter->patient?->full_name,
-                    'date_of_birth' => $encounter->patient?->date_of_birth->toDateString(),
-                    'sex' => $encounter->patient?->sex,
-                    'nik' => $encounter->patient?->nik,
-                ],
-                'entries' => $encounter->clinicalEntries
-                    ->sortBy('created_at')
-                    ->values()
-                    ->map(fn (ClinicalEntry $entry): array => [
-                        'public_id' => $entry->public_id,
-                        'entry_type' => $entry->entry_type,
-                        'body' => $entry->body,
-                        'created_at' => $entry->created_at?->toIso8601String(),
-                        'author_name' => $entry->author?->name,
-                    ])
-                    ->all(),
-            ],
-            'entryTypeOptions' => [
-                [
-                    'value' => ClinicalEntry::TYPE_NURSING_INTAKE,
-                    'label' => 'Asesmen keperawatan',
-                    'allowed' => $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
-                ],
-                [
-                    'value' => ClinicalEntry::TYPE_MEDICAL_ASSESSMENT,
-                    'label' => 'Asesmen medis',
-                    'allowed' => $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
-                ],
-            ],
-            'canWriteNursing' => $user->canCapability(Capability::CLINICAL_NURSING_WRITE),
-            'canWriteMedical' => $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
+        $emergency = $this->emergencyProjection->encounter($encounter, $user);
+
+        return Inertia::render('pemeriksaan/igd/show', [
+            'encounter' => $this->emergencyProjection->worklistEncounter($encounter, $user),
+            ...$emergency,
+            'radiology' => $this->radiologyProjection->encounter($encounter, $user),
+            'laboratory' => $this->laboratoryEncounter($encounter, $user),
+            'pharmacy' => $this->pharmacyProjection->encounter($encounter, $user),
         ]);
     }
 
-    public function storeEntry(Request $request, Encounter $encounter): RedirectResponse
+    /** @return array<string, mixed> */
+    private function laboratoryEncounter(Encounter $encounter, User $actor): array
     {
-        $validated = $request->validate([
-            'entry_type' => ['required', Rule::in(ClinicalEntry::TYPE_VALUES)],
-            'body' => ['required', 'string', 'max:10000'],
-        ]);
+        $projection = $this->laboratoryProjection->encounter($encounter, $actor);
+        $projection['orders'] = [...$projection['orders'], ...$this->legacyLaboratoryProjection->encounter($encounter, $actor)];
 
-        $capability = $validated['entry_type'] === ClinicalEntry::TYPE_NURSING_INTAKE
-            ? Capability::CLINICAL_NURSING_WRITE
-            : Capability::CLINICAL_MEDICAL_WRITE;
+        return $projection;
+    }
 
-        Gate::authorize($capability);
-
-        $user = $request->user();
-        assert($user !== null);
-
-        $this->clinicalEntryWriter->write(
-            encounter: $encounter,
-            actor: $user,
-            expectedCareSetting: Encounter::CARE_SETTING_EMERGENCY,
-            entryType: $validated['entry_type'],
-            body: $validated['body'],
-        );
-
-        return redirect()
-            ->route('pemeriksaan.igd.show', $encounter)
-            ->with('success', 'Catatan klinis disimpan.');
+    public function storeEntry(Request $request, Encounter $encounter): never
+    {
+        abort(410, 'Alur tulis catatan IGD lama telah ditutup. Gunakan dokumentasi IGD terstruktur.');
     }
 }

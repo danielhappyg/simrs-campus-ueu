@@ -150,6 +150,10 @@ return new class extends Migration
                 'encounter_id' => ['bigint', true, null, null],
                 'actor_type' => ['string', true, 16, null],
                 'actor_reference' => ['string', true, 255, null],
+                'warehouse_operation_snapshot' => ['string', true, 64, null],
+                'warehouse_result_version_snapshot' => ['unsigned_integer', true, null, null],
+                'warehouse_result_digest_snapshot' => ['string', true, 64, null],
+                'warehouse_control_total_snapshot' => ['unsigned_bigint', true, null, null],
             ]
             : [];
         $knownColumns = array_merge(array_keys($expectedColumns), array_keys($allowedExtraColumns));
@@ -185,6 +189,21 @@ return new class extends Migration
             $issues[] = 'partial-legacy-audit-context-columns';
         }
 
+        $warehouseColumnNames = [
+            'warehouse_operation_snapshot',
+            'warehouse_result_version_snapshot',
+            'warehouse_result_digest_snapshot',
+            'warehouse_control_total_snapshot',
+        ];
+        $presentWarehouseColumns = array_values(array_filter(
+            $warehouseColumnNames,
+            fn (string $name): bool => $columns->has($name),
+        ));
+        $warehouseShapePresent = count($presentWarehouseColumns) === count($warehouseColumnNames);
+        if ($presentWarehouseColumns !== [] && ! $warehouseShapePresent) {
+            $issues[] = 'partial-warehouse-audit-columns';
+        }
+
         $requiredIndexes = [
             [['id'], true, true],
             [['recorded_at'], false, false],
@@ -198,9 +217,30 @@ return new class extends Migration
                 $issues[] = 'index:'.implode(',', $indexColumns);
             }
         }
+
+        $warehouseIndexes = [
+            'ae_warehouse_actor_uq' => ['id', 'actor_user_id'],
+            'ae_warehouse_action_resource_uq' => ['id', 'action', 'resource_type'],
+            'ae_warehouse_result_identity_uq' => ['id', 'resource_id', 'warehouse_result_version_snapshot'],
+            'ae_warehouse_control_uq' => ['id', 'warehouse_operation_snapshot', 'warehouse_result_digest_snapshot', 'warehouse_control_total_snapshot'],
+        ];
+        if ($allowKnownEvolution && $warehouseShapePresent) {
+            foreach ($warehouseIndexes as $name => $indexColumns) {
+                if (! $this->hasNamedIndex($indexes, $name, $indexColumns, true, false)) {
+                    $issues[] = 'index:'.$name;
+                }
+            }
+        }
         foreach ($indexes as $index) {
+            $knownWarehouseIndex = $allowKnownEvolution
+                && $warehouseShapePresent
+                && isset($warehouseIndexes[$index['name'] ?? ''])
+                && ($index['columns'] ?? null) === $warehouseIndexes[$index['name']]
+                && ($index['unique'] ?? null) === true
+                && ($index['primary'] ?? null) === false;
             if (($index['unique'] ?? false) === true
-                && ! (($index['primary'] ?? false) === true && ($index['columns'] ?? null) === ['id'])) {
+                && ! (($index['primary'] ?? false) === true && ($index['columns'] ?? null) === ['id'])
+                && ! $knownWarehouseIndex) {
                 $issues[] = 'unexpected-unique-index:'.($index['name'] ?? 'unnamed');
             }
 
@@ -280,6 +320,18 @@ return new class extends Migration
             'bigint' => match ($driver) {
                 'pgsql' => $typeName === 'int8' && $type === 'bigint',
                 'mysql' => $typeName === 'bigint' && in_array($type, ['bigint', 'bigint unsigned'], true),
+                'sqlite' => $typeName === 'integer' && $type === 'integer',
+                default => false,
+            },
+            'unsigned_integer' => match ($driver) {
+                'pgsql' => $typeName === 'int4' && $type === 'integer',
+                'mysql' => $typeName === 'int' && $type === 'int unsigned',
+                'sqlite' => $typeName === 'integer' && $type === 'integer',
+                default => false,
+            },
+            'unsigned_bigint' => match ($driver) {
+                'pgsql' => $typeName === 'int8' && $type === 'bigint',
+                'mysql' => $typeName === 'bigint' && $type === 'bigint unsigned',
                 'sqlite' => $typeName === 'integer' && $type === 'integer',
                 default => false,
             },

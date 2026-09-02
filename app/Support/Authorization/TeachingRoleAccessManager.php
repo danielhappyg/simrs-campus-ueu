@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use LogicException;
 use Throwable;
 
 /**
@@ -68,6 +69,22 @@ final class TeachingRoleAccessManager
         'nurse.demo@example.invalid' => RoleCapabilityMatrix::ROLE_NURSE,
         'physician.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHYSICIAN,
         'rmik.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RMIK,
+        'admin.demo@example.invalid' => RoleCapabilityMatrix::ROLE_ADMIN,
+        'radiology.technologist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RADIOLOGY_TECHNOLOGIST,
+        'radiologist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RADIOLOGIST,
+        'laboratory.technologist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_LABORATORY_TECHNOLOGIST,
+        'laboratory.verifier.demo@example.invalid' => RoleCapabilityMatrix::ROLE_LABORATORY_VERIFIER,
+        'pharmacist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHARMACIST,
+        'pharmacy.technician.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHARMACY_TECHNICIAN,
+        'pharmacy.inventory.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHARMACY_INVENTORY_CONTROLLER,
+        'cashier.demo@example.invalid' => RoleCapabilityMatrix::ROLE_CASHIER,
+        'cashier.supervisor.demo@example.invalid' => RoleCapabilityMatrix::ROLE_CASHIER_SUPERVISOR,
+        'finance.steward.demo@example.invalid' => RoleCapabilityMatrix::ROLE_FINANCE_STEWARD,
+        'procurement.officer.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PROCUREMENT_OFFICER,
+        'procurement.approver.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PROCUREMENT_APPROVER,
+        'warehouse.receiver.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_RECEIVER,
+        'warehouse.inventory.controller.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_INVENTORY_CONTROLLER,
+        'warehouse.inventory.supervisor.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_INVENTORY_SUPERVISOR,
     ];
 
     /** @var list<string> */
@@ -1052,12 +1069,12 @@ final class TeachingRoleAccessManager
     private function assertCompleteRosterInvariant(Collection $roster): void
     {
         if ($roster->count() !== count(self::ROSTER)) {
-            throw new TeachingRoleAccessException('Teaching-role activation refused: the exact four-account roster is incomplete.');
+            throw new TeachingRoleAccessException('Teaching-role activation refused: the exact demo-account roster is incomplete.');
         }
         foreach (self::ROSTER as $email => $role) {
             $user = $roster->get($email);
             if (! $user instanceof User) {
-                throw new TeachingRoleAccessException('Teaching-role activation refused: the exact four-account roster is incomplete.');
+                throw new TeachingRoleAccessException('Teaching-role activation refused: the exact demo-account roster is incomplete.');
             }
             $this->assertExactAccountInvariant($user, $email, $role);
         }
@@ -1304,6 +1321,9 @@ final class TeachingRoleAccessManager
 
         $roster = [];
         foreach (self::ROSTER as $email => $expectedRole) {
+            if (! array_key_exists($email, $matches)) {
+                throw new LogicException('Teaching-role roster grouping is incomplete.');
+            }
             $candidates = $matches[$email];
             $user = $candidates->count() === 1 ? $candidates->first() : null;
             $ambiguous = $user instanceof User

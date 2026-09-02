@@ -60,7 +60,12 @@ vi.mock('@inertiajs/react', () => ({
         reset: vi.fn(),
         transform: vi.fn(),
     }),
-    usePage: () => ({ props: { flash: {} } }),
+    usePage: () => ({
+        props: {
+            auth: { capabilities: ['inpatient.occupancy.view'] },
+            flash: {},
+        },
+    }),
 }));
 
 const firstPage = {
@@ -114,35 +119,109 @@ describe('T1 operational pages accessibility', () => {
         const { container } = render(
             <main>
                 <PemeriksaanLaboratoriumIndex
+                    generated_at="2026-09-01T08:30:00+07:00"
                     orders={[
                         {
                             public_id: 'lab-order-1',
-                            test_code: 'HB',
-                            test_label: 'Hemoglobin',
-                            clinical_question: 'Skrining anemia',
-                            requested_at: '2026-08-27T08:00:00+07:00',
-                            requested_by_name: 'Dr. Pengajar',
-                            encounter: {
-                                public_id: 'encounter-1',
-                                clinic_name: 'Poli Umum',
-                                status: 'REGISTERED',
-                            },
+                            version: 3,
+                            state: 'SPECIMEN_ACCEPTED',
+                            priority: 'ROUTINE',
+                            ordered_at: '2026-08-27T08:00:00+07:00',
+                            ordering_physician_public_id: 'physician-1',
+                            ordering_physician_name: 'Dr. Pengajar',
+                            care_setting: 'OUTPATIENT',
+                            care_location_label: 'Poli Umum',
+                            encounter_number: 'RJ-001',
+                            encounter_url:
+                                '/pemeriksaan/rawat-jalan/encounter-1',
                             patient: {
-                                full_name: 'Pasien Sintetis',
                                 medical_record_number: 'SYNTH-001',
+                                display_name: 'Pasien Contoh',
+                            },
+                            examination: {
+                                public_id: 'exam-hb',
+                                code: 'HB',
+                                display_name: 'Hemoglobin',
+                                specimen_type: 'Darah EDTA',
+                                collection_instruction: null,
+                                components: [
+                                    {
+                                        code: 'HB',
+                                        display_name: 'Hemoglobin',
+                                        value_kind: 'NUMERIC',
+                                        unit_text: 'g/dL',
+                                        reference_text: '12–16',
+                                        critical_allowed: true,
+                                    },
+                                ],
+                            },
+                            clinical_question: 'Skrining anemia',
+                            cancellation: null,
+                            specimens: [
+                                {
+                                    public_id: 'specimen-1',
+                                    attempt_number: 1,
+                                    label_identifier: 'LAB-0001',
+                                    state: 'ACCEPTED',
+                                    collected_at: '2026-08-27T08:05:00+07:00',
+                                    collector_name: 'Perawat Sinta',
+                                    collection_note: null,
+                                    received_at: '2026-08-27T08:15:00+07:00',
+                                    receiver_name: 'Analis Budi',
+                                    assessed_at: '2026-08-27T08:16:00+07:00',
+                                    assessor_name: 'Analis Budi',
+                                    rejection_reason_label: null,
+                                    rejection_note: null,
+                                },
+                            ],
+                            accepted_specimen_public_id: 'specimen-1',
+                            result: null,
+                            actions: {
+                                cancel_url: null,
+                                collect_url: null,
+                                receive_url: null,
+                                accept_url: null,
+                                reject_url: null,
+                                save_result_url:
+                                    '/pemeriksaan/laboratorium/lab-order-1/results',
+                                verify_result_url: null,
+                                amend_result_url: null,
+                                acknowledge_url: null,
                             },
                         },
                     ]}
-                    pagination={firstPage}
-                    filters={{ q: 'SYNTH-001' }}
-                    canEnterResult
+                    filters={{
+                        q: 'SYNTH-001',
+                        care_setting: '',
+                        state: '',
+                        priority: '',
+                    }}
+                    filter_options={{
+                        care_settings: [],
+                        states: [],
+                        priorities: [],
+                    }}
+                    permissions={{
+                        can_collect: false,
+                        can_process_specimen: false,
+                        can_save_result: true,
+                        can_verify_result: false,
+                    }}
+                    rejection_reason_options={[]}
+                    interpretation_options={[
+                        { value: 'NORMAL', label: 'Normal' },
+                        { value: 'ABNORMAL', label: 'Abnormal' },
+                        { value: 'CRITICAL', label: 'Kritis' },
+                    ]}
+                    communication_method_options={[]}
+                    communication_outcome_options={[]}
+                    critical_communication_recipient_options={[]}
+                    amendment_reason_options={[]}
                 />
             </main>,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Hasil' }));
-
-        expectTableScrollContainment('Daftar order laboratorium aktif');
+        await user.click(screen.getByRole('button', { name: 'Susun hasil' }));
 
         await expectNoWcag21Violations(container);
     });
@@ -288,6 +367,7 @@ describe('T1 operational pages accessibility', () => {
                                 variant === 'rawat-inap' ? 'LANGSUNG' : '',
                         }}
                         canOpen
+                        canAccessCorrections={variant === 'rawat-inap'}
                     />
                 </main>,
             );
@@ -296,9 +376,98 @@ describe('T1 operational pages accessibility', () => {
                 'Daftar pasien pada worklist pemeriksaan',
             );
 
+            if (variant === 'rawat-inap') {
+                expect(
+                    screen.getByRole('link', {
+                        name: 'Lihat ketersediaan TT',
+                    }),
+                ).toHaveAttribute('href', '/manajemen-data/bangsal');
+                expect(
+                    screen.getByRole('link', {
+                        name: 'Koreksi ringkasan pulang',
+                    }),
+                ).toHaveAttribute(
+                    'href',
+                    '/pemeriksaan/rawat-inap?scope=correction',
+                );
+            }
+
             await expectNoWcag21Violations(container);
         },
     );
+
+    it('shows a bounded closed-episode correction worklist for physicians', async () => {
+        const { container } = render(
+            <main>
+                <PemeriksaanRawatJalanIndex
+                    variant="rawat-inap"
+                    indexPath="/pemeriksaan/rawat-inap"
+                    showPathPrefix="/pemeriksaan/rawat-inap"
+                    encounters={[
+                        {
+                            public_id: 'encounter-closed-correction',
+                            status: 'CLOSED',
+                            clinic_name: 'Bangsal Anggrek',
+                            doctor_name: 'Dr. Pengajar',
+                            schedule_label: null,
+                            ward_name: 'Bangsal Anggrek',
+                            ward_class: 'Kelas 1',
+                            bed_code: 'ANG-101-A',
+                            continue_from: 'LANGSUNG',
+                            payer_type: 'UMUM',
+                            queue_number: null,
+                            registered_at: '2026-08-27T08:15:00+07:00',
+                            visit_date: '2026-08-27',
+                            chief_complaint: 'Demam',
+                            patient: {
+                                public_id: 'patient-closed-correction',
+                                medical_record_number: 'RM-0003',
+                                full_name: 'Pasien Koreksi',
+                                date_of_birth: '1992-02-02',
+                                sex: 'PEREMPUAN',
+                            },
+                        },
+                    ]}
+                    clinics={[
+                        {
+                            value: 'Bangsal Anggrek',
+                            label: 'Bangsal Anggrek',
+                        },
+                    ]}
+                    payerOptions={[{ value: 'UMUM', label: 'Umum' }]}
+                    continueFromOptions={[
+                        { value: 'LANGSUNG', label: 'Langsung' },
+                    ]}
+                    filters={{
+                        q: '',
+                        clinic: '',
+                        date_from: '',
+                        date_to: '',
+                        payer: '',
+                        continue_from: '',
+                        scope: 'correction',
+                    }}
+                    canOpen
+                    canAccessCorrections
+                />
+            </main>,
+        );
+
+        expect(
+            screen.getByRole('table', {
+                name: 'Daftar episode untuk koreksi ringkasan pulang',
+            }),
+        ).toBeInTheDocument();
+        expect(screen.getByText('Ditutup')).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'Buka untuk Pasien Koreksi' }),
+        ).toHaveAttribute(
+            'href',
+            '/pemeriksaan/rawat-inap/encounter-closed-correction',
+        );
+
+        await expectNoWcag21Violations(container);
+    });
 
     it.each([
         {
@@ -388,12 +557,31 @@ describe('T1 operational pages accessibility', () => {
                 </main>,
             );
 
-            expect(
-                screen.getByRole('combobox', { name: 'Jenis catatan' }),
-            ).toBeInTheDocument();
-            expect(
-                screen.getByRole('textbox', { name: 'Isi catatan' }),
-            ).toBeInTheDocument();
+            if (variant === 'igd') {
+                expect(
+                    screen.getByText(
+                        /Catatan IGD lama dipertahankan sebagai riwayat baca saja/i,
+                    ),
+                ).toBeInTheDocument();
+                expect(
+                    screen.queryByRole('combobox', {
+                        name: 'Jenis catatan',
+                    }),
+                ).not.toBeInTheDocument();
+                expect(
+                    screen.queryByRole('textbox', { name: 'Isi catatan' }),
+                ).not.toBeInTheDocument();
+            } else {
+                expect(
+                    screen.getByRole('combobox', {
+                        name: 'Jenis catatan',
+                    }),
+                ).toBeInTheDocument();
+                expect(
+                    screen.getByRole('textbox', { name: 'Isi catatan' }),
+                ).toBeInTheDocument();
+            }
+
             expect(
                 screen.getByRole('tab', { name: /Diagnosa.*stub/ }),
             ).toBeDisabled();
@@ -643,9 +831,23 @@ describe('T1 operational pages accessibility', () => {
                     ]}
                     wards={[
                         {
-                            name: 'Bangsal Anggrek',
-                            class: 'Kelas 1',
-                            beds: ['ANG-101-A', 'ANG-101-B'],
+                            public_id: 'ward-anggrek',
+                            code: 'ANGGREK',
+                            display_name: 'Bangsal Anggrek',
+                            beds: [
+                                {
+                                    public_id: 'bed-ang-101-a',
+                                    code: 'ANG-101-A',
+                                    display_name: 'Tempat Tidur ANG-101-A',
+                                    service_class: 'Kelas 1',
+                                },
+                                {
+                                    public_id: 'bed-ang-101-b',
+                                    code: 'ANG-101-B',
+                                    display_name: 'Tempat Tidur ANG-101-B',
+                                    service_class: 'Kelas 1',
+                                },
+                            ],
                         },
                     ]}
                     wardOptions={[
@@ -718,9 +920,17 @@ describe('T1 operational pages accessibility', () => {
                 ]}
                 wards={[
                     {
-                        name: 'Bangsal Anggrek',
-                        class: 'Kelas 1',
-                        beds: ['ANG-101-A'],
+                        public_id: 'ward-anggrek',
+                        code: 'ANGGREK',
+                        display_name: 'Bangsal Anggrek',
+                        beds: [
+                            {
+                                public_id: 'bed-ang-101-a',
+                                code: 'ANG-101-A',
+                                display_name: 'Tempat Tidur ANG-101-A',
+                                service_class: 'Kelas 1',
+                            },
+                        ],
                     },
                 ]}
                 wardOptions={[
@@ -814,6 +1024,7 @@ describe('T1 operational pages accessibility', () => {
                         payer: 'UMUM',
                         origin: 'WALK_IN',
                         care_setting: 'OUTPATIENT',
+                        status: 'CANCELLED',
                     }}
                     rows={[
                         {
@@ -830,7 +1041,8 @@ describe('T1 operational pages accessibility', () => {
                             booking_code: null,
                             origin: 'WALK_IN',
                             origin_label: 'Walk-in',
-                            status: 'REGISTERED',
+                            status: 'CANCELLED',
+                            status_label: 'Dibatalkan',
                             patient: {
                                 medical_record_number: 'SYNTH-001',
                                 full_name: 'Pasien Sintetis',
@@ -838,7 +1050,12 @@ describe('T1 operational pages accessibility', () => {
                         },
                     ]}
                     pagination={firstPage}
-                    totals={{ all: 1, online: 0, walk_in: 1 }}
+                    totals={{
+                        all: 1,
+                        online: 0,
+                        walk_in: 1,
+                        cancelled: 1,
+                    }}
                     clinicOptions={[{ value: 'clinic-1', label: 'Poli Umum' }]}
                     payerOptions={[{ value: 'UMUM', label: 'Umum' }]}
                 />
@@ -855,6 +1072,14 @@ describe('T1 operational pages accessibility', () => {
         expect(
             screen.getByRole('button', { name: 'Cetak rekap' }).parentElement,
         ).toHaveClass('flex-wrap');
+        expect(
+            screen.getByRole('combobox', { name: 'Status kunjungan' }),
+        ).toHaveValue('CANCELLED');
+        expect(screen.getAllByText('Dibatalkan')).not.toHaveLength(0);
+        expect(screen.getByText('Tidak aktif')).toBeInTheDocument();
+        expect(
+            screen.queryByRole('link', { name: 'Cetak' }),
+        ).not.toBeInTheDocument();
 
         await expectNoWcag21Violations(container);
     });

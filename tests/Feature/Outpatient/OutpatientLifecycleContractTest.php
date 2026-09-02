@@ -11,50 +11,45 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Clinical\OutpatientLabLifecycle;
 use App\Support\Clinical\OutpatientRmCompletenessService;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 use Mockery;
+use RuntimeException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
-class OutpatientLifecycleContractTest extends TestCase
+final class OutpatientLifecycleContractTest extends TestCase
 {
     use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->seed(RbacSeeder::class);
         $this->seed(OutpatientMastersSeeder::class);
     }
 
-    public function test_active_lab_order_blocks_rm_closure_and_records_stable_reason(): void
+    public function test_active_legacy_lab_order_still_blocks_rm_closure(): void
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $rmik = $this->userWithRole(RoleCapabilityMatrix::ROLE_RMIK);
+        $registrar = $this->actor(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $physician = $this->actor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $rmik = $this->actor(RoleCapabilityMatrix::ROLE_RMIK);
         $encounter = $this->encounter($registrar, Encounter::STATUS_READY_FOR_RM);
-        $order = $this->labOrder($encounter, $physician);
-
-        $this->actingAs($rmik)
-            ->get(route('rm.rawat-jalan.index'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('encounters.0.public_id', $encounter->public_id)
-                ->where('encounters.0.active_lab_order_count', 1));
-
+        $order = $this->order($encounter, $physician);
         $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter);
-        $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
-            'expected_version' => 0, 'source_fingerprint' => $snapshot['source_fingerprint'],
-        ])->assertRedirect();
-        $this->actingAs($rmik)
-            ->post(route('rm.rawat-jalan.signoff', $encounter), ['expected_version' => 1, 'source_fingerprint' => $snapshot['source_fingerprint']])
-            ->assertStatus(422);
 
-        $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
+            'expected_version' => 0,
+            'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.signoff', $encounter), [
+            'expected_version' => 1,
+            'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertStatus(422);
+
         $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->fresh()->status);
         $this->assertDatabaseHas('audit_events', [
             'action' => 'rmik.completeness.signoff',
@@ -64,207 +59,104 @@ class OutpatientLifecycleContractTest extends TestCase
         ]);
     }
 
-    public function test_final_result_completes_order_and_allows_rm_closure(): void
+    public function test_legacy_service_can_finalize_retained_order_and_release_rm_closure(): void
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $rmik = $this->userWithRole(RoleCapabilityMatrix::ROLE_RMIK);
+        $registrar = $this->actor(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $physician = $this->actor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->actor(RoleCapabilityMatrix::ROLE_NURSE);
+        $rmik = $this->actor(RoleCapabilityMatrix::ROLE_RMIK);
         $encounter = $this->encounter($registrar, Encounter::STATUS_READY_FOR_RM);
-        $order = $this->labOrder($encounter, $physician);
-        $this->seedCompleteDocuments($encounter, $nurse, $physician);
+        $order = $this->order($encounter, $physician);
+        $this->documents($encounter, $nurse, $physician);
 
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Hb 12.4 g/dL',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertRedirect(route('pemeriksaan.laboratorium.index'));
-
+        app(OutpatientLabLifecycle::class)->writeFinalLabResult($order, $nurse, 'Hb 12.4 g/dL');
         $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter);
         $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
-            'expected_version' => 0, 'source_fingerprint' => $snapshot['source_fingerprint'],
+            'expected_version' => 0,
+            'source_fingerprint' => $snapshot['source_fingerprint'],
         ])->assertRedirect();
-        $this->actingAs($rmik)
-            ->post(route('rm.rawat-jalan.signoff', $encounter), ['expected_version' => 1, 'source_fingerprint' => $snapshot['source_fingerprint']])
-            ->assertRedirect(route('rm.rawat-jalan.show', $encounter));
+        $this->actingAs($rmik)->post(route('rm.rawat-jalan.signoff', $encounter), [
+            'expected_version' => 1,
+            'source_fingerprint' => $snapshot['source_fingerprint'],
+        ])->assertRedirect();
 
         $this->assertSame(LabServiceRequest::STATUS_COMPLETED, $order->fresh()->status);
         $this->assertSame(LabDiagnosticResult::STATUS_FINAL, $order->fresh()->result?->status);
         $this->assertSame(Encounter::STATUS_CLOSED, $encounter->fresh()->status);
     }
 
-    public function test_preliminary_result_is_rejected_without_mutating_order(): void
+    public function test_legacy_service_preserves_stable_denials_and_immutable_final_result(): void
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $encounter = $this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION);
-        $order = $this->labOrder($encounter, $physician);
+        $registrar = $this->actor(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $physician = $this->actor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->actor(RoleCapabilityMatrix::ROLE_NURSE);
+        $closedOrder = $this->order($this->encounter($registrar, Encounter::STATUS_CLOSED), $physician);
+        $this->assertLifecycleDenial($closedOrder, $nurse, 'encounter_closed');
 
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Belum diverifikasi',
-                'status' => LabDiagnosticResult::STATUS_PRELIMINARY,
-            ])
-            ->assertSessionHasErrors('status');
-
-        $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->fresh()->status);
-        $this->assertNull($order->fresh()->result);
-    }
-
-    public function test_closed_encounter_rejects_late_result_and_records_stable_reason(): void
-    {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $encounter = $this->encounter($registrar, Encounter::STATUS_CLOSED);
-        $order = $this->labOrder($encounter, $physician);
-
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Hasil terlambat',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertStatus(422);
-
-        $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->fresh()->status);
-        $this->assertNull($order->fresh()->result);
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.lab.result.write',
-            'resource_id' => $order->public_id,
-            'outcome' => 'DENIED',
-            'reason' => 'encounter_closed',
-        ]);
-    }
-
-    public function test_final_result_is_immutable_and_duplicate_attempt_is_audited(): void
-    {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $encounter = $this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION);
-        $order = $this->labOrder($encounter, $physician, LabServiceRequest::STATUS_COMPLETED);
+        $completedOrder = $this->order($this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION), $physician, LabServiceRequest::STATUS_COMPLETED);
         $result = LabDiagnosticResult::factory()->create([
-            'lab_service_request_id' => $order->id,
+            'lab_service_request_id' => $completedOrder->id,
             'entered_by_user_id' => $nurse->id,
             'status' => LabDiagnosticResult::STATUS_FINAL,
             'result_text' => 'Hasil final asli',
         ]);
-
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Hasil pengganti',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertStatus(422);
-
+        $this->assertLifecycleDenial($completedOrder, $nurse, 'result_already_final');
         $this->assertSame('Hasil final asli', $result->fresh()->result_text);
+
+        $cancelledOrder = $this->order($this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION), $physician, LabServiceRequest::STATUS_CANCELLED);
+        $this->assertLifecycleDenial($cancelledOrder, $nurse, 'order_not_active');
         $this->assertDatabaseCount('lab_diagnostic_results', 1);
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.lab.result.write',
-            'resource_id' => $order->public_id,
-            'outcome' => 'DENIED',
-            'reason' => 'result_already_final',
-        ]);
     }
 
-    public function test_inactive_order_without_result_is_rejected_with_stable_reason(): void
+    public function test_legacy_service_rolls_back_when_required_audit_cannot_be_written(): void
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $encounter = $this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION);
-        $order = $this->labOrder($encounter, $physician, LabServiceRequest::STATUS_CANCELLED);
-
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Tidak boleh disimpan',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertStatus(422);
-
-        $this->assertNull($order->fresh()->result);
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.lab.result.write',
-            'resource_id' => $order->public_id,
-            'outcome' => 'DENIED',
-            'reason' => 'order_not_active',
-        ]);
-    }
-
-    public function test_wrong_role_gets_forbidden_before_closed_encounter_state_is_disclosed(): void
-    {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $encounter = $this->encounter($registrar, Encounter::STATUS_CLOSED);
-        $order = $this->labOrder($encounter, $physician);
-
-        $this->actingAs($registrar)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Percobaan tanpa hak',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('audit_events', [
-            'action' => 'clinical.lab.result.write',
-            'resource_id' => $order->public_id,
-            'outcome' => 'DENIED',
-            'reason' => 'encounter_closed',
-        ]);
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'authorization.denied',
-            'resource_type' => 'http_route',
-            'resource_id' => 'pemeriksaan.laboratorium.results.store',
-            'outcome' => 'DENIED',
-            'reason' => 'authorization_check_failed',
-        ]);
-    }
-
-    public function test_successful_result_mutation_rolls_back_when_audit_write_fails(): void
-    {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $encounter = $this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION);
-        $order = $this->labOrder($encounter, $physician);
-
+        $registrar = $this->actor(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $physician = $this->actor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->actor(RoleCapabilityMatrix::ROLE_NURSE);
+        $order = $this->order($this->encounter($registrar, Encounter::STATUS_IN_EXAMINATION), $physician);
         $recorder = Mockery::mock(AuditRecorder::class);
         $recorder->shouldReceive('record')->once()->andReturnNull();
         $this->app->instance(AuditRecorder::class, $recorder);
 
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Tidak boleh commit',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertServerError();
+        try {
+            app(OutpatientLabLifecycle::class)->writeFinalLabResult($order, $nurse, 'Tidak boleh commit');
+            $this->fail('Audit failure must abort the compatibility mutation.');
+        } catch (RuntimeException) {
+            $this->assertTrue(true);
+        }
 
         $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->fresh()->status);
         $this->assertNull($order->fresh()->result);
     }
 
+    private function assertLifecycleDenial(LabServiceRequest $order, User $actor, string $reason): void
+    {
+        try {
+            app(OutpatientLabLifecycle::class)->writeFinalLabResult($order, $actor, 'Tidak boleh disimpan');
+            $this->fail("Expected {$reason} denial.");
+        } catch (HttpException $exception) {
+            $this->assertSame(422, $exception->getStatusCode());
+        }
+        $this->assertDatabaseHas('audit_events', [
+            'action' => 'clinical.lab.result.write',
+            'resource_id' => $order->public_id,
+            'outcome' => 'DENIED',
+            'reason' => $reason,
+        ]);
+    }
+
     private function encounter(User $registrar, string $status): Encounter
     {
-        $patient = Patient::factory()->create([
-            'created_by_user_id' => $registrar->id,
-            'is_synthetic' => true,
-        ]);
-
         return Encounter::factory()->create([
-            'patient_id' => $patient->id,
+            'patient_id' => Patient::factory()->create(['created_by_user_id' => $registrar->id, 'is_synthetic' => true])->id,
             'registered_by_user_id' => $registrar->id,
             'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
             'status' => $status,
         ]);
     }
 
-    private function labOrder(
-        Encounter $encounter,
-        User $physician,
-        string $status = LabServiceRequest::STATUS_ACTIVE,
-    ): LabServiceRequest {
+    private function order(Encounter $encounter, User $physician, string $status = LabServiceRequest::STATUS_ACTIVE): LabServiceRequest
+    {
         return LabServiceRequest::factory()->create([
             'encounter_id' => $encounter->id,
             'requested_by_user_id' => $physician->id,
@@ -274,31 +166,28 @@ class OutpatientLifecycleContractTest extends TestCase
         ]);
     }
 
-    private function seedCompleteDocuments(Encounter $encounter, User $nurse, User $physician): void
+    private function documents(Encounter $encounter, User $nurse, User $physician): void
     {
         OutpatientClinicalDocument::query()->create([
             'encounter_id' => $encounter->id, 'author_user_id' => $nurse->id, 'finalized_by_user_id' => $nurse->id,
-            'document_type' => OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT,
-            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'document_type' => OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT, 'document_state' => OutpatientClinicalDocument::STATE_FINAL,
             'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION, 'version' => 1,
             'fields' => ['nursing_assessment' => 'Sintetis'], 'finalized_at' => now(),
         ]);
         OutpatientClinicalDocument::query()->create([
             'encounter_id' => $encounter->id, 'author_user_id' => $physician->id, 'finalized_by_user_id' => $physician->id,
-            'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
-            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT, 'document_state' => OutpatientClinicalDocument::STATE_FINAL,
             'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION, 'version' => 1,
             'fields' => ['anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D'],
             'finalized_at' => now(),
         ]);
     }
 
-    private function userWithRole(string $roleSlug): User
+    private function actor(string $role): User
     {
         $user = User::factory()->create();
-        $role = Role::query()->where('slug', $roleSlug)->firstOrFail();
-        $user->roles()->sync([$role->id]);
+        $user->roles()->sync([Role::query()->where('slug', $role)->sole()->id]);
 
-        return $user;
+        return $user->fresh();
     }
 }

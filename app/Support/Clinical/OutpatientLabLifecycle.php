@@ -27,6 +27,13 @@ final class OutpatientLabLifecycle
             return DB::transaction(function () use ($encounter, $actor, $test, $clinicalQuestion): LabServiceRequest {
                 $lockedEncounter = $this->lockEncounter($encounter);
 
+                if ($lockedEncounter->isCancelled()) {
+                    throw new OutpatientLifecycleDenial(
+                        reason: 'encounter_cancelled',
+                        message: 'Kunjungan telah dibatalkan.',
+                    );
+                }
+
                 if ($lockedEncounter->status === Encounter::STATUS_CLOSED) {
                     throw new OutpatientLifecycleDenial(
                         reason: 'encounter_closed',
@@ -95,6 +102,13 @@ final class OutpatientLabLifecycle
                     ->where('encounter_id', $lockedEncounter->id)
                     ->lockForUpdate()
                     ->firstOrFail();
+
+                if ($lockedEncounter->isCancelled()) {
+                    throw new OutpatientLifecycleDenial(
+                        reason: 'encounter_cancelled',
+                        message: 'Kunjungan telah dibatalkan; hasil lab tidak dapat dicatat.',
+                    );
+                }
 
                 if ($lockedEncounter->status === Encounter::STATUS_CLOSED) {
                     throw new OutpatientLifecycleDenial(

@@ -13,6 +13,9 @@ class AuditWritePathArchitectureTest extends TestCase
         $readOnlyRawAuditQueryCallers = [
             'Support/Audit/AuditActorAttributionPreflight.php',
         ];
+        $auditSchemaGuardCallers = [
+            'Support/Warehouse/WarehouseAuditEvidenceGuard.php',
+        ];
         $forbiddenPatterns = [
             'AuditEvent::create(',
             'AuditEvent::forceCreate(',
@@ -40,6 +43,10 @@ class AuditWritePathArchitectureTest extends TestCase
                     && in_array($relativePath, $readOnlyRawAuditQueryCallers, true)) {
                     continue;
                 }
+                if (str_contains($pattern, "SchemaQualifier::table('audit_events')")
+                    && in_array($relativePath, $auditSchemaGuardCallers, true)) {
+                    continue;
+                }
 
                 $this->assertStringNotContainsString($pattern, $contents, "Forbidden audit write found in {$relativePath}.");
             }
@@ -55,7 +62,23 @@ class AuditWritePathArchitectureTest extends TestCase
             }
         }
 
-        $this->assertSame(['Support/Audit/AuditRecorder.php'], $queryCreateCallers);
+        $this->assertSame([], $queryCreateCallers);
+    }
+
+    public function test_warehouse_audit_guard_is_schema_only_and_cannot_write_audit_rows(): void
+    {
+        $contents = file_get_contents(app_path('Support/Warehouse/WarehouseAuditEvidenceGuard.php'));
+        $this->assertIsString($contents);
+        $this->assertStringContainsString("SchemaQualifier::table('audit_events')", $contents);
+        $this->assertStringContainsString('CREATE TRIGGER', $contents);
+
+        foreach (["DB::table('audit_events')", '->insert(', '->update(', '->delete(', '->upsert(', '->truncate('] as $mutation) {
+            $this->assertStringNotContainsString(
+                $mutation,
+                $contents,
+                'The warehouse audit evidence guard may manage trigger DDL but may not mutate audit rows.',
+            );
+        }
     }
 
     public function test_attribution_preflight_raw_audit_path_remains_read_only(): void
@@ -79,7 +102,6 @@ class AuditWritePathArchitectureTest extends TestCase
     {
         $directAtomicCallers = [
             'Http/Controllers/Emergency/EmergencyRegistrationController.php',
-            'Http/Controllers/Inpatient/InpatientRegistrationController.php',
             'Http/Controllers/Outpatient/OutpatientRegistrationController.php',
         ];
 
@@ -90,14 +112,34 @@ class AuditWritePathArchitectureTest extends TestCase
             $this->assertStringContainsString('abort_if($event === null, 503', $contents);
         }
 
-        foreach ([
-            'Http/Controllers/Emergency/EmergencyExaminationController.php',
-            'Http/Controllers/Inpatient/InpatientExaminationController.php',
-        ] as $relativePath) {
-            $contents = file_get_contents(app_path($relativePath));
-            $this->assertIsString($contents);
-            $this->assertStringContainsString('$this->clinicalEntryWriter->write(', $contents);
-        }
+        $inpatientController = file_get_contents(app_path('Http/Controllers/Inpatient/InpatientRegistrationController.php'));
+        $this->assertIsString($inpatientController);
+        $this->assertStringContainsString('private readonly InpatientAdmissionService $admissionService', $inpatientController);
+        $this->assertStringContainsString('$this->admissionService->admitDirect(', $inpatientController);
+
+        $inpatientAdmission = file_get_contents(app_path('Support/Inpatient/InpatientAdmissionService.php'));
+        $this->assertIsString($inpatientAdmission);
+        $this->assertStringContainsString('return DB::transaction(', $inpatientAdmission);
+        $this->assertStringContainsString('$this->auditRecorder->record(', $inpatientAdmission);
+        $this->assertStringContainsString('if ($event === null)', $inpatientAdmission);
+        $this->assertStringContainsString("new InpatientAdmissionDenied('audit_unavailable'", $inpatientAdmission);
+
+        $emergencyController = file_get_contents(app_path('Http/Controllers/Emergency/EmergencyExaminationController.php'));
+        $this->assertIsString($emergencyController);
+        $this->assertStringContainsString("abort(410, 'Alur tulis catatan IGD lama telah ditutup.", $emergencyController);
+
+        $emergencyOperations = file_get_contents(app_path('Support/Emergency/EmergencyOperationCoordinator.php'));
+        $this->assertIsString($emergencyOperations);
+        $this->assertStringContainsString('return DB::transaction(', $emergencyOperations);
+        $this->assertStringContainsString('$this->audit->record(', $emergencyOperations);
+        $this->assertStringContainsString('if ($audit === null)', $emergencyOperations);
+        $this->assertStringContainsString('throw new EmergencyAuditUnavailable(', $emergencyOperations);
+
+        $inpatient = file_get_contents(app_path('Support/Inpatient/InpatientDocumentationService.php'));
+        $this->assertIsString($inpatient);
+        $this->assertStringContainsString('return DB::transaction(', $inpatient);
+        $this->assertStringContainsString('->lockForUpdate()', $inpatient);
+        $this->assertStringContainsString('InpatientDocumentationAuditUnavailable', $inpatient);
 
         $writer = file_get_contents(app_path('Support/Clinical/LockedClinicalEntryWriter.php'));
         $this->assertIsString($writer);

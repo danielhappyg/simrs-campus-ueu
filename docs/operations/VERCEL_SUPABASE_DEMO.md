@@ -8,6 +8,8 @@ Use this runbook to prepare and verify the current Vercel + Supabase demo. It do
 
 The hosted demo must contain only synthetic patients and `example.invalid` accounts. It is not a clinical production system and must not connect to BPJS/VClaim, SATUSEHAT, LIS, PACS, payment, or any other live healthcare service.
 
+The operational UI uses the restrained `Mode Kampus` posture and otherwise reads like a real hospital workflow. A persistent front-of-screen `SIMULASI — DATA SINTETIS` banner is not required. This presentation choice does not relax backend `SIMULATION`, synthetic-only, database, audit, reset/recovery, or no-live-integration enforcement.
+
 ## Runtime model
 
 - Vercel Hobby hosts two PHP 8.3 community-runtime functions: the Laravel application entry point and a Vite asset responder.
@@ -55,6 +57,7 @@ Set secrets in the matching Vercel environment scope, never in Git. Each persist
 - `LOG_CHANNEL=stderr`
 - `LOG_LEVEL=warning`
 - `DEMO_SEED_ENABLED=false`
+- `WAREHOUSE_SCHEMA_MIGRATION_ENABLED=false` for the current checkpoint
 
 `DEMO_ACCOUNT_PASSWORD` is a bootstrap secret, not source code. Keep it in the approved secret store or a temporary ignored local environment file only while creating disposable demo accounts. It is not needed by the running application after the password hashes have been seeded.
 
@@ -101,6 +104,17 @@ Then verify `/login`, one permitted audited write, and one denied-role request. 
 
 Vercel does **not** run Laravel migrations. Every release containing migrations needs a separate, explicit Supabase migration step from the same trusted checkout and commit.
 
+### Current single-checkpoint exception: warehouse held back
+
+The current checkout contains a larger migration delta than the historical ten-migration packet and currently includes 31 new migration files relative to the pushed base. That observed count is not an executable manifest. Freeze the final commit and refresh `migrate:status` against the hosted `laravel` schema before deriving the exact action-time allowlist.
+
+Warehouse source may ship in this checkpoint, but warehouse schema activation does not. Keep `WAREHOUSE_SCHEMA_MIGRATION_ENABLED=false` and exclude these files from the hosted allowlist:
+
+- `database/migrations/2026_09_03_000100_expand_warehouse_teaching_role_access_roster.php`
+- `database/migrations/2026_09_03_000200_create_medication_replenishment_warehouse_custody_tables.php`
+
+Do not expose warehouse routes or navigation, run warehouse hosted UAT, or claim hosted warehouse capability. The exact PostgreSQL/MySQL warehouse rehearsal remains `READY / NOT RUN`. A later warehouse release requires its own reviewed migration manifest, exact-engine PASS, least-privilege identities and guards, route/UI activation, hosted migration, and role-based UAT.
+
 Before the first application write, create the private PostgreSQL schema `laravel` in the Production-demo Supabase project and set `DB_SCHEMA=laravel`. Before later migrations, confirm the reviewed migration is compatible with both the currently deployed application and the release being promoted. Establish a tested backup/restore or disposable reset path appropriate to the target before changing the schema. For Supabase Free, create and independently validate a logical backup because automatic daily backups are not provided.
 
 Pull the Production values into the ignored `.env.vercel.local` file, or create that file through the approved secret manager. Do not load it with `export $(grep ...)`; shell parsing can corrupt values and expose them through process state or history.
@@ -110,11 +124,13 @@ vercel env pull .env.vercel.local --environment=production
 chmod 600 .env.vercel.local
 php artisan --env=vercel.local config:clear
 php artisan --env=vercel.local migrate:status
-php artisan --env=vercel.local migrate --force
+# Current checkpoint: run each file from the reviewed non-warehouse allowlist
+# with --path; do not run an unfiltered migrate --force.
+php artisan --env=vercel.local migrate --force --path=database/migrations/REVIEWED_NON_WAREHOUSE_FILE.php
 php artisan --env=vercel.local migrate:status
 ```
 
-Review the before/after migration list and record it with the release evidence. Never run `migrate:fresh` on a retained rehearsal or UAT environment.
+Repeat the exact `--path` form only for each file in the frozen allowlist, in reviewed order. Review the before/after migration list and record it with the release evidence. Verify that both warehouse migration names remain pending and `WAREHOUSE_SCHEMA_MIGRATION_ENABLED=false`. Never run `migrate:fresh` on a retained rehearsal or UAT environment.
 
 ### RBAC reconciliation is separate
 
@@ -167,12 +183,13 @@ curl --fail --show-error --silent --output /dev/null https://simrs-campus-ueu-de
 Then use the browser and separately stored demo credentials:
 
 1. Sign in with one reserved `example.invalid` account.
-2. Confirm the persistent `SIMULASI — DATA SINTETIS` indicator is visible.
+2. Confirm the restrained `Mode Kampus` label is present and ordinary work screens do not depend on a persistent simulation banner.
 3. Confirm the account can open only the care desks permitted by its role.
 4. Run the [current RJ facilitator flow](TEACHING_RJ_FACILITATOR_RUNBOOK_2026-08-22.md) on a fresh synthetic encounter: Pendaftaran → nursing → physician → Order Lab → laboratory result → RM close → cetak → rekap.
 5. Attempt one known denied action using the wrong role and record the 403/denial evidence.
-6. Confirm Klaim, BPJS, and Apotek remain `Soon` and that no live external integration is enabled.
-7. Record synthetic encounter/order/result identifiers and cleanup/reset status without copying credentials or patient-like sensitive values into the evidence file.
+6. Confirm Klaim and BPJS remain `Soon` and that no live external integration is enabled. Apotek is an implemented application module in the release candidate, so verify its route, permissions, and migrated non-warehouse schema instead of expecting a global `Soon` label; do not record it as hosted until these checks pass on the exact deployed commit.
+7. Confirm warehouse navigation/routes remain absent, both warehouse migrations remain pending, and `WAREHOUSE_SCHEMA_MIGRATION_ENABLED=false`.
+8. Record synthetic encounter/order/result identifiers and cleanup/reset status without copying credentials or patient-like sensitive values into the evidence file.
 
 Public 200 responses prove only that the deployed application boots. Authenticated workflow, role-denial, database, and audit checks are separate evidence.
 

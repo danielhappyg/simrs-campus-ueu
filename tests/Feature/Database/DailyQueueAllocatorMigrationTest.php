@@ -4,6 +4,7 @@ namespace Tests\Feature\Database;
 
 use App\Models\Patient;
 use App\Models\User;
+use App\Support\Emergency\SqliteEmergencyHandoffGraphGuard;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class DailyQueueAllocatorMigrationTest extends TestCase
         $patient = Patient::factory()->create(['created_by_user_id' => $user->id]);
         $migration = $this->migration();
         $migration->down();
+        $this->assertSqliteHandoffGraphGuardIsInstalled();
 
         foreach ([
             ['id' => 12, 'registered_at' => '2026-08-26 10:00:00', 'queue_number' => 9],
@@ -45,6 +47,7 @@ class DailyQueueAllocatorMigrationTest extends TestCase
         }
 
         $migration->up();
+        $this->assertSqliteHandoffGraphGuardIsInstalled();
 
         $this->assertSame([
             [10, '2026-08-26', 1],
@@ -65,6 +68,7 @@ class DailyQueueAllocatorMigrationTest extends TestCase
         $user = User::factory()->create();
         $migration = $this->migration();
         $migration->down();
+        $this->assertSqliteHandoffGraphGuardIsInstalled();
         Patient::factory()->create([
             'created_by_user_id' => $user->id,
             'is_synthetic' => false,
@@ -87,5 +91,30 @@ class DailyQueueAllocatorMigrationTest extends TestCase
         $migration = require database_path('migrations/2026_08_26_000200_create_daily_queue_allocator.php');
 
         return $migration;
+    }
+
+    private function assertSqliteHandoffGraphGuardIsInstalled(): void
+    {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            return;
+        }
+
+        $sql = DB::table('sqlite_master')
+            ->where('type', 'trigger')
+            ->where('name', SqliteEmergencyHandoffGraphGuard::TRIGGER)
+            ->value('sql');
+        $this->assertIsString($sql, 'The emergency handoff graph guard must be restored after rebuilding encounters.');
+
+        foreach ([
+            "source.care_setting='EMERGENCY'",
+            "disposition.disposition_type='RAWAT_INAP'",
+            'target.patient_id=source.patient_id',
+            'target.active_inpatient_patient_id=source.patient_id',
+            "location.event_type='ADMISSION_LOCATION'",
+            "bed.state='ACTIVE'",
+            'NEW.inpatient_bed_version=bed.version',
+        ] as $invariant) {
+            $this->assertStringContainsString($invariant, $sql);
+        }
     }
 }

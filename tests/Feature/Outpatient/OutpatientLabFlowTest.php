@@ -15,179 +15,124 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
-class OutpatientLabFlowTest extends TestCase
+final class OutpatientLabFlowTest extends TestCase
 {
     use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->seed(RbacSeeder::class);
         $this->seed(OutpatientMastersSeeder::class);
     }
 
-    public function test_physician_can_create_lab_order_and_nurse_can_enter_result(): void
+    public function test_legacy_http_writes_are_retired_without_mutating_evidence(): void
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
         $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+        $encounter = $this->encounter($physician, Encounter::STATUS_IN_EXAMINATION);
 
-        $patient = Patient::factory()->create([
-            'created_by_user_id' => $registrar->id,
-        ]);
-        $encounter = Encounter::factory()->create([
-            'patient_id' => $patient->id,
-            'registered_by_user_id' => $registrar->id,
-            'status' => Encounter::STATUS_IN_EXAMINATION,
-        ]);
+        $this->actingAs($physician)->post(route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter), [
+            'test_code' => 'HB',
+            'clinical_question' => 'Evaluasi anemia',
+        ])->assertGone();
+        $this->assertDatabaseCount('lab_service_requests', 0);
 
-        $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter), [
-                'test_code' => 'HB',
-                'clinical_question' => 'Evaluasi anemia',
-            ])
-            ->assertRedirect(route('pemeriksaan.rawat-jalan.show', $encounter));
+        $order = $this->legacyOrder($encounter, $physician);
+        $this->actingAs($nurse)->post(route('pemeriksaan.laboratorium.results.store', $order), [
+            'result_text' => 'Tidak boleh tersimpan.',
+            'status' => LabDiagnosticResult::STATUS_FINAL,
+        ])->assertGone();
+        $this->assertDatabaseCount('lab_diagnostic_results', 0);
+        $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->fresh()->status);
+    }
 
-        $order = LabServiceRequest::query()->firstOrFail();
-        $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->status);
-        $this->assertSame('HB', $order->test_code);
-        $this->assertSame('Hemoglobin', $order->test_label);
+    public function test_active_legacy_order_remains_visible_as_read_only_compatibility_evidence(): void
+    {
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+        $order = $this->legacyOrder($this->encounter($physician, Encounter::STATUS_IN_EXAMINATION), $physician);
 
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.lab.order.create',
-            'resource_type' => 'lab_service_request',
-            'resource_id' => $order->public_id,
-            'outcome' => 'SUCCESS',
-        ]);
-
-        $this->actingAs($nurse)
-            ->get(route('pemeriksaan.laboratorium.index'))
+        $this->actingAs($nurse)->get(route('pemeriksaan.laboratorium.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('pemeriksaan/laboratorium/index')
                 ->has('orders', 1)
-                ->where('orders.0.public_id', $order->public_id));
+                ->where('orders.0.public_id', $order->public_id)
+                ->where('orders.0.source', 'LEGACY_READ_ONLY')
+                ->where('orders.0.examination.code', 'HB')
+                ->where('orders.0.actions.cancel_url', null)
+                ->where('orders.0.actions.collect_url', null)
+                ->where('orders.0.actions.save_result_url', null));
+    }
 
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Hb 12.4 g/dL',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertRedirect(route('pemeriksaan.laboratorium.index'));
-
-        $order->refresh();
-        $this->assertSame(LabServiceRequest::STATUS_COMPLETED, $order->status);
-        $this->assertNotNull($order->result);
-        $this->assertSame('Hb 12.4 g/dL', $order->result->result_text);
-
-        $this->assertDatabaseHas('audit_events', [
-            'action' => 'clinical.lab.result.write',
-            'resource_type' => 'lab_service_request',
-            'resource_id' => $order->public_id,
-            'outcome' => 'SUCCESS',
+    public function test_legacy_final_result_is_physician_readable_and_redacted_from_other_roles(): void
+    {
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+        $activeEncounter = $this->encounter($physician, Encounter::STATUS_IN_EXAMINATION);
+        $completed = $this->legacyOrder($activeEncounter, $physician, LabServiceRequest::STATUS_COMPLETED);
+        LabDiagnosticResult::factory()->create([
+            'lab_service_request_id' => $completed->id,
+            'entered_by_user_id' => $nurse->id,
+            'status' => LabDiagnosticResult::STATUS_FINAL,
+            'result_text' => 'Hb 12.4 g/dL',
         ]);
+        $cancelled = $this->legacyOrder($this->encounter($physician, Encounter::STATUS_CANCELLED), $physician);
 
-        $this->actingAs($physician)
-            ->get(route('pemeriksaan.rawat-jalan.show', $encounter))
+        $this->actingAs($physician)->get(route('pemeriksaan.rawat-jalan.show', $activeEncounter))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('pemeriksaan/rawat-jalan/show')
-                ->has('encounter.lab_orders', 1)
-                ->where('encounter.lab_orders.0.result.result_text', 'Hb 12.4 g/dL'));
+                ->missing('encounter.lab_orders')
+                ->where('laboratory.orders.0.source', 'LEGACY_READ_ONLY')
+                ->where('laboratory.orders.0.state', 'REPORTED_VERIFIED')
+                ->where('laboratory.orders.0.result.components.0.value', 'Hb 12.4 g/dL')
+                ->where('laboratory.orders.0.actions.save_result_url', null));
+        $this->actingAs($nurse)->get(route('pemeriksaan.rawat-jalan.show', $activeEncounter))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->missing('encounter.lab_orders')
+                ->where('laboratory.orders.0.source', 'LEGACY_READ_ONLY')
+                ->where('laboratory.orders.0.result', null));
+        foreach ([RoleCapabilityMatrix::ROLE_REGISTRAR, RoleCapabilityMatrix::ROLE_ADMIN, RoleCapabilityMatrix::ROLE_RMIK] as $role) {
+            $this->actingAs($this->userWithRole($role))->get(route('pemeriksaan.rawat-jalan.show', $activeEncounter))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->missing('encounter.lab_orders')
+                    ->has('laboratory.orders', 0));
+        }
+        $this->actingAs($nurse)->get(route('pemeriksaan.laboratorium.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('orders', fn ($orders): bool => collect($orders)->doesntContain('public_id', $cancelled->public_id)));
     }
 
-    public function test_nurse_cannot_create_lab_order(): void
+    private function encounter(User $actor, string $status): Encounter
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-
-        $patient = Patient::factory()->create([
-            'created_by_user_id' => $registrar->id,
+        return Encounter::factory()->create([
+            'patient_id' => Patient::factory()->create(['created_by_user_id' => $actor->id, 'is_synthetic' => true])->id,
+            'registered_by_user_id' => $actor->id,
+            'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
+            'status' => $status,
         ]);
-        $encounter = Encounter::factory()->create([
-            'patient_id' => $patient->id,
-            'registered_by_user_id' => $registrar->id,
-            'status' => Encounter::STATUS_IN_EXAMINATION,
-        ]);
-
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter), [
-                'test_code' => 'GDS',
-            ])
-            ->assertForbidden();
     }
 
-    public function test_closed_encounter_rejects_lab_order(): void
+    private function legacyOrder(Encounter $encounter, User $physician, string $status = LabServiceRequest::STATUS_ACTIVE): LabServiceRequest
     {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-
-        $patient = Patient::factory()->create([
-            'created_by_user_id' => $registrar->id,
-        ]);
-        $encounter = Encounter::factory()->create([
-            'patient_id' => $patient->id,
-            'registered_by_user_id' => $registrar->id,
-            'status' => Encounter::STATUS_CLOSED,
-        ]);
-
-        $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter), [
-                'test_code' => 'UR',
-            ])
-            ->assertStatus(422);
-    }
-
-    public function test_result_entry_returns_to_the_filtered_worklist_page(): void
-    {
-        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
-        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
-        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
-        $patient = Patient::factory()->create([
-            'created_by_user_id' => $registrar->id,
-            'is_synthetic' => true,
-        ]);
-        $encounter = Encounter::factory()->create([
-            'patient_id' => $patient->id,
-            'registered_by_user_id' => $registrar->id,
-            'status' => Encounter::STATUS_IN_EXAMINATION,
-        ]);
-        $orders = LabServiceRequest::factory()->count(101)->create([
+        return LabServiceRequest::factory()->create([
             'encounter_id' => $encounter->id,
             'requested_by_user_id' => $physician->id,
-            'status' => LabServiceRequest::STATUS_ACTIVE,
             'test_code' => 'HB',
             'test_label' => 'Hemoglobin',
+            'status' => $status,
         ]);
-        $order = $orders->last();
-        $this->assertInstanceOf(LabServiceRequest::class, $order);
-
-        $this->actingAs($nurse)
-            ->followingRedirects()
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Hasil sintetis final.',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-                'q' => 'Hemoglobin',
-                'page' => 2,
-            ])
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('pemeriksaan/laboratorium/index')
-                ->has('orders', 100)
-                ->where('filters.q', 'Hemoglobin')
-                ->where('flash.success', 'Hasil lab disimpan.')
-                ->where('pagination.current_page', 1)
-                ->where('pagination.last_page', 1)
-                ->where('pagination.total', 100));
     }
 
     private function userWithRole(string $roleSlug): User
     {
         $user = User::factory()->create();
-        $role = Role::query()->where('slug', $roleSlug)->firstOrFail();
-        $user->roles()->sync([$role->id]);
+        $user->roles()->sync([Role::query()->where('slug', $roleSlug)->sole()->id]);
 
-        return $user;
+        return $user->fresh();
     }
 }

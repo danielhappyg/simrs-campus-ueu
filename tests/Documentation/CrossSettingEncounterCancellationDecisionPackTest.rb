@@ -17,9 +17,13 @@ class CrossSettingEncounterCancellationDecisionPackTest < Minitest::Test
     @adr = File.read(File.join(ROOT, ADR_PATH))
   end
 
-  def test_pack_and_adr_remain_explicitly_unapproved
-    assert_includes @pack, '**PROPOSED NEW — owner decision required; no implementation approval**'
+  def test_pack_records_local_implementation_without_overclaiming_domain_or_operational_authority
+    assert_includes @pack, '**LOCAL IMPLEMENTATION PRESENT — focused integration verification passing; domain/parity acceptance remains open**'
+    assert_includes @pack, 'authorized continued local implementation'
     assert_includes @pack, 'Blank owner rows are not consent.'
+    assert_includes @pack, 'does not fill blank domain-owner rows'
+    assert_includes @pack, 'no-live-integration'
+    assert_includes @pack, 'or authorize hosted migration/deployment'
     assert_includes @adr, '**PROPOSED — no implementation approval**'
     refute_match(/\*\*Status:\*\*\s+APPROVED/i, @pack)
     refute_match(/\*\*Status:\*\*\s+APPROVED/i, @adr)

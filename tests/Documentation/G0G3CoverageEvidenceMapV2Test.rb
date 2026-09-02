@@ -13,8 +13,10 @@ require_relative '../../scripts/generate-g0-g3-coverage-evidence-map-v2'
 class G0G3CoverageEvidenceMapV2Test < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   SCRIPT = File.join(ROOT, 'scripts/generate-g0-g3-coverage-evidence-map-v2.rb')
-  DATED_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json'
-  DATED_OUTPUT_SHA256 = '3b1005a31087896b412a8f64a3dbfced2c0ab655be78c32abd7c0743ae3811d5'
+  ORIGINAL_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json'
+  ORIGINAL_OUTPUT_SHA256 = '3b1005a31087896b412a8f64a3dbfced2c0ab655be78c32abd7c0743ae3811d5'
+  SUCCESSOR_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29_R2.json'
+  SUCCESSOR_OUTPUT_SHA256 = '581c0d5eccdd42b818270b3d214e600e33ac12bf6d1895143e644be43783f27f'
   HISTORICAL_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_2026-08-27.json'
   ORDER_SOURCE_PATH = 'docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json'
   Generator = G0G3CoverageEvidenceMapV2
@@ -33,6 +35,7 @@ class G0G3CoverageEvidenceMapV2Test < Minitest::Test
 
   TOP_LEVEL_KEYS = %w[
     artifact_type schema_version artifact_id snapshot_date data_boundary
+    superseded_evidence_map
     source_evidence_map canonical_order_source explicit_evidence_inputs
     capability_defaults workflow_observation_default capabilities workflows provenance
   ].freeze
@@ -49,6 +52,7 @@ class G0G3CoverageEvidenceMapV2Test < Minitest::Test
     generator source_byte_hash canonical_json capability_count
     historical_engineering_override_count workflow_count explicit_evidence_input_count
   ].freeze
+  SUPERSEDED_MAP_KEYS = %w[path sha256 artifact_id relationship].freeze
 
   # Normalize punctuation, whitespace, separators, and case before matching so
   # nested aliases such as "Owner-Approval", "G 0", or "consumerPointer"
@@ -65,10 +69,15 @@ class G0G3CoverageEvidenceMapV2Test < Minitest::Test
     @historical = Core.parse_json_file(File.join(ROOT, HISTORICAL_MAP_PATH))
     @order_source = Core.parse_json_file(File.join(ROOT, ORDER_SOURCE_PATH))
     @inputs = explicit_inputs_from_historical_map
+    @original_bytes = File.binread(File.join(ROOT, ORIGINAL_OUTPUT_PATH))
   end
 
   def teardown
     FileUtils.remove_entry(@tmpdir) if File.exist?(@tmpdir)
+    assert_equal @original_bytes, File.binread(File.join(ROOT, ORIGINAL_OUTPUT_PATH)),
+                 'successor generation must preserve the original map byte-for-byte'
+    assert_equal ORIGINAL_OUTPUT_SHA256,
+                 Digest::SHA256.file(File.join(ROOT, ORIGINAL_OUTPUT_PATH)).hexdigest
   end
 
   def test_two_clean_runs_are_byte_identical_closed_and_preserve_historical_sources
@@ -92,20 +101,70 @@ class G0G3CoverageEvidenceMapV2Test < Minitest::Test
     assert_equal TOP_LEVEL_KEYS.sort, document.keys.sort
     assert_equal 'g0_g3_coverage_evidence_map_v2', document.fetch('artifact_type')
     assert_equal 2, document.fetch('schema_version')
+    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29-R2', document.fetch('artifact_id')
     assert_equal 'synthetic_only', document.fetch('data_boundary')
+    assert_equal SUPERSEDED_MAP_KEYS.sort, document.fetch('superseded_evidence_map').keys.sort
+    assert_equal Generator.send(:predecessor_reference), document.fetch('superseded_evidence_map')
     assert_no_forbidden_keys(document)
   end
 
-  def test_dated_artifact_is_exactly_a_clean_deterministic_rerun
-    dated = File.join(ROOT, DATED_OUTPUT_PATH)
-    assert File.file?(dated)
-    assert_equal DATED_OUTPUT_SHA256, Digest::SHA256.file(dated).hexdigest
-    Generator.validate_generated_document!(Core.parse_json_file(dated), root: ROOT)
+  def test_original_is_an_immutable_closed_hash_bound_predecessor
+    original = File.join(ROOT, ORIGINAL_OUTPUT_PATH)
+    assert File.file?(original)
+    assert_equal ORIGINAL_OUTPUT_SHA256, Digest::SHA256.file(original).hexdigest
+    assert_equal Generator.send(:predecessor_reference),
+                 Generator.send(:verified_predecessor_reference, Pathname.new(ROOT).realpath)
 
-    rerun = File.join(@tmpdir, 'dated-rerun.json')
-    receipt = generate(rerun)
-    assert_equal DATED_OUTPUT_SHA256, receipt.fetch('sha256')
-    assert_equal File.binread(dated), File.binread(rerun)
+    reference = Generator.send(:predecessor_reference)
+    assert_equal SUPERSEDED_MAP_KEYS.sort, reference.keys.sort
+    assert_equal ORIGINAL_OUTPUT_PATH, reference.fetch('path')
+    assert_equal ORIGINAL_OUTPUT_SHA256, reference.fetch('sha256')
+    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29', reference.fetch('artifact_id')
+    assert_equal 'supersedes_without_rewriting_or_reinterpreting_predecessor', reference.fetch('relationship')
+
+    %w[path sha256 artifact_id relationship].each do |key|
+      changed = deep_copy(reference)
+      changed[key] = key == 'sha256' ? '0' * 64 : 'invented'
+      assert_raises(Generator::Error, key) { Generator.send(:validate_predecessor_reference!, changed) }
+    end
+    changed = deep_copy(reference).merge('unknown' => true)
+    assert_raises(Generator::Error) { Generator.send(:validate_predecessor_reference!, changed) }
+  end
+
+  def test_r2_artifact_is_the_exact_immutable_predecessor_of_the_current_successor
+    successor = File.join(ROOT, SUCCESSOR_OUTPUT_PATH)
+    assert File.file?(successor)
+    assert_equal SUCCESSOR_OUTPUT_SHA256, Digest::SHA256.file(successor).hexdigest
+    document = Core.parse_json_file(successor)
+    assert_equal Generator.send(:predecessor_reference), document.fetch('superseded_evidence_map')
+    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29-R2', document.fetch('artifact_id')
+    assert_equal '2026-08-29', document.fetch('snapshot_date')
+    assert_equal 'synthetic_only', document.fetch('data_boundary')
+  end
+
+  def test_predecessor_missing_drift_symlink_and_hardlink_fail_closed_without_output
+    %w[missing drift symlink hardlink].each do |mode|
+      fixture_root = build_fixture_root("predecessor-#{mode}")
+      predecessor = File.join(fixture_root, ORIGINAL_OUTPUT_PATH)
+      case mode
+      when 'missing'
+        File.unlink(predecessor)
+      when 'drift'
+        File.open(predecessor, 'ab') { |file| file.write("drift\n") }
+      when 'symlink'
+        File.unlink(predecessor)
+        File.symlink(File.join(ROOT, ORIGINAL_OUTPUT_PATH), predecessor)
+      when 'hardlink'
+        hardlink_source = File.join(fixture_root, 'predecessor-hardlink-source.json')
+        File.rename(predecessor, hardlink_source)
+        File.link(hardlink_source, predecessor)
+      end
+      output = File.join(fixture_root, 'rejected-successor.json')
+      assert_raises(Generator::Error, mode) do
+        Generator.generate!(root: fixture_root, output: output, current_evidence_paths: [])
+      end
+      refute File.exist?(output), mode
+    end
   end
 
   def test_exact_source_hashes_explicit_inputs_and_canonical_268_order_are_bound
@@ -401,6 +460,12 @@ class G0G3CoverageEvidenceMapV2Test < Minitest::Test
     end
     refute File.exist?(faulted)
     refute Dir.children(@tmpdir).any? { |name| name.start_with?('.faulted.json.stage-') }
+
+    ['../outside-successor.json', '/tmp/outside-successor.json'].each do |unsafe|
+      assert_raises(Generator::UsageError, unsafe) do
+        Generator.generate!(root: ROOT, output: unsafe, current_evidence_paths: [])
+      end
+    end
   end
 
   def test_cli_requires_explicit_inputs_and_has_stable_exit_classes_without_secret_echo
@@ -484,7 +549,8 @@ class G0G3CoverageEvidenceMapV2Test < Minitest::Test
   def build_fixture_root(name)
     fixture_root = File.join(@tmpdir, name)
     relative_script = SCRIPT.delete_prefix("#{ROOT}/")
-    paths = ([HISTORICAL_MAP_PATH, ORDER_SOURCE_PATH, relative_script] + @inputs.map { |entry| entry.fetch('path') }).uniq
+    paths = ([HISTORICAL_MAP_PATH, ORDER_SOURCE_PATH, ORIGINAL_OUTPUT_PATH, relative_script] +
+      @inputs.map { |entry| entry.fetch('path') }).uniq
     paths.each do |path|
       destination = File.join(fixture_root, path)
       FileUtils.mkdir_p(File.dirname(destination))

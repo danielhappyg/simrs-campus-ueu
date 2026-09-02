@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { CareSettingSubnav } from '@/components/care-setting-subnav';
@@ -45,6 +45,7 @@ type Filters = {
     date_to: string;
     payer?: string;
     continue_from?: string;
+    scope?: 'active' | 'correction';
 };
 
 type DeskVariant = 'rawat-jalan' | 'igd' | 'triage' | 'rawat-inap';
@@ -60,18 +61,21 @@ type Props = {
     continueFromOptions?: Option[];
     filters: Filters;
     canOpen: boolean;
+    canAccessCorrections?: boolean;
 };
 
 const statusLabel: Record<string, string> = {
     REGISTERED: 'Terdaftar',
     IN_EXAMINATION: 'Dalam pemeriksaan',
     READY_FOR_RM: 'Dokumentasi selesai',
+    CLOSED: 'Ditutup',
 };
 
 const statusChip: Record<string, string> = {
     REGISTERED: 'bg-[#e8f2fa] text-[#123b63]',
     IN_EXAMINATION: 'bg-[#fdeee3] text-[#9a3412]',
     READY_FOR_RM: 'bg-[#ecfdf5] text-[#047857]',
+    CLOSED: 'bg-[#f1f5f9] text-[#334155]',
 };
 
 const payerLabel: Record<string, string> = {
@@ -100,10 +104,16 @@ export default function PemeriksaanRawatJalanIndex({
     continueFromOptions = [],
     filters,
     canOpen,
+    canAccessCorrections = false,
 }: Props) {
+    const canViewBedCensus =
+        (
+            usePage().props.auth as { capabilities?: string[] } | undefined
+        )?.capabilities?.includes('inpatient.occupancy.view') ?? false;
     const isIgd = variant === 'igd';
     const isTriage = variant === 'triage';
     const isInpatient = variant === 'rawat-inap';
+    const correctionMode = isInpatient && filters.scope === 'correction';
     const title = isTriage
         ? 'Pemeriksaan · Triage'
         : isIgd
@@ -134,6 +144,7 @@ export default function PemeriksaanRawatJalanIndex({
                 payer: (isTriage || isInpatient) && payer ? payer : undefined,
                 continue_from:
                     isInpatient && continueFrom ? continueFrom : undefined,
+                scope: correctionMode ? 'correction' : undefined,
                 date_from: dateFrom || undefined,
                 date_to: dateTo || undefined,
             },
@@ -172,6 +183,10 @@ export default function PemeriksaanRawatJalanIndex({
                             href: '/pemeriksaan/laboratorium',
                             label: 'Laboratorium',
                         },
+                        {
+                            href: '/pemeriksaan/radiologi',
+                            label: 'Radiologi',
+                        },
                     ]}
                 />
 
@@ -181,10 +196,61 @@ export default function PemeriksaanRawatJalanIndex({
                             {title}
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Worklist kunjungan aktif untuk pemeriksaan dan
-                            dokumentasi klinis.
-                            {isTriage ? ' Skala triage belum tersedia.' : ''}
+                            {correctionMode
+                                ? 'Episode selesai yang dapat dibuka untuk koreksi ringkasan pulang terkendali.'
+                                : 'Worklist kunjungan aktif untuk pemeriksaan dan dokumentasi klinis.'}
+                            {isTriage
+                                ? ' Kategori manual dan asesmen ulang tersedia pada detail triage.'
+                                : ''}
                         </p>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {isInpatient && canAccessCorrections ? (
+                            <nav
+                                aria-label="Mode worklist rawat inap"
+                                className="flex flex-wrap gap-2"
+                            >
+                                <Button
+                                    asChild
+                                    type="button"
+                                    variant={
+                                        correctionMode ? 'outline' : 'default'
+                                    }
+                                    size="sm"
+                                    className="min-h-11"
+                                >
+                                    <Link href="/pemeriksaan/rawat-inap">
+                                        Pasien dirawat
+                                    </Link>
+                                </Button>
+                                <Button
+                                    asChild
+                                    type="button"
+                                    variant={
+                                        correctionMode ? 'default' : 'outline'
+                                    }
+                                    size="sm"
+                                    className="min-h-11"
+                                >
+                                    <Link href="/pemeriksaan/rawat-inap?scope=correction">
+                                        Koreksi ringkasan pulang
+                                    </Link>
+                                </Button>
+                            </nav>
+                        ) : null}
+                        {isInpatient && canViewBedCensus ? (
+                            <Button
+                                asChild
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="min-h-11"
+                            >
+                                <Link href="/manajemen-data/bangsal">
+                                    Lihat ketersediaan TT
+                                </Link>
+                            </Button>
+                        ) : null}
                     </div>
                 </header>
 
@@ -425,7 +491,9 @@ export default function PemeriksaanRawatJalanIndex({
                     <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[56rem] text-left text-sm">
                             <caption className="sr-only">
-                                Daftar pasien pada worklist pemeriksaan
+                                {correctionMode
+                                    ? 'Daftar episode untuk koreksi ringkasan pulang'
+                                    : 'Daftar pasien pada worklist pemeriksaan'}
                             </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
@@ -516,8 +584,9 @@ export default function PemeriksaanRawatJalanIndex({
                                             }
                                             className="px-2 py-6 text-[#64748b]"
                                         >
-                                            Tidak ada kunjungan aktif untuk
-                                            filter ini.
+                                            {correctionMode
+                                                ? 'Tidak ada episode selesai yang memenuhi filter koreksi.'
+                                                : 'Tidak ada kunjungan aktif untuk filter ini.'}
                                         </td>
                                     </tr>
                                 ) : (
@@ -629,7 +698,11 @@ export default function PemeriksaanRawatJalanIndex({
                     </div>
                     <OperationalPagination
                         pagination={pagination}
-                        itemLabel="kunjungan aktif"
+                        itemLabel={
+                            correctionMode
+                                ? 'episode koreksi'
+                                : 'kunjungan aktif'
+                        }
                         className="mt-3"
                     />
                 </section>

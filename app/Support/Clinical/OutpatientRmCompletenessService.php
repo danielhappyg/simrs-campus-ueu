@@ -9,12 +9,18 @@ use App\Models\OutpatientRmCompletenessReview;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\CanonicalJson;
+use App\Support\Laboratory\LaboratoryClosureGate;
+use App\Support\Pharmacy\PharmacyEncounterLifecycleGate;
+use App\Support\Radiology\RadiologyClosureGate;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final class OutpatientRmCompletenessService
 {
-    public function __construct(private readonly AuditRecorder $auditRecorder) {}
+    public function __construct(
+        private readonly AuditRecorder $auditRecorder,
+        private readonly PharmacyEncounterLifecycleGate $pharmacy,
+    ) {}
 
     /** @return array{source_fingerprint: string, items: list<array{item_code: string, label: string, is_blocking: bool, is_complete: bool, source_reference: string|null}>, blockers: list<string>} */
     public function snapshot(Encounter $encounter): array
@@ -35,6 +41,15 @@ final class OutpatientRmCompletenessService
             ->pluck('public_id')
             ->values()
             ->all();
+        $radiology = app(RadiologyClosureGate::class)->inspect($encounter);
+        $laboratory = app(LaboratoryClosureGate::class)->inspect($encounter);
+        $pharmacy = $this->pharmacy->inspectReadModel($encounter);
+        $allActiveLabOrderIds = collect($activeOrderIds)
+            ->merge($laboratory['active_order_public_ids'])
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         $medicalFieldsComplete = $medical !== null
             && collect(OutpatientDocumentationDefinition::requiredOnFinal($medical->document_type))
@@ -47,7 +62,12 @@ final class OutpatientRmCompletenessService
             $this->item('MEDICAL_FINAL', 'Catatan medis tersedia dan final', $medical?->document_state === OutpatientClinicalDocument::STATE_FINAL, $medical?->public_id),
             $this->item('MEDICAL_REQUIRED_FIELDS', 'Field wajib catatan medis final terisi', $medical?->document_state === OutpatientClinicalDocument::STATE_FINAL && $medicalFieldsComplete, $medical?->public_id),
             $this->item('MEDICAL_PROVENANCE', 'Dokter dan waktu finalisasi tercatat', $medical !== null && $medical->author_user_id > 0 && $medical->finalized_by_user_id !== null && $medical->finalized_at !== null, $medical?->public_id),
-            $this->item('NO_ACTIVE_LAB_ORDERS', 'Tidak ada order laboratorium aktif', $activeOrderIds === [], null),
+            $this->item('NO_ACTIVE_LAB_ORDERS', 'Tidak ada order laboratorium aktif', $allActiveLabOrderIds === [], null),
+            $this->item('NO_UNRESOLVED_LAB_SPECIMENS', 'Tidak ada spesimen laboratorium yang belum terselesaikan', $laboratory['unresolved_specimen_order_public_ids'] === [], null),
+            $this->item('NO_UNACKNOWLEDGED_VERIFIED_LAB_RESULTS', 'Tidak ada hasil laboratorium terverifikasi yang belum diakui', $laboratory['stale_acknowledgement_order_public_ids'] === [], null),
+            $this->item('NO_ACTIVE_RADIOLOGY_ORDERS', 'Tidak ada pesanan radiologi aktif', $radiology['active_order_public_ids'] === [], null),
+            $this->item('NO_UNACKNOWLEDGED_VERIFIED_RADIOLOGY_REPORTS', 'Tidak ada laporan radiologi terverifikasi yang belum diakui', $radiology['stale_acknowledgement_order_public_ids'] === [], null),
+            $this->item('NO_ACTIVE_MEDICATION_PRESCRIPTIONS', 'Tidak ada resep obat aktif', $pharmacy['active_prescription_public_ids'] === [], null),
         ];
 
         $fingerprint = hash('sha256', CanonicalJson::encode([
@@ -69,7 +89,12 @@ final class OutpatientRmCompletenessService
                 ->sortBy('document_type')
                 ->values()
                 ->all(),
-            'active_lab_order_public_ids' => $activeOrderIds,
+            'active_lab_order_public_ids' => $allActiveLabOrderIds,
+            'unresolved_lab_specimen_order_public_ids' => $laboratory['unresolved_specimen_order_public_ids'],
+            'stale_lab_acknowledgement_order_public_ids' => $laboratory['stale_acknowledgement_order_public_ids'],
+            'active_radiology_order_public_ids' => $radiology['active_order_public_ids'],
+            'stale_radiology_acknowledgement_order_public_ids' => $radiology['stale_acknowledgement_order_public_ids'],
+            'active_medication_prescription_public_ids' => $pharmacy['active_prescription_public_ids'],
         ]));
 
         return [
@@ -130,6 +155,7 @@ final class OutpatientRmCompletenessService
     ): OutpatientRmCompletenessReview {
         try {
             return DB::transaction(function () use ($encounter, $actor, $expectedVersion, $expectedFingerprint): OutpatientRmCompletenessReview {
+                $this->pharmacy->lockInventoryForEncounter((int) $encounter->id);
                 $lockedEncounter = $this->lockEncounter($encounter);
                 $this->assertReviewable($lockedEncounter);
                 $latest = $this->lockLatestReview($lockedEncounter);
@@ -149,6 +175,37 @@ final class OutpatientRmCompletenessService
                         'active_lab_orders',
                         'Kunjungan belum dapat ditutup karena masih ada order lab aktif.',
                         metadata: ['failed_item_ids' => ['NO_ACTIVE_LAB_ORDERS']],
+                    );
+                }
+
+                if (in_array('NO_UNRESOLVED_LAB_SPECIMENS', $snapshot['blockers'], true)) {
+                    throw new OutpatientLifecycleDenial(
+                        'unresolved_lab_specimens',
+                        'Kunjungan belum dapat ditutup karena masih ada spesimen laboratorium yang belum terselesaikan.',
+                        metadata: ['failed_item_ids' => ['NO_UNRESOLVED_LAB_SPECIMENS']],
+                    );
+                }
+
+                if (in_array('NO_UNACKNOWLEDGED_VERIFIED_LAB_RESULTS', $snapshot['blockers'], true)) {
+                    throw new OutpatientLifecycleDenial(
+                        'lab_result_not_acknowledged',
+                        'Hasil laboratorium terbaru belum diakui dokter pemesan.',
+                        metadata: ['failed_item_ids' => ['NO_UNACKNOWLEDGED_VERIFIED_LAB_RESULTS']],
+                    );
+                }
+
+                if (in_array('NO_ACTIVE_RADIOLOGY_ORDERS', $snapshot['blockers'], true)) {
+                    throw new OutpatientLifecycleDenial('active_radiology_orders', 'Kunjungan belum dapat ditutup karena masih ada pesanan radiologi aktif.', metadata: ['failed_item_ids' => ['NO_ACTIVE_RADIOLOGY_ORDERS']]);
+                }
+                if (in_array('NO_UNACKNOWLEDGED_VERIFIED_RADIOLOGY_REPORTS', $snapshot['blockers'], true)) {
+                    throw new OutpatientLifecycleDenial('radiology_report_not_acknowledged', 'Laporan radiologi terbaru belum diakui dokter pemesan.', metadata: ['failed_item_ids' => ['NO_UNACKNOWLEDGED_VERIFIED_RADIOLOGY_REPORTS']]);
+                }
+
+                if (in_array('NO_ACTIVE_MEDICATION_PRESCRIPTIONS', $snapshot['blockers'], true)) {
+                    throw new OutpatientLifecycleDenial(
+                        'active_pharmacy_prescriptions',
+                        'Kunjungan belum dapat ditutup karena masih ada resep obat aktif.',
+                        metadata: ['failed_item_ids' => ['NO_ACTIVE_MEDICATION_PRESCRIPTIONS']],
                     );
                 }
 

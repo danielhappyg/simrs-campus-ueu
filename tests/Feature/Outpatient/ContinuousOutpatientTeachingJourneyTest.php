@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Clinical\OutpatientLabLifecycle;
 use App\Support\Clinical\OutpatientRmCompletenessService;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
@@ -149,14 +150,12 @@ class ContinuousOutpatientTeachingJourneyTest extends TestCase
         $this->assertAttributedAudit('clinical.medical.draft.save', $physician, 'SUCCESS', null, $medical->public_id);
         $this->assertAttributedAudit('clinical.medical.finalize', $physician, 'SUCCESS', null, $medical->public_id);
 
-        $this->actingAs($physician)
-            ->post(route('pemeriksaan.rawat-jalan.lab-orders.store', $encounter), [
-                'test_code' => 'HB',
-                'clinical_question' => 'Apakah hemoglobin mendukung anemia pada kasus sintetis?',
-            ])
-            ->assertRedirect(route('pemeriksaan.rawat-jalan.show', $encounter));
-
-        $order = LabServiceRequest::query()->where('encounter_id', $encounter->id)->sole();
+        $order = app(OutpatientLabLifecycle::class)->createLabOrder(
+            $encounter,
+            $physician,
+            ['code' => 'HB', 'label' => 'Hemoglobin'],
+            'Apakah hemoglobin mendukung anemia pada kasus sintetis?',
+        );
         $this->assertSame(LabServiceRequest::STATUS_ACTIVE, $order->status);
         $this->assertNull($order->result);
         $this->assertSame($physician->id, $order->requested_by_user_id);
@@ -210,12 +209,11 @@ class ContinuousOutpatientTeachingJourneyTest extends TestCase
         $this->assertAttributedAudit('rmik.completeness.review.save', $rmik, 'SUCCESS', null, $draftReview->public_id);
         $this->assertAttributedAudit('rmik.completeness.signoff', $rmik, 'DENIED', 'active_lab_orders', $encounter->public_id);
 
-        $this->actingAs($nurse)
-            ->post(route('pemeriksaan.laboratorium.results.store', $order), [
-                'result_text' => 'Hemoglobin 12,4 g/dL; hasil final sintetis.',
-                'status' => LabDiagnosticResult::STATUS_FINAL,
-            ])
-            ->assertRedirect(route('pemeriksaan.laboratorium.index'));
+        app(OutpatientLabLifecycle::class)->writeFinalLabResult(
+            $order,
+            $nurse,
+            'Hemoglobin 12,4 g/dL; hasil final sintetis.',
+        );
 
         $order->refresh()->load('result');
         $this->assertSame(LabServiceRequest::STATUS_COMPLETED, $order->status);
@@ -261,9 +259,10 @@ class ContinuousOutpatientTeachingJourneyTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('encounter.status', Encounter::STATUS_CLOSED)
-                ->where('encounter.lab_orders.0.status', LabServiceRequest::STATUS_COMPLETED)
-                ->where('encounter.lab_orders.0.result.status', LabDiagnosticResult::STATUS_FINAL)
-                ->where('encounter.lab_orders.0.result.entered_by_name', $nurse->name)
+                ->missing('encounter.lab_orders')
+                ->where('laboratory.orders.0.source', 'LEGACY_READ_ONLY')
+                ->where('laboratory.orders.0.state', 'REPORTED_VERIFIED')
+                ->where('laboratory.orders.0.result.author_name', $nurse->name)
                 ->where('permissions.nursing.can_save_draft', false)
                 ->where('permissions.nursing.can_finalize', false)
                 ->where('permissions.medical.can_save_draft', false)

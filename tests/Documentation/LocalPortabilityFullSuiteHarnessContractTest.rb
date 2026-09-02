@@ -5,6 +5,9 @@ require 'minitest/autorun'
 require 'open3'
 
 require_relative '../../scripts/rehearse-local-portability-full-suite'
+require_relative '../../scripts/rehearse-local-inpatient-discharge-portability'
+require_relative '../../scripts/rehearse-local-inpatient-discharge-coding-source-portability'
+require_relative '../../scripts/rehearse-local-radiology-portability'
 
 class LocalPortabilityFullSuiteHarnessContractTest < Minitest::Test
   Harness = LocalPortabilityFullSuiteRehearsal
@@ -144,10 +147,71 @@ class LocalPortabilityFullSuiteHarnessContractTest < Minitest::Test
 
     execution = Harness.current_execution_bindings
     assert_equal first, execution.fetch('backend_execution_source_set')
-    assert_equal 23, execution.dig('migration_set', 'file_count')
+    assert_equal Dir.glob(File.join(Harness::ROOT, 'database/migrations/*.php')).length,
+                 execution.dig('migration_set', 'file_count')
     assert_match(/\A[0-9a-f]{64}\z/, execution.dig('migration_set', 'sha256'))
     assert_match(/\A[0-9a-f]{64}\z/, execution.fetch('harness_sha256'))
     assert_match(/\A[0-9a-f]{64}\z/, execution.fetch('workflow_test_catalog_sha256'))
+  end
+
+  def test_atomic_inpatient_discharge_harness_source_binding_is_deterministic_and_current
+    discharge_harness = LocalInpatientDischargePortabilityRehearsal.new(
+      engine: 'postgresql17',
+      environment: {
+        LocalInpatientDischargePortabilityRehearsal::CONFIRMATION_ENV =>
+          LocalInpatientDischargePortabilityRehearsal::CONFIRMATION,
+        'DB_URL' => '',
+      },
+    )
+
+    first = discharge_harness.current_discharge_bindings
+    second = discharge_harness.current_discharge_bindings
+
+    assert_equal first, second
+    assert_equal LocalInpatientDischargePortabilityRehearsal::SOURCE_PATHS.length, first.fetch('files').length
+    assert_includes first.fetch('files').keys, LocalInpatientDischargePortabilityRehearsal::SCRIPT_PATH
+    assert_includes first.fetch('files').keys, LocalInpatientDischargePortabilityRehearsal::CONTRACT_PATH
+    assert_includes first.fetch('files').keys, LocalInpatientDischargePortabilityRehearsal::MIGRATION_PATH
+    assert_includes first.fetch('files').keys, 'app/Support/Inpatient/InpatientDischargeService.php'
+    assert_match(/\A[0-9a-f]{64}\z/, first.fetch('aggregate_sha256'))
+    assert_match(/\A[0-9a-f]{64}\z/, first.fetch('worker_source_sha256'))
+    assert_match(/\A[0-9a-f]{64}\z/, first.fetch('scenario_catalog_sha256'))
+  end
+
+  def test_inpatient_discharge_coding_source_harness_binding_is_deterministic_and_current
+    klass = LocalInpatientDischargeCodingSourcePortabilityRehearsal
+    subject = klass.new(
+      engine: 'postgresql17',
+      environment: { klass::CONFIRMATION_ENV => klass::CONFIRMATION, 'DB_URL' => '' },
+    )
+    first = subject.current_discharge_bindings
+    assert_equal first, subject.current_discharge_bindings
+    assert_equal klass::SOURCE_PATHS.length, first.fetch('files').length
+    assert_includes first.fetch('files').keys, klass::SCRIPT_PATH
+    assert_includes first.fetch('files').keys, klass::CONTRACT_PATH
+    assert_includes first.fetch('files').keys, klass::MIGRATION_PATH
+    assert_includes first.fetch('files').keys, 'app/Support/Inpatient/InpatientDischargeCodingSourceService.php'
+    assert_match(/\A[0-9a-f]{64}\z/, first.fetch('aggregate_sha256'))
+  end
+
+  def test_cross_setting_radiology_harness_binding_is_deterministic_and_current
+    klass = LocalRadiologyPortabilityRehearsal
+    subject = klass.new(
+      engine: 'postgresql17',
+      environment: { klass::CONFIRMATION_ENV => klass::CONFIRMATION, 'DB_URL' => '' },
+    )
+    first = subject.current_radiology_bindings
+
+    assert_equal first, subject.current_radiology_bindings
+    assert_equal klass::SOURCE_PATHS.length, first.fetch('files').length
+    assert_includes first.fetch('files').keys, klass::SCRIPT_PATH
+    assert_includes first.fetch('files').keys, klass::CONTRACT_PATH
+    assert_includes first.fetch('files').keys, klass::MIGRATION_PATH
+    assert_includes first.fetch('files').keys, klass::EVIDENCE_TEMPLATE_PATH
+    assert_includes first.fetch('files').keys, 'app/Support/Radiology/RadiologyWorkflowService.php'
+    %w[aggregate_sha256 worker_source_sha256 scenario_catalog_sha256 runtime_grant_catalog_sha256].each do |key|
+      assert_match(/\A[0-9a-f]{64}\z/, first.fetch(key))
+    end
   end
 
   def test_binding_drift_gate_accepts_identity_and_rejects_any_change

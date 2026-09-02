@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property int $id
@@ -39,6 +40,16 @@ class OutpatientRmCompletenessReview extends Model
         'definition_version', 'version', 'source_fingerprint', 'review_state',
         'reviewed_at', 'signed_off_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(static function (): never {
+            throw new LogicException('Outpatient RM completeness reviews are immutable snapshots.');
+        });
+        static::deleting(static function (): never {
+            throw new LogicException('Outpatient RM completeness reviews cannot be deleted by ordinary workflow.');
+        });
+    }
 
     /** @return BelongsTo<Encounter, $this> */
     public function encounter(): BelongsTo

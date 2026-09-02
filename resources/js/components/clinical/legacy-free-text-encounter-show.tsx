@@ -1,6 +1,10 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
+import { LaboratoryEncounterPanel } from '@/components/clinical/laboratory/laboratory-encounter-panel';
+import type { LaboratoryEncounterProjection } from '@/components/clinical/laboratory/types';
+import { RadiologyEncounterPanel } from '@/components/clinical/radiology/radiology-encounter-panel';
+import type { RadiologyEncounterProjection } from '@/components/clinical/radiology/types';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -84,6 +88,8 @@ type Props = {
     canCreateLabOrder?: boolean;
     canWriteNursing: boolean;
     canWriteMedical: boolean;
+    laboratory?: LaboratoryEncounterProjection;
+    radiology?: RadiologyEncounterProjection;
 };
 
 const statusLabel: Record<string, string> = {
@@ -182,6 +188,8 @@ export default function LegacyFreeTextEncounterShow({
     canCreateLabOrder = false,
     canWriteNursing,
     canWriteMedical,
+    laboratory,
+    radiology,
 }: Props) {
     const { flash } = usePage().props;
     const isIgd = variant === 'igd';
@@ -195,7 +203,7 @@ export default function LegacyFreeTextEncounterShow({
         `/pemeriksaan/rawat-jalan/${encounter.public_id}/lab-orders`;
     const labOrders = encounter.lab_orders ?? [];
     const allowedOptions = entryTypeOptions.filter((option) => option.allowed);
-    const canWrite = canWriteNursing || canWriteMedical;
+    const canWrite = variant !== 'igd' && (canWriteNursing || canWriteMedical);
     const closed = encounter.status === 'CLOSED';
     const [activeTab, setActiveTab] = useState<ClinicalTab>('Asesmen');
     const [entryValidationAttempt, setEntryValidationAttempt] = useState(0);
@@ -263,7 +271,11 @@ export default function LegacyFreeTextEncounterShow({
             return true;
         }
 
-        return tab === 'Order Lab' && isOutpatient;
+        if (tab === 'Order Lab') {
+            return laboratory !== undefined || isOutpatient;
+        }
+
+        return tab === 'Order Rad' && radiology !== undefined;
     };
 
     const tabId = (tab: ClinicalTab) => `clinical-tab-${clinicalTabSlug[tab]}`;
@@ -503,7 +515,15 @@ export default function LegacyFreeTextEncounterShow({
                     })}
                 </div>
 
-                {activeTab === 'Order Lab' && isOutpatient && (
+                {activeTab === 'Order Lab' && laboratory ? (
+                    <div
+                        id={tabPanelId('Order Lab')}
+                        role="tabpanel"
+                        aria-labelledby={tabId('Order Lab')}
+                    >
+                        <LaboratoryEncounterPanel projection={laboratory} />
+                    </div>
+                ) : activeTab === 'Order Lab' && isOutpatient ? (
                     <div
                         id={tabPanelId('Order Lab')}
                         role="tabpanel"
@@ -758,7 +778,17 @@ export default function LegacyFreeTextEncounterShow({
                             </section>
                         )}
                     </div>
-                )}
+                ) : null}
+
+                {activeTab === 'Order Rad' && radiology ? (
+                    <div
+                        id={tabPanelId('Order Rad')}
+                        role="tabpanel"
+                        aria-labelledby={tabId('Order Rad')}
+                    >
+                        <RadiologyEncounterPanel projection={radiology} />
+                    </div>
+                ) : null}
 
                 {(activeTab === 'Asesmen' || activeTab === 'Riwayat') && (
                     <div
@@ -957,9 +987,11 @@ export default function LegacyFreeTextEncounterShow({
                             </section>
                         ) : (
                             <section className="rounded-lg border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-4 text-sm text-[#64748b]">
-                                {closed
-                                    ? 'Kunjungan sudah ditutup — catatan tidak dapat ditambah.'
-                                    : 'Akun ini tidak punya hak menulis catatan klinis.'}
+                                {variant === 'igd'
+                                    ? 'Catatan IGD lama dipertahankan sebagai riwayat baca saja. Pencatatan baru dilakukan melalui dokumentasi IGD terstruktur.'
+                                    : closed
+                                      ? 'Kunjungan sudah ditutup — catatan tidak dapat ditambah.'
+                                      : 'Akun ini tidak punya hak menulis catatan klinis.'}
                             </section>
                         )}
                     </div>

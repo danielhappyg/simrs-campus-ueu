@@ -4,14 +4,18 @@ namespace Tests\Feature\Wilayah;
 
 use App\Models\DailyQueueCounter;
 use App\Models\Encounter;
+use App\Models\InpatientLocationEvent;
 use App\Models\Patient;
 use App\Models\User;
+use App\Support\Inpatient\InpatientLocationMutationScope;
 use Database\Seeders\DemoActorsSeeder;
+use Database\Seeders\InpatientMastersSeeder;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Database\Seeders\TeachingCensusSeeder;
 use Database\Seeders\WilayahMinimalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -31,6 +35,7 @@ class TeachingCensusSeederTest extends TestCase
         $this->seed(RbacSeeder::class);
         $this->seed(DemoActorsSeeder::class);
         $this->seed(OutpatientMastersSeeder::class);
+        $this->seed(InpatientMastersSeeder::class);
         $this->seed(WilayahMinimalSeeder::class);
         $this->seed(TeachingCensusSeeder::class);
 
@@ -39,6 +44,12 @@ class TeachingCensusSeederTest extends TestCase
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)->exists());
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_EMERGENCY)->exists());
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->exists());
+        $this->assertFalse(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->whereNull('inpatient_bed_id')->exists());
+        $this->assertSame(
+            Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->count(),
+            InpatientLocationEvent::query()->where('event_type', InpatientLocationEvent::TYPE_ADMISSION)->count(),
+        );
+        $this->assertFalse(InpatientLocationEvent::query()->where('sequence', '!=', 1)->exists());
         $this->assertTrue(User::query()->where('email', 'registrar.demo@example.invalid')->exists());
 
         $firstAssignments = Encounter::query()
@@ -46,6 +57,15 @@ class TeachingCensusSeederTest extends TestCase
             ->orderBy('booking_code')
             ->get(['booking_code', 'queue_date', 'queue_number']);
         $firstCounters = DailyQueueCounter::query()->orderBy('queue_date')->pluck('last_number', 'queue_date');
+        $legacyInpatient = Encounter::query()
+            ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
+            ->orderBy('id')
+            ->firstOrFail();
+        InpatientLocationMutationScope::run(
+            fn () => DB::table('inpatient_location_events')
+                ->where('encounter_id', $legacyInpatient->id)
+                ->delete(),
+        );
 
         $firstAssignments
             ->groupBy(fn (Encounter $encounter): string => $encounter->queue_date)
@@ -71,6 +91,11 @@ class TeachingCensusSeederTest extends TestCase
         $this->assertEquals(
             $firstCounters->toArray(),
             DailyQueueCounter::query()->orderBy('queue_date')->pluck('last_number', 'queue_date')->toArray(),
+        );
+        $this->assertFalse(InpatientLocationEvent::query()->where('encounter_id', $legacyInpatient->id)->exists());
+        $this->assertSame(
+            Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->count() - 1,
+            InpatientLocationEvent::query()->where('event_type', InpatientLocationEvent::TYPE_ADMISSION)->count(),
         );
     }
 

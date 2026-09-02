@@ -2,13 +2,49 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
+use App\Support\Inpatient\InpatientMasterService;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class InpatientMastersSeeder extends Seeder
 {
     public function run(): void
     {
-        // Teaching bangsal catalogue is passed as nested JSON props; no DB tables required.
+        if (config('simulation.mode') !== 'SIMULATION' || config('simulation.synthetic_only') !== true) {
+            throw new RuntimeException('Managed inpatient masters require the synthetic simulation boundary.');
+        }
+
+        $actor = User::query()->where('email', config('simulation.rebuild_admin_email'))->first();
+        if (! $actor instanceof User || ! $actor->is_system_administrator) {
+            throw new RuntimeException('Managed inpatient master seeding requires the attributable rebuild administrator.');
+        }
+
+        $service = app(InpatientMasterService::class);
+        foreach (self::wardsCatalogue() as $wardIndex => $blueprint) {
+            $ward = $service->createWard(
+                actor: $actor,
+                code: 'RI-'.mb_strtoupper($blueprint['name']),
+                displayName: $blueprint['name'],
+                reasonCode: InpatientMasterService::REASON_INITIAL_SETUP,
+                key: sprintf('seed-inpatient-ward-%02d', $wardIndex + 1),
+                correlation: null,
+            )->master;
+
+            foreach ($blueprint['beds'] as $bedIndex => $bedCode) {
+                $service->createBed(
+                    actor: $actor,
+                    wardPublicId: $ward->public_id,
+                    code: $bedCode,
+                    displayName: 'Tempat Tidur '.$bedCode,
+                    roomLabel: 'Ruang '.$blueprint['name'],
+                    serviceClass: $blueprint['class'],
+                    reasonCode: InpatientMasterService::REASON_INITIAL_SETUP,
+                    key: sprintf('seed-inpatient-bed-%02d-%02d', $wardIndex + 1, $bedIndex + 1),
+                    correlation: null,
+                );
+            }
+        }
     }
 
     /**

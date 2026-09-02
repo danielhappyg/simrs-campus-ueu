@@ -6,6 +6,14 @@ import InputError from '@/components/input-error';
 import { OperationalPagination } from '@/components/operational-pagination';
 import type { OperationalPaginationMeta } from '@/components/operational-pagination';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -72,6 +80,12 @@ type EncounterRow = {
     payer_type: string;
     queue_number: number | null;
     registered_at: string | null;
+    cancellation?: {
+        reason_code: string;
+        note: string | null;
+        cancelled_at: string | null;
+        cancelled_by: string | null;
+    } | null;
     patient: {
         public_id: string | null;
         medical_record_number: string | null;
@@ -102,6 +116,7 @@ type Props = {
     accidentTypeOptions?: Option[];
     wilayahProvinces: Option[];
     canRegister: boolean;
+    canCancel?: boolean;
 };
 
 async function fetchWilayahOptions(url: string): Promise<Option[]> {
@@ -128,6 +143,7 @@ const statusLabel: Record<string, string> = {
     IN_EXAMINATION: 'Pemeriksaan',
     READY_FOR_RM: 'Siap RM',
     CLOSED: 'Ditutup',
+    CANCELLED: 'Dibatalkan',
 };
 
 const statusChipClass: Record<string, string> = {
@@ -135,7 +151,43 @@ const statusChipClass: Record<string, string> = {
     IN_EXAMINATION: 'bg-[#fff4eb] text-[#c2410c]',
     READY_FOR_RM: 'bg-[#ecfdf5] text-[#047857]',
     CLOSED: 'bg-[#f1f5f9] text-[#64748b]',
+    CANCELLED: 'bg-[#fef2f2] text-[#b42318] ring-1 ring-inset ring-[#fecaca]',
 };
+
+const cancellationReasons = [
+    { value: 'SALAH_PENDAFTARAN', label: 'Salah pendaftaran' },
+    { value: 'DUPLIKAT_KUNJUNGAN', label: 'Duplikat kunjungan' },
+    {
+        value: 'PASIEN_TIDAK_MELANJUTKAN',
+        label: 'Pasien tidak melanjutkan',
+    },
+    {
+        value: 'PERUBAHAN_RENCANA_SEBELUM_PELAYANAN',
+        label: 'Perubahan rencana sebelum pelayanan',
+    },
+] as const;
+
+const cancellationReasonLabel = Object.fromEntries(
+    cancellationReasons.map((reason) => [reason.value, reason.label]),
+) as Record<string, string>;
+
+function newCancellationKey(): string {
+    return (
+        globalThis.crypto?.randomUUID?.() ??
+        `cancel-${Date.now()}-${Math.random().toString(16).slice(2)}`
+    );
+}
+
+function cancellationTimeLabel(value: string | null): string {
+    if (!value) {
+        return 'Waktu tidak tersedia';
+    }
+
+    return new Intl.DateTimeFormat('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(new Date(value));
+}
 
 const sexLabel: Record<string, string> = {
     LAKI_LAKI: 'Laki-laki',
@@ -499,6 +551,7 @@ export default function PendaftaranRawatJalan({
     accidentTypeOptions = [],
     wilayahProvinces = [],
     canRegister,
+    canCancel = false,
 }: Props) {
     const isIgd = variant === 'igd';
     const { flash } = usePage().props;
@@ -517,6 +570,11 @@ export default function PendaftaranRawatJalan({
     const [districtOptions, setDistrictOptions] = useState<Option[]>([]);
     const [villageOptions, setVillageOptions] = useState<Option[]>([]);
     const [validationAttempt, setValidationAttempt] = useState(0);
+    const [cancelTarget, setCancelTarget] = useState<EncounterRow | null>(null);
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+    const [cancellationAnnouncement, setCancellationAnnouncement] =
+        useState('');
+    const cancelTriggerRef = useRef<HTMLButtonElement | null>(null);
     const [printQueue, setPrintQueue] = useState(true);
     const [printFlags, setPrintFlags] = useState({
         sep: false,
@@ -570,6 +628,12 @@ export default function PendaftaranRawatJalan({
         case_type: 'NON_BEDAH',
         accident_type: 'BUKAN_KECELAKAAN',
         is_synthetic: true,
+    });
+
+    const cancelForm = useForm({
+        reason_code: '',
+        note: '',
+        idempotency_key: '',
     });
 
     useEffect(() => {
@@ -800,11 +864,60 @@ export default function PendaftaranRawatJalan({
         );
     };
 
+    const openCancellationDialog = (
+        encounter: EncounterRow,
+        trigger: HTMLButtonElement,
+    ) => {
+        cancelTriggerRef.current = trigger;
+        setCancelTarget(encounter);
+        setCancellationAnnouncement('');
+        cancelForm.clearErrors();
+        cancelForm.setData({
+            reason_code: '',
+            note: '',
+            idempotency_key: newCancellationKey(),
+        });
+        setCancelDialogOpen(true);
+    };
+
+    const submitCancellation = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!cancelTarget) {
+            return;
+        }
+
+        cancelForm.post(
+            `/pendaftaran/kunjungan/${cancelTarget.public_id}/batalkan`,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setCancellationAnnouncement(
+                        'Kunjungan berhasil dibatalkan.',
+                    );
+                    setCancelDialogOpen(false);
+                    setCancelTarget(null);
+                    cancelForm.reset();
+                },
+                onError: (errors) => {
+                    setCancellationAnnouncement(
+                        errors.cancellation ??
+                            'Pembatalan belum dapat disimpan. Periksa alasan dan catatan pembatalan.',
+                    );
+                },
+            },
+        );
+    };
+
     return (
         <>
             <Head
                 title={isIgd ? 'Pendaftaran IGD' : 'Pendaftaran Rawat Jalan'}
             />
+
+            <p className="sr-only" role="status" aria-live="polite">
+                {cancellationAnnouncement}
+            </p>
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-3 py-4 md:px-5 md:py-5">
                 <CareSettingSubnav
@@ -2252,29 +2365,118 @@ export default function PendaftaranRawatJalan({
                                                         encounter.status
                                                     ] ?? encounter.status}
                                                 </span>
+                                                {encounter.cancellation ? (
+                                                    <div className="mt-1 max-w-[18rem] text-[0.68rem] leading-4 text-[#64748b]">
+                                                        <p>
+                                                            {cancellationReasonLabel[
+                                                                encounter
+                                                                    .cancellation
+                                                                    .reason_code
+                                                            ] ??
+                                                                encounter
+                                                                    .cancellation
+                                                                    .reason_code}
+                                                        </p>
+                                                        <p>
+                                                            {encounter
+                                                                .cancellation
+                                                                .cancelled_by ??
+                                                                'Petugas tidak tersedia'}{' '}
+                                                            ·{' '}
+                                                            {cancellationTimeLabel(
+                                                                encounter
+                                                                    .cancellation
+                                                                    .cancelled_at,
+                                                            )}
+                                                        </p>
+                                                        {encounter.cancellation
+                                                            .note ? (
+                                                            <p className="mt-0.5 break-words text-[#475569]">
+                                                                {
+                                                                    encounter
+                                                                        .cancellation
+                                                                        .note
+                                                                }
+                                                            </p>
+                                                        ) : null}
+                                                    </div>
+                                                ) : null}
                                             </td>
                                             <td className="px-2 py-1.5 text-right">
                                                 <div className="flex justify-end gap-3">
-                                                    <a
-                                                        href={encounterPrintUrl(
-                                                            encounter.public_id,
-                                                            [
-                                                                'bukti',
-                                                                'antrian',
-                                                            ],
-                                                        )}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="text-sm font-medium text-[#1b75bc] hover:underline"
-                                                    >
-                                                        Cetak
-                                                    </a>
-                                                    <Link
-                                                        href={`${examPathPrefix}/${encounter.public_id}`}
-                                                        className="text-sm font-medium text-[#1b75bc] hover:underline"
-                                                    >
-                                                        Buka
-                                                    </Link>
+                                                    {encounter.status ===
+                                                    'CANCELLED' ? (
+                                                        <span className="text-xs text-[#64748b]">
+                                                            Riwayat tersimpan
+                                                        </span>
+                                                    ) : (
+                                                        <>
+                                                            <a
+                                                                href={encounterPrintUrl(
+                                                                    encounter.public_id,
+                                                                    [
+                                                                        'bukti',
+                                                                        'antrian',
+                                                                    ],
+                                                                )}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                            >
+                                                                Cetak
+                                                            </a>
+                                                            <Link
+                                                                href={`${examPathPrefix}/${encounter.public_id}`}
+                                                                className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                            >
+                                                                Buka
+                                                            </Link>
+                                                        </>
+                                                    )}
+                                                    {canCancel ? (
+                                                        <button
+                                                            type="button"
+                                                            disabled={
+                                                                encounter.status !==
+                                                                'REGISTERED'
+                                                            }
+                                                            title={
+                                                                encounter.status ===
+                                                                'REGISTERED'
+                                                                    ? undefined
+                                                                    : 'Hanya kunjungan berstatus Terdaftar yang dapat dibatalkan.'
+                                                            }
+                                                            aria-label={`Batalkan kunjungan ${encounter.patient.full_name}`}
+                                                            aria-describedby={
+                                                                encounter.status !==
+                                                                'REGISTERED'
+                                                                    ? `cancel-blocked-${encounter.public_id}`
+                                                                    : undefined
+                                                            }
+                                                            onClick={(event) =>
+                                                                openCancellationDialog(
+                                                                    encounter,
+                                                                    event.currentTarget,
+                                                                )
+                                                            }
+                                                            className="text-sm font-medium text-[#b42318] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b42318] disabled:cursor-not-allowed disabled:text-[#94a3b8] disabled:no-underline"
+                                                        >
+                                                            Batalkan Kunjungan
+                                                        </button>
+                                                    ) : null}
+                                                    {canCancel &&
+                                                    encounter.status !==
+                                                        'REGISTERED' ? (
+                                                        <span
+                                                            id={`cancel-blocked-${encounter.public_id}`}
+                                                            className="sr-only"
+                                                        >
+                                                            Hanya kunjungan
+                                                            berstatus Terdaftar
+                                                            yang dapat
+                                                            dibatalkan.
+                                                        </span>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                         </tr>
@@ -2289,6 +2491,218 @@ export default function PendaftaranRawatJalan({
                         className="mt-3"
                     />
                 </section>
+
+                <Dialog
+                    open={cancelDialogOpen}
+                    onOpenChange={(open) => {
+                        setCancelDialogOpen(open);
+
+                        if (!open) {
+                            setCancelTarget(null);
+                        }
+                    }}
+                >
+                    <DialogContent
+                        className="max-h-[calc(100vh-2rem)] overflow-y-auto border-[#f3c7c3] p-0 sm:max-w-xl"
+                        showCloseButton={false}
+                        onCloseAutoFocus={(event) => {
+                            event.preventDefault();
+                            cancelTriggerRef.current?.focus();
+                        }}
+                    >
+                        <DialogHeader className="border-b border-[#fee2e2] bg-[#fff8f7] px-5 py-4 text-left">
+                            <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-[#b42318] uppercase">
+                                Pembatalan pra-pelayanan
+                            </p>
+                            <DialogTitle className="text-xl leading-7 text-[#0f172a]">
+                                Batalkan kunjungan sebelum pelayanan?
+                            </DialogTitle>
+                            <DialogDescription className="leading-5 text-[#475569]">
+                                Tindakan ini menyimpan pembatalan sebagai
+                                riwayat. Kunjungan yang sudah mulai dilayani
+                                tidak dapat dibatalkan dari meja pendaftaran.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {cancelTarget ? (
+                            <form
+                                onSubmit={submitCancellation}
+                                className="grid gap-4 px-5 pb-5"
+                            >
+                                <div className="grid gap-3 rounded-lg border border-[#d7e6f3] bg-[#f5f9fc] p-3 sm:grid-cols-2">
+                                    <div>
+                                        <p className="text-[0.68rem] tracking-wide text-[#64748b] uppercase">
+                                            Pasien
+                                        </p>
+                                        <p className="mt-0.5 font-medium text-[#0f172a]">
+                                            {cancelTarget.patient.full_name}
+                                        </p>
+                                        <p className="font-mono text-xs text-[#64748b]">
+                                            {cancelTarget.patient
+                                                .medical_record_number ?? '—'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[0.68rem] tracking-wide text-[#64748b] uppercase">
+                                            {isIgd
+                                                ? 'Unit dan antrian'
+                                                : 'Poli dan antrian'}
+                                        </p>
+                                        <p className="mt-0.5 font-medium text-[#0f172a]">
+                                            {cancelTarget.clinic_name}
+                                        </p>
+                                        <p className="text-xs text-[#64748b]">
+                                            Antrian{' '}
+                                            {cancelTarget.queue_number != null
+                                                ? String(
+                                                      cancelTarget.queue_number,
+                                                  ).padStart(3, '0')
+                                                : '—'}
+                                        </p>
+                                    </div>
+                                    <p className="border-t border-[#d7e6f3] pt-2 text-xs leading-5 text-[#475569] sm:col-span-2">
+                                        Nomor antrian dan data pendaftaran tetap
+                                        tersimpan dalam riwayat.
+                                    </p>
+                                </div>
+
+                                {cancellationAnnouncement ? (
+                                    <div
+                                        role="alert"
+                                        className="rounded-md border border-[#fecaca] bg-[#fef2f2] px-3 py-2 text-sm text-[#991b1b]"
+                                    >
+                                        {cancellationAnnouncement}
+                                    </div>
+                                ) : null}
+
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="cancellation-reason">
+                                        Alasan pembatalan
+                                    </Label>
+                                    <select
+                                        id="cancellation-reason"
+                                        required
+                                        value={cancelForm.data.reason_code}
+                                        onChange={(event) =>
+                                            cancelForm.setData(
+                                                'reason_code',
+                                                event.target.value,
+                                            )
+                                        }
+                                        aria-invalid={
+                                            cancelForm.errors.reason_code
+                                                ? true
+                                                : undefined
+                                        }
+                                        aria-describedby={
+                                            cancelForm.errors.reason_code
+                                                ? 'cancellation-reason-error'
+                                                : 'cancellation-reason-help'
+                                        }
+                                        className={fieldClass}
+                                    >
+                                        <option value="">
+                                            Pilih alasan pembatalan
+                                        </option>
+                                        {cancellationReasons.map((reason) => (
+                                            <option
+                                                key={reason.value}
+                                                value={reason.value}
+                                            >
+                                                {reason.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p
+                                        id="cancellation-reason-help"
+                                        className="text-xs text-[#64748b]"
+                                    >
+                                        Pilih alasan yang paling sesuai dengan
+                                        kejadian pendaftaran.
+                                    </p>
+                                    <InputError
+                                        id="cancellation-reason-error"
+                                        message={cancelForm.errors.reason_code}
+                                    />
+                                </div>
+
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="cancellation-note">
+                                        Catatan pembatalan{' '}
+                                        <span className="font-normal text-[#64748b]">
+                                            (opsional)
+                                        </span>
+                                    </Label>
+                                    <textarea
+                                        id="cancellation-note"
+                                        rows={3}
+                                        maxLength={500}
+                                        value={cancelForm.data.note}
+                                        onChange={(event) =>
+                                            cancelForm.setData(
+                                                'note',
+                                                event.target.value,
+                                            )
+                                        }
+                                        aria-invalid={
+                                            cancelForm.errors.note
+                                                ? true
+                                                : undefined
+                                        }
+                                        aria-describedby={
+                                            cancelForm.errors.note
+                                                ? 'cancellation-note-error'
+                                                : 'cancellation-note-help'
+                                        }
+                                        className="min-h-20 w-full resize-y rounded-md border border-[#cbd5e1] bg-white px-3 py-2 text-sm outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30"
+                                    />
+                                    <p
+                                        id="cancellation-note-help"
+                                        className="text-xs text-[#64748b]"
+                                    >
+                                        Maksimal 500 karakter. Hindari data
+                                        pribadi yang tidak diperlukan.
+                                    </p>
+                                    <InputError
+                                        id="cancellation-note-error"
+                                        message={cancelForm.errors.note}
+                                    />
+                                    <InputError
+                                        id="cancellation-idempotency-error"
+                                        message={
+                                            cancelForm.errors.idempotency_key
+                                        }
+                                    />
+                                </div>
+
+                                <DialogFooter className="border-t border-[#e2e8f0] pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setCancelDialogOpen(false)
+                                        }
+                                        disabled={cancelForm.processing}
+                                    >
+                                        Kembali
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            cancelForm.processing ||
+                                            cancelForm.data.reason_code === ''
+                                        }
+                                        className="bg-[#b42318] text-white hover:bg-[#912018] focus-visible:ring-[#b42318]/30"
+                                    >
+                                        {cancelForm.processing
+                                            ? 'Menyimpan…'
+                                            : 'Batalkan Kunjungan'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        ) : null}
+                    </DialogContent>
+                </Dialog>
             </div>
         </>
     );

@@ -1,11 +1,17 @@
-# T1 ten-migration hosted cutover — execution control packet — 2026-08-28
+# T1 historical ten-migration hosted cutover — execution control packet — 2026-08-28
+
+> **Checkpoint alignment — 2026-09-03:** This packet preserves the exact, historical ten-migration control and its evidence chain. It is **superseded for the current single-checkpoint release and must not be executed**. The current checkout contains a larger, still-changing migration delta (including 31 new migration files relative to the pushed application base), so neither “ten migrations” nor that observed “31” is an action-time manifest. The release operator must freeze the final commit, refresh the hosted predecessor ledger, generate and review a new exact allowlist, and bind fresh preservation/acceptance evidence before any hosted database change.
+>
+> The warehouse source may travel in the checkpoint, but its two migration files, routes, hosted schema, and hosted capability remain deferred. Production must retain `WAREHOUSE_SCHEMA_MIGRATION_ENABLED=false`. The warehouse exact PostgreSQL/MySQL rehearsal is `READY / NOT RUN`; local source and SQLite checks do not authorize including warehouse migrations in the hosted allowlist. A generic unfiltered `php artisan migrate --force` is therefore prohibited for this checkpoint.
+
+All fields and ledgers below are retained as the 2026-08-28 historical record; they are not current checkpoint instructions or current module-status claims.
 
 **Current decision:** `NO-GO / NOT EXECUTED`
 **Authorized product boundary:** SIMRS Campus UEU synthetic teaching simulation only
 **Runtime boundary:** `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`
 **External boundary:** Klaim, BPJS/VClaim, SATUSEHAT, Apotek, LIS, PACS, payment, and every other live integration remain disabled
 
-This packet supersedes the nine-migration packet for the current local candidate. It does not alter or invalidate the historical evidence carried by `c63c017`; that evidence simply cannot authorize this changed migration set. A blank, `PENDING`, ambiguous, mismatched, stale, or unavailable value below is a stop condition.
+Historically, this packet superseded the nine-migration packet for the then-current local candidate. It does not alter or invalidate the historical evidence carried by `c63c017`; that evidence simply cannot authorize the current changed migration set. A blank, `PENDING`, ambiguous, mismatched, stale, or unavailable value below is a stop condition.
 
 No maintenance, hosted migration, Vercel promotion, teaching-role activation, reopen, or rollback is recorded by this document.
 
@@ -72,7 +78,7 @@ Laravel must execute these exact files, once, in order, during one unambiguous `
 | 5 | `2026_08_25_000200_create_security_ledger_tables` | `55af5a04944290119fdb3511364148956cf667444d87a03e57e003975be9500b` |
 | 6 | `2026_08_25_000300_expand_audit_actor_attribution` | `060c64122e41f1bf974f092ff8a2bfc1baf34675f031b0ced2f2f162b10775f4` |
 | 7 | `2026_08_26_000100_add_operational_worklist_indexes` | `e9077592ac53dd9ef704ac376e7bc7c45ecddc43040273597d7a5dcadb23f954` |
-| 8 | `2026_08_26_000200_create_daily_queue_allocator` | `5eca2d46ea0fba89cf4bfe26afb83a096e47aa249a08e89580937b508f0ac3e0` |
+| 8 | `2026_08_26_000200_create_daily_queue_allocator` | `5abf7d50ada14b6f5a8beb8e180dafe6959d999696dbd878469afc1e9578cded` |
 | 9 | `2026_08_27_000100_create_teaching_role_access_leases` | `242bc0864918fc4b132766ffb8a088ba6327abb76c4cdf53d275eec8051504d7` |
 | 10 | `2026_08_28_000100_create_inpatient_bed_claim_mutexes` | `c2ba20c90dcc61e6b957306258bdad0ebc40dc82272d0d600482c68a78c4da36` |
 

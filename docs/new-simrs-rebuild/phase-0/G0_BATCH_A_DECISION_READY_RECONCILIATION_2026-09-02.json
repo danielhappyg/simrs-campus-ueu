@@ -1,0 +1,799 @@
+{
+  "artifact_type": "g0_batch_a_decision_ready_reconciliation",
+  "schema_version": 1,
+  "reconciliation_id": "G0-BATCH-A-DECISION-READY-RECONCILIATION-2026-09-02",
+  "batch": "A",
+  "status": "decision_ready_candidate_unapproved_inactive",
+  "effect": "none_append_only_candidate_pack_only",
+  "data_boundary": {
+    "mode": "synthetic_only",
+    "secrets_prohibited": true,
+    "live_boundaries_disabled": [
+      "BPJS",
+      "VClaim",
+      "SATUSEHAT",
+      "payment_bank",
+      "production_devices",
+      "production_tte"
+    ]
+  },
+  "source_bindings": [
+    {
+      "role": "batch_manifest",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_PARITY_BATCH_MANIFEST.json",
+      "sha256": "59b0f05b94e2a659b342016c5b9e5e9e011f3a8e4c0f0efd3dda12a7b65fa9ca"
+    },
+    {
+      "role": "batch_a_proposal",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_A_SHARED_CONTROLS_PROPOSAL_2026-08-25.md",
+      "sha256": "6332704a1dd2262cb0318acc3371d7c0119e46ed3bb9c277e82714589f19cf91"
+    },
+    {
+      "role": "batch_a_pending_register",
+      "path": "docs/new-simrs-rebuild/phase-0/G0_BATCH_A_DECISION_REGISTER_2026-08-25.json",
+      "sha256": "a5c1e01686fdb576026802331d3228df9a6335f6f7176b7c023c459bfc532098"
+    },
+    {
+      "role": "current_coverage_observation",
+      "path": "docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-09-02_R8.json",
+      "sha256": "3df5165be14946794002cc121e1f3f92f64232d6e39057e9d48d65636dfb4665"
+    },
+    {
+      "role": "parity_matrix",
+      "path": "docs/new-simrs-rebuild/PARITY_REQUIREMENTS_MATRIX.md",
+      "sha256": "dc9068937d678626868aed7ca9fd5f9a94a98cdba8df9de5f07be575e46febb7"
+    },
+    {
+      "role": "legacy_menu_taxonomy",
+      "path": "docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md",
+      "sha256": "f26fcea77d3bf72e7f01eb0bb39621caed9087f044ad2abfc283fe2d93fe483e"
+    },
+    {
+      "role": "legacy_manual_map",
+      "path": "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md",
+      "sha256": "86e7cecae56be8bcaad38cb9a5bf5ea41b276b1203b7d56a3f6f43255776e0bd"
+    }
+  ],
+  "scope": {
+    "manifest_count": 20,
+    "manifest_ids": [
+      "PAR-ADM-001",
+      "PAR-ADM-002",
+      "PAR-ADM-003",
+      "PAR-ADM-005",
+      "PAR-ADM-006",
+      "PAR-ADM-008",
+      "PAR-ADM-012",
+      "PAR-ADM-013",
+      "PAR-ADM-022",
+      "PAR-ADM-023",
+      "PAR-ADM-024",
+      "PAR-ADM-025",
+      "PAR-ADM-032",
+      "PAR-ADM-037",
+      "PAR-ADM-038",
+      "PAR-ADM-040",
+      "PAR-ADM-044",
+      "PAR-ADM-045",
+      "PAR-HLP-001",
+      "PAR-IOT-001"
+    ]
+  },
+  "authority_boundary": {
+    "capability_decisions": "pending",
+    "accountable_owner_appointments": "unresolved",
+    "co_owner_appointments": "unresolved",
+    "activation": "not_authorized",
+    "deployment": "not_authorized",
+    "hosted_migration": "not_authorized",
+    "real_patient_data": "not_authorized",
+    "live_integrations": "not_authorized",
+    "g0": "OPEN",
+    "g3": "OPEN",
+    "gate_effect": "none_append_only_candidate_pack"
+  },
+  "evidence_normalization": {
+    "O_STRUCTURAL": "A legacy menu, route, form, or table structure was observed; save behavior, rules, authorization, correction, and downstream effects were not proved.",
+    "U_UNRESOLVED": "The legacy destination was forbidden, errored, or could not be completed; its operational behavior remains unknown.",
+    "I_RELATED": "Current rebuild code or tests implement a related control only; this is not legacy equivalence, owner acceptance, activation, or parity evidence.",
+    "NO_CURRENT_IMPLEMENTATION": "The current coverage observation reports no implemented runtime for this capability; adjacent fields or models do not change that status."
+  },
+  "scenario_contract": {
+    "data_class": "synthetic",
+    "execution_status": "not_executed",
+    "required_evidence_to_retain": [
+      "fixture identity and starting state",
+      "actor identity, exact role, and authorization result",
+      "request or action correlation identifier",
+      "before and after state or immutable replacement event",
+      "audit event and denial evidence",
+      "downstream reconciliation and output evidence",
+      "owner and required co-owner disposition after execution"
+    ],
+    "acceptance_rule": "Both the normal and denial/correction scenario must pass with attributable evidence; a test result cannot substitute for an appointment or approval."
+  },
+  "entries": [
+    {
+      "requirement_id": "PAR-ADM-001",
+      "legacy_menu": "Group",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": [
+          "docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md",
+          "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"
+        ],
+        "normalized_observation": "A legacy Group administration surface is structurally documented; group-to-role behavior and correction effects were not observed.",
+        "limits": ["No save behavior proved", "No self-escalation or session-revocation behavior proved"]
+      },
+      "current_engineering_observation": {
+        "evidence_class": "I_RELATED",
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "reconciliation": "PARTIAL",
+        "workflow_status": "PROVISIONAL",
+        "evidence_paths": [
+          "tests/Feature/Authorization/RoleCapabilityDenialTest.php",
+          "tests/Feature/Authorization/ReconcileRebuildAdminCommandTest.php",
+          "tests/Unit/Support/PrivilegedAccess/PrivilegedAccessScopeRegistryTest.php",
+          "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+          "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+        ],
+        "authority_effect": "none_observation_only"
+      },
+      "related_code_paths": [
+        "app/Support/Authorization/RoleCapabilityMatrix.php",
+        "app/Support/Authorization/RebuildAdminRoleReconciler.php"
+      ],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "consolidate",
+        "canonical_target": {
+          "kind": "requirement",
+          "reference": "PAR-ADM-002",
+          "description": "Identity and RBAC administration retaining an explicit group-to-role migration mapping.",
+          "exclusions": []
+        }
+      },
+      "authority_candidates": {
+        "accountable": {
+          "candidate_identity": "Daniel Happy Putra — interim security/product candidate",
+          "required_scope": "Canonical group-to-role migration, least privilege, session revocation, and correction outcomes.",
+          "appointment_status": "unresolved_no_appointment_evidence"
+        },
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "affected_role_owner", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {
+          "status": "decision_ready_not_executed",
+          "action": "Map a synthetic legacy group to a least-privilege role set and activate it for a synthetic workforce account.",
+          "assertions": ["The account receives only the proposed permissions", "The mapping and actor are recorded in attributable audit evidence"]
+        },
+        "denial_correction": {
+          "status": "decision_ready_not_executed",
+          "action": "Attempt self-escalation, then correct an over-broad synthetic mapping.",
+          "assertions": ["Self-escalation is denied without authorization mutation", "Correction revokes affected sessions and preserves before-and-after audit values"]
+        }
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-002",
+      "legacy_menu": "Pengguna",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy user-administration surface is documented, without complete account-lifecycle, recovery, session, or attribution proof.",
+        "limits": ["No complete lifecycle observed", "No wrong-role mutation proof"]
+      },
+      "current_engineering_observation": {
+        "evidence_class": "I_RELATED",
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "reconciliation": "PARTIAL",
+        "workflow_status": "PROVISIONAL",
+        "evidence_paths": [
+          "tests/Feature/Authorization/ReconcileRebuildAdminCommandTest.php",
+          "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+          "tests/Unit/Support/PrivilegedAccess/PrivilegedAccessConfigurationTest.php",
+          "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md",
+          "docs/operations/T0_CURRENT_TRUTH_BASELINE_2026-08-25.md"
+        ],
+        "authority_effect": "none_observation_only"
+      },
+      "related_code_paths": ["app/Models/User.php", "app/Models/Role.php", "app/Support/Authorization/RoleCapabilityMatrix.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "reproduce",
+        "canonical_target": {"kind": "canonical_capability", "reference": "workforce_user_account_administration", "description": "Canonical workforce and user-account lifecycle administration.", "exclusions": []}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim security/product candidate", "required_scope": "Workforce account lifecycle, role attribution, recovery, and access-denial behavior.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "workforce_identity", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Create, disable, reactivate, and recover a synthetic workforce account with the proposed role.", "assertions": ["Each transition produces the intended login and access state", "Every privileged change is attributable in audit evidence"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Submit a duplicate identifier and attempt a role change from an unauthorized account.", "assertions": ["Duplicate or invalid identity is rejected without a partial account", "Unauthorized role change is denied and logged"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-003",
+      "legacy_menu": "Settings",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "The legacy Settings surface exposes broad configuration structure, but safe classification, versioning, secret custody, and activation rules remain unproved.",
+        "limits": ["No effective-date or rollback proof", "No safe secret or live-integration activation proof"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["config/simulation.php", "routes/settings.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "versioned_configuration_registry", "description": "Scoped, versioned configuration registry with review and rollback.", "exclusions": ["embedded secrets", "direct live-integration activation"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim product/operations candidate", "required_scope": "Configuration classification, four-eyes control, rollback, secret isolation, and disabled live-integration boundary.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "affected_domain_owner", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Review and activate a versioned low-risk synthetic configuration value with an effective date.", "assertions": ["Only the reviewed version becomes effective at the intended time", "The previous version remains reproducible for audit and rollback"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Attempt to store a secret and enable a live integration, then roll back a bad synthetic value.", "assertions": ["Secret storage and live activation are blocked", "Rollback restores the prior value and attributes requester, approver, and before-and-after state"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-005",
+      "legacy_menu": "Menu",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy runtime Menu editor is documented, without proof that navigation and server authorization remained consistent.",
+        "limits": ["No deep-link authorization proof", "No controlled release or rollback proof"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["routes/web.php", "app/Support/Authorization/RoleCapabilityMatrix.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "deployment_controlled_navigation_registry", "description": "Deployment-controlled capability and navigation registry.", "exclusions": ["unrestricted runtime menu editing"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — architecture/security candidate", "required_scope": "Deployment-controlled navigation, matching server authorization, and rollback behavior.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Release a reviewed synthetic capability-navigation change for one role.", "assertions": ["Navigation appears only for the intended role", "The corresponding server route enforces the same capability"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Use a hidden deep link from a wrong-role account and roll back an erroneous navigation release.", "assertions": ["The deep link is denied server-side", "Rollback restores the prior menu and route state with release evidence"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-006",
+      "legacy_menu": "Staff Medis",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "The legacy Staff Medis surface is structurally documented; identity, credential, schedule, deactivation, and historical-attribution rules remain unproved.",
+        "limits": ["No credential uniqueness proof", "No deactivation downstream-effect proof"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Models/Doctor.php", "app/Models/ClinicSchedule.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "reproduce",
+        "canonical_target": {"kind": "canonical_capability", "reference": "workforce_clinician_directory", "description": "Workforce and clinician directory linked to accounts, units, and schedules.", "exclusions": []}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — data-steward candidate", "required_scope": "Clinician identity, credential/status, unit linkage, schedule effects, and historical attribution.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "medical_administration", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Create and activate a synthetic clinician linked to an account, unit, and schedule.", "assertions": ["The clinician is selectable only in the assigned active unit and schedule", "Clinical attribution uses a stable workforce identifier"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Submit a duplicate credential identifier and deactivate a clinician with a future schedule.", "assertions": ["The duplicate is rejected without a partial workforce record", "Deactivation blocks new scheduling while preserving historical attribution"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-008",
+      "legacy_menu": "Template Tanda Tangan",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy signature-template surface is structurally documented; versioning, signer attribution, revocation, and certificate boundaries remain unproved.",
+        "limits": ["No historical-render reproducibility proof", "No production-certificate isolation proof"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "versioned_signature_template_registry", "description": "Versioned document and signature-template registry using sandbox signer identities.", "exclusions": ["production TTE certificate", "production electronic-signature endpoint"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate custodian", "required_scope": "Template versioning, sandbox signer behavior, historical reproduction, and revocation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Version and render a synthetic signature template using a sandbox signer identity.", "assertions": ["The document records template version and signer attribution", "Historical documents remain reproducible from the original version"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Attempt an unauthorized change and production-certificate selection, then revoke a sandbox template version.", "assertions": ["Unauthorized change and production-certificate use are blocked", "Revocation blocks new use while preserving existing evidence"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-012",
+      "legacy_menu": "Printer & Service",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy print-service configuration surface is structurally documented; endpoint validation, fallback, attribution, and rollback are not proved.",
+        "limits": ["No unavailable-printer path proved", "No reprint attribution or configuration rollback proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "controlled_print_service_configuration", "description": "Controlled document and print-service configuration with safe fallback.", "exclusions": ["unapproved printer endpoints", "unattributed print or reprint"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — operations candidate", "required_scope": "Simulated print routing, failure fallback, reprint attribution, and configuration rollback.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "affected_document_owner", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Route a synthetic document to an approved simulated print service and perform an attributed reprint.", "assertions": ["The document reaches only the selected approved simulated endpoint", "Original print and reprint are separately attributable"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Select an unavailable or unapproved endpoint, then roll back a bad printer configuration.", "assertions": ["Printing fails safely without losing the document or exposing content", "Rollback restores the reviewed endpoint and records the configuration change"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-013",
+      "legacy_menu": "Unit & Poliklinik",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "Legacy unit and clinic administration is structurally documented; canonical hierarchy, code, retirement, and downstream reconciliation remain unproved.",
+        "limits": ["No canonical hierarchy or duplicate-code rule proved", "No historical retirement behavior proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Models/Clinic.php", "app/Models/ClinicSchedule.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "reproduce",
+        "canonical_target": {"kind": "canonical_capability", "reference": "organization_unit_clinic_master", "description": "Organization, unit, and clinic master with stable hierarchy and lifecycle.", "exclusions": []}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim registration/data candidate", "required_scope": "Organization hierarchy, unit codes, activation/retirement, and downstream routing reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "registration_admission", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "medical_administration", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "reporting", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Create and activate a synthetic clinic within the proposed organization hierarchy and assign a schedule.", "assertions": ["The clinic is available only under its active parent unit", "Registration, schedules, encounters, and reports use the same canonical unit code"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Submit a duplicate unit code and retire a clinic with historical encounters.", "assertions": ["The duplicate is rejected without a partial unit", "Retirement blocks new use while preserving historical routing and report totals"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-022",
+      "legacy_menu": "Pekerjaan",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy occupation master is structurally documented; stable codes, versioning, merge/retire behavior, and downstream reconciliation remain unproved.",
+        "limits": ["No version or merge/retire rule proved", "No registration-to-report reconciliation proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Support/TeachingVocabulary.php", "app/Models/Patient.php", "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "occupation_terminology_registry", "description": "Governed, versioned demographic terminology registry for occupation.", "exclusions": ["silent recoding of historical records"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate data custodian", "required_scope": "Occupation terminology codes, versioning, merge/retire rules, and downstream reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "registration_admission", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "reporting", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Add and use a versioned synthetic occupation term in registration and a report.", "assertions": ["The canonical code is stored and displayed consistently", "Registration, print output, and report dimension reconcile to one term version"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Reject a duplicate term, then merge or retire a term used by historical records.", "assertions": ["Invalid or duplicate vocabulary input is rejected", "Historical meaning remains traceable and current reports reconcile after correction"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-023",
+      "legacy_menu": "Pendidikan",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy education master is structurally documented; stable codes, versioning, merge/retire behavior, and downstream reconciliation remain unproved.",
+        "limits": ["No version or merge/retire rule proved", "No registration-to-report reconciliation proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Support/TeachingVocabulary.php", "app/Models/Patient.php", "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "education_terminology_registry", "description": "Governed, versioned demographic terminology registry for education.", "exclusions": ["silent recoding of historical records"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate data custodian", "required_scope": "Education terminology codes, versioning, merge/retire rules, and downstream reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "registration_admission", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "reporting", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Add and use a versioned synthetic education term in registration and a report.", "assertions": ["The canonical code is stored and displayed consistently", "Registration, print output, and report dimension reconcile to one term version"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Reject a duplicate term, then merge or retire a term used by historical records.", "assertions": ["Invalid or duplicate vocabulary input is rejected", "Historical meaning remains traceable and current reports reconcile after correction"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-024",
+      "legacy_menu": "Suku",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy ethnicity master is structurally documented; sensitivity, purpose, access/export controls, versioning, and historical treatment remain unproved.",
+        "limits": ["No privacy-purpose or export rule proved", "No versioned retirement behavior proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Support/TeachingVocabulary.php", "app/Models/Patient.php", "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "privacy_scoped_ethnicity_registry", "description": "Governed ethnicity terminology with explicit privacy and teaching-use controls.", "exclusions": ["unapproved record-level export", "silent historical recoding"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate data custodian", "required_scope": "Ethnicity terminology, sensitivity, access/export, teaching use, and historical reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "registration_admission", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "reporting", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Use an approved versioned synthetic ethnicity term in privacy-scoped registration and an authorized aggregate report.", "assertions": ["The code is captured only where approved and displayed consistently", "Aggregate output reconciles without unnecessary record-level disclosure"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Attempt wrong-role viewing or export, then retire a term used by historical records.", "assertions": ["Unauthorized viewing and export are denied and audited", "Historical meaning remains traceable after retirement without silent recoding"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-025",
+      "legacy_menu": "Bahasa",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy language master is structurally documented; communication-support meaning, accessibility, versioning, and reporting effects remain unproved.",
+        "limits": ["No communication-support cue proved", "No accessible display or correction reconciliation proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Support/TeachingVocabulary.php", "app/Models/Patient.php", "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "language_communication_registry", "description": "Governed language terminology linked to communication support and accessible display.", "exclusions": ["silent historical recoding"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate data custodian", "required_scope": "Language terminology, communication-support meaning, accessible display, correction, and reporting reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "registration_admission", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "accessibility", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "reporting", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Capture a versioned synthetic preferred-language term and display the proposed communication-support cue.", "assertions": ["Registration, accessible display, and print output show one canonical meaning", "The support cue is available only to the intended role"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Reject a duplicate code, then correct a record from a retired term.", "assertions": ["Duplicate vocabulary input is rejected", "Correction is attributable and downstream display and report values reconcile"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-032",
+      "legacy_menu": "Pasien",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MANUAL_COMPLETE_MAP.md"],
+        "normalized_observation": "A legacy patient administration surface is structurally documented; duplicate matching, merge/unmerge, alias history, concurrency, and cross-domain reconciliation remain unproved.",
+        "limits": ["No merge/unmerge behavior proved", "No cross-domain reference reconciliation proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": ["app/Models/Patient.php", "app/Http/Controllers/Outpatient/OutpatientRegistrationController.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "reproduce",
+        "canonical_target": {"kind": "canonical_capability", "reference": "patient_identity_stewardship", "description": "Patient identity stewardship with match, merge/unmerge, and identifier-alias history.", "exclusions": ["destructive merge", "silent identifier overwrite"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate custodian", "required_scope": "Identity match, merge/unmerge, alias history, collision/concurrency controls, and cross-domain reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "registration_admission", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "clinical", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "finance_claims", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Match and merge two confirmed duplicate synthetic identities while preserving identifier aliases.", "assertions": ["All linked encounters, documents, billing references, and reports resolve to the survivor", "The merge preserves immutable before-and-after values and actor attribution"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Attempt a collision or stale-version merge, then unmerge an authorized synthetic merge.", "assertions": ["Collision or stale state is denied without partial reassignment", "Authorized unmerge restores valid links and preserves the complete audit chain"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-037",
+      "legacy_menu": "Log Activity",
+      "legacy_evidence": {
+        "evidence_class": "U_UNRESOLVED",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "A Log Activity route was identified but its operational destination was not established; legacy event coverage, retention, redaction, and tamper controls remain unknown.",
+        "limits": ["Legacy destination not operationally proved", "No export, retention, redaction, or tamper-resistance behavior proved"]
+      },
+      "current_engineering_observation": {
+        "evidence_class": "I_RELATED",
+        "runtime_availability": "PARTIAL",
+        "automated_evidence": "PARTIAL_PASS",
+        "reconciliation": "PARTIAL",
+        "workflow_status": "PROVISIONAL",
+        "evidence_paths": [
+          "tests/Feature/Audit/AuditRecorderSafetyTest.php",
+          "tests/Feature/RequestCorrelationTest.php",
+          "tests/Feature/PrivilegedAccess/SecurityLedgerWriterTest.php",
+          "tests/Feature/PrivilegedAccess/ProtectedSecurityFactsDatabaseTest.php",
+          "tests/Feature/PrivilegedAccess/PrivilegedAccessShadowResolverTest.php",
+          "docs/operations/T1_BG03_PRIVILEGED_ACCESS_SHADOW_EVIDENCE_2026-08-27.md",
+          "docs/operations/T1_LOCAL_MYSQL84_INTEGRATION_EVIDENCE_2026-08-26.md",
+          "docs/operations/T1_LOCAL_CURRENT_MANIFEST_PORTABILITY_EVIDENCE_2026-08-27.md"
+        ],
+        "authority_effect": "none_observation_only"
+      },
+      "related_code_paths": ["app/Support/Audit/AuditRecorder.php", "app/Support/Audit/AuditEventSchemaRegistry.php", "app/Http/Middleware/AuditAuthorizationDenial.php"],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "immutable_audit_viewer", "description": "Immutable canonical audit viewer with scoped filters and export control.", "exclusions": ["secret disclosure", "unnecessary synthetic clinical detail", "audit mutation"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim security candidate", "required_scope": "Audit coverage, integrity, retention, redaction, filtering, export authorization, and tamper resistance.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "affected_domain_owner", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Perform representative authorized synthetic mutations and query their immutable audit events.", "assertions": ["Each event records actor, time, object, outcome, and appropriate before-and-after values", "Authorized filters return complete events without secrets or unnecessary detail"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Trigger a wrong-role denial, attempt unauthorized export, and test tamper resistance.", "assertions": ["The denial is recorded without protected-content disclosure", "Unauthorized export and audit alteration are blocked and auditable"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-038",
+      "legacy_menu": "LOG ESIGN",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "A legacy electronic-signature log surface is structurally identified; signature correlation, retry, revocation, redaction, and certificate boundaries remain unproved.",
+        "limits": ["No signature lifecycle proved", "No production-certificate boundary proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "sandbox_esign_audit_adapter", "description": "Sandbox-only electronic-signature adapter and audit view.", "exclusions": ["production certificate", "production electronic-signature endpoint", "unredacted payload"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim security candidate", "required_scope": "Sandbox signature correlation, retry/revocation, redaction, and explicit production exclusion.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Correlate a sandbox-only synthetic signature request and result to its document and signer.", "assertions": ["Request, result, document, and signer share one traceable correlation identifier", "The audit view redacts data beyond the approved need"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Simulate timeout, retry, revocation, and wrong-role access without a production certificate or endpoint.", "assertions": ["Retry is bounded and idempotent and revocation remains traceable", "Wrong-role access is denied and production credentials or transmission are impossible"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-040",
+      "legacy_menu": "Log Bridging",
+      "legacy_evidence": {
+        "evidence_class": "O_STRUCTURAL",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "A legacy bridging-log surface is structurally identified; immutable correlation, redaction, retry/dead-letter, and reconciliation behavior remain unproved.",
+        "limits": ["No message lifecycle or retry proof", "No redaction or reconciliation proof"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "integration_message_reconciliation_log", "description": "Canonical integration message, retry, dead-letter, and reconciliation log.", "exclusions": ["secrets", "unnecessary payload data", "unbounded retry"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim integration/security candidate", "required_scope": "Message correlation, redaction, environment labels, retry/dead-letter, and reconciliation.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "affected_domain_owner", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Record a simulated outbound and inbound message pair with environment, correlation, and redaction.", "assertions": ["Immutable history links request, response, workflow object, and environment", "Secrets and unnecessary payload fields are absent"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Simulate timeout, bounded retry, dead-letter, manual reconciliation, and wrong-role access.", "assertions": ["Retries are idempotent and exhausted messages enter a traceable dead-letter state", "Reconciliation is attributable and wrong-role log access is denied"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-044",
+      "legacy_menu": "Logsatset",
+      "legacy_evidence": {
+        "evidence_class": "U_UNRESOLVED",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "The assessed legacy Logsatset destination ended at a forbidden response; transaction, filter, payload, retry, and live-boundary behavior remain unknown.",
+        "limits": ["Legacy destination not retrieved", "No transmission or reconciliation behavior proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "non_transmitting_satusehat_sandbox_log", "description": "One non-transmitting SatuSehat sandbox log with care-setting filters.", "exclusions": ["live endpoint", "production credential", "real identifier", "external transmission"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim integration/security candidate", "required_scope": "Non-transmitting SatuSehat simulation log, care-setting filters, redaction, and no-live boundary.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Record a non-transmitting synthetic SatuSehat sandbox event and retrieve it through the proposed care-setting filter.", "assertions": ["The event is labelled synthetic and non-transmitting with no real identifier", "Filter, correlation, provenance, and redacted payload evidence agree"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Simulate adapter failure, retry/reconciliation, wrong-role access, and attempted live-endpoint configuration.", "assertions": ["Failure and reconciliation remain traceable without external transmission", "Wrong-role access and live endpoint or production credential configuration are blocked"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-ADM-045",
+      "legacy_menu": "logsatsetri",
+      "legacy_evidence": {
+        "evidence_class": "U_UNRESOLVED",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "The assessed inpatient Logsatset destination ended at a forbidden response; equivalence with PAR-ADM-044 and inpatient filter behavior remain unknown.",
+        "limits": ["Legacy destination not retrieved", "No RJ/RI equivalence or migration mapping proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "consolidate",
+        "canonical_target": {"kind": "requirement", "reference": "PAR-ADM-044", "description": "Preserve inpatient filtering and migration trace in the canonical non-transmitting sandbox log.", "exclusions": ["second duplicate log product", "live transmission"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim integration/security candidate", "required_scope": "Inpatient-to-canonical mapping, filter correctness, migration trace, and live-integration exclusion.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "product_delivery", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "inpatient_clinical", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Retrieve synthetic inpatient events from the proposed canonical sandbox log using a preserved migration mapping.", "assertions": ["The inpatient filter returns only correctly classified synthetic events", "The mapping is traceable and creates no duplicate log product"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Correct a misclassified care setting and attempt wrong-role or live-endpoint access.", "assertions": ["Correction preserves original and corrected classification without orphaning history", "Wrong-role access and live transmission configuration are blocked"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-HLP-001",
+      "legacy_menu": "Manual Book",
+      "legacy_evidence": {
+        "evidence_class": "U_UNRESOLVED",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "The assessed legacy manual-book navigation aborted; role-task coverage, release provenance, accessibility, and usable document behavior remain unknown.",
+        "limits": ["Legacy manual destination not retrieved", "No role-task, accessibility, or release-version proof"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "versioned_indonesian_role_manuals", "description": "Versioned in-app Indonesian manuals bound to enabled roles and release SHA.", "exclusions": ["guidance that implies unauthorized access", "unversioned stale instructions"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "RMIK Department — candidate teaching owner", "required_scope": "Role-task coverage, Indonesian usability, accessibility, navigation, and release provenance.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "rmik", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "teaching_facilitation", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "operations", "candidate_identity": "Daniel Happy Putra — operations co-owner candidate", "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "affected_role_owner", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Open the Indonesian manual for an enabled synthetic role and complete a role-appropriate teaching task.", "assertions": ["Navigation and task steps match the enabled capability and release SHA", "The manual renders accessibly and supports the approved download or print path"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Request guidance for a disabled capability and follow a stale manual link after a simulated release change.", "assertions": ["Unavailable guidance does not imply access or expose protected workflow detail", "The stale-version path reaches the current manual while retaining version provenance"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    },
+    {
+      "requirement_id": "PAR-IOT-001",
+      "legacy_menu": "Temperature",
+      "legacy_evidence": {
+        "evidence_class": "U_UNRESOLVED",
+        "sources": ["docs/vendor-simrs-assessment-2026-08-21/FULL_MENU_TAXONOMY.md", "docs/vendor-simrs-assessment-2026-08-21/MENU_ROUTE_AUDIT.md"],
+        "normalized_observation": "The assessed legacy temperature route produced an error page; device provenance, threshold, alarm, acknowledgement, stale-data, and outage behavior remain unknown.",
+        "limits": ["Legacy workflow not retrieved", "No device, alarm, acknowledgement, or outage rule proved"]
+      },
+      "current_engineering_observation": {"evidence_class": "NO_CURRENT_IMPLEMENTATION", "runtime_availability": "NOT_IMPLEMENTED", "automated_evidence": "NO_COVERAGE", "reconciliation": "NOT_STARTED", "workflow_status": "PENDING", "evidence_paths": [], "authority_effect": "none_observation_only"},
+      "related_code_paths": [],
+      "proposed_decision": {
+        "status": "pending_candidate_only",
+        "disposition": "replace",
+        "canonical_target": {"kind": "canonical_capability", "reference": "synthetic_temperature_gateway", "description": "Synthetic device and temperature gateway with threshold and acknowledgement workflow.", "exclusions": ["production device connection", "unlabelled device data"]}
+      },
+      "authority_candidates": {
+        "accountable": {"candidate_identity": "Daniel Happy Putra — interim operations/security candidate", "required_scope": "Simulation-only provenance, thresholds, alarms, acknowledgement, invalid/stale handling, and no-live-device boundary.", "appointment_status": "unresolved_no_appointment_evidence"},
+        "co_owners": [
+          {"authority_domain": "operations", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "cold_chain", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"},
+          {"authority_domain": "security_privacy_data", "candidate_identity": null, "appointment_status": "unresolved_no_appointment_evidence"}
+        ]
+      },
+      "scenarios": {
+        "normal": {"status": "decision_ready_not_executed", "action": "Ingest labelled synthetic temperature readings from a simulated device and trigger the proposed threshold alert.", "assertions": ["Each reading records synthetic provenance, device, location, value, unit, and time", "A threshold breach creates an attributable alert and acknowledgement path"]},
+        "denial_correction": {"status": "decision_ready_not_executed", "action": "Submit stale, malformed, or out-of-range readings and simulate outage and wrong-role acknowledgement.", "assertions": ["Invalid or stale readings are quarantined without changing the accepted series", "Outage is visible, wrong-role acknowledgement is denied, and no live-device connection occurs"]}
+      },
+      "approval": {"status": "pending", "identity": null, "date": null, "reference": null, "conditions": []}
+    }
+  ]
+}

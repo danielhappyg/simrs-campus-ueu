@@ -3,6 +3,7 @@
 namespace Tests\Feature\Inpatient;
 
 use App\Models\Encounter;
+use App\Support\Inpatient\InpatientLocationMutationScope;
 use App\Support\Registration\InpatientBedClaimGuard;
 use App\Support\Registration\InpatientBedUnavailable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,11 +50,11 @@ class InpatientBedClaimGuardTest extends TestCase
 
     public function test_claim_rejects_an_open_inpatient_encounter_for_the_same_bed(): void
     {
-        Encounter::factory()->create([
+        InpatientLocationMutationScope::run(fn (): Encounter => Encounter::factory()->create([
             'care_setting' => Encounter::CARE_SETTING_INPATIENT,
             'status' => Encounter::STATUS_REGISTERED,
             'bed_code' => 'RI-MELATI-01',
-        ]);
+        ]));
 
         try {
             DB::transaction(function (): void {
@@ -69,16 +70,16 @@ class InpatientBedClaimGuardTest extends TestCase
 
     public function test_claim_allows_a_different_bed_and_a_bed_from_a_closed_encounter(): void
     {
-        Encounter::factory()->create([
+        InpatientLocationMutationScope::run(fn (): Encounter => Encounter::factory()->create([
             'care_setting' => Encounter::CARE_SETTING_INPATIENT,
             'status' => Encounter::STATUS_REGISTERED,
             'bed_code' => 'RI-MELATI-01',
-        ]);
-        Encounter::factory()->create([
+        ]));
+        InpatientLocationMutationScope::run(fn (): Encounter => Encounter::factory()->create([
             'care_setting' => Encounter::CARE_SETTING_INPATIENT,
             'status' => Encounter::STATUS_CLOSED,
             'bed_code' => 'RI-MELATI-02',
-        ]);
+        ]));
 
         DB::transaction(function (): void {
             $guard = app(InpatientBedClaimGuard::class);

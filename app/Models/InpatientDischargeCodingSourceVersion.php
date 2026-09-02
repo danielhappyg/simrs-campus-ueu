@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Models;
+
+use App\Support\Inpatient\InpatientDischargeCodingSourceMutationScope;
+use App\Support\Models\HasPublicUlid;
+use App\Support\Models\UsesSchemaQualifiedTable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use LogicException;
+
+/**
+ * @property int $id
+ * @property string $public_id
+ * @property int $inpatient_discharge_coding_source_id
+ * @property int $actor_user_id
+ * @property int $version
+ * @property string $source_state
+ * @property string $definition_version
+ * @property string|null $principal_diagnosis_statement
+ * @property array<int, string> $secondary_diagnosis_statements
+ * @property string $procedure_attestation
+ * @property array<int, string> $performed_procedure_statements
+ * @property string $encounter_public_id
+ * @property string $care_setting
+ * @property string $encounter_status
+ * @property int $location_sequence
+ * @property string|null $location_event_public_id
+ * @property string|null $location_event_type
+ * @property string|null $history_baseline
+ * @property bool $history_complete
+ * @property string $ward_public_id
+ * @property string $ward_code
+ * @property string $ward_display_name
+ * @property string $bed_public_id
+ * @property string $bed_code
+ * @property string $bed_display_name
+ * @property string $room_label
+ * @property string $service_class
+ * @property Carbon|null $finalized_at
+ * @property Carbon|null $created_at
+ */
+class InpatientDischargeCodingSourceVersion extends Model
+{
+    use HasPublicUlid, UsesSchemaQualifiedTable;
+
+    public const UPDATED_AT = null;
+
+    protected $fillable = ['inpatient_discharge_coding_source_id', 'actor_user_id', 'version', 'source_state', 'definition_version', 'principal_diagnosis_statement', 'secondary_diagnosis_statements', 'procedure_attestation', 'performed_procedure_statements', 'encounter_public_id', 'care_setting', 'encounter_status', 'location_sequence', 'location_event_public_id', 'location_event_type', 'history_baseline', 'history_complete', 'ward_public_id', 'ward_code', 'ward_display_name', 'bed_public_id', 'bed_code', 'bed_display_name', 'room_label', 'service_class', 'finalized_at'];
+
+    protected static function booted(): void
+    {
+        static::creating(static fn () => InpatientDischargeCodingSourceMutationScope::assertActive());
+        static::updating(static function (): never {
+            throw new LogicException('Inpatient discharge coding source versions are immutable.');
+        });
+        static::deleting(static function (): never {
+            throw new LogicException('Inpatient discharge coding source versions cannot be deleted by ordinary workflow.');
+        });
+    }
+
+    /** @return BelongsTo<InpatientDischargeCodingSource, $this> */
+    public function source(): BelongsTo
+    {
+        return $this->belongsTo(InpatientDischargeCodingSource::class, 'inpatient_discharge_coding_source_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function actor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'actor_user_id');
+    }
+
+    protected function casts(): array
+    {
+        return ['version' => 'integer', 'secondary_diagnosis_statements' => 'array', 'performed_procedure_statements' => 'array', 'location_sequence' => 'integer', 'history_complete' => 'boolean', 'finalized_at' => 'datetime'];
+    }
+}

@@ -27,14 +27,22 @@ module G0G3CoverageEvidenceMapV2
   CANONICAL_ORDER_SHA256 = '59b0f05b94e2a659b342016c5b9e5e9e011f3a8e4c0f0efd3dda12a7b65fa9ca'
   GENERATOR_PATH = 'scripts/generate-g0-g3-coverage-evidence-map-v2.rb'
   SNAPSHOT_DATE = '2026-08-29'
+  ORIGINAL_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json'
+  ORIGINAL_ARTIFACT_ID = 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29'
+  ORIGINAL_SHA256 = '3b1005a31087896b412a8f64a3dbfced2c0ab655be78c32abd7c0743ae3811d5'
+  OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29_R2.json'
+  ARTIFACT_ID = 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29-R2'
+  SUPERSESSION_RELATIONSHIP = 'supersedes_without_rewriting_or_reinterpreting_predecessor'
 
-  TOP_LEVEL_KEYS = %w[
+  ORIGINAL_TOP_LEVEL_KEYS = %w[
     artifact_type schema_version artifact_id snapshot_date data_boundary
     source_evidence_map canonical_order_source explicit_evidence_inputs
     capability_defaults workflow_observation_default capabilities workflows
     provenance
   ].freeze
+  TOP_LEVEL_KEYS = (ORIGINAL_TOP_LEVEL_KEYS + ['superseded_evidence_map']).freeze
   SOURCE_KEYS = %w[path sha256].freeze
+  SUPERSEDED_MAP_KEYS = %w[path sha256 artifact_id relationship].freeze
   ENGINEERING_KEYS = %w[
     runtime_availability automated_evidence database_engine_evidence hosted_uat
     reconciliation defect_status evidence_paths
@@ -165,9 +173,10 @@ module G0G3CoverageEvidenceMapV2
     {
       'artifact_type' => 'g0_g3_coverage_evidence_map_v2',
       'schema_version' => 2,
-      'artifact_id' => 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29',
+      'artifact_id' => ARTIFACT_ID,
       'snapshot_date' => SNAPSHOT_DATE,
       'data_boundary' => 'synthetic_only',
+      'superseded_evidence_map' => verified_predecessor_reference(root_path),
       'source_evidence_map' => {
         'path' => HISTORICAL_MAP_PATH,
         'sha256' => HISTORICAL_MAP_SHA256
@@ -318,9 +327,10 @@ module G0G3CoverageEvidenceMapV2
     assert_closed_schema!(document, required: TOP_LEVEL_KEYS, label: '$.engineering_evidence_map_v2')
     raise Error, '$.artifact_type: unexpected value' unless document.fetch('artifact_type') == 'g0_g3_coverage_evidence_map_v2'
     raise Error, '$.schema_version: expected 2' unless document.fetch('schema_version') == 2
-    raise Error, '$.artifact_id: unexpected value' unless document.fetch('artifact_id') == 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-08-29'
+    raise Error, '$.artifact_id: unexpected value' unless document.fetch('artifact_id') == ARTIFACT_ID
     raise Error, '$.snapshot_date: unexpected value' unless document.fetch('snapshot_date') == SNAPSHOT_DATE
     raise Error, '$.data_boundary: unexpected value' unless document.fetch('data_boundary') == 'synthetic_only'
+    validate_predecessor_reference!(document.fetch('superseded_evidence_map'))
     validate_exact_source!(document.fetch('source_evidence_map'), HISTORICAL_MAP_PATH, HISTORICAL_MAP_SHA256, '$.source_evidence_map')
     validate_exact_source!(document.fetch('canonical_order_source'), CANONICAL_ORDER_PATH, CANONICAL_ORDER_SHA256, '$.canonical_order_source')
 
@@ -362,6 +372,69 @@ module G0G3CoverageEvidenceMapV2
     true
   end
   private_class_method :validate_document_shape!
+
+  def verified_predecessor_reference(root_path)
+    bytes = safe_read(
+      root_path,
+      ORIGINAL_OUTPUT_PATH,
+      label: '$.superseded_evidence_map',
+      require_single_link: true
+    )
+    unless Digest::SHA256.hexdigest(bytes) == ORIGINAL_SHA256
+      raise Error, '$.superseded_evidence_map.sha256: predecessor byte hash drift'
+    end
+
+    predecessor = Core.parse_json(bytes, label: '$.superseded_evidence_map')
+    assert_secret_free!(predecessor, label: '$.superseded_evidence_map')
+    assert_no_forbidden_keys!(predecessor)
+    validate_predecessor_shape!(predecessor)
+    predecessor_reference
+  rescue Core::Error => e
+    raise Error, e.message
+  end
+  private_class_method :verified_predecessor_reference
+
+  def validate_predecessor_shape!(document)
+    assert_closed_schema!(document, required: ORIGINAL_TOP_LEVEL_KEYS, label: '$.superseded_evidence_map')
+    unless document.values_at('artifact_type', 'schema_version', 'artifact_id', 'snapshot_date', 'data_boundary') == [
+      'g0_g3_coverage_evidence_map_v2', 2, ORIGINAL_ARTIFACT_ID, SNAPSHOT_DATE, 'synthetic_only'
+    ]
+      raise Error, '$.superseded_evidence_map: predecessor identity or boundary drift'
+    end
+    validate_exact_source!(document.fetch('source_evidence_map'), HISTORICAL_MAP_PATH, HISTORICAL_MAP_SHA256,
+                           '$.superseded_evidence_map.source_evidence_map')
+    validate_exact_source!(document.fetch('canonical_order_source'), CANONICAL_ORDER_PATH, CANONICAL_ORDER_SHA256,
+                           '$.superseded_evidence_map.canonical_order_source')
+    inputs = document.fetch('explicit_evidence_inputs')
+    raise Error, '$.superseded_evidence_map.explicit_evidence_inputs: expected array' unless inputs.is_a?(Array)
+    inputs.each_with_index do |entry, index|
+      validate_source_record!(entry, "$.superseded_evidence_map.explicit_evidence_inputs[#{index}]")
+    end
+    raise Error, '$.superseded_evidence_map.capabilities: expected 268 entries' unless document.fetch('capabilities').is_a?(Array) && document.fetch('capabilities').length == 268
+    raise Error, '$.superseded_evidence_map.workflows: expected 16 entries' unless document.fetch('workflows').is_a?(Array) && document.fetch('workflows').length == 16
+    true
+  end
+  private_class_method :validate_predecessor_shape!
+
+  def predecessor_reference
+    {
+      'path' => ORIGINAL_OUTPUT_PATH,
+      'sha256' => ORIGINAL_SHA256,
+      'artifact_id' => ORIGINAL_ARTIFACT_ID,
+      'relationship' => SUPERSESSION_RELATIONSHIP
+    }
+  end
+  private_class_method :predecessor_reference
+
+  def validate_predecessor_reference!(reference)
+    assert_closed_schema!(reference, required: SUPERSEDED_MAP_KEYS,
+                          label: '$.engineering_evidence_map_v2.superseded_evidence_map')
+    unless reference == predecessor_reference
+      raise Error, '$.engineering_evidence_map_v2.superseded_evidence_map: predecessor binding drift'
+    end
+    true
+  end
+  private_class_method :validate_predecessor_reference!
 
   def validate_engineering_output!(entry, label)
     assert_closed_schema!(entry, required: ENGINEERING_KEYS, label: label)
@@ -552,7 +625,7 @@ module G0G3CoverageEvidenceMapV2
   end
   private_class_method :safe_relative_path?
 
-  def safe_read(root_path, relative, label:, hook: nil)
+  def safe_read(root_path, relative, label:, hook: nil, require_single_link: false)
     raise Error, "#{label}.path: unsafe repository-relative path" unless safe_relative_path?(relative)
     path = root_path.join(relative)
     components = Pathname.new(relative).each_filename.to_a
@@ -578,6 +651,7 @@ module G0G3CoverageEvidenceMapV2
     File.open(path, flags) do |file|
       before = file.stat
       raise Error, "#{label}: source is not a regular file" unless before.file?
+      raise Error, "#{label}: source has multiple hard links" if require_single_link && before.nlink != 1
       bytes = file.read
       after = file.stat
       unless stable_stat(before) == stable_stat(after)
@@ -585,7 +659,8 @@ module G0G3CoverageEvidenceMapV2
       end
       final = path.lstat
       unless final.file? && !final.symlink? && final.dev == after.dev && final.ino == after.ino &&
-             stable_stat(final) == stable_stat(after) && path.realpath == path
+             stable_stat(final) == stable_stat(after) && path.realpath == path &&
+             (!require_single_link || final.nlink == 1)
         raise Error, "#{label}: source identity changed while reading"
       end
     end

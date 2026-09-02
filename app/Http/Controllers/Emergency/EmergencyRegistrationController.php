@@ -71,7 +71,7 @@ class EmergencyRegistrationController extends Controller
 
             $todaysEncounters = Encounter::query()
                 ->syntheticOnly()
-                ->with('patient')
+                ->with(['patient', 'cancellation.cancelledBy'])
                 ->where('care_setting', Encounter::CARE_SETTING_EMERGENCY)
                 ->whereDate('registered_at', today())
                 ->orderByDesc('registered_at')
@@ -131,6 +131,7 @@ class EmergencyRegistrationController extends Controller
             'accidentTypeOptions' => TeachingVocabulary::options(TeachingVocabulary::ACCIDENT),
             'wilayahProvinces' => $this->wilayah->provinces(),
             'canRegister' => $request->user()?->canCapability(Capability::PATIENT_REGISTER) ?? false,
+            'canCancel' => $request->user()?->canCapability(Capability::ENCOUNTER_CANCEL) ?? false,
         ]);
     }
 
@@ -424,11 +425,41 @@ class EmergencyRegistrationController extends Controller
             'accident_type' => $encounter->accident_type,
             'queue_number' => $encounter->queue_number,
             'registered_at' => $encounter->registered_at->toIso8601String(),
+            'cancellation' => $this->cancellationSummary($encounter),
             'patient' => [
                 'public_id' => $patient?->public_id,
                 'medical_record_number' => $patient?->medical_record_number,
                 'full_name' => $patient?->full_name,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, string|null>|null
+     */
+    private function cancellationSummary(Encounter $encounter): ?array
+    {
+        if (! $encounter->relationLoaded('cancellation')) {
+            return null;
+        }
+
+        $cancellation = $encounter->getRelation('cancellation');
+        if ($cancellation === null) {
+            return null;
+        }
+
+        $cancelledAt = $cancellation->getAttribute('cancelled_at');
+        $cancelledBy = $cancellation->relationLoaded('cancelledBy')
+            ? $cancellation->getRelation('cancelledBy')
+            : null;
+
+        return [
+            'reason_code' => $cancellation->getAttribute('reason_code'),
+            'note' => $cancellation->getAttribute('note'),
+            'cancelled_at' => $cancelledAt instanceof \DateTimeInterface
+                ? $cancelledAt->format(DATE_ATOM)
+                : (is_string($cancelledAt) ? $cancelledAt : null),
+            'cancelled_by' => $cancelledBy?->getAttribute('name'),
         ];
     }
 }

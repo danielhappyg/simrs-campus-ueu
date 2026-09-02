@@ -3,11 +3,16 @@
 namespace App\Console\Commands;
 
 use App\Support\ReleaseCandidateAssembler;
+use FilesystemIterator;
+use Generator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use JsonException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
+use SplFileInfo;
 use Throwable;
 
 class GenerateReleaseManifestCommand extends Command
@@ -189,13 +194,7 @@ class GenerateReleaseManifestCommand extends Command
                 throw new RuntimeException($directory.' is required for a release candidate.');
             }
 
-            foreach (File::allFiles(base_path($directory), true) as $file) {
-                $relativePath = str_replace('\\', '/', $file->getRelativePathname());
-
-                if ($relativePath === '') {
-                    throw new RuntimeException('A runtime file has an invalid relative path.');
-                }
-
+            foreach ($this->generatedRelativePaths($directory) as $relativePath) {
                 $path = $directory.'/'.$relativePath;
 
                 if (! isset($runtimeFiles[$path])) {
@@ -207,6 +206,35 @@ class GenerateReleaseManifestCommand extends Command
         ksort($runtimeFiles, SORT_STRING);
 
         return array_values($runtimeFiles);
+    }
+
+    /** @return Generator<int, string> */
+    private function generatedRelativePaths(string $directory): Generator
+    {
+        $root = str_replace('\\', '/', base_path($directory));
+        $prefix = rtrim($root, '/').'/';
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(
+            $root,
+            FilesystemIterator::SKIP_DOTS,
+        ));
+
+        foreach ($iterator as $file) {
+            if (! $file instanceof SplFileInfo || (! $file->isFile() && ! $file->isLink())) {
+                continue;
+            }
+
+            $path = str_replace('\\', '/', $file->getPathname());
+            if (! str_starts_with($path, $prefix)) {
+                throw new RuntimeException('A generated runtime file escaped its expected directory.');
+            }
+
+            $relativePath = substr($path, strlen($prefix));
+            if ($relativePath === '') {
+                throw new RuntimeException('A runtime file has an invalid relative path.');
+            }
+
+            yield $relativePath;
+        }
     }
 
     /**

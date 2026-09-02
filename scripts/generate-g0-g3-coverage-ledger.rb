@@ -3,6 +3,7 @@
 
 require 'date'
 require 'digest'
+require 'fiddle/import'
 require 'json'
 require 'optparse'
 require 'pathname'
@@ -501,15 +502,20 @@ module G0G3CoverageLedgerV2
   ORIGINAL_SHA256 = '690becdf75a08d17b992d8dad754313f33d0f9c8ea2c692b9b12b8b837f43ac5'
   ORIGINAL_CONTRACT_SHA256 = 'eb2918e85beb9cd70f39ff391826ba896ea16139fbd9a1fb81f1535855a846ca'
   ORIGINAL_CONTRACT_VERSION = '1.0.0'
-  PREDECESSOR_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json'
-  PREDECESSOR_ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R2'
-  PREDECESSOR_SHA256 = '0b89705741bb052629593b9023f1c8d19c7827489a7e8e6ce6e46af1efd5f1c6'
-  PREDECESSOR_CONTRACT_SHA256 = '2c9cac70cdeef4f85a0fd3d31d0830af4d2dcafa9c500b43a286b4726f5786e8'
-  PREDECESSOR_CONTRACT_VERSION = '1.2.0'
-  OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json'
-  ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R3'
+  R2_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R2.json'
+  R2_ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R2'
+  R2_SHA256 = '0b89705741bb052629593b9023f1c8d19c7827489a7e8e6ce6e46af1efd5f1c6'
+  R2_CONTRACT_SHA256 = '2c9cac70cdeef4f85a0fd3d31d0830af4d2dcafa9c500b43a286b4726f5786e8'
+  R2_CONTRACT_VERSION = '1.2.0'
+  PREDECESSOR_OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R3.json'
+  PREDECESSOR_ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R3'
+  PREDECESSOR_SHA256 = '0f312713000b0092de313baee2d3cc6d34695c2fefd717c620871268045ac58c'
+  PREDECESSOR_CONTRACT_SHA256 = 'b74fd990cb0a12692dc78bb808f688bab99924bf8f8ae80b109e72d9ba4d9bba'
+  PREDECESSOR_CONTRACT_VERSION = '1.3.0'
+  OUTPUT_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-08-29_R4.json'
+  ARTIFACT_ID = 'G0-G3-COVERAGE-LEDGER-V2-2026-08-29-R4'
   SUPERSESSION_RELATIONSHIP = 'supersedes_without_rewriting_or_reinterpreting_predecessor'
-  EVIDENCE_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29.json'
+  EVIDENCE_MAP_PATH = 'docs/new-simrs-rebuild/G0_G3_COVERAGE_EVIDENCE_MAP_V2_2026-08-29_R2.json'
   CONTRACT_PATH = Comparator::CONTRACT_PATH
   V1_MANIFEST_PATH = Comparator::V1_MANIFEST_PATH
   SOURCE_MANIFEST_PATH = Comparator::SOURCE_MANIFEST_PATH
@@ -580,6 +586,14 @@ module G0G3CoverageLedgerV2
   ].freeze
   GATE_STATUSES = %w[OPEN PASS].freeze
   RESOLUTION_STATUSES = %w[active unavailable].freeze
+
+  module NativeFs
+    extend Fiddle::Importer
+
+    dlload Fiddle.dlopen(nil)
+    extern 'int openat(int, const char*, int, int)'
+    extern 'int unlinkat(int, const char*, int)'
+  end
 
   module_function
 
@@ -659,19 +673,23 @@ module G0G3CoverageLedgerV2
   # a historical ledger or an already-published schema-v2 observation.
   def write!(root: G0G3CoverageLedger::ROOT, output: OUTPUT_PATH, before_publish: nil, **keywords)
     root_path = secure_root(root)
-    target = safe_new_path(root_path, output)
-    lock_path = safe_new_path(root_path, "#{output}.lock")
-    governance_lock_path = safe_new_path(root_path, Selector::LOCK_RELATIVE_PATH)
-    with_stable_lock(lock_path, File::LOCK_EX, 'schema-v2 ledger writer lock conflict') do
+    with_stable_lock(root_path, "#{output}.lock", File::LOCK_EX,
+                     'schema-v2 ledger writer lock conflict', create: true) do |revalidate_writer_lock|
       # Selector mutation takes this same inode exclusively. Holding it shared
       # closes the resolve/serialize/publication race without mutating a pointer.
-      with_stable_lock(governance_lock_path, File::LOCK_SH, 'governance selector lock conflict') do
-        raise Error, 'schema-v2 ledger already exists' if target.exist? || target.symlink?
+      with_stable_lock(root_path, Selector::LOCK_RELATIVE_PATH, File::LOCK_SH,
+                       'governance selector lock conflict', create: false) do |revalidate_selector_lock|
         bytes = serialized(root: root_path.to_s, **keywords)
         before_publish.call if before_publish
+        revalidate_writer_lock.call
+        revalidate_selector_lock.call
         confirmation = serialized(root: root_path.to_s, **keywords)
         raise Error, 'active snapshot changed before ledger publication' unless confirmation == bytes
-        publish_create_only!(target, bytes)
+        revalidate = lambda do
+          revalidate_writer_lock.call
+          revalidate_selector_lock.call
+        end
+        publish_create_only!(root_path, output, bytes, revalidate: revalidate)
       end
     end
     true
@@ -681,22 +699,49 @@ module G0G3CoverageLedgerV2
     raise Error, 'schema-v2 ledger publication failed'
   end
 
-  def with_stable_lock(path, mode, conflict_message)
-    flags = File::RDWR | File::CREAT
-    flags |= File::NOFOLLOW if defined?(File::NOFOLLOW)
-    File.open(path, flags, 0o600) do |file|
+  def with_stable_lock(root, relative, mode, conflict_message, create:)
+    with_parent_directory(root, relative, error_message: 'ledger lock path is unsafe') do |parent, leaf, revalidate_parent|
+      begin
+        file = openat_io(parent, leaf, File::RDWR | nofollow_flag, 0, operation: 'open ledger lock')
+      rescue Errno::ENOENT
+        raise unless create
+
+        file = openat_io(parent, leaf, File::RDWR | File::CREAT | File::EXCL | nofollow_flag,
+                         0o600, operation: 'create ledger lock')
+        file.chmod(0o600)
+      end
       stat = file.stat
-      raise Error, 'ledger lock path is not a private regular file' unless stat.file? && stat.nlink == 1 && stat.uid == Process.uid
-      file.chmod(0o600)
+      validate_private_lock!(stat)
+      verify_entry_identity!(parent, leaf, stat, flags: File::RDWR, label: 'ledger lock path')
       raise Error, conflict_message unless file.flock(mode | File::LOCK_NB)
-      yield
+
+      revalidate = lambda do
+        revalidate_parent.call
+        current = verify_entry_identity!(parent, leaf, stat, flags: File::RDWR, label: 'ledger lock path')
+        validate_private_lock!(current)
+        true
+      end
+      revalidate.call
+      yield revalidate
+      revalidate.call
     ensure
-      file.flock(File::LOCK_UN) rescue nil
+      file&.flock(File::LOCK_UN) rescue nil
+      file&.close unless file&.closed?
     end
+  rescue Errno::ENOENT
+    raise Error, create ? 'ledger lock path is unsafe' : 'governance selector lock is unavailable'
   rescue Errno::ELOOP
     raise Error, 'ledger lock path is unsafe'
   end
   private_class_method :with_stable_lock
+
+  def validate_private_lock!(stat)
+    unless stat.file? && stat.nlink == 1 && stat.uid == Process.uid && stat.size.zero? && (stat.mode & 0o777) == 0o600
+      raise Error, 'ledger lock path is not a private regular file'
+    end
+    true
+  end
+  private_class_method :validate_private_lock!
 
   def validate_document!(document)
     Core.assert_closed_schema!(document, required: TOP_LEVEL_KEYS, label: '$.ledger_v2')
@@ -712,6 +757,16 @@ module G0G3CoverageLedgerV2
     validate_superseded_ledger_reference!(sources.fetch('superseded_ledger'))
     binding = document.fetch('governance_profile_binding')
     Core.assert_closed_schema!(binding, required: PROFILE_BINDING_KEYS, label: '$.ledger_v2.governance_profile_binding')
+    expected_contract_reference = {
+      'path' => CONTRACT_PATH,
+      'sha256' => PREDECESSOR_CONTRACT_SHA256
+    }
+    unless sources.fetch('governance_contract') == expected_contract_reference &&
+           binding.values_at('validator_contract_path', 'validator_contract_sha256', 'validator_contract_version') == [
+             CONTRACT_PATH, PREDECESSOR_CONTRACT_SHA256, PREDECESSOR_CONTRACT_VERSION
+           ]
+      raise Error, 'schema-v2 ledger live contract binding drift'
+    end
     raise Error, 'unknown governance profile binding status' unless RESOLUTION_STATUSES.include?(binding.fetch('status'))
     operational_binding_keys = PROFILE_BINDING_KEYS - %w[status reason_code validator_contract_path validator_contract_sha256 validator_contract_version]
     if binding.fetch('status') == 'unavailable'
@@ -801,11 +856,11 @@ module G0G3CoverageLedgerV2
   end
 
   def load_authoritative_sources(root)
-    contract = Comparator.parse_repository_json(root, CONTRACT_PATH, '$.contract')
-    v1_manifest = Comparator.parse_repository_json(root, V1_MANIFEST_PATH, '$.v1_manifest')
-    source_manifest = Comparator.parse_repository_json(root, SOURCE_MANIFEST_PATH, '$.source_manifest')
-    source_evidence_map = Comparator.parse_repository_json(root, SOURCE_EVIDENCE_MAP_PATH, '$.source_evidence_map')
-    owner_policy = Comparator.parse_repository_json(root, OWNER_POLICY_PATH, '$.owner_policy')
+    contract = parse_repository_json_safely(root, CONTRACT_PATH, '$.contract')
+    v1_manifest = parse_repository_json_safely(root, V1_MANIFEST_PATH, '$.v1_manifest')
+    source_manifest = parse_repository_json_safely(root, SOURCE_MANIFEST_PATH, '$.source_manifest')
+    source_evidence_map = parse_repository_json_safely(root, SOURCE_EVIDENCE_MAP_PATH, '$.source_evidence_map')
+    owner_policy = parse_repository_json_safely(root, OWNER_POLICY_PATH, '$.owner_policy')
     Core.validate_contract!(contract, root: root.to_s)
     Core.verify_v1_manifest!(v1_manifest, root: root.to_s)
     {
@@ -814,6 +869,11 @@ module G0G3CoverageLedgerV2
     }
   end
   private_class_method :load_authoritative_sources
+
+  def parse_repository_json_safely(root, relative, label)
+    Core.parse_json(safe_read(root, relative, label: label), label: label)
+  end
+  private_class_method :parse_repository_json_safely
 
   def build_source_rows(root, sources)
     rows = Comparator.expected_rows(
@@ -847,14 +907,19 @@ module G0G3CoverageLedgerV2
 
   def load_active_governance(root, resolution, source_rows)
     bundle = resolution.fetch(:bundle_path)
-    expanded_path = secure_bundle_file(bundle, EXPANDED_FILE)
-    gate_path = secure_bundle_file(bundle, GATE_FILE)
-    manifest_path = secure_bundle_file(bundle, BUNDLE_FILE)
-    event_path = secure_bundle_file(bundle, EVENT_FILE)
-    expanded = Core.parse_json_file(expanded_path, label: '$.active.expanded_register')
-    gate = Core.parse_json_file(gate_path, label: '$.active.gate_register')
-    manifest = Core.parse_json_file(manifest_path, label: '$.active.bundle_manifest')
-    event_register = Core.parse_json_file(event_path, label: '$.active.decision_event_register')
+    bundle_relative = repository_relative(root, bundle)
+    expanded_relative = File.join(bundle_relative, EXPANDED_FILE)
+    gate_relative = File.join(bundle_relative, GATE_FILE)
+    manifest_relative = File.join(bundle_relative, BUNDLE_FILE)
+    event_relative = File.join(bundle_relative, EVENT_FILE)
+    expanded_bytes = safe_read(root, expanded_relative, label: '$.active.expanded_register')
+    gate_bytes = safe_read(root, gate_relative, label: '$.active.gate_register')
+    manifest_bytes = safe_read(root, manifest_relative, label: '$.active.bundle_manifest')
+    event_bytes = safe_read(root, event_relative, label: '$.active.decision_event_register')
+    expanded = Core.parse_json(expanded_bytes, label: '$.active.expanded_register')
+    gate = Core.parse_json(gate_bytes, label: '$.active.gate_register')
+    manifest = Core.parse_json(manifest_bytes, label: '$.active.bundle_manifest')
+    event_register = Core.parse_json(event_bytes, label: '$.active.decision_event_register')
     Core.assert_secret_free!(expanded, label: '$.active.expanded_register')
     Core.assert_secret_free!(gate, label: '$.active.gate_register')
     ids = source_rows.map { |row| row.fetch('requirement_id') }
@@ -867,16 +932,17 @@ module G0G3CoverageLedgerV2
         raise Error, 'active expanded register source pointer drift'
       end
     end
-    expected_gate = recompute_gate_register(expanded, expanded_path)
+    expanded_sha256 = Digest::SHA256.hexdigest(expanded_bytes)
+    expected_gate = recompute_gate_register(expanded, expanded_sha256)
     raise Error, 'active gate register does not match independent 268-row derivation' unless gate == expected_gate
     events = event_register.fetch('events')
     raise Error, 'active decision event register schema drift' unless events.is_a?(Array)
     events_by_id = events.to_h { |event| [event.fetch('decision_event_id'), event] }
     raise Error, 'active decision event register contains duplicate IDs' unless events_by_id.length == events.length
     {
-      expanded: expanded, expanded_path: expanded_path, expanded_sha256: Digest::SHA256.file(expanded_path).hexdigest,
-      gate: gate, gate_path: gate_path, gate_sha256: Digest::SHA256.file(gate_path).hexdigest,
-      manifest: manifest, manifest_path: manifest_path, manifest_sha256: Digest::SHA256.file(manifest_path).hexdigest,
+      expanded: expanded, expanded_path: root.join(expanded_relative), expanded_sha256: expanded_sha256,
+      gate: gate, gate_path: root.join(gate_relative), gate_sha256: Digest::SHA256.hexdigest(gate_bytes),
+      manifest: manifest, manifest_path: root.join(manifest_relative), manifest_sha256: Digest::SHA256.hexdigest(manifest_bytes),
       events_by_id: events_by_id
     }
   rescue Core::Error, KeyError, SystemCallError => e
@@ -884,7 +950,7 @@ module G0G3CoverageLedgerV2
   end
   private_class_method :load_active_governance
 
-  def recompute_gate_register(expanded, expanded_path)
+  def recompute_gate_register(expanded, expanded_sha256)
     rows = expanded.fetch('entries')
     terminal = rows.count { |row| row.fetch('g0_terminal') == true }
     authorized = rows.count { |row| row.fetch('governance_state') == 'AUTHORIZED_FOR_SYNTHETIC_BUILD' }
@@ -903,7 +969,7 @@ module G0G3CoverageLedgerV2
       'status' => project_g0 == 'PASS' ? 'derived_pass' : 'derived_pending',
       'effect' => 'none_no_activation_or_acceptance',
       'data_boundary' => 'synthetic_only',
-      'source_expanded_register' => { 'path' => EXPANDED_FILE, 'sha256' => Digest::SHA256.file(expanded_path).hexdigest },
+      'source_expanded_register' => { 'path' => EXPANDED_FILE, 'sha256' => expanded_sha256 },
       'project_g0' => project_g0,
       'project_g3' => 'OPEN',
       'counts' => {
@@ -1133,6 +1199,8 @@ module G0G3CoverageLedgerV2
   private_class_method :governance_pointer
 
   def profile_binding(root, resolution, active, reason)
+    contract_bytes = safe_read(root, CONTRACT_PATH, label: '$.contract')
+    contract = Core.parse_json(contract_bytes, label: '$.contract')
     return {
       'status' => 'unavailable', 'reason_code' => reason || 'pointer_contract_invalid',
       'pointer_revision' => nil, 'pointer_sha256' => nil,
@@ -1141,8 +1209,8 @@ module G0G3CoverageLedgerV2
       'expanded_register_path' => nil, 'expanded_register_sha256' => nil,
       'gate_register_path' => nil, 'gate_register_sha256' => nil,
       'validator_contract_path' => CONTRACT_PATH,
-      'validator_contract_sha256' => Digest::SHA256.file(root.join(CONTRACT_PATH)).hexdigest,
-      'validator_contract_version' => Core.parse_json_file(root.join(CONTRACT_PATH), label: '$.contract').dig('validator', 'version')
+      'validator_contract_sha256' => Digest::SHA256.hexdigest(contract_bytes),
+      'validator_contract_version' => contract.dig('validator', 'version')
     } unless resolution && active
 
     {
@@ -1178,7 +1246,7 @@ module G0G3CoverageLedgerV2
   private_class_method :source_records
 
   def verified_superseded_ledger(root)
-    verified_original_ledger(root)
+    verified_r2_ledger(root)
     bytes = safe_read(root, PREDECESSOR_OUTPUT_PATH, label: 'superseded schema-v2 ledger')
     unless Digest::SHA256.hexdigest(bytes) == PREDECESSOR_SHA256
       raise Error, 'superseded schema-v2 ledger byte hash drift'
@@ -1193,7 +1261,7 @@ module G0G3CoverageLedgerV2
     predecessor_sources = predecessor.fetch('sources')
     Core.assert_closed_schema!(predecessor_sources, required: SOURCE_KEYS,
                                label: '$.superseded_ledger.sources')
-    validate_original_ledger_reference!(predecessor_sources.fetch('superseded_ledger'))
+    validate_r2_ledger_reference!(predecessor_sources.fetch('superseded_ledger'))
     predecessor_binding = predecessor.fetch('governance_profile_binding')
     Core.assert_closed_schema!(predecessor_binding, required: PROFILE_BINDING_KEYS,
                                label: '$.superseded_ledger.governance_profile_binding')
@@ -1207,6 +1275,36 @@ module G0G3CoverageLedgerV2
     raise Error, safe_error(e)
   end
   private_class_method :verified_superseded_ledger
+
+  def verified_r2_ledger(root)
+    verified_original_ledger(root)
+    bytes = safe_read(root, R2_OUTPUT_PATH, label: 'R2 schema-v2 ledger')
+    unless Digest::SHA256.hexdigest(bytes) == R2_SHA256
+      raise Error, 'R2 schema-v2 ledger byte hash drift'
+    end
+    r2 = Core.parse_json(bytes, label: '$.r2_ledger')
+    Core.assert_closed_schema!(r2, required: TOP_LEVEL_KEYS, label: '$.r2_ledger')
+    unless r2.values_at('artifact_type', 'schema_version', 'artifact_id', 'snapshot_date', 'data_boundary') == [
+      'g0_g3_coverage_ledger_v2', 2, R2_ARTIFACT_ID, SNAPSHOT_DATE, 'synthetic_only'
+    ]
+      raise Error, 'R2 schema-v2 ledger identity or boundary drift'
+    end
+    r2_sources = r2.fetch('sources')
+    Core.assert_closed_schema!(r2_sources, required: SOURCE_KEYS, label: '$.r2_ledger.sources')
+    validate_original_ledger_reference!(r2_sources.fetch('superseded_ledger'))
+    r2_binding = r2.fetch('governance_profile_binding')
+    Core.assert_closed_schema!(r2_binding, required: PROFILE_BINDING_KEYS,
+                               label: '$.r2_ledger.governance_profile_binding')
+    unless r2_sources.dig('governance_contract', 'sha256') == R2_CONTRACT_SHA256 &&
+           r2_binding.fetch('validator_contract_sha256') == R2_CONTRACT_SHA256 &&
+           r2_binding.fetch('validator_contract_version') == R2_CONTRACT_VERSION
+      raise Error, 'R2 schema-v2 ledger contract binding drift'
+    end
+    r2_ledger_reference
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :verified_r2_ledger
 
   def verified_original_ledger(root)
     bytes = safe_read(root, ORIGINAL_OUTPUT_PATH, label: 'original schema-v2 ledger')
@@ -1269,6 +1367,28 @@ module G0G3CoverageLedgerV2
   end
   private_class_method :superseded_ledger_reference
 
+  def r2_ledger_reference
+    {
+      'path' => R2_OUTPUT_PATH,
+      'sha256' => R2_SHA256,
+      'artifact_id' => R2_ARTIFACT_ID,
+      'relationship' => SUPERSESSION_RELATIONSHIP
+    }
+  end
+  private_class_method :r2_ledger_reference
+
+  def validate_r2_ledger_reference!(reference)
+    Core.assert_closed_schema!(reference, required: SUPERSEDED_LEDGER_KEYS,
+                               label: '$.superseded_ledger.sources.superseded_ledger')
+    unless reference == r2_ledger_reference
+      raise Error, 'schema-v2 R2 predecessor chain binding drift'
+    end
+    true
+  rescue Core::Error, KeyError => e
+    raise Error, safe_error(e)
+  end
+  private_class_method :validate_r2_ledger_reference!
+
   def validate_superseded_ledger_reference!(reference)
     Core.assert_closed_schema!(reference, required: SUPERSEDED_LEDGER_KEYS,
                                label: '$.ledger_v2.sources.superseded_ledger')
@@ -1315,53 +1435,229 @@ module G0G3CoverageLedgerV2
   private_class_method :secure_root
 
   def safe_read(root, relative, label:)
-    path = safe_existing_path(root, relative, label: label)
-    File.binread(path)
-  rescue Comparator::Error => e
-    raise Error, safe_error(e)
-  rescue SystemCallError
+    with_parent_directory(root, relative, error_message: "#{label}: unsafe path") do |parent, leaf, revalidate_parent|
+      file = openat_io(parent, leaf, File::RDONLY | nofollow_flag, 0, operation: "open #{label}")
+      initial = file.stat
+      validate_source_file!(initial, label)
+      bytes = file.read
+      final = file.stat
+      unless stable_stat_signature(initial) == stable_stat_signature(final)
+        raise Error, "#{label}: changed while being read"
+      end
+      current = verify_entry_identity!(parent, leaf, initial, flags: File::RDONLY, label: label)
+      unless stable_stat_signature(initial) == stable_stat_signature(current)
+        raise Error, "#{label}: changed while being read"
+      end
+      revalidate_parent.call
+      bytes
+    ensure
+      file&.close unless file&.closed?
+    end
+  rescue Errno::ELOOP, Errno::EMLINK
+    raise Error, "#{label}: unsafe path"
+  rescue SystemCallError, IOError
     raise Error, "#{label}: unavailable"
   end
   private_class_method :safe_read
 
-  def safe_existing_path(root, relative, label:)
-    Comparator.secure_regular_file!(root.join(relative), root, label: label)
+  def validate_source_file!(stat, label)
+    unless stat.file? && stat.uid == Process.uid && stat.nlink == 1 && (stat.mode & 0o022).zero?
+      raise Error, "#{label}: unsafe regular file"
+    end
+    true
   end
-  private_class_method :safe_existing_path
+  private_class_method :validate_source_file!
 
-  def safe_new_path(root, relative)
+  def relative_segments(relative, error_message:)
     value = relative.to_s
-    raise Error, 'unsafe schema-v2 output path' if value.empty? || value.include?("\0")
-    path = Pathname.new(value)
-    raise Error, 'unsafe schema-v2 output path' if path.absolute? || path.each_filename.include?('..')
-    target = root.join(path).expand_path
-    parent = Comparator.secure_directory!(target.parent, label: '$.output.parent').realpath
-    raise Error, 'unsafe schema-v2 output path' unless target.parent.realpath == parent && target.to_s.start_with?("#{root}#{File::SEPARATOR}")
-    target
-  rescue Comparator::Error, SystemCallError, ArgumentError
-    raise Error, 'unsafe schema-v2 output path'
+    segments = value.split(File::SEPARATOR, -1)
+    if value.empty? || value.include?("\0") || Pathname.new(value).absolute? ||
+       segments.empty? || segments.any? { |segment| segment.empty? || segment == '.' || segment == '..' }
+      raise Error, error_message
+    end
+    segments
   end
-  private_class_method :safe_new_path
+  private_class_method :relative_segments
+
+  def with_parent_directory(root, relative, error_message:)
+    segments = relative_segments(relative, error_message: error_message)
+    handles = []
+    root_io = File.open(root.to_s, File::RDONLY | nofollow_flag)
+    handles << root_io
+    validate_directory_handle!(root_io, error_message)
+    identities = [[nil, stable_identity(root_io.stat)]]
+    current = root_io
+    segments[0...-1].each do |segment|
+      child = openat_io(current, segment, File::RDONLY | nofollow_flag, 0, operation: 'open parent directory')
+      validate_directory_handle!(child, error_message)
+      handles << child
+      identities << [segment, stable_identity(child.stat)]
+      current = child
+    end
+
+    revalidate = lambda do
+      probe_handles = []
+      probe = File.open(root.to_s, File::RDONLY | nofollow_flag)
+      probe_handles << probe
+      validate_directory_handle!(probe, error_message)
+      raise Error, error_message unless stable_identity(probe.stat) == identities.first.last
+      identities.drop(1).each do |segment, expected|
+        next_probe = openat_io(probe, segment, File::RDONLY | nofollow_flag, 0, operation: 'reopen parent directory')
+        validate_directory_handle!(next_probe, error_message)
+        raise Error, error_message unless stable_identity(next_probe.stat) == expected
+        probe_handles << next_probe
+        probe = next_probe
+      end
+      true
+    ensure
+      probe_handles&.reverse_each { |handle| handle.close unless handle.closed? }
+    end
+
+    yield current, segments.last, revalidate
+  rescue Errno::ELOOP, Errno::ENOTDIR
+    raise Error, error_message
+  ensure
+    handles&.reverse_each { |handle| handle.close unless handle.closed? }
+  end
+  private_class_method :with_parent_directory
+
+  def validate_directory_handle!(handle, error_message)
+    stat = handle.stat
+    unless stat.directory? && stat.uid == Process.uid && (stat.mode & 0o022).zero?
+      raise Error, error_message
+    end
+    true
+  end
+  private_class_method :validate_directory_handle!
+
+  def nofollow_flag
+    defined?(File::NOFOLLOW) ? File::NOFOLLOW : 0
+  end
+  private_class_method :nofollow_flag
+
+  def openat_io(parent, leaf, flags, permissions, operation:)
+    descriptor = NativeFs.openat(parent.fileno, leaf, flags, permissions)
+    raise SystemCallError.new(operation, Fiddle.last_error) if descriptor.negative?
+
+    access_mode = case flags & 0o3
+                  when File::WRONLY then 'w'
+                  when File::RDWR then 'r+'
+                  else 'r'
+                  end
+    io = File.for_fd(descriptor, access_mode, autoclose: true)
+    io.close_on_exec = true
+    io
+  end
+  private_class_method :openat_io
+
+  def stable_identity(stat)
+    [stat.dev, stat.ino]
+  end
+  private_class_method :stable_identity
+
+  def stable_stat_signature(stat)
+    [stat.dev, stat.ino, stat.ftype, stat.nlink, stat.uid, stat.gid, stat.mode & 0o7777,
+     stat.size, stat.mtime.to_i, stat.mtime.nsec, stat.ctime.to_i, stat.ctime.nsec]
+  end
+  private_class_method :stable_stat_signature
+
+  def verify_entry_identity!(parent, leaf, expected_stat, flags:, label:)
+    probe = openat_io(parent, leaf, flags | nofollow_flag, 0, operation: "reopen #{label}")
+    actual = probe.stat
+    raise Error, "#{label}: entry identity changed" unless stable_identity(actual) == stable_identity(expected_stat)
+
+    actual
+  ensure
+    probe&.close unless probe&.closed?
+  end
+  private_class_method :verify_entry_identity!
 
   def secure_bundle_file(bundle, name)
     Comparator.secure_regular_file!(Pathname.new(bundle).join(name), bundle, label: "$.active.#{name}")
   end
   private_class_method :secure_bundle_file
 
-  def publish_create_only!(target, bytes)
-    temporary = Pathname.new("#{target}.tmp-#{Process.pid}-#{rand(1 << 32).to_s(16)}")
-    File.open(temporary, File::WRONLY | File::CREAT | File::EXCL, 0o600) do |file|
-      file.binmode
-      file.write(bytes)
-      file.flush
-      file.fsync
+  def publish_create_only!(root, relative, bytes, revalidate: nil)
+    with_parent_directory(root, relative, error_message: 'unsafe schema-v2 output path') do |parent, target, revalidate_parent|
+      created = false
+      created_stat = nil
+      begin
+        revalidate_parent.call
+        revalidate&.call
+        file = openat_io(parent, target,
+                         File::RDWR | File::CREAT | File::EXCL | nofollow_flag,
+                         0o600, operation: 'create schema-v2 ledger')
+        created = true
+        file.chmod(0o600)
+        file.binmode
+        created_stat = file.stat
+        unless created_stat.file? && created_stat.uid == Process.uid && created_stat.nlink == 1 &&
+               (created_stat.mode & 0o777) == 0o600 && created_stat.size.zero?
+          raise Error, 'schema-v2 output is unsafe'
+        end
+
+        revalidate_parent.call
+        revalidate&.call
+        file.write(bytes)
+        file.flush
+        file.fsync
+        written_stat = file.stat
+        unless stable_identity(written_stat) == stable_identity(created_stat) && written_stat.nlink == 1 &&
+               written_stat.size == bytes.bytesize
+          raise Error, 'schema-v2 ledger write verification failed'
+        end
+        revalidate_parent.call
+        revalidate&.call
+        parent.fsync
+
+        file.rewind
+        unless file.read == bytes
+          raise Error, 'schema-v2 ledger descriptor readback mismatch'
+        end
+        current = verify_entry_identity!(parent, target, created_stat, flags: File::RDONLY,
+                                         label: 'schema-v2 ledger')
+        unless current.nlink == 1 && current.uid == Process.uid && (current.mode & 0o777) == 0o600 &&
+               current.size == bytes.bytesize
+          raise Error, 'schema-v2 ledger final readback mismatch'
+        end
+        revalidate_parent.call
+        revalidate&.call
+      rescue StandardError
+        rollback_created_output!(parent, target, created_stat) if created && created_stat
+        raise
+      ensure
+        file&.close unless file&.closed?
+      end
     end
-    File.link(temporary, target)
-    File.open(target.parent, File::RDONLY) { |directory| directory.fsync }
-  ensure
-    temporary.delete if temporary&.file? && !temporary.symlink?
+  rescue Errno::EEXIST
+    raise Error, 'schema-v2 ledger already exists'
   end
   private_class_method :publish_create_only!
+
+  def rollback_created_output!(parent, target, created_stat)
+    current = openat_io(parent, target, File::RDONLY | nofollow_flag, 0,
+                        operation: 'inspect failed schema-v2 publication')
+    unless stable_identity(current.stat) == stable_identity(created_stat)
+      raise Error, 'schema-v2 publication residual conflict; manual recovery required'
+    end
+    current.close
+    unlinkat!(parent, target, operation: 'rollback schema-v2 publication')
+    parent.fsync
+    true
+  rescue Errno::ENOENT
+    true
+  ensure
+    current&.close unless current&.closed?
+  end
+  private_class_method :rollback_created_output!
+
+  def unlinkat!(parent, leaf, operation:)
+    result = NativeFs.unlinkat(parent.fileno, leaf, 0)
+    raise SystemCallError.new(operation, Fiddle.last_error) if result.negative?
+
+    true
+  end
+  private_class_method :unlinkat!
 
   def repository_relative(root, path)
     Pathname.new(path).realpath.relative_path_from(Pathname.new(root).realpath).to_s

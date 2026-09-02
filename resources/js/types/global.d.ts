@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import '@inertiajs/core';
 
 declare module 'react' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

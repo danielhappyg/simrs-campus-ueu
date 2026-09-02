@@ -7,6 +7,7 @@ use App\Support\Audit\AuditActorAttribution;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Audit\InvalidAuditEvent;
+use App\Support\Finance\FinanceCanonicalJson;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -69,6 +70,7 @@ class AuditRecorderSafetyTest extends TestCase
 
     public function test_registered_service_event_is_persisted_with_an_exact_service_reference(): void
     {
+        $emptyDigest = FinanceCanonicalJson::digest([]);
         $event = $this->recorder()->record(
             action: 'teaching.reset.started',
             resourceType: 'simulation',
@@ -79,6 +81,16 @@ class AuditRecorderSafetyTest extends TestCase
                 'boundary' => 'synthetic_patient_graph',
                 'evidence_preserved' => true,
                 'queue_counter_high_water_preserved' => true,
+                'reset_correlation_id' => (string) Str::ulid(),
+                'collection_batch_count' => 0,
+                'collection_active_slot_count' => 0,
+                'collection_member_count' => 0,
+                'collection_event_count' => 0,
+                'collection_handoff_count' => 0,
+                'collection_operation_receipt_count' => 0,
+                'collection_active_slot_digest' => $emptyDigest,
+                'collection_operation_receipt_digest' => $emptyDigest,
+                'collection_evidence_digest' => $emptyDigest,
             ],
             includeRequestFingerprint: false,
         );
