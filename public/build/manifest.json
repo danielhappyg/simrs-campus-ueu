@@ -151,8 +151,8 @@
       "_dist-CDITe_zF.js"
     ]
   },
-  "_document-error-summary-BaOOUHZA.js": {
-    "file": "assets/document-error-summary-BaOOUHZA.js",
+  "_document-error-summary-VUD3Csad.js": {
+    "file": "assets/document-error-summary-VUD3Csad.js",
     "name": "document-error-summary",
     "imports": [
       "_rolldown-runtime-Bh1tDfsg.js",
@@ -160,7 +160,7 @@
       "_button-D9y-xDpe.js",
       "_createLucideIcon-IlR-VM5b.js",
       "_circle-check-KCsMBisv.js",
-      "_laboratory-shared-Covgtr2a.js",
+      "_laboratory-shared-CftZtN-Y.js",
       "_circle-x-DkTTl3Y4.js",
       "_file-check-2-BxqJHReT.js",
       "_flask-conical-D-kM28Rf.js",
@@ -184,8 +184,8 @@
       "_triangle-alert-CHepb1zy.js"
     ]
   },
-  "_emergency-triage-panel-C577vvaC.js": {
-    "file": "assets/emergency-triage-panel-C577vvaC.js",
+  "_emergency-triage-panel-Dl9A_R8r.js": {
+    "file": "assets/emergency-triage-panel-Dl9A_R8r.js",
     "name": "emergency-triage-panel",
     "imports": [
       "_rolldown-runtime-Bh1tDfsg.js",
@@ -194,7 +194,7 @@
       "_createLucideIcon-IlR-VM5b.js",
       "_activity-kTZz7EFj.js",
       "_circle-check-KCsMBisv.js",
-      "_document-error-summary-BaOOUHZA.js",
+      "_document-error-summary-VUD3Csad.js",
       "_history-D0i8tqeR.js",
       "_refresh-ccw-wYd03y9p.js",
       "_shield-alert-uBHn2-bl.js",
@@ -371,8 +371,8 @@
       "_dist-CDITe_zF.js"
     ]
   },
-  "_laboratory-shared-Covgtr2a.js": {
-    "file": "assets/laboratory-shared-Covgtr2a.js",
+  "_laboratory-shared-CftZtN-Y.js": {
+    "file": "assets/laboratory-shared-CftZtN-Y.js",
     "name": "laboratory-shared",
     "imports": [
       "_rolldown-runtime-Bh1tDfsg.js",
@@ -641,8 +641,8 @@
       "_createLucideIcon-IlR-VM5b.js"
     ]
   },
-  "_structured-emergency-encounter-show-DuqJRBCS.js": {
-    "file": "assets/structured-emergency-encounter-show-DuqJRBCS.js",
+  "_structured-emergency-encounter-show-B2xdVpGp.js": {
+    "file": "assets/structured-emergency-encounter-show-B2xdVpGp.js",
     "name": "structured-emergency-encounter-show",
     "imports": [
       "_rolldown-runtime-Bh1tDfsg.js",
@@ -650,10 +650,10 @@
       "_button-D9y-xDpe.js",
       "_createLucideIcon-IlR-VM5b.js",
       "_activity-kTZz7EFj.js",
-      "_emergency-triage-panel-C577vvaC.js",
+      "_emergency-triage-panel-Dl9A_R8r.js",
       "_circle-check-KCsMBisv.js",
       "_clipboard-check-1kmYaEeu.js",
-      "_document-error-summary-BaOOUHZA.js",
+      "_document-error-summary-VUD3Csad.js",
       "_file-clock-CLtryy7B.js",
       "_file-text-DWSxV0Hs.js",
       "_history-D0i8tqeR.js",
@@ -863,7 +863,7 @@
     "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CMn5nnNC.css",
+    "file": "assets/app-Szif_dew.css",
     "name": "app",
     "names": [
       "app.css"
@@ -872,7 +872,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-ruDAiFG8.js",
+    "file": "assets/app-DA6B54S5.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -930,6 +930,7 @@
       "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx",
       "resources/js/pages/pemeriksaan/triage/index.tsx",
       "resources/js/pages/pemeriksaan/triage/show.tsx",
+      "resources/js/pages/pendaftaran/general-consent.tsx",
       "resources/js/pages/pendaftaran/rawat-inap.tsx",
       "resources/js/pages/pendaftaran/rawat-jalan.tsx",
       "resources/js/pages/pendaftaran/rekap.tsx",
@@ -1278,7 +1279,7 @@
     ]
   },
   "resources/js/pages/manajemen-data/laboratorium/index.tsx": {
-    "file": "assets/laboratorium-BoT359QK.js",
+    "file": "assets/laboratorium-DfMhIgZF.js",
     "name": "laboratorium",
     "src": "resources/js/pages/manajemen-data/laboratorium/index.tsx",
     "isDynamicEntry": true,
@@ -1287,7 +1288,7 @@
       "_jsx-runtime-BpbW1mBX.js",
       "_button-D9y-xDpe.js",
       "_archive-7TNlU1NJ.js",
-      "_laboratory-shared-Covgtr2a.js",
+      "_laboratory-shared-CftZtN-Y.js",
       "_clipboard-list-L3GAn3Ev.js",
       "_pencil-UJSyyTNR.js",
       "_plus-C5vAj8oE.js",
@@ -1434,17 +1435,17 @@
     ]
   },
   "resources/js/pages/pemeriksaan/igd/show.tsx": {
-    "file": "assets/show-6C8Jeceb.js",
+    "file": "assets/show-DSqNop10.js",
     "name": "show",
     "src": "resources/js/pages/pemeriksaan/igd/show.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-BpbW1mBX.js",
-      "_structured-emergency-encounter-show-DuqJRBCS.js"
+      "_structured-emergency-encounter-show-B2xdVpGp.js"
     ]
   },
   "resources/js/pages/pemeriksaan/laboratorium/index.tsx": {
-    "file": "assets/laboratorium-gs6yTtcC.js",
+    "file": "assets/laboratorium-Drx2_9ac.js",
     "name": "laboratorium",
     "src": "resources/js/pages/pemeriksaan/laboratorium/index.tsx",
     "isDynamicEntry": true,
@@ -1452,7 +1453,7 @@
       "_rolldown-runtime-Bh1tDfsg.js",
       "_jsx-runtime-BpbW1mBX.js",
       "_button-D9y-xDpe.js",
-      "_laboratory-shared-Covgtr2a.js",
+      "_laboratory-shared-CftZtN-Y.js",
       "_external-link-D6GCRm6Y.js",
       "_flask-conical-D-kM28Rf.js",
       "_list-checks-BD01LV3C.js",
@@ -1481,7 +1482,7 @@
     ]
   },
   "resources/js/pages/pemeriksaan/rawat-inap/show.tsx": {
-    "file": "assets/show-Qbgpp37E2.js",
+    "file": "assets/show-CPeP6xsJ2.js",
     "name": "show",
     "src": "resources/js/pages/pemeriksaan/rawat-inap/show.tsx",
     "isDynamicEntry": true,
@@ -1490,12 +1491,12 @@
       "_jsx-runtime-BpbW1mBX.js",
       "_button-D9y-xDpe.js",
       "_createLucideIcon-IlR-VM5b.js",
-      "_emergency-triage-panel-C577vvaC.js",
+      "_emergency-triage-panel-Dl9A_R8r.js",
       "_building-2-B2YBv4nl.js",
       "_calendar-clock-C-2UDQTc.js",
       "_circle-check-KCsMBisv.js",
       "_clipboard-check-1kmYaEeu.js",
-      "_document-error-summary-BaOOUHZA.js",
+      "_document-error-summary-VUD3Csad.js",
       "_external-link-D6GCRm6Y.js",
       "_file-clock-CLtryy7B.js",
       "_file-text-DWSxV0Hs.js",
@@ -1530,7 +1531,7 @@
     ]
   },
   "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx": {
-    "file": "assets/show-aV6cp7Xi.js",
+    "file": "assets/show-BOJos2nm.js",
     "name": "show",
     "src": "resources/js/pages/pemeriksaan/rawat-jalan/show.tsx",
     "isDynamicEntry": true,
@@ -1538,7 +1539,7 @@
       "_rolldown-runtime-Bh1tDfsg.js",
       "_jsx-runtime-BpbW1mBX.js",
       "_button-D9y-xDpe.js",
-      "_document-error-summary-BaOOUHZA.js",
+      "_document-error-summary-VUD3Csad.js",
       "_label-bg3hva81.js",
       "_input-error-DFsNOEzY.js",
       "_post-closure-amendment-panel-DxCsnz3b.js"
@@ -1555,13 +1556,26 @@
     ]
   },
   "resources/js/pages/pemeriksaan/triage/show.tsx": {
-    "file": "assets/show-CCt5BYYT2.js",
+    "file": "assets/show-CfTDOcvU2.js",
     "name": "show",
     "src": "resources/js/pages/pemeriksaan/triage/show.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_jsx-runtime-BpbW1mBX.js",
-      "_structured-emergency-encounter-show-DuqJRBCS.js"
+      "_structured-emergency-encounter-show-B2xdVpGp.js"
+    ]
+  },
+  "resources/js/pages/pendaftaran/general-consent.tsx": {
+    "file": "assets/general-consent-CJBA-YjD.js",
+    "name": "general-consent",
+    "src": "resources/js/pages/pendaftaran/general-consent.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-Bh1tDfsg.js",
+      "_jsx-runtime-BpbW1mBX.js",
+      "_button-D9y-xDpe.js",
+      "_input-BMVCMb5R.js",
+      "_label-bg3hva81.js"
     ]
   },
   "resources/js/pages/pendaftaran/rawat-inap.tsx": {
@@ -1581,7 +1595,7 @@
     ]
   },
   "resources/js/pages/pendaftaran/rawat-jalan.tsx": {
-    "file": "assets/rawat-jalan-XG83zFip.js",
+    "file": "assets/rawat-jalan-BuNaklGU.js",
     "name": "rawat-jalan",
     "src": "resources/js/pages/pendaftaran/rawat-jalan.tsx",
     "isDynamicEntry": true,
