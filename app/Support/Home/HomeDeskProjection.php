@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Support\Authorization\Capability;
 use App\Support\Inpatient\InpatientMasterActorPolicy;
 use App\Support\Inpatient\InpatientOccupancyProjection;
-use InvalidArgumentException;
 use Throwable;
 
 final class HomeDeskProjection
@@ -183,9 +182,10 @@ final class HomeDeskProjection
 
             $matrix = [];
             foreach ($rows as $row) {
-                $setting = (string) $row->care_setting;
-                $status = (string) $row->status;
-                $matrix[$setting][$status] = (int) $row->aggregate;
+                $attributes = $row->getAttributes();
+                $setting = (string) ($attributes['care_setting'] ?? '');
+                $status = (string) ($attributes['status'] ?? '');
+                $matrix[$setting][$status] = (int) ($attributes['aggregate'] ?? 0);
             }
 
             return [
@@ -299,15 +299,15 @@ final class HomeDeskProjection
      */
     private function queueCount(array $count, array $matrix, ?array $occupancy): ?int
     {
-        return match ($count['type']) {
-            'census' => $matrix['available']
+        if ($count['type'] === 'census') {
+            return $matrix['available']
                 ? (int) ($matrix['rows'][$count['care_setting']][$count['status']] ?? 0)
-                : null,
-            'occupied_beds' => $occupancy !== null && $occupancy['available']
-                ? (int) $occupancy['totals']['occupied_beds']
-                : null,
-            default => throw new InvalidArgumentException('Unknown home desk queue count.'),
-        };
+                : null;
+        }
+
+        return $occupancy !== null && $occupancy['available']
+            ? (int) $occupancy['totals']['occupied_beds']
+            : null;
     }
 
     /**
