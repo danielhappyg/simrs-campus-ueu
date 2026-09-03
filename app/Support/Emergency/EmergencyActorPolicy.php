@@ -11,8 +11,11 @@ final class EmergencyActorPolicy
 {
     public function can(User $actor, string $role, string $capability): bool
     {
-        return ! $actor->is_system_administrator
-            && $actor->status === 'ACTIVE'
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return $actor->status === 'ACTIVE'
             && $actor->roleSlugs() === [$role]
             && $actor->canCapability($capability);
     }

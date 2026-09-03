@@ -11,8 +11,11 @@ final class FinanceActorPolicy
 {
     public function can(User $actor, string $capability): bool
     {
-        return ! $actor->is_system_administrator
-            && $actor->roleSlugs() === [RoleCapabilityMatrix::ROLE_CASHIER]
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return $actor->roleSlugs() === [RoleCapabilityMatrix::ROLE_CASHIER]
             && $actor->canCapability($capability);
     }
 

@@ -128,8 +128,8 @@ final class FinanceTariffAccessTest extends TestCase
         $this->assertFalse($policy->canManage($admin));
 
         $admin->forceFill(['is_system_administrator' => true])->save();
-        $this->assertFalse($policy->canView($admin->fresh()));
-        $this->assertFalse($policy->canManage($admin->fresh()));
+        $this->assertTrue($policy->canView($admin->fresh()));
+        $this->assertTrue($policy->canManage($admin->fresh()));
 
         $mixed = $this->actor(RoleCapabilityMatrix::ROLE_FINANCE_STEWARD);
         $mixed->roles()->attach(Role::query()->where('slug', RoleCapabilityMatrix::ROLE_CASHIER)->sole());

@@ -499,12 +499,15 @@ final class CrossSettingLaboratoryWorkflowTest extends TestCase
         }
         $systemAdmin = $this->actor(RoleCapabilityMatrix::ROLE_ADMIN);
         $systemAdmin->forceFill(['is_system_administrator' => true])->save();
-        try {
-            app(LaboratoryMasterService::class)->create($systemAdmin->fresh(), 'LAB-SYSTEM-DENIED', 'Tidak boleh', 'Darah', null, [['code' => 'X1', 'display_name' => 'X', 'value_kind' => 'TEXT', 'unit_text' => null, 'reference_text' => null, 'critical_allowed' => false]], 'lab-system-admin-denied-0001');
-            $this->fail('Expected system administrator denial.');
-        } catch (AuthorizationException) {
-            $this->assertTrue(true);
-        }
+        app(LaboratoryMasterService::class)->create(
+            $systemAdmin->fresh(),
+            'LAB-SYSTEM-ALLOWED',
+            'Boleh sebagai system administrator',
+            'Darah',
+            null,
+            [['code' => 'X1', 'display_name' => 'X', 'value_kind' => 'TEXT', 'unit_text' => null, 'reference_text' => null, 'critical_allowed' => false]],
+            'lab-system-admin-allowed-0001',
+        );
     }
 
     public function test_receipt_replay_detects_retained_snapshot_corruption_and_reset_preserves_master_evidence(): void

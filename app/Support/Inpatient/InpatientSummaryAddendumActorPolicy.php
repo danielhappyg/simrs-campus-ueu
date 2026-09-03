@@ -20,7 +20,11 @@ final class InpatientSummaryAddendumActorPolicy
 
     private function exact(User $actor, string $role, string $capability): void
     {
-        if ($actor->is_system_administrator || $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN) || ! $actor->hasRole($role) || ! $actor->canCapability($capability)) {
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
+        if ($actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN) || ! $actor->hasRole($role) || ! $actor->canCapability($capability)) {
             throw new AuthorizationException;
         }
     }

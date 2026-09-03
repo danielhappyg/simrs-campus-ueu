@@ -356,10 +356,6 @@ class AppServiceProvider extends ServiceProvider
                     return false;
                 }
 
-                if ($user->is_system_administrator && str_starts_with($capability, 'warehouse.')) {
-                    return false;
-                }
-
                 $legacyAllowed = $user->canCapability($capability);
 
                 try {

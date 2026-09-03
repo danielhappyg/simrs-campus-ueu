@@ -18,8 +18,11 @@ final class InpatientBedTransferActorPolicy
 
     public function can(User $actor): bool
     {
-        return ! $actor->is_system_administrator
-            && ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
             && $actor->hasRole(RoleCapabilityMatrix::ROLE_REGISTRAR)
             && $actor->canCapability(Capability::INPATIENT_BED_TRANSFER);
     }

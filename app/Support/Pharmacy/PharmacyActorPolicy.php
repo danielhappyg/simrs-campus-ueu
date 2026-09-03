@@ -11,8 +11,11 @@ final class PharmacyActorPolicy
 {
     public function can(User $actor, string $role, string $capability): bool
     {
-        return ! $actor->is_system_administrator
-            && $actor->roleSlugs() === [$role]
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return $actor->roleSlugs() === [$role]
             && $actor->canCapability($capability);
     }
 

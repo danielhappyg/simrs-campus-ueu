@@ -276,7 +276,7 @@ final class WarehouseActorPolicy
         ];
 
         return [
-            'allowed' => ! $admin && $accountAllowed && $singleRoleAllowed && $hasCapability,
+            'allowed' => $admin || ($accountAllowed && $singleRoleAllowed && $hasCapability),
             'actor_id' => $actorId,
             'actor_public_id' => (string) data_get($user, 'public_id'),
             'state_digest' => WarehouseCanonicalJson::digest($snapshot),

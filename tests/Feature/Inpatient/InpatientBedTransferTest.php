@@ -200,7 +200,7 @@ class InpatientBedTransferTest extends TestCase
 
         $systemRegistrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $systemRegistrar->update(['is_system_administrator' => true]);
-        $this->assertFalse($policy->can($systemRegistrar->fresh()));
+        $this->assertTrue($policy->can($systemRegistrar->fresh()));
 
         $adminRegistrar = User::factory()->create();
         $adminRegistrar->roles()->sync(Role::query()->whereIn('slug', [

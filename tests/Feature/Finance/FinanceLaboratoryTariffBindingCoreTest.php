@@ -175,7 +175,7 @@ final class FinanceLaboratoryTariffBindingCoreTest extends TestCase
         $this->steward->roles()->attach(Role::query()->where('slug', RoleCapabilityMatrix::ROLE_CASHIER)->sole()->id);
         $this->assertFalse($policy->canManage($this->steward->fresh()));
         $admin->forceFill(['is_system_administrator' => true])->save();
-        $this->assertFalse($policy->canView($admin->fresh()));
+        $this->assertTrue($policy->canView($admin->fresh()));
     }
 
     /** @return array{LaboratoryExaminationMasterVersion,FinanceTariffItem} */

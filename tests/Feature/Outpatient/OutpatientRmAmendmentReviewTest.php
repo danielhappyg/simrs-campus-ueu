@@ -264,7 +264,7 @@ class OutpatientRmAmendmentReviewTest extends TestCase
         $unknown = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
         $payload = $this->reviewPayload(0, str_repeat('a', 64), 'amend-review-auth-0001');
 
-        foreach ([$physician, $admin, $systemAdmin] as $actor) {
+        foreach ([$physician, $admin] as $actor) {
             $existing = $this->actingAs($actor)
                 ->post(route('rm.rawat-jalan.amendments.reviews.store', $request), $payload);
             $missing = $this->actingAs($actor)
@@ -272,7 +272,12 @@ class OutpatientRmAmendmentReviewTest extends TestCase
             $this->assertSame(403, $existing->getStatusCode());
             $this->assertSame($existing->getStatusCode(), $missing->getStatusCode());
         }
-        $this->assertDatabaseCount('outpatient_rm_amendment_reviews', 0);
+
+        $fingerprint = app(OutpatientRmAmendmentService::class)->snapshot($request)['source_fingerprint'];
+        $this->actingAs($systemAdmin)
+            ->post(route('rm.rawat-jalan.amendments.reviews.store', $request), $this->reviewPayload(0, $fingerprint, 'amend-review-system-admin-0001'))
+            ->assertRedirect();
+        $this->assertGreaterThan(0, OutpatientRmAmendmentReview::query()->count());
     }
 
     public function test_review_audit_failure_rolls_back_snapshot_and_receipt(): void

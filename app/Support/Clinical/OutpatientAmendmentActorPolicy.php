@@ -17,8 +17,11 @@ final class OutpatientAmendmentActorPolicy
 
     public function canPhysician(User $actor, string $capability): bool
     {
-        return ! $actor->is_system_administrator
-            && ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
             && $actor->hasRole(RoleCapabilityMatrix::ROLE_PHYSICIAN)
             && $actor->canCapability($capability);
     }
@@ -32,8 +35,11 @@ final class OutpatientAmendmentActorPolicy
 
     public function canRmik(User $actor, string $capability): bool
     {
-        return ! $actor->is_system_administrator
-            && ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
             && $actor->hasRole(RoleCapabilityMatrix::ROLE_RMIK)
             && $actor->canCapability($capability);
     }

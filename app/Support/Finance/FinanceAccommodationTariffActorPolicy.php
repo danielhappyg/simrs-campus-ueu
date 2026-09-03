@@ -11,12 +11,20 @@ final class FinanceAccommodationTariffActorPolicy
 {
     public function canView(User $actor): bool
     {
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
         return ($this->isExactRole($actor, RoleCapabilityMatrix::ROLE_FINANCE_STEWARD) || $this->isExactRole($actor, RoleCapabilityMatrix::ROLE_CASHIER))
             && $actor->canCapability(Capability::FINANCE_ACCOMMODATION_TARIFF_VIEW);
     }
 
     public function canManage(User $actor): bool
     {
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
         return $this->isExactRole($actor, RoleCapabilityMatrix::ROLE_FINANCE_STEWARD)
             && $actor->canCapability(Capability::FINANCE_ACCOMMODATION_TARIFF_MANAGE);
     }

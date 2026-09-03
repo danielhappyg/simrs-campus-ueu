@@ -26,8 +26,11 @@ final class InpatientRmActorPolicy
 
     private function authorize(User $actor, string $capability): void
     {
-        if ($actor->is_system_administrator
-            || $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
+        if ($actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
             || ! $actor->hasRole(RoleCapabilityMatrix::ROLE_RMIK)
             || ! $actor->canCapability($capability)) {
             throw new AuthorizationException;

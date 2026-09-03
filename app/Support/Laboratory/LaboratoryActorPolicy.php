@@ -11,7 +11,11 @@ final class LaboratoryActorPolicy
 {
     public function can(User $actor, string $role, string $capability): bool
     {
-        return ! $actor->is_system_administrator && $actor->roleSlugs() === [$role] && $actor->canCapability($capability);
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
+        return $actor->roleSlugs() === [$role] && $actor->canCapability($capability);
     }
 
     public function authorize(User $actor, string $role, string $capability): void

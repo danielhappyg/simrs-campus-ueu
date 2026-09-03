@@ -25,9 +25,12 @@ final class InpatientDocumentationActorPolicy
             default => [null, null],
         };
 
+        if ($actor->is_system_administrator) {
+            return is_string($role) && is_string($capability);
+        }
+
         return is_string($role)
             && is_string($capability)
-            && ! $actor->is_system_administrator
             && ! $actor->hasRole(RoleCapabilityMatrix::ROLE_ADMIN)
             && $actor->hasRole($role)
             && $actor->canCapability($capability);

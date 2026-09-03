@@ -11,8 +11,12 @@ final class FinanceCashierCollectionActorPolicy
 {
     public function view(User $actor): void
     {
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
         $roles = $actor->roleSlugs();
-        if ($actor->is_system_administrator || count($roles) !== 1
+        if (count($roles) !== 1
             || ! in_array($roles[0], [RoleCapabilityMatrix::ROLE_CASHIER, RoleCapabilityMatrix::ROLE_CASHIER_SUPERVISOR], true)
             || ! $actor->canCapability(Capability::FINANCE_CASHIER_COLLECTION_VIEW)) {
             throw new AuthorizationException;
@@ -22,6 +26,9 @@ final class FinanceCashierCollectionActorPolicy
     public function viewHandoff(User $actor): void
     {
         $this->view($actor);
+        if ($actor->is_system_administrator) {
+            return;
+        }
         if (! $actor->canCapability(Capability::FINANCE_CASH_DEPOSIT_HANDOFF_VIEW)) {
             throw new AuthorizationException;
         }
@@ -54,7 +61,11 @@ final class FinanceCashierCollectionActorPolicy
 
     private function exact(User $actor, string $role, string $capability): void
     {
-        if ($actor->is_system_administrator || $actor->roleSlugs() !== [$role] || ! $actor->canCapability($capability)) {
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
+        if ($actor->roleSlugs() !== [$role] || ! $actor->canCapability($capability)) {
             throw new AuthorizationException;
         }
     }

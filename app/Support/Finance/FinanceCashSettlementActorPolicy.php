@@ -26,8 +26,11 @@ final class FinanceCashSettlementActorPolicy
 
     private function authorize(User $actor, string $capability): void
     {
-        if ($actor->is_system_administrator
-            || $actor->roleSlugs() !== [RoleCapabilityMatrix::ROLE_CASHIER]
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
+        if ($actor->roleSlugs() !== [RoleCapabilityMatrix::ROLE_CASHIER]
             || ! $actor->canCapability($capability)) {
             throw new AuthorizationException;
         }

@@ -195,7 +195,7 @@ final class FinanceRadiologyTariffBindingCoreTest extends TestCase
         $this->assertFalse($policy->canManage($this->steward->fresh()));
 
         $admin->forceFill(['is_system_administrator' => true])->save();
-        $this->assertFalse($policy->canView($admin->fresh()));
+        $this->assertTrue($policy->canView($admin->fresh()));
     }
 
     public function test_changed_idempotency_payload_and_retroactive_or_stale_versions_fail_closed(): void

@@ -221,6 +221,21 @@ final class InpatientRmClosureTest extends TestCase
         $this->assertDatabaseHas('audit_events', ['action' => 'rmik.inpatient.coding.draft.save', 'outcome' => 'DENIED', 'reason' => 'assignment_binding_invalid']);
     }
 
+    public function test_system_administrator_can_open_inpatient_rm_index_like_super_user(): void
+    {
+        $systemAdmin = User::factory()->create(['is_system_administrator' => true]);
+
+        $this->actingAs($this->admin)->get(route('rm.rawat-inap.index'))
+            ->assertForbidden();
+
+        $this->actingAs($systemAdmin)->get(route('rm.rawat-inap.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('rm/rawat-inap')
+                ->has('inpatient_rm.encounters')
+                ->where('inpatient_rm.actions.show_url', route('rm.rawat-inap.index')));
+    }
+
     public function test_frontend_contract_saves_after_reload_then_reviews_and_signs_off(): void
     {
         [$encounter] = $this->readyEpisode();

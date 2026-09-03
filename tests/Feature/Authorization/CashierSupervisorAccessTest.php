@@ -66,7 +66,7 @@ final class CashierSupervisorAccessTest extends TestCase
         );
     }
 
-    public function test_admin_system_admin_and_mixed_role_accounts_fail_closed(): void
+    public function test_admin_and_mixed_role_accounts_fail_closed_while_system_admin_is_allowed(): void
     {
         $policy = app(FinanceCashSettlementCorrectionActorPolicy::class);
         $admin = $this->actor(RoleCapabilityMatrix::ROLE_ADMIN);
@@ -75,7 +75,7 @@ final class CashierSupervisorAccessTest extends TestCase
         $mixed = $this->actor(RoleCapabilityMatrix::ROLE_CASHIER_SUPERVISOR);
         $mixed->roles()->attach(Role::query()->where('slug', RoleCapabilityMatrix::ROLE_CASHIER)->sole()->id);
 
-        foreach ([$admin, $systemAdmin->fresh(), $mixed->fresh()] as $actor) {
+        foreach ([$admin, $mixed->fresh()] as $actor) {
             try {
                 $policy->review($actor);
                 $this->fail('Expected exact-role correction denial.');
@@ -83,6 +83,8 @@ final class CashierSupervisorAccessTest extends TestCase
                 $this->assertTrue(true);
             }
         }
+
+        $policy->review($systemAdmin->fresh());
     }
 
     private function actor(string $role): User

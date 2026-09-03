@@ -57,16 +57,18 @@ final class FinanceTariffMasterHttpTest extends TestCase
                 ->where('commands.create_tariff_url', null));
     }
 
-    public function test_admin_system_administrator_and_mixed_role_are_denied(): void
+    public function test_admin_and_mixed_role_are_denied_while_system_administrator_is_allowed(): void
     {
         $admin = $this->actor(RoleCapabilityMatrix::ROLE_ADMIN);
         $systemAdministrator = $this->actor(RoleCapabilityMatrix::ROLE_FINANCE_STEWARD, true);
         $mixed = $this->actor(RoleCapabilityMatrix::ROLE_FINANCE_STEWARD);
         $mixed->roles()->attach(Role::query()->where('slug', RoleCapabilityMatrix::ROLE_CASHIER)->firstOrFail());
 
-        foreach ([$admin, $systemAdministrator, $mixed] as $actor) {
+        foreach ([$admin, $mixed] as $actor) {
             $this->actingAs($actor)->get(route('finance.tariff.index'))->assertForbidden();
         }
+
+        $this->actingAs($systemAdministrator)->get(route('finance.tariff.index'))->assertOk();
     }
 
     public function test_capability_is_checked_before_history_resource_lookup(): void

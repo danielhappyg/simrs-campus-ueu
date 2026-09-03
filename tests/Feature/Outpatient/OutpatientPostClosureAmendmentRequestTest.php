@@ -205,7 +205,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         [$encounter, $document] = $this->closedEncounterWithEvidence($physician);
         $unknown = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
 
-        foreach ([$nurse, $admin, $systemAdmin] as $actor) {
+        foreach ([$nurse, $admin] as $actor) {
             $existing = $this->actingAs($actor)
                 ->post(route('pemeriksaan.rawat-jalan.amendments.store', $encounter), $this->submitPayload($document));
             $unknownResponse = $this->actingAs($actor)
@@ -214,8 +214,14 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
             $this->assertSame($existing->getStatusCode(), $unknownResponse->getStatusCode());
         }
 
-        $this->assertDatabaseCount('outpatient_post_closure_amendment_requests', 0);
-        $this->assertSame(6, AuditEvent::query()
+        $this->actingAs($systemAdmin)
+            ->post(route('pemeriksaan.rawat-jalan.amendments.store', $encounter), $this->submitPayload($document, [
+                'idempotency_key' => 'amend-system-admin-submit-0001',
+            ]))
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('outpatient_post_closure_amendment_requests', 1);
+        $this->assertSame(4, AuditEvent::query()
             ->where('action', 'authorization.denied')
             ->where('resource_id', 'pemeriksaan.rawat-jalan.amendments.store')->count());
     }

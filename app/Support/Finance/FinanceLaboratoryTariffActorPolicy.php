@@ -11,6 +11,10 @@ final class FinanceLaboratoryTariffActorPolicy
 {
     public function canView(User $actor): bool
     {
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
         return ($this->isExactRole($actor, RoleCapabilityMatrix::ROLE_FINANCE_STEWARD)
                 || $this->isExactRole($actor, RoleCapabilityMatrix::ROLE_CASHIER))
             && $actor->canCapability(Capability::FINANCE_LABORATORY_TARIFF_VIEW);
@@ -18,6 +22,10 @@ final class FinanceLaboratoryTariffActorPolicy
 
     public function canManage(User $actor): bool
     {
+        if ($actor->is_system_administrator) {
+            return true;
+        }
+
         return $this->isExactRole($actor, RoleCapabilityMatrix::ROLE_FINANCE_STEWARD)
             && $actor->canCapability(Capability::FINANCE_LABORATORY_TARIFF_MANAGE);
     }

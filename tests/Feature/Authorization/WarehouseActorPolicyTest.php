@@ -84,13 +84,13 @@ final class WarehouseActorPolicyTest extends TestCase
         ));
     }
 
-    public function test_system_administrator_mixed_role_and_wrong_exact_role_are_denied(): void
+    public function test_system_administrator_is_allowed_while_mixed_role_and_wrong_exact_role_are_denied(): void
     {
         $policy = app(WarehouseActorPolicy::class);
         $admin = $this->actor(RoleCapabilityMatrix::ROLE_ADMIN);
         $admin->forceFill(['is_system_administrator' => true])->save();
-        $this->assertFalse($policy->can($admin->fresh(), RoleCapabilityMatrix::ROLE_ADMIN, Capability::WAREHOUSE_SUPPLIER_MANAGE));
-        $this->expectAuthorization(fn () => $policy->manageSupplier($admin->fresh()));
+        $this->assertTrue($policy->can($admin->fresh(), RoleCapabilityMatrix::ROLE_ADMIN, Capability::WAREHOUSE_SUPPLIER_MANAGE));
+        $policy->manageSupplier($admin->fresh());
 
         $mixed = $this->actor(RoleCapabilityMatrix::ROLE_PROCUREMENT_OFFICER);
         $mixed->roles()->attach(Role::query()->where('slug', RoleCapabilityMatrix::ROLE_PROCUREMENT_APPROVER)->sole());
@@ -200,12 +200,12 @@ final class WarehouseActorPolicyTest extends TestCase
         $this->expectAuthorization(fn () => $policy->authorizeSupplierOperation($officer, WarehouseSupplierService::OP_CREATE));
     }
 
-    public function test_generic_warehouse_gates_deny_system_administrators(): void
+    public function test_generic_warehouse_gates_allow_system_administrators(): void
     {
         $administrator = User::factory()->create(['is_system_administrator' => true]);
 
         $this->assertTrue($administrator->canCapability(Capability::WAREHOUSE_SUPPLIER_VIEW));
-        $this->assertFalse(Gate::forUser($administrator)->allows(Capability::WAREHOUSE_SUPPLIER_VIEW));
+        $this->assertTrue(Gate::forUser($administrator)->allows(Capability::WAREHOUSE_SUPPLIER_VIEW));
         $this->assertTrue(Gate::forUser($administrator)->allows(Capability::PATIENT_VIEW));
     }
 

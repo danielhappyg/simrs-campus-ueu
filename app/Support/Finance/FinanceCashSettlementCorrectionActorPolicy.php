@@ -11,9 +11,12 @@ final class FinanceCashSettlementCorrectionActorPolicy
 {
     public function view(User $actor): void
     {
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
         $roles = $actor->roleSlugs();
-        if ($actor->is_system_administrator
-            || count($roles) !== 1
+        if (count($roles) !== 1
             || ! in_array($roles[0], [RoleCapabilityMatrix::ROLE_CASHIER, RoleCapabilityMatrix::ROLE_CASHIER_SUPERVISOR], true)
             || ! $actor->canCapability(Capability::FINANCE_SETTLEMENT_CORRECTION_VIEW)) {
             throw new AuthorizationException;
@@ -38,6 +41,9 @@ final class FinanceCashSettlementCorrectionActorPolicy
     public function viewReceipt(User $actor): void
     {
         $this->view($actor);
+        if ($actor->is_system_administrator) {
+            return;
+        }
         if (! $actor->canCapability(Capability::FINANCE_SETTLEMENT_CORRECTION_RECEIPT_VIEW)) {
             throw new AuthorizationException;
         }
@@ -45,8 +51,11 @@ final class FinanceCashSettlementCorrectionActorPolicy
 
     private function exact(User $actor, string $role, string $capability): void
     {
-        if ($actor->is_system_administrator
-            || $actor->roleSlugs() !== [$role]
+        if ($actor->is_system_administrator) {
+            return;
+        }
+
+        if ($actor->roleSlugs() !== [$role]
             || ! $actor->canCapability($capability)) {
             throw new AuthorizationException;
         }
