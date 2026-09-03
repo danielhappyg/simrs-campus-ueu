@@ -131,6 +131,25 @@ class ReleaseArtifactVerifierTest extends TestCase
         app(ReleaseArtifactVerifier::class)->verify($this->archive, $this->checksum, hash_file('sha256', $this->archive));
     }
 
+    public function test_it_refuses_generated_build_output_classified_as_tracked(): void
+    {
+        $runtimeFiles = $this->runtimeFiles();
+        foreach ($runtimeFiles as &$runtimeFile) {
+            if ($runtimeFile['path'] === 'public/build/manifest.json') {
+                $runtimeFile['source'] = 'tracked';
+            }
+        }
+        unset($runtimeFile);
+
+        $this->writeManifest(runtimeFiles: $runtimeFiles);
+        $this->buildArtifact();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('runtime file set');
+
+        app(ReleaseArtifactVerifier::class)->verify($this->archive, $this->checksum, hash_file('sha256', $this->archive));
+    }
+
     private function putCandidateFile(string $path, string $contents): void
     {
         $absolute = $this->candidate.'/'.$path;
@@ -138,10 +157,14 @@ class ReleaseArtifactVerifierTest extends TestCase
         File::put($absolute, $contents);
     }
 
-    private function writeManifest(?string $composerHash = null, string $mode = 'SIMULATION'): void
-    {
+    private function writeManifest(
+        ?string $composerHash = null,
+        string $mode = 'SIMULATION',
+        ?array $runtimeFiles = null,
+    ): void {
         $migration = 'database/migrations/2026_01_01_000000_create_example.php';
         $commit = str_repeat('a', 40);
+        $runtimeFiles ??= $this->runtimeFiles();
         $manifest = [
             'schemaVersion' => 2,
             'artifactKind' => 'laravel-release-candidate',
@@ -156,8 +179,8 @@ class ReleaseArtifactVerifierTest extends TestCase
                 'composerLockSha256' => $composerHash ?? hash_file('sha256', $this->candidate.'/composer.lock'),
                 'npmLockSha256' => str_repeat('c', 64),
                 'assetManifestSha256' => hash_file('sha256', $this->candidate.'/public/build/manifest.json'),
-                'runtimeFilesSha256' => ReleaseCandidateAssembler::runtimeFilesDigest($this->runtimeFiles()),
-                'runtimeFiles' => $this->runtimeFiles(),
+                'runtimeFilesSha256' => ReleaseCandidateAssembler::runtimeFilesDigest($runtimeFiles),
+                'runtimeFiles' => $runtimeFiles,
             ],
             'migrations' => [[
                 'path' => $migration,

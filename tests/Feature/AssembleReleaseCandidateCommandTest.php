@@ -31,7 +31,7 @@ class AssembleReleaseCandidateCommandTest extends TestCase
 
         foreach ([
             ['git', 'init', '--quiet'],
-            ['git', 'add', 'app/Example.php', 'artisan'],
+            ['git', 'add', 'app/Example.php', 'artisan', 'public/build/manifest.json'],
             ['git', '-c', 'user.name=SIMRS Test', '-c', 'user.email=simrs@example.invalid', 'commit', '--quiet', '-m', 'fixture'],
         ] as $command) {
             $result = Process::path($this->source)->run($command);
@@ -130,6 +130,33 @@ class AssembleReleaseCandidateCommandTest extends TestCase
         $this->assertSame(1, $exitCode);
         $this->assertStringContainsString('Tracked source must be clean', Artisan::output());
         $this->assertDirectoryDoesNotExist($this->source.'/storage/release-candidate');
+    }
+
+    public function test_command_accepts_manifest_bound_linux_build_output(): void
+    {
+        $this->putSourceFile('public/build/manifest.json', '{"linux":true}');
+        $this->putSourceFile('release-manifest.json', json_encode([
+            'schemaVersion' => 2,
+            'releaseId' => json_decode(
+                File::get($this->source.'/release-manifest.json'),
+                true,
+                flags: JSON_THROW_ON_ERROR,
+            )['releaseId'],
+            'source' => ['commit' => trim(Process::path($this->source)->run(['git', 'rev-parse', 'HEAD'])->output())],
+            'integrity' => $this->manifestIntegrity(),
+            'deployment' => ['status' => 'NOT_DEPLOYED'],
+        ], JSON_THROW_ON_ERROR));
+
+        $exitCode = Artisan::call('ops:assemble-release', [
+            'manifest' => 'release-manifest.json',
+            'output' => 'storage/release-candidate',
+        ]);
+
+        $this->assertSame(0, $exitCode, Artisan::output());
+        $this->assertSame(
+            '{"linux":true}',
+            File::get($this->source.'/storage/release-candidate/public/build/manifest.json'),
+        );
     }
 
     private function putSourceFile(string $path, string $contents): void

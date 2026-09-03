@@ -54,6 +54,10 @@ class ReleaseManifestCommandTest extends TestCase
         $this->assertSame(hash_file('sha256', $publicPath.'/build/manifest.json'), $manifest['integrity']['assetManifestSha256']);
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $manifest['integrity']['runtimeFilesSha256']);
         $this->assertNotEmpty($manifest['integrity']['runtimeFiles']);
+        $this->assertNotContains('tracked', array_column(array_filter(
+            $manifest['integrity']['runtimeFiles'],
+            fn (array $file): bool => str_starts_with($file['path'], 'public/build/'),
+        ), 'source'));
         $this->assertCount(count(File::glob(database_path('migrations/*.php'))), $manifest['migrations']);
         $this->assertSame('SIMULATION', $manifest['safety']['mode']);
         $this->assertTrue($manifest['safety']['syntheticOnly']);
@@ -147,10 +151,18 @@ class ReleaseManifestCommandTest extends TestCase
             $outputs[json_encode($command, JSON_THROW_ON_ERROR)] = $result->output();
         }
 
-        $outputs[json_encode($commands[3], JSON_THROW_ON_ERROR)] = "artisan\0composer.json\0composer.lock\0";
+        $outputs[json_encode($commands[3], JSON_THROW_ON_ERROR)] = "artisan\0composer.json\0composer.lock\0public/build/manifest.json\0";
 
         Process::fake(function (PendingProcess $process) use ($outputs) {
-            if ($process->command === ['git', 'status', '--porcelain=v1', '--untracked-files=no']) {
+            if ($process->command === [
+                'git',
+                'status',
+                '--porcelain=v1',
+                '--untracked-files=no',
+                '--',
+                '.',
+                ':(exclude)public/build',
+            ]) {
                 return Process::result('');
             }
 

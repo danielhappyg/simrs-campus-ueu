@@ -34,6 +34,9 @@ class GenerateReleaseManifestCommand extends Command
         'storage',
     ];
 
+    /** @var list<string> */
+    private const GENERATED_DIRECTORIES = ['vendor', 'public/build'];
+
     protected $signature = 'ops:release-manifest
         {output : Repository-relative destination for the JSON manifest}
         {--commit= : Expected full Git commit SHA}';
@@ -171,7 +174,14 @@ class GenerateReleaseManifestCommand extends Command
 
     private function assertCleanTrackedSource(): void
     {
-        if (trim($this->gitRaw(['status', '--porcelain=v1', '--untracked-files=no'])) !== '') {
+        if (trim($this->gitRaw([
+            'status',
+            '--porcelain=v1',
+            '--untracked-files=no',
+            '--',
+            '.',
+            ':(exclude)public/build',
+        ])) !== '') {
             throw new RuntimeException('Tracked source must be clean before generating a release manifest.');
         }
     }
@@ -182,14 +192,14 @@ class GenerateReleaseManifestCommand extends Command
         $runtimeFiles = [];
         $trackedPaths = array_values(array_filter(
             explode("\0", $this->gitRaw(['ls-files', '-z', '--', ...self::GIT_PATHS])),
-            fn (string $path): bool => trim($path) !== '',
+            fn (string $path): bool => trim($path) !== '' && ! $this->isGeneratedRuntimePath($path),
         ));
 
         foreach ($trackedPaths as $path) {
             $runtimeFiles[$path] = $this->runtimeFile($path, 'tracked');
         }
 
-        foreach (['vendor', 'public/build'] as $directory) {
+        foreach (self::GENERATED_DIRECTORIES as $directory) {
             if (! is_dir(base_path($directory))) {
                 throw new RuntimeException($directory.' is required for a release candidate.');
             }
@@ -206,6 +216,17 @@ class GenerateReleaseManifestCommand extends Command
         ksort($runtimeFiles, SORT_STRING);
 
         return array_values($runtimeFiles);
+    }
+
+    private function isGeneratedRuntimePath(string $path): bool
+    {
+        foreach (self::GENERATED_DIRECTORIES as $directory) {
+            if ($path === $directory || str_starts_with($path, $directory.'/')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @return Generator<int, string> */

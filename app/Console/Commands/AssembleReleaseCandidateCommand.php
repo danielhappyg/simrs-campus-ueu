@@ -107,6 +107,7 @@ class AssembleReleaseCandidateCommand extends Command
                 || ! is_int($runtimeFile['mode'] ?? null)
                 || ! in_array($runtimeFile['source'] ?? null, ['tracked', 'generated'], true)
                 || ! ReleaseCandidateAssembler::isAllowedRuntimePath($runtimeFile['path'])
+                || ! ReleaseCandidateAssembler::isExpectedRuntimeSource($runtimeFile['path'], $runtimeFile['source'])
                 || preg_match('/\A[a-f0-9]{64}\z/', $runtimeFile['sha256']) !== 1
                 || $runtimeFile['mode'] < 0
                 || $runtimeFile['mode'] > 0777
@@ -144,7 +145,14 @@ class AssembleReleaseCandidateCommand extends Command
 
     private function assertCleanTrackedSource(): void
     {
-        if (trim($this->git(['status', '--porcelain=v1', '--untracked-files=no'])) !== '') {
+        if (trim($this->git([
+            'status',
+            '--porcelain=v1',
+            '--untracked-files=no',
+            '--',
+            '.',
+            ':(exclude)public/build',
+        ])) !== '') {
             throw new RuntimeException('Tracked source must be clean before assembling a release candidate.');
         }
     }

@@ -145,6 +145,38 @@ class ReleaseCandidateAssemblerTest extends TestCase
         );
     }
 
+    public function test_it_refuses_generated_build_output_classified_as_tracked(): void
+    {
+        $runtimeFiles = $this->runtimeFiles([]);
+        $runtimeFiles[1]['source'] = 'tracked';
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('source classification');
+
+        app(ReleaseCandidateAssembler::class)->assemble(
+            sourceRoot: $this->source,
+            outputRoot: $this->output,
+            runtimeFiles: $runtimeFiles,
+            manifestPath: $this->source.'/release-manifest.json',
+        );
+    }
+
+    public function test_it_refuses_source_code_classified_as_generated(): void
+    {
+        $runtimeFiles = $this->runtimeFiles(['app/Example.php']);
+        $runtimeFiles[0]['source'] = 'generated';
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('source classification');
+
+        app(ReleaseCandidateAssembler::class)->assemble(
+            sourceRoot: $this->source,
+            outputRoot: $this->output,
+            runtimeFiles: $runtimeFiles,
+            manifestPath: $this->source.'/release-manifest.json',
+        );
+    }
+
     public function test_it_refuses_to_merge_into_a_non_empty_output_directory(): void
     {
         File::ensureDirectoryExists($this->output);

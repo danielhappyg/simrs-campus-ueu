@@ -55,6 +55,10 @@ class ReleaseCandidateAssembler
                 throw new RuntimeException('A runtime file is outside the release allowlist.');
             }
 
+            if (! self::isExpectedRuntimeSource($relativePath, $runtimeFile['source'])) {
+                throw new RuntimeException('A runtime file has an invalid source classification.');
+            }
+
             $this->assertSourceMatchesManifest($sourceRoot.'/'.$relativePath, $runtimeFile);
 
             $this->copyFile(
@@ -116,6 +120,17 @@ class ReleaseCandidateAssembler
         }
 
         return false;
+    }
+
+    public static function isExpectedRuntimeSource(string $path, string $source): bool
+    {
+        $normalized = str_replace('\\', '/', $path);
+        $generated = $normalized === 'vendor'
+            || $normalized === 'public/build'
+            || str_starts_with($normalized, 'vendor/')
+            || str_starts_with($normalized, 'public/build/');
+
+        return $generated ? $source === 'generated' : $source === 'tracked';
     }
 
     /**

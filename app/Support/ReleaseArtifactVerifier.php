@@ -295,6 +295,7 @@ class ReleaseArtifactVerifier
                 || ! is_int($mode)
                 || ! in_array($source, ['tracked', 'generated'], true)
                 || ! ReleaseCandidateAssembler::isAllowedRuntimePath($path)
+                || ! ReleaseCandidateAssembler::isExpectedRuntimeSource($path, $source)
                 || $mode < 0
                 || $mode > 0777
                 || isset($runtimePaths[$path])
