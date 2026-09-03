@@ -18,6 +18,7 @@ use App\Support\Inpatient\InpatientBedTransferService;
 use App\Support\Inpatient\InpatientLocationMutationScope;
 use App\Support\Inpatient\InpatientMasterService;
 use App\Support\Registration\DailyQueueAllocator;
+use App\Support\Registration\MedicalRecordNumberAllocator;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -104,9 +105,13 @@ class TeachingCensusSeeder extends Seeder
             $wards,
             $today,
         ): void {
+            $this->remintLegacyCensusMedicalRecordNumbers();
+
+            $highWatermark = 0;
             foreach ($blueprints as $index => $blueprint) {
                 $address = $addresses[$index % count($addresses)];
                 $mrn = $blueprint['mrn'];
+                $highWatermark = max($highWatermark, (int) $mrn);
 
                 $patient = Patient::query()->syntheticOnly()->updateOrCreate(
                     ['medical_record_number' => $mrn],
@@ -180,10 +185,44 @@ class TeachingCensusSeeder extends Seeder
                     );
                 }
             }
+
+            if ($highWatermark > 0) {
+                app(MedicalRecordNumberAllocator::class)->ensureHighWatermark($highWatermark);
+            }
         });
 
         if ($this->command !== null) {
-            $this->command->info('Teaching census patients: '.Patient::query()->syntheticOnly()->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
+            $digitCount = Patient::query()
+                ->syntheticOnly()
+                ->pluck('medical_record_number')
+                ->filter(fn (string $mrn): bool => preg_match('/^[0-9]{6}$/', $mrn) === 1)
+                ->count();
+            $this->command->info('Teaching census patients: '.$digitCount);
+        }
+    }
+
+    private function remintLegacyCensusMedicalRecordNumbers(): void
+    {
+        $legacy = Patient::query()
+            ->syntheticOnly()
+            ->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')
+            ->orderBy('medical_record_number')
+            ->get();
+
+        foreach ($legacy as $patient) {
+            if (preg_match('/^SYNTH-CENSUS-(\d+)$/', $patient->medical_record_number, $matches) !== 1) {
+                continue;
+            }
+
+            $next = sprintf('%06d', (int) $matches[1]);
+            if (Patient::query()->where('medical_record_number', $next)->where('id', '!=', $patient->id)->exists()) {
+                throw new RuntimeException(
+                    'Teaching census refused: cannot remint '.$patient->medical_record_number.' onto occupied '.$next.'.',
+                );
+            }
+
+            $patient->medical_record_number = $next;
+            $patient->save();
         }
     }
 
@@ -240,7 +279,7 @@ class TeachingCensusSeeder extends Seeder
             };
 
             $out[] = [
-                'mrn' => sprintf('SYNTH-CENSUS-%03d', $i + 1),
+                'mrn' => sprintf('%06d', $i + 1),
                 'nik' => sprintf('32010101%08d', 10000000 + $i),
                 'full_name' => $name,
                 'place_of_birth' => ['Jakarta', 'Bekasi', 'Yogyakarta', 'Denpasar', 'Depok'][$i % 5],

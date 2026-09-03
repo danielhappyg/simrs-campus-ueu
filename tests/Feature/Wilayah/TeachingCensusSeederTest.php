@@ -40,8 +40,17 @@ class TeachingCensusSeederTest extends TestCase
         $this->seed(WilayahMinimalSeeder::class);
         $this->seed(TeachingCensusSeeder::class);
 
-        $this->assertGreaterThanOrEqual(30, Patient::query()->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
-        $this->assertTrue(Patient::query()->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->whereNotNull('province_code')->exists());
+        $digitMrns = Patient::query()
+            ->pluck('medical_record_number')
+            ->filter(fn (string $mrn): bool => preg_match('/^[0-9]{6}$/', $mrn) === 1);
+        $this->assertGreaterThanOrEqual(30, $digitMrns->count());
+        $this->assertSame(0, Patient::query()->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
+        $this->assertTrue(
+            Patient::query()
+                ->whereIn('medical_record_number', $digitMrns->all())
+                ->whereNotNull('province_code')
+                ->exists(),
+        );
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_OUTPATIENT)->exists());
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_EMERGENCY)->exists());
         $this->assertTrue(Encounter::query()->where('care_setting', Encounter::CARE_SETTING_INPATIENT)->exists());
@@ -124,7 +133,7 @@ class TeachingCensusSeederTest extends TestCase
 
         $user = User::factory()->create();
         $patient = Patient::factory()->create([
-            'medical_record_number' => 'SYNTH-CENSUS-001',
+            'medical_record_number' => '000001',
             'full_name' => 'Record yang harus dipertahankan',
             'is_synthetic' => false,
             'created_by_user_id' => $user->id,
