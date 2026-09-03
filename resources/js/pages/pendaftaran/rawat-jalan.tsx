@@ -2200,6 +2200,7 @@ export default function PendaftaranRawatJalan({
                                                         ...prev,
                                                         [key]: checked,
                                                     }));
+
                                                     if (
                                                         key === 'consent' &&
                                                         checked &&
