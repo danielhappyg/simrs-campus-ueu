@@ -31,7 +31,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       RUBYOPT: -r${{ github.workspace }}/scripts/strict-json
     services:
@@ -163,6 +163,16 @@ jobs:
 
       - name: Test current G0-G3 coverage ledger contract
         run: ruby -Itests tests/Documentation/G0G3CoverageLedgerTest.rb
+
+      - name: Check current cashier-collection coverage bindings
+        run: |
+          chmod 600 \
+            storage/app/portability-rehearsals/20260902T190119Z-postgresql17-cashier-collection-25a08bba6ea3.json \
+            storage/app/portability-rehearsals/20260902T190331Z-mysql8411-cashier-collection-22dbbe7ff187.json \
+            docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_V2_2026-09-03_R12.json
+          ruby scripts/generate-g0-g3-coverage-cashier-collection-binding-refresh-successors.rb --kind map --check
+          ruby scripts/generate-g0-g3-coverage-cashier-collection-binding-refresh-successors.rb --kind ledger --check
+          ruby -Itests tests/Documentation/G0G3CoverageCashierCollectionBindingRefreshSuccessorsTest.rb
 
       - name: Observe candidate-only dual governance integrity without activation
         shell: bash

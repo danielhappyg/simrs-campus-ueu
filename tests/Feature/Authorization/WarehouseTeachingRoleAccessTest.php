@@ -55,6 +55,7 @@ final class WarehouseTeachingRoleAccessTest extends TestCase
         parent::setUp();
 
         config([
+            'simulation.warehouse_capability_enabled' => true,
             'simulation.demo_seed_enabled' => true,
             'simulation.mode' => 'SIMULATION',
             'simulation.synthetic_only' => true,

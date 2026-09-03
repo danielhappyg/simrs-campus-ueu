@@ -51,6 +51,7 @@ final class WarehouseSupplierServiceTest extends TestCase
 
         $this->seed(RbacSeeder::class);
         config([
+            'simulation.warehouse_capability_enabled' => true,
             'simulation.teaching_role_access_commitment_key' => 'warehouse-service-test-commitment-key-2026',
             'simulation.teaching_role_access_environment' => 'test-simulation',
             'simulation.teaching_role_access_release_sha' => str_repeat('a', 40),

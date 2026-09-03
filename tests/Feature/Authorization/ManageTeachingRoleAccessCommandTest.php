@@ -35,6 +35,7 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
         parent::setUp();
 
         config([
+            'simulation.warehouse_capability_enabled' => true,
             'simulation.mode' => 'SIMULATION',
             'simulation.synthetic_only' => true,
             'simulation.teaching_role_access_password' => self::DEMO_PASSWORD,

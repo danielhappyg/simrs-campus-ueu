@@ -188,10 +188,22 @@ class DemoActorsSeeder extends Seeder
             ],
         ];
 
-        DB::transaction(function () use ($actors, $password): void {
+        $effectiveRoster = TeachingRoleAccessManager::effectiveRoster();
+        $actors = array_values(array_filter(
+            $actors,
+            static function (array $actor) use ($effectiveRoster): bool {
+                $email = $actor['email'];
+
+                return ! is_string($email)
+                    || ! array_key_exists($email, TeachingRoleAccessManager::ROSTER)
+                    || array_key_exists($email, $effectiveRoster);
+            },
+        ));
+
+        DB::transaction(function () use ($actors, $password, $effectiveRoster): void {
             foreach ($actors as $actor) {
                 $role = count($actor['roles']) === 1 ? $actor['roles'][0] : null;
-                $rosterKey = array_key_exists($actor['email'], TeachingRoleAccessManager::ROSTER)
+                $rosterKey = array_key_exists($actor['email'], $effectiveRoster)
                     ? $role
                     : null;
                 $status = $actor['status'] ?? 'ACTIVE';

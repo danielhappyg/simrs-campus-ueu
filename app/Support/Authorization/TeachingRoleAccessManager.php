@@ -87,6 +87,34 @@ final class TeachingRoleAccessManager
         'warehouse.inventory.supervisor.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_INVENTORY_SUPERVISOR,
     ];
 
+    /** @var array<string, string> */
+    public const NON_WAREHOUSE_ROSTER = [
+        'registrar.demo@example.invalid' => RoleCapabilityMatrix::ROLE_REGISTRAR,
+        'nurse.demo@example.invalid' => RoleCapabilityMatrix::ROLE_NURSE,
+        'physician.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHYSICIAN,
+        'rmik.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RMIK,
+        'admin.demo@example.invalid' => RoleCapabilityMatrix::ROLE_ADMIN,
+        'radiology.technologist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RADIOLOGY_TECHNOLOGIST,
+        'radiologist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_RADIOLOGIST,
+        'laboratory.technologist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_LABORATORY_TECHNOLOGIST,
+        'laboratory.verifier.demo@example.invalid' => RoleCapabilityMatrix::ROLE_LABORATORY_VERIFIER,
+        'pharmacist.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHARMACIST,
+        'pharmacy.technician.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHARMACY_TECHNICIAN,
+        'pharmacy.inventory.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PHARMACY_INVENTORY_CONTROLLER,
+        'cashier.demo@example.invalid' => RoleCapabilityMatrix::ROLE_CASHIER,
+        'cashier.supervisor.demo@example.invalid' => RoleCapabilityMatrix::ROLE_CASHIER_SUPERVISOR,
+        'finance.steward.demo@example.invalid' => RoleCapabilityMatrix::ROLE_FINANCE_STEWARD,
+    ];
+
+    /** @var array<string, string> */
+    public const WAREHOUSE_ROSTER = [
+        'procurement.officer.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PROCUREMENT_OFFICER,
+        'procurement.approver.demo@example.invalid' => RoleCapabilityMatrix::ROLE_PROCUREMENT_APPROVER,
+        'warehouse.receiver.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_RECEIVER,
+        'warehouse.inventory.controller.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_INVENTORY_CONTROLLER,
+        'warehouse.inventory.supervisor.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_INVENTORY_SUPERVISOR,
+    ];
+
     /** @var list<string> */
     private const PLACEHOLDERS = [
         '-', 'n/a', 'na', 'none', 'null', 'operator', 'placeholder', 'reason',
@@ -97,6 +125,16 @@ final class TeachingRoleAccessManager
         private readonly AuditRecorder $auditRecorder,
         private readonly TeachingRoleAccessLeaseGuard $leaseGuard,
     ) {}
+
+    /** @return array<string, string> */
+    public static function effectiveRoster(): array
+    {
+        if (config('simulation.warehouse_capability_enabled') === true) {
+            return self::ROSTER;
+        }
+
+        return self::NON_WAREHOUSE_ROSTER;
+    }
 
     /** @return LifecycleResult */
     public function execute(
@@ -114,7 +152,7 @@ final class TeachingRoleAccessManager
         $action = strtolower(trim($action));
         $this->assertAction($action);
         $email = strtolower(trim($email));
-        $expectedRole = self::ROSTER[$email] ?? null;
+        $expectedRole = ($action === self::ACTION_REVOKE ? self::ROSTER : self::effectiveRoster())[$email] ?? null;
 
         if ($expectedRole === null) {
             throw new InvalidArgumentException('Teaching-role access refused: target is not in the exact demo-account roster.');
@@ -263,7 +301,7 @@ final class TeachingRoleAccessManager
             foreach ($mutations as $mutation) {
                 $candidate = User::query()->find($mutation['target_id']);
                 if (! $candidate instanceof User
-                    || ! $this->isPublicRevokedState($this->accountState($candidate, false, false))
+                    || ! $this->isPublicRevokedState($this->accountState($candidate, false, false, true))
                     || TeachingRoleAccessLease::query()
                         ->where('user_id', $candidate->getKey())
                         ->where('status', 'ACTIVE')
@@ -318,7 +356,7 @@ final class TeachingRoleAccessManager
                     );
                 }
 
-                $current = $this->accountState($target, true, false);
+                $current = $this->accountState($target, true, false, true);
                 if (! $current['invariant_ok']
                     || ! $this->isPublicRevokedState($current)
                     || (int) $target->teaching_access_epoch !== $mutation['contained_epoch']
@@ -521,7 +559,7 @@ final class TeachingRoleAccessManager
         string $reason,
         array $bindings,
     ): array {
-        $before = $this->accountState($target, true, false);
+        $before = $this->accountState($target, true, false, true);
         $lease = $this->activeLease($target);
         $activeLeases = TeachingRoleAccessLease::query()
             ->where('user_id', $target->getKey())
@@ -608,7 +646,7 @@ final class TeachingRoleAccessManager
         }
 
         $target->refresh();
-        $after = $this->accountState($target, false, false);
+        $after = $this->accountState($target, false, false, true);
         if (! $this->isPublicRevokedState($after)
             || $target->teaching_access_lease_public_id !== null
             || $target->teaching_access_expires_at_epoch !== null) {
@@ -661,7 +699,7 @@ final class TeachingRoleAccessManager
 
                 $results = [];
                 foreach ($targets as $target) {
-                    $before = $this->accountState($target, true, false);
+                    $before = $this->accountState($target, true, false, true);
                     $leases = TeachingRoleAccessLease::query()
                         ->where('user_id', $target->getKey())
                         ->orderBy('id')
@@ -719,7 +757,7 @@ final class TeachingRoleAccessManager
                     }
 
                     $target->refresh();
-                    $after = $this->accountState($target, false, false);
+                    $after = $this->accountState($target, false, false, true);
                     if (! $this->isPublicRevokedState($after)
                         || TeachingRoleAccessLease::query()
                             ->where('user_id', $target->getKey())
@@ -775,7 +813,7 @@ final class TeachingRoleAccessManager
                         );
                     }
 
-                    $current = $this->accountState($target, true, false);
+                    $current = $this->accountState($target, true, false, true);
                     if (! $current['invariant_ok']
                         || ! $this->isPublicRevokedState($current)
                         || (int) $target->teaching_access_epoch !== $mutation['contained_epoch']
@@ -1026,8 +1064,10 @@ final class TeachingRoleAccessManager
     /** @return Collection<string, User> */
     private function lockedRoster(): Collection
     {
+        $effectiveRoster = self::effectiveRoster();
+
         /** @var Collection<string, User> $roster */
-        $roster = User::query()->whereIn('email', array_keys(self::ROSTER))
+        $roster = User::query()->whereIn('email', array_keys($effectiveRoster))
             ->orderBy('email')->lockForUpdate()->get()
             ->keyBy(fn (User $user): string => (string) $user->email);
 
@@ -1068,10 +1108,11 @@ final class TeachingRoleAccessManager
     /** @param Collection<string, User> $roster */
     private function assertCompleteRosterInvariant(Collection $roster): void
     {
-        if ($roster->count() !== count(self::ROSTER)) {
+        $effectiveRoster = self::effectiveRoster();
+        if ($roster->count() !== count($effectiveRoster)) {
             throw new TeachingRoleAccessException('Teaching-role activation refused: the exact demo-account roster is incomplete.');
         }
-        foreach (self::ROSTER as $email => $role) {
+        foreach ($effectiveRoster as $email => $role) {
             $user = $roster->get($email);
             if (! $user instanceof User) {
                 throw new TeachingRoleAccessException('Teaching-role activation refused: the exact demo-account roster is incomplete.');
@@ -1129,8 +1170,12 @@ final class TeachingRoleAccessManager
     }
 
     /** @return AccountState */
-    private function accountState(User $user, bool $lockArtifacts, bool $evaluateLease = true): array
-    {
+    private function accountState(
+        User $user,
+        bool $lockArtifacts,
+        bool $evaluateLease = true,
+        bool $useCanonicalRoster = false,
+    ): array {
         $sessions = DB::table(SchemaQualifier::table('sessions'))->where('user_id', $user->getKey());
         $passkeys = DB::table(SchemaQualifier::table('passkeys'))->where('user_id', $user->getKey());
         $resets = DB::table(SchemaQualifier::table('password_reset_tokens'))->where('email', $user->email);
@@ -1146,13 +1191,14 @@ final class TeachingRoleAccessManager
 
         $roles = $this->roleSlugs($user);
         $leaseValid = $evaluateLease && $this->leaseGuard->allows($user);
-        $canonicalRole = self::ROSTER[strtolower((string) $user->email)] ?? null;
+        $effectiveRoster = $useCanonicalRoster ? self::ROSTER : self::effectiveRoster();
+        $canonicalRole = $effectiveRoster[strtolower((string) $user->email)] ?? null;
         $markerRole = is_string($user->teaching_access_roster_key)
-            && in_array($user->teaching_access_roster_key, array_values(self::ROSTER), true)
+            && in_array($user->teaching_access_roster_key, array_values($effectiveRoster), true)
                 ? $user->teaching_access_roster_key
                 : null;
         $expectedRole = $canonicalRole ?? $markerRole;
-        $expectedEmail = $expectedRole === null ? null : array_search($expectedRole, self::ROSTER, true);
+        $expectedEmail = $expectedRole === null ? null : array_search($expectedRole, $effectiveRoster, true);
         $activeLeaseCount = TeachingRoleAccessLease::query()
             ->where('user_id', $user->getKey())
             ->where('status', 'ACTIVE')
@@ -1302,13 +1348,20 @@ final class TeachingRoleAccessManager
         bool $idempotent,
         bool $auditRecorded,
     ): array {
+        $effectiveRoster = self::effectiveRoster();
+        $reportedRoster = $effectiveRoster;
+        if ($action === self::ACTION_REVOKE
+            && isset(self::ROSTER[$targetEmail])
+            && ! isset($effectiveRoster[$targetEmail])) {
+            $reportedRoster[$targetEmail] = self::ROSTER[$targetEmail];
+        }
         $users = User::query()
-            ->whereIn('email', array_keys(self::ROSTER))
-            ->orWhereIn('teaching_access_roster_key', array_values(self::ROSTER))
+            ->whereIn('email', array_keys($reportedRoster))
+            ->orWhereIn('teaching_access_roster_key', array_values($reportedRoster))
             ->get();
         $matches = [];
         $candidateUseCounts = [];
-        foreach (self::ROSTER as $email => $expectedRole) {
+        foreach ($reportedRoster as $email => $expectedRole) {
             $matches[$email] = $users->filter(
                 fn (User $candidate): bool => strtolower((string) $candidate->email) === $email
                     || $candidate->teaching_access_roster_key === $expectedRole,
@@ -1320,7 +1373,7 @@ final class TeachingRoleAccessManager
         }
 
         $roster = [];
-        foreach (self::ROSTER as $email => $expectedRole) {
+        foreach ($reportedRoster as $email => $expectedRole) {
             if (! array_key_exists($email, $matches)) {
                 throw new LogicException('Teaching-role roster grouping is incomplete.');
             }
@@ -1343,7 +1396,11 @@ final class TeachingRoleAccessManager
 
                 continue;
             }
-            $state = $this->accountState($user, false);
+            $state = $this->accountState(
+                $user,
+                false,
+                useCanonicalRoster: ! isset($effectiveRoster[$email]),
+            );
             $roster[] = $state;
         }
 

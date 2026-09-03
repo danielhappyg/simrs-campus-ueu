@@ -2,6 +2,8 @@
 
 use App\Support\Authorization\RoleCapabilityMatrix;
 use App\Support\Database\SchemaQualifier;
+use App\Support\Warehouse\WarehouseMutationScope;
+use App\Support\Warehouse\WarehouseSchemaMutationScope;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -35,8 +37,45 @@ return new class extends Migration
         'warehouse.inventory.supervisor.demo@example.invalid' => RoleCapabilityMatrix::ROLE_WAREHOUSE_INVENTORY_SUPERVISOR,
     ];
 
+    public function shouldRun(): bool
+    {
+        $defaultConnection = config('database.default');
+        if (! is_string($defaultConnection) || $defaultConnection === '') {
+            throw new RuntimeException('Warehouse roster migration requires an explicit default database connection.');
+        }
+
+        $driver = config("database.connections.{$defaultConnection}.driver");
+        if ($driver === 'sqlite') {
+            return true;
+        }
+
+        if (config('database.warehouse_schema_migration_enabled') !== true) {
+            return false;
+        }
+
+        if ($defaultConnection !== WarehouseMutationScope::DEFAULT_MIGRATOR_CONNECTION) {
+            throw new RuntimeException(
+                'WAREHOUSE_SCHEMA_MIGRATION_ENABLED requires the warehouse_migrator default connection.',
+            );
+        }
+
+        if (! in_array($driver, ['pgsql', 'mysql'], true)) {
+            throw new RuntimeException(
+                'The governed warehouse roster cutover supports only PostgreSQL or MySQL.',
+            );
+        }
+
+        return true;
+    }
+
     public function up(): void
     {
+        WarehouseSchemaMutationScope::run(fn () => $this->migrateUp());
+    }
+
+    private function migrateUp(): void
+    {
+        $this->assertSafeSimulationMode();
         $this->dropPostgresMappingConstraint();
 
         foreach (self::ADDED_ROSTER as $email => $rosterKey) {
@@ -50,6 +89,12 @@ return new class extends Migration
 
     public function down(): void
     {
+        WarehouseSchemaMutationScope::run(fn () => $this->migrateDown());
+    }
+
+    private function migrateDown(): void
+    {
+        $this->assertSafeSimulationMode();
         $users = SchemaQualifier::table('users');
         $addedAccountIds = DB::table($users)
             ->whereIn('email', array_keys(self::ADDED_ROSTER))
@@ -67,6 +112,16 @@ return new class extends Migration
 
         $this->dropPostgresMappingConstraint();
         $this->addPostgresMappingConstraint(self::EXISTING_ROSTER);
+    }
+
+    private function assertSafeSimulationMode(): void
+    {
+        if (config('simulation.mode') !== 'SIMULATION'
+            || config('simulation.synthetic_only') !== true) {
+            throw new RuntimeException(
+                'Warehouse roster migration requires synthetic-only SIMULATION mode.',
+            );
+        }
     }
 
     /** @param array<string, string> $roster */

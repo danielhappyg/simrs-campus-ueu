@@ -152,6 +152,10 @@ final class WarehouseActorPolicy
         Connection $connection,
     ): array {
         $actorId = (int) $actor->getKey();
+        if (config('simulation.warehouse_capability_enabled') !== true) {
+            return $this->deniedDecision($actorId, $requestHost);
+        }
+
         $users = SchemaQualifier::table('users');
         $roleUser = SchemaQualifier::table('role_user');
         $roleTable = SchemaQualifier::table('roles');
@@ -182,8 +186,10 @@ final class WarehouseActorPolicy
             ->exists();
         $email = mb_strtolower((string) data_get($user, 'email'));
         $rosterKey = data_get($user, 'teaching_access_roster_key');
-        $emailRole = TeachingRoleAccessManager::ROSTER[$email] ?? null;
-        $rosterAccount = $emailRole !== null
+        $effectiveRoster = TeachingRoleAccessManager::effectiveRoster();
+        $emailRole = $effectiveRoster[$email] ?? null;
+        $knownRosterRole = TeachingRoleAccessManager::ROSTER[$email] ?? null;
+        $rosterAccount = $knownRosterRole !== null
             || (is_string($rosterKey) && in_array($rosterKey, array_values(TeachingRoleAccessManager::ROSTER), true));
         $singleRoleAllowed = count($roleSlugs) === 1 && in_array($roleSlugs[0], $roles, true);
         $admin = (bool) data_get($user, 'is_system_administrator');

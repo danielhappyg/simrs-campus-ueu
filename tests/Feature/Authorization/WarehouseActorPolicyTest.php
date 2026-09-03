@@ -30,6 +30,7 @@ final class WarehouseActorPolicyTest extends TestCase
         parent::setUp();
         $this->seed(RbacSeeder::class);
         config([
+            'simulation.warehouse_capability_enabled' => true,
             'simulation.teaching_role_access_commitment_key' => 'warehouse-policy-test-commitment-key-2026',
             'simulation.teaching_role_access_environment' => 'test-simulation',
             'simulation.teaching_role_access_release_sha' => str_repeat('a', 40),
@@ -126,6 +127,27 @@ final class WarehouseActorPolicyTest extends TestCase
         $receiver->forceFill(['status' => 'DISABLED'])->save();
         $this->assertFalse($policy->canRecordReceipt($receiver->fresh()));
         $this->expectAuthorization(fn () => $policy->recordReceipt($receiver->fresh()));
+    }
+
+    public function test_runtime_capability_switch_denies_every_non_roster_warehouse_authorization_and_claim(): void
+    {
+        $policy = app(WarehouseActorPolicy::class);
+        $officer = $this->actor(RoleCapabilityMatrix::ROLE_PROCUREMENT_OFFICER);
+
+        $this->assertTrue($policy->canManageSupplier($officer));
+        $claim = $policy->authorizeSupplierOperation($officer, WarehouseSupplierService::OP_CREATE);
+        $this->assertTrue($policy->claimRemainsValid($claim, DB::connection()));
+
+        config(['simulation.warehouse_capability_enabled' => false]);
+
+        $this->assertFalse($policy->canManageSupplier($officer));
+        $this->assertFalse($policy->claimRemainsValid($claim, DB::connection()));
+        $this->expectAuthorization(
+            fn () => $policy->authorizeSupplierOperation($officer, WarehouseSupplierService::OP_CREATE),
+        );
+
+        config(['simulation.warehouse_capability_enabled' => true]);
+        $this->assertTrue($policy->canManageSupplier($officer));
     }
 
     public function test_policy_ignores_stale_actor_attributes_cached_roles_and_cached_capabilities(): void

@@ -8,15 +8,15 @@ require 'pathname'
 require 'securerandom'
 require 'tmpdir'
 
-require_relative '../../scripts/generate-g0-g3-coverage-cashier-collection-successors'
+require_relative '../../scripts/generate-g0-g3-coverage-cashier-collection-binding-refresh-successors'
 
-class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
+class G0G3CoverageCashierCollectionBindingRefreshSuccessorsTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
-  Generator = G0G3CoverageCashierCollectionSuccessors
+  Generator = G0G3CoverageCashierCollectionBindingRefreshSuccessors
   Core = G0ProportionalGovernanceV2
 
-  MAP_SHA256 = Generator::MAP_OUTPUT_SHA256
-  LEDGER_SHA256 = Generator::LEDGER_OUTPUT_SHA256
+  MAP_SHA256 = '36206930991317baa9ca7fd9c10e79a05c82c6aa931c0817d02b37b565f02201'
+  LEDGER_SHA256 = 'cf4e12d47ec9b016c0de2e3cfd5bcc7f8448cbb20b317ac61478b98117dfd3f6'
   EXACT_EVIDENCE = {
     Generator::FINAL_EVIDENCE_PATH => Generator::FINAL_EVIDENCE_SHA256,
     Generator::POSTGRES_ARTIFACT_PATH => Generator::POSTGRES_ARTIFACT_SHA256,
@@ -55,17 +55,20 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
     FileUtils.remove_entry_secure(@tmpdir) if @tmpdir&.exist?
   end
 
-  def test_r9_r11_are_exact_deterministic_create_only_successors
-    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-09-02-R8', Generator::MAP_PREDECESSOR_ARTIFACT_ID
-    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-09-03-R9', Generator::MAP_ARTIFACT_ID
-    assert_equal 'G0-G3-COVERAGE-LEDGER-V2-2026-09-02-R10', Generator::LEDGER_PREDECESSOR_ARTIFACT_ID
-    assert_equal 'G0-G3-COVERAGE-LEDGER-V2-2026-09-03-R11', Generator::LEDGER_ARTIFACT_ID
+  def test_r10_r12_are_exact_deterministic_create_only_successors
+    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-09-03-R9', Generator::MAP_PREDECESSOR_ARTIFACT_ID
+    assert_equal 'COVERAGE-ENGINEERING-EVIDENCE-MAP-V2-2026-09-03-R10', Generator::MAP_ARTIFACT_ID
+    assert_equal 'G0-G3-COVERAGE-LEDGER-V2-2026-09-03-R11', Generator::LEDGER_PREDECESSOR_ARTIFACT_ID
+    assert_equal 'G0-G3-COVERAGE-LEDGER-V2-2026-09-03-R12', Generator::LEDGER_ARTIFACT_ID
     assert_equal %w[PAR-FIN-012], Generator::TARGET_CAPABILITY_IDS
     assert_equal %w[E2E-14], Generator::TARGET_WORKFLOW_IDS
     assert_equal MAP_SHA256, Digest::SHA256.file(@root.join(Generator::MAP_OUTPUT_PATH)).hexdigest
     assert_equal LEDGER_SHA256, Digest::SHA256.file(@root.join(Generator::LEDGER_OUTPUT_PATH)).hexdigest
+    assert_equal File.binread(@root.join(Generator::MAP_OUTPUT_PATH)), Generator.serialized_map(root: ROOT)
+    assert_equal File.binread(@root.join(Generator::LEDGER_OUTPUT_PATH)), Generator.serialized_ledger(root: ROOT)
     assert Generator.check_map!(root: ROOT)
     assert Generator.check_ledger!(root: ROOT)
+    assert Generator.publication_ready?(root: ROOT)
     assert_equal 0o644, File.stat(@root.join(Generator::MAP_OUTPUT_PATH)).mode & 0o777
     assert_equal 0o600, File.stat(@root.join(Generator::LEDGER_OUTPUT_PATH)).mode & 0o777
     assert_equal 1, File.stat(@root.join(Generator::MAP_OUTPUT_PATH)).nlink
@@ -76,7 +79,7 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
                  @ledger.dig('sources', 'engineering_evidence_map_v2'))
   end
 
-  def test_projection_changes_only_par_fin_012_and_e2e14_evidence_paths
+  def test_projection_refreshes_bindings_without_adding_evidence_paths
     prior_capabilities = capability_index(@map_predecessor)
     capability_index(@map).each do |id, row|
       prior = prior_capabilities.fetch(id)
@@ -85,7 +88,7 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
         (G0G3CoverageTariffSuccessors::ENGINEERING_KEYS - ['evidence_paths']).each do |key|
           assert_equal prior.dig('engineering_evidence', key), row.dig('engineering_evidence', key), "#{id}.#{key}"
         end
-        assert_equal (prior.dig('engineering_evidence', 'evidence_paths') + EVIDENCE_PATHS).uniq.sort,
+        assert_equal prior.dig('engineering_evidence', 'evidence_paths'),
                      row.dig('engineering_evidence', 'evidence_paths')
       else
         assert_equal prior, row, id
@@ -99,7 +102,7 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
         (G0G3CoverageTariffSuccessors::ENGINEERING_KEYS - ['evidence_paths']).each do |key|
           assert_equal prior.fetch(key), row.fetch(key), "#{id}.#{key}"
         end
-        assert_equal (prior.fetch('evidence_paths') + EVIDENCE_PATHS).uniq.sort, row.fetch('evidence_paths')
+        assert_equal prior.fetch('evidence_paths'), row.fetch('evidence_paths')
       else
         assert_equal prior, row, id
       end
@@ -144,8 +147,12 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
 
   def test_closed_catalogue_and_exact_evidence_hash_modes_links_sources_and_open_claims
     inputs = @map.fetch('explicit_evidence_inputs').to_h { |row| [row.fetch('path'), row.fetch('sha256')] }
+    assert_equal @map_predecessor.fetch('explicit_evidence_inputs').map { |row| row.fetch('path') },
+                 @map.fetch('explicit_evidence_inputs').map { |row| row.fetch('path') }
+    refute inputs.keys.any? { |path| path.include?('Warehouse') || path.include?('warehouse') }
     EVIDENCE_PATHS.each do |relative|
-      assert_match(/\A[0-9a-f]{64}\z/, inputs.fetch(relative), relative)
+      assert File.file?(@root.join(relative)), relative
+      assert_equal Digest::SHA256.file(@root.join(relative)).hexdigest, inputs.fetch(relative)
     end
     %w[
       app/Http/Controllers/Finance/FinanceCashierCollectionController.php
@@ -159,7 +166,7 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
     ].each { |path| assert_includes EVIDENCE_PATHS, path }
 
     EXACT_EVIDENCE.each do |relative, sha|
-      assert_equal sha, inputs.fetch(relative)
+      assert_equal sha, Digest::SHA256.file(@root.join(relative)).hexdigest
       expected_mode = relative == Generator::FINAL_EVIDENCE_PATH ? 0o644 : 0o600
       assert_equal expected_mode, File.stat(@root.join(relative)).mode & 0o777
       assert_equal 1, File.stat(@root.join(relative)).nlink
@@ -191,53 +198,47 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
   end
 
   def test_create_only_refuses_overwrite_traversal_symlink_and_hardlink_outputs
-    map_bytes = @output_bytes.fetch(Generator::MAP_OUTPUT_PATH)
-    assert_raises(Generator::UsageError) do
-      Generator.send(:publish_create_only!, @root, Generator::MAP_OUTPUT_PATH, map_bytes, mode: 0o644)
-    end
-    assert_raises(Generator::UsageError) do
-      Generator.send(:publish_create_only!, @root, '../outside.json', map_bytes, mode: 0o644)
-    end
+    map_output = relative(@tmpdir.join('map.json'))
+    receipt = Generator.write_map!(root: ROOT, output: map_output)
+    bytes = File.binread(@root.join(map_output))
+    assert_equal Digest::SHA256.hexdigest(bytes), receipt.fetch('sha256')
+    assert_raises(Generator::UsageError) { Generator.write_map!(root: ROOT, output: map_output) }
+    assert_equal bytes, File.binread(@root.join(map_output))
+    assert_raises(Generator::UsageError) { Generator.write_map!(root: ROOT, output: '../outside.json') }
 
     symlink_output = @tmpdir.join('symlink.json')
     File.symlink(@root.join(Generator::MAP_PREDECESSOR_PATH), symlink_output)
-    assert_raises(Generator::UsageError) do
-      Generator.send(:publish_create_only!, @root, relative(symlink_output), map_bytes, mode: 0o644)
-    end
+    assert_raises(Generator::UsageError) { Generator.write_map!(root: ROOT, output: relative(symlink_output)) }
     hardlink_output = @tmpdir.join('hardlink.json')
     File.link(@root.join(Generator::MAP_PREDECESSOR_PATH), hardlink_output)
-    assert_raises(Generator::Error) do
-      Generator.send(:publish_create_only!, @root, relative(hardlink_output), map_bytes, mode: 0o644)
-    end
+    assert_raises(Generator::Error) { Generator.write_map!(root: ROOT, output: relative(hardlink_output)) }
   end
 
-  def test_predecessor_and_historical_output_drift_fail_closed
+  def test_predecessor_and_exact_source_claim_drift_fail_closed
     fixture = build_fixture
     File.open(fixture.join(Generator::MAP_PREDECESSOR_PATH), 'ab') { |file| file.write("drift\n") }
-    assert_raises(Generator::Error) do
-      Generator.send(:load_exact_json, fixture, Generator::MAP_PREDECESSOR_PATH,
-                     Generator::MAP_PREDECESSOR_SHA256, label: '$.superseded_evidence_map')
-    end
+    assert_raises(Generator::Error) { Generator.map_document(root: fixture) }
 
-    map_output = @tmpdir.join('historical-map.json')
-    File.binwrite(map_output, @output_bytes.fetch(Generator::MAP_OUTPUT_PATH) + "drift\n")
-    assert_raises(Generator::Error) { Generator.check_map!(root: ROOT, output: relative(map_output)) }
+    fixture = build_fixture
+    bound_source = 'app/Support/Finance/FinanceCashierCollectionService.php'
+    File.open(fixture.join(bound_source), 'ab') { |file| file.write("drift\n") }
+    assert_raises(Generator::Error) { Generator.check_map!(root: fixture) }
   end
 
-  def test_readme_preserves_r9_r11_as_immutable_predecessors_without_elevating_governance
+  def test_readme_designates_r10_r12_current_without_elevating_governance
     readme = File.binread(@root.join('docs/new-simrs-rebuild/G0_G3_COVERAGE_LEDGER_README.md'))
 
     assert_includes readme, File.basename(Generator::MAP_OUTPUT_PATH)
     assert_includes readme, File.basename(Generator::LEDGER_OUTPUT_PATH)
     assert_includes readme, MAP_SHA256
     assert_includes readme, LEDGER_SHA256
-    assert_includes readme, 'immutable cashier-collection engineering-evidence predecessor'
-    assert_includes readme, 'immutable cashier-collection observation predecessor'
+    assert_includes readme, 'current binding-refreshed local engineering-evidence map'
+    assert_includes readme, 'current binding-refreshed schema-v2 local observation'
     assert_includes readme, 'PAR-FIN-012 remains `NOT_IMPLEMENTED`'
     assert_includes readme, '`pointer_missing`'
     assert_includes readme, 'G0 and G3 remain `OPEN`'
-    assert_includes readme, 'generate-g0-g3-coverage-cashier-collection-successors.rb --kind map --check'
-    assert_includes readme, 'G0G3CoverageCashierCollectionSuccessorsTest.rb'
+    assert_includes readme, 'generate-g0-g3-coverage-cashier-collection-binding-refresh-successors.rb --kind map --check'
+    assert_includes readme, 'G0G3CoverageCashierCollectionBindingRefreshSuccessorsTest.rb'
   end
 
   private
@@ -261,7 +262,8 @@ class G0G3CoverageCashierCollectionSuccessorsTest < Minitest::Test
   def build_fixture
     root = @tmpdir.join("fixture-#{SecureRandom.hex(4)}")
     root.mkpath
-    ([Generator::GENERATOR_PATH, Generator::MAP_PREDECESSOR_PATH, Generator::LEDGER_PREDECESSOR_PATH] +
+    ([Generator::GENERATOR_PATH, Generator::MAP_PREDECESSOR_PATH, Generator::LEDGER_PREDECESSOR_PATH,
+      Generator::MAP_OUTPUT_PATH, Generator::LEDGER_OUTPUT_PATH] +
       EVIDENCE_PATHS).uniq.each do |relative|
       target = root.join(relative)
       FileUtils.mkdir_p(target.parent)

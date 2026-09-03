@@ -47,9 +47,57 @@ final class WarehouseCustodyMigrationTest extends TestCase
     {
         config()->set('database.warehouse_schema_migration_enabled', false);
 
-        $migration = require database_path('migrations/2026_09_03_000200_create_medication_replenishment_warehouse_custody_tables.php');
+        foreach ([
+            '2026_09_03_000100_expand_warehouse_teaching_role_access_roster.php',
+            '2026_09_03_000200_create_medication_replenishment_warehouse_custody_tables.php',
+        ] as $filename) {
+            $migration = require database_path('migrations/'.$filename);
+            $this->assertTrue($migration->shouldRun(), $filename);
+        }
+    }
 
-        $this->assertTrue($migration->shouldRun());
+    public function test_roster_expansion_uses_the_same_exact_engine_cutover_gate_as_the_warehouse_schema(): void
+    {
+        $originalDefault = config('database.default');
+        $originalGate = config('database.warehouse_schema_migration_enabled');
+        try {
+            config()->set('database.connections.release_default.driver', 'pgsql');
+            config()->set('database.default', 'release_default');
+            config()->set('database.warehouse_schema_migration_enabled', false);
+
+            $migration = require database_path('migrations/2026_09_03_000100_expand_warehouse_teaching_role_access_roster.php');
+            $this->assertFalse($migration->shouldRun());
+
+            config()->set('database.warehouse_schema_migration_enabled', true);
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('warehouse_migrator default connection');
+            $migration->shouldRun();
+        } finally {
+            config()->set('database.default', $originalDefault);
+            config()->set('database.warehouse_schema_migration_enabled', $originalGate);
+        }
+    }
+
+    public function test_roster_migration_mutations_require_the_synthetic_simulation_boundary(): void
+    {
+        $migration = require database_path('migrations/2026_09_03_000100_expand_warehouse_teaching_role_access_roster.php');
+
+        foreach ([
+            ['operation' => 'up', 'mode' => 'PRODUCTION', 'synthetic_only' => true],
+            ['operation' => 'down', 'mode' => 'SIMULATION', 'synthetic_only' => false],
+        ] as $unsafe) {
+            config([
+                'simulation.mode' => $unsafe['mode'],
+                'simulation.synthetic_only' => $unsafe['synthetic_only'],
+            ]);
+
+            try {
+                $migration->{$unsafe['operation']}();
+                $this->fail('Warehouse roster mutation must enforce both simulation safety boundaries.');
+            } catch (RuntimeException $exception) {
+                $this->assertStringContainsString('synthetic-only SIMULATION mode', $exception->getMessage());
+            }
+        }
     }
 
     public function test_exact_engine_migration_gate_requires_both_explicit_flag_and_named_migrator_default(): void

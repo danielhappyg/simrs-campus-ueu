@@ -41,11 +41,12 @@ final class TeachingRoleAccessLeaseGuard
             return false;
         }
 
+        $effectiveRoster = TeachingRoleAccessManager::effectiveRoster();
         $expectedEmail = strtolower((string) $fresh->email);
-        $expectedRole = TeachingRoleAccessManager::ROSTER[$expectedEmail] ?? null;
+        $expectedRole = $effectiveRoster[$expectedEmail] ?? null;
         $expectedEmail = $expectedRole === null
             ? null
-            : array_search($expectedRole, TeachingRoleAccessManager::ROSTER, true);
+            : array_search($expectedRole, $effectiveRoster, true);
         if ($fresh->status !== 'TEACHING_ACTIVE'
             || $fresh->is_system_administrator !== false
             || $expectedRole === null
@@ -139,7 +140,7 @@ final class TeachingRoleAccessLeaseGuard
         }
 
         $expectedEmail = strtolower((string) $fresh->email);
-        $expectedRole = TeachingRoleAccessManager::ROSTER[$expectedEmail] ?? null;
+        $expectedRole = TeachingRoleAccessManager::effectiveRoster()[$expectedEmail] ?? null;
         $activeLeases = TeachingRoleAccessLease::query()
             ->where('user_id', $fresh->getKey())
             ->where('status', 'ACTIVE')

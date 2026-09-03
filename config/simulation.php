@@ -5,6 +5,11 @@ return [
 
     'synthetic_only' => (bool) env('APP_SYNTHETIC_ONLY', true),
 
+    'warehouse_capability_enabled' => filter_var(
+        env('WAREHOUSE_CAPABILITY_ENABLED', false),
+        FILTER_VALIDATE_BOOLEAN,
+    ),
+
     'demo_seed_enabled' => (bool) env('DEMO_SEED_ENABLED', false),
 
     'demo_account_password' => env('DEMO_ACCOUNT_PASSWORD'),

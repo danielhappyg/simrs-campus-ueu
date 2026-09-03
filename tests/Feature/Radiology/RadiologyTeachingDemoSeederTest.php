@@ -62,7 +62,7 @@ final class RadiologyTeachingDemoSeederTest extends TestCase
 
         $this->assertSame($expected, array_intersect_key(TeachingRoleAccessManager::ROSTER, $expected));
 
-        foreach (TeachingRoleAccessManager::ROSTER as $email => $role) {
+        foreach (TeachingRoleAccessManager::effectiveRoster() as $email => $role) {
             $this->assertSame(1, User::query()->where('email', $email)->count());
             $user = User::query()->where('email', $email)->sole();
             $this->assertSame([$role], $user->roleSlugs());
@@ -75,7 +75,7 @@ final class RadiologyTeachingDemoSeederTest extends TestCase
 
         $this->seed(DemoActorsSeeder::class);
 
-        foreach (array_keys(TeachingRoleAccessManager::ROSTER) as $email) {
+        foreach (array_keys(TeachingRoleAccessManager::effectiveRoster()) as $email) {
             $this->assertSame(1, User::query()->where('email', $email)->count());
         }
     }
