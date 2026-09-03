@@ -101,11 +101,11 @@ class SyntheticDataBoundaryTest extends TestCase
         $this->actingAs($registrar)
             ->get(route('home'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('encounters.available', true)
-                ->where('encounters.totals.rawat_jalan', 0)
-                ->where('encounters.totals.igd', 0)
-                ->where('encounters.totals.rawat_inap', 0)
-                ->where('encounters.read_error', null));
+                ->where('census.available', true)
+                ->where('census.by_setting.rawat_jalan.total_active', 0)
+                ->where('census.by_setting.igd.total_active', 0)
+                ->where('census.by_setting.rawat_inap.total_active', 0)
+                ->where('census.read_error', null));
 
         foreach ([
             'pendaftaran.rawat-jalan.index',

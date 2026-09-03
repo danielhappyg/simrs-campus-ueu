@@ -24,15 +24,48 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 const baseProps = {
-    encounters: {
+    census: {
         available: true,
-        totals: {
-            rawat_jalan: 12,
-            igd: 4,
-            rawat_inap: 7,
+        by_setting: {
+            rawat_jalan: {
+                registered: 4,
+                in_examination: 5,
+                ready_for_rm: 3,
+                total_active: 12,
+            },
+            igd: {
+                registered: 1,
+                in_examination: 2,
+                ready_for_rm: 1,
+                total_active: 4,
+            },
+            rawat_inap: {
+                registered: 2,
+                in_examination: 3,
+                ready_for_rm: 2,
+                total_active: 7,
+            },
         },
         read_error: null,
     },
+    queues: [
+        {
+            id: 'queue.in_exam.rj',
+            label: 'Dalam pemeriksaan RJ',
+            hint: 'Kunjungan poliklinik yang sedang dilayani.',
+            count: 5,
+            href: '/pemeriksaan/rawat-jalan',
+            tone: 'navy' as const,
+        },
+        {
+            id: 'queue.occupancy',
+            label: 'Sensus tempat tidur',
+            hint: 'Tempat tidur terisi pada bangsal terkelola.',
+            count: 7,
+            href: '/manajemen-data/bangsal',
+            tone: 'slate' as const,
+        },
+    ],
     occupancy: {
         available: true,
         totals: {
@@ -51,6 +84,12 @@ const baseProps = {
             href: '/pemeriksaan/rawat-jalan',
         },
         {
+            setting: 'igd' as const,
+            kind: 'registration',
+            label: 'Buka pendaftaran',
+            href: '/pendaftaran/igd',
+        },
+        {
             setting: 'occupancy' as const,
             kind: 'occupancy',
             label: 'Buka sensus tempat tidur',
@@ -60,13 +99,24 @@ const baseProps = {
 };
 
 describe('operational home', () => {
-    it('shows separate RJ, IGD, and RI totals with only server-authorized actions', () => {
+    it('shows the operate desk, census chips, and only uncovered module shortcuts', () => {
         render(<RebuildHome {...baseProps} />);
 
         expect(
             screen.getByRole('heading', {
-                name: 'Satu pandangan untuk tiga area layanan',
+                name: 'Meja kerja hari ini',
             }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                'Antrian kerja operasional, bukan grafik manajemen.',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', { name: 'Arus layanan' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', { name: 'Antrian kerja' }),
         ).toBeInTheDocument();
 
         const rawatJalan = screen
@@ -85,16 +135,28 @@ describe('operational home', () => {
         expect(within(rawatJalan!).getByText('12')).toBeInTheDocument();
         expect(within(igd!).getByText('4')).toBeInTheDocument();
         expect(within(rawatInap!).getByText('7')).toBeInTheDocument();
+        expect(within(rawatJalan!).getByText('Terdaftar')).toBeInTheDocument();
+        expect(within(rawatJalan!).getByText('Pemeriksaan')).toBeInTheDocument();
+        expect(within(rawatJalan!).getByText('Siap RM')).toBeInTheDocument();
 
         expect(
-            screen.getByRole('link', { name: 'Buka pemeriksaan' }),
+            screen.getByRole('link', { name: 'Dalam pemeriksaan RJ: 5' }),
         ).toHaveAttribute('href', '/pemeriksaan/rawat-jalan');
+        expect(
+            screen.getByRole('link', { name: 'Sensus tempat tidur: 7' }),
+        ).toHaveAttribute('href', '/manajemen-data/bangsal');
         expect(
             screen.queryByRole('link', { name: /review RM/i }),
         ).not.toBeInTheDocument();
         expect(
-            screen.getByRole('link', { name: 'Buka sensus tempat tidur' }),
-        ).toHaveAttribute('href', '/manajemen-data/bangsal');
+            screen.queryByRole('link', { name: 'Buka pemeriksaan' }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'Buka pendaftaran' }),
+        ).toHaveAttribute('href', '/pendaftaran/igd');
+        expect(
+            screen.queryByRole('link', { name: 'Buka sensus tempat tidur' }),
+        ).not.toBeInTheDocument();
     });
 
     it('presents managed occupancy totals as an aggregate definition list', () => {
@@ -116,16 +178,32 @@ describe('operational home', () => {
     it('shows explicit unavailable states instead of presenting zero as live data', () => {
         render(
             <RebuildHome
-                encounters={{
+                census={{
                     available: false,
-                    totals: {
-                        rawat_jalan: null,
-                        igd: null,
-                        rawat_inap: null,
+                    by_setting: {
+                        rawat_jalan: {
+                            registered: null,
+                            in_examination: null,
+                            ready_for_rm: null,
+                            total_active: null,
+                        },
+                        igd: {
+                            registered: null,
+                            in_examination: null,
+                            ready_for_rm: null,
+                            total_active: null,
+                        },
+                        rawat_inap: {
+                            registered: null,
+                            in_examination: null,
+                            ready_for_rm: null,
+                            total_active: null,
+                        },
                     },
                     read_error:
                         'Ringkasan kunjungan belum dapat dimuat. Silakan coba lagi.',
                 }}
+                queues={[]}
                 occupancy={{
                     available: false,
                     totals: {
@@ -152,17 +230,28 @@ describe('operational home', () => {
                 'Status hunian rawat inap belum dapat dimuat. Silakan coba lagi.',
             ),
         ).toBeInTheDocument();
-        expect(screen.getAllByText('—')).toHaveLength(3);
+        expect(screen.getAllByText('—')).toHaveLength(12);
+        expect(
+            screen.getByText('Tidak ada antrian kerja untuk akses akun ini.'),
+        ).toBeInTheDocument();
     });
 
     it('omits occupancy entirely when the role is not permitted to view it', () => {
-        render(<RebuildHome {...baseProps} occupancy={null} />);
+        render(
+            <RebuildHome
+                {...baseProps}
+                occupancy={null}
+                queues={baseProps.queues.filter(
+                    (queue) => queue.id !== 'queue.occupancy',
+                )}
+            />,
+        );
 
         expect(
             screen.queryByRole('heading', { name: 'Hunian rawat inap' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('link', { name: 'Buka sensus tempat tidur' }),
+            screen.queryByRole('link', { name: /Sensus tempat tidur/ }),
         ).not.toBeInTheDocument();
     });
 });
