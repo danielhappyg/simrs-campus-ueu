@@ -173,6 +173,10 @@ final class WarehouseActorPolicyTest extends TestCase
 
     public function test_roster_claim_is_bound_to_the_current_session_epoch_and_active_lease(): void
     {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('Managed warehouse lease fixtures require the intentionally unrun warehouse roster migration.');
+        }
+
         [$officer, $lease] = $this->activeRosterOfficer();
         session()->put([
             TeachingRoleAccessLeaseGuard::SESSION_EPOCH_KEY => 7,

@@ -35,7 +35,7 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
         parent::setUp();
 
         config([
-            'simulation.warehouse_capability_enabled' => true,
+            'simulation.warehouse_capability_enabled' => false,
             'simulation.mode' => 'SIMULATION',
             'simulation.synthetic_only' => true,
             'simulation.teaching_role_access_password' => self::DEMO_PASSWORD,
@@ -315,7 +315,7 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
 
         $this->assertStringContainsString('Result: ACTIVATE completed (mutated=yes, idempotent=no, audit=recorded)', $output);
         $this->assertStringContainsString(
-            'Roster: active=1 disabled='.(count(TeachingRoleAccessManager::ROSTER) - 1).' missing=0 drifted=0',
+            'Roster: active=1 disabled='.(count(TeachingRoleAccessManager::effectiveRoster()) - 1).' missing=0 drifted=0',
             $output,
         );
         $this->assertStringNotContainsString(self::DEMO_PASSWORD, $output);
@@ -684,13 +684,13 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
         $this->assertSame(0, Artisan::call('teaching:role-access', $this->arguments('status')));
         $output = Artisan::output();
 
-        foreach (TeachingRoleAccessManager::ROSTER as $email => $role) {
+        foreach (TeachingRoleAccessManager::effectiveRoster() as $email => $role) {
             $this->assertStringContainsString("{$email} roles={$role} expected={$role}", $output);
         }
         $this->assertStringContainsString('status=TEACHING_ACTIVE', $output);
         $this->assertStringContainsString('sessions=1 passkeys=1 resets=1 lease=closed invariant=DRIFT', $output);
         $this->assertStringContainsString(
-            'Roster: active=1 disabled='.(count(TeachingRoleAccessManager::ROSTER) - 1).' missing=0 drifted=1 sessions=1 passkeys=1 resets=1',
+            'Roster: active=1 disabled='.(count(TeachingRoleAccessManager::effectiveRoster()) - 1).' missing=0 drifted=1 sessions=1 passkeys=1 resets=1',
             $output,
         );
         $this->assertStringNotContainsString(self::DEMO_PASSWORD, $output);
@@ -720,7 +720,7 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
             $output,
         );
         $this->assertStringContainsString(
-            'Roster: active=0 disabled='.(count(TeachingRoleAccessManager::ROSTER) - 1).' missing=0 drifted=1',
+            'Roster: active=0 disabled='.(count(TeachingRoleAccessManager::effectiveRoster()) - 1).' missing=0 drifted=1',
             $output,
         );
     }
@@ -819,7 +819,7 @@ class ManageTeachingRoleAccessCommandTest extends TestCase
     {
         $roster = [];
 
-        foreach (TeachingRoleAccessManager::ROSTER as $email => $role) {
+        foreach (TeachingRoleAccessManager::effectiveRoster() as $email => $role) {
             $user = User::factory()->unverified()->create([
                 'email' => $email,
                 'status' => 'DISABLED',

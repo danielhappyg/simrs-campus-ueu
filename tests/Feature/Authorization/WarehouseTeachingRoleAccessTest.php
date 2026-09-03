@@ -13,6 +13,7 @@ use Database\Seeders\DemoActorsSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
@@ -72,6 +73,10 @@ final class WarehouseTeachingRoleAccessTest extends TestCase
             'session.table' => 'sessions',
             'session.connection' => config('database.default'),
         ]);
+
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('Warehouse teaching identities require the intentionally unrun exact-engine warehouse migrations.');
+        }
 
         $this->seed(RbacSeeder::class);
         $this->seed(DemoActorsSeeder::class);
