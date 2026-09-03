@@ -17,6 +17,7 @@ use App\Support\Http\InertiaPagination;
 use App\Support\Laboratory\LaboratoryProjection;
 use App\Support\Pharmacy\PharmacyProjection;
 use App\Support\Radiology\RadiologyProjection;
+use App\Support\Registration\ClinicBookingSurface;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,7 @@ class OutpatientExaminationController extends Controller
         try {
             $clinics = Clinic::query()
                 ->where('is_active', true)
+                ->where('booking_surface', ClinicBookingSurface::OUTPATIENT)
                 ->orderBy('name')
                 ->get()
                 ->map(fn (Clinic $row): array => [
