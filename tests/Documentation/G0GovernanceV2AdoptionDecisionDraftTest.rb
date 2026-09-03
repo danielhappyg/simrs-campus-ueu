@@ -6,6 +6,8 @@ require 'minitest/autorun'
 require 'open3'
 require 'pathname'
 
+require_relative '../../scripts/strict-json'
+
 class G0GovernanceV2AdoptionDecisionDraftTest < Minitest::Test
   ROOT = File.expand_path('../..', __dir__)
   PHASE = File.join(ROOT, 'docs/new-simrs-rebuild/phase-0')
@@ -62,14 +64,6 @@ class G0GovernanceV2AdoptionDecisionDraftTest < Minitest::Test
 
   PLANNING_HEAD = '24bbd9e605d84ad756afcae9555b0f9f97198dbc'
   REQUESTED_REPLY = 'Approve proportional G0 governance v2 as written in `G0_PROPORTIONAL_GOVERNANCE_V2_PROPOSAL_2026-08-28.md`. Preserve all 268 capability identities and traceability; require attributable product and affected-domain approval; require independent review for material clinical, security, privacy, financial, integration, and recovery risk; preserve the synthetic-only and no-live-integration boundaries; retain v1 as historical never-activated evidence; and do not treat this approval as a capability disposition, workflow implementation approval, deployment approval, or G3 acceptance. I also accept ADR-018 at SHA-256 cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962 as the proposed implementation architecture for local governance-v2 implementation only.'
-
-  class DuplicateKeyRejectingHash < Hash
-    def []=(key, value)
-      raise JSON::ParserError, "duplicate JSON key: #{key}" if key?(key)
-
-      super
-    end
-  end
 
   def setup
     @raw = File.read(DRAFT_PATH)
@@ -137,6 +131,13 @@ class G0GovernanceV2AdoptionDecisionDraftTest < Minitest::Test
 
   def test_duplicate_json_keys_are_rejected
     assert_raises(JSON::ParserError) { parse_json('{"status":"pending","status":"approved"}') }
+    assert_raises(JSON::ParserError) { parse_json('{"outer":{"status":"pending","status":"approved"}}') }
+    assert_raises(JSON::ParserError) { parse_json('{"status":"pending","sta\\u0074us":"approved"}') }
+    assert_raises(JSON::ParserError) do
+      JSON.parse('{"status":"pending","status":"approved"}', object_class: Hash)
+    end
+    assert_equal({ 'left' => { 'status' => 'pending' }, 'right' => { 'status' => 'approved' } },
+                 parse_json('{"left":{"status":"pending"},"right":{"status":"approved"}}'))
   end
 
   def test_planning_head_is_reachable_and_owns_the_bound_source_bytes
@@ -156,7 +157,7 @@ class G0GovernanceV2AdoptionDecisionDraftTest < Minitest::Test
   private
 
   def parse_json(raw)
-    JSON.parse(raw, object_class: DuplicateKeyRejectingHash)
+    StrictJson.parse(raw, create_additions: false)
   end
 
   def assert_git_success(*arguments)

@@ -32,6 +32,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      RUBYOPT: -r${{ github.workspace }}/scripts/strict-json
     services:
       postgres:
         image: postgres:17.10
