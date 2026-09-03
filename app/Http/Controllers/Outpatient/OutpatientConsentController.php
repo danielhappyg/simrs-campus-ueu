@@ -25,7 +25,8 @@ class OutpatientConsentController extends Controller
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
         $encounter->loadMissing(['patient', 'consent']);
-        abort_unless($encounter->patient?->is_synthetic === true, 404);
+        $patient = $encounter->patient;
+        abort_unless($patient->is_synthetic === true, 404);
 
         if ($encounter->isCancelled()) {
             abort(409, 'General Consent tidak dapat dibuka untuk kunjungan yang telah dibatalkan.');
@@ -40,11 +41,11 @@ class OutpatientConsentController extends Controller
                 'visit_date' => optional($encounter->visit_date)->toDateString()
                     ?? optional($encounter->registered_at)->toDateString(),
                 'patient' => [
-                    'full_name' => $encounter->patient?->full_name,
-                    'medical_record_number' => $encounter->patient?->medical_record_number,
-                    'address_line' => $encounter->patient?->address_line,
-                    'phone' => $encounter->patient?->phone,
-                    'responsible_party_name' => $encounter->patient?->responsible_party_name,
+                    'full_name' => $patient->full_name,
+                    'medical_record_number' => $patient->medical_record_number,
+                    'address_line' => $patient->address_line,
+                    'phone' => $patient->phone,
+                    'responsible_party_name' => $patient->responsible_party_name,
                 ],
             ],
             'form' => [
@@ -72,7 +73,7 @@ class OutpatientConsentController extends Controller
         Gate::authorize(Capability::PATIENT_REGISTER);
 
         $encounter->loadMissing('patient');
-        abort_unless($encounter->patient?->is_synthetic === true, 404);
+        abort_unless($encounter->patient->is_synthetic === true, 404);
 
         if ($encounter->isCancelled()) {
             abort(409, 'General Consent tidak dapat ditandatangani untuk kunjungan yang telah dibatalkan.');
