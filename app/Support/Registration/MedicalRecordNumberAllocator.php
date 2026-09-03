@@ -6,6 +6,7 @@ use App\Models\MedicalRecordNumberCounter;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 use OverflowException;
+use RuntimeException;
 
 final class MedicalRecordNumberAllocator
 {

@@ -207,6 +207,7 @@ class TeachingCensusSeeder extends Seeder
             ->syntheticOnly()
             ->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')
             ->orderBy('medical_record_number')
+            ->lockForUpdate()
             ->get();
 
         foreach ($legacy as $patient) {

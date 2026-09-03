@@ -92,6 +92,7 @@ class TeachingCensusSeederTest extends TestCase
 
         $this->seed(TeachingCensusSeeder::class);
 
+        $this->assertSame(0, Patient::query()->where('medical_record_number', 'like', 'SYNTH-CENSUS-%')->count());
         $this->assertEquals(
             $firstAssignments->toArray(),
             Encounter::query()
