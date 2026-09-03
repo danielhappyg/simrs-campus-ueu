@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Models\HasPublicUlid;
 use App\Support\Models\UsesSchemaQualifiedTable;
+use App\Support\Registration\ClinicBookingSurface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $public_id
  * @property string $code
  * @property string $name
+ * @property string $booking_surface
  * @property bool $is_active
  */
 class Clinic extends Model
@@ -22,11 +24,13 @@ class Clinic extends Model
     protected $fillable = [
         'code',
         'name',
+        'booking_surface',
         'is_active',
     ];
 
     protected $attributes = [
         'is_active' => true,
+        'booking_surface' => ClinicBookingSurface::OUTPATIENT,
     ];
 
     /**

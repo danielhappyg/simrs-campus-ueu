@@ -7,6 +7,7 @@ use App\Models\Clinic;
 use App\Models\Encounter;
 use App\Support\Authorization\Capability;
 use App\Support\Http\InertiaPagination;
+use App\Support\Registration\ClinicBookingSurface;
 use App\Support\TeachingVocabulary;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Cache\Lock;
@@ -155,6 +156,7 @@ class OutpatientRecapController extends Controller
 
         $clinics = Clinic::query()
             ->where('is_active', true)
+            ->where('booking_surface', ClinicBookingSurface::OUTPATIENT)
             ->orderBy('name')
             ->get(['name'])
             ->map(fn (Clinic $row): array => ['value' => $row->name, 'label' => $row->name])

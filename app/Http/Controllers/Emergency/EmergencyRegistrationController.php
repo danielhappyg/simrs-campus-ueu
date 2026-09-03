@@ -330,9 +330,7 @@ class EmergencyRegistrationController extends Controller
                 (new WilayahMinimalSeeder)->run();
             }
 
-            if (! Clinic::query()->where('code', 'IGD')->exists()) {
-                (new OutpatientMastersSeeder)->run();
-            }
+            (new OutpatientMastersSeeder)->run();
         } catch (Throwable $e) {
             report($e);
         }

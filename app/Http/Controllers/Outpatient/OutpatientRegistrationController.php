@@ -18,6 +18,7 @@ use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaAwareRules;
 use App\Support\Http\InertiaPagination;
+use App\Support\Registration\ClinicBookingSurface;
 use App\Support\Registration\DailyQueueAllocator;
 use App\Support\Registration\MedicalRecordNumber;
 use App\Support\Registration\MedicalRecordNumberAllocator;
@@ -97,6 +98,7 @@ class OutpatientRegistrationController extends Controller
 
             $clinics = Clinic::query()
                 ->where('is_active', true)
+                ->where('booking_surface', ClinicBookingSurface::OUTPATIENT)
                 ->with([
                     'doctors' => fn ($query) => $query->where('is_active', true)->orderBy('name'),
                     'doctors.schedules' => fn ($query) => $query->where('is_active', true)->orderBy('label'),
@@ -217,6 +219,10 @@ class OutpatientRegistrationController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
+        if (! ClinicBookingSurface::isOutpatient((string) $clinic->booking_surface)) {
+            abort(422, 'Poliklinik tidak tersedia untuk pendaftaran rawat jalan.');
+        }
+
         $doctor = Doctor::query()
             ->where('public_id', $validated['doctor_public_id'])
             ->where('clinic_id', $clinic->id)
@@ -332,9 +338,7 @@ class OutpatientRegistrationController extends Controller
                 (new WilayahMinimalSeeder)->run();
             }
 
-            if (! Clinic::query()->exists()) {
-                (new OutpatientMastersSeeder)->run();
-            }
+            (new OutpatientMastersSeeder)->run();
         } catch (Throwable $e) {
             report($e);
         }

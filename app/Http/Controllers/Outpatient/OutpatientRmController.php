@@ -11,6 +11,7 @@ use App\Models\OutpatientRmCompletenessReview;
 use App\Support\Authorization\Capability;
 use App\Support\Clinical\OutpatientAmendmentProjection;
 use App\Support\Clinical\OutpatientRmCompletenessService;
+use App\Support\Registration\ClinicBookingSurface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,11 @@ class OutpatientRmController extends Controller
         $clinics = [];
 
         try {
-            $clinics = Clinic::query()->where('is_active', true)->orderBy('name')->get()
+            $clinics = Clinic::query()
+                ->where('is_active', true)
+                ->where('booking_surface', ClinicBookingSurface::OUTPATIENT)
+                ->orderBy('name')
+                ->get()
                 ->map(fn (Clinic $row): array => ['value' => $row->name, 'label' => $row->name])->all();
             $query = Encounter::query()
                 ->syntheticOnly()
