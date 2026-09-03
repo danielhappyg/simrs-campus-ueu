@@ -160,8 +160,11 @@ final class TeachingRoleRosterSeederTest extends TestCase
         }
 
         $this->assertDatabaseCount('users', 1);
-        $this->assertDatabaseHas('users', ['email' => 'Registrar.Demo@Example.Invalid']);
-        $this->assertDatabaseMissing('users', ['email' => 'registrar.demo@example.invalid']);
+        $retained = User::query()->sole();
+        $this->assertSame('Registrar.Demo@Example.Invalid', $retained->email);
+        $this->assertSame(1, User::query()
+            ->whereRaw('LOWER(email) = ?', ['registrar.demo@example.invalid'])
+            ->count());
         $this->assertDatabaseMissing('users', ['email' => 'nurse.demo@example.invalid']);
     }
 
