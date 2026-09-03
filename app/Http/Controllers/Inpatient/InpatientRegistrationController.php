@@ -14,13 +14,14 @@ use App\Support\Inpatient\InpatientAdmissionService;
 use App\Support\Inpatient\InpatientMasterDenied;
 use App\Support\Inpatient\InpatientWardReadModel;
 use App\Support\Registration\InpatientBedUnavailable;
+use App\Support\Registration\MedicalRecordNumber;
+use App\Support\Registration\MedicalRecordNumberAllocator;
 use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,6 +32,7 @@ class InpatientRegistrationController extends Controller
     public function __construct(
         private readonly InpatientAdmissionService $admissionService,
         private readonly InpatientWardReadModel $wardReadModel,
+        private readonly MedicalRecordNumberAllocator $medicalRecordNumberAllocator,
     ) {}
 
     public function index(Request $request): Response
@@ -158,7 +160,7 @@ class InpatientRegistrationController extends Controller
             'full_name' => ['required_without:patient_public_id', 'nullable', 'string', 'max:255'],
             'date_of_birth' => ['required_without:patient_public_id', 'nullable', 'date'],
             'sex' => ['required_without:patient_public_id', 'nullable', Rule::in(Patient::SEX_VALUES)],
-            'medical_record_number' => ['nullable', 'string', 'max:64', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
+            'medical_record_number' => ['nullable', 'string', 'regex:/^[0-9]{6}$/', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
             'nik' => ['nullable', 'string', 'max:16'],
             'phone' => ['nullable', 'string', 'max:32'],
             'bed_public_id' => ['required', 'string', 'size:26', 'regex:/\A[0-9A-HJKMNP-TV-Z]{26}\z/i', SchemaAwareRules::exists(InpatientBed::class, 'public_id')],
@@ -195,20 +197,26 @@ class InpatientRegistrationController extends Controller
 
                     $patient->fill($this->patientUpdatableAttributes($validated))->save();
                 } else {
-                    $mrn = $validated['medical_record_number'] ?? null;
-                    if (! is_string($mrn) || $mrn === '') {
-                        $mrn = $this->generateMedicalRecordNumber();
+                    $providedMrn = $validated['medical_record_number'] ?? null;
+                    if (! is_string($providedMrn) || $providedMrn === '') {
+                        $mrn = $this->medicalRecordNumberAllocator->allocate();
+                    } else {
+                        $mrn = new MedicalRecordNumber($providedMrn);
                     }
 
                     $patient = Patient::query()->create([
                         ...$this->patientUpdatableAttributes($validated),
-                        'medical_record_number' => $mrn,
+                        'medical_record_number' => $mrn->value,
                         'full_name' => $validated['full_name'],
                         'date_of_birth' => $validated['date_of_birth'],
                         'sex' => $validated['sex'],
                         'is_synthetic' => true,
                         'created_by_user_id' => $user->id,
                     ]);
+
+                    if (is_string($providedMrn) && $providedMrn !== '') {
+                        $this->medicalRecordNumberAllocator->ensureHighWatermark((int) $providedMrn);
+                    }
                 }
 
                 return $this->admissionService->admitDirect(
@@ -259,15 +267,6 @@ class InpatientRegistrationController extends Controller
             'nik' => $validated['nik'] ?? null,
             'phone' => $validated['phone'] ?? null,
         ];
-    }
-
-    private function generateMedicalRecordNumber(): string
-    {
-        do {
-            $mrn = 'RM-'.now()->format('ymd').'-'.Str::upper(Str::random(4));
-        } while (Patient::query()->where('medical_record_number', $mrn)->exists());
-
-        return $mrn;
     }
 
     /**

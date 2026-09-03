@@ -18,6 +18,8 @@ use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\Capability;
 use App\Support\Database\SchemaAwareRules;
 use App\Support\Registration\DailyQueueAllocator;
+use App\Support\Registration\MedicalRecordNumber;
+use App\Support\Registration\MedicalRecordNumberAllocator;
 use App\Support\Registration\RegistrationFailureResponder;
 use App\Support\TeachingVocabulary;
 use Database\Seeders\OutpatientMastersSeeder;
@@ -26,7 +28,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,6 +39,7 @@ class EmergencyRegistrationController extends Controller
         private readonly AuditRecorder $auditRecorder,
         private readonly WilayahRepository $wilayah,
         private readonly DailyQueueAllocator $dailyQueueAllocator,
+        private readonly MedicalRecordNumberAllocator $medicalRecordNumberAllocator,
     ) {}
 
     public function index(Request $request): Response
@@ -161,7 +163,7 @@ class EmergencyRegistrationController extends Controller
             'full_name' => ['required_without:patient_public_id', 'nullable', 'string', 'max:255'],
             'date_of_birth' => ['required_without:patient_public_id', 'nullable', 'date'],
             'sex' => ['required_without:patient_public_id', 'nullable', Rule::in(Patient::SEX_VALUES)],
-            'medical_record_number' => ['nullable', 'string', 'max:64', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
+            'medical_record_number' => ['nullable', 'string', 'regex:/^[0-9]{6}$/', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
             'nik' => ['nullable', 'string', 'max:16'],
             'place_of_birth' => ['nullable', 'string', 'max:120'],
             'religion' => ['nullable', Rule::in(Patient::RELIGION_VALUES)],
@@ -239,20 +241,26 @@ class EmergencyRegistrationController extends Controller
 
                 $patient->fill($this->patientUpdatableAttributes($validated))->save();
             } else {
-                $mrn = $validated['medical_record_number'] ?? null;
-                if (! is_string($mrn) || $mrn === '') {
-                    $mrn = $this->generateMedicalRecordNumber();
+                $providedMrn = $validated['medical_record_number'] ?? null;
+                if (! is_string($providedMrn) || $providedMrn === '') {
+                    $mrn = $this->medicalRecordNumberAllocator->allocate();
+                } else {
+                    $mrn = new MedicalRecordNumber($providedMrn);
                 }
 
                 $patient = Patient::query()->create([
                     ...$this->patientUpdatableAttributes($validated),
-                    'medical_record_number' => $mrn,
+                    'medical_record_number' => $mrn->value,
                     'full_name' => $validated['full_name'],
                     'date_of_birth' => $validated['date_of_birth'],
                     'sex' => $validated['sex'],
                     'is_synthetic' => true,
                     'created_by_user_id' => $user->id,
                 ]);
+
+                if (is_string($providedMrn) && $providedMrn !== '') {
+                    $this->medicalRecordNumberAllocator->ensureHighWatermark((int) $providedMrn);
+                }
             }
 
             $registeredAt = now((string) config('app.timezone', 'Asia/Jakarta'));
@@ -360,15 +368,6 @@ class EmergencyRegistrationController extends Controller
             'notes' => $validated['notes'] ?? null,
             'responsible_party_name' => $validated['responsible_party_name'] ?? null,
         ];
-    }
-
-    private function generateMedicalRecordNumber(): string
-    {
-        do {
-            $mrn = 'RM-'.now()->format('ymd').'-'.Str::upper(Str::random(4));
-        } while (Patient::query()->where('medical_record_number', $mrn)->exists());
-
-        return $mrn;
     }
 
     /**

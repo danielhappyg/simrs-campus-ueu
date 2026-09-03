@@ -509,6 +509,10 @@ class OutpatientRecapController extends Controller
             return "'".$text;
         }
 
+        if (preg_match('/^[0-9]+$/', $text) === 1) {
+            return "'".$text;
+        }
+
         return $text;
     }
 
