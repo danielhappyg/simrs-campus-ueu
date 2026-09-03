@@ -863,7 +863,7 @@
     "src": "node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-vietnamese-700-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-Szif_dew.css",
+    "file": "assets/app-_LAQYf2V.css",
     "name": "app",
     "names": [
       "app.css"
@@ -872,7 +872,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-CSQNh9Qf.js",
+    "file": "assets/app-C64zQun7.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -1416,11 +1416,12 @@
     ]
   },
   "resources/js/pages/modules/placeholder.tsx": {
-    "file": "assets/placeholder-CHB9_JHf.js",
+    "file": "assets/placeholder-CoH8f74O.js",
     "name": "placeholder",
     "src": "resources/js/pages/modules/placeholder.tsx",
     "isDynamicEntry": true,
     "imports": [
+      "_rolldown-runtime-Bh1tDfsg.js",
       "_jsx-runtime-BpbW1mBX.js"
     ]
   },

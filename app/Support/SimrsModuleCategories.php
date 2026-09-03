@@ -31,10 +31,19 @@ final class SimrsModuleCategories
      * @var array<string, string>
      */
     public const DEDICATED_HREFS = [
-        'pendaftaran' => '/pendaftaran/rawat-jalan',
-        'pemeriksaan' => '/pemeriksaan/rawat-jalan',
-        'rm' => '/rm/rawat-jalan',
-        'kasir' => '/kasir/tagihan',
+        'pendaftaran' => '/modul/pendaftaran',
+        'pemeriksaan' => '/modul/pemeriksaan',
+        'rm' => '/modul/rm',
+        'klaim' => '/modul/klaim',
+        'laporan' => '/modul/laporan',
+        'bpjs' => '/modul/bpjs',
+        'apotek' => '/modul/apotek',
+        'gf' => '/modul/gf',
+        'kasir' => '/modul/kasir',
+        'manajemen-data' => '/modul/manajemen-data',
+        'iot' => '/modul/iot',
+        'farmasi-ibs' => '/modul/farmasi-ibs',
+        'help' => '/modul/help',
     ];
 
     /**

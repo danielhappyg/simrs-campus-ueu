@@ -14,9 +14,8 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { useCurrentUrl } from '@/hooks/use-current-url';
 import {
-    isLiveModule,
+    isActiveModule,
     moduleHref,
     SIMRS_MODULE_CATEGORIES,
 } from '@/lib/simrs-modules';
@@ -24,22 +23,31 @@ import { cn } from '@/lib/utils';
 
 function NavLink({
     href,
+    slug,
     children,
     onNavigate,
 }: {
     href: string;
+    slug?: string;
     children: ReactNode;
     onNavigate?: () => void;
 }) {
-    const { isCurrentOrParentUrl } = useCurrentUrl();
-    const active = isCurrentOrParentUrl(href);
+    const pathname = new URL(
+        usePage().url,
+        typeof window !== 'undefined'
+            ? window.location.origin
+            : 'http://localhost',
+    ).pathname;
+    const active = slug
+        ? isActiveModule(slug, pathname)
+        : pathname === href;
 
     return (
         <Link
             href={href}
             prefetch
             onClick={onNavigate}
-            aria-current={active ? 'page' : undefined}
+            aria-current={active && href !== '/' ? 'page' : undefined}
             className={cn(
                 'rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none',
                 active
@@ -52,37 +60,9 @@ function NavLink({
     );
 }
 
-function SoonModuleLabel({ label }: { label: string }) {
-    return (
-        <span
-            title="Modul berikutnya — belum aktif di demo"
-            className="inline-flex cursor-default items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap text-sky-100/45"
-            aria-disabled="true"
-        >
-            {label}
-            <span
-                className="text-[0.6875rem] font-medium tracking-wide text-sky-100/40"
-                aria-label="Belum tersedia"
-            >
-                Soon
-            </span>
-        </span>
-    );
-}
-
 export function AppHeader() {
     const [mobileOpen, setMobileOpen] = useState(false);
     const closeMobile = () => setMobileOpen(false);
-    const capabilities =
-        (usePage().props.auth as { capabilities?: string[] }).capabilities ??
-        [];
-
-    const liveModules = SIMRS_MODULE_CATEGORIES.filter((category) =>
-        isLiveModule(category.slug, capabilities),
-    );
-    const soonModules = SIMRS_MODULE_CATEGORIES.filter(
-        (category) => !isLiveModule(category.slug, capabilities),
-    );
 
     return (
         <header className="sticky top-0 z-40 border-b border-[#1b4a73] bg-[#0d2b4a] text-white">
@@ -109,8 +89,9 @@ export function AppHeader() {
                                     Navigasi utama
                                 </SheetTitle>
                                 <SheetDescription className="text-sky-100/80">
-                                    Modul aktif mengikuti izin akun Anda. Modul
-                                    lainnya ditandai Soon (belum bisa dibuka).
+                                    Setiap modul membuka peta menu Sahabat.
+                                    Fungsi operasional hanya ada pada menu yang
+                                    bertanda bisa dipakai.
                                 </SheetDescription>
                             </SheetHeader>
                             <nav
@@ -120,26 +101,15 @@ export function AppHeader() {
                                 <NavLink href="/" onNavigate={closeMobile}>
                                     Beranda
                                 </NavLink>
-                                {liveModules.map((category) => (
+                                {SIMRS_MODULE_CATEGORIES.map((category) => (
                                     <NavLink
                                         key={category.slug}
-                                        href={moduleHref(
-                                            category.slug,
-                                            capabilities,
-                                        )}
+                                        href={moduleHref(category.slug)}
+                                        slug={category.slug}
                                         onNavigate={closeMobile}
                                     >
                                         {category.label}
                                     </NavLink>
-                                ))}
-                                <p className="mt-3 mb-1 px-2.5 text-[0.6875rem] font-medium tracking-wide text-sky-100/40 uppercase">
-                                    Modul berikutnya
-                                </p>
-                                {soonModules.map((category) => (
-                                    <SoonModuleLabel
-                                        key={category.slug}
-                                        label={category.label}
-                                    />
                                 ))}
                             </nav>
                         </SheetContent>
@@ -159,23 +129,14 @@ export function AppHeader() {
                     className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex"
                 >
                     <NavLink href="/">Beranda</NavLink>
-                    {liveModules.map((category) => (
+                    {SIMRS_MODULE_CATEGORIES.map((category) => (
                         <NavLink
                             key={category.slug}
-                            href={moduleHref(category.slug, capabilities)}
+                            href={moduleHref(category.slug)}
+                            slug={category.slug}
                         >
                             {category.label}
                         </NavLink>
-                    ))}
-                    <span
-                        className="mx-1 h-4 w-px shrink-0 bg-white/15"
-                        aria-hidden
-                    />
-                    {soonModules.map((category) => (
-                        <SoonModuleLabel
-                            key={category.slug}
-                            label={category.label}
-                        />
                     ))}
                 </nav>
 

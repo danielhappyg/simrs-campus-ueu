@@ -508,8 +508,9 @@ Route::middleware(['simulation'])->group(function (): void {
             ->whereUlid('correctionRequest')
             ->name('rm.rawat-inap.summary-addenda.signoff');
 
-        Route::get('/modul/{category}', ModulePlaceholderController::class)
+        Route::get('/modul/{category}/{item?}', ModulePlaceholderController::class)
             ->whereIn('category', SimrsModuleCategories::slugs())
+            ->where('item', '[a-z0-9-]+')
             ->name('modules.placeholder');
     });
 });

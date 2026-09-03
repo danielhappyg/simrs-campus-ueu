@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Support\SimrsModuleCategories;
+use App\Support\SimrsSahabatMenuCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -18,17 +19,44 @@ class ModulePlaceholderTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_users_see_module_placeholder(): void
+    public function test_authenticated_users_see_the_sahabat_menu_landing(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->get(route('modules.placeholder', ['category' => 'pendaftaran']))
+            ->get(route('modules.placeholder', ['category' => 'rm']))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('modules/placeholder')
-                ->where('category', 'pendaftaran')
-                ->where('categoryLabel', 'Pendaftaran'));
+                ->where('category', 'rm')
+                ->where('categoryLabel', 'RM')
+                ->has('menus', 7)
+                ->where('selected', null)
+                ->where('menus.0.label', 'Rawat Jalan')
+                ->where('menus.2.label', 'Monitor Klaim')
+                ->where('menus.3.label', 'Filing'));
+    }
+
+    public function test_visual_menu_item_opens_a_non_operational_shell(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('modules.placeholder', ['category' => 'rm', 'item' => 'rm-filing']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('modules/placeholder')
+                ->where('selected.label', 'Filing')
+                ->where('selected.status', 'visual'));
+    }
+
+    public function test_live_menu_item_redirects_to_the_operational_screen(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('modules.placeholder', ['category' => 'rm', 'item' => 'rm-rawatjalan']))
+            ->assertRedirect('/rm/rawat-jalan');
     }
 
     public function test_unknown_category_returns_not_found(): void
@@ -40,9 +68,35 @@ class ModulePlaceholderTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_all_allowlisted_categories_resolve(): void
+    public function test_unknown_item_returns_not_found(): void
     {
         $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/modul/rm/bukan-menu')
+            ->assertNotFound();
+    }
+
+    public function test_all_allowlisted_categories_resolve_with_the_sahabat_count(): void
+    {
+        $user = User::factory()->create();
+        $expectedCounts = [
+            'pendaftaran' => 5,
+            'pemeriksaan' => 20,
+            'rm' => 7,
+            'klaim' => 6,
+            'laporan' => 117,
+            'bpjs' => 2,
+            'apotek' => 20,
+            'gf' => 23,
+            'kasir' => 19,
+            'manajemen-data' => 46,
+            'iot' => 1,
+            'farmasi-ibs' => 1,
+            'help' => 1,
+        ];
+
+        $this->assertSame(268, collect(SimrsSahabatMenuCatalog::menusByCategory())->flatten(1)->count());
 
         foreach (SimrsModuleCategories::CATEGORIES as $slug => $label) {
             $this->actingAs($user)
@@ -51,7 +105,8 @@ class ModulePlaceholderTest extends TestCase
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('modules/placeholder')
                     ->where('category', $slug)
-                    ->where('categoryLabel', $label));
+                    ->where('categoryLabel', $label)
+                    ->has('menus', $expectedCounts[$slug]));
         }
     }
 }
