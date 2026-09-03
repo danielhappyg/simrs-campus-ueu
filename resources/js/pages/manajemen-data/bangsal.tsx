@@ -117,27 +117,15 @@ export default function ManajemenDataBangsal({
                 aria-busy={loading || undefined}
             >
                 <nav
-                    aria-label="Rawat inap"
+                    aria-label="Manajemen data"
                     className="flex flex-wrap gap-1 rounded-lg border border-[#e2e8f0] bg-white p-1"
                 >
-                    <Link
-                        href="/pendaftaran/rawat-inap"
-                        className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
-                    >
-                        Pendaftaran RI
-                    </Link>
-                    <Link
-                        href="/pemeriksaan/rawat-inap"
-                        className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
-                    >
-                        Pemeriksaan RI
-                    </Link>
                     <Link
                         href="/manajemen-data/bangsal"
                         aria-current="page"
                         className="inline-flex min-h-11 items-center rounded-md bg-[#123b63] px-3 text-sm font-medium text-white"
                     >
-                        Ketersediaan TT
+                        Bangsal & Tempat Tidur
                     </Link>
                     <Link
                         href="/manajemen-data/laboratorium"
