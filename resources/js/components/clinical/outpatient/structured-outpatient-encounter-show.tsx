@@ -261,10 +261,9 @@ export default function StructuredOutpatientEncounterShow({
                             key={label}
                             type="button"
                             disabled
-                            title="Belum tersedia pada tahap ini"
                             className="min-h-11 px-3 text-sm text-muted-foreground opacity-50"
                         >
-                            {label} · Soon
+                            {label}
                         </button>
                     ))}
                 </nav>

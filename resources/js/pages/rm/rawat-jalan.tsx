@@ -210,7 +210,7 @@ export default function RmRawatJalan({
                                 disabled
                                 className="accent-[#1b75bc]"
                             />
-                            Semua cara masuk · stub
+                            Semua cara masuk
                         </label>
                         <label className="inline-flex items-center gap-1.5 opacity-70">
                             <input
@@ -218,7 +218,7 @@ export default function RmRawatJalan({
                                 disabled
                                 className="accent-[#1b75bc]"
                             />
-                            Semua status klaim · stub
+                            Semua status klaim
                         </label>
                         <label className="inline-flex items-center gap-1.5">
                             <input
@@ -228,9 +228,6 @@ export default function RmRawatJalan({
                                 className="accent-[#1b75bc]"
                             />
                             Tampilkan pasien batal
-                            <span className="text-[0.65rem] text-[#94a3b8]">
-                                · stub
-                            </span>
                         </label>
                     </div>
                 </form>

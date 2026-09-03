@@ -1,5 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import { Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { resolveMenuIcon } from '@/lib/simrs-menu-icon';
 import type { BreadcrumbItem } from '@/types';
 
 type MenuItem = {
@@ -16,31 +18,6 @@ type Props = {
     menus: MenuItem[];
     selected: MenuItem | null;
 };
-
-const tileAccents = [
-    'bg-[#123b63]',
-    'bg-[#1b75bc]',
-    'bg-[#0f766e]',
-    'bg-[#c2410c]',
-    'bg-[#3d7cb2]',
-    'bg-[#0d2b4a]',
-] as const;
-
-function statusLabel(status: MenuItem['status']): string {
-    switch (status) {
-        case 'live':
-            return 'Bisa dipakai';
-        case 'consolidated':
-            return 'Mengikuti menu terkait';
-        case 'visual':
-            return 'Menu saja';
-        default: {
-            const exhaustive: never = status;
-
-            return exhaustive;
-        }
-    }
-}
 
 export default function ModulePlaceholder({
     category,
@@ -74,49 +51,34 @@ export default function ModulePlaceholder({
             />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-5 px-3 py-5 md:px-5">
-                <header className="flex flex-wrap items-end justify-between gap-3">
+                <header className="flex flex-wrap items-end justify-between gap-3 border-b border-[#e2e8f0] pb-4">
                     <div>
-                        <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-[#1b75bc] uppercase">
-                            {categoryLabel}
-                        </p>
-                        <h1 className="mt-1 text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
-                            Pilih menu
+                        <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
+                            {selected?.label ?? categoryLabel}
                         </h1>
-                        <p className="mt-1 max-w-2xl text-sm text-[#64748b]">
-                            Susunan menu mengikuti SIMRS Sahabat. Menu bertanda
-                            “Bisa dipakai” membuka fungsi yang sudah ada. Menu
-                            lain ditampilkan visual saja — fungsinya belum
-                            diimplementasikan.
+                        <p className="mt-1 text-sm text-[#64748b]">
+                            {selected
+                                ? categoryLabel
+                                : `${menus.length} menu`}
                         </p>
                     </div>
-                    <p className="text-xs text-[#64748b]">
-                        {menus.length} menu
-                    </p>
                 </header>
 
-                {selected ? (
-                    <div
-                        role="status"
-                        className="rounded-xl border border-[#fed7aa] bg-[#fff7ed] px-4 py-3 text-sm text-[#9a3412]"
-                    >
-                        <p className="font-semibold">{selected.label}</p>
-                        <p className="mt-1">
-                            Menu ini sudah dicatat dari Sahabat. Fungsi
-                            operasional belum diimplementasikan. Tidak ada data
-                            yang bisa diubah di sini.
-                        </p>
-                    </div>
-                ) : null}
-
-                <label className="grid max-w-md gap-1 text-xs font-medium tracking-wide text-[#64748b] uppercase">
+                <label className="relative grid max-w-md gap-1 text-xs font-medium tracking-wide text-[#64748b] uppercase">
                     Pencarian menu
-                    <input
-                        type="search"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Pencarian Menu..."
-                        className="border-input min-h-11 rounded-md border bg-white px-3 text-sm font-normal tracking-normal text-[#0f172a] shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30"
-                    />
+                    <span className="relative">
+                        <Search
+                            aria-hidden
+                            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#94a3b8]"
+                        />
+                        <input
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Pencarian Menu..."
+                            className="border-input min-h-11 w-full rounded-md border bg-white pr-3 pl-10 text-sm font-normal tracking-normal text-[#0f172a] shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30"
+                        />
+                    </span>
                 </label>
 
                 {filtered.length === 0 ? (
@@ -125,11 +87,15 @@ export default function ModulePlaceholder({
                     </p>
                 ) : (
                     <ul
-                        className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                        className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
                         aria-label={`Menu ${categoryLabel}`}
                     >
-                        {filtered.map((menu, index) => {
+                        {filtered.map((menu) => {
                             const isSelected = selected?.slug === menu.slug;
+                            const { icon: Icon, tone } = resolveMenuIcon(
+                                menu.label,
+                                menu.slug,
+                            );
 
                             return (
                                 <li key={menu.slug}>
@@ -138,23 +104,23 @@ export default function ModulePlaceholder({
                                         aria-current={
                                             isSelected ? 'page' : undefined
                                         }
-                                        className={`flex min-h-[9.5rem] flex-col items-center justify-center gap-3 rounded-xl border bg-white px-3 py-4 text-center shadow-sm transition-colors hover:border-[#1b75bc] hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none ${
+                                        className={`group flex min-h-[8.75rem] flex-col items-stretch gap-3 rounded-2xl border bg-white px-3.5 py-4 transition-[transform,box-shadow,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-[#1b75bc]/55 hover:bg-[#f8fbff] hover:shadow-[0_10px_24px_-16px_rgba(18,59,99,0.45)] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none ${
                                             isSelected
-                                                ? 'border-[#1b75bc] ring-2 ring-[#1b75bc]/30'
-                                                : 'border-[#e2e8f0]'
+                                                ? 'border-[#1b75bc] shadow-[0_10px_24px_-16px_rgba(27,117,188,0.55)] ring-2 ring-[#1b75bc]/25'
+                                                : 'border-[#e2e8f0] shadow-[0_1px_2px_rgba(15,23,42,0.04)]'
                                         }`}
                                     >
                                         <span
-                                            className={`grid size-14 place-items-center rounded-full text-lg font-semibold text-white ${tileAccents[index % tileAccents.length]}`}
+                                            className={`grid size-12 place-items-center rounded-2xl ${tone.plate} ${tone.ink} transition-transform duration-200 ease-out group-hover:scale-[1.04]`}
                                             aria-hidden
                                         >
-                                            {menu.label.slice(0, 1)}
+                                            <Icon
+                                                className="size-[1.35rem] stroke-[1.75]"
+                                                absoluteStrokeWidth
+                                            />
                                         </span>
-                                        <span className="text-sm font-medium text-[#0f172a]">
+                                        <span className="line-clamp-2 text-left text-[0.8125rem] leading-snug font-semibold text-[#0f172a]">
                                             {menu.label}
-                                        </span>
-                                        <span className="text-[0.7rem] text-[#64748b]">
-                                            {statusLabel(menu.status)}
                                         </span>
                                     </Link>
                                 </li>

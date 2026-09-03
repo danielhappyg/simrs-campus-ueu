@@ -583,7 +583,7 @@ describe('T1 operational pages accessibility', () => {
             }
 
             expect(
-                screen.getByRole('tab', { name: /Diagnosa.*stub/ }),
+                screen.getByRole('tab', { name: 'Diagnosa' }),
             ).toBeDisabled();
 
             await expectNoWcag21Violations(container);

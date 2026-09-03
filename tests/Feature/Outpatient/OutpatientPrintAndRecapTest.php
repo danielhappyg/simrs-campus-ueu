@@ -69,11 +69,11 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs=bukti,sep,antrian');
 
         $response->assertOk();
-        $response->assertSee('Dokumen pengajaran', false);
         $response->assertSee('Bukti pendaftaran', false);
-        $response->assertSee('SEP pengajaran', false);
-        $response->assertSee('Tidak dikirim ke VClaim', false);
+        $response->assertSee('Surat Eligibilitas Peserta (SEP)', false);
         $response->assertSee('SIM-SEP-', false);
+        $response->assertDontSee('Dokumen pengajaran', false);
+        $response->assertDontSee('Tidak dikirim ke VClaim', false);
         $response->assertSee('Perempuan', false);
         $response->assertSee('Islam', false);
         $response->assertSee('Kawin', false);
@@ -741,7 +741,7 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs=consent');
 
         $response->assertOk();
-        $response->assertSee('Dokumen pengajaran', false);
+        $response->assertDontSee('Dokumen pengajaran', false);
         $response->assertSee('GENERAL CONSENT', false);
         $response->assertSee('Persetujuan Umum', false);
         $response->assertSee('HAK DAN KEWAJIBAN SEBAGAI PASIEN', false);

@@ -306,8 +306,9 @@ class ContinuousOutpatientTeachingJourneyTest extends TestCase
         $this->actingAs($registrar)
             ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs=bukti,antrian')
             ->assertOk()
-            ->assertSee('Dokumen pengajaran', false)
-            ->assertSee('data sintetis', false)
+            ->assertSee('Bukti pendaftaran', false)
+            ->assertDontSee('Dokumen pengajaran', false)
+            ->assertDontSee('data sintetis', false)
             ->assertSee($patient->full_name, false)
             ->assertSee($patient->medical_record_number, false)
             ->assertSee($encounter->public_id, false);

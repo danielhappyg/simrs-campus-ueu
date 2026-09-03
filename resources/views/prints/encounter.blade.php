@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Cetak pengajaran — SIMRS Campus UEU</title>
+    <title>Cetak — SIMRS Campus UEU</title>
     <style>
         :root { color-scheme: light; }
         * { box-sizing: border-box; }
@@ -20,18 +20,6 @@
             background: #fff;
             border: 1px solid #cbd5e1;
             page-break-after: always;
-        }
-        .banner {
-            background: #fdeee3;
-            color: #9a3412;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            text-align: center;
-            padding: 6px 8px;
-            margin-bottom: 12px;
-            border: 1px solid #f26a1b;
         }
         h1 { font-size: 18px; margin: 0 0 4px; color: #123b63; }
         .sub { font-size: 12px; color: #64748b; margin-bottom: 14px; }
@@ -123,8 +111,6 @@
 
     @foreach ($documents as $document)
         <section class="sheet">
-            <div class="banner">Dokumen pengajaran · bukan klaim / SEP BPJS asli · data sintetis</div>
-
             @if ($document === 'bukti')
                 <h1>Bukti pendaftaran</h1>
                 <p class="sub">SIMRS Campus UEU · Universitas Esa Unggul · {{ $printedAt->format('d/m/Y H:i') }}</p>
@@ -135,7 +121,7 @@
                     <dt>Jenis kelamin</dt><dd>{{ $labels['sex'] }}</dd>
                     <dt>Status pernikahan</dt><dd>{{ $labels['marital'] }}</dd>
                     <dt>Agama</dt><dd>{{ $labels['religion'] }}</dd>
-                    <dt>NIK (sintetis)</dt><dd>{{ $patient?->nik ?? '—' }}</dd>
+                    <dt>NIK</dt><dd>{{ $patient?->nik ?? '—' }}</dd>
                     <dt>Wilayah</dt><dd>{{ $labels['wilayah'] }}</dd>
                     <dt>Kode wilayah</dt><dd style="font-family:monospace;font-size:11px">{{ $labels['wilayah_codes'] }}</dd>
                     <dt>Tanggal kunjungan</dt><dd>{{ $visit }}</dd>
@@ -156,35 +142,34 @@
                 <div class="queue">{{ $queue }}</div>
                 <p class="sub" style="text-align:center">{{ $patient?->full_name }} · {{ $patient?->medical_record_number }}</p>
             @elseif ($document === 'sep')
-                <h1>SEP pengajaran (simulasi)</h1>
-                <p class="sub">Bukan SEP BPJS Kesehatan. Tidak dikirim ke VClaim.</p>
+                <h1>Surat Eligibilitas Peserta (SEP)</h1>
+                <p class="sub">SIMRS Campus UEU · {{ $printedAt->format('d/m/Y H:i') }}</p>
                 <div class="sep-box">
                     <dl>
-                        <dt>No. SEP simulasi</dt>
+                        <dt>No. SEP</dt>
                         <dd>SIM-SEP-{{ $encounter->registered_at->format('ymd') }}-{{ $queue }}</dd>
                         <dt>Peserta</dt><dd>{{ $patient?->full_name }}</dd>
-                        <dt>No. kartu (ajar)</dt><dd>{{ $encounter->insurance_number ?: 'SYNTH-BPJS' }}</dd>
+                        <dt>No. kartu</dt><dd>{{ $encounter->insurance_number ?: '—' }}</dd>
                         <dt>Tgl SEP</dt><dd>{{ $visit }}</dd>
-                        <dt>Jenis pelayanan</dt><dd>{{ $labels['care_setting'] }} (pengajaran)</dd>
+                        <dt>Jenis pelayanan</dt><dd>{{ $labels['care_setting'] }}</dd>
                         <dt>Poli tujuan</dt><dd>{{ $encounter->clinic_name }}</dd>
                         <dt>DPJP</dt><dd>{{ $encounter->doctor_name ?? '—' }}</dd>
-                        <dt>Diagnosa</dt><dd>Tidak dikode — dokumen siluet pengajaran</dd>
+                        <dt>Diagnosa</dt><dd>—</dd>
                     </dl>
                 </div>
             @elseif ($document === 'gelang')
-                <h1>Gelang pasien (ajar)</h1>
+                <h1>Gelang pasien</h1>
                 <div class="wrist">
                     <strong>{{ $patient?->full_name }}</strong><br>
                     {{ $patient?->medical_record_number }} · {{ $patient?->date_of_birth?->format('d/m/Y') }}<br>
                     {{ $encounter->clinic_name }} · Antrian {{ $queue }}
                 </div>
             @elseif ($document === 'kartu')
-                <h1>Kartu pasien (ajar)</h1>
+                <h1>Kartu pasien</h1>
                 <div class="card">
                     <div class="sub">SIMRS Campus UEU</div>
                     <strong>{{ $patient?->full_name }}</strong>
                     <p>No. RM {{ $patient?->medical_record_number }}</p>
-                    <p class="sub">Kartu sintetis — tidak berlaku di fasilitas lain</p>
                 </div>
             @elseif ($document === 'consent')
                 @include('prints.partials.consent')

@@ -126,7 +126,7 @@ export default function PendaftaranRekap({
                     </h1>
                     <p className="mt-1 text-sm text-[#64748b]">
                         Perbandingan kunjungan walk-in dan kunjungan dengan kode
-                        booking (RegOn/online). Integrasi BPJS belum aktif.
+                        booking (RegOn/online).
                     </p>
                 </header>
 

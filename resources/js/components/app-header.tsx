@@ -4,7 +4,6 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import AppLogo from '@/components/app-logo';
 import { AppUserMenu } from '@/components/app-user-menu';
-import { SimulationBoundary } from '@/components/simulation-boundary';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -89,9 +88,7 @@ export function AppHeader() {
                                     Navigasi utama
                                 </SheetTitle>
                                 <SheetDescription className="text-sky-100/80">
-                                    Setiap modul membuka peta menu Sahabat.
-                                    Fungsi operasional hanya ada pada menu yang
-                                    bertanda bisa dipakai.
+                                    Pilih modul untuk membuka menu terkait.
                                 </SheetDescription>
                             </SheetHeader>
                             <nav
@@ -141,7 +138,6 @@ export function AppHeader() {
                 </nav>
 
                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                    <SimulationBoundary />
                     <AppUserMenu />
                 </div>
             </div>

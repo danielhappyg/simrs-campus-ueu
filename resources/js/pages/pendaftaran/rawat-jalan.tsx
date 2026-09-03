@@ -513,11 +513,9 @@ function ActionStub({ label }: { label: string }) {
         <button
             type="button"
             disabled
-            title="Belum tersedia"
             className="inline-flex h-8 items-center rounded-md border border-[#c5d9eb] bg-[#f8fbfe] px-2.5 text-xs font-medium text-[#64748b] opacity-70"
         >
             {label}
-            <span className="ml-1.5 text-[0.65rem] text-[#94a3b8]">· stub</span>
         </button>
     );
 }
@@ -2102,7 +2100,6 @@ export default function PendaftaranRawatJalan({
                                                 <button
                                                     type="button"
                                                     disabled
-                                                    title="Integrasi BPJS belum aktif"
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
                                                     Cek
@@ -2110,7 +2107,6 @@ export default function PendaftaranRawatJalan({
                                                 <button
                                                     type="button"
                                                     disabled
-                                                    title="Biometrik belum tersedia"
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
                                                     FR
@@ -2118,7 +2114,6 @@ export default function PendaftaranRawatJalan({
                                                 <button
                                                     type="button"
                                                     disabled
-                                                    title="Biometrik belum tersedia"
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
                                                     FP
@@ -2181,10 +2176,6 @@ export default function PendaftaranRawatJalan({
                                           ['fastTrack', 'Fast track'],
                                       ] as const)
                                 ).map(([key, label]) => {
-                                    const printable = (
-                                        PRINTABLE_FLAGS as readonly string[]
-                                    ).includes(key);
-
                                     return (
                                         <label
                                             key={key}
@@ -2214,11 +2205,6 @@ export default function PendaftaranRawatJalan({
                                                 className="accent-[#1b75bc]"
                                             />
                                             {label}
-                                            {printable ? null : (
-                                                <span className="text-[0.65rem] text-[#94a3b8]">
-                                                    stub
-                                                </span>
-                                            )}
                                         </label>
                                     );
                                 })}
@@ -2230,7 +2216,7 @@ export default function PendaftaranRawatJalan({
                                         disabled={!printTargetId}
                                         title={
                                             printTargetId
-                                                ? 'Buka bukti/SEP pengajaran (bukan BPJS asli)'
+                                                ? 'Cetak bukti pendaftaran'
                                                 : 'Simpan pendaftaran dulu, atau pilih Cetak di daftar hari ini'
                                         }
                                         onClick={() => {

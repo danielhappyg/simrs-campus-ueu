@@ -452,9 +452,6 @@ export default function PemeriksaanRawatJalanIndex({
                                         className="accent-[#1b75bc]"
                                     />
                                     Tampilkan pasien iterasi
-                                    <span className="text-[0.65rem] text-[#94a3b8]">
-                                        · stub
-                                    </span>
                                 </label>
                                 <label className="inline-flex items-center gap-1.5">
                                     <input
@@ -466,9 +463,6 @@ export default function PemeriksaanRawatJalanIndex({
                                         className="accent-[#1b75bc]"
                                     />
                                     Tampilkan pasien konsul internal
-                                    <span className="text-[0.65rem] text-[#94a3b8]">
-                                        · stub
-                                    </span>
                                 </label>
                             </>
                         ) : null}
@@ -480,9 +474,6 @@ export default function PemeriksaanRawatJalanIndex({
                                 className="accent-[#1b75bc]"
                             />
                             Tampilkan pasien batal
-                            <span className="text-[0.65rem] text-[#94a3b8]">
-                                · stub
-                            </span>
                         </label>
                     </div>
                 </form>

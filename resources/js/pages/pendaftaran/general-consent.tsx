@@ -235,10 +235,6 @@ export default function GeneralConsentPage({
                     </div>
 
                     <article className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
-                        <div className="mb-4 rounded-md border border-[#f26a1b] bg-[#fdeee3] px-3 py-2 text-center text-[0.7rem] font-bold tracking-wide text-[#9a3412] uppercase">
-                            Dokumen pengajaran · data sintetis · bukan TTE
-                            tersertifikasi
-                        </div>
                         <div className="text-sm font-bold text-[#123b63]">
                             {form.hospital_name}
                         </div>

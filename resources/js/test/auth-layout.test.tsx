@@ -47,9 +47,10 @@ describe('authentication layout', () => {
             }),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('note', {
+            screen.queryByRole('note', {
                 name: 'Status operasional sistem',
             }),
-        ).toHaveTextContent('Mode Kampus');
+        ).not.toBeInTheDocument();
+        expect(screen.queryByText('Mode Kampus')).not.toBeInTheDocument();
     });
 });

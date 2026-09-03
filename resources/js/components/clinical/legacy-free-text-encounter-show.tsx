@@ -394,13 +394,9 @@ export default function LegacyFreeTextEncounterShow({
                                     key={label}
                                     type="button"
                                     disabled
-                                    title="Belum tersedia"
                                     className="inline-flex h-8 items-center rounded-md border border-[#c5d9eb] bg-[#f8fbfe] px-2.5 text-xs font-medium text-[#64748b] opacity-70"
                                 >
                                     {label}
-                                    <span className="ml-1.5 text-[0.65rem] text-[#94a3b8]">
-                                        · stub
-                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -498,18 +494,8 @@ export default function LegacyFreeTextEncounterShow({
                                         : 'text-[#64748b]',
                                     !live && 'cursor-not-allowed opacity-50',
                                 )}
-                                title={
-                                    live
-                                        ? undefined
-                                        : 'Tab klinis lanjutan belum tersedia'
-                                }
                             >
                                 {tab}
-                                {!live ? (
-                                    <span className="ml-1 text-[0.6rem] text-[#94a3b8]">
-                                        stub
-                                    </span>
-                                ) : null}
                             </button>
                         );
                     })}

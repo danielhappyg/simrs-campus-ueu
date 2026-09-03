@@ -61,12 +61,13 @@ describe('application header navigation', () => {
         render(<AppHeader />);
 
         expect(
-            screen.getByRole('note', {
+            screen.queryByRole('note', {
                 name: 'Status operasional sistem',
             }),
-        ).toHaveTextContent('Mode Kampus');
+        ).not.toBeInTheDocument();
 
         expect(screen.queryByText('Soon')).not.toBeInTheDocument();
+        expect(screen.queryByText('Mode Kampus')).not.toBeInTheDocument();
 
         for (const category of SIMRS_MODULE_CATEGORIES) {
             const links = screen.getAllByRole('link', {

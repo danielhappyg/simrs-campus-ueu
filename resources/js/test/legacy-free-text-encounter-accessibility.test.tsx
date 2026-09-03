@@ -197,7 +197,7 @@ describe('legacy free-text encounter accessibility', () => {
         const assessmentTab = screen.getByRole('tab', { name: 'Asesmen' });
         const labTab = screen.getByRole('tab', { name: 'Order Lab' });
         const diagnosisStub = screen.getByRole('tab', {
-            name: /Diagnosa.*stub/,
+            name: 'Diagnosa',
         });
 
         expect(assessmentTab).toHaveAttribute('aria-selected', 'true');
