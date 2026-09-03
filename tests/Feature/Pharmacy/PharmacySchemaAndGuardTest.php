@@ -46,12 +46,12 @@ final class PharmacySchemaAndGuardTest extends TestCase
 
         foreach (['update', 'delete'] as $operation) {
             try {
-                PharmacyMutationScope::run(function () use ($version, $operation): void {
+                DB::transaction(fn () => PharmacyMutationScope::run(function () use ($version, $operation): void {
                     $query = DB::table((new PharmacyMedicineVersion)->getTable())->where('id', $version->id);
                     $operation === 'update'
                         ? $query->update(['generic_name' => 'Tampered'])
                         : $query->delete();
-                });
+                }));
                 $this->fail('Expected append-only database refusal.');
             } catch (QueryException $exception) {
                 $this->assertStringContainsString('pharmacy append-only evidence is immutable', $exception->getMessage());

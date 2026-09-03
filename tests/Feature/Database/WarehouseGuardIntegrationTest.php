@@ -131,15 +131,13 @@ final class WarehouseGuardIntegrationTest extends TestCase
         ]);
         $preopened = DB::connection('warehouse_guard_preopened');
         $preopened->getPdo();
+        $preopened->statement('CREATE TABLE warehouse_suppliers (id INTEGER PRIMARY KEY, display_name TEXT NOT NULL)');
 
         $provider = new AppServiceProvider(app());
         $register = new ReflectionMethod($provider, 'configureWarehouseSqlWriteGuard');
         $register->setAccessible(true);
         $register->invoke($provider);
 
-        WarehouseSchemaMutationScope::run(
-            fn () => $preopened->statement('CREATE TABLE warehouse_suppliers (id INTEGER PRIMARY KEY, display_name TEXT NOT NULL)'),
-        );
         $this->expectLogicException(
             fn () => $preopened->insert("INSERT INTO warehouse_suppliers (id, display_name) VALUES (1, 'outside')"),
         );

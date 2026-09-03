@@ -212,9 +212,9 @@ class InpatientLocationBedVersionProvenanceTest extends TestCase
         ];
 
         try {
-            InpatientLocationMutationScope::run(
+            DB::transaction(fn (): bool => InpatientLocationMutationScope::run(
                 fn (): bool => DB::table(SchemaQualifier::table('inpatient_location_events'))->insert($invalid),
-            );
+            ));
             $this->fail('The database guard must reject a drifted exact-version digest.');
         } catch (QueryException $exception) {
             $this->assertStringContainsString('destination bed-version provenance does not resolve exactly', $exception->getMessage());

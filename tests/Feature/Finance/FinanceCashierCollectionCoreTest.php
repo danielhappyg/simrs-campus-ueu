@@ -108,13 +108,22 @@ final class FinanceCashierCollectionCoreTest extends TestCase
                 $this->assertGreaterThan(0, $recovery->invoke($snapshot));
                 DB::table('finance_cashier_collection_events')->where('id', $verifiedEvent->id)->update(['actor_user_id' => $verifiedEvent->actor_user_id]);
 
-                DB::table('finance_cashier_collection_events')->where('id', $verifiedEvent->id)->update(['variance_amount' => 1]);
+                $tamperedGross = $verifiedEvent->gross_amount + 1;
+                DB::table('finance_cashier_collection_events')->where('id', $verifiedEvent->id)->update([
+                    'gross_amount' => $tamperedGross,
+                    'expected_net_amount' => $tamperedGross - $verifiedEvent->completed_refund_amount,
+                    'counted_amount' => $tamperedGross - $verifiedEvent->completed_refund_amount,
+                ]);
                 $this->assertGreaterThan(0, $recovery->invoke($snapshot));
-                DB::table('finance_cashier_collection_events')->where('id', $verifiedEvent->id)->update(['variance_amount' => 0]);
+                DB::table('finance_cashier_collection_events')->where('id', $verifiedEvent->id)->update([
+                    'gross_amount' => $verifiedEvent->gross_amount,
+                    'expected_net_amount' => $verifiedEvent->expected_net_amount,
+                    'counted_amount' => $verifiedEvent->counted_amount,
+                ]);
 
                 $originalHandoff = DB::table('finance_cash_deposit_handoffs')->where('id', $handoffRecord->id)->first();
                 DB::table('finance_cash_deposit_handoffs')->where('id', $handoffRecord->id)->update([
-                    'expected_net_amount' => 1, 'supervisor_name_snapshot' => 'Substituted', 'content_digest' => str_repeat('f', 64),
+                    'supervisor_name_snapshot' => 'Substituted', 'content_digest' => str_repeat('f', 64),
                 ]);
                 $this->assertGreaterThan(0, $recovery->invoke($snapshot));
                 DB::table('finance_cash_deposit_handoffs')->where('id', $handoffRecord->id)->update((array) $originalHandoff);
@@ -217,7 +226,9 @@ final class FinanceCashierCollectionCoreTest extends TestCase
             $this->fail('Opening a collection batch must return its batch record.');
         }
         try {
-            FinanceMutationScope::run(fn () => DB::table('finance_cashier_collection_batches')->where('id', $batch->id)->update(['batch_number' => 'TAMPER']));
+            DB::transaction(fn () => FinanceMutationScope::run(
+                fn () => DB::table('finance_cashier_collection_batches')->where('id', $batch->id)->update(['batch_number' => 'TAMPER']),
+            ));
             $this->fail('Expected append-only trigger refusal.');
         } catch (QueryException $exception) {
             $this->assertNotSame('', $exception->getMessage());

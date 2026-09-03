@@ -17,6 +17,7 @@ use Database\Seeders\WilayahMinimalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use Tests\Support\ExactEngineTestFixture;
 use Tests\TestCase;
 
 class TeachingCensusSeederTest extends TestCase
@@ -61,10 +62,12 @@ class TeachingCensusSeederTest extends TestCase
             ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
             ->orderBy('id')
             ->firstOrFail();
-        InpatientLocationMutationScope::run(
-            fn () => DB::table('inpatient_location_events')
-                ->where('encounter_id', $legacyInpatient->id)
-                ->delete(),
+        ExactEngineTestFixture::runSyntheticResetDelete(
+            fn () => InpatientLocationMutationScope::run(
+                fn () => DB::table('inpatient_location_events')
+                    ->where('encounter_id', $legacyInpatient->id)
+                    ->delete(),
+            ),
         );
 
         $firstAssignments

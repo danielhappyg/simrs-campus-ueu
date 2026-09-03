@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Support\Audit\AuditEvent;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\CanonicalJson;
 use App\Support\Clinical\OutpatientPostClosureAmendmentService;
 use Database\Seeders\OutpatientMastersSeeder;
 use Database\Seeders\RbacSeeder;
@@ -44,7 +45,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
     {
         $requester = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
         [$encounter, $document] = $this->closedEncounterWithEvidence($requester);
-        $original = $document->getAttributes();
+        $original = $this->normalizedClinicalDocumentAttributes($document);
         $payload = $this->submitPayload($document, ['idempotency_key' => 'amend-submit-0001']);
 
         $this->actingAs($requester)
@@ -69,9 +70,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
 
         $this->assertDatabaseCount('outpatient_post_closure_amendment_requests', 1);
         $this->assertDatabaseCount('outpatient_amendment_operation_receipts', 1);
-        $current = $document->fresh()->getAttributes();
-        ksort($original);
-        ksort($current);
+        $current = $this->normalizedClinicalDocumentAttributes($document->fresh());
         $this->assertSame($original, $current);
         $this->assertSame(1, AuditEvent::query()
             ->where('action', 'clinical.outpatient.amendment.request.submit')
@@ -314,7 +313,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $requester = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
         $approver = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
         [$encounter, $document] = $this->closedEncounterWithEvidence($requester);
-        $original = $document->getAttributes();
+        $original = $this->normalizedClinicalDocumentAttributes($document);
         $amendment = $this->approvedRequest($requester, $approver, $encounter, $document, 'amend-addendum-normal');
         $this->actingAs($requester)
             ->get(route('pemeriksaan.rawat-jalan.show', $encounter))
@@ -373,9 +372,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $this->assertSame(4, OutpatientAmendmentOperationReceipt::query()->count());
         $this->assertSame(1, AuditEvent::query()->where('action', 'clinical.outpatient.amendment.addendum.write')->where('outcome', 'SUCCESS')->count());
         $this->assertSame(1, AuditEvent::query()->where('action', 'clinical.outpatient.amendment.addendum.finalize')->where('outcome', 'SUCCESS')->count());
-        $current = $document->fresh()->getAttributes();
-        ksort($original);
-        ksort($current);
+        $current = $this->normalizedClinicalDocumentAttributes($document->fresh());
         $this->assertSame($original, $current);
 
         $this->expectException(LogicException::class);
@@ -741,6 +738,20 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $user->roles()->sync([$role->id]);
 
         return $user;
+    }
+
+    /** @return array<string, mixed> */
+    private function normalizedClinicalDocumentAttributes(OutpatientClinicalDocument $document): array
+    {
+        $attributes = $document->getAttributes();
+        $fields = json_decode((string) $attributes['fields'], true, 512, JSON_THROW_ON_ERROR);
+        if (! is_array($fields)) {
+            throw new LogicException('Clinical document fields must decode to an array.');
+        }
+        $attributes['fields'] = json_decode(CanonicalJson::encode($fields), true, 512, JSON_THROW_ON_ERROR);
+        ksort($attributes);
+
+        return $attributes;
     }
 
     private function assertLogicException(callable $operation): void

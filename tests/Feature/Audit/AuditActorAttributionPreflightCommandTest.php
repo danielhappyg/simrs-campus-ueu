@@ -16,6 +16,8 @@ class AuditActorAttributionPreflightCommandTest extends TestCase
 {
     use DatabaseTruncation;
 
+    protected bool $recreateExactEngineDatabaseBeforeApplicationBoot = true;
+
     protected function setUp(): void
     {
         // These tests must exercise the command-owned transaction rather than

@@ -33,7 +33,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -70,9 +69,9 @@ final class FinanceRadiologyTariffBindingCoreTest extends TestCase
         $this->assertTrue(Schema::hasColumns('finance_charge_events', [
             'pharmacy_financial_source_event_id', 'finance_radiology_source_event_id',
         ]));
-        $columns = collect(DB::select('PRAGMA table_info(finance_charge_events)'))->keyBy('name');
-        $this->assertSame(0, (int) $columns['pharmacy_financial_source_event_id']->notnull);
-        $this->assertSame(0, (int) $columns['finance_radiology_source_event_id']->notnull);
+        $columns = collect(Schema::getColumns('finance_charge_events'))->keyBy('name');
+        $this->assertTrue($columns['pharmacy_financial_source_event_id']['nullable']);
+        $this->assertTrue($columns['finance_radiology_source_event_id']['nullable']);
         $this->assertContains('finance.radiology-tariff.view', Capability::all());
         $this->assertContains('finance.radiology-tariff.manage', Capability::all());
     }

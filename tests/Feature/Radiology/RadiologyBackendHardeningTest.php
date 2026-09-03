@@ -21,6 +21,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Concerns\FinalizesEmergencyInitialTriage;
+use Tests\Support\ExactEngineTestFixture;
 use Tests\TestCase;
 
 final class RadiologyBackendHardeningTest extends TestCase
@@ -105,10 +106,15 @@ final class RadiologyBackendHardeningTest extends TestCase
         $latest = $workflow->amendVerified($order->public_id, $radiologist, $first->version, 'ADDITIONAL_FINDING', 'Klarifikasi kedua.', 'hardening-chain-amend-2')->record;
         $this->assertSame(64, strlen(app(RadiologyEvidenceFingerprint::class)->current($latest)));
 
-        RadiologyMutationScope::run(fn () => DB::table('radiology_report_versions')->where('id', $first->id)->update(['content_digest' => str_repeat('0', 64)]));
-        $this->expectException(RadiologyDenied::class);
-        $this->expectExceptionMessage('Rantai bukti laporan tidak valid.');
-        app(RadiologyEvidenceFingerprint::class)->current($latest);
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['radiology_report_versions'],
+            function () use ($first, $latest): void {
+                RadiologyMutationScope::run(fn () => DB::table('radiology_report_versions')->where('id', $first->id)->update(['content_digest' => str_repeat('0', 64)]));
+                $this->expectException(RadiologyDenied::class);
+                $this->expectExceptionMessage('Rantai bukti laporan tidak valid.');
+                app(RadiologyEvidenceFingerprint::class)->current($latest);
+            },
+        );
     }
 
     public function test_order_snapshot_uses_the_exact_master_version_after_revision(): void
@@ -134,11 +140,16 @@ final class RadiologyBackendHardeningTest extends TestCase
         [$encounter, $order, $physician, $technologist, $radiologist] = $this->performedOrder();
         $workflow = app(RadiologyWorkflowService::class);
         $draft = $workflow->saveDraft($order->public_id, $radiologist, 0, 'Temuan asli.', 'Kesan asli.', null, 'hardening-corrupt-report')->record;
-        RadiologyMutationScope::run(fn () => DB::table('radiology_report_versions')->where('id', $draft->id)->update(['findings' => 'Temuan diubah.']));
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['radiology_report_versions'],
+            function () use ($draft, $workflow, $order, $radiologist): void {
+                RadiologyMutationScope::run(fn () => DB::table('radiology_report_versions')->where('id', $draft->id)->update(['findings' => 'Temuan diubah.']));
 
-        $this->expectException(RadiologyDenied::class);
-        $this->expectExceptionMessage('Digest hasil laporan tidak cocok.');
-        $workflow->saveDraft($order->public_id, $radiologist, 0, 'Temuan asli.', 'Kesan asli.', null, 'hardening-corrupt-report');
+                $this->expectException(RadiologyDenied::class);
+                $this->expectExceptionMessage('Digest hasil laporan tidak cocok.');
+                $workflow->saveDraft($order->public_id, $radiologist, 0, 'Temuan asli.', 'Kesan asli.', null, 'hardening-corrupt-report');
+            },
+        );
     }
 
     public function test_denials_are_audited_before_policy_and_input_checks(): void

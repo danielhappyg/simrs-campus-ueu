@@ -21,6 +21,8 @@ class AuditActorAttributionManifestCommandTest extends TestCase
 {
     use DatabaseTruncation;
 
+    protected bool $recreateExactEngineDatabaseBeforeApplicationBoot = true;
+
     private const COMMIT_SHA = '1111111111111111111111111111111111111111';
 
     private const TREE_SHA = '2222222222222222222222222222222222222222';

@@ -43,6 +43,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 use LogicException;
 use Mockery;
 use RuntimeException;
+use Tests\Support\ExactEngineTestFixture;
 use Tests\TestCase;
 
 class RoutineInpatientDischargeTest extends TestCase
@@ -196,16 +197,21 @@ class RoutineInpatientDischargeTest extends TestCase
         [$encounter, $summary] = $this->finalSummaryEncounter();
         $service = app(InpatientDischargeService::class);
         $service->execute($encounter->public_id, $this->physician, $summary->version, 1, $this->bed->public_id, 'DISCHARGE-REPLAY-BIND-1');
-        InpatientDischargeMutationScope::run(fn () => DB::table('inpatient_discharge_operation_receipts')->update([
-            'discharge_summary_provenance_digest' => str_repeat('0', 64),
-        ]));
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['inpatient_discharge_operation_receipts'],
+            function () use ($service, $encounter, $summary): void {
+                InpatientDischargeMutationScope::run(fn () => DB::table('inpatient_discharge_operation_receipts')->update([
+                    'discharge_summary_provenance_digest' => str_repeat('0', 64),
+                ]));
 
-        try {
-            $service->execute($encounter->public_id, $this->physician, $summary->version, 1, $this->bed->public_id, 'DISCHARGE-REPLAY-BIND-1');
-            $this->fail('Expected corrupt replay binding denial.');
-        } catch (InpatientDischargeDenied $denial) {
-            $this->assertSame('receipt_binding_invalid', $denial->reason);
-        }
+                try {
+                    $service->execute($encounter->public_id, $this->physician, $summary->version, 1, $this->bed->public_id, 'DISCHARGE-REPLAY-BIND-1');
+                    $this->fail('Expected corrupt replay binding denial.');
+                } catch (InpatientDischargeDenied $denial) {
+                    $this->assertSame('receipt_binding_invalid', $denial->reason);
+                }
+            },
+        );
     }
 
     public function test_exact_role_capability_and_idempotency_conflicts_are_enforced(): void

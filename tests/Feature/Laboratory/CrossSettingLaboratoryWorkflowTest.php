@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use LogicException;
 use Tests\Concerns\FinalizesEmergencyInitialTriage;
+use Tests\Support\ExactEngineTestFixture;
 use Tests\TestCase;
 
 final class CrossSettingLaboratoryWorkflowTest extends TestCase
@@ -160,10 +161,15 @@ final class CrossSettingLaboratoryWorkflowTest extends TestCase
         $workflow->receiveSpecimen($attempt->public_id, $tech, 'lab-integrity-receive-0001');
         $workflow->acceptSpecimen($attempt->public_id, $tech, 1, 'lab-integrity-accept-0001');
 
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_specimen_events')->where('laboratory_specimen_attempt_id', $attempt->id)->where('event_type', 'RECEIVED')->update(['event_type' => 'REJECTED', 'reason_code' => 'OTHER']));
-        $this->expectException(LaboratoryDenied::class);
-        $this->expectExceptionMessage('Rantai peristiwa spesimen tidak lengkap.');
-        app(LaboratoryEvidenceFingerprint::class)->verifySpecimenEventChain($attempt->fresh());
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['laboratory_specimen_events'],
+            function () use ($attempt): void {
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_specimen_events')->where('laboratory_specimen_attempt_id', $attempt->id)->where('event_type', 'RECEIVED')->update(['event_type' => 'REJECTED', 'reason_code' => 'OTHER']));
+                $this->expectException(LaboratoryDenied::class);
+                $this->expectExceptionMessage('Rantai peristiwa spesimen tidak lengkap.');
+                app(LaboratoryEvidenceFingerprint::class)->verifySpecimenEventChain($attempt->fresh());
+            },
+        );
     }
 
     public function test_current_result_fingerprint_binds_order_context_result_attribution_and_specimen_ownership(): void
@@ -174,23 +180,38 @@ final class CrossSettingLaboratoryWorkflowTest extends TestCase
         $fingerprints = app(LaboratoryEvidenceFingerprint::class);
         $expected = $fingerprints->current($verified->fresh());
 
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['care_location_label_snapshot' => 'Lokasi yang diubah']));
-        $this->assertNotSame($expected, $fingerprints->current($verified->fresh()));
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['care_location_label_snapshot' => $order->care_location_label_snapshot]));
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['laboratory_orders'],
+            function () use ($order, $expected, $fingerprints, $verified): void {
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['care_location_label_snapshot' => 'Lokasi yang diubah']));
+                $this->assertNotSame($expected, $fingerprints->current($verified->fresh()));
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['care_location_label_snapshot' => $order->care_location_label_snapshot]));
+            },
+        );
 
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_result_versions')->where('id', $verified->id)->update(['author_user_id' => $physician->id]));
-        $this->assertNotSame($expected, $fingerprints->current($verified->fresh()));
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_result_versions')->where('id', $verified->id)->update(['author_user_id' => $verifier->id]));
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['laboratory_result_versions'],
+            function () use ($verified, $physician, $expected, $fingerprints, $verifier): void {
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_result_versions')->where('id', $verified->id)->update(['author_user_id' => $physician->id]));
+                $this->assertNotSame($expected, $fingerprints->current($verified->fresh()));
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_result_versions')->where('id', $verified->id)->update(['author_user_id' => $verifier->id]));
+            },
+        );
 
         [, $otherOrder] = $this->acceptedOrder();
         $otherSpecimenId = $otherOrder->specimenAttempts()->where('state', 'ACCEPTED')->sole()->id;
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_result_versions')->where('id', $verified->id)->update(['laboratory_specimen_attempt_id' => $otherSpecimenId]));
-        try {
-            $fingerprints->current($verified->fresh());
-            $this->fail('Expected cross-order specimen evidence denial.');
-        } catch (LaboratoryDenied $denial) {
-            $this->assertSame('evidence_fingerprint_invalid', $denial->reason);
-        }
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['laboratory_result_versions'],
+            function () use ($verified, $otherSpecimenId, $fingerprints): void {
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_result_versions')->where('id', $verified->id)->update(['laboratory_specimen_attempt_id' => $otherSpecimenId]));
+                try {
+                    $fingerprints->current($verified->fresh());
+                    $this->fail('Expected cross-order specimen evidence denial.');
+                } catch (LaboratoryDenied $denial) {
+                    $this->assertSame('evidence_fingerprint_invalid', $denial->reason);
+                }
+            },
+        );
     }
 
     public function test_sql_guard_rejects_write_capable_and_ambiguous_statements(): void
@@ -494,14 +515,19 @@ final class CrossSettingLaboratoryWorkflowTest extends TestCase
         $encounter = $this->encounter(Encounter::CARE_SETTING_OUTPATIENT);
         $workflow = app(LaboratoryWorkflowService::class);
         $order = $workflow->createOrder($encounter->public_id, $master->public_id, $physician, 'ROUTINE', 'Integritas receipt.', 'lab-corrupt-order-0001')->record;
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['master_display_name' => 'Korup']));
-        try {
-            $workflow->createOrder($encounter->public_id, $master->public_id, $physician, 'ROUTINE', 'Integritas receipt.', 'lab-corrupt-order-0001');
-            $this->fail('Expected receipt corruption denial.');
-        } catch (LaboratoryDenied $denial) {
-            $this->assertSame('evidence_fingerprint_invalid', $denial->reason);
-        }
-        LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['master_display_name' => $master->display_name]));
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['laboratory_orders'],
+            function () use ($order, $workflow, $encounter, $master, $physician): void {
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['master_display_name' => 'Korup']));
+                try {
+                    $workflow->createOrder($encounter->public_id, $master->public_id, $physician, 'ROUTINE', 'Integritas receipt.', 'lab-corrupt-order-0001');
+                    $this->fail('Expected receipt corruption denial.');
+                } catch (LaboratoryDenied $denial) {
+                    $this->assertSame('evidence_fingerprint_invalid', $denial->reason);
+                }
+                LaboratoryMutationScope::run(fn () => DB::table('laboratory_orders')->where('id', $order->id)->update(['master_display_name' => $master->display_name]));
+            },
+        );
         app(SyntheticResetService::class)->reset(['actor' => $physician, 'reason' => 'laboratory_core_test']);
         $this->assertDatabaseCount('laboratory_orders', 0);
         $this->assertDatabaseCount('laboratory_examination_masters', 1);

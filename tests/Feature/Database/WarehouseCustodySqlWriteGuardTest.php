@@ -170,6 +170,22 @@ final class WarehouseCustodySqlWriteGuardTest extends TestCase
         }
     }
 
+    public function test_guard_does_not_claim_session_variables_owned_by_other_domains(): void
+    {
+        $guard = new WarehouseSqlWriteGuard;
+
+        foreach ([
+            "SET LOCAL simrs.finance_tariff_mutation = '1'",
+            'SET @simrs_finance_tariff_mutation = 1',
+            "SET LOCAL simrs.pharmacy_mutation = '1'",
+            'SET @simrs_pharmacy_mutation = 1',
+        ] as $sql) {
+            $guard->assertAllowed($sql);
+        }
+
+        $this->addToAssertionCount(4);
+    }
+
     public function test_warehouse_scope_does_not_authorize_synthetic_reset_session_bypasses(): void
     {
         $this->requireSqliteWarehouseHarness();

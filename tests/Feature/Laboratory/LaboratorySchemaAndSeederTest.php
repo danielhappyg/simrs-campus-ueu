@@ -6,9 +6,11 @@ use App\Models\LaboratoryExaminationMaster;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Database\SchemaQualifier;
 use Database\Seeders\LaboratoryMastersSeeder;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Tests\TestCase;
@@ -36,6 +38,18 @@ final class LaboratorySchemaAndSeederTest extends TestCase
     public function test_empty_migration_can_down_and_reapply_without_touching_legacy_tables(): void
     {
         $migration = require base_path('database/migrations/2026_09_01_000200_create_cross_setting_laboratory_tables.php');
+
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            // Exact engines correctly refuse an out-of-order rollback while the later finance migration retains FKs.
+            $this->assertTrue(Schema::hasTable('finance_laboratory_source_events'));
+            $this->assertTrue(Schema::hasTable('laboratory_orders'));
+            $this->assertTrue(collect(Schema::getForeignKeys(
+                SchemaQualifier::table('finance_laboratory_source_events'),
+            ))->contains(fn (array $foreignKey): bool => $foreignKey['foreign_table'] === 'laboratory_orders'));
+
+            return;
+        }
+
         $migration->down();
         $this->assertFalse(Schema::hasTable('laboratory_orders'));
         $this->assertTrue(Schema::hasTable('lab_service_requests'));

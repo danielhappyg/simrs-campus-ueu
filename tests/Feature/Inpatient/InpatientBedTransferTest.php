@@ -28,7 +28,7 @@ use App\Support\Inpatient\InpatientBedTransferDenied;
 use App\Support\Inpatient\InpatientBedTransferService;
 use App\Support\Inpatient\InpatientLocationHistoryProjection;
 use App\Support\Inpatient\InpatientLocationMutationScope;
-use App\Support\Inpatient\InpatientLocationSchemaMutationScope;
+use App\Support\Inpatient\InpatientMasterMutationScope;
 use App\Support\Inpatient\InpatientMasterService;
 use App\Support\Pharmacy\PharmacyEncounterLifecycleGate;
 use App\Support\Pharmacy\PharmacyMutationScope;
@@ -478,38 +478,27 @@ class InpatientBedTransferTest extends TestCase
     {
         $encounter = $this->legacyEncounter($this->source);
         $sensitiveReason = 'RAHASIA-KLINIS-JANGAN-LOG';
-        InpatientLocationSchemaMutationScope::run(
-            fn () => DB::unprepared(<<<'SQL'
-                CREATE TRIGGER force_inpatient_location_insert_failure
-                BEFORE INSERT ON inpatient_location_events
-                BEGIN
-                    SELECT RAISE(ABORT, 'forced inpatient location persistence failure');
-                END
-                SQL),
-        );
+        InpatientMasterMutationScope::run(fn () => DB::table('inpatient_bed_versions')
+            ->where('bed_id', $this->target->id)
+            ->where('version', $this->target->version)
+            ->update(['display_name' => 'Snapshot sengaja tidak cocok']));
 
         try {
-            try {
-                app(InpatientBedTransferService::class)->transfer(
-                    $encounter->public_id,
-                    $this->registrar,
-                    0,
-                    $this->source->public_id,
-                    $this->target->public_id,
-                    $sensitiveReason,
-                    'persistence-failure-0001',
-                    null,
-                );
-                $this->fail('Forced database failure unexpectedly committed.');
-            } catch (InpatientBedTransferDenied $denial) {
-                $this->assertSame('persistence_unavailable', $denial->reason);
-                $this->assertSame(503, $denial->status);
-                $this->assertStringNotContainsString($sensitiveReason, $denial->getMessage());
-            }
-        } finally {
-            InpatientLocationSchemaMutationScope::run(
-                fn () => DB::unprepared('DROP TRIGGER IF EXISTS force_inpatient_location_insert_failure'),
+            app(InpatientBedTransferService::class)->transfer(
+                $encounter->public_id,
+                $this->registrar,
+                0,
+                $this->source->public_id,
+                $this->target->public_id,
+                $sensitiveReason,
+                'persistence-failure-0001',
+                null,
             );
+            $this->fail('Forced database failure unexpectedly committed.');
+        } catch (InpatientBedTransferDenied $denial) {
+            $this->assertSame('persistence_unavailable', $denial->reason);
+            $this->assertSame(503, $denial->status);
+            $this->assertStringNotContainsString($sensitiveReason, $denial->getMessage());
         }
 
         $this->assertSame($this->source->id, $encounter->fresh()?->inpatient_bed_id);

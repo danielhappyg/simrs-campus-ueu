@@ -141,7 +141,10 @@ final class FinanceAccommodationSourceMaterializationTest extends TestCase
 
         $first = FinanceAccommodationSourceEvent::query()->orderBy('service_date')->firstOrFail();
         FinanceTariffSchemaMutationScope::run(fn () => FinanceAccommodationTariffAppendOnlyGuard::runSyntheticReset(
-            fn () => DB::table('finance_accommodation_source_events')->where('id', $first->id)->update(['unit_amount' => 99999]),
+            fn () => DB::table('finance_accommodation_source_events')->where('id', $first->id)->update([
+                'unit_amount' => 99999,
+                'signed_amount' => 99999,
+            ]),
         ));
         try {
             $adapter->verifyRetained($encounter->fresh(), $replayed);

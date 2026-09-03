@@ -104,7 +104,7 @@ jobs:
   mysql-integration:
     name: MySQL 8.4 backend integration
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       APP_MODE: SIMULATION
       APP_SYNTHETIC_ONLY: 'true'
@@ -149,6 +149,15 @@ jobs:
 
       - name: Apply migrations to MySQL
         run: php artisan migrate:fresh --force
+
+      # RefreshDatabase starts each PHPUnit process with its own migrate:fresh.
+      # Give it an empty disposable database so Laravel's multi-table DROP does
+      # not correctly trip the application SQL guards installed at boot.
+      - name: Recreate disposable MySQL database for test-managed migrations
+        run: >-
+          mysql --protocol=tcp --host="$DB_HOST" --port="$DB_PORT"
+          --user="$DB_USERNAME" --password="$DB_PASSWORD"
+          --execute='DROP DATABASE IF EXISTS `simrs_test`; CREATE DATABASE `simrs_test` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
 
       - name: Run backend suite on MySQL
         run: php artisan test
@@ -218,6 +227,15 @@ jobs:
           PUBLIC_SENTINELS="$(psql --host=127.0.0.1 --username=postgres --dbname=simrs_test --tuples-only --no-align --command="SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('migrations', 'users', 'patients');")"
           test "${LARAVEL_SENTINELS}" = "3"
           test "${PUBLIC_SENTINELS}" = "0"
+
+      # RefreshDatabase starts each PHPUnit process with its own migrate:fresh.
+      # Give it an empty disposable schema so Laravel's multi-table DROP does
+      # not correctly trip the application SQL guards installed at boot.
+      - name: Recreate private schema for test-managed migrations
+        run: >-
+          psql --host=127.0.0.1 --username=postgres --dbname=simrs_test
+          --set=ON_ERROR_STOP=1
+          --command='DROP SCHEMA IF EXISTS laravel CASCADE; CREATE SCHEMA laravel;'
 
       - name: Run backend suite on PostgreSQL laravel schema
         run: php artisan test

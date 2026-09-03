@@ -31,7 +31,6 @@ use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -82,8 +81,8 @@ final class FinanceLaboratoryTariffBindingCoreTest extends TestCase
         $this->assertContains('finance.laboratory-tariff.view', Capability::all());
         $this->assertContains('finance.laboratory-tariff.manage', Capability::all());
 
-        $columns = collect(DB::select('PRAGMA table_info(finance_charge_events)'))->keyBy('name');
-        $this->assertSame(0, (int) $columns['finance_laboratory_source_event_id']->notnull);
+        $columns = collect(Schema::getColumns('finance_charge_events'))->keyBy('name');
+        $this->assertTrue($columns['finance_laboratory_source_event_id']['nullable']);
     }
 
     public function test_binding_replay_half_open_versions_and_terminal_retirement(): void

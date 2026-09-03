@@ -86,9 +86,14 @@ jobs:
             tests/Documentation/G0GovernanceV2AdoptionDecisionDraftTest.rb
             tests/Documentation/G0GovernanceV2AdoptionDecisionTest.rb
             tests/Documentation/G0GovernanceV2ArchitectureDecisionTest.rb
+            tests/Documentation/G0GovernanceV2ExternalTrustProvisioningProposalTest.rb
+            tests/Documentation/G0GovernanceV2GateBEvidenceTest.rb
+            tests/Documentation/G0GovernanceV2HostTrustBoundaryApprovalDecisionDraftTest.rb
+            tests/Documentation/G0GovernanceV2HostTrustBoundaryArchitectureDecisionTest.rb
             tests/Documentation/G0GovernanceV2ImplementationBlueprintTest.rb
             tests/Documentation/G0GovernanceV2IndependentReviewTest.rb
             tests/Documentation/G0GovernanceV2ObservationReceiptTest.rb
+            tests/Documentation/G0GovernanceV2ProcessSimplificationDecisionTest.rb
             tests/Documentation/G0PreclinicalEncounterCancellationDecisionPackDraftTest.rb
             tests/Documentation/G0ProportionalGovernanceV2GeneratorTest.rb
             tests/Documentation/G0ProportionalGovernanceV2MigrationTest.rb

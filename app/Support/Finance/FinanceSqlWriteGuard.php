@@ -35,7 +35,11 @@ final class FinanceSqlWriteGuard
         if (str_contains($trimmed, ';')) {
             throw new LogicException('Ambiguous or executable-comment SQL against finance tables is prohibited.');
         }
-        if (preg_match('/\b(?:insert|replace|update|delete|truncate|merge|create|alter|drop|rename|copy|grant|revoke|call|execute|vacuum|analyze)\b|\bload\s+data\b/', $normalized) === 1) {
+        $writeScan = $normalized;
+        if (preg_match('/\A\s*(?:select|with)\b/', $normalized) === 1) {
+            $writeScan = preg_replace('/\bfor\s+(?:no\s+key\s+)?update\b/', 'for locking_read', $normalized) ?? $normalized;
+        }
+        if (preg_match('/\b(?:insert|replace|update|delete|truncate|merge|create|alter|drop|rename|copy|grant|revoke|call|execute|vacuum|analyze)\b|\bload\s+data\b/', $writeScan) === 1) {
             throw new LogicException('Write-capable SQL against finance tables is prohibited.');
         }
         if (preg_match('/\A\s*(?:select|with|explain|pragma|show|describe)\b/', $normalized) !== 1) {

@@ -63,11 +63,7 @@ final class WarehouseSqlWriteGuard
         if (preg_match('/\A\s*set\s+(?:(?:default|local|session)\s+)?role\b|\A\s*set\s+session\s+authorization\b/', $normalized) === 1) {
             throw new LogicException('Direct warehouse database identity changes are prohibited.');
         }
-        if (preg_match('/\A\s*set\s+(?:(?:local|session)\s+)?(?:simrs\.[a-z0-9_.]+|@+simrs_[a-z0-9_]+)\b/', $normalized) === 1) {
-            if ((PharmacyMutationScope::isActive() || PharmacySchemaMutationScope::isActive())
-                && preg_match('/\A\s*set\s+(?:(?:local|session)\s+)?(?:simrs\.pharmacy_mutation|@+simrs_pharmacy_mutation)\b/', $normalized) === 1) {
-                return;
-            }
+        if (preg_match('/\A\s*set\s+(?:(?:local|session)\s+)?(?:simrs\.(?:synthetic_reset|warehouse_[a-z0-9_.]+)|@+simrs_(?:synthetic_reset|warehouse_[a-z0-9_]+))\b/', $normalized) === 1) {
             if ($this->isTrustedSyntheticResetStatement($normalized)) {
                 return;
             }

@@ -13,6 +13,27 @@ final class CashierCollectionMigrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_finance_guard_allows_locking_reads_but_still_refuses_actual_dml(): void
+    {
+        $guard = new FinanceSqlWriteGuard;
+        $guard->assertAllowed('SELECT * FROM finance_cashier_collection_batches WHERE id = ? FOR UPDATE SKIP LOCKED');
+        $guard->assertAllowed('WITH candidate AS (SELECT id FROM finance_bills) SELECT * FROM candidate FOR NO KEY UPDATE');
+
+        foreach ([
+            'UPDATE finance_cashier_collection_batches SET id = id',
+            'WITH changed AS (UPDATE finance_bills SET id = id RETURNING id) SELECT * FROM changed FOR UPDATE',
+        ] as $sql) {
+            try {
+                $guard->assertAllowed($sql);
+                $this->fail('Expected actual finance DML to remain prohibited.');
+            } catch (LogicException $exception) {
+                $this->assertStringContainsString('Write-capable SQL against finance tables is prohibited', $exception->getMessage());
+            }
+        }
+
+        $this->addToAssertionCount(2);
+    }
+
     public function test_schema_activation_discriminator_and_all_evidence_guards_are_installed(): void
     {
         $this->assertTrue(Schema::hasColumn('finance_cash_settlements', 'collection_binding_required'));

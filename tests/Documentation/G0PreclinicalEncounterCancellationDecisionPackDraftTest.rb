@@ -130,7 +130,7 @@ class G0PreclinicalEncounterCancellationDecisionPackDraftTest < Minitest::Test
     'batch_g_reporting_source_register' => 'docs/new-simrs-rebuild/phase-0/G0_BATCH_G_DECISION_REGISTER_2026-08-25.json'
   }.freeze
   EXPECTED_SOURCE_HASHES = {
-    'functional_requirement_pack' => '6da1ca2532b10e433b754a0e0ccb09bc4c3e49712bcff70b17d335324643008f',
+    'functional_requirement_pack' => '72de10f581d27fbe4dc0ce296f35c257cc7eea4d7a88f7ed15e284ed5573f6b5',
     'companion_architecture_decision' => '9d5d0042fe79eaa80fb6f7f9441ee36f35a4e43f20db0bad3737ce7cbebb1335',
     'governance_v2_proposal' => 'f5c635006f878a68c4b0775be5262115fe38e185562d3be558e02d8b28c38695',
     'governance_v2_adr' => 'cd7834e7f5b0be99acee3f1b46f8af9fc81b77418541fddf7276fadc26edf962',
@@ -421,8 +421,10 @@ class G0PreclinicalEncounterCancellationDecisionPackDraftTest < Minitest::Test
       end
     end
     combined = truths.map { |row| row.fetch('finding') }.join(' ')
-    assert_includes combined, 'no route consumes it'
-    assert_includes combined, 'no CANCELLED state'
+    assert_includes combined, 'consumed by POST /pendaftaran/kunjungan/{encounter}/batalkan'
+    assert_includes combined, 'authorizes before encounter lookup'
+    assert_includes combined, 'Encounter defines CANCELLED as a terminal state'
+    assert_includes combined, 'cancellation fact rejects update and ordinary-workflow deletion'
     assert_includes combined, 'already use encounter-first locking through LockedClinicalEntryWriter'
     assert_includes combined, 'explicit CANCELLED denial and audit coverage'
     assert_includes combined, 'do not prove backend cancellation rules'

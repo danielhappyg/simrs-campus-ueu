@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 use Mockery;
 use RuntimeException;
+use Tests\Support\ExactEngineTestFixture;
 use Tests\TestCase;
 
 class RoutineInpatientDischargeSummaryTest extends TestCase
@@ -224,18 +225,23 @@ class RoutineInpatientDischargeSummaryTest extends TestCase
             $receipt->payload_digest,
         );
 
-        InpatientDischargeSummaryMutationScope::run(fn () => DB::table('inpatient_discharge_summary_operation_receipts')
-            ->where('id', $receipt->id)
-            ->update(['payload_digest' => str_repeat('f', 64)]));
-        try {
-            $service->finalize(
-                $encounter->public_id, $physician, InpatientDischargeSummary::DEFINITION_VERSION,
-                1, 'digest-final-0001',
-            );
-            $this->fail('Corrupt receipt binding unexpectedly replayed.');
-        } catch (InpatientDischargeSummaryDenied $denial) {
-            $this->assertSame('receipt_binding_invalid', $denial->reason);
-        }
+        ExactEngineTestFixture::corruptWithPostgresTriggersDisabled(
+            ['inpatient_discharge_summary_operation_receipts'],
+            function () use ($receipt, $service, $encounter, $physician): void {
+                InpatientDischargeSummaryMutationScope::run(fn () => DB::table('inpatient_discharge_summary_operation_receipts')
+                    ->where('id', $receipt->id)
+                    ->update(['payload_digest' => str_repeat('f', 64)]));
+                try {
+                    $service->finalize(
+                        $encounter->public_id, $physician, InpatientDischargeSummary::DEFINITION_VERSION,
+                        1, 'digest-final-0001',
+                    );
+                    $this->fail('Corrupt receipt binding unexpectedly replayed.');
+                } catch (InpatientDischargeSummaryDenied $denial) {
+                    $this->assertSame('receipt_binding_invalid', $denial->reason);
+                }
+            },
+        );
     }
 
     public function test_exact_physician_role_capability_and_first_creator_ownership_are_enforced(): void

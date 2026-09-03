@@ -45,6 +45,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use ReflectionClass;
 use RuntimeException;
+use Tests\Support\ExactEngineTestFixture;
 use Tests\TestCase;
 
 final class FinanceAccommodationRecoverySnapshotTest extends TestCase
@@ -165,10 +166,20 @@ final class FinanceAccommodationRecoverySnapshotTest extends TestCase
             'bed_code' => 'CORRUPTED-BED',
             'current_content_digest' => str_repeat('c', 64),
         ]));
-        FinanceAppendOnlyGuard::runSyntheticReset(
-            fn () => FinanceMutationScope::run(fn () => DB::table('finance_charge_events')->update([
-                'source_domain' => 'PHARMACY',
-            ])),
+        $typedCorruptionApplied = ExactEngineTestFixture::corruptWithoutPostgresCheck(
+            'finance_charge_events',
+            'fce_value_ck',
+            function (): bool {
+                FinanceAppendOnlyGuard::runSyntheticReset(
+                    fn () => FinanceMutationScope::run(fn () => DB::table('finance_charge_events')->update([
+                        'source_domain' => 'PHARMACY',
+                    ])),
+                );
+
+                $this->assertGreaterThan(0, $this->integrityCount('financeTypedSourceMismatchCount'));
+
+                return true;
+            },
         );
 
         $this->assertGreaterThan(0, $this->integrityCount('financeAccommodationBindingVersionChainMismatchCount'));
@@ -176,7 +187,9 @@ final class FinanceAccommodationRecoverySnapshotTest extends TestCase
         $this->assertGreaterThan(0, $this->integrityCount('financeAccommodationBindingUpstreamMismatchCount'));
         $this->assertGreaterThan(0, $this->integrityCount('financeAccommodationBindingReceiptResultMismatchCount'));
         $this->assertGreaterThan(0, $this->integrityCount('financeAccommodationSourceMismatchCount'));
-        $this->assertGreaterThan(0, $this->integrityCount('financeTypedSourceMismatchCount'));
+        if ($typedCorruptionApplied === null) {
+            $this->assertSame(0, $this->integrityCount('financeTypedSourceMismatchCount'));
+        }
     }
 
     public function test_reset_removes_accommodation_graph_before_inpatient_and_tariff_parents_and_preserves_audit(): void

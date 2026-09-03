@@ -178,7 +178,7 @@ class RebuildHomeTest extends TestCase
     public function test_home_exposes_explicit_encounter_unavailable_state_on_read_failure(): void
     {
         $user = User::factory()->create();
-        Schema::drop('encounters');
+        Schema::rename('encounters', 'encounters_unavailable_for_home_test');
 
         $this->actingAs($user)
             ->get(route('home'))
