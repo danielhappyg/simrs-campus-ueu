@@ -722,6 +722,81 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_registrar_can_print_full_general_consent_form(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+            'full_name' => 'Pasien Consent Sintetis',
+            'responsible_party_name' => 'Wali Consent Sintetis',
+        ]);
+        $encounter = Encounter::factory()->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+            'clinic_name' => 'Poliklinik Umum',
+        ]);
+
+        $response = $this->actingAs($registrar)
+            ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs=consent');
+
+        $response->assertOk();
+        $response->assertSee('Dokumen pengajaran', false);
+        $response->assertSee('GENERAL CONSENT', false);
+        $response->assertSee('Persetujuan Umum', false);
+        $response->assertSee('HAK DAN KEWAJIBAN SEBAGAI PASIEN', false);
+        $response->assertSee('PRIVASI', false);
+        $response->assertSee('Yang menjelaskan', false);
+        $response->assertSee('Pasien / penanggung jawab', false);
+        $response->assertDontSee('Pernyataan pengajaran, bukan persetujuan klinis sah.', false);
+    }
+
+    public function test_registrar_can_sign_general_consent_and_reprint_marks(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+        $patient = Patient::factory()->create([
+            'created_by_user_id' => $registrar->id,
+            'is_synthetic' => true,
+        ]);
+        $encounter = Encounter::factory()->create([
+            'patient_id' => $patient->id,
+            'registered_by_user_id' => $registrar->id,
+        ]);
+
+        $png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.kunjungan.consent.store', $encounter), [
+                'explainer_name' => 'dr. Penjelas Sintetis',
+                'patient_or_guardian_name' => 'Wali Sintetis',
+                'explainer_signature_png' => $png,
+                'patient_signature_png' => $png,
+            ])
+            ->assertRedirect(route('pendaftaran.kunjungan.consent.show', $encounter));
+
+        $this->assertDatabaseHas('encounter_consents', [
+            'encounter_id' => $encounter->id,
+            'explainer_name' => 'dr. Penjelas Sintetis',
+            'patient_or_guardian_name' => 'Wali Sintetis',
+        ]);
+
+        $this->assertDatabaseHas('audit_events', [
+            'action' => 'encounter.consent.sign',
+            'resource_type' => 'encounter',
+            'resource_id' => $encounter->public_id,
+            'outcome' => 'SUCCESS',
+        ]);
+
+        $reprint = $this->actingAs($registrar)
+            ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs=consent');
+
+        $reprint->assertOk();
+        $reprint->assertSee('dr. Penjelas Sintetis', false);
+        $reprint->assertSee('Wali Sintetis', false);
+        $reprint->assertSee($png, false);
+        $reprint->assertSee('GENERAL CONSENT', false);
+    }
+
     private function userWithRole(string $roleSlug): User
     {
         $user = User::factory()->create();

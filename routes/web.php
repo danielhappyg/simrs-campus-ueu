@@ -30,6 +30,7 @@ use App\Http\Controllers\Inpatient\InpatientRmController;
 use App\Http\Controllers\Inpatient\InpatientSummaryAddendumController;
 use App\Http\Controllers\Inpatient\InpatientWardBedMasterController;
 use App\Http\Controllers\ModulePlaceholderController;
+use App\Http\Controllers\Outpatient\OutpatientConsentController;
 use App\Http\Controllers\Outpatient\OutpatientExaminationController;
 use App\Http\Controllers\Outpatient\OutpatientPostClosureAmendmentController;
 use App\Http\Controllers\Outpatient\OutpatientPrintController;
@@ -287,6 +288,10 @@ Route::middleware(['simulation'])->group(function (): void {
             ->name('pendaftaran.rekap');
         Route::get('/pendaftaran/kunjungan/{encounter}/cetak', [OutpatientPrintController::class, 'show'])
             ->name('pendaftaran.kunjungan.cetak');
+        Route::get('/pendaftaran/kunjungan/{encounter}/consent', [OutpatientConsentController::class, 'show'])
+            ->name('pendaftaran.kunjungan.consent.show');
+        Route::post('/pendaftaran/kunjungan/{encounter}/consent', [OutpatientConsentController::class, 'store'])
+            ->name('pendaftaran.kunjungan.consent.store');
         Route::post('/pendaftaran/kunjungan/{encounter}/batalkan', EncounterCancellationController::class)
             ->name('pendaftaran.kunjungan.batalkan');
 

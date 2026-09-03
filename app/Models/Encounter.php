@@ -240,6 +240,14 @@ class Encounter extends Model
         return $this->belongsTo(Patient::class);
     }
 
+    /**
+     * @return HasOne<EncounterConsentRecord, $this>
+     */
+    public function consent(): HasOne
+    {
+        return $this->hasOne(EncounterConsentRecord::class);
+    }
+
     /** @return BelongsTo<InpatientBed, $this> */
     public function inpatientBed(): BelongsTo
     {
