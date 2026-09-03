@@ -55,6 +55,43 @@
             padding: 16px;
             text-align: center;
         }
+        .consent-hospital {
+            font-size: 14px;
+            font-weight: 700;
+            color: #123b63;
+        }
+        .consent-section {
+            font-size: 13px;
+            margin: 14px 0 4px;
+            color: #123b63;
+        }
+        .consent-form p {
+            font-size: 12px;
+            line-height: 1.45;
+            margin: 0 0 8px;
+        }
+        .consent-signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 28px;
+        }
+        .consent-sign-block {
+            text-align: center;
+            font-size: 12px;
+        }
+        .consent-signature {
+            display: block;
+            max-width: 100%;
+            height: 72px;
+            margin: 8px auto;
+            object-fit: contain;
+            border-bottom: 1px solid #cbd5e1;
+        }
+        .consent-signature-empty {
+            margin: 28px 0 8px;
+            color: #64748b;
+        }
         .actions { text-align: center; margin: 16px; }
         button {
             background: #1b75bc;
@@ -150,10 +187,7 @@
                     <p class="sub">Kartu sintetis — tidak berlaku di fasilitas lain</p>
                 </div>
             @elseif ($document === 'consent')
-                <h1>General consent (ajar)</h1>
-                <p class="sub">Pernyataan pengajaran, bukan persetujuan klinis sah.</p>
-                <p>Saya, <strong>{{ $patient?->responsible_party_name ?: $patient?->full_name }}</strong>, menyatakan data pada kunjungan ini adalah kasus sintetis untuk pembelajaran RMIK.</p>
-                <p style="margin-top:48px">Tanda tangan: ______________________ &nbsp; Tanggal: {{ $visit }}</p>
+                @include('prints.partials.consent')
             @endif
         </section>
     @endforeach

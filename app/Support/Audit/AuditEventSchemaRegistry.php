@@ -606,6 +606,13 @@ final class AuditEventSchemaRegistry
                 $this->assertEncounterPrintDenial($metadata);
 
                 return;
+            case 'encounter.consent.sign|SUCCESS|encounter':
+                $this->assertActor($actorPresent);
+                $this->assertPublicId($resourceId, 'resource_id');
+                $this->assertNullReason($reason);
+                $this->assertEncounterConsentSign($metadata);
+
+                return;
             case 'authorization.denied|DENIED|http_route':
                 $this->assertActor($actorPresent);
                 $this->assertRouteName($resourceId);
@@ -1275,6 +1282,16 @@ final class AuditEventSchemaRegistry
             if (! in_array($document, self::PRINT_DOCUMENTS, true)) {
                 throw new InvalidAuditEvent('Audit metadata.documents contains an unknown document.');
             }
+        }
+    }
+
+    /** @param array<string, mixed> $metadata */
+    private function assertEncounterConsentSign(array $metadata): void
+    {
+        $this->assertExactKeys($metadata, ['teaching_only', 'certified_tte']);
+
+        if ($metadata['teaching_only'] !== true || $metadata['certified_tte'] !== false) {
+            throw new InvalidAuditEvent('Consent sign audit must remain teaching-only without certified TTE.');
         }
     }
 

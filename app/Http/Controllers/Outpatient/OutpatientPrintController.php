@@ -24,7 +24,7 @@ class OutpatientPrintController extends Controller
     {
         Gate::authorize(Capability::ENCOUNTER_LIST);
 
-        $encounter->loadMissing('patient');
+        $encounter->loadMissing(['patient', 'consent']);
         abort_unless($encounter->patient?->is_synthetic === true, 404);
 
         $requested = array_values(array_filter(

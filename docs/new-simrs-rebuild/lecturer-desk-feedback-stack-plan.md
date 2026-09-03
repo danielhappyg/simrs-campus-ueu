@@ -66,7 +66,7 @@ Each live lane runs on its own cloud VM at the PR head. Drive through `control-u
 
 - [ ] `git fetch origin <head-branch> && git checkout <head SHA>`.
 - [ ] Copy `.env.example` to `.env`. Set `APP_MODE=SIMULATION`, `APP_SYNTHETIC_ONLY=true`, `DEMO_SEED_ENABLED=true`, and a local `DEMO_ACCOUNT_PASSWORD`. Run `composer install`, `npm ci`, `php artisan key:generate`, `touch database/database.sqlite`, `php artisan migrate`, `php artisan db:seed`, `npm run build`, then `composer dev`. Wait until `http://localhost:8000` serves the login page.
-- [ ] Log in as `registrar.demo@example.invalid` with the local demo password. Deliver input only through `control-ui` commands. Use accessibility roles and labels, not coordinates. Read-only diagnostics are the accessibility snapshot, the network log, and the console.
+- [ ] Log in as `mahasiswa.rmik@example.invalid` with the local demo password (ACTIVE campus walkthrough account after seed). Do not expect `registrar.demo@example.invalid` to work until an operator runs `teaching:role-access activate` with trusted runtime bindings. Deliver input only through `control-ui` commands. Use accessibility roles and labels, not coordinates. Read-only diagnostics are the accessibility snapshot, the network log, and the console.
 - [ ] Save every screenshot to `/tmp/swarm-<pr-id>/worker-<n>/<slug>.png` and return the paths with the report.
 
 ## Allocate a six-digit character MRN (PR-A)

@@ -2193,12 +2193,24 @@ export default function PendaftaranRawatJalan({
                                             <input
                                                 type="checkbox"
                                                 checked={printFlags[key]}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    const checked =
+                                                        e.target.checked;
                                                     setPrintFlags((prev) => ({
                                                         ...prev,
-                                                        [key]: e.target.checked,
-                                                    }))
-                                                }
+                                                        [key]: checked,
+                                                    }));
+
+                                                    if (
+                                                        key === 'consent' &&
+                                                        checked &&
+                                                        printTargetId
+                                                    ) {
+                                                        router.visit(
+                                                            `/pendaftaran/kunjungan/${printTargetId}/consent`,
+                                                        );
+                                                    }
+                                                }}
                                                 className="accent-[#1b75bc]"
                                             />
                                             {label}
@@ -2414,10 +2426,7 @@ export default function PendaftaranRawatJalan({
                                                             <a
                                                                 href={encounterPrintUrl(
                                                                     encounter.public_id,
-                                                                    [
-                                                                        'bukti',
-                                                                        'antrian',
-                                                                    ],
+                                                                    selectedPrintDocs,
                                                                 )}
                                                                 target="_blank"
                                                                 rel="noreferrer"
@@ -2425,6 +2434,12 @@ export default function PendaftaranRawatJalan({
                                                             >
                                                                 Cetak
                                                             </a>
+                                                            <Link
+                                                                href={`/pendaftaran/kunjungan/${encounter.public_id}/consent`}
+                                                                className="text-sm font-medium text-[#1b75bc] hover:underline"
+                                                            >
+                                                                Consent
+                                                            </Link>
                                                             <Link
                                                                 href={`${examPathPrefix}/${encounter.public_id}`}
                                                                 className="text-sm font-medium text-[#1b75bc] hover:underline"
