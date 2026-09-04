@@ -56,6 +56,7 @@ const baseProps = {
             count: 5,
             href: '/pemeriksaan/rawat-jalan',
             tone: 'navy' as const,
+            priority: true,
         },
         {
             id: 'queue.occupancy',
@@ -64,6 +65,7 @@ const baseProps = {
             count: 7,
             href: '/manajemen-data/bangsal',
             tone: 'slate' as const,
+            priority: false,
         },
     ],
     occupancy: {
@@ -116,6 +118,7 @@ describe('operational home', () => {
         expect(
             screen.getByRole('heading', { name: 'Antrian kerja' }),
         ).toBeInTheDocument();
+        expect(screen.getByText('Meja utama')).toBeInTheDocument();
 
         const rawatJalan = screen
             .getByRole('heading', { name: 'Rawat Jalan' })
@@ -134,9 +137,7 @@ describe('operational home', () => {
         expect(within(igd!).getByText('4')).toBeInTheDocument();
         expect(within(rawatInap!).getByText('7')).toBeInTheDocument();
         expect(within(rawatJalan!).getByText('Terdaftar')).toBeInTheDocument();
-        expect(
-            within(rawatJalan!).getByText('Pemeriksaan'),
-        ).toBeInTheDocument();
+        expect(within(rawatJalan!).getByText('Diperiksa')).toBeInTheDocument();
         expect(within(rawatJalan!).getByText('Siap RM')).toBeInTheDocument();
 
         expect(

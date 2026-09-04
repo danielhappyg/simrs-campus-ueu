@@ -48,6 +48,7 @@ type DeskQueue = {
     count: number | null;
     href: string;
     tone: QueueTone;
+    priority: boolean;
 };
 
 type OperationalAction = {
@@ -68,6 +69,7 @@ type ServiceDefinition = {
     key: ServiceSetting;
     shortLabel: string;
     label: string;
+    scopeLabel: string;
     accent: string;
     icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
@@ -77,6 +79,7 @@ const services: readonly ServiceDefinition[] = [
         key: 'rawat_jalan',
         shortLabel: 'RJ',
         label: 'Rawat Jalan',
+        scopeLabel: 'Aktif dan terdaftar hari ini',
         accent: 'bg-[#1b75bc]',
         icon: Activity,
     },
@@ -84,6 +87,7 @@ const services: readonly ServiceDefinition[] = [
         key: 'igd',
         shortLabel: 'IGD',
         label: 'Instalasi Gawat Darurat',
+        scopeLabel: 'Aktif dan terdaftar hari ini',
         accent: 'bg-[#f26a1b]',
         icon: HeartPulse,
     },
@@ -91,6 +95,7 @@ const services: readonly ServiceDefinition[] = [
         key: 'rawat_inap',
         shortLabel: 'RI',
         label: 'Rawat Inap',
+        scopeLabel: 'Seluruh episode yang masih aktif',
         accent: 'bg-[#0f766e]',
         icon: Building2,
     },
@@ -98,7 +103,7 @@ const services: readonly ServiceDefinition[] = [
 
 const statusChips = [
     { key: 'registered', label: 'Terdaftar' },
-    { key: 'in_examination', label: 'Pemeriksaan' },
+    { key: 'in_examination', label: 'Diperiksa' },
     { key: 'ready_for_rm', label: 'Siap RM' },
 ] as const;
 
@@ -178,12 +183,9 @@ export default function RebuildHome({
         <>
             <Head title="Meja Kerja" />
 
-            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
-                <header className="grid gap-4 border-b border-[#dbe5ee] pb-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-                    <div className="space-y-2">
-                        <p className="font-mono text-xs font-semibold tracking-[0.16em] text-[#1b75bc] uppercase">
-                            Operasional hari ini
-                        </p>
+            <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
+                <header className="grid gap-4 border-b border-[#dbe5ee] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                    <div className="space-y-1.5">
                         <h1 className="max-w-3xl font-display text-3xl font-semibold tracking-tight text-[#0f2942] md:text-4xl">
                             Meja kerja hari ini
                         </h1>
@@ -196,7 +198,7 @@ export default function RebuildHome({
                             aria-hidden="true"
                             className="size-2 rounded-full bg-[#179c78]"
                         />
-                        Sensus harian
+                        Data operasional
                     </p>
                 </header>
 
@@ -218,168 +220,200 @@ export default function RebuildHome({
                     </div>
                 ) : null}
 
-                <section aria-labelledby="service-flow-heading">
-                    <div className="mb-4">
-                        <h2
-                            id="service-flow-heading"
-                            className="text-xl font-semibold text-[#0f2942]"
-                        >
-                            Arus layanan
-                        </h2>
-                        <p className="mt-1 text-sm text-[#64788a]">
-                            Status kunjungan aktif yang didaftarkan hari ini.
-                        </p>
-                    </div>
-
-                    {!census.available ? (
-                        <div
-                            role="alert"
-                            className="mb-4 flex items-start gap-3 rounded-xl border border-[#fed7aa] bg-[#fff7ed] px-4 py-3 text-sm text-[#9a3412]"
-                        >
-                            <CircleAlert
-                                aria-hidden="true"
-                                className="mt-0.5 size-5 shrink-0"
-                            />
-                            <span>{census.read_error}</span>
+                <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
+                    <section aria-labelledby="service-flow-heading">
+                        <div className="mb-3">
+                            <h2
+                                id="service-flow-heading"
+                                className="text-xl font-semibold text-[#0f2942]"
+                            >
+                                Arus layanan
+                            </h2>
+                            <p className="mt-1 text-sm text-[#64788a]">
+                                RJ dan IGD hari ini; RI mencakup seluruh episode
+                                yang masih aktif.
+                            </p>
                         </div>
-                    ) : null}
 
-                    <div className="grid gap-4 lg:grid-cols-3">
-                        {services.map((service) => {
-                            const Icon = service.icon;
-                            const setting = census.by_setting[service.key];
+                        {!census.available ? (
+                            <div
+                                role="alert"
+                                className="mb-3 flex items-start gap-3 rounded-xl border border-[#fed7aa] bg-[#fff7ed] px-4 py-3 text-sm text-[#9a3412]"
+                            >
+                                <CircleAlert
+                                    aria-hidden="true"
+                                    className="mt-0.5 size-5 shrink-0"
+                                />
+                                <span>{census.read_error}</span>
+                            </div>
+                        ) : null}
 
-                            return (
-                                <article
-                                    key={service.key}
-                                    className="flex min-h-56 flex-col overflow-hidden rounded-xl border border-[#dbe5ee] bg-white shadow-[0_10px_30px_rgba(15,41,66,0.05)]"
-                                >
-                                    <div
-                                        aria-hidden="true"
-                                        className={`h-1 ${service.accent}`}
-                                    />
-                                    <div className="flex flex-1 flex-col p-5">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div>
-                                                <p className="font-mono text-xs font-bold tracking-[0.12em] text-[#64788a] uppercase">
-                                                    {service.shortLabel}
-                                                </p>
-                                                <h3 className="mt-1 text-lg font-semibold text-[#0f2942]">
-                                                    {service.label}
-                                                </h3>
-                                            </div>
-                                            <span className="grid size-10 place-items-center rounded-lg bg-[#eef5fa] text-[#123b63]">
+                        <div className="overflow-hidden rounded-xl border border-[#dbe5ee] bg-white shadow-[0_8px_24px_rgba(15,41,66,0.04)]">
+                            {services.map((service) => {
+                                const Icon = service.icon;
+                                const setting = census.by_setting[service.key];
+
+                                return (
+                                    <article
+                                        key={service.key}
+                                        className="relative grid gap-3 border-b border-[#e8eef3] px-4 py-3.5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center md:px-5"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className={`absolute inset-y-0 left-0 w-1 ${service.accent}`}
+                                        />
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-[#eef5fa] text-[#123b63]">
                                                 <Icon
                                                     aria-hidden="true"
                                                     className="size-5"
                                                 />
                                             </span>
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-baseline gap-x-2">
+                                                    <span className="text-xs font-semibold text-[#1b75bc]">
+                                                        {service.shortLabel}
+                                                    </span>
+                                                    <h3 className="font-semibold text-[#0f2942]">
+                                                        {service.label}
+                                                    </h3>
+                                                </div>
+                                                <p className="mt-0.5 text-xs text-[#64788a]">
+                                                    {service.scopeLabel}
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        <p className="mt-5 font-display text-5xl leading-none font-semibold text-[#0f2942] tabular-nums">
+                                        <p className="font-display text-3xl leading-none font-semibold text-[#0f2942] tabular-nums sm:text-right">
                                             {formatCount(setting.total_active)}
-                                        </p>
-                                        <p className="mt-2 text-sm text-[#64788a]">
-                                            Kunjungan aktif hari ini
+                                            <span className="ml-1.5 text-xs font-normal text-[#64788a]">
+                                                aktif
+                                            </span>
                                         </p>
 
-                                        <ul className="mt-5 flex flex-wrap gap-2 border-t border-[#e8eef3] pt-4">
+                                        <dl className="grid grid-cols-3 gap-2 sm:col-span-2">
                                             {statusChips.map((chip) => (
-                                                <li
+                                                <div
                                                     key={chip.key}
-                                                    className="inline-flex items-center gap-1.5 rounded-full border border-[#e2e8f0] bg-[#f8fafc] px-2.5 py-1"
+                                                    className="flex items-center justify-between gap-2 rounded-md bg-[#f6f9fb] px-2.5 py-2"
                                                 >
-                                                    <span className="text-[0.65rem] tracking-wide text-[#64788a] uppercase">
+                                                    <dt className="truncate text-xs text-[#64788a]">
                                                         {chip.label}
-                                                    </span>
-                                                    <span className="text-sm font-semibold text-[#0f2942] tabular-nums">
+                                                    </dt>
+                                                    <dd className="text-sm font-semibold text-[#0f2942] tabular-nums">
                                                         {formatCount(
                                                             setting[chip.key],
                                                         )}
-                                                    </span>
-                                                </li>
+                                                    </dd>
+                                                </div>
                                             ))}
-                                        </ul>
-                                    </div>
-                                </article>
-                            );
-                        })}
-                    </div>
-                </section>
-
-                <section aria-labelledby="queues-heading">
-                    <div className="mb-4 flex items-center gap-3">
-                        <span className="grid size-10 place-items-center rounded-lg bg-[#e8f3fb] text-[#1b75bc]">
-                            <ClipboardList
-                                aria-hidden="true"
-                                className="size-5"
-                            />
-                        </span>
-                        <div>
-                            <h2
-                                id="queues-heading"
-                                className="text-xl font-semibold text-[#0f2942]"
-                            >
-                                Antrian kerja
-                            </h2>
-                            <p className="mt-1 text-sm text-[#64788a]">
-                                Meja yang dapat Anda buka dari status hari ini.
-                            </p>
+                                        </dl>
+                                    </article>
+                                );
+                            })}
                         </div>
-                    </div>
+                    </section>
 
-                    {queues.length === 0 ? (
-                        <p className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-5 text-sm text-[#64788a]">
-                            Tidak ada antrian kerja untuk akses akun ini.
-                        </p>
-                    ) : (
-                        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            {queues.map((queue) => {
-                                const QueueIcon =
-                                    queueIcons[queue.id] ?? ClipboardList;
+                    <section aria-labelledby="queues-heading">
+                        <div className="mb-3 flex items-center gap-3">
+                            <span className="grid size-9 place-items-center rounded-lg bg-[#e8f3fb] text-[#1b75bc]">
+                                <ClipboardList
+                                    aria-hidden="true"
+                                    className="size-4.5"
+                                />
+                            </span>
+                            <div>
+                                <h2
+                                    id="queues-heading"
+                                    className="text-xl font-semibold text-[#0f2942]"
+                                >
+                                    Antrian kerja
+                                </h2>
+                                <p className="mt-0.5 text-sm text-[#64788a]">
+                                    Diurutkan sesuai fokus akses Anda.
+                                </p>
+                            </div>
+                        </div>
 
-                                return (
-                                    <li key={queue.id}>
-                                        <Link
-                                            href={queue.href}
-                                            aria-label={`${queue.label}: ${formatCount(queue.count)}`}
-                                            className="group flex h-full flex-col gap-3 rounded-xl border border-[#e2e8f0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[transform,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-[#1b75bc]/55 hover:bg-[#f8fbff] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:ring-offset-2 focus-visible:outline-none"
+                        {queues.length === 0 ? (
+                            <p className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-5 text-sm text-[#64788a]">
+                                Tidak ada antrian kerja untuk akses akun ini.
+                            </p>
+                        ) : (
+                            <ul className="overflow-hidden rounded-xl border border-[#dbe5ee] bg-white shadow-[0_8px_24px_rgba(15,41,66,0.04)]">
+                                {queues.map((queue) => {
+                                    const QueueIcon =
+                                        queueIcons[queue.id] ?? ClipboardList;
+
+                                    return (
+                                        <li
+                                            key={queue.id}
+                                            className="border-b border-[#e8eef3] last:border-b-0"
                                         >
-                                            <div className="flex items-start justify-between gap-3">
+                                            <Link
+                                                href={queue.href}
+                                                aria-label={`${queue.label}: ${formatCount(queue.count)}`}
+                                                className={`group grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3.5 py-3 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none focus-visible:ring-inset ${
+                                                    queue.priority
+                                                        ? 'bg-[#123b63] text-white hover:bg-[#0f3152]'
+                                                        : 'bg-white text-[#0f2942] hover:bg-[#f6f9fb]'
+                                                }`}
+                                            >
                                                 <span
-                                                    className={`grid size-11 place-items-center rounded-2xl text-lg font-semibold tabular-nums ${toneClass(queue.tone)}`}
+                                                    className={`grid size-11 place-items-center rounded-lg text-lg font-semibold tabular-nums ${
+                                                        queue.priority
+                                                            ? 'bg-white/12 text-white ring-1 ring-white/20'
+                                                            : toneClass(
+                                                                  queue.tone,
+                                                              )
+                                                    }`}
                                                 >
                                                     {formatCount(queue.count)}
                                                 </span>
-                                                <span className="grid size-8 place-items-center rounded-lg bg-[#f1f5f9] text-[#123b63]">
+                                                <span className="min-w-0">
+                                                    <span className="flex flex-wrap items-center gap-2">
+                                                        <span className="text-sm font-semibold">
+                                                            {queue.label}
+                                                        </span>
+                                                        {queue.priority ? (
+                                                            <span className="rounded-full bg-white/14 px-2 py-0.5 text-[0.65rem] font-semibold text-white">
+                                                                Meja utama
+                                                            </span>
+                                                        ) : null}
+                                                    </span>
+                                                    <span
+                                                        className={`mt-0.5 block truncate text-xs ${
+                                                            queue.priority
+                                                                ? 'text-[#d7e7f3]'
+                                                                : 'text-[#64788a]'
+                                                        }`}
+                                                    >
+                                                        {queue.hint}
+                                                    </span>
+                                                </span>
+                                                <span
+                                                    className={`grid size-8 place-items-center rounded-lg ${
+                                                        queue.priority
+                                                            ? 'bg-white/10 text-white'
+                                                            : 'bg-[#f1f5f9] text-[#123b63]'
+                                                    }`}
+                                                >
                                                     <QueueIcon
                                                         aria-hidden="true"
                                                         className="size-4"
                                                     />
+                                                    <span className="sr-only">
+                                                        Buka meja
+                                                    </span>
                                                 </span>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-[#0f2942]">
-                                                    {queue.label}
-                                                </p>
-                                                <p className="mt-1 text-xs leading-relaxed text-[#64788a]">
-                                                    {queue.hint}
-                                                </p>
-                                            </div>
-                                            <span className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-[#1b75bc]">
-                                                Buka meja
-                                                <ArrowRight
-                                                    aria-hidden="true"
-                                                    className="size-3.5 transition-transform group-hover:translate-x-0.5"
-                                                />
-                                            </span>
-                                        </Link>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    )}
-                </section>
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </section>
+                </div>
 
                 {occupancy ? (
                     <section
@@ -395,15 +429,15 @@ export default function RebuildHome({
                                     />
                                 </span>
                                 <div>
-                                    <p className="font-mono text-xs font-semibold tracking-[0.12em] text-[#0f766e] uppercase">
-                                        Kapasitas terkelola
-                                    </p>
                                     <h2
                                         id="occupancy-heading"
                                         className="text-xl font-semibold text-[#0f2942]"
                                     >
                                         Hunian rawat inap
                                     </h2>
+                                    <p className="mt-0.5 text-sm text-[#64788a]">
+                                        Kapasitas bangsal yang dikelola sistem.
+                                    </p>
                                 </div>
                             </div>
 

@@ -54,7 +54,7 @@ class RebuildHomeTest extends TestCase
                 ->has('actions', 0));
     }
 
-    public function test_home_returns_only_todays_active_synthetic_census_by_care_setting_and_status(): void
+    public function test_home_returns_todays_active_rj_and_igd_with_all_still_active_inpatient_episodes(): void
     {
         $user = User::factory()->create();
 
@@ -65,6 +65,7 @@ class RebuildHomeTest extends TestCase
         $this->createEncounter($user, Encounter::CARE_SETTING_OUTPATIENT, Encounter::STATUS_CLOSED);
         $this->createEncounter($user, Encounter::CARE_SETTING_EMERGENCY, Encounter::STATUS_CANCELLED);
         $this->createEncounter($user, Encounter::CARE_SETTING_INPATIENT, Encounter::STATUS_REGISTERED, now()->subDay());
+        $this->createEncounter($user, Encounter::CARE_SETTING_OUTPATIENT, Encounter::STATUS_REGISTERED, now()->subDay());
         $this->createEncounter($user, Encounter::CARE_SETTING_OUTPATIENT, Encounter::STATUS_REGISTERED, now(), false);
 
         $this->actingAs($user)
@@ -80,10 +81,10 @@ class RebuildHomeTest extends TestCase
                 ->where('census.by_setting.igd.in_examination', 0)
                 ->where('census.by_setting.igd.ready_for_rm', 1)
                 ->where('census.by_setting.igd.total_active', 1)
-                ->where('census.by_setting.rawat_inap.registered', 1)
+                ->where('census.by_setting.rawat_inap.registered', 2)
                 ->where('census.by_setting.rawat_inap.in_examination', 0)
                 ->where('census.by_setting.rawat_inap.ready_for_rm', 0)
-                ->where('census.by_setting.rawat_inap.total_active', 1)
+                ->where('census.by_setting.rawat_inap.total_active', 2)
                 ->where('census.read_error', null));
     }
 
@@ -105,8 +106,10 @@ class RebuildHomeTest extends TestCase
                 ->where('actions.6.href', route('manajemen-data.bangsal.index'))
                 ->has('queues', 5)
                 ->where('queues.0.id', 'queue.registered.rj')
+                ->where('queues.0.priority', true)
                 ->where('queues.0.href', route('pendaftaran.rawat-jalan.index'))
                 ->where('queues.1.id', 'queue.in_exam.rj')
+                ->where('queues.1.priority', false)
                 ->where('queues.1.href', route('pemeriksaan.rawat-jalan.index'))
                 ->where('queues.2.id', 'queue.in_exam.igd')
                 ->where('queues.2.href', route('pemeriksaan.igd.index'))
@@ -140,10 +143,35 @@ class RebuildHomeTest extends TestCase
                 ->where('actions.7.href', route('rm.rawat-inap.index'))
                 ->where('actions.8.href', route('manajemen-data.bangsal.index'))
                 ->has('queues', 7)
-                ->where('queues.2.id', 'queue.ready_rm.rj')
-                ->where('queues.2.href', route('rm.rawat-jalan.index'))
+                ->where('queues.0.id', 'queue.ready_rm.rj')
+                ->where('queues.0.priority', true)
+                ->where('queues.0.href', route('rm.rawat-jalan.index'))
+                ->where('queues.1.id', 'queue.registered.rj')
+                ->where('queues.1.priority', false)
+                ->where('queues.4.id', 'queue.in_exam.ri')
                 ->where('queues.5.id', 'queue.ready_rm.ri')
-                ->where('queues.5.href', route('rm.rawat-inap.index')));
+                ->where('queues.5.href', route('rm.rawat-inap.index'))
+                ->where('queues.6.id', 'queue.occupancy'));
+    }
+
+    public function test_clinical_roles_receive_a_primary_queue_that_matches_their_work(): void
+    {
+        $nurse = $this->userWithRole(RoleCapabilityMatrix::ROLE_NURSE);
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+
+        $this->actingAs($nurse)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('queues.0.id', 'queue.in_exam.igd')
+                ->where('queues.0.priority', true));
+
+        $this->actingAs($physician)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('queues.0.id', 'queue.in_exam.rj')
+                ->where('queues.0.priority', true));
     }
 
     public function test_permitted_home_uses_managed_occupancy_projection_totals_without_patient_details(): void

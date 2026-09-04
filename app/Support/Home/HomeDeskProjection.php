@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\Authorization\Capability;
 use App\Support\Inpatient\InpatientMasterActorPolicy;
 use App\Support\Inpatient\InpatientOccupancyProjection;
+use Illuminate\Database\Eloquent\Builder;
 use Throwable;
 
 final class HomeDeskProjection
@@ -144,7 +145,7 @@ final class HomeDeskProjection
     /**
      * @return array{
      *     census: array{available: bool, read_error: string|null, by_setting: array<string, array{registered: int|null, in_examination: int|null, ready_for_rm: int|null, total_active: int|null}>},
-     *     queues: list<array{id: string, label: string, hint: string, count: int|null, href: string, tone: string}>,
+     *     queues: list<array{id: string, label: string, hint: string, count: int|null, href: string, tone: string, priority: bool}>,
      *     occupancy: array{available: bool, totals: array{active_wards: int, active_beds: int, occupied_beds: int, available_beds: int}, read_error: string|null}|null,
      *     actions: list<array{setting: string, kind: string, label: string, href: string}>
      * }
@@ -170,12 +171,28 @@ final class HomeDeskProjection
         try {
             $todayStart = now((string) config('app.timezone', 'Asia/Jakarta'))->startOfDay();
             $tomorrowStart = $todayStart->copy()->addDay();
+            $todayOnlySettings = [
+                Encounter::CARE_SETTING_OUTPATIENT,
+                Encounter::CARE_SETTING_EMERGENCY,
+            ];
 
             $rows = Encounter::query()
                 ->syntheticOnly()
                 ->whereIn('status', Encounter::ACTIVE_STATUSES)
-                ->where('registered_at', '>=', $todayStart)
-                ->where('registered_at', '<', $tomorrowStart)
+                ->whereIn('care_setting', [
+                    ...$todayOnlySettings,
+                    Encounter::CARE_SETTING_INPATIENT,
+                ])
+                ->where(function (Builder $query) use ($todayOnlySettings, $todayStart, $tomorrowStart): void {
+                    $query
+                        ->where('care_setting', Encounter::CARE_SETTING_INPATIENT)
+                        ->orWhere(function (Builder $todayQuery) use ($todayOnlySettings, $todayStart, $tomorrowStart): void {
+                            $todayQuery
+                                ->whereIn('care_setting', $todayOnlySettings)
+                                ->where('registered_at', '>=', $todayStart)
+                                ->where('registered_at', '<', $tomorrowStart);
+                        });
+                })
                 ->selectRaw('care_setting, status, COUNT(*) AS aggregate')
                 ->groupBy('care_setting', 'status')
                 ->get();
@@ -245,28 +262,67 @@ final class HomeDeskProjection
     /**
      * @param  array{available: bool, rows: array<string, array<string, int>>, read_error: string|null}  $matrix
      * @param  array{available: bool, totals: array{active_wards: int, active_beds: int, occupied_beds: int, available_beds: int}, read_error: string|null}|null  $occupancy
-     * @return list<array{id: string, label: string, hint: string, count: int|null, href: string, tone: string}>
+     * @return list<array{id: string, label: string, hint: string, count: int|null, href: string, tone: string, priority: bool}>
      */
     private function queues(User $actor, array $matrix, ?array $occupancy): array
     {
-        $queues = [];
+        $priorityQueueId = $this->priorityQueueId($actor);
+        $priorityQueues = [];
+        $otherQueues = [];
 
         foreach (self::QUEUE_REGISTRY as $definition) {
             if (! $this->authorized($actor, $definition['gate'])) {
                 continue;
             }
 
-            $queues[] = [
+            $queue = [
                 'id' => $definition['id'],
                 'label' => $definition['label'],
                 'hint' => $definition['hint'],
                 'count' => $this->queueCount($definition['count'], $matrix, $occupancy),
                 'href' => route($definition['route']),
                 'tone' => $definition['tone'],
+                'priority' => $definition['id'] === $priorityQueueId,
             ];
+
+            if ($queue['priority']) {
+                $priorityQueues[] = $queue;
+
+                continue;
+            }
+
+            $otherQueues[] = $queue;
         }
 
-        return $queues;
+        return [...$priorityQueues, ...$otherQueues];
+    }
+
+    private function priorityQueueId(User $actor): ?string
+    {
+        if ($actor->canCapability(Capability::RMIK_REVIEW)) {
+            return 'queue.ready_rm.rj';
+        }
+
+        if ($actor->canCapability(Capability::PATIENT_REGISTER)) {
+            return 'queue.registered.rj';
+        }
+
+        if ($actor->canCapability(Capability::EMERGENCY_TRIAGE_WRITE)) {
+            return 'queue.in_exam.igd';
+        }
+
+        if (
+            $actor->canCapability(Capability::CLINICAL_MEDICAL_WRITE)
+            || $actor->canCapability(Capability::CLINICAL_NURSING_WRITE)
+        ) {
+            return 'queue.in_exam.rj';
+        }
+
+        if ($actor->canCapability(Capability::ENCOUNTER_LIST)) {
+            return 'queue.in_exam.rj';
+        }
+
+        return null;
     }
 
     /**

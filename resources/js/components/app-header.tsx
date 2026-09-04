@@ -37,9 +37,7 @@ function NavLink({
             ? window.location.origin
             : 'http://localhost',
     ).pathname;
-    const active = slug
-        ? isActiveModule(slug, pathname)
-        : pathname === href;
+    const active = slug ? isActiveModule(slug, pathname) : pathname === href;
 
     return (
         <Link
@@ -73,7 +71,7 @@ export function AppHeader() {
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="text-white hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/80 lg:hidden"
+                                className="text-white hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/80 2xl:hidden"
                                 aria-label="Buka menu navigasi"
                             >
                                 <Menu className="size-5" />
@@ -123,7 +121,7 @@ export function AppHeader() {
 
                 <nav
                     aria-label="Navigasi modul"
-                    className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex"
+                    className="hidden min-w-0 flex-1 items-center gap-0.5 2xl:flex"
                 >
                     <NavLink href="/">Beranda</NavLink>
                     {SIMRS_MODULE_CATEGORIES.map((category) => (
