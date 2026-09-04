@@ -20,7 +20,7 @@ use LogicException;
  * @property string $document_state
  * @property string $definition_version
  * @property int $version
- * @property array<string, string> $fields
+ * @property array<string, mixed> $fields
  * @property Carbon|null $finalized_at
  * @property Carbon|null $updated_at
  * @property-read User|null $author

@@ -21,32 +21,34 @@ class DailyQueueAllocatorMigrationTest extends TestCase
         $user = User::factory()->create();
         $patient = Patient::factory()->create(['created_by_user_id' => $user->id]);
         $migration = $this->migration();
-        $migration->down();
-        $this->assertSqliteHandoffGraphGuardIsInstalled();
+        $this->aroundHistoricalEncounterRebuild(function () use ($migration, $patient, $user): void {
+            $migration->down();
+            $this->assertSqliteHandoffGraphGuardIsInstalled();
 
-        foreach ([
-            ['id' => 12, 'registered_at' => '2026-08-26 10:00:00', 'queue_number' => 9],
-            ['id' => 10, 'registered_at' => '2026-08-26 08:00:00', 'queue_number' => 1],
-            ['id' => 11, 'registered_at' => '2026-08-26 08:00:00', 'queue_number' => 1],
-            ['id' => 13, 'registered_at' => '2026-08-27 00:00:00', 'queue_number' => null],
-        ] as $row) {
-            DB::table('encounters')->insert([
-                'id' => $row['id'],
-                'public_id' => str_pad((string) $row['id'], 26, '0', STR_PAD_LEFT),
-                'patient_id' => $patient->id,
-                'care_setting' => 'OUTPATIENT',
-                'status' => 'REGISTERED',
-                'clinic_name' => 'Poli Sintetis',
-                'payer_type' => 'UMUM',
-                'queue_number' => $row['queue_number'],
-                'registered_at' => $row['registered_at'],
-                'registered_by_user_id' => $user->id,
-                'created_at' => $row['registered_at'],
-                'updated_at' => $row['registered_at'],
-            ]);
-        }
+            foreach ([
+                ['id' => 12, 'registered_at' => '2026-08-26 10:00:00', 'queue_number' => 9],
+                ['id' => 10, 'registered_at' => '2026-08-26 08:00:00', 'queue_number' => 1],
+                ['id' => 11, 'registered_at' => '2026-08-26 08:00:00', 'queue_number' => 1],
+                ['id' => 13, 'registered_at' => '2026-08-27 00:00:00', 'queue_number' => null],
+            ] as $row) {
+                DB::table('encounters')->insert([
+                    'id' => $row['id'],
+                    'public_id' => str_pad((string) $row['id'], 26, '0', STR_PAD_LEFT),
+                    'patient_id' => $patient->id,
+                    'care_setting' => 'OUTPATIENT',
+                    'status' => 'REGISTERED',
+                    'clinic_name' => 'Poli Sintetis',
+                    'payer_type' => 'UMUM',
+                    'queue_number' => $row['queue_number'],
+                    'registered_at' => $row['registered_at'],
+                    'registered_by_user_id' => $user->id,
+                    'created_at' => $row['registered_at'],
+                    'updated_at' => $row['registered_at'],
+                ]);
+            }
 
-        $migration->up();
+            $migration->up();
+        });
         $this->assertSqliteHandoffGraphGuardIsInstalled();
 
         $this->assertSame([
@@ -67,19 +69,21 @@ class DailyQueueAllocatorMigrationTest extends TestCase
     {
         $user = User::factory()->create();
         $migration = $this->migration();
-        $migration->down();
-        $this->assertSqliteHandoffGraphGuardIsInstalled();
-        Patient::factory()->create([
-            'created_by_user_id' => $user->id,
-            'is_synthetic' => false,
-        ]);
+        $this->aroundHistoricalEncounterRebuild(function () use ($migration, $user): void {
+            $migration->down();
+            $this->assertSqliteHandoffGraphGuardIsInstalled();
+            Patient::factory()->create([
+                'created_by_user_id' => $user->id,
+                'is_synthetic' => false,
+            ]);
 
-        try {
-            $migration->up();
-            $this->fail('Migration must reject a database containing non-synthetic patient data.');
-        } catch (RuntimeException $exception) {
-            $this->assertStringContainsString('non-synthetic patient data', $exception->getMessage());
-        }
+            try {
+                $migration->up();
+                $this->fail('Migration must reject a database containing non-synthetic patient data.');
+            } catch (RuntimeException $exception) {
+                $this->assertStringContainsString('non-synthetic patient data', $exception->getMessage());
+            }
+        });
 
         $this->assertFalse(Schema::hasTable('daily_queue_counters'));
         $this->assertFalse(Schema::hasColumn('encounters', 'queue_date'));
@@ -91,6 +95,23 @@ class DailyQueueAllocatorMigrationTest extends TestCase
         $migration = require database_path('migrations/2026_08_26_000200_create_daily_queue_allocator.php');
 
         return $migration;
+    }
+
+    private function aroundHistoricalEncounterRebuild(callable $callback): mixed
+    {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            return $callback();
+        }
+
+        $outpatientGuard = require database_path('migrations/2026_09_05_000200_guard_outpatient_admission_evidence.php');
+        assert($outpatientGuard instanceof Migration);
+        $outpatientGuard->down();
+
+        try {
+            return $callback();
+        } finally {
+            $outpatientGuard->up();
+        }
     }
 
     private function assertSqliteHandoffGraphGuardIsInstalled(): void

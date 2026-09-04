@@ -10,6 +10,7 @@ use App\Models\RadiologyOperationReceipt;
 use App\Models\RadiologyReportVersion;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
+use App\Support\Clinical\OutpatientAdmissionEvidenceGuard;
 use App\Support\Database\SchemaQualifier;
 use App\Support\Emergency\EmergencyMutationScope;
 use App\Support\Finance\FinanceAccommodationTariffAppendOnlyGuard;
@@ -107,6 +108,7 @@ class SyntheticResetService
             $this->deleteSyntheticLaboratoryChains();
             $this->deleteSyntheticRadiologyChains();
             $this->deleteSyntheticEmergencyChains();
+            $this->deleteSyntheticOutpatientAdmissionChains();
             $this->deleteSyntheticInpatientLocationChains();
             $this->deleteSyntheticInpatientClaimMutexes();
             $deleted = Patient::query()->syntheticOnly()->delete();
@@ -684,6 +686,30 @@ class SyntheticResetService
                 DB::statement('SET @simrs_synthetic_reset = 0');
             }
         }
+    }
+
+    private function deleteSyntheticOutpatientAdmissionChains(): void
+    {
+        $dispositions = SchemaQualifier::table('outpatient_dispositions');
+        if (! Schema::hasTable($dispositions)) {
+            return;
+        }
+        $handoffs = SchemaQualifier::table('outpatient_inpatient_handoffs');
+        $encounterIds = Encounter::query()->syntheticOnly()->select('id')->toBase();
+        $dispositionIds = DB::table($dispositions)->whereIn('encounter_id', clone $encounterIds)
+            ->orderByDesc('version')->orderByDesc('id')->pluck('id');
+        $resultIds = DB::table($dispositions)->whereIn('encounter_id', clone $encounterIds)->pluck('public_id')
+            ->merge(DB::table($handoffs)->whereIn('source_encounter_id', clone $encounterIds)->pluck('public_id'));
+
+        OutpatientAdmissionEvidenceGuard::runSyntheticReset(function () use ($dispositions, $handoffs, $encounterIds, $dispositionIds, $resultIds): void {
+            DB::table(SchemaQualifier::table('outpatient_admission_operation_receipts'))
+                ->whereIn('result_public_id', $resultIds)->delete();
+            DB::table($handoffs)->whereIn('source_encounter_id', $encounterIds)->delete();
+            // Corrections reference their predecessor; remove latest versions first.
+            foreach ($dispositionIds as $id) {
+                DB::table($dispositions)->where('id', $id)->delete();
+            }
+        });
     }
 
     private function deleteSyntheticEmergencyChains(): void

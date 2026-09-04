@@ -321,6 +321,8 @@ class InpatientBedTransferTest extends TestCase
             'full_name' => 'Pasien Admission Event', 'date_of_birth' => '1990-01-01',
             'sex' => Patient::SEX_PEREMPUAN, 'bed_public_id' => $this->source->public_id,
             'payer_type' => Encounter::PAYER_UMUM, 'continue_from' => Encounter::CONTINUE_LANGSUNG,
+            'admission_authority_type' => Encounter::AUTHORITY_PLANNED_ORDER,
+            'admission_authority_reference' => 'ORDER-BED-TRANSFER-0001',
             'is_synthetic' => true,
         ]);
         $response->assertRedirect(route('pendaftaran.rawat-inap.index'));

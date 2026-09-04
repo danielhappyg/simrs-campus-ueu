@@ -158,6 +158,8 @@ class StructuredOutpatientDocumentationTest extends TestCase
             'clinical_assessment' => 'Asesmen klinis sintetis.',
             'care_plan' => 'Rencana pelayanan sintetis.',
         ]);
+        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()->status);
+        $this->signDisposition($encounter, $physician);
         $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
         $this->actingAs($nurse)
             ->get(route('pemeriksaan.rawat-jalan.index'))
@@ -285,6 +287,7 @@ class StructuredOutpatientDocumentationTest extends TestCase
             'clinical_assessment' => 'Asesmen klinis sintetis.',
             'care_plan' => 'Rencana pelayanan sintetis.',
         ]);
+        $this->signDisposition($encounter, $physician);
         $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter->fresh());
         $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
             'expected_version' => 0,
@@ -331,6 +334,7 @@ class StructuredOutpatientDocumentationTest extends TestCase
         $this->saveAndFinalize($encounter, $physician, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT, [
             'anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D',
         ]);
+        $this->signDisposition($encounter, $physician);
         $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter->fresh());
         $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
             'expected_version' => 0, 'source_fingerprint' => $snapshot['source_fingerprint'],
@@ -400,6 +404,7 @@ class StructuredOutpatientDocumentationTest extends TestCase
             'clinical_assessment' => 'Asesmen klinis sintetis.',
             'care_plan' => 'Rencana pelayanan sintetis.',
         ]);
+        $this->signDisposition($encounter, $physician);
         $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter->fresh());
         $this->actingAs($rmik)->post(route('rm.rawat-jalan.reviews.store', $encounter), [
             'expected_version' => 0,
@@ -615,6 +620,21 @@ class StructuredOutpatientDocumentationTest extends TestCase
         ])->assertRedirect();
         $this->actingAs($actor)->post(route('pemeriksaan.rawat-jalan.documents.final', [$encounter, $type]), [
             'expected_version' => 1,
+        ])->assertRedirect();
+    }
+
+    private function signDisposition(Encounter $encounter, User $physician): void
+    {
+        $medical = OutpatientClinicalDocument::query()
+            ->where('encounter_id', $encounter->id)
+            ->where('document_type', OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT)
+            ->sole();
+
+        $this->actingAs($physician)->post(route('pemeriksaan.rawat-jalan.disposition.sign', $encounter), [
+            'disposition_type' => 'SEMBUH',
+            'expected_document_version' => $medical->version,
+            'payload' => ['clinical_note' => 'Episode rawat jalan sintetis selesai.'],
+            'idempotency_key' => 'structured-disposition-'.$encounter->public_id,
         ])->assertRedirect();
     }
 

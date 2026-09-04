@@ -16,6 +16,7 @@ final class OutpatientDocumentationService
     public function __construct(
         private readonly AuditRecorder $auditRecorder,
         private readonly PharmacyEncounterLifecycleGate $pharmacy,
+        private readonly OutpatientTerminologyService $terminology,
     ) {}
 
     /**
@@ -158,9 +159,7 @@ final class OutpatientDocumentationService
                     'finalized_at' => $finalizedAt,
                 ]);
 
-                if ($closesClinicalEpisode) {
-                    $lockedEncounter->update(['status' => Encounter::STATUS_READY_FOR_RM]);
-                } elseif ($lockedEncounter->status === Encounter::STATUS_REGISTERED) {
+                if ($lockedEncounter->status === Encounter::STATUS_REGISTERED) {
                     $lockedEncounter->update(['status' => Encounter::STATUS_IN_EXAMINATION]);
                 }
 
@@ -221,7 +220,19 @@ final class OutpatientDocumentationService
             );
         }
 
+        $structuredKeys = ['diagnosis_text', 'primary_icd10', 'secondary_icd10', 'procedures_icd9cm'];
+        $usesStructuredCoding = $documentType === OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT
+            && array_intersect($structuredKeys, array_keys($fields)) !== [];
+        if ($usesStructuredCoding && array_diff($structuredKeys, array_keys($fields)) !== []) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Field diagnosis dan kode terstruktur harus dikirim lengkap.');
+        }
         foreach ($fields as $key => $value) {
+            if (in_array($key, ['primary_icd10', 'secondary_icd10', 'procedures_icd9cm'], true)) {
+                continue;
+            }
+            if ($key === 'additional_notes' && $value === null) {
+                continue;
+            }
             if (! is_string($value) || mb_strlen($value) > 10000) {
                 throw new OutpatientLifecycleDenial(
                     'validation_failed',
@@ -229,6 +240,10 @@ final class OutpatientDocumentationService
                     metadata: ['invalid_field_key' => $key],
                 );
             }
+        }
+
+        if ($usesStructuredCoding) {
+            $this->validateCoding($fields, $finalize);
         }
 
         if ($finalize) {
@@ -247,7 +262,7 @@ final class OutpatientDocumentationService
     }
 
     /** @param array<array-key, mixed> $fields
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     private function normalizeFields(array $fields): array
     {
@@ -256,11 +271,81 @@ final class OutpatientDocumentationService
             if (! is_string($key)) {
                 throw new OutpatientLifecycleDenial('validation_failed', 'Field dokumen wajib memakai kunci teks.');
             }
-            $normalized[$key] = trim((string) $value);
+            if (in_array($key, ['primary_icd10', 'secondary_icd10', 'procedures_icd9cm'], true)) {
+                if ($key === 'primary_icd10') {
+                    $normalized[$key] = $value === null ? null : $this->normalizedCodeEntry($value);
+                } else {
+                    $normalized[$key] = array_map(fn (mixed $entry): array => $this->normalizedCodeEntry($entry), $value);
+                }
+            } else {
+                $normalized[$key] = $key === 'additional_notes' && $value === null ? '' : trim((string) $value);
+            }
         }
         ksort($normalized);
 
         return $normalized;
+    }
+
+    /** @param array<array-key,mixed> $fields */
+    private function validateCoding(array $fields, bool $finalize): void
+    {
+        if (! is_string($fields['diagnosis_text'] ?? null) || mb_strlen(trim($fields['diagnosis_text'])) > 4000) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Diagnosis klinis harus berupa teks.');
+        }
+        $primary = $fields['primary_icd10'] ?? null;
+        if ($primary !== null) {
+            $primaryCode = $this->validateCodeEntry($primary, 'ICD-10');
+        } else {
+            $primaryCode = null;
+        }
+        foreach ([['secondary_icd10', 'ICD-10'], ['procedures_icd9cm', 'ICD-9-CM']] as [$key, $system]) {
+            $entries = $fields[$key] ?? null;
+            if (! is_array($entries) || ! array_is_list($entries) || count($entries) > 20) {
+                throw new OutpatientLifecycleDenial('validation_failed', 'Daftar kode terstruktur tidak valid.');
+            }
+            $seen = [];
+            foreach ($entries as $entry) {
+                $normalized = $this->validateCodeEntry($entry, $system);
+                if (isset($seen[$normalized])) {
+                    throw new OutpatientLifecycleDenial('validation_failed', 'Kode terstruktur tidak boleh duplikat.');
+                }
+                if ($system === 'ICD-10' && $normalized === $primaryCode) {
+                    throw new OutpatientLifecycleDenial('validation_failed', 'ICD-10 utama tidak boleh diulang sebagai diagnosis sekunder.');
+                }
+                $seen[$normalized] = true;
+            }
+        }
+        if ($finalize && (trim($fields['diagnosis_text']) === '' || $primary === null)) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Diagnosis klinis dan ICD-10 utama wajib diisi sebelum finalisasi.');
+        }
+    }
+
+    private function validateCodeEntry(mixed $entry, string $system): string
+    {
+        if (! is_array($entry) || count($entry) !== 2 || ! array_key_exists('code', $entry) || ! array_key_exists('display', $entry) || ! is_string($entry['code']) || ! is_string($entry['display'])) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Pilihan kode terstruktur tidak valid.');
+        }
+        $code = trim($entry['code']);
+        $display = trim($entry['display']);
+        $pattern = $system === 'ICD-10' ? '/\A[A-Z][0-9][0-9A-Z](?:\.[0-9A-Z]{1,4})?\z/' : '/\A[0-9]{2}(?:\.[0-9]{1,2})?\z/';
+        if (preg_match($pattern, $code) !== 1 || $display === '' || mb_strlen($display) > 500) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Kode atau deskripsi terminologi tidak valid.');
+        }
+        if (! $this->terminology->verifySelection($system, $code, $display)) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Kode dan deskripsi tidak cocok dengan katalog terminologi resmi.');
+        }
+
+        return $system.':'.$code;
+    }
+
+    /** @return array{code:string,display:string} */
+    private function normalizedCodeEntry(mixed $entry): array
+    {
+        if (! is_array($entry) || ! is_string($entry['code'] ?? null) || ! is_string($entry['display'] ?? null)) {
+            throw new OutpatientLifecycleDenial('validation_failed', 'Pilihan kode terstruktur tidak valid.');
+        }
+
+        return ['code' => trim($entry['code']), 'display' => trim($entry['display'])];
     }
 
     private function recordDenial(

@@ -116,6 +116,7 @@ class OutpatientRegistrationController extends Controller
                         'schedules' => $doctor->schedules->map(fn (ClinicSchedule $schedule): array => [
                             'public_id' => $schedule->public_id,
                             'label' => $schedule->label,
+                            'display_label' => $this->scheduleTimeRange($schedule),
                             'day_label' => $schedule->day_label,
                         ])->values()->all(),
                     ])->values()->all(),
@@ -176,7 +177,7 @@ class OutpatientRegistrationController extends Controller
             'date_of_birth' => ['required_without:patient_public_id', 'nullable', 'date'],
             'sex' => ['required_without:patient_public_id', 'nullable', Rule::in(Patient::SEX_VALUES)],
             'medical_record_number' => ['nullable', 'string', 'regex:/^[0-9]{6}$/', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
-            'nik' => ['nullable', 'string', 'max:16'],
+            'nik' => ['nullable', 'string', 'size:16', 'regex:/\A[0-9]{16}\z/'],
             'place_of_birth' => ['nullable', 'string', 'max:120'],
             'religion' => ['nullable', Rule::in(Patient::RELIGION_VALUES)],
             'marital_status' => ['nullable', Rule::in(Patient::MARITAL_VALUES)],
@@ -264,7 +265,7 @@ class OutpatientRegistrationController extends Controller
                 $patient = Patient::query()->create([
                     ...$this->patientUpdatableAttributes($validated),
                     'medical_record_number' => $mrn->value,
-                    'full_name' => $validated['full_name'],
+                    'full_name' => mb_strtoupper(trim((string) $validated['full_name']), 'UTF-8'),
                     'date_of_birth' => $validated['date_of_birth'],
                     'sex' => $validated['sex'],
                     'is_synthetic' => true,
@@ -288,7 +289,7 @@ class OutpatientRegistrationController extends Controller
                 'doctor_id' => $doctor->id,
                 'clinic_schedule_id' => $schedule->id,
                 'doctor_name' => $doctor->name,
-                'schedule_label' => $schedule->label,
+                'schedule_label' => $this->scheduleTimeRange($schedule),
                 'visit_date' => $validated['visit_date'],
                 'admission_mode' => $validated['admission_mode'],
                 'payer_type' => $validated['payer_type'],
@@ -342,6 +343,19 @@ class OutpatientRegistrationController extends Controller
         } catch (Throwable $e) {
             report($e);
         }
+    }
+
+    private function scheduleTimeRange(ClinicSchedule $schedule): string
+    {
+        $startsAt = substr((string) $schedule->starts_at, 0, 5);
+        $endsAt = substr((string) $schedule->ends_at, 0, 5);
+
+        if (preg_match('/^\d{2}:\d{2}$/', $startsAt) === 1
+            && preg_match('/^\d{2}:\d{2}$/', $endsAt) === 1) {
+            return str_replace(':', '.', $startsAt).'–'.str_replace(':', '.', $endsAt);
+        }
+
+        return $schedule->label;
     }
 
     /**

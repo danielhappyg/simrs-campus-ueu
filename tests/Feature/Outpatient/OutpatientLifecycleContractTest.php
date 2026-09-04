@@ -6,11 +6,13 @@ use App\Models\Encounter;
 use App\Models\LabDiagnosticResult;
 use App\Models\LabServiceRequest;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\OutpatientClinicalDocumentVersion;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditRecorder;
 use App\Support\Authorization\RoleCapabilityMatrix;
+use App\Support\Clinical\OutpatientDispositionService;
 use App\Support\Clinical\OutpatientLabLifecycle;
 use App\Support\Clinical\OutpatientRmCompletenessService;
 use Database\Seeders\OutpatientMastersSeeder;
@@ -68,6 +70,7 @@ final class OutpatientLifecycleContractTest extends TestCase
         $encounter = $this->encounter($registrar, Encounter::STATUS_READY_FOR_RM);
         $order = $this->order($encounter, $physician);
         $this->documents($encounter, $nurse, $physician);
+        $this->signDisposition($encounter, $physician);
 
         app(OutpatientLabLifecycle::class)->writeFinalLabResult($order, $nurse, 'Hb 12.4 g/dL');
         $snapshot = app(OutpatientRmCompletenessService::class)->snapshot($encounter);
@@ -168,19 +171,42 @@ final class OutpatientLifecycleContractTest extends TestCase
 
     private function documents(Encounter $encounter, User $nurse, User $physician): void
     {
-        OutpatientClinicalDocument::query()->create([
+        $nursing = OutpatientClinicalDocument::query()->create([
             'encounter_id' => $encounter->id, 'author_user_id' => $nurse->id, 'finalized_by_user_id' => $nurse->id,
             'document_type' => OutpatientClinicalDocument::TYPE_NURSING_ASSESSMENT, 'document_state' => OutpatientClinicalDocument::STATE_FINAL,
             'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION, 'version' => 1,
             'fields' => ['nursing_assessment' => 'Sintetis'], 'finalized_at' => now(),
         ]);
-        OutpatientClinicalDocument::query()->create([
+        $medical = OutpatientClinicalDocument::query()->create([
             'encounter_id' => $encounter->id, 'author_user_id' => $physician->id, 'finalized_by_user_id' => $physician->id,
             'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT, 'document_state' => OutpatientClinicalDocument::STATE_FINAL,
             'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION, 'version' => 1,
             'fields' => ['anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D'],
             'finalized_at' => now(),
         ]);
+        foreach ([$nursing, $medical] as $document) {
+            OutpatientClinicalDocumentVersion::query()->create([
+                'outpatient_clinical_document_id' => $document->id,
+                'actor_user_id' => $document->finalized_by_user_id,
+                'version' => 1,
+                'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'fields' => $document->fields,
+                'finalized_at' => $document->finalized_at,
+            ]);
+        }
+    }
+
+    private function signDisposition(Encounter $encounter, User $physician): void
+    {
+        app(OutpatientDispositionService::class)->sign(
+            $encounter,
+            $physician,
+            'SEMBUH',
+            ['clinical_note' => 'Episode rawat jalan sintetis selesai.'],
+            1,
+            'lifecycle-disposition-'.$encounter->public_id,
+        );
     }
 
     private function actor(string $role): User

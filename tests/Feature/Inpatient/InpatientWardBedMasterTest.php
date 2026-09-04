@@ -728,6 +728,8 @@ class InpatientWardBedMasterTest extends TestCase
             'nik' => '3174011555900088', 'bed_public_id' => $bed->public_id, 'ward_name' => 'Snapshot palsu',
             'ward_class' => 'Snapshot palsu', 'bed_code' => 'PALSU-01', 'payer_type' => Encounter::PAYER_UMUM,
             'continue_from' => Encounter::CONTINUE_LANGSUNG, 'chief_complaint' => 'Observasi sintetis', 'is_synthetic' => true,
+            'admission_authority_type' => Encounter::AUTHORITY_PLANNED_ORDER,
+            'admission_authority_reference' => 'ORDER-WARD-BED-MASTER-0001',
         ], $overrides);
     }
 

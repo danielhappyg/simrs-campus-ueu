@@ -51,6 +51,7 @@ class OutpatientRmController extends Controller
                 ->with([
                     'patient',
                     'outpatientClinicalDocuments',
+                    'latestOutpatientDisposition',
                     'outpatientRmCompletenessReviews.items',
                     'labServiceRequests',
                     'laboratoryOrders.specimenAttempts',
@@ -173,6 +174,7 @@ class OutpatientRmController extends Controller
             'outpatientClinicalDocuments.author',
             'outpatientClinicalDocuments.finalizedBy',
             'outpatientClinicalDocuments.versions.actor',
+            'latestOutpatientDisposition',
             'outpatientRmCompletenessReviews.items',
             'outpatientRmCompletenessReviews.reviewedBy',
             'outpatientRmCompletenessReviews.signedOffBy',

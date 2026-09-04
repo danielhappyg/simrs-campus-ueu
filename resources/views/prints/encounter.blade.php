@@ -91,9 +91,11 @@
             cursor: pointer;
         }
         @media print {
+            @page { size: A4; margin: 12mm; }
             body { background: #fff; }
             .actions { display: none; }
             .sheet { margin: 0; border: 0; width: auto; }
+            .sheet:last-child { page-break-after: auto; }
         }
     </style>
 </head>

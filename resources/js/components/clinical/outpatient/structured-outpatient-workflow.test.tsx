@@ -6,6 +6,7 @@ import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import RmRawatJalan from '@/pages/rm/rawat-jalan';
 import RmRawatJalanShow from '@/pages/rm/rawat-jalan/show';
+import { OutpatientDispositionPanel } from './outpatient-disposition-panel';
 import { StructuredDocumentForm } from './structured-document-form';
 import StructuredOutpatientEncounterShow from './structured-outpatient-encounter-show';
 
@@ -58,6 +59,9 @@ vi.mock('@inertiajs/react', async () => {
             const [data, updateData] = React.useState(initial);
             const dataRef = React.useRef(data);
             const initialData = React.useRef(initial);
+            const transformRef = React.useRef<
+                ((value: T) => Record<string, unknown>) | undefined
+            >(undefined);
 
             const setData = (
                 keyOrData: keyof T | T | ((current: T) => T),
@@ -82,8 +86,18 @@ vi.mock('@inertiajs/react', async () => {
                     JSON.stringify(data) !==
                     JSON.stringify(initialData.current),
                 setData,
+                transform: (
+                    callback: (value: T) => Record<string, unknown>,
+                ) => {
+                    transformRef.current = callback;
+                },
                 post: (url: string) =>
-                    submissions.push({ url, data: dataRef.current }),
+                    submissions.push({
+                        url,
+                        data: transformRef.current
+                            ? transformRef.current(dataRef.current)
+                            : dataRef.current,
+                    }),
                 reset: () => undefined,
             };
         },
@@ -91,6 +105,176 @@ vi.mock('@inertiajs/react', async () => {
 });
 
 describe('structured outpatient documentation', () => {
+    it('keeps an unsigned outpatient disposition bound to the current final medical document', async () => {
+        submissions.length = 0;
+        const user = userEvent.setup();
+
+        render(
+            <StructuredOutpatientEncounterShow
+                variant="rawat-jalan"
+                encounter={{
+                    public_id: 'enc-rj-1',
+                    status: 'IN_EXAMINATION',
+                    clinic_name: 'Klinik Demo',
+                    doctor_name: 'Dokter Demo',
+                    schedule_label: null,
+                    payer_type: 'UMUM',
+                    queue_number: 1,
+                    registered_at: null,
+                    visit_date: null,
+                    chief_complaint: null,
+                    patient: {
+                        public_id: 'patient-1',
+                        medical_record_number: 'SIM-001',
+                        full_name: 'Pasien Sintetis',
+                        date_of_birth: null,
+                        sex: 'male',
+                        nik: null,
+                    },
+                }}
+                legacyEntries={[]}
+                documentation={{
+                    definition_version: 'RJ-DOC-v1',
+                    source_fingerprint: 'a'.repeat(64),
+                    active_drafts: [],
+                    versions: [],
+                    documents: [
+                        {
+                            public_id: 'medical-final-1',
+                            document_type: 'MEDICAL_ASSESSMENT',
+                            document_state: 'FINAL',
+                            definition_version: 'RJ-DOC-v1',
+                            version: 7,
+                            fields: {},
+                            author_name: 'Dokter Demo',
+                            updated_at: null,
+                            finalized_at: null,
+                            finalized_by_name: 'Dokter Demo',
+                        },
+                    ],
+                }}
+                permissions={{
+                    nursing: { can_save_draft: false, can_finalize: false },
+                    medical: { can_save_draft: false, can_finalize: false },
+                    can_create_lab_order: false,
+                    can_sign_disposition: true,
+                }}
+                actions={{
+                    nursing: {
+                        save_draft_url: '/nursing',
+                        finalize_url: '/nursing/final',
+                    },
+                    medical: {
+                        save_draft_url: '/medical',
+                        finalize_url: '/medical/final',
+                    },
+                    store_lab_order_url: '/lab',
+                    sign_disposition_url:
+                        '/pemeriksaan/rawat-jalan/enc-rj-1/disposition',
+                }}
+                disposition={{ current: null, pending_handoff: false }}
+                labTestOptions={[]}
+            />,
+        );
+
+        await user.click(screen.getByRole('radio', { name: /Rawat inap/ }));
+        await user.type(
+            screen.getByLabelText('Alasan rawat inap'),
+            'Perlu observasi lanjutan.',
+        );
+        await user.type(
+            screen.getByLabelText('Catatan serah terima unit penerima'),
+            'Mohon pemantauan bangsal.',
+        );
+        await user.click(
+            screen.getByRole('button', { name: 'Tandatangani disposisi' }),
+        );
+
+        expect(submissions.at(-1)).toEqual({
+            url: '/pemeriksaan/rawat-jalan/enc-rj-1/disposition',
+            data: {
+                disposition_type: 'RAWAT_INAP',
+                expected_document_version: 7,
+                idempotency_key: expect.any(String),
+                payload: {
+                    admission_reason: 'Perlu observasi lanjutan.',
+                    receiving_unit_handoff_note: 'Mohon pemantauan bangsal.',
+                },
+            },
+        });
+    });
+
+    it('sends a correction with the signed version, reason, and type-exact payload', async () => {
+        submissions.length = 0;
+        const user = userEvent.setup();
+
+        render(
+            <OutpatientDispositionPanel
+                disposition={{
+                    current: {
+                        public_id: 'disp-1',
+                        version: 3,
+                        code: 'RAWAT_INAP',
+                        payload: {
+                            admission_reason: 'Observasi awal.',
+                            receiving_unit_handoff_note: 'Pantau ketat.',
+                        },
+                        signed_at: null,
+                        physician_name: 'Dokter Demo',
+                        bound_medical_document_version: 7,
+                    },
+                    pending_handoff: true,
+                }}
+                canSign={false}
+                signUrl={null}
+                canCorrect
+                correctUrl="/pemeriksaan/rawat-jalan/enc-rj-1/disposition/corrections"
+                medicalDocumentVersion={8}
+                medicalDocumentFinal
+            />,
+        );
+
+        await user.click(
+            screen.getByRole('button', { name: 'Koreksi disposisi' }),
+        );
+        await user.type(
+            screen.getByLabelText('Alasan koreksi'),
+            'Unit penerima diperbarui.',
+        );
+        const correctionAdmissionReason = document.getElementById(
+            'admission-reason',
+        ) as HTMLTextAreaElement | null;
+
+        if (!correctionAdmissionReason) {
+            throw new Error(
+                'Correction admission-reason field was not rendered.',
+            );
+        }
+
+        await user.clear(correctionAdmissionReason);
+        await user.type(correctionAdmissionReason, 'Observasi lanjutan.');
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Simpan koreksi disposisi',
+            }),
+        );
+
+        expect(submissions.at(-1)).toEqual({
+            url: '/pemeriksaan/rawat-jalan/enc-rj-1/disposition/corrections',
+            data: {
+                disposition_type: 'RAWAT_INAP',
+                expected_document_version: 8,
+                idempotency_key: expect.any(String),
+                expected_disposition_version: 3,
+                correction_reason: 'Unit penerima diperbarui.',
+                payload: {
+                    admission_reason: 'Observasi lanjutan.',
+                    receiving_unit_handoff_note: 'Pantau ketat.',
+                },
+            },
+        });
+    });
+
     it('preserves the shared page as a discriminated dispatcher for IGD and inpatient', () => {
         const source = readFileSync(
             resolve('resources/js/pages/pemeriksaan/rawat-jalan/show.tsx'),
@@ -142,6 +326,93 @@ describe('structured outpatient documentation', () => {
         ]);
     });
 
+    it('keeps SOAP narrative and clinician-selected ICD codes in one versioned medical draft', async () => {
+        submissions.length = 0;
+        const user = userEvent.setup();
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                options: [
+                    {
+                        code: 'A09',
+                        display: 'Infectious gastroenteritis and colitis',
+                        system: 'ICD-10',
+                    },
+                ],
+                source: { authority: 'Katalog resmi', dataset: 'ICD-10' },
+            }),
+        });
+        vi.stubGlobal('fetch', fetchMock);
+
+        const { container } = render(
+            <StructuredDocumentForm
+                type="MEDICAL_ASSESSMENT"
+                definitionVersion="RJ-DOC-v1"
+                permission={{ can_save_draft: true, can_finalize: false }}
+                actions={{
+                    save_draft_url: '/medical/draft',
+                    finalize_url: '/medical/finalize',
+                }}
+                encounterClosed={false}
+                terminologyLookupUrl="/pemeriksaan/rawat-jalan/terminology"
+            />,
+        );
+
+        expect(
+            screen.getByLabelText(/Subjective \(Subjektif\)/),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByLabelText(/Objective \(Objektif\)/),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByLabelText(/Assessment \(Asesmen\)/),
+        ).toBeInTheDocument();
+        expect(screen.getByLabelText(/Plan \(Rencana\)/)).toBeInTheDocument();
+
+        expect(
+            Array.from(
+                container.querySelectorAll<
+                    HTMLTextAreaElement | HTMLInputElement
+                >('textarea, input'),
+            ).map((element) => element.id),
+        ).toEqual([
+            'MEDICAL_ASSESSMENT-anamnesis',
+            'MEDICAL_ASSESSMENT-objective_examination',
+            'MEDICAL_ASSESSMENT-clinical_assessment',
+            'MEDICAL_ASSESSMENT-diagnosis-text',
+            'MEDICAL_ASSESSMENT-primary-icd10',
+            'MEDICAL_ASSESSMENT-secondary-icd10',
+            'MEDICAL_ASSESSMENT-care_plan',
+            'MEDICAL_ASSESSMENT-procedures-icd9cm',
+            'MEDICAL_ASSESSMENT-additional_notes',
+        ]);
+
+        await user.type(
+            screen.getByLabelText(/Diagnosis klinis bebas/),
+            'Gastroenteritis akut',
+        );
+        await user.type(screen.getByLabelText('ICD-10 utama'), 'A0');
+        await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+        await user.click(screen.getByRole('button', { name: /A09/ }));
+        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+
+        expect(submissions.at(-1)).toEqual({
+            url: '/medical/draft',
+            data: expect.objectContaining({
+                fields: expect.objectContaining({
+                    diagnosis_text: 'Gastroenteritis akut',
+                    primary_icd10: {
+                        code: 'A09',
+                        display: 'Infectious gastroenteritis and colitis',
+                    },
+                    secondary_icd10: [],
+                    procedures_icd9cm: [],
+                }),
+            }),
+        });
+        vi.unstubAllGlobals();
+    });
+
     it('retains unsaved clinical text across in-page tabs and guards GET navigation', async () => {
         inertiaBeforeHandlers.length = 0;
         const user = userEvent.setup();
@@ -166,7 +437,7 @@ describe('structured outpatient documentation', () => {
                         medical_record_number: 'SIM-001',
                         full_name: 'Pasien Sintetis',
                         date_of_birth: '1990-01-01',
-                        sex: 'LAKI_LAKI',
+                        sex: 'male',
                         nik: null,
                     },
                     lab_orders: [],
@@ -325,7 +596,9 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
-        expect(screen.getByLabelText(/Anamnesis/)).toHaveAttribute('readonly');
+        expect(
+            screen.getByLabelText(/Subjective \(Subjektif\)/),
+        ).toHaveAttribute('readonly');
         expect(
             screen.queryByRole('button', { name: 'Finalisasi versi' }),
         ).not.toBeInTheDocument();
@@ -373,7 +646,7 @@ describe('structured outpatient documentation', () => {
                 medical_record_number: 'SIM-001',
                 full_name: 'Pasien Sintetis',
                 date_of_birth: '1990-01-01',
-                sex: 'LAKI_LAKI',
+                sex: 'male',
                 nik: null,
             },
         };
@@ -528,7 +801,7 @@ describe('structured outpatient documentation', () => {
                         medical_record_number: 'SIM-001',
                         full_name: 'Pasien Sintetis',
                         date_of_birth: '1990-01-01',
-                        sex: 'LAKI_LAKI',
+                        sex: 'male',
                         nik: null,
                     },
                 }}
@@ -592,7 +865,7 @@ describe('structured outpatient documentation', () => {
                             medical_record_number: 'SIM-001',
                             full_name: 'Pasien Sintetis',
                             date_of_birth: '1990-01-01',
-                            sex: 'LAKI_LAKI',
+                            sex: 'male',
                         },
                     },
                 ]}

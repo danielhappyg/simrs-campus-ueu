@@ -7,6 +7,7 @@ use App\Models\Clinic;
 use App\Models\ClinicalEntry;
 use App\Models\Encounter;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\OutpatientDisposition;
 use App\Models\User;
 use App\Support\Authorization\Capability;
 use App\Support\Clinical\LegacyLaboratoryCompatibilityProjection;
@@ -160,6 +161,9 @@ class OutpatientExaminationController extends Controller
             'outpatientClinicalDocuments.author',
             'outpatientClinicalDocuments.finalizedBy',
             'outpatientClinicalDocuments.versions.actor',
+            'outpatientDispositions.physician',
+            'outpatientDispositions.handoff',
+            'outpatientDispositions.medicalDocumentVersion',
             'outpatientRmCompletenessReviews',
             'outpatientPostClosureAmendmentRequests.requester',
             'outpatientPostClosureAmendmentRequests.decidedBy',
@@ -174,6 +178,9 @@ class OutpatientExaminationController extends Controller
         $user = $request->user();
         assert($user !== null);
         $canMutate = $encounter->isActive();
+        /** @var OutpatientDisposition|null $currentDisposition */
+        $currentDisposition = $encounter->outpatientDispositions->sortByDesc('version')->first();
+        $isPhysician = $user->status === 'ACTIVE' && $user->roleSlugs() === ['physician'] && $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE);
 
         return Inertia::render('pemeriksaan/rawat-jalan/show', [
             'variant' => 'rawat-jalan',
@@ -223,6 +230,7 @@ class OutpatientExaminationController extends Controller
                     ->map(fn (OutpatientClinicalDocument $document): array => $this->documentProjection($document))
                     ->all(),
                 'versions' => $this->documentVersionProjections($encounter->outpatientClinicalDocuments),
+                'terminology_lookup_url' => route('pemeriksaan.rawat-jalan.terminology'),
             ],
             'permissions' => [
                 ...$this->amendmentProjection->topPermissions($encounter, $user),
@@ -235,6 +243,8 @@ class OutpatientExaminationController extends Controller
                     'can_finalize' => $canMutate && $user->canCapability(Capability::CLINICAL_MEDICAL_WRITE),
                 ],
                 'can_create_lab_order' => false,
+                'can_sign_disposition' => $isPhysician && $currentDisposition === null && $encounter->status !== Encounter::STATUS_CLOSED && $encounter->status !== Encounter::STATUS_CANCELLED,
+                'can_correct_disposition' => $isPhysician && $encounter->isActive() && $encounter->patient->is_synthetic && $currentDisposition !== null && $currentDisposition->physician_user_id === $user->id && $currentDisposition->handoff === null,
             ],
             'actions' => [
                 ...$this->amendmentProjection->topActions($encounter, $user),
@@ -246,6 +256,18 @@ class OutpatientExaminationController extends Controller
                     'save_draft_url' => route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
                     'finalize_url' => route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
                 ],
+                'sign_disposition_url' => route('pemeriksaan.rawat-jalan.disposition.sign', $encounter),
+                'correct_disposition_url' => route('pemeriksaan.rawat-jalan.disposition.correct', $encounter),
+            ],
+            'disposition' => [
+                'current' => $currentDisposition ? [
+                    'public_id' => $currentDisposition->public_id, 'version' => $currentDisposition->version,
+                    'code' => $currentDisposition->disposition_type, 'payload' => $currentDisposition->payload,
+                    'signed_at' => $currentDisposition->signed_at->toIso8601String(),
+                    'physician_name' => $currentDisposition->physician?->name,
+                    'bound_medical_document_version' => $currentDisposition->medicalDocumentVersion?->version,
+                ] : null,
+                'pending_handoff' => $currentDisposition?->disposition_type === 'RAWAT_INAP' && $currentDisposition->handoff === null,
             ],
             'amendmentReasonOptions' => $this->amendmentProjection->reasonOptions(),
             'amendments' => $this->amendmentProjection->amendments($encounter, $user),

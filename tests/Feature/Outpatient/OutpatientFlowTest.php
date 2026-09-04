@@ -7,6 +7,7 @@ use App\Models\ClinicSchedule;
 use App\Models\Doctor;
 use App\Models\Encounter;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\OutpatientClinicalDocumentVersion;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
@@ -87,7 +88,7 @@ class OutpatientFlowTest extends TestCase
         $response->assertRedirect(route('pendaftaran.rawat-jalan.index'));
 
         $this->assertDatabaseHas('patients', [
-            'full_name' => 'Pasien Sintetis Satu',
+            'full_name' => 'PASIEN SINTETIS SATU',
             'nik' => '3174010101900001',
             'is_synthetic' => true,
             'religion' => 'ISLAM',
@@ -102,7 +103,7 @@ class OutpatientFlowTest extends TestCase
             'doctor_id' => $doctor->id,
             'clinic_schedule_id' => $schedule->id,
             'doctor_name' => $doctor->name,
-            'schedule_label' => $schedule->label,
+            'schedule_label' => '08.00–12.00',
             'queue_date' => now()->toDateString(),
             'queue_number' => 1,
             'status' => Encounter::STATUS_REGISTERED,
@@ -126,8 +127,23 @@ class OutpatientFlowTest extends TestCase
                 ->component('pendaftaran/rawat-jalan')
                 ->has('todaysEncounters', 1)
                 ->has('clinics')
-                ->where('todaysEncounters.0.patient.full_name', 'Pasien Sintetis Satu')
+                ->where('clinics.0.doctors.0.schedules.0.display_label', '08.00–12.00')
+                ->where('todaysEncounters.0.patient.full_name', 'PASIEN SINTETIS SATU')
                 ->where('todaysEncounters.0.queue_number', 1));
+    }
+
+    public function test_outpatient_registration_rejects_non_numeric_nik(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload([
+                'nik' => '31740101019000AB',
+            ]))
+            ->assertSessionHasErrors('nik');
+
+        $this->assertDatabaseCount('patients', 0);
+        $this->assertDatabaseCount('encounters', 0);
     }
 
     public function test_outpatient_registration_rolls_back_when_audit_write_fails(): void
@@ -143,7 +159,7 @@ class OutpatientFlowTest extends TestCase
             ->post(route('pendaftaran.rawat-jalan.store'), $this->registrationPayload())
             ->assertStatus(503);
 
-        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien Sintetis Satu']);
+        $this->assertDatabaseMissing('patients', ['full_name' => 'PASIEN SINTETIS SATU']);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('audit_events', 0);
         $this->assertDatabaseCount('daily_queue_counters', 0);
@@ -279,7 +295,18 @@ class OutpatientFlowTest extends TestCase
             ->assertRedirect(route('pemeriksaan.rawat-jalan.show', $encounter));
 
         $encounter->refresh();
-        $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->status);
+        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->status);
+        $medical = OutpatientClinicalDocument::query()
+            ->where('encounter_id', $encounter->id)
+            ->where('document_type', OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT)
+            ->sole();
+        $this->actingAs($physician)->post(route('pemeriksaan.rawat-jalan.disposition.sign', $encounter), [
+            'disposition_type' => 'SEMBUH',
+            'expected_document_version' => $medical->version,
+            'payload' => ['clinical_note' => 'Episode sintetis selesai.'],
+            'idempotency_key' => 'outpatient-flow-disposition-0001',
+        ])->assertRedirect();
+        $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
 
         $this->assertDatabaseHas('audit_events', [
             'action' => 'clinical.medical.finalize',
@@ -292,6 +319,7 @@ class OutpatientFlowTest extends TestCase
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $rmik = $this->userWithRole(RoleCapabilityMatrix::ROLE_RMIK);
+        $physician = $this->userWithRole(RoleCapabilityMatrix::ROLE_PHYSICIAN);
 
         $patient = Patient::factory()->create([
             'created_by_user_id' => $registrar->id,
@@ -301,6 +329,32 @@ class OutpatientFlowTest extends TestCase
             'registered_by_user_id' => $registrar->id,
             'status' => Encounter::STATUS_READY_FOR_RM,
         ]);
+        $medical = OutpatientClinicalDocument::query()->create([
+            'encounter_id' => $encounter->id,
+            'author_user_id' => $physician->id,
+            'finalized_by_user_id' => $physician->id,
+            'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
+            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'version' => 1,
+            'fields' => ['anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D'],
+            'finalized_at' => now(),
+        ]);
+        OutpatientClinicalDocumentVersion::query()->create([
+            'outpatient_clinical_document_id' => $medical->id,
+            'actor_user_id' => $physician->id,
+            'version' => 1,
+            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'fields' => $medical->fields,
+            'finalized_at' => $medical->finalized_at,
+        ]);
+        $this->actingAs($physician)->post(route('pemeriksaan.rawat-jalan.disposition.sign', $encounter), [
+            'disposition_type' => 'SEMBUH',
+            'expected_document_version' => 1,
+            'payload' => ['clinical_note' => 'Episode sintetis selesai.'],
+            'idempotency_key' => 'outpatient-flow-rm-disposition-0001',
+        ])->assertRedirect();
         OutpatientClinicalDocument::query()->create([
             'encounter_id' => $encounter->id,
             'author_user_id' => $rmik->id,
@@ -310,17 +364,6 @@ class OutpatientFlowTest extends TestCase
             'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
             'version' => 1,
             'fields' => ['nursing_assessment' => 'Sintetis'],
-            'finalized_at' => now(),
-        ]);
-        OutpatientClinicalDocument::query()->create([
-            'encounter_id' => $encounter->id,
-            'author_user_id' => $rmik->id,
-            'finalized_by_user_id' => $rmik->id,
-            'document_type' => OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT,
-            'document_state' => OutpatientClinicalDocument::STATE_FINAL,
-            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
-            'version' => 1,
-            'fields' => ['anamnesis' => 'A', 'objective_examination' => 'B', 'clinical_assessment' => 'C', 'care_plan' => 'D'],
             'finalized_at' => now(),
         ]);
 

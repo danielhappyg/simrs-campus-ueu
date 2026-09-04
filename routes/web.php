@@ -31,13 +31,16 @@ use App\Http\Controllers\Inpatient\InpatientSummaryAddendumController;
 use App\Http\Controllers\Inpatient\InpatientWardBedMasterController;
 use App\Http\Controllers\ModulePlaceholderController;
 use App\Http\Controllers\Outpatient\OutpatientConsentController;
+use App\Http\Controllers\Outpatient\OutpatientDispositionController;
 use App\Http\Controllers\Outpatient\OutpatientExaminationController;
+use App\Http\Controllers\Outpatient\OutpatientInpatientHandoffController;
 use App\Http\Controllers\Outpatient\OutpatientPostClosureAmendmentController;
 use App\Http\Controllers\Outpatient\OutpatientPrintController;
 use App\Http\Controllers\Outpatient\OutpatientRecapController;
 use App\Http\Controllers\Outpatient\OutpatientRegistrationController;
 use App\Http\Controllers\Outpatient\OutpatientRmAmendmentController;
 use App\Http\Controllers\Outpatient\OutpatientRmController;
+use App\Http\Controllers\Outpatient\OutpatientTerminologyController;
 use App\Http\Controllers\Pharmacy\PharmacyDispensingController;
 use App\Http\Controllers\Pharmacy\PharmacyMasterController;
 use App\Http\Controllers\Pharmacy\PharmacyPrescriptionController;
@@ -297,12 +300,16 @@ Route::middleware(['simulation'])->group(function (): void {
 
         Route::get('/pemeriksaan/rawat-jalan', [OutpatientExaminationController::class, 'index'])
             ->name('pemeriksaan.rawat-jalan.index');
+        Route::get('/pemeriksaan/rawat-jalan/terminology', OutpatientTerminologyController::class)->name('pemeriksaan.rawat-jalan.terminology');
         Route::get('/pemeriksaan/rawat-jalan/{encounter}', [OutpatientExaminationController::class, 'show'])
             ->name('pemeriksaan.rawat-jalan.show');
         Route::post('/pemeriksaan/rawat-jalan/{encounter}/documents/{documentType}/draft', [OutpatientExaminationController::class, 'saveDraft'])
             ->name('pemeriksaan.rawat-jalan.documents.draft');
         Route::post('/pemeriksaan/rawat-jalan/{encounter}/documents/{documentType}/final', [OutpatientExaminationController::class, 'finalize'])
             ->name('pemeriksaan.rawat-jalan.documents.final');
+        Route::post('/pemeriksaan/rawat-jalan/{encounter}/disposition', [OutpatientDispositionController::class, 'sign'])->name('pemeriksaan.rawat-jalan.disposition.sign');
+        Route::post('/pemeriksaan/rawat-jalan/{encounter}/disposition/corrections', [OutpatientDispositionController::class, 'correct'])->name('pemeriksaan.rawat-jalan.disposition.correct');
+        Route::post('/pemeriksaan/rawat-jalan/{encounter}/disposition/handoff', [OutpatientInpatientHandoffController::class, 'execute'])->name('outpatient.disposition.handoff');
         Route::post('/pemeriksaan/rawat-jalan/{encounter}/laboratory-orders', [LaboratoryWorkflowController::class, 'storeOutpatientOrder'])
             ->whereUlid('encounter')
             ->name('laboratory.outpatient.orders.store');

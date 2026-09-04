@@ -44,7 +44,7 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->assertRedirect();
     }
 
-    public function test_registrar_can_print_teaching_bukti_and_sep(): void
+    public function test_registrar_printing_sep_prefers_the_single_visible_sep_document(): void
     {
         $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
         $patient = Patient::factory()->create([
@@ -69,18 +69,13 @@ class OutpatientPrintAndRecapTest extends TestCase
             ->get(route('pendaftaran.kunjungan.cetak', $encounter).'?docs=bukti,sep,antrian');
 
         $response->assertOk();
-        $response->assertSee('Bukti pendaftaran', false);
+        $response->assertDontSee('Bukti pendaftaran', false);
         $response->assertSee('Surat Eligibilitas Peserta (SEP)', false);
         $response->assertSee('SIM-SEP-', false);
         $response->assertDontSee('Dokumen pengajaran', false);
         $response->assertDontSee('Tidak dikirim ke VClaim', false);
-        $response->assertSee('Perempuan', false);
-        $response->assertSee('Islam', false);
-        $response->assertSee('Kawin', false);
-        $response->assertSee('Datang sendiri', false);
-        $response->assertSee('DKI JAKARTA', false);
-        $response->assertSee('31', false);
-        $response->assertDontSee('LAKI_LAKI', false);
+        $response->assertSee($patient->full_name, false);
+        $response->assertSee('SYNTH-0001', false);
 
         $this->assertDatabaseHas('audit_events', [
             'action' => 'encounter.print',
@@ -88,6 +83,10 @@ class OutpatientPrintAndRecapTest extends TestCase
             'resource_id' => $encounter->public_id,
             'outcome' => 'SUCCESS',
         ]);
+        $this->assertSame(
+            ['sep'],
+            AuditEvent::query()->where('action', 'encounter.print')->sole()->metadata['documents'],
+        );
     }
 
     public function test_print_hides_non_synthetic_patients(): void

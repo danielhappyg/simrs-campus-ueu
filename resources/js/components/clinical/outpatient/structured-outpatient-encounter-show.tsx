@@ -7,6 +7,7 @@ import { RadiologyEncounterPanel } from '@/components/clinical/radiology/radiolo
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ClinicalDocumentHistory } from './clinical-document-history';
+import { OutpatientDispositionPanel } from './outpatient-disposition-panel';
 import { PostClosureAmendmentPanel } from './post-closure-amendment-panel';
 import { StructuredDocumentForm } from './structured-document-form';
 import type { ClinicalDocumentType, OutpatientShowProps } from './types';
@@ -36,6 +37,7 @@ export default function StructuredOutpatientEncounterShow({
     laboratory,
     radiology,
     pharmacy,
+    disposition = { current: null, pending_handoff: false },
 }: OutpatientShowProps) {
     const { flash } = usePage().props;
     const [section, setSection] = useState<
@@ -256,16 +258,6 @@ export default function StructuredOutpatientEncounterShow({
                             {label}
                         </button>
                     ))}
-                    {['SOAP', 'Diagnosa', 'Tindakan'].map((label) => (
-                        <button
-                            key={label}
-                            type="button"
-                            disabled
-                            className="min-h-11 px-3 text-sm text-muted-foreground opacity-50"
-                        >
-                            {label}
-                        </button>
-                    ))}
                 </nav>
 
                 <div
@@ -290,9 +282,24 @@ export default function StructuredOutpatientEncounterShow({
                         permission={permissions.medical}
                         actions={actions.medical}
                         encounterClosed={closed}
+                        terminologyLookupUrl={
+                            documentation.terminology_lookup_url
+                        }
                         onDirtyChange={handleDirtyChange}
                     />
                 </div>
+
+                <OutpatientDispositionPanel
+                    disposition={disposition}
+                    canSign={Boolean(permissions.can_sign_disposition)}
+                    signUrl={actions.sign_disposition_url ?? null}
+                    canCorrect={Boolean(permissions.can_correct_disposition)}
+                    correctUrl={actions.correct_disposition_url ?? null}
+                    medicalDocumentVersion={medicalDocument?.version ?? 0}
+                    medicalDocumentFinal={
+                        medicalDocument?.document_state === 'FINAL'
+                    }
+                />
 
                 {section === 'history' ? (
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">

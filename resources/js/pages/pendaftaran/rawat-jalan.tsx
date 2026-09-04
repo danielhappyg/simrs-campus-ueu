@@ -24,6 +24,7 @@ type Option = { value: string; label: string };
 type ScheduleOption = {
     public_id: string;
     label: string;
+    display_label?: string;
     day_label: string | null;
 };
 
@@ -190,9 +191,10 @@ function cancellationTimeLabel(value: string | null): string {
 }
 
 const sexLabel: Record<string, string> = {
-    LAKI_LAKI: 'Laki-laki',
-    PEREMPUAN: 'Perempuan',
-    TIDAK_DIKETAHUI: 'Tidak diketahui',
+    male: 'Laki-laki',
+    female: 'Perempuan',
+    other: 'Lainnya',
+    unknown: 'Tidak diketahui',
 };
 
 const payerLabel: Record<string, string> = {
@@ -590,7 +592,7 @@ export default function PendaftaranRawatJalan({
         patient_public_id: '',
         full_name: '',
         date_of_birth: '',
-        sex: 'LAKI_LAKI',
+        sex: 'male',
         medical_record_number: '',
         nik: '',
         place_of_birth: '',
@@ -770,7 +772,7 @@ export default function PendaftaranRawatJalan({
             patient_public_id: '',
             full_name: '',
             date_of_birth: '',
-            sex: 'LAKI_LAKI',
+            sex: 'male',
             medical_record_number: '',
             nik: '',
             place_of_birth: '',
@@ -829,7 +831,7 @@ export default function PendaftaranRawatJalan({
                 form.reset();
                 form.setData({
                     ...form.data,
-                    sex: 'LAKI_LAKI',
+                    sex: 'male',
                     visit_date: today,
                     admission_mode: 'DATANG_SENDIRI',
                     payer_type: 'UMUM',
@@ -849,11 +851,13 @@ export default function PendaftaranRawatJalan({
     const returning = form.data.patient_public_id !== '';
     const printTargetId =
         lastEncounterPublicId ?? todaysEncounters[0]?.public_id ?? null;
-    const selectedPrintDocs = [
-        'bukti',
-        ...(printQueue ? ['antrian'] : []),
-        ...PRINTABLE_FLAGS.filter((key) => printFlags[key]),
-    ];
+    const selectedPrintDocs = printFlags.sep
+        ? ['sep']
+        : [
+              'bukti',
+              ...(printQueue ? ['antrian'] : []),
+              ...PRINTABLE_FLAGS.filter((key) => printFlags[key]),
+          ];
     const openPrint = (publicId: string, docs = selectedPrintDocs) => {
         window.open(
             encounterPrintUrl(publicId, docs),
@@ -1178,8 +1182,15 @@ export default function PendaftaranRawatJalan({
                                         className={fieldClass}
                                         value={form.data.nik}
                                         onChange={(e) =>
-                                            form.setData('nik', e.target.value)
+                                            form.setData(
+                                                'nik',
+                                                e.target.value
+                                                    .replace(/\D/g, '')
+                                                    .slice(0, 16),
+                                            )
                                         }
+                                        inputMode="numeric"
+                                        pattern="[0-9]{16}"
                                         maxLength={16}
                                         placeholder="16 digit"
                                     />
@@ -1191,12 +1202,14 @@ export default function PendaftaranRawatJalan({
                                 >
                                     <Input
                                         id="full_name"
-                                        className={fieldClass}
+                                        className={cn(fieldClass, 'uppercase')}
                                         value={form.data.full_name}
                                         onChange={(e) =>
                                             form.setData(
                                                 'full_name',
-                                                e.target.value,
+                                                e.target.value.toLocaleUpperCase(
+                                                    'id-ID',
+                                                ),
                                             )
                                         }
                                         disabled={returning}
@@ -1941,7 +1954,8 @@ export default function PendaftaranRawatJalan({
                                                     key={schedule.public_id}
                                                     value={schedule.public_id}
                                                 >
-                                                    {schedule.label}
+                                                    {schedule.display_label ??
+                                                        schedule.label}
                                                 </option>
                                             ))}
                                         </select>

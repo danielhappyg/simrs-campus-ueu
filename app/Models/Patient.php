@@ -51,11 +51,17 @@ class Patient extends Model
     /** @use HasFactory<PatientFactory> */
     use HasFactory, HasPublicUlid, UsesSchemaQualifiedTable;
 
-    public const SEX_LAKI_LAKI = 'LAKI_LAKI';
+    /** SATUSEHAT / HL7 AdministrativeGender: male. */
+    public const SEX_LAKI_LAKI = 'male';
 
-    public const SEX_PEREMPUAN = 'PEREMPUAN';
+    /** SATUSEHAT / HL7 AdministrativeGender: female. */
+    public const SEX_PEREMPUAN = 'female';
 
-    public const SEX_TIDAK_DIKETAHUI = 'TIDAK_DIKETAHUI';
+    /** SATUSEHAT / HL7 AdministrativeGender: other. */
+    public const SEX_LAINNYA = 'other';
+
+    /** SATUSEHAT / HL7 AdministrativeGender: unknown. */
+    public const SEX_TIDAK_DIKETAHUI = 'unknown';
 
     /**
      * @var list<string>
@@ -63,6 +69,7 @@ class Patient extends Model
     public const SEX_VALUES = [
         self::SEX_LAKI_LAKI,
         self::SEX_PEREMPUAN,
+        self::SEX_LAINNYA,
         self::SEX_TIDAK_DIKETAHUI,
     ];
 

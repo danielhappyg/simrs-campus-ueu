@@ -333,6 +333,7 @@ export type EmergencyLegacyEntry = {
 };
 
 export type EmergencyShowProps = {
+    initialTab?: 'triage' | 'disposition';
     encounter: EmergencyEncounterSummary;
     triage: EmergencyTriageProjection;
     documentation: EmergencyDocumentProjection;

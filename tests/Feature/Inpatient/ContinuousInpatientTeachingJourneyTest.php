@@ -239,6 +239,8 @@ class ContinuousInpatientTeachingJourneyTest extends TestCase
             'bed_public_id' => $this->managedBed->public_id,
             'payer_type' => Encounter::PAYER_UMUM,
             'continue_from' => Encounter::CONTINUE_LANGSUNG,
+            'admission_authority_type' => Encounter::AUTHORITY_PLANNED_ORDER,
+            'admission_authority_reference' => 'ORDER-RI-JOURNEY-0001',
             'chief_complaint' => 'Demam dan mual pada skenario pengajaran sintetis.',
             'is_synthetic' => true,
         ], $overrides);

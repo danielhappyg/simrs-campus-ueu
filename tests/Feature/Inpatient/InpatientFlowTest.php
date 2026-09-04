@@ -68,6 +68,8 @@ class InpatientFlowTest extends TestCase
             'bed_public_id' => $this->managedBed->public_id,
             'payer_type' => Encounter::PAYER_UMUM,
             'continue_from' => Encounter::CONTINUE_LANGSUNG,
+            'admission_authority_type' => Encounter::AUTHORITY_PLANNED_ORDER,
+            'admission_authority_reference' => 'ORDER-RI-FLOW-0001',
             'chief_complaint' => 'Demam dan mual',
             'is_synthetic' => true,
         ], $overrides);
@@ -84,7 +86,7 @@ class InpatientFlowTest extends TestCase
         $response->assertRedirect(route('pendaftaran.rawat-inap.index'));
 
         $this->assertDatabaseHas('patients', [
-            'full_name' => 'Pasien RI Sintetis',
+            'full_name' => 'PASIEN RI SINTETIS',
             'nik' => '3174011555900002',
             'is_synthetic' => true,
         ]);
@@ -122,8 +124,22 @@ class InpatientFlowTest extends TestCase
                 ->has('todaysEncounters', 1)
                 ->has('wards', 1)
                 ->where('canOpen', true)
-                ->where('todaysEncounters.0.patient.full_name', 'Pasien RI Sintetis')
+                ->where('todaysEncounters.0.patient.full_name', 'PASIEN RI SINTETIS')
                 ->where('todaysEncounters.0.bed_code', $ward['beds'][0]));
+    }
+
+    public function test_inpatient_registration_rejects_non_numeric_nik(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.rawat-inap.store'), $this->registrationPayload([
+                'nik' => '31740115559000AB',
+            ]))
+            ->assertSessionHasErrors('nik');
+
+        $this->assertDatabaseCount('patients', 0);
+        $this->assertDatabaseCount('encounters', 0);
     }
 
     public function test_inpatient_registration_hides_examination_handoff_without_open_capability(): void
@@ -162,7 +178,7 @@ class InpatientFlowTest extends TestCase
             ->post(route('pendaftaran.rawat-inap.store'), $this->registrationPayload())
             ->assertStatus(503);
 
-        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien RI Sintetis']);
+        $this->assertDatabaseMissing('patients', ['full_name' => 'PASIEN RI SINTETIS']);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseMissing('audit_events', ['action' => 'patient.register']);
         $this->assertDatabaseCount('daily_queue_counters', 0);
@@ -195,7 +211,7 @@ class InpatientFlowTest extends TestCase
             ->where('bed_code', $bed)
             ->where('status', '!=', Encounter::STATUS_CLOSED)
             ->count());
-        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien RI Kedua']);
+        $this->assertDatabaseMissing('patients', ['full_name' => 'PASIEN RI KEDUA']);
         $this->assertDatabaseHas('daily_queue_counters', [
             'queue_date' => now()->toDateString(),
             'last_number' => 1,

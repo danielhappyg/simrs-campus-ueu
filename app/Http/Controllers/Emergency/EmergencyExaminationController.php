@@ -114,6 +114,7 @@ class EmergencyExaminationController extends Controller
         return Inertia::render('pemeriksaan/igd/show', [
             'encounter' => $this->emergencyProjection->worklistEncounter($encounter, $user),
             ...$emergency,
+            'initialTab' => $request->query('tab') === 'disposition' ? 'disposition' : 'triage',
             'radiology' => $this->radiologyProjection->encounter($encounter, $user),
             'laboratory' => $this->laboratoryEncounter($encounter, $user),
             'pharmacy' => $this->pharmacyProjection->encounter($encounter, $user),

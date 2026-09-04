@@ -242,7 +242,7 @@ final class FinanceRadiologyTariffHttpWorkflowTest extends TestCase
         $mixed->roles()->attach(Role::query()->where('slug', RoleCapabilityMatrix::ROLE_CASHIER)->sole()->id);
         $unknown = '01J99999999999999999999999';
 
-        foreach ([$admin, $systemAdministrator, $mixed] as $actor) {
+        foreach ([$admin, $mixed] as $actor) {
             $this->actingAs($actor)->get(route('finance.radiology-tariff.index'))->assertForbidden();
             $this->actingAs($actor)
                 ->get(route('finance.radiology-tariff.history', ['binding' => $unknown]))
@@ -257,6 +257,10 @@ final class FinanceRadiologyTariffHttpWorkflowTest extends TestCase
                 ->post(route('finance.radiology-tariff.retire', ['binding' => $unknown]), [])
                 ->assertForbidden();
         }
+
+        $this->actingAs($systemAdministrator)
+            ->get(route('finance.radiology-tariff.index'))
+            ->assertOk();
 
         $cashier = $this->actor(RoleCapabilityMatrix::ROLE_CASHIER);
         $this->actingAs($cashier)

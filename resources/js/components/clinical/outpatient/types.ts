@@ -4,13 +4,21 @@ import type { RadiologyEncounterProjection } from '../radiology/types';
 
 export type ClinicalDocumentType = 'NURSING_ASSESSMENT' | 'MEDICAL_ASSESSMENT';
 
+export type TerminologySelection = {
+    code: string;
+    display: string;
+};
+
+export type ClinicalDocumentFieldValue =
+    string | null | TerminologySelection | TerminologySelection[];
+
 export type ClinicalDocument = {
     public_id: string;
     document_type: ClinicalDocumentType;
     document_state: 'DRAFT' | 'FINAL';
     definition_version: string;
     version: number;
-    fields: Record<string, string | null>;
+    fields: Record<string, ClinicalDocumentFieldValue>;
     author_name: string | null;
     updated_at: string | null;
     finalized_at: string | null;
@@ -22,7 +30,7 @@ export type ClinicalDocumentVersion = {
     document_type: ClinicalDocumentType;
     version: number;
     state: 'DRAFT' | 'FINAL';
-    fields: Record<string, string | null>;
+    fields: Record<string, ClinicalDocumentFieldValue>;
     actor_name: string | null;
     created_at: string | null;
     finalized_at: string | null;
@@ -157,6 +165,22 @@ export type DocumentActions = {
     finalize_url: string;
 };
 
+export type OutpatientDispositionType =
+    'KONTROL_ULANG' | 'SEMBUH' | 'RAWAT_INAP';
+
+export type OutpatientDisposition = {
+    current: {
+        public_id: string;
+        version: number;
+        code: OutpatientDispositionType;
+        payload: Record<string, string | null>;
+        signed_at: string | null;
+        physician_name: string | null;
+        bound_medical_document_version: number;
+    } | null;
+    pending_handoff: boolean;
+};
+
 export type OutpatientShowProps = {
     variant: 'rawat-jalan';
     encounter: OutpatientEncounter;
@@ -167,19 +191,25 @@ export type OutpatientShowProps = {
         documents: ClinicalDocument[];
         active_drafts: ClinicalDocument[];
         versions: ClinicalDocumentVersion[];
+        terminology_lookup_url?: string;
     };
     permissions: {
         nursing: DocumentPermission;
         medical: DocumentPermission;
         can_create_lab_order: boolean;
         can_request_amendment?: boolean;
+        can_sign_disposition?: boolean;
+        can_correct_disposition?: boolean;
     };
     actions: {
         nursing: DocumentActions;
         medical: DocumentActions;
         store_lab_order_url: string;
         store_amendment_url?: string | null;
+        sign_disposition_url?: string | null;
+        correct_disposition_url?: string | null;
     };
+    disposition?: OutpatientDisposition;
     labTestOptions: Array<{ code: string; label: string }>;
     amendmentReasonOptions?: AmendmentReasonOption[];
     amendments?: OutpatientAmendment[];

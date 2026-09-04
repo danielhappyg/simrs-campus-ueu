@@ -76,6 +76,8 @@ class InpatientLocationBedVersionProvenanceTest extends TestCase
             insuranceNumber: null,
             continueFrom: Encounter::CONTINUE_LANGSUNG,
             chiefComplaint: 'Observasi provenance sintetis',
+            admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+            admissionAuthorityReference: 'ORDER-BED-PROVENANCE-0001',
         );
         $sourceVersionOne = InpatientBedVersion::query()
             ->where('bed_id', $this->source->id)
@@ -186,6 +188,8 @@ class InpatientLocationBedVersionProvenanceTest extends TestCase
             null,
             Encounter::CONTINUE_LANGSUNG,
             null,
+            admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+            admissionAuthorityReference: 'ORDER-BED-PROVENANCE-0002',
         );
         $targetVersion = InpatientBedVersion::query()
             ->where('bed_id', $this->target->id)

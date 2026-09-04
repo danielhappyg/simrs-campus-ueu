@@ -320,6 +320,8 @@ final class FinanceAccommodationRecoverySnapshotTest extends TestCase
         $admission = app(InpatientAdmissionService::class)->admitDirect(
             $patient, $this->registrar, $sourceBed->public_id, Encounter::PAYER_UMUM,
             null, Encounter::CONTINUE_LANGSUNG, 'Perawatan akomodasi sintetis', registeredAt: Carbon::now(),
+            admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+            admissionAuthorityReference: 'ORDER-ACCOMMODATION-RECOVERY-0001',
         );
         Carbon::setTestNow('2026-09-02 16:00:00');
         app(InpatientBedTransferService::class)->transfer(
@@ -349,6 +351,8 @@ final class FinanceAccommodationRecoverySnapshotTest extends TestCase
         $admission = app(InpatientAdmissionService::class)->admitDirect(
             $patient, $this->registrar, $bed->public_id, Encounter::PAYER_UMUM,
             null, Encounter::CONTINUE_LANGSUNG, 'Perawatan akomodasi sintetis', registeredAt: Carbon::now(),
+            admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+            admissionAuthorityReference: 'ORDER-ACCOMMODATION-RECOVERY-0002',
         );
         $summaries = app(InpatientDischargeSummaryService::class);
         $draft = $summaries->saveDraft(

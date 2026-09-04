@@ -29,6 +29,7 @@ final class AuditEventSchemaRegistry
 
     /** @var list<string> */
     private const COMPLETENESS_ITEMS = [
+        'DISPOSITION_SIGNED',
         'IDENTITY_LINKED',
         'NURSING_FINAL',
         'NURSING_PROVENANCE',
@@ -650,6 +651,45 @@ final class AuditEventSchemaRegistry
                 return;
             case 'clinical.outpatient.amendment.request.submit|SUCCESS|outpatient_post_closure_amendment_request':
                 $this->assertAmendmentRequestSubmitSuccess($resourceId, $actorPresent, $reason, $metadata);
+
+                return;
+            case 'clinical.outpatient.disposition.sign|SUCCESS|outpatient_disposition':
+                $this->assertActor($actorPresent);
+                $this->assertPublicId($resourceId, 'resource_id');
+                $this->assertNullReason($reason);
+                $this->assertExactKeys($metadata, ['encounter_id', 'disposition_type', 'version', 'medical_document_version_public_id']);
+                $this->assertPublicIdValue($metadata['encounter_id'], 'metadata.encounter_id');
+                $this->assertPublicIdValue($metadata['medical_document_version_public_id'], 'metadata.medical_document_version_public_id');
+
+                return;
+            case 'clinical.outpatient.disposition.correct|SUCCESS|outpatient_disposition':
+                $this->assertActor($actorPresent);
+                $this->assertPublicId($resourceId, 'resource_id');
+                $this->assertNullReason($reason);
+                $this->assertExactKeys($metadata, ['encounter_id', 'prior_disposition_id', 'version']);
+                $this->assertPublicIdValue($metadata['encounter_id'], 'metadata.encounter_id');
+                $this->assertPublicIdValue($metadata['prior_disposition_id'], 'metadata.prior_disposition_id');
+
+                return;
+            case 'clinical.outpatient.inpatient-handoff.execute|SUCCESS|outpatient_inpatient_handoff':
+                $this->assertActor($actorPresent);
+                $this->assertPublicId($resourceId, 'resource_id');
+                $this->assertNullReason($reason);
+                $this->assertExactKeys($metadata, ['source_encounter_id', 'target_encounter_id', 'disposition_id']);
+                foreach (['source_encounter_id', 'target_encounter_id', 'disposition_id'] as $key) {
+                    $this->assertPublicIdValue($metadata[$key], 'metadata.'.$key);
+                }
+
+                return;
+            case 'clinical.outpatient.disposition.sign|DENIED|encounter':
+            case 'clinical.outpatient.disposition.correct|DENIED|encounter':
+            case 'clinical.outpatient.inpatient-handoff.execute|DENIED|encounter':
+                $this->assertActor($actorPresent);
+                $this->assertPublicId($resourceId, 'resource_id');
+                if (! is_string($reason) || $reason === '') {
+                    throw new InvalidAuditEvent('Outpatient disposition denial reason is required.');
+                }
+                $this->assertExactKeys($metadata, []);
 
                 return;
             case 'clinical.outpatient.amendment.request.submit|DENIED|encounter':
@@ -1703,7 +1743,7 @@ final class AuditEventSchemaRegistry
             if (! is_string($metadata['source_fingerprint']) || preg_match('/\A[a-f0-9]{64}\z/', $metadata['source_fingerprint']) !== 1) {
                 throw new InvalidAuditEvent('Audit metadata.source_fingerprint must be a SHA-256 hex digest.');
             }
-            $failed = $this->assertStringList($metadata['failed_item_ids'], 'metadata.failed_item_ids', 0, 12, 64);
+            $failed = $this->assertStringList($metadata['failed_item_ids'], 'metadata.failed_item_ids', 0, 13, 64);
             $this->assertCompletenessItems($failed);
 
             return;
@@ -1729,7 +1769,7 @@ final class AuditEventSchemaRegistry
             'active_pharmacy_prescriptions',
         ], true)) {
             $this->assertExactKeys($metadata, ['failed_item_ids']);
-            $failed = $this->assertStringList($metadata['failed_item_ids'], 'metadata.failed_item_ids', 1, 12, 64);
+            $failed = $this->assertStringList($metadata['failed_item_ids'], 'metadata.failed_item_ids', 1, 13, 64);
             $this->assertCompletenessItems($failed);
 
             return;

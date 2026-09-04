@@ -17,6 +17,7 @@ final class TeachingVocabulary
     public const SEX = [
         Patient::SEX_LAKI_LAKI => 'Laki-laki',
         Patient::SEX_PEREMPUAN => 'Perempuan',
+        Patient::SEX_LAINNYA => 'Lainnya',
         Patient::SEX_TIDAK_DIKETAHUI => 'Tidak diketahui',
     ];
 

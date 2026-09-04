@@ -105,9 +105,10 @@ const entryTypeLabel: Record<string, string> = {
 };
 
 const sexLabel: Record<string, string> = {
-    LAKI_LAKI: 'Laki-laki',
-    PEREMPUAN: 'Perempuan',
-    TIDAK_DIKETAHUI: 'Tidak diketahui',
+    male: 'Laki-laki',
+    female: 'Perempuan',
+    other: 'Lainnya',
+    unknown: 'Tidak diketahui',
 };
 
 const labOrderStatusLabel: Record<string, string> = {

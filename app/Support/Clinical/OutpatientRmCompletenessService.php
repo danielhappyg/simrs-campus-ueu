@@ -29,6 +29,7 @@ final class OutpatientRmCompletenessService
             'patient',
             'outpatientClinicalDocuments',
             'labServiceRequests',
+            'latestOutpatientDisposition',
         ]);
         $documents = $encounter->outpatientClinicalDocuments->keyBy('document_type');
         /** @var OutpatientClinicalDocument|null $nursing */
@@ -54,6 +55,7 @@ final class OutpatientRmCompletenessService
         $medicalFieldsComplete = $medical !== null
             && collect(OutpatientDocumentationDefinition::requiredOnFinal($medical->document_type))
                 ->every(fn (string $key): bool => trim((string) data_get($medical->fields, $key, '')) !== '');
+        $disposition = $encounter->latestOutpatientDisposition;
 
         $items = [
             $this->item('IDENTITY_LINKED', 'Identitas pasien dan kunjungan terhubung', $encounter->patient !== null, $encounter->patient?->public_id),
@@ -62,6 +64,7 @@ final class OutpatientRmCompletenessService
             $this->item('MEDICAL_FINAL', 'Catatan medis tersedia dan final', $medical?->document_state === OutpatientClinicalDocument::STATE_FINAL, $medical?->public_id),
             $this->item('MEDICAL_REQUIRED_FIELDS', 'Field wajib catatan medis final terisi', $medical?->document_state === OutpatientClinicalDocument::STATE_FINAL && $medicalFieldsComplete, $medical?->public_id),
             $this->item('MEDICAL_PROVENANCE', 'Dokter dan waktu finalisasi tercatat', $medical !== null && $medical->author_user_id > 0 && $medical->finalized_by_user_id !== null && $medical->finalized_at !== null, $medical?->public_id),
+            $this->item('DISPOSITION_SIGNED', 'Disposisi dokter tersedia dan ditandatangani', $disposition !== null, $disposition?->public_id),
             $this->item('NO_ACTIVE_LAB_ORDERS', 'Tidak ada order laboratorium aktif', $allActiveLabOrderIds === [], null),
             $this->item('NO_UNRESOLVED_LAB_SPECIMENS', 'Tidak ada spesimen laboratorium yang belum terselesaikan', $laboratory['unresolved_specimen_order_public_ids'] === [], null),
             $this->item('NO_UNACKNOWLEDGED_VERIFIED_LAB_RESULTS', 'Tidak ada hasil laboratorium terverifikasi yang belum diakui', $laboratory['stale_acknowledgement_order_public_ids'] === [], null),
@@ -89,6 +92,12 @@ final class OutpatientRmCompletenessService
                 ->sortBy('document_type')
                 ->values()
                 ->all(),
+            'disposition' => $disposition ? [
+                'public_id' => $disposition->public_id,
+                'version' => $disposition->version,
+                'type' => $disposition->disposition_type,
+                'content_digest' => $disposition->content_digest,
+            ] : null,
             'active_lab_order_public_ids' => $allActiveLabOrderIds,
             'unresolved_lab_specimen_order_public_ids' => $laboratory['unresolved_specimen_order_public_ids'],
             'stale_lab_acknowledgement_order_public_ids' => $laboratory['stale_acknowledgement_order_public_ids'],

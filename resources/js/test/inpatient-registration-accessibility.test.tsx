@@ -218,6 +218,8 @@ describe('inpatient registration validation accessibility', () => {
             expect.objectContaining({
                 bed_code: 'ANG-101-A',
                 bed_public_id: 'bed-ang-101-a',
+                admission_authority_type: 'PLANNED_ORDER',
+                admission_authority_reference: '',
             }),
         );
         expect(summary).toHaveAttribute('tabindex', '-1');
@@ -286,6 +288,13 @@ describe('inpatient registration validation accessibility', () => {
             'Kelas 2',
         );
 
+        fireEvent.change(
+            screen.getByRole('textbox', {
+                name: 'Nomor referensi otorisasi',
+            }),
+            { target: { value: 'ORDER-RI-SINTETIS-001' } },
+        );
+
         fireEvent.click(
             screen.getByRole('button', { name: 'Simpan pendaftaran RI' }),
         );
@@ -296,6 +305,134 @@ describe('inpatient registration validation accessibility', () => {
                 ward_class: 'Kelas 2',
                 bed_code: 'ANG-101-B',
                 bed_public_id: 'bed-ang-101-b',
+                admission_authority_type: 'PLANNED_ORDER',
+                admission_authority_reference: 'ORDER-RI-SINTETIS-001',
+            }),
+        );
+    });
+
+    it('surfaces a pending IGD admission with an action into the guarded disposition handoff', () => {
+        render(
+            <PendaftaranRawatInap
+                q=""
+                searchResults={[]}
+                todaysEncounters={[]}
+                pendingEmergencyAdmissions={[
+                    {
+                        source_encounter_public_id: 'igd-episode-001',
+                        disposition_public_id: 'igd-disposition-001',
+                        disposition_version: 1,
+                        signed_at: '2026-09-04T09:15:00+07:00',
+                        payer_type: 'BPJS',
+                        admission_reason: 'Memerlukan pemantauan lanjutan.',
+                        patient: {
+                            medical_record_number: '000123',
+                            full_name: 'PASIEN IGD SINTETIS',
+                        },
+                        handoff_url:
+                            '/pemeriksaan/igd/igd-episode-001?tab=disposition',
+                    },
+                ]}
+                wards={defaultWards}
+                wardOptions={[
+                    {
+                        value: 'Bangsal Anggrek',
+                        label: 'Bangsal Anggrek',
+                    },
+                ]}
+                sexOptions={[{ value: 'LAKI_LAKI', label: 'Laki-laki' }]}
+                payerOptions={[{ value: 'UMUM', label: 'Umum' }]}
+                continueFromOptions={[{ value: 'LANGSUNG', label: 'Langsung' }]}
+                filters={{
+                    q: '',
+                    ward: '',
+                    payer: '',
+                    continue_from: '',
+                    date_from: '',
+                    date_to: '',
+                }}
+                canRegister
+            />,
+        );
+
+        expect(
+            screen.getByRole('heading', {
+                name: 'Menunggu serah terima dari IGD',
+            }),
+        ).toBeInTheDocument();
+        expect(screen.getByText('PASIEN IGD SINTETIS')).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', {
+                name: 'Lanjutkan serah terima IGD untuk PASIEN IGD SINTETIS',
+            }),
+        ).toHaveAttribute(
+            'href',
+            '/pemeriksaan/igd/igd-episode-001?tab=disposition',
+        );
+    });
+
+    it('keeps outpatient admission pending until a registrar selects a currently available bed', async () => {
+        render(
+            <PendaftaranRawatInap
+                q=""
+                searchResults={[]}
+                todaysEncounters={[]}
+                pendingOutpatientAdmissions={[
+                    {
+                        source_encounter_public_id: 'rj-episode-001',
+                        disposition_public_id: 'rj-disposition-001',
+                        disposition_version: 2,
+                        signed_at: '2026-09-05T09:15:00+07:00',
+                        payer_type: 'UMUM',
+                        admission_reason: 'Observasi lanjutan.',
+                        patient: {
+                            medical_record_number: '000124',
+                            full_name: 'PASIEN RJ SINTETIS',
+                        },
+                        handoff_url:
+                            '/pemeriksaan/rawat-jalan/rj-episode-001/disposition/handoff',
+                    },
+                ]}
+                wards={defaultWards}
+                wardOptions={[]}
+                sexOptions={[{ value: 'male', label: 'Laki-laki' }]}
+                payerOptions={[{ value: 'UMUM', label: 'Umum' }]}
+                continueFromOptions={[{ value: 'LANGSUNG', label: 'Langsung' }]}
+                filters={{
+                    q: '',
+                    ward: '',
+                    payer: '',
+                    continue_from: '',
+                    date_from: '',
+                    date_to: '',
+                }}
+                canRegister
+            />,
+        );
+
+        expect(
+            screen.getByRole('heading', {
+                name: 'Menunggu serah terima dari Rawat Jalan',
+            }),
+        ).toBeInTheDocument();
+        fireEvent.click(
+            screen.getByRole('button', {
+                name: 'Pilih tempat tidur dan serah terima Rawat Jalan untuk PASIEN RJ SINTETIS',
+            }),
+        );
+        expect(screen.getByRole('dialog')).toHaveTextContent(
+            'Observasi lanjutan.',
+        );
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Selesaikan serah terima' }),
+        );
+        expect(inertiaMock.post).toHaveBeenCalledWith(
+            '/pemeriksaan/rawat-jalan/rj-episode-001/disposition/handoff',
+        );
+        expect(inertiaMock.payload).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                expected_disposition_version: 2,
+                bed_public_id: 'bed-ang-101-a',
             }),
         );
     });

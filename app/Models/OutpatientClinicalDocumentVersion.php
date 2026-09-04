@@ -14,7 +14,7 @@ use LogicException;
  * @property int $version
  * @property string $document_state
  * @property string $definition_version
- * @property array<string, string> $fields
+ * @property array<string, mixed> $fields
  * @property Carbon|null $created_at
  * @property Carbon|null $finalized_at
  * @property-read User|null $actor

@@ -84,7 +84,7 @@ class EmergencyFlowTest extends TestCase
         $response->assertRedirect(route('pendaftaran.igd.index'));
 
         $this->assertDatabaseHas('patients', [
-            'full_name' => 'Pasien IGD Sintetis',
+            'full_name' => 'PASIEN IGD SINTETIS',
             'nik' => '3174013112850001',
             'is_synthetic' => true,
         ]);
@@ -122,8 +122,22 @@ class EmergencyFlowTest extends TestCase
                 ->where('variant', 'igd')
                 ->has('todaysEncounters', 1)
                 ->has('clinics', 1)
-                ->where('todaysEncounters.0.patient.full_name', 'Pasien IGD Sintetis')
+                ->where('todaysEncounters.0.patient.full_name', 'PASIEN IGD SINTETIS')
                 ->where('todaysEncounters.0.queue_number', 1));
+    }
+
+    public function test_emergency_registration_rejects_non_numeric_nik(): void
+    {
+        $registrar = $this->userWithRole(RoleCapabilityMatrix::ROLE_REGISTRAR);
+
+        $this->actingAs($registrar)
+            ->post(route('pendaftaran.igd.store'), $this->registrationPayload([
+                'nik' => '31740131128500AB',
+            ]))
+            ->assertSessionHasErrors('nik');
+
+        $this->assertDatabaseCount('patients', 0);
+        $this->assertDatabaseCount('encounters', 0);
     }
 
     public function test_emergency_registration_rolls_back_when_audit_write_fails(): void
@@ -139,7 +153,7 @@ class EmergencyFlowTest extends TestCase
             ->post(route('pendaftaran.igd.store'), $this->registrationPayload())
             ->assertStatus(503);
 
-        $this->assertDatabaseMissing('patients', ['full_name' => 'Pasien IGD Sintetis']);
+        $this->assertDatabaseMissing('patients', ['full_name' => 'PASIEN IGD SINTETIS']);
         $this->assertDatabaseCount('encounters', 0);
         $this->assertDatabaseCount('audit_events', 0);
         $this->assertDatabaseCount('daily_queue_counters', 0);

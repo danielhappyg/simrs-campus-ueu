@@ -140,7 +140,7 @@ class ContinuousOutpatientTeachingJourneyTest extends TestCase
         $this->assertSame(2, $medical->version);
         $this->assertSame($physician->id, $medical->author_user_id);
         $this->assertSame($physician->id, $medical->finalized_by_user_id);
-        $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
+        $this->assertSame(Encounter::STATUS_IN_EXAMINATION, $encounter->fresh()->status);
         $this->assertSame([1, 2], $medical->versions()->orderBy('version')->pluck('version')->all());
         $this->assertSame(
             [OutpatientClinicalDocument::STATE_DRAFT, OutpatientClinicalDocument::STATE_FINAL],
@@ -149,6 +149,16 @@ class ContinuousOutpatientTeachingJourneyTest extends TestCase
         $this->assertSame([$physician->id, $physician->id], $medical->versions()->orderBy('version')->pluck('actor_user_id')->all());
         $this->assertAttributedAudit('clinical.medical.draft.save', $physician, 'SUCCESS', null, $medical->public_id);
         $this->assertAttributedAudit('clinical.medical.finalize', $physician, 'SUCCESS', null, $medical->public_id);
+
+        $this->actingAs($physician)
+            ->post(route('pemeriksaan.rawat-jalan.disposition.sign', $encounter), [
+                'disposition_type' => 'SEMBUH',
+                'expected_document_version' => $medical->version,
+                'payload' => ['clinical_note' => 'Episode rawat jalan sintetis selesai.'],
+                'idempotency_key' => 'journey-outpatient-disposition-0001',
+            ])
+            ->assertRedirect();
+        $this->assertSame(Encounter::STATUS_READY_FOR_RM, $encounter->fresh()->status);
 
         $order = app(OutpatientLabLifecycle::class)->createLabOrder(
             $encounter,

@@ -21,6 +21,10 @@ final class OutpatientDocumentationDefinition
                 'clinical_assessment',
                 'care_plan',
                 'additional_notes',
+                'diagnosis_text',
+                'primary_icd10',
+                'secondary_icd10',
+                'procedures_icd9cm',
             ],
             default => [],
         };

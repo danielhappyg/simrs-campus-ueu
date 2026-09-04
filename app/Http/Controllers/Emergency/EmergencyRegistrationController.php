@@ -164,7 +164,7 @@ class EmergencyRegistrationController extends Controller
             'date_of_birth' => ['required_without:patient_public_id', 'nullable', 'date'],
             'sex' => ['required_without:patient_public_id', 'nullable', Rule::in(Patient::SEX_VALUES)],
             'medical_record_number' => ['nullable', 'string', 'regex:/^[0-9]{6}$/', SchemaAwareRules::unique(Patient::class, 'medical_record_number')],
-            'nik' => ['nullable', 'string', 'max:16'],
+            'nik' => ['nullable', 'string', 'size:16', 'regex:/\A[0-9]{16}\z/'],
             'place_of_birth' => ['nullable', 'string', 'max:120'],
             'religion' => ['nullable', Rule::in(Patient::RELIGION_VALUES)],
             'marital_status' => ['nullable', Rule::in(Patient::MARITAL_VALUES)],
@@ -251,7 +251,7 @@ class EmergencyRegistrationController extends Controller
                 $patient = Patient::query()->create([
                     ...$this->patientUpdatableAttributes($validated),
                     'medical_record_number' => $mrn->value,
-                    'full_name' => $validated['full_name'],
+                    'full_name' => mb_strtoupper(trim((string) $validated['full_name']), 'UTF-8'),
                     'date_of_birth' => $validated['date_of_birth'],
                     'sex' => $validated['sex'],
                     'is_synthetic' => true,

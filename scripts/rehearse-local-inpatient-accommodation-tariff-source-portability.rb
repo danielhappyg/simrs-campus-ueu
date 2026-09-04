@@ -353,6 +353,8 @@ class LocalInpatientAccommodationTariffSourcePortabilityRehearsal < LocalFinance
                 patient: $patient, actor: $registrar, bedPublicId: $bed->public_id,
                 payerType: Encounter::PAYER_UMUM, insuranceNumber: null,
                 continueFrom: Encounter::CONTINUE_LANGSUNG, chiefComplaint: 'Observasi portability sintetis',
+                admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+                admissionAuthorityReference: 'ORDER-ACCOMMODATION-PORTABILITY-0001',
             )->encounter;
         };
         $importEncounter = $admit($sourceBed);

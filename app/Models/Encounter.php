@@ -87,6 +87,8 @@ class Encounter extends Model
 
     public const ADMISSION_IGD = 'IGD';
 
+    public const ADMISSION_OUTPATIENT = 'OUTPATIENT';
+
     public const CASE_NON_BEDAH = 'NON_BEDAH';
 
     public const CASE_BEDAH = 'BEDAH';
@@ -100,6 +102,12 @@ class Encounter extends Model
     public const CONTINUE_DARI_IGD = 'DARI_IGD';
 
     public const CONTINUE_DARI_RJ = 'DARI_RJ';
+
+    public const AUTHORITY_PLANNED_ORDER = 'PLANNED_ORDER';
+
+    public const AUTHORITY_EXTERNAL_REFERRAL = 'EXTERNAL_REFERRAL';
+
+    public const DIRECT_ADMISSION_AUTHORITY_VALUES = [self::AUTHORITY_PLANNED_ORDER, self::AUTHORITY_EXTERNAL_REFERRAL];
 
     /**
      * @var list<string>
@@ -126,6 +134,7 @@ class Encounter extends Model
         self::ADMISSION_DATANG_SENDIRI,
         self::ADMISSION_RUJUKAN,
         self::ADMISSION_IGD,
+        self::ADMISSION_OUTPATIENT,
     ];
 
     /**
@@ -204,6 +213,8 @@ class Encounter extends Model
         'bed_code',
         'inpatient_bed_id',
         'continue_from',
+        'admission_authority_type',
+        'admission_authority_reference',
     ];
 
     protected $attributes = [
@@ -319,6 +330,18 @@ class Encounter extends Model
     {
         return $this->hasMany(EmergencyDisposition::class)
             ->orderBy('version');
+    }
+
+    /** @return HasMany<OutpatientDisposition, $this> */
+    public function outpatientDispositions(): HasMany
+    {
+        return $this->hasMany(OutpatientDisposition::class)->orderBy('version');
+    }
+
+    /** @return HasOne<OutpatientDisposition, $this> */
+    public function latestOutpatientDisposition(): HasOne
+    {
+        return $this->hasOne(OutpatientDisposition::class)->latestOfMany('version');
     }
 
     /** @return HasMany<EmergencyDispositionCorrectionIntent, $this> */

@@ -67,6 +67,34 @@ type EncounterRow = {
     };
 };
 
+type PendingEmergencyAdmission = {
+    source_encounter_public_id: string | null;
+    disposition_public_id: string;
+    disposition_version: number;
+    signed_at: string | null;
+    payer_type: string | null;
+    admission_reason: string | null;
+    patient: {
+        medical_record_number: string | null;
+        full_name: string | null;
+    };
+    handoff_url: string | null;
+};
+
+type PendingOutpatientAdmission = {
+    source_encounter_public_id: string | null;
+    disposition_public_id: string;
+    disposition_version: number;
+    signed_at: string | null;
+    payer_type: string | null;
+    admission_reason: string | null;
+    patient: {
+        medical_record_number: string | null;
+        full_name: string | null;
+    };
+    handoff_url: string | null;
+};
+
 type Filters = {
     q: string;
     ward: string;
@@ -80,6 +108,8 @@ type Props = {
     q: string;
     searchResults: PatientRow[];
     todaysEncounters: EncounterRow[];
+    pendingEmergencyAdmissions?: PendingEmergencyAdmission[];
+    pendingOutpatientAdmissions?: PendingOutpatientAdmission[];
     wards: WardCatalogue[];
     wardOptions: Option[];
     sexOptions: Option[];
@@ -155,9 +185,10 @@ const continueLabel: Record<string, string> = {
 };
 
 const sexLabel: Record<string, string> = {
-    LAKI_LAKI: 'Laki-laki',
-    PEREMPUAN: 'Perempuan',
-    TIDAK_DIKETAHUI: 'Tidak diketahui',
+    male: 'Laki-laki',
+    female: 'Perempuan',
+    other: 'Lainnya',
+    unknown: 'Tidak diketahui',
 };
 
 const fieldClass =
@@ -177,6 +208,8 @@ const registrationFieldLabels: Record<string, string> = {
     payer_type: 'Cara bayar',
     insurance_number: 'Nomor penjamin',
     continue_from: 'Asal atau kelanjutan',
+    admission_authority_type: 'Dasar admisi langsung',
+    admission_authority_reference: 'Nomor referensi otorisasi',
     chief_complaint: 'Keluhan utama',
     is_synthetic: 'Validasi data pasien',
 };
@@ -191,6 +224,8 @@ export default function PendaftaranRawatInap({
     q,
     searchResults,
     todaysEncounters,
+    pendingEmergencyAdmissions = [],
+    pendingOutpatientAdmissions = [],
     wards,
     wardOptions,
     sexOptions,
@@ -220,6 +255,8 @@ export default function PendaftaranRawatInap({
     const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
     const [cancellationAnnouncement, setCancellationAnnouncement] =
         useState('');
+    const [outpatientHandoffTarget, setOutpatientHandoffTarget] =
+        useState<PendingOutpatientAdmission | null>(null);
     const cancelTriggerRef = useRef<HTMLButtonElement | null>(null);
     const errorSummaryRef = useRef<HTMLDivElement>(null);
     const admissionWards = wards.filter((ward) => ward.beds.length > 0);
@@ -230,7 +267,7 @@ export default function PendaftaranRawatInap({
         patient_public_id: '',
         full_name: '',
         date_of_birth: '',
-        sex: sexOptions[0]?.value ?? 'LAKI_LAKI',
+        sex: sexOptions[0]?.value ?? 'unknown',
         nik: '',
         phone: '',
         ward_name: initialWard?.display_name ?? '',
@@ -239,7 +276,9 @@ export default function PendaftaranRawatInap({
         bed_public_id: initialBed?.public_id ?? '',
         payer_type: payerOptions[0]?.value ?? 'UMUM',
         insurance_number: '',
-        continue_from: continueFromOptions[0]?.value ?? 'LANGSUNG',
+        continue_from: 'LANGSUNG',
+        admission_authority_type: 'PLANNED_ORDER',
+        admission_authority_reference: '',
         chief_complaint: '',
         is_synthetic: true,
     });
@@ -247,6 +286,11 @@ export default function PendaftaranRawatInap({
     const cancelForm = useForm({
         reason_code: '',
         note: '',
+        idempotency_key: '',
+    });
+    const outpatientHandoffForm = useForm({
+        expected_disposition_version: 0,
+        bed_public_id: initialBed?.public_id ?? '',
         idempotency_key: '',
     });
 
@@ -369,7 +413,7 @@ export default function PendaftaranRawatInap({
             patient_public_id: '',
             full_name: '',
             date_of_birth: '',
-            sex: sexOptions[0]?.value ?? 'LAKI_LAKI',
+            sex: sexOptions[0]?.value ?? 'unknown',
             nik: '',
             phone: '',
         });
@@ -457,6 +501,28 @@ export default function PendaftaranRawatInap({
         );
     };
 
+    const openOutpatientHandoff = (admission: PendingOutpatientAdmission) => {
+        setOutpatientHandoffTarget(admission);
+        outpatientHandoffForm.setData({
+            expected_disposition_version: admission.disposition_version,
+            bed_public_id: initialBed?.public_id ?? '',
+            idempotency_key: newCancellationKey(),
+        });
+    };
+
+    const submitOutpatientHandoff = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!outpatientHandoffTarget?.handoff_url) {
+            return;
+        }
+
+        outpatientHandoffForm.post(outpatientHandoffTarget.handoff_url, {
+            preserveScroll: true,
+            onSuccess: () => setOutpatientHandoffTarget(null),
+        });
+    };
+
     return (
         <>
             <Head title="Pendaftaran Rawat Inap" />
@@ -525,6 +591,238 @@ export default function PendaftaranRawatInap({
                         ) : null}
                     </div>
                 </header>
+
+                {pendingOutpatientAdmissions.length > 0 ? (
+                    <section
+                        aria-labelledby="pending-outpatient-admissions-title"
+                        className="min-w-0 rounded-lg border border-[#bbf7d0] bg-[#f0fdf4] p-3"
+                    >
+                        <h2
+                            id="pending-outpatient-admissions-title"
+                            className="text-sm font-semibold text-[#14532d]"
+                        >
+                            Menunggu serah terima dari Rawat Jalan
+                        </h2>
+                        <p className="mt-0.5 text-xs text-[#3f6212]">
+                            Keputusan dokter dan dokumen medisnya sudah
+                            terkunci. Registrar memilih tempat tidur yang
+                            tersedia untuk menyelesaikan admisi.
+                        </p>
+                        <div className="mt-2 min-w-0 overflow-x-auto">
+                            <table className="w-full min-w-[48rem] text-left text-sm">
+                                <caption className="sr-only">
+                                    Daftar keputusan Rawat Jalan untuk Rawat
+                                    Inap yang menunggu serah terima
+                                </caption>
+                                <thead className="border-b border-[#bbf7d0] text-[0.7rem] tracking-wide text-[#3f6212] uppercase">
+                                    <tr>
+                                        <th className="px-2 py-1.5">Pasien</th>
+                                        <th className="px-2 py-1.5">
+                                            Episode RJ
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            Penjamin
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            Alasan rawat inap
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            Ditandatangani
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            <span className="sr-only">
+                                                Aksi
+                                            </span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pendingOutpatientAdmissions.map(
+                                        (admission) => (
+                                            <tr
+                                                key={
+                                                    admission.disposition_public_id
+                                                }
+                                                className="border-b border-[#dcfce7] last:border-0"
+                                            >
+                                                <td className="px-2 py-2">
+                                                    <p className="font-medium text-[#14532d]">
+                                                        {admission.patient
+                                                            .full_name ?? '—'}
+                                                    </p>
+                                                    <p className="font-mono text-xs text-[#64748b]">
+                                                        {admission.patient
+                                                            .medical_record_number ??
+                                                            '—'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-2 py-2 font-mono text-xs text-[#475569]">
+                                                    {admission.source_encounter_public_id ??
+                                                        '—'}
+                                                </td>
+                                                <td className="px-2 py-2">
+                                                    {admission.payer_type
+                                                        ? (payerLabel[
+                                                              admission
+                                                                  .payer_type
+                                                          ] ??
+                                                          admission.payer_type)
+                                                        : '—'}
+                                                </td>
+                                                <td className="max-w-xs px-2 py-2 text-[#334155]">
+                                                    {admission.admission_reason ??
+                                                        '—'}
+                                                </td>
+                                                <td className="px-2 py-2 text-xs text-[#475569]">
+                                                    {admission.signed_at
+                                                        ? cancellationTimeLabel(
+                                                              admission.signed_at,
+                                                          )
+                                                        : '—'}
+                                                </td>
+                                                <td className="px-2 py-2 text-right">
+                                                    {admission.handoff_url ? (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                openOutpatientHandoff(
+                                                                    admission,
+                                                                )
+                                                            }
+                                                            aria-label={`Pilih tempat tidur dan serah terima Rawat Jalan untuk ${admission.patient.full_name ?? 'pasien'}`}
+                                                        >
+                                                            Pilih tempat tidur
+                                                        </Button>
+                                                    ) : null}
+                                                </td>
+                                            </tr>
+                                        ),
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                ) : null}
+
+                {pendingEmergencyAdmissions.length > 0 ? (
+                    <section
+                        aria-labelledby="pending-emergency-admissions-title"
+                        className="min-w-0 rounded-lg border border-[#bfdbfe] bg-[#eff6ff] p-3"
+                    >
+                        <h2
+                            id="pending-emergency-admissions-title"
+                            className="text-sm font-semibold text-[#0f172a]"
+                        >
+                            Menunggu serah terima dari IGD
+                        </h2>
+                        <p className="mt-0.5 text-xs text-[#475569]">
+                            Disposisi Rawat Inap yang telah ditandatangani
+                            muncul di sini. Pilih pasien untuk melanjutkan ke
+                            pemilihan tempat tidur dan serah terima yang
+                            tercatat.
+                        </p>
+                        <div className="mt-2 min-w-0 overflow-x-auto">
+                            <table className="w-full min-w-[52rem] text-left text-sm">
+                                <caption className="sr-only">
+                                    Daftar disposisi IGD Rawat Inap yang
+                                    menunggu serah terima
+                                </caption>
+                                <thead className="border-b border-[#bfdbfe] text-[0.7rem] tracking-wide text-[#475569] uppercase">
+                                    <tr>
+                                        <th className="px-2 py-1.5">Pasien</th>
+                                        <th className="px-2 py-1.5">
+                                            Episode IGD
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            Penjamin
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            Alasan rawat inap
+                                        </th>
+                                        <th className="px-2 py-1.5">
+                                            Ditandatangani
+                                        </th>
+                                        <th scope="col" className="px-2 py-1.5">
+                                            <span className="sr-only">
+                                                Aksi
+                                            </span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pendingEmergencyAdmissions.map(
+                                        (admission) => (
+                                            <tr
+                                                key={
+                                                    admission.disposition_public_id
+                                                }
+                                                className="border-b border-[#dbeafe] last:border-0"
+                                            >
+                                                <td className="px-2 py-2">
+                                                    <p className="font-medium text-[#0f172a]">
+                                                        {admission.patient
+                                                            .full_name ?? '—'}
+                                                    </p>
+                                                    <p className="font-mono text-xs text-[#64748b]">
+                                                        {admission.patient
+                                                            .medical_record_number ??
+                                                            '—'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-2 py-2 font-mono text-xs text-[#475569]">
+                                                    {admission.source_encounter_public_id ??
+                                                        '—'}
+                                                </td>
+                                                <td className="px-2 py-2">
+                                                    {admission.payer_type
+                                                        ? (payerLabel[
+                                                              admission
+                                                                  .payer_type
+                                                          ] ??
+                                                          admission.payer_type)
+                                                        : '—'}
+                                                </td>
+                                                <td className="max-w-xs px-2 py-2 text-[#334155]">
+                                                    {admission.admission_reason ??
+                                                        '—'}
+                                                </td>
+                                                <td className="px-2 py-2 text-xs text-[#475569]">
+                                                    {admission.signed_at
+                                                        ? cancellationTimeLabel(
+                                                              admission.signed_at,
+                                                          )
+                                                        : '—'}
+                                                </td>
+                                                <td className="px-2 py-2 text-right">
+                                                    {admission.handoff_url ? (
+                                                        <Link
+                                                            href={
+                                                                admission.handoff_url
+                                                            }
+                                                            className="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-semibold text-[#075985] hover:bg-[#dbeafe] hover:underline"
+                                                            aria-label={
+                                                                'Lanjutkan serah terima IGD untuk ' +
+                                                                (admission
+                                                                    .patient
+                                                                    .full_name ??
+                                                                    'pasien')
+                                                            }
+                                                        >
+                                                            Lanjutkan serah
+                                                            terima
+                                                        </Link>
+                                                    ) : null}
+                                                </td>
+                                            </tr>
+                                        ),
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                ) : null}
 
                 <form
                     onSubmit={applySearch}
@@ -695,12 +993,14 @@ export default function PendaftaranRawatInap({
                                     <Input
                                         id="full_name"
                                         {...errorProps('full_name')}
-                                        className={fieldClass}
+                                        className={cn(fieldClass, 'uppercase')}
                                         value={form.data.full_name}
                                         onChange={(e) =>
                                             form.setData(
                                                 'full_name',
-                                                e.target.value,
+                                                e.target.value.toLocaleUpperCase(
+                                                    'id-ID',
+                                                ),
                                             )
                                         }
                                         disabled={!canRegister}
@@ -782,8 +1082,16 @@ export default function PendaftaranRawatInap({
                                 className={fieldClass}
                                 value={form.data.nik}
                                 onChange={(e) =>
-                                    form.setData('nik', e.target.value)
+                                    form.setData(
+                                        'nik',
+                                        e.target.value
+                                            .replace(/\D/g, '')
+                                            .slice(0, 16),
+                                    )
                                 }
+                                inputMode="numeric"
+                                pattern="[0-9]{16}"
+                                maxLength={16}
                                 disabled={!canRegister}
                             />
                             <InputError
@@ -953,31 +1261,73 @@ export default function PendaftaranRawatInap({
                             <Label htmlFor="continue_from">
                                 Asal / kelanjutan
                             </Label>
-                            <select
+                            <Input
                                 id="continue_from"
-                                {...errorProps('continue_from')}
                                 className={fieldClass}
+                                value="Pendaftaran langsung"
+                                readOnly
+                            />
+                            <input
+                                type="hidden"
+                                name="continue_from"
                                 value={form.data.continue_from}
+                            />
+                            <InputError
+                                id="continue_from-error"
+                                message={form.errors.continue_from}
+                            />
+                        </div>
+
+                        <div className="grid gap-1">
+                            <Label htmlFor="admission_authority_type">
+                                Dasar admisi langsung
+                            </Label>
+                            <select
+                                id="admission_authority_type"
+                                {...errorProps('admission_authority_type')}
+                                className={fieldClass}
+                                value={form.data.admission_authority_type}
                                 onChange={(e) =>
                                     form.setData(
-                                        'continue_from',
+                                        'admission_authority_type',
                                         e.target.value,
                                     )
                                 }
                                 disabled={!canRegister}
                             >
-                                {continueFromOptions.map((option) => (
-                                    <option
-                                        key={option.value}
-                                        value={option.value}
-                                    >
-                                        {option.label}
-                                    </option>
-                                ))}
+                                <option value="PLANNED_ORDER">
+                                    Perintah admisi terencana
+                                </option>
+                                <option value="EXTERNAL_REFERRAL">
+                                    Rujukan eksternal
+                                </option>
                             </select>
                             <InputError
-                                id="continue_from-error"
-                                message={form.errors.continue_from}
+                                id="admission_authority_type-error"
+                                message={form.errors.admission_authority_type}
+                            />
+                        </div>
+                        <div className="grid gap-1">
+                            <Label htmlFor="admission_authority_reference">
+                                Nomor referensi otorisasi
+                            </Label>
+                            <Input
+                                id="admission_authority_reference"
+                                {...errorProps('admission_authority_reference')}
+                                className={fieldClass}
+                                value={form.data.admission_authority_reference}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'admission_authority_reference',
+                                        e.target.value,
+                                    )
+                                }
+                                disabled={!canRegister}
+                                required
+                            />
+                            <InputError
+                                id="admission_authority_reference-error"
+                                message={form.errors.admission_authority_reference}
                             />
                         </div>
 
@@ -1594,6 +1944,121 @@ export default function PendaftaranRawatInap({
                                         {cancelForm.processing
                                             ? 'Menyimpan…'
                                             : 'Batalkan Kunjungan'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        ) : null}
+                    </DialogContent>
+                </Dialog>
+                <Dialog
+                    open={outpatientHandoffTarget !== null}
+                    onOpenChange={(open) => {
+                        if (!open && !outpatientHandoffForm.processing) {
+                            setOutpatientHandoffTarget(null);
+                        }
+                    }}
+                >
+                    <DialogContent className="max-w-lg p-0">
+                        <DialogHeader className="border-b border-[#bbf7d0] bg-[#f0fdf4] px-5 py-4 text-left">
+                            <DialogTitle className="text-xl leading-7 text-[#14532d]">
+                                Serah terima Rawat Jalan ke Rawat Inap
+                            </DialogTitle>
+                            <DialogDescription className="leading-5 text-[#3f6212]">
+                                Pilih tempat tidur yang tersedia. Keputusan
+                                dokter dan alasan admisi tidak dapat diubah oleh
+                                registrar.
+                            </DialogDescription>
+                        </DialogHeader>
+                        {outpatientHandoffTarget ? (
+                            <form
+                                className="space-y-4 px-5 pb-5"
+                                onSubmit={submitOutpatientHandoff}
+                            >
+                                <div className="rounded-md border border-[#dcfce7] bg-[#f7fee7] p-3 text-sm">
+                                    <p className="font-semibold text-[#14532d]">
+                                        {outpatientHandoffTarget.patient
+                                            .full_name ?? '—'}
+                                    </p>
+                                    <p className="font-mono text-xs text-[#64748b]">
+                                        {outpatientHandoffTarget.patient
+                                            .medical_record_number ?? '—'}
+                                    </p>
+                                    <p className="mt-2">
+                                        <span className="font-medium">
+                                            Alasan rawat inap:
+                                        </span>{' '}
+                                        {outpatientHandoffTarget.admission_reason ??
+                                            '—'}
+                                    </p>
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="outpatient-handoff-bed">
+                                        Tempat tidur tersedia
+                                    </Label>
+                                    <select
+                                        id="outpatient-handoff-bed"
+                                        required
+                                        className={fieldClass}
+                                        value={
+                                            outpatientHandoffForm.data
+                                                .bed_public_id
+                                        }
+                                        onChange={(event) =>
+                                            outpatientHandoffForm.setData(
+                                                'bed_public_id',
+                                                event.target.value,
+                                            )
+                                        }
+                                        disabled={
+                                            outpatientHandoffForm.processing ||
+                                            admissionWards.length === 0
+                                        }
+                                    >
+                                        {admissionWards.flatMap((ward) =>
+                                            ward.beds.map((bed) => (
+                                                <option
+                                                    key={bed.public_id}
+                                                    value={bed.public_id}
+                                                >
+                                                    {ward.display_name} ·{' '}
+                                                    {bed.display_name} ·{' '}
+                                                    {bed.service_class}
+                                                </option>
+                                            )),
+                                        )}
+                                    </select>
+                                    <InputError
+                                        id="outpatient-handoff-bed-error"
+                                        message={
+                                            outpatientHandoffForm.errors
+                                                .bed_public_id
+                                        }
+                                    />
+                                </div>
+                                <DialogFooter className="border-t border-[#e2e8f0] pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            setOutpatientHandoffTarget(null)
+                                        }
+                                        disabled={
+                                            outpatientHandoffForm.processing
+                                        }
+                                    >
+                                        Kembali
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            outpatientHandoffForm.processing ||
+                                            !outpatientHandoffForm.data
+                                                .bed_public_id
+                                        }
+                                    >
+                                        {outpatientHandoffForm.processing
+                                            ? 'Menyimpan…'
+                                            : 'Selesaikan serah terima'}
                                     </Button>
                                 </DialogFooter>
                             </form>

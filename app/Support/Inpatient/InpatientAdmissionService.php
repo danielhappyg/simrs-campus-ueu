@@ -38,9 +38,14 @@ final class InpatientAdmissionService
         ?string $chiefComplaint,
         ?string $requestCorrelationId = null,
         ?CarbonInterface $registeredAt = null,
+        ?string $admissionAuthorityType = null,
+        ?string $admissionAuthorityReference = null,
     ): InpatientAdmissionResult {
         try {
-            return DB::transaction(function () use ($patient, $actor, $bedPublicId, $payerType, $insuranceNumber, $continueFrom, $chiefComplaint, $requestCorrelationId, $registeredAt): InpatientAdmissionResult {
+            return DB::transaction(function () use ($patient, $actor, $bedPublicId, $payerType, $insuranceNumber, $continueFrom, $chiefComplaint, $requestCorrelationId, $registeredAt, $admissionAuthorityType, $admissionAuthorityReference): InpatientAdmissionResult {
+                if ($continueFrom !== Encounter::CONTINUE_LANGSUNG || ! in_array($admissionAuthorityType, Encounter::DIRECT_ADMISSION_AUTHORITY_VALUES, true) || trim((string) $admissionAuthorityReference) === '') {
+                    throw new InpatientAdmissionDenied('admission_authority_required', 'Pendaftaran langsung memerlukan pesanan terencana atau rujukan eksternal yang dapat ditelusuri.');
+                }
                 $result = $this->createWithinCurrentTransaction(
                     patient: $patient,
                     actor: $actor,
@@ -51,6 +56,8 @@ final class InpatientAdmissionService
                     chiefComplaint: $chiefComplaint,
                     requestCorrelationId: $requestCorrelationId,
                     registeredAt: $registeredAt,
+                    admissionAuthorityType: $admissionAuthorityType,
+                    admissionAuthorityReference: trim((string) $admissionAuthorityReference),
                 );
 
                 $event = $this->auditRecorder->record(
@@ -115,6 +122,8 @@ final class InpatientAdmissionService
         ?string $requestCorrelationId,
         ?CarbonInterface $registeredAt,
         ?string $admissionMode = null,
+        ?string $admissionAuthorityType = null,
+        ?string $admissionAuthorityReference = null,
     ): InpatientAdmissionResult {
         if (DB::connection()->transactionLevel() < 1) {
             throw new LogicException('Inpatient admission requires an active database transaction.');
@@ -137,6 +146,8 @@ final class InpatientAdmissionService
             requestCorrelationId: $requestCorrelationId,
             registeredAt: $registeredAt,
             admissionMode: $admissionMode,
+            admissionAuthorityType: $admissionAuthorityType,
+            admissionAuthorityReference: $admissionAuthorityReference,
         );
     }
 
@@ -208,6 +219,8 @@ final class InpatientAdmissionService
         ?string $requestCorrelationId,
         ?CarbonInterface $registeredAt,
         ?string $admissionMode = null,
+        ?string $admissionAuthorityType = null,
+        ?string $admissionAuthorityReference = null,
     ): InpatientAdmissionResult {
         if (DB::connection()->transactionLevel() < 1) {
             throw new LogicException('Inpatient admission creation requires an active database transaction.');
@@ -227,6 +240,8 @@ final class InpatientAdmissionService
             'bed_code' => $bed->code,
             'inpatient_bed_id' => $bed->id,
             'continue_from' => $continueFrom,
+            'admission_authority_type' => $admissionAuthorityType,
+            'admission_authority_reference' => $admissionAuthorityReference,
             'visit_date' => $registeredAt->toDateString(),
             'admission_mode' => $admissionMode,
             'payer_type' => $payerType,

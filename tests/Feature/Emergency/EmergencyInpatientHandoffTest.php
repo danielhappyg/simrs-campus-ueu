@@ -36,6 +36,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 final class EmergencyInpatientHandoffTest extends TestCase
@@ -117,6 +118,40 @@ final class EmergencyInpatientHandoffTest extends TestCase
 
         $this->assertSame(1, Encounter::query()->where('active_inpatient_patient_id', $source->patient_id)->count());
         $this->assertDatabaseCount('emergency_inpatient_handoffs', 1);
+    }
+
+    public function test_pending_igd_rawat_inap_disposition_is_visible_on_inpatient_registration_until_handoff_completes(): void
+    {
+        [$bed] = $this->beds();
+        $source = $this->source();
+        $disposition = $this->rawatInapDisposition($source);
+
+        $this->actingAs($this->registrar)
+            ->get(route('pendaftaran.rawat-inap.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('pendaftaran/rawat-inap')
+                ->has('pendingEmergencyAdmissions', 1)
+                ->where('pendingEmergencyAdmissions.0.source_encounter_public_id', $source->public_id)
+                ->where('pendingEmergencyAdmissions.0.disposition_public_id', $disposition->public_id)
+                ->where('pendingEmergencyAdmissions.0.disposition_version', 1)
+                ->where('pendingEmergencyAdmissions.0.admission_reason', 'Pasien membutuhkan pemantauan lanjutan.')
+                ->where('pendingEmergencyAdmissions.0.handoff_url', route('pemeriksaan.igd.show', $source).'?tab=disposition'));
+
+        app(EmergencyInpatientHandoffService::class)->execute(
+            $source->public_id,
+            $this->registrar,
+            $disposition->version,
+            $bed->public_id,
+            'emergency-handoff-registration-queue-0001',
+        );
+
+        $this->actingAs($this->registrar)
+            ->get(route('pendaftaran.rawat-inap.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('pendaftaran/rawat-inap')
+                ->has('pendingEmergencyAdmissions', 0));
     }
 
     public function test_physician_intent_is_compensated_by_registrar_with_child_cancellation_bed_release_and_replacement_disposition(): void
@@ -482,6 +517,8 @@ final class EmergencyInpatientHandoffTest extends TestCase
             null,
             Encounter::CONTINUE_LANGSUNG,
             'Pendaftaran pasien berbeda.',
+            admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+            admissionAuthorityReference: 'ORDER-EMERGENCY-GRAPH-0001',
         );
 
         try {
@@ -505,6 +542,8 @@ final class EmergencyInpatientHandoffTest extends TestCase
             null,
             Encounter::CONTINUE_LANGSUNG,
             'Pendaftaran langsung untuk uji ikatan.',
+            admissionAuthorityType: Encounter::AUTHORITY_PLANNED_ORDER,
+            admissionAuthorityReference: 'ORDER-EMERGENCY-GRAPH-0002',
         );
 
         try {

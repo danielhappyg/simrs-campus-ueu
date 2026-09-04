@@ -14,6 +14,8 @@ use App\Models\InpatientLocationEvent;
 use App\Models\LaboratoryOrder;
 use App\Models\LabServiceRequest;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\OutpatientDisposition;
+use App\Models\OutpatientInpatientHandoff;
 use App\Models\OutpatientRmCompletenessReview;
 use App\Models\RadiologyOrder;
 use App\Support\Pharmacy\PharmacyEncounterLifecycleGate;
@@ -61,7 +63,9 @@ final class EncounterCancellationDependencyRegistry
 
         if (EmergencyResultFollowUpProposal::query()->where('encounter_id', $encounter->id)->exists()
             || EmergencyDisposition::query()->where('encounter_id', $encounter->id)->exists()
-            || EmergencyInpatientHandoff::query()->where('source_encounter_id', $encounter->id)->exists()) {
+            || EmergencyInpatientHandoff::query()->where('source_encounter_id', $encounter->id)->exists()
+            || OutpatientDisposition::query()->where('encounter_id', $encounter->id)->exists()
+            || OutpatientInpatientHandoff::query()->where('source_encounter_id', $encounter->id)->orWhere('target_encounter_id', $encounter->id)->exists()) {
             return 'downstream_activity_exists';
         }
 

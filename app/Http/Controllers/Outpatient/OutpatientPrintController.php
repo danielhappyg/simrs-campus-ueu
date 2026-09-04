@@ -36,6 +36,12 @@ class OutpatientPrintController extends Controller
             $documents = ['bukti'];
         }
 
+        // A checked SEP represents one self-contained printout. Do not add the
+        // registration proof (or another selected document) to the same job.
+        if (in_array('sep', $documents, true)) {
+            $documents = ['sep'];
+        }
+
         $user = $request->user();
         assert($user !== null);
 

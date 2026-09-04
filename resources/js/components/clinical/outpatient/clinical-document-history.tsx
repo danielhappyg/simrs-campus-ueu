@@ -1,4 +1,7 @@
-import type { ClinicalDocumentVersion } from './types';
+import type {
+    ClinicalDocumentFieldValue,
+    ClinicalDocumentVersion,
+} from './types';
 
 const documentLabel = {
     NURSING_ASSESSMENT: 'Asesmen keperawatan',
@@ -7,12 +10,34 @@ const documentLabel = {
 
 const fieldLabel: Record<string, string> = {
     nursing_assessment: 'Asesmen keperawatan',
-    anamnesis: 'Anamnesis',
-    objective_examination: 'Pemeriksaan objektif',
-    clinical_assessment: 'Asesmen klinis',
-    care_plan: 'Rencana pelayanan',
+    anamnesis: 'Subjective (Subjektif)',
+    objective_examination: 'Objective (Objektif)',
+    clinical_assessment: 'Assessment (Asesmen)',
+    care_plan: 'Plan (Rencana)',
+    diagnosis_text: 'Diagnosis',
+    primary_icd10: 'ICD-10 utama',
+    secondary_icd10: 'ICD-10 sekunder',
+    procedures_icd9cm: 'Prosedur ICD-9-CM',
     additional_notes: 'Catatan tambahan',
 };
+
+function presentField(value: ClinicalDocumentFieldValue): string {
+    if (typeof value === 'string') {
+        return value || '—';
+    }
+
+    if (value === null) {
+        return '—';
+    }
+
+    if (Array.isArray(value)) {
+        return value.length
+            ? value.map((item) => `${item.code} — ${item.display}`).join('\n')
+            : '—';
+    }
+
+    return `${value.code} — ${value.display}`;
+}
 
 export function ClinicalDocumentHistory({
     versions,
@@ -73,7 +98,7 @@ export function ClinicalDocumentHistory({
                                                 {fieldLabel[key] ?? key}
                                             </dt>
                                             <dd className="mt-0.5 text-sm whitespace-pre-wrap text-foreground">
-                                                {value || '—'}
+                                                {presentField(value)}
                                             </dd>
                                         </div>
                                     ),
