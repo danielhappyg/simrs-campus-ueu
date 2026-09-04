@@ -902,7 +902,7 @@
     "isEntry": true
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-UHyduMTb.js",
+    "file": "assets/app-BuRphCnf.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
@@ -1680,7 +1680,7 @@
     ]
   },
   "resources/js/pages/rebuild/home.tsx": {
-    "file": "assets/home-UzzAOz-T.js",
+    "file": "assets/home-CH4fnP86.js",
     "name": "home",
     "src": "resources/js/pages/rebuild/home.tsx",
     "isDynamicEntry": true,

@@ -108,9 +108,7 @@ describe('operational home', () => {
             }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(
-                'Antrian kerja operasional, bukan grafik manajemen.',
-            ),
+            screen.getByText('Ringkasan layanan dan antrian kerja hari ini.'),
         ).toBeInTheDocument();
         expect(
             screen.getByRole('heading', { name: 'Arus layanan' }),
@@ -136,7 +134,9 @@ describe('operational home', () => {
         expect(within(igd!).getByText('4')).toBeInTheDocument();
         expect(within(rawatInap!).getByText('7')).toBeInTheDocument();
         expect(within(rawatJalan!).getByText('Terdaftar')).toBeInTheDocument();
-        expect(within(rawatJalan!).getByText('Pemeriksaan')).toBeInTheDocument();
+        expect(
+            within(rawatJalan!).getByText('Pemeriksaan'),
+        ).toBeInTheDocument();
         expect(within(rawatJalan!).getByText('Siap RM')).toBeInTheDocument();
 
         expect(

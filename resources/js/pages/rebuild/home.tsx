@@ -188,7 +188,7 @@ export default function RebuildHome({
                             Meja kerja hari ini
                         </h1>
                         <p className="max-w-2xl text-base leading-relaxed text-[#52677b]">
-                            Antrian kerja operasional, bukan grafik manajemen.
+                            Ringkasan layanan dan antrian kerja hari ini.
                         </p>
                     </div>
                     <p className="inline-flex w-fit items-center gap-2 rounded-full border border-[#b8d7ee] bg-[#eef7fd] px-3 py-1.5 text-xs font-semibold text-[#123b63]">
