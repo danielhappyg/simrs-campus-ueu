@@ -57,9 +57,7 @@ export default function ModulePlaceholder({
                             {selected?.label ?? categoryLabel}
                         </h1>
                         <p className="mt-1 text-sm text-[#64748b]">
-                            {selected
-                                ? categoryLabel
-                                : `${menus.length} menu`}
+                            {selected ? categoryLabel : `${menus.length} menu`}
                         </p>
                     </div>
                 </header>
@@ -76,7 +74,7 @@ export default function ModulePlaceholder({
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder="Pencarian Menu..."
-                            className="border-input min-h-11 w-full rounded-md border bg-white pr-3 pl-10 text-sm font-normal tracking-normal text-[#0f172a] shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30"
+                            className="min-h-11 w-full rounded-md border border-input bg-white pr-3 pl-10 text-sm font-normal tracking-normal text-[#0f172a] shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30"
                         />
                     </span>
                 </label>

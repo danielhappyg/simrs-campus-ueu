@@ -1327,7 +1327,9 @@ export default function PendaftaranRawatInap({
                             />
                             <InputError
                                 id="admission_authority_reference-error"
-                                message={form.errors.admission_authority_reference}
+                                message={
+                                    form.errors.admission_authority_reference
+                                }
                             />
                         </div>
 

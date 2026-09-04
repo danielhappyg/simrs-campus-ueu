@@ -102,8 +102,8 @@ describe('application header navigation', () => {
         render(<AppHeader />);
 
         const links = screen.getAllByRole('link', { name: 'RM' });
-        expect(links.some((link) => link.getAttribute('aria-current') === 'page')).toBe(
-            true,
-        );
+        expect(
+            links.some((link) => link.getAttribute('aria-current') === 'page'),
+        ).toBe(true);
     });
 });

@@ -10,7 +10,8 @@ describe('resolveMenuIcon', () => {
             resolveMenuIcon('Pemeriksaan Lab', 'adm-lab').icon.displayName,
         ).toBe('FlaskConical');
         expect(
-            resolveMenuIcon('Pemeriksaan Radiologi', 'adm-rad').icon.displayName,
+            resolveMenuIcon('Pemeriksaan Radiologi', 'adm-rad').icon
+                .displayName,
         ).toBe('ScanLine');
         expect(resolveMenuIcon('Tarif', 'adm-tarif').icon.displayName).toBe(
             'Receipt',

@@ -32,7 +32,10 @@ return new class extends Migration
             $table->foreignId('disposition_id')->unique()->constrained('outpatient_dispositions')->restrictOnDelete();
             $table->foreignId('target_encounter_id')->unique()->constrained('encounters')->restrictOnDelete();
             $table->foreignId('registrar_user_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('inpatient_location_event_id')->unique()->constrained('inpatient_location_events')->restrictOnDelete();
+            $table->foreignId('inpatient_location_event_id')
+                ->unique('oadm_handoff_location_event_uq')
+                ->constrained('inpatient_location_events', indexName: 'oadm_handoff_location_event_fk')
+                ->restrictOnDelete();
             $table->json('bed_snapshot');
             $table->string('content_digest', 64);
             $table->timestamp('completed_at');
