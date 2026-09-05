@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - rebuild/clean-slate
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -103,6 +104,7 @@ jobs:
 
   mysql-integration:
     name: MySQL 8.4 backend integration
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -164,6 +166,7 @@ jobs:
 
   postgres-integration:
     name: PostgreSQL 17 laravel-schema integration
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -246,8 +249,8 @@ jobs:
       - quality
       - mysql-integration
       - postgres-integration
-    # Build release artifacts only for the canonical mainline; PRs retain all quality and integration gates.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Release-candidate assembly is intentionally manual to avoid rebuilding it on every development push.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -276,9 +279,6 @@ jobs:
           npm run build
 
       - name: Verify the build did not modify tracked source
-        # public/build is the output of the Linux build performed above and is
-        # intentionally assembled into the release candidate from this working
-        # tree. Keep the guard focused on source and other tracked inputs.
         run: git diff --exit-code -- . ':(exclude)public/build'
 
       - name: Generate and assemble the release candidate
