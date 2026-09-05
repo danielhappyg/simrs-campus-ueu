@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureCapability;
 use App\Http\Middleware\EnsureSimulationSafetyMode;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ProtectTeachingRoleAuthenticationPaths;
+use App\Http\Middleware\SetScreenLocale;
 use App\Support\Http\DeploymentHostBoundary;
 use App\Support\Http\RequestCorrelation;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -63,6 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(
             prepend: [AssignRequestCorrelationId::class],
             append: [
+                SetScreenLocale::class,
                 AuditAuthorizationDenial::class,
                 ProtectTeachingRoleAuthenticationPaths::class,
                 HandleInertiaRequests::class,
@@ -138,7 +140,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->header('X-Inertia')) {
                 return redirect()
                     ->route('home')
-                    ->with('error', 'Anda tidak memiliki akses ke modul tersebut.');
+                    ->with('error', 'You do not have access to this module.');
             }
 
             return null;

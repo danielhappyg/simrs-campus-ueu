@@ -191,13 +191,13 @@ describe('legacy free-text encounter accessibility', () => {
 
         expect(
             screen.getByRole('tablist', {
-                name: 'Bagian pemeriksaan klinis',
+                name: 'Clinical care sections',
             }),
         ).toBeInTheDocument();
-        const assessmentTab = screen.getByRole('tab', { name: 'Asesmen' });
-        const labTab = screen.getByRole('tab', { name: 'Order Lab' });
+        const assessmentTab = screen.getByRole('tab', { name: 'Assessment' });
+        const labTab = screen.getByRole('tab', { name: 'Laboratory orders' });
         const diagnosisStub = screen.getByRole('tab', {
-            name: 'Diagnosa',
+            name: 'Diagnosis',
         });
 
         expect(assessmentTab).toHaveAttribute('aria-selected', 'true');
@@ -215,7 +215,7 @@ describe('legacy free-text encounter accessibility', () => {
         expect(labTab).toHaveFocus();
         expect(labTab).toHaveAttribute('aria-selected', 'true');
         expect(
-            screen.getByRole('tabpanel', { name: 'Order Lab' }),
+            screen.getByRole('tabpanel', { name: 'Laboratory orders' }),
         ).toHaveAttribute('id', 'clinical-tabpanel-order-lab');
         expect(diagnosisStub).toBeDisabled();
 
@@ -225,7 +225,7 @@ describe('legacy free-text encounter accessibility', () => {
     it('associates clinical-note errors and refocuses its linked summary after repeated failures', async () => {
         const { container } = renderEncounter();
         const saveButton = screen.getByRole('button', {
-            name: 'Simpan catatan',
+            name: 'Save note',
         });
         const form = saveButton.closest('form');
 
@@ -236,12 +236,12 @@ describe('legacy free-text encounter accessibility', () => {
         fireEvent.submit(form);
 
         const summary = await screen.findByRole('alert', {
-            name: 'Catatan klinis belum dapat disimpan.',
+            name: 'The clinical note could not be saved.',
         });
         const entryType = screen.getByRole('combobox', {
-            name: 'Jenis catatan',
+            name: 'Note type',
         });
-        const body = screen.getByRole('textbox', { name: 'Isi catatan' });
+        const body = screen.getByRole('textbox', { name: 'Note content' });
 
         expect(summary).toHaveAttribute('tabindex', '-1');
         expect(summary).toHaveFocus();
@@ -260,7 +260,7 @@ describe('legacy free-text encounter accessibility', () => {
         ).toHaveTextContent('Isi catatan wajib diisi.');
 
         const bodyErrorLink = within(summary).getByRole('link', {
-            name: 'Isi catatan: Isi catatan wajib diisi.',
+            name: 'Note content: Isi catatan wajib diisi.',
         });
         expect(bodyErrorLink).toHaveAttribute('href', '#body');
         fireEvent.click(bodyErrorLink);
@@ -275,10 +275,10 @@ describe('legacy free-text encounter accessibility', () => {
 
     it('associates laboratory-order errors and refocuses its linked summary after repeated failures', async () => {
         const { container } = renderEncounter();
-        fireEvent.click(screen.getByRole('tab', { name: 'Order Lab' }));
+        fireEvent.click(screen.getByRole('tab', { name: 'Laboratory orders' }));
 
         const saveButton = screen.getByRole('button', {
-            name: 'Simpan order lab',
+            name: 'Save laboratory order',
         });
         const form = saveButton.closest('form');
 
@@ -289,13 +289,13 @@ describe('legacy free-text encounter accessibility', () => {
         fireEvent.submit(form);
 
         const summary = await screen.findByRole('alert', {
-            name: 'Order laboratorium belum dapat disimpan.',
+            name: 'The laboratory request could not be saved.',
         });
         const testCode = screen.getByRole('combobox', {
-            name: 'Pemeriksaan',
+            name: 'Examination',
         });
         const clinicalQuestion = screen.getByRole('textbox', {
-            name: 'Pertanyaan klinis (opsional)',
+            name: 'Clinical question (optional)',
         });
 
         expect(summary).toHaveFocus();
@@ -311,7 +311,7 @@ describe('legacy free-text encounter accessibility', () => {
         );
 
         const questionErrorLink = within(summary).getByRole('link', {
-            name: 'Pertanyaan klinis: Pertanyaan klinis terlalu panjang.',
+            name: 'Clinical question: Pertanyaan klinis terlalu panjang.',
         });
         fireEvent.click(questionErrorLink);
         expect(clinicalQuestion).toHaveFocus();

@@ -15,7 +15,7 @@ type Props = {
 export function CareSettingSubnav({ items, className }: Props) {
     return (
         <nav
-            aria-label="Setting layanan"
+            aria-label="Care setting"
             className={cn(
                 'flex flex-wrap gap-1 rounded-lg border border-[#e2e8f0] bg-white p-1',
                 className,

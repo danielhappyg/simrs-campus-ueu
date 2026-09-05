@@ -24,13 +24,13 @@ final class OutpatientDispositionController extends Controller
             $this->service->sign($encounter, $actor, $v['disposition_type'], $v['payload'], (int) $v['expected_document_version'], $v['idempotency_key']);
         } catch (OutpatientDispositionDenied $e) {
             if ($e->httpStatus === 403) {
-                abort(403, $e->getMessage());
+                abort(403, __($e->getMessage()));
             }
 
-            return back()->withErrors(['disposition' => $e->getMessage()])->withInput();
+            return back()->withErrors(['disposition' => __($e->getMessage())])->withInput();
         }
 
-        return back()->with('success', 'Disposisi rawat jalan ditandatangani.');
+        return back()->with('success', 'Outpatient disposition signed.');
     }
 
     public function correct(Request $request, Encounter $encounter): RedirectResponse
@@ -42,12 +42,12 @@ final class OutpatientDispositionController extends Controller
             $this->service->correct($encounter, $actor, (int) $v['expected_disposition_version'], $v['disposition_type'], $v['payload'], (int) $v['expected_document_version'], $v['correction_reason'], $v['idempotency_key']);
         } catch (OutpatientDispositionDenied $e) {
             if ($e->httpStatus === 403) {
-                abort(403, $e->getMessage());
+                abort(403, __($e->getMessage()));
             }
 
-            return back()->withErrors(['disposition' => $e->getMessage()])->withInput();
+            return back()->withErrors(['disposition' => __($e->getMessage())])->withInput();
         }
 
-        return back()->with('success', 'Koreksi disposisi ditandatangani.');
+        return back()->with('success', 'Disposition correction signed.');
     }
 }

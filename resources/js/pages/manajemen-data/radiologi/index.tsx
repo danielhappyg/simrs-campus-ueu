@@ -7,7 +7,7 @@ export type { RadiologyMasterProps } from '@/components/clinical/radiology/types
 export default function ManajemenDataRadiologi(props: RadiologyMasterProps) {
     return (
         <>
-            <Head title="Master Pemeriksaan Radiologi" />
+            <Head title="Radiology Examination Master" />
             <RadiologyMasterPanel {...props} />
         </>
     );

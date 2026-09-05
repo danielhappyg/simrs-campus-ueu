@@ -23,7 +23,7 @@ final class PharmacyPrescriptionController extends Controller
         $data = $this->draft($request, true);
         $this->run(fn () => $this->workflow->createDraft($encounter, $actor, $data['depot_public_id'], $data['items'], $data['clinical_note'] ?? null, $data['idempotency_key']));
 
-        return back()->with('success', 'Draf resep disimpan.');
+        return back()->with('success', 'Prescription draft saved.');
     }
 
     public function updateDraft(Request $request, string $prescription): RedirectResponse
@@ -32,7 +32,7 @@ final class PharmacyPrescriptionController extends Controller
         $data = $this->draft($request, false);
         $this->run(fn () => $this->workflow->reviseDraft($prescription, $actor, $data['expected_version'], $data['items'], $data['clinical_note'] ?? null, $data['idempotency_key']));
 
-        return back()->with('success', 'Draf resep diperbarui.');
+        return back()->with('success', 'Prescription draft updated.');
     }
 
     public function order(Request $request, string $prescription): RedirectResponse
@@ -50,7 +50,7 @@ final class PharmacyPrescriptionController extends Controller
         $data = $this->draft($request, true, true);
         $this->run(fn () => $this->workflow->replace($prescription, $actor, $data['expected_fingerprint'], $data['depot_public_id'], $data['items'], $data['clinical_note'] ?? null, $data['reason_code'], $data['idempotency_key']));
 
-        return back()->with('success', 'Draf pengganti dibuat; resep sebelumnya dipertahankan dalam riwayat.');
+        return back()->with('success', 'Replacement draft created; the previous prescription remains in the history.');
     }
 
     public function cancel(Request $request, string $prescription): RedirectResponse
@@ -62,7 +62,7 @@ final class PharmacyPrescriptionController extends Controller
         ]));
         $this->run(fn () => $this->workflow->cancel($prescription, $actor, $data['expected_fingerprint'], $data['reason_code'], $data['note'] ?? null, $data['idempotency_key']));
 
-        return back()->with('success', 'Resep dibatalkan.');
+        return back()->with('success', 'Prescription cancelled.');
     }
 
     /** @return array<string,mixed> */
@@ -122,10 +122,10 @@ final class PharmacyPrescriptionController extends Controller
         try {
             $operation();
         } catch (PharmacyDenied $denial) {
-            throw ValidationException::withMessages(['pharmacy' => $denial->getMessage()]);
+            throw ValidationException::withMessages(['pharmacy' => __($denial->getMessage())]);
         } catch (PharmacyAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit Apotek belum tersedia.');
+            abort(503, 'Pharmacy audit recording is unavailable.');
         }
     }
 }

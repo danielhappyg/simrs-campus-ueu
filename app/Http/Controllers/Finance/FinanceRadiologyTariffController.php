@@ -158,8 +158,8 @@ final class FinanceRadiologyTariffController extends Controller
                         'source' => $source,
                         'care_setting' => $careSetting,
                         'reason_code' => 'TARIF_BELUM_DIPETAKAN',
-                        'reason_label' => 'Tarif belum dipetakan',
-                        'detail' => 'Belum ada pemetaan efektif yang sengaja dibuat untuk versi master dan jenis layanan ini.',
+                        'reason_label' => 'Tariff not mapped',
+                        'detail' => 'No effective mapping has been deliberately created for this master version and care setting.',
                     ];
                 }
             }
@@ -189,7 +189,7 @@ final class FinanceRadiologyTariffController extends Controller
             ->map(function (RadiologyExaminationMaster $master): array {
                 $version = $master->versions->firstWhere('version', $master->version);
                 if (! $version instanceof RadiologyExaminationMasterVersion) {
-                    throw new \LogicException('Versi master radiologi aktif tidak tersedia.');
+                    throw new \LogicException('The active radiology master version is unavailable.');
                 }
 
                 return $this->source($master, $version);
@@ -272,7 +272,7 @@ final class FinanceRadiologyTariffController extends Controller
             'versions' => $versions->map(function (FinanceRadiologyTariffBindingVersion $version, int $index) use ($versions): array {
                 $tariff = $this->tariffAt($version->tariff_item_id, $version->effective_from->format('Y-m-d'));
                 if ($tariff === null) {
-                    throw new \LogicException('Versi tarif historis pemetaan tidak tersedia.');
+                    throw new \LogicException('The historical tariff mapping version is unavailable.');
                 }
                 $next = $versions->get($index + 1);
 
@@ -347,7 +347,7 @@ final class FinanceRadiologyTariffController extends Controller
             || $version->radiology_examination_master_id !== $master->id
             || $version->version !== $data['radiology_master_version']
             || ! hash_equals($version->content_digest, $data['radiology_master_content_digest'])) {
-            throw ValidationException::withMessages(['master' => 'Versi master radiologi telah berubah. Muat ulang halaman.']);
+            throw ValidationException::withMessages(['master' => 'The radiology master version has changed. Reload the page.']);
         }
     }
 
@@ -374,10 +374,10 @@ final class FinanceRadiologyTariffController extends Controller
         try {
             $result = $operation();
         } catch (FinanceTariffDenied $denied) {
-            throw ValidationException::withMessages(['master' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['master' => __($denied->getMessage())]);
         } catch (FinanceTariffAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit pemetaan tarif belum tersedia.');
+            abort(503, 'Audit recording for tariff mapping is unavailable.');
         }
 
         return back()->with('success', $result->replayed ? 'Operasi yang sama ditampilkan kembali.' : $success);

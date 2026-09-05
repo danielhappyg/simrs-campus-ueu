@@ -23,19 +23,19 @@ import { newInpatientRmIdempotencyKey, reviewStatusLabel } from './types';
 
 type Props = { inpatient_rm: InpatientRmDetail };
 function formattedDate(value: string | null) {
-    return value ? new Date(value).toLocaleString('id-ID') : '—';
+    return value ? new Date(value).toLocaleString('en-GB') : '—';
 }
 
 function assignmentLabel(kind: CodingAssignment['kind']) {
     if (kind === 'PRINCIPAL_DIAGNOSIS') {
-        return 'Diagnosis utama';
+        return 'Primary diagnosis';
     }
 
     if (kind === 'SECONDARY_DIAGNOSIS') {
-        return 'Diagnosis sekunder';
+        return 'Secondary diagnosis';
     }
 
-    return 'Prosedur';
+    return 'Procedures';
 }
 
 function useUnsavedRmikGuard(shouldWarn: boolean) {
@@ -45,7 +45,7 @@ function useUnsavedRmikGuard(shouldWarn: boolean) {
         }
 
         const warning =
-            'Ada perubahan RMIK yang belum disimpan. Tinggalkan halaman dan buang perubahan?';
+            'There are unsaved medical-record changes. Leave this page and discard them?';
         const onBeforeUnload = (event: BeforeUnloadEvent) => {
             event.preventDefault();
             event.returnValue = '';
@@ -282,15 +282,15 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
     return (
         <>
             <Head
-                title={`Tinjau RM Rawat Inap — ${data.patient.full_name ?? 'Episode'}`}
+                title={`Review Inpatient Medical Record — ${data.patient.full_name ?? 'Episode'}`}
             />
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5">
                 <CareSettingSubnav
                     items={[
-                        { href: '/rm/rawat-jalan', label: 'Rawat Jalan' },
+                        { href: '/rm/rawat-jalan', label: 'Outpatient Care' },
                         {
                             href: '/rm/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient Care',
                             active: true,
                         },
                     ]}
@@ -316,16 +316,16 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                     href="/rm/rawat-inap"
                     className="min-h-11 self-start py-2 text-sm font-medium text-primary hover:underline"
                 >
-                    ← Kembali ke worklist rawat inap
+                    ← Back to inpatient worklist
                 </Link>
 
                 <header className="rounded-lg border border-border bg-card p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h1 className="text-xl font-semibold">
-                                Telaah RM rawat inap ·{' '}
+                                Inpatient medical-record review ·{' '}
                                 {data.patient.full_name ??
-                                    'Nama pasien belum tersedia'}
+                                    'Patient name unavailable'}
                             </h1>
                             <p className="mt-1 font-mono text-xs text-muted-foreground">
                                 {data.patient.medical_record_number ?? '—'} ·{' '}
@@ -334,24 +334,24 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                         </div>
                         <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
                             {closed
-                                ? 'Episode ditutup oleh RM'
+                                ? 'Episode closed by Medical Records'
                                 : reviewStatusLabel[data.completeness.status]}
                         </span>
                     </div>
                     <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                         <Meta
-                            label="Tanggal pulang"
+                            label="Discharge date"
                             value={formattedDate(
                                 data.discharge?.discharged_at ??
                                     data.encounter.discharged_at,
                             )}
                         />
                         <Meta
-                            label="Bangsal terakhir"
+                            label="Last ward"
                             value={data.encounter.last_ward_name ?? '—'}
                         />
                         <Meta
-                            label="Penjamin"
+                            label="Payer"
                             value={data.encounter.payer_type ?? '—'}
                         />
                     </dl>
@@ -366,14 +366,14 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                         className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                     >
                         <p className="font-semibold">
-                            Periksa data sebelum melanjutkan.
+                            Review the data before continuing.
                         </p>
                         <ul className="mt-1 list-disc pl-5 text-xs">
                             {!allSourcesAssigned && codingDirty ? (
                                 <li>
-                                    Setiap pernyataan sumber harus memiliki kode
-                                    dan keterangan kode sebelum draf pengodean
-                                    disimpan.
+                                    Every source statement needs a code and code
+                                    description before the coding draft is
+                                    saved.
                                 </li>
                             ) : null}
                             {combinedErrors.map((error) => (
@@ -390,13 +390,13 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
                             <p className="text-[0.68rem] font-semibold tracking-wide text-muted-foreground uppercase">
-                                Bukti klinis hanya-baca
+                                Read-only clinical evidence
                             </p>
                             <h2
                                 id="rmik-final-discharge-summary-title"
                                 className="mt-0.5 font-semibold"
                             >
-                                Ringkasan pulang Final
+                                Final discharge summary
                             </h2>
                         </div>
                         <span className="font-mono text-xs text-muted-foreground">
@@ -413,42 +413,43 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                 />
 
                 <aside
-                    aria-label="Sumber klinis hanya-baca"
+                    aria-label="Read-only clinical source"
                     className="rounded-lg border border-sidebar-border bg-sidebar px-4 py-3 text-sidebar-foreground shadow-sm"
                 >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                             <p className="text-[0.68rem] font-semibold tracking-wide uppercase opacity-70">
-                                Sumber klinis hanya-baca
+                                Read-only clinical source
                             </p>
                             <p className="text-sm">
-                                Data sumber tidak dapat diubah dari meja RMIK.
+                                Source data cannot be changed from the
+                                medical-record workspace.
                             </p>
                         </div>
                         <p className="font-mono text-xs">
-                            Ringkasan v{data.discharge_summary?.version ?? '—'}{' '}
-                            · Diagnosis/prosedur v
+                            Summary v{data.discharge_summary?.version ?? '—'} ·
+                            Diagnoses/procedures v
                             {data.coding_source?.version ?? '—'}
                         </p>
                     </div>
                     <div className="mt-3 grid gap-3 text-sm lg:grid-cols-3">
                         <SourceCard
-                            title="Diagnosis utama"
+                            title="Primary diagnosis"
                             value={
                                 data.coding_source
                                     ?.principal_diagnosis_statement ??
-                                'Belum tersedia'
+                                'Unavailable'
                             }
                         />
                         <SourceList
-                            title="Diagnosis sekunder"
+                            title="Secondary diagnoses"
                             values={
                                 data.coding_source
                                     ?.secondary_diagnosis_statements ?? []
                             }
                         />
                         <SourceList
-                            title="Prosedur klinis"
+                            title="Clinical procedures"
                             values={
                                 data.coding_source
                                     ?.performed_procedure_statements ?? []
@@ -465,23 +466,23 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                         <div className="flex flex-wrap items-start justify-between gap-2">
                             <div>
                                 <h2 id="coding-title" className="font-semibold">
-                                    Pengodean RMIK
+                                    Medical-record coding
                                 </h2>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Masukkan kode secara manual berdasarkan
-                                    sumber klinis yang tampil. Kolom ini bukan
-                                    pencarian katalog kode.
+                                    Enter codes manually using the displayed
+                                    clinical source. This field is not a code
+                                    catalogue search.
                                 </p>
                             </div>
                             <span className="font-mono text-xs text-muted-foreground">
                                 {data.coding.state === 'FINAL'
                                     ? 'Final'
-                                    : 'Draf'}{' '}
+                                    : 'Draft'}{' '}
                                 v{data.coding.version}
                             </span>
                         </div>
                         <CodingGroup
-                            label="Diagnosis utama"
+                            label="Primary diagnosis"
                             kind="PRINCIPAL_DIAGNOSIS"
                             sources={data.coding.source_statements}
                             assignments={codingForm.data.assignments}
@@ -494,7 +495,7 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                             required
                         />
                         <CodingGroup
-                            label="Diagnosis sekunder"
+                            label="Secondary diagnoses"
                             kind="SECONDARY_DIAGNOSIS"
                             sources={data.coding.source_statements}
                             assignments={codingForm.data.assignments}
@@ -506,7 +507,7 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                             onUpdate={updateAssignments}
                         />
                         <CodingGroup
-                            label="Prosedur"
+                            label="Procedures"
                             kind="PROCEDURE"
                             sources={data.coding.source_statements}
                             assignments={codingForm.data.assignments}
@@ -522,8 +523,8 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                 role="status"
                                 className="mt-4 text-sm font-medium text-success"
                             >
-                                Episode ditutup oleh RM. Pengodean dan
-                                riwayatnya hanya-baca.
+                                The episode is closed by medical records. Coding
+                                and its history are read-only.
                             </p>
                         ) : (
                             <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
@@ -539,15 +540,15 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                     onClick={saveCoding}
                                 >
                                     {codingForm.processing
-                                        ? 'Menyimpan…'
-                                        : 'Simpan draf pengodean'}
+                                        ? 'Saving…'
+                                        : 'Save coding draft'}
                                 </Button>
                                 {codingDirty ? (
                                     <p
                                         role="status"
                                         className="text-xs text-warning"
                                     >
-                                        Perubahan pengodean belum disimpan.
+                                        Coding changes are not saved yet.
                                     </p>
                                 ) : null}
                             </div>
@@ -559,11 +560,11 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                         className="rounded-lg border border-border bg-card p-4"
                     >
                         <h2 id="review-title" className="font-semibold">
-                            Review kelengkapan
+                            Completeness review
                         </h2>
                         <p className="mt-1 text-xs text-muted-foreground">
-                            Status kelengkapan dihitung dari fakta sumber yang
-                            saat ini terikat ke episode.
+                            Completeness is calculated from source facts
+                            currently bound to the episode.
                         </p>
                         <div className="mt-3 space-y-2">
                             {data.completeness.items.map((item) => (
@@ -576,7 +577,7 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                         {data.completeness.blockers.length ? (
                             <div className="mt-4 rounded-md border border-warning/30 bg-warning/5 p-3">
                                 <p className="text-sm font-semibold text-warning">
-                                    Blocker penutupan
+                                    Closure blockers
                                 </p>
                                 <ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">
                                     {data.completeness.blockers.map(
@@ -595,7 +596,7 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                 role="status"
                                 className="mt-4 text-sm font-medium text-success"
                             >
-                                Episode ditutup oleh RM.
+                                The episode is closed by medical records.
                             </p>
                         ) : (
                             <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-4">
@@ -609,8 +610,8 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                     onClick={saveReview}
                                 >
                                     {reviewForm.processing
-                                        ? 'Menyimpan…'
-                                        : 'Simpan hasil review'}
+                                        ? 'Saving…'
+                                        : 'Save review result'}
                                 </Button>
                                 <Button
                                     type="button"
@@ -618,7 +619,7 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                     aria-describedby="signoff-help"
                                     onClick={() => setConfirmationOpen(true)}
                                 >
-                                    Sign-off RM dan tutup episode
+                                    Medical-record sign-off and close episode
                                 </Button>
                             </div>
                         )}
@@ -627,10 +628,10 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                 id="signoff-help"
                                 className="mt-2 text-xs text-muted-foreground"
                             >
-                                Sign-off tersedia setelah pengodean tersimpan
-                                dan setiap pernyataan sumber memiliki kode serta
-                                keterangan, semua fakta kelengkapan sesuai,
-                                serta tidak ada blocker.
+                                Sign-off is available after coding is saved,
+                                every source statement has a code and
+                                description, all completeness facts are aligned,
+                                and there are no blockers.
                             </p>
                         ) : null}
                     </section>
@@ -641,13 +642,13 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                     className="rounded-lg border border-border bg-card p-4"
                 >
                     <h2 id="history-title" className="font-semibold">
-                        Riwayat tidak dapat diubah
+                        Immutable history
                     </h2>
                     <div className="mt-3 grid gap-3 lg:grid-cols-2">
                         <HistoryList
-                            title="Riwayat pengodean"
+                            title="Coding history"
                             entries={data.coding.history.map((entry) => ({
-                                event: `Pengodean v${entry.version}`,
+                                event: `Coding v${entry.version}`,
                                 actor_name: entry.actor_name,
                                 occurred_at: entry.created_at,
                                 detail:
@@ -656,11 +657,11 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                             (item) =>
                                                 `${assignmentLabel(item.kind)}: ${item.code}`,
                                         )
-                                        .join(' · ') || 'Belum ada kode',
+                                        .join(' · ') || 'No codes yet',
                             }))}
                         />
                         <HistoryList
-                            title="Riwayat episode"
+                            title="Episode history"
                             entries={data.history}
                         />
                     </div>
@@ -674,19 +675,19 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                     <DialogContent showCloseButton={false}>
                         <DialogHeader>
                             <DialogTitle>
-                                Konfirmasi penutupan episode oleh RM
+                                Confirm medical-record closure of this episode
                             </DialogTitle>
                             <DialogDescription>
-                                Sistem akan memeriksa ulang versi review,
-                                pengodean, sumber, dan blocker sebelum episode
-                                ditutup. Setelah berhasil, seluruh riwayat
-                                hanya-baca.
+                                The system will recheck the review version,
+                                coding, source, and blockers before closing the
+                                episode. Once completed, all history is
+                                read-only.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                             <DialogClose asChild>
                                 <Button type="button" variant="outline">
-                                    Batal
+                                    Cancel
                                 </Button>
                             </DialogClose>
                             <Button
@@ -695,8 +696,8 @@ export default function RmRawatInapShow({ inpatient_rm: data }: Props) {
                                 onClick={signoff}
                             >
                                 {signoffForm.processing
-                                    ? 'Memproses…'
-                                    : 'Ya, sign-off RM dan tutup episode'}
+                                    ? 'Processing…'
+                                    : 'Yes, sign off and close episode'}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -717,11 +718,11 @@ function Meta({ label, value }: { label: string; value: string }) {
 
 function SummaryFields({ fields }: { fields: Record<string, string | null> }) {
     const definitions = [
-        ['admission_reason', 'Alasan masuk dirawat'],
+        ['admission_reason', 'Reason for admission'],
         ['significant_findings', 'Temuan penting'],
-        ['care_and_treatment_summary', 'Ringkasan perawatan dan pengobatan'],
+        ['care_and_treatment_summary', 'Care and treatment summary'],
         ['condition_at_discharge', 'Kondisi saat pulang'],
-        ['follow_up_plan', 'Rencana tindak lanjut'],
+        ['follow_up_plan', 'Follow-up plan'],
     ] as const;
 
     return (
@@ -762,9 +763,7 @@ function SourceList({ title, values }: { title: string; values: string[] }) {
                     ))}
                 </ul>
             ) : (
-                <p className="mt-1 text-sm opacity-70">
-                    Tidak ada yang dicatat
-                </p>
+                <p className="mt-1 text-sm opacity-70">Nothing recorded</p>
             )}
         </div>
     );
@@ -803,8 +802,7 @@ function CodingGroup({
                 </span>
             </legend>
             <p className="mt-1 text-xs text-muted-foreground">
-                Setiap kode diikat ke satu pernyataan sumber yang tidak dapat
-                diubah.
+                Every code is bound to one immutable source statement.
             </p>
             <div className="mt-2 space-y-2">
                 {entries.map((source) => {
@@ -827,22 +825,22 @@ function CodingGroup({
                         >
                             <div className="rounded bg-muted/50 p-2 text-xs">
                                 <p className="font-semibold">
-                                    Pernyataan sumber {source.index + 1}
+                                    Source statement {source.index + 1}
                                 </p>
                                 <p className="mt-1 text-muted-foreground">
                                     {source.text}
                                 </p>
                             </div>
                             <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                                Masukkan kode
+                                Enter code
                                 <Input
                                     value={assignment?.code ?? ''}
                                     disabled={disabled}
                                     maxLength={20}
                                     placeholder={
                                         kind === 'PROCEDURE'
-                                            ? 'Contoh: 89.52'
-                                            : 'Contoh: A09'
+                                            ? 'Example: 89.52'
+                                            : 'Example: A09'
                                     }
                                     onChange={(event) =>
                                         onUpdate((items) => {
@@ -888,12 +886,12 @@ function CodingGroup({
                                 />
                             </label>
                             <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                                Keterangan kode
+                                Code description
                                 <Input
                                     value={assignment?.description ?? ''}
                                     disabled={disabled}
                                     maxLength={255}
-                                    placeholder="Keterangan manual"
+                                    placeholder="Manual description"
                                     onChange={(event) =>
                                         onUpdate((items) => {
                                             const next = assignment ?? {
@@ -945,7 +943,7 @@ function CodingGroup({
             </div>
             {!entries.length ? (
                 <p className="mt-2 text-xs text-muted-foreground">
-                    Tidak ada pernyataan sumber untuk kategori ini.
+                    No source statement for this category.
                 </p>
             ) : null}
         </fieldset>
@@ -978,8 +976,8 @@ function ReadOnlyReviewItem({
                     {item.status === 'PASS'
                         ? 'Sesuai'
                         : item.status === 'FAIL'
-                          ? 'Belum sesuai'
-                          : 'Tidak berlaku'}
+                          ? 'Not aligned'
+                          : 'Not applicable'}
                 </span>
             </div>
             {item.reason ? (
@@ -1022,7 +1020,7 @@ function HistoryList({
                 </ol>
             ) : (
                 <p className="mt-2 text-sm text-muted-foreground">
-                    Belum ada riwayat.
+                    No history yet.
                 </p>
             )}
         </div>
@@ -1031,9 +1029,9 @@ function HistoryList({
 
 RmRawatInapShow.layout = (props: Props) => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'RM', href: '/rm/rawat-jalan' },
-        { title: 'Rawat Inap', href: '/rm/rawat-inap' },
+        { title: 'Home', href: '/' },
+        { title: 'Medical Records', href: '/rm/rawat-jalan' },
+        { title: 'Inpatient Care', href: '/rm/rawat-inap' },
         {
             title: props.inpatient_rm.patient.full_name ?? 'Telaah',
             href: `/rm/rawat-inap/${props.inpatient_rm.encounter.public_id}`,

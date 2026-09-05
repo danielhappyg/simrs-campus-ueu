@@ -24,7 +24,7 @@ final class PharmacyDispensingController extends Controller
         $data = $request->validate($this->verificationRules(true));
         $this->run(fn () => $this->workflow->verify($prescription, $actor, $data['expected_fingerprint'], $data['manual_allergy_review'], $data['checklist'], $data['item_decisions'], $data['idempotency_key']));
 
-        return back()->with('success', 'Resep diverifikasi.');
+        return back()->with('success', 'Prescription verified.');
     }
 
     public function refuse(Request $request, string $prescription): RedirectResponse
@@ -33,7 +33,7 @@ final class PharmacyDispensingController extends Controller
         $data = $request->validate($this->verificationRules(false));
         $this->run(fn () => $this->workflow->refuse($prescription, $actor, $data['expected_fingerprint'], $data['manual_allergy_review'], $data['checklist'], $data['reason_code'], $data['note'] ?? null, $data['idempotency_key']));
 
-        return back()->with('success', 'Penolakan resep dicatat.');
+        return back()->with('success', 'Prescription refusal recorded.');
     }
 
     public function prepare(Request $request, string $prescription): RedirectResponse
@@ -48,7 +48,7 @@ final class PharmacyDispensingController extends Controller
         $quantities = array_map('intval', $data['item_quantities'] ?? []);
         $this->run(fn () => $this->workflow->prepare($prescription, $actor, $data['expected_fingerprint'], $data['idempotency_key'], $quantities));
 
-        return back()->with('success', 'Obat disiapkan sesuai urutan FEFO.');
+        return back()->with('success', 'Medicines prepared using FEFO order.');
     }
 
     public function handover(Request $request, string $preparation): RedirectResponse
@@ -62,7 +62,7 @@ final class PharmacyDispensingController extends Controller
         ]);
         $this->run(fn () => $this->workflow->handover($preparation, $actor, $data['expected_preparation_fingerprint'], $data['partial_reason'] ?? null, $data['idempotency_key']));
 
-        return back()->with('success', 'Penyerahan obat dicatat dan stok diperbarui.');
+        return back()->with('success', 'Medicine handover recorded and inventory updated.');
     }
 
     public function closeUnfilled(Request $request, string $prescription): RedirectResponse
@@ -75,7 +75,7 @@ final class PharmacyDispensingController extends Controller
         ]);
         $this->run(fn () => $this->workflow->closeUnfilled($prescription, $actor, $data['expected_fingerprint'], $data['reason_code'], $data['idempotency_key']));
 
-        return back()->with('success', 'Sisa yang tidak terpenuhi ditutup dengan alasan.');
+        return back()->with('success', 'Unfilled remainder closed with a reason.');
     }
 
     public function recordReturn(Request $request, string $prescription): RedirectResponse
@@ -95,11 +95,11 @@ final class PharmacyDispensingController extends Controller
         ]);
         $items = array_values(array_filter($data['items'], fn (array $item): bool => (int) $item['quantity'] > 0));
         if ($items === []) {
-            throw ValidationException::withMessages(['items' => 'Pilih sedikitnya satu jumlah retur.']);
+            throw ValidationException::withMessages(['items' => 'Select at least one return quantity.']);
         }
         $this->run(fn () => $this->workflow->recordReturn($data['handover_public_id'], $prescription, $actor, $data['expected_handover_fingerprint'], $data['reason_code'], $data['note'] ?? null, $items, $data['idempotency_key']));
 
-        return back()->with('success', 'Retur obat dicatat tanpa mengubah bukti penyerahan asli.');
+        return back()->with('success', 'Medicine return recorded without changing the original handover record.');
     }
 
     /** @return array<string,array<int,mixed>> */
@@ -157,10 +157,10 @@ final class PharmacyDispensingController extends Controller
                 ? 'handover_public_id'
                 : 'pharmacy';
 
-            throw ValidationException::withMessages([$field => $denial->getMessage()]);
+            throw ValidationException::withMessages([$field => __($denial->getMessage())]);
         } catch (PharmacyAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit Apotek belum tersedia.');
+            abort(503, 'Pharmacy audit recording is unavailable.');
         }
     }
 }

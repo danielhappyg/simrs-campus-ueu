@@ -9,10 +9,10 @@ const assignmentStateLabel: Record<
     EmergencyFollowUpAssignment['state'],
     string
 > = {
-    PROPOSED: 'Menunggu penerimaan',
-    ACCEPTED: 'Diterima',
-    REVOKED: 'Dicabut',
-    SUPERSEDED: 'Digantikan',
+    PROPOSED: 'Awaiting acceptance',
+    ACCEPTED: 'Accepted',
+    REVOKED: 'Revoked',
+    SUPERSEDED: 'Superseded',
 };
 
 function AssignmentVersion({
@@ -25,8 +25,8 @@ function AssignmentVersion({
             <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                     <p className="font-semibold">
-                        Versi {assignment.version} ·{' '}
-                        {assignment.assignee.name ?? 'Dokter tidak tersedia'}
+                        Version {assignment.version} ·{' '}
+                        {assignment.assignee.name ?? 'Physician unavailable'}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         {assignmentStateLabel[assignment.state]}
@@ -37,13 +37,13 @@ function AssignmentVersion({
             <dl className="mt-3 grid gap-2 md:grid-cols-2">
                 <div>
                     <dt className="text-xs font-semibold text-muted-foreground">
-                        Diajukan oleh
+                        Proposed by
                     </dt>
                     <dd>{assignment.proposed_by.name ?? '—'}</dd>
                 </div>
                 <div>
                     <dt className="text-xs font-semibold text-muted-foreground">
-                        Berlaku mulai
+                        Effective from
                     </dt>
                     <dd>
                         <EvidenceTime value={assignment.effective_at} />
@@ -51,13 +51,13 @@ function AssignmentVersion({
                 </div>
                 <div>
                     <dt className="text-xs font-semibold text-muted-foreground">
-                        Alasan penugasan
+                        Assignment reason
                     </dt>
                     <dd className="whitespace-pre-wrap">{assignment.reason}</dd>
                 </div>
                 <div>
                     <dt className="text-xs font-semibold text-muted-foreground">
-                        Catatan serah terima
+                        Handoff note
                     </dt>
                     <dd className="whitespace-pre-wrap">
                         {assignment.handoff_note}
@@ -67,8 +67,8 @@ function AssignmentVersion({
             {assignment.accepted_at ? (
                 <p className="mt-3 flex flex-wrap items-center gap-1.5 rounded-md bg-success/5 px-2.5 py-2 text-xs text-success">
                     <CheckCircle2 aria-hidden="true" className="size-3.5" />
-                    Diterima oleh {assignment.accepted_by_name ??
-                        'dokter'} ·{' '}
+                    Accepted by {assignment.accepted_by_name ??
+                        'physician'} ·{' '}
                     <EvidenceTime value={assignment.accepted_at} />
                 </p>
             ) : null}
@@ -78,7 +78,7 @@ function AssignmentVersion({
 
 export function EmergencyDiagnosticAssignmentHistory({
     items,
-    emptyMessage = 'Belum ada pengalihan penanggung jawab hasil penunjang.',
+    emptyMessage = 'No diagnostic-result responsibility transfers have been recorded.',
 }: {
     items: EmergencyDiagnosticAssignmentHistoryItem[];
     emptyMessage?: string;
@@ -93,11 +93,11 @@ export function EmergencyDiagnosticAssignmentHistory({
                 className="flex items-center gap-2 font-semibold"
             >
                 <History aria-hidden="true" className="size-4 text-primary" />
-                Riwayat penanggung jawab hasil penunjang
+                Diagnostic-result responsibility history
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-                Seluruh rantai penugasan tetap ditampilkan, termasuk order yang
-                hasilnya sudah selesai.
+                The full assignment chain remains visible, including completed
+                orders.
             </p>
             {items.length ? (
                 <div className="mt-3 space-y-3">
@@ -116,9 +116,9 @@ export function EmergencyDiagnosticAssignmentHistory({
                                 </span>
                                 <span className="ml-2 text-xs text-muted-foreground">
                                     {item.order_type === 'LABORATORY'
-                                        ? 'Laboratorium'
-                                        : 'Radiologi'}{' '}
-                                    · {item.history.length} versi ·{' '}
+                                        ? 'Laboratory'
+                                        : 'Radiology'}{' '}
+                                    · {item.history.length} versions ·{' '}
                                     {assignmentStateLabel[item.current.state]}
                                 </span>
                             </summary>

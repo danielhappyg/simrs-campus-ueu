@@ -13,25 +13,26 @@ const options: Array<{
 }> = [
     {
         code: 'KONTROL_ULANG',
-        label: 'Kontrol ulang',
-        description: 'Catat rencana kontrol atau tindak lanjut pasien.',
+        label: 'Follow-up',
+        description: "Record the patient's follow-up plan.",
     },
     {
         code: 'SEMBUH',
-        label: 'Sembuh',
-        description: 'Catat ringkasan klinis akhir kunjungan.',
+        label: 'Recovered',
+        description: 'Record the final clinical summary for this encounter.',
     },
     {
         code: 'RAWAT_INAP',
-        label: 'Rawat inap',
-        description: 'Keputusan klinis dokter; tempat tidur dipilih registrar.',
+        label: 'Inpatient admission',
+        description:
+            'The physician decides on admission; registration staff assign the bed.',
     },
 ];
 
 const labels: Record<OutpatientDispositionType, string> = {
-    KONTROL_ULANG: 'Kontrol ulang',
-    SEMBUH: 'Sembuh',
-    RAWAT_INAP: 'Rawat inap',
+    KONTROL_ULANG: 'Follow-up',
+    SEMBUH: 'Recovered',
+    RAWAT_INAP: 'Inpatient admission',
 };
 
 function operationKey(): string {
@@ -155,7 +156,7 @@ export function OutpatientDispositionPanel({
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <p className="text-[0.68rem] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                        Keputusan dokter
+                        Physician decision
                     </p>
                     <h2
                         id="outpatient-disposition-title"
@@ -165,13 +166,13 @@ export function OutpatientDispositionPanel({
                             aria-hidden="true"
                             className="size-5 text-primary"
                         />{' '}
-                        Disposisi rawat jalan
+                        Outpatient disposition
                     </h2>
                 </div>
                 {current ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
                         <CheckCircle2 aria-hidden="true" className="size-3.5" />{' '}
-                        Ditandatangani · v{current.version}
+                        Signed · v{current.version}
                     </span>
                 ) : null}
             </div>
@@ -179,34 +180,34 @@ export function OutpatientDispositionPanel({
             {current && !correcting ? (
                 <div className="mt-3 rounded-md border border-success/20 bg-success/5 p-3 text-sm">
                     <p className="font-semibold">
-                        {labels[current.code]} · Dokumen medis v
+                        {labels[current.code]} · Medical document v
                         {current.bound_medical_document_version}
                     </p>
                     <p className="mt-1 text-muted-foreground">
-                        {current.physician_name ?? 'Dokter'}
+                        {current.physician_name ?? 'Physician'}
                         {current.signed_at
-                            ? ` · ${new Date(current.signed_at).toLocaleString('id-ID')}`
+                            ? ` · ${new Date(current.signed_at).toLocaleString('en-GB')}`
                             : ''}
                     </p>
                     {current.code === 'RAWAT_INAP' ? (
                         <>
                             <p className="mt-2">
                                 <span className="font-medium">
-                                    Alasan rawat inap:
+                                    Reason for admission:
                                 </span>{' '}
                                 {current.payload.admission_reason || '—'}
                             </p>
                             <p className="mt-1">
                                 <span className="font-medium">
-                                    Catatan unit penerima:
+                                    Receiving unit note:
                                 </span>{' '}
                                 {current.payload.receiving_unit_handoff_note ||
                                     '—'}
                             </p>
                             <p className="mt-2 text-xs text-muted-foreground">
                                 {disposition.pending_handoff
-                                    ? 'Menunggu registrar memilih tempat tidur dan menyelesaikan serah terima.'
-                                    : 'Serah terima rawat inap telah selesai.'}
+                                    ? 'Awaiting bed assignment and handoff by registration staff.'
+                                    : 'The inpatient handoff is complete.'}
                             </p>
                         </>
                     ) : (
@@ -223,14 +224,13 @@ export function OutpatientDispositionPanel({
                             className="mt-3"
                             onClick={beginCorrection}
                         >
-                            Koreksi disposisi
+                            Correct disposition
                         </Button>
                     ) : (
                         <p className="mt-3 text-xs text-muted-foreground">
-                            Disposisi yang sudah ditandatangani bersifat
-                            hanya-baca.
+                            A signed disposition is read-only.
                             {!disposition.pending_handoff
-                                ? ' Serah terima sudah selesai sehingga koreksi tidak lagi tersedia.'
+                                ? ' The handoff is complete, so corrections are no longer available.'
                                 : ''}
                         </p>
                     )}
@@ -238,13 +238,13 @@ export function OutpatientDispositionPanel({
             ) : (
                 <form onSubmit={submit} className="mt-3 space-y-3">
                     <p className="text-sm text-muted-foreground">
-                        Disposisi hanya dapat ditandatangani dokter setelah
-                        dokumen medis versi saat ini berstatus Final.
+                        Only a physician can sign a disposition, after the
+                        current medical document has been finalized.
                     </p>
                     {correcting ? (
                         <div className="grid gap-1.5 rounded-md border border-warning/30 bg-warning/5 p-3">
                             <Label htmlFor="disposition-correction-reason">
-                                Alasan koreksi
+                                Reason for correction
                             </Label>
                             <textarea
                                 id="disposition-correction-reason"
@@ -261,8 +261,8 @@ export function OutpatientDispositionPanel({
                                 }
                             />
                             <p className="text-xs text-muted-foreground">
-                                Koreksi membuat versi disposisi baru dan hanya
-                                tersedia sebelum serah terima rawat inap.
+                                A correction creates a new disposition version
+                                and is only available before inpatient handoff.
                             </p>
                         </div>
                     ) : null}
@@ -275,7 +275,7 @@ export function OutpatientDispositionPanel({
                             form.processing
                         }
                     >
-                        <legend className="sr-only">Jenis disposisi</legend>
+                        <legend className="sr-only">Disposition type</legend>
                         <div className="grid gap-2 md:grid-cols-3">
                             {options.map((option) => (
                                 <label
@@ -301,7 +301,7 @@ export function OutpatientDispositionPanel({
                         {type === 'KONTROL_ULANG' ? (
                             <div className="mt-3 grid gap-1.5">
                                 <Label htmlFor="follow-up-plan">
-                                    Rencana kontrol / tindak lanjut
+                                    Follow-up plan
                                 </Label>
                                 <textarea
                                     id="follow-up-plan"
@@ -320,7 +320,7 @@ export function OutpatientDispositionPanel({
                         {type === 'SEMBUH' ? (
                             <div className="mt-3 grid gap-1.5">
                                 <Label htmlFor="disposition-clinical-note">
-                                    Catatan klinis
+                                    Clinical note
                                 </Label>
                                 <textarea
                                     id="disposition-clinical-note"
@@ -340,7 +340,7 @@ export function OutpatientDispositionPanel({
                             <div className="mt-3 grid gap-3 md:grid-cols-2">
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="admission-reason">
-                                        Alasan rawat inap
+                                        Reason for admission
                                     </Label>
                                     <textarea
                                         id="admission-reason"
@@ -359,7 +359,7 @@ export function OutpatientDispositionPanel({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="receiving-unit-handoff-note">
-                                        Catatan serah terima unit penerima
+                                        Receiving unit handoff note
                                     </Label>
                                     <textarea
                                         id="receiving-unit-handoff-note"
@@ -381,22 +381,21 @@ export function OutpatientDispositionPanel({
                         ) : null}
                         <Button className="mt-3" type="submit">
                             {form.processing
-                                ? 'Menandatangani…'
+                                ? 'Signing…'
                                 : correcting
-                                  ? 'Simpan koreksi disposisi'
-                                  : 'Tandatangani disposisi'}
+                                  ? 'Save disposition correction'
+                                  : 'Sign disposition'}
                         </Button>
                     </fieldset>
                     {!medicalDocumentFinal ? (
                         <p role="status" className="text-sm text-warning">
-                            Finalisasi dokumen medis versi saat ini sebelum
-                            menandatangani disposisi.
+                            Finalize the current medical document before signing
+                            the disposition.
                         </p>
                     ) : null}
                     {!canSign ? (
                         <p className="text-sm text-muted-foreground">
-                            Akun ini tidak memiliki kewenangan menandatangani
-                            disposisi.
+                            You do not have permission to sign a disposition.
                         </p>
                     ) : null}
                 </form>

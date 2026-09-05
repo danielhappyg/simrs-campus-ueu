@@ -164,16 +164,16 @@ describe('inpatient discharge summary addendum panel', () => {
         );
 
         await user.selectOptions(
-            screen.getByLabelText('Alasan koreksi'),
+            screen.getByLabelText('Correction reason'),
             'OTHER',
         );
         await user.type(
-            screen.getByLabelText(/Catatan alasan/),
+            screen.getByLabelText(/Reason note/),
             'Perlu koreksi terkontrol.',
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Ajukan koreksi ringkasan pulang',
+                name: 'Submit Discharge-Summary Correction',
             }),
         );
 
@@ -186,7 +186,7 @@ describe('inpatient discharge summary addendum panel', () => {
         const firstKey = submissions[0].data.idempotency_key;
         await user.click(
             screen.getByRole('button', {
-                name: 'Ajukan koreksi ringkasan pulang',
+                name: 'Submit Discharge-Summary Correction',
             }),
         );
         expect(submissions[1].data.idempotency_key).toBe(firstKey);
@@ -216,14 +216,12 @@ describe('inpatient discharge summary addendum panel', () => {
             />,
         );
 
-        await user.selectOptions(screen.getByLabelText('Keputusan'), 'DENIED');
+        await user.selectOptions(screen.getByLabelText('Decision'), 'DENIED');
         await user.type(
-            screen.getByLabelText(/Catatan keputusan/),
+            screen.getByLabelText(/Decision note/),
             'Tidak didukung sumber.',
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan keputusan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save decision' }));
         expect(submissions[0]).toMatchObject({
             url: '/koreksi/correction-1/keputusan',
             data: {
@@ -253,11 +251,11 @@ describe('inpatient discharge summary addendum panel', () => {
         );
 
         await user.type(
-            screen.getByLabelText('Temuan penting'),
+            screen.getByLabelText('Significant findings'),
             'Kultur positif.',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf addendum' }),
+            screen.getByRole('button', { name: 'Save addendum draft' }),
         );
         expect(submissions[0]).toMatchObject({
             url: '/koreksi/correction-1/addendum/draf',
@@ -300,11 +298,9 @@ describe('inpatient discharge summary addendum panel', () => {
             />,
         );
         await user.click(
-            screen.getByRole('button', { name: 'Tetapkan addendum Final' }),
+            screen.getByRole('button', { name: 'Finalize Addendum' }),
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Ya, tetapkan Final' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Yes, finalize' }));
         expect(submissions[1]).toMatchObject({
             url: '/koreksi/correction-1/addendum/final',
             data: { expected_version: 1 },
@@ -370,16 +366,20 @@ describe('inpatient discharge summary addendum panel', () => {
         );
 
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf addendum' }),
+            screen.queryByRole('button', { name: 'Save addendum draft' }),
         ).not.toBeInTheDocument();
         await user.click(
-            screen.getByRole('button', { name: 'Simpan hasil review koreksi' }),
+            screen.getByRole('button', {
+                name: 'Save correction-review result',
+            }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Sign-off koreksi RM' }),
+            screen.getByRole('button', {
+                name: 'Sign Off Medical-Record Correction',
+            }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Ya, sign-off koreksi RM' }),
+            screen.getByRole('button', { name: 'Yes, sign off correction' }),
         );
 
         expect(submissions).toEqual([

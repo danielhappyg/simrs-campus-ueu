@@ -240,7 +240,7 @@ class InpatientBedTransferTest extends TestCase
             ->post(route('pendaftaran.rawat-inap.bed-transfer', $encounterPublicId), [])
             ->assertRedirect('/pemeriksaan/rawat-inap')
             ->assertSessionHasErrors([
-                'transfer' => 'Penolakan transfer tidak dapat diaudit.',
+                'transfer' => 'The transfer denial cannot be audited.',
             ]);
 
         $this->assertDatabaseCount('inpatient_location_events', 0);
@@ -284,7 +284,7 @@ class InpatientBedTransferTest extends TestCase
             ])
             ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter->public_id))
             ->assertSessionHasErrors([
-                'transfer' => 'Penolakan transfer tidak dapat diaudit.',
+                'transfer' => 'The transfer denial cannot be audited.',
             ]);
 
         $this->assertDatabaseCount('inpatient_location_events', 0);
@@ -436,7 +436,7 @@ class InpatientBedTransferTest extends TestCase
             )
             ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter->public_id))
             ->assertSessionHasErrors([
-                'transfer' => 'Tempat tidur tujuan sedang terisi.',
+                'transfer' => 'The destination bed is occupied.',
             ]);
 
         $this->assertSame($this->source->id, $encounter->fresh()?->inpatient_bed_id);

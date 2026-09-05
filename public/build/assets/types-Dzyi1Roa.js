@@ -1,0 +1,1 @@
+var e=0;function t(t){return`inpatient-rmik-${t}-${globalThis.crypto?.randomUUID?.()??`${Date.now().toString(36)}-${(++e).toString(36)}`}`.toLowerCase()}var n={NOT_REVIEWED:`Not reviewed`,INCOMPLETE:`Incomplete`,COMPLETE:`Complete, ready to close`,SIGNED_OFF:`Episode closed by Medical Records`};export{n,t};

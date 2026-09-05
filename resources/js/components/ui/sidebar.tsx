@@ -212,8 +212,8 @@ function Sidebar({
           side={side}
         >
           <SheetHeader className="sr-only">
-            <SheetTitle>Navigasi utama</SheetTitle>
-            <SheetDescription>Menu utama SIMRS Campus UEU.</SheetDescription>
+            <SheetTitle>Main navigation</SheetTitle>
+            <SheetDescription>SIMRS Campus UEU main menu.</SheetDescription>
           </SheetHeader>
           <div className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
@@ -296,7 +296,7 @@ function SidebarTrigger({
     >
       {isMobile || state === "collapsed" ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
       <span className="sr-only">
-        {isOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+        {isOpen ? "Close navigation menu" : "Open navigation menu"}
       </span>
     </Button>
   )

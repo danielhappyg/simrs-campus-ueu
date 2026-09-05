@@ -65,10 +65,10 @@ type Props = {
 };
 
 const statusLabel: Record<string, string> = {
-    REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Dalam pemeriksaan',
-    READY_FOR_RM: 'Dokumentasi selesai',
-    CLOSED: 'Ditutup',
+    REGISTERED: 'Registered',
+    IN_EXAMINATION: 'In examination',
+    READY_FOR_RM: 'Documentation complete',
+    CLOSED: 'Closed',
 };
 
 const statusChip: Record<string, string> = {
@@ -79,15 +79,15 @@ const statusChip: Record<string, string> = {
 };
 
 const payerLabel: Record<string, string> = {
-    UMUM: 'Umum',
+    UMUM: 'Self-pay',
     BPJS: 'BPJS',
-    LAINNYA: 'Lainnya',
+    LAINNYA: 'Other',
 };
 
 const continueLabel: Record<string, string> = {
-    LANGSUNG: 'Langsung',
-    DARI_IGD: 'Dari IGD',
-    DARI_RJ: 'Dari RJ',
+    LANGSUNG: 'Direct',
+    DARI_IGD: 'From emergency',
+    DARI_RJ: 'From outpatient care',
 };
 
 const fieldClass =
@@ -115,12 +115,12 @@ export default function PemeriksaanRawatJalanIndex({
     const isInpatient = variant === 'rawat-inap';
     const correctionMode = isInpatient && filters.scope === 'correction';
     const title = isTriage
-        ? 'Pemeriksaan · Triage'
+        ? 'Clinical Care · Triage'
         : isIgd
-          ? 'Pemeriksaan · IGD'
+          ? 'Clinical Care · Emergency Department'
           : isInpatient
-            ? 'Pemeriksaan · Rawat Inap'
-            : 'Pemeriksaan · Rawat Jalan';
+            ? 'Clinical Care · Inpatient Care'
+            : 'Clinical Care · Outpatient Care';
 
     const [q, setQ] = useState(filters.q);
     const [clinic, setClinic] = useState(filters.clinic);
@@ -161,17 +161,17 @@ export default function PemeriksaanRawatJalanIndex({
                     items={[
                         {
                             href: '/pemeriksaan/rawat-jalan',
-                            label: 'Rawat Jalan',
+                            label: 'Outpatient Care',
                             active: variant === 'rawat-jalan',
                         },
                         {
                             href: '/pemeriksaan/igd',
-                            label: 'IGD',
+                            label: 'Emergency Department',
                             active: isIgd,
                         },
                         {
                             href: '/pemeriksaan/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient Care',
                             active: isInpatient,
                         },
                         {
@@ -181,11 +181,11 @@ export default function PemeriksaanRawatJalanIndex({
                         },
                         {
                             href: '/pemeriksaan/laboratorium',
-                            label: 'Laboratorium',
+                            label: 'Laboratory',
                         },
                         {
                             href: '/pemeriksaan/radiologi',
-                            label: 'Radiologi',
+                            label: 'Radiology',
                         },
                     ]}
                 />
@@ -197,17 +197,17 @@ export default function PemeriksaanRawatJalanIndex({
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
                             {correctionMode
-                                ? 'Episode selesai yang dapat dibuka untuk koreksi ringkasan pulang terkendali.'
-                                : 'Worklist kunjungan aktif untuk pemeriksaan dan dokumentasi klinis.'}
+                                ? 'Completed episodes eligible for controlled discharge-summary correction.'
+                                : 'Active-encounter worklist for clinical examination and documentation.'}
                             {isTriage
-                                ? ' Kategori manual dan asesmen ulang tersedia pada detail triage.'
+                                ? ' Manual categories and reassessment are available in the triage details.'
                                 : ''}
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2">
                         {isInpatient && canAccessCorrections ? (
                             <nav
-                                aria-label="Mode worklist rawat inap"
+                                aria-label="Inpatient worklist mode"
                                 className="flex flex-wrap gap-2"
                             >
                                 <Button
@@ -220,7 +220,7 @@ export default function PemeriksaanRawatJalanIndex({
                                     className="min-h-11"
                                 >
                                     <Link href="/pemeriksaan/rawat-inap">
-                                        Pasien dirawat
+                                        Inpatient
                                     </Link>
                                 </Button>
                                 <Button
@@ -233,7 +233,7 @@ export default function PemeriksaanRawatJalanIndex({
                                     className="min-h-11"
                                 >
                                     <Link href="/pemeriksaan/rawat-inap?scope=correction">
-                                        Koreksi ringkasan pulang
+                                        Correct discharge summary
                                     </Link>
                                 </Button>
                             </nav>
@@ -247,7 +247,7 @@ export default function PemeriksaanRawatJalanIndex({
                                 className="min-h-11"
                             >
                                 <Link href="/manajemen-data/bangsal">
-                                    Lihat ketersediaan TT
+                                    View bed availability
                                 </Link>
                             </Button>
                         ) : null}
@@ -264,14 +264,14 @@ export default function PemeriksaanRawatJalanIndex({
                                 htmlFor="worklist-q"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                No. RM / Nama
+                                Medical record no. / Name
                             </label>
                             <Input
                                 id="worklist-q"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
-                                placeholder="No.RM / Nama"
+                                placeholder="Medical record no. / Name"
                             />
                         </div>
                         {isTriage ? (
@@ -280,7 +280,7 @@ export default function PemeriksaanRawatJalanIndex({
                                     htmlFor="worklist-payer"
                                     className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                                 >
-                                    Cara bayar
+                                    Payer
                                 </label>
                                 <select
                                     id="worklist-payer"
@@ -288,9 +288,7 @@ export default function PemeriksaanRawatJalanIndex({
                                     value={payer}
                                     onChange={(e) => setPayer(e.target.value)}
                                 >
-                                    <option value="">
-                                        — Semua cara bayar —
-                                    </option>
+                                    <option value="">— All payers —</option>
                                     {payerOptions.map((option) => (
                                         <option
                                             key={option.value}
@@ -309,10 +307,10 @@ export default function PemeriksaanRawatJalanIndex({
                                         className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                                     >
                                         {isInpatient
-                                            ? 'Bangsal'
+                                            ? 'Ward'
                                             : isIgd
                                               ? 'Unit'
-                                              : 'Klinik'}
+                                              : 'Clinic'}
                                     </label>
                                     <select
                                         id="worklist-clinic"
@@ -324,10 +322,10 @@ export default function PemeriksaanRawatJalanIndex({
                                     >
                                         <option value="">
                                             {isInpatient
-                                                ? 'Semua bangsal'
+                                                ? 'All wards'
                                                 : isIgd
-                                                  ? 'Semua unit IGD'
-                                                  : 'Semua klinik'}
+                                                  ? 'All emergency units'
+                                                  : 'All clinics'}
                                         </option>
                                         {clinics.map((option) => (
                                             <option
@@ -346,7 +344,7 @@ export default function PemeriksaanRawatJalanIndex({
                                                 htmlFor="worklist-payer"
                                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                                             >
-                                                Cara bayar
+                                                Payer
                                             </label>
                                             <select
                                                 id="worklist-payer"
@@ -356,7 +354,7 @@ export default function PemeriksaanRawatJalanIndex({
                                                     setPayer(e.target.value)
                                                 }
                                             >
-                                                <option value="">Semua</option>
+                                                <option value="">All</option>
                                                 {payerOptions.map((option) => (
                                                     <option
                                                         key={option.value}
@@ -372,7 +370,7 @@ export default function PemeriksaanRawatJalanIndex({
                                                 htmlFor="worklist-continue-from"
                                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                                             >
-                                                Asal
+                                                Origin
                                             </label>
                                             <select
                                                 id="worklist-continue-from"
@@ -384,7 +382,7 @@ export default function PemeriksaanRawatJalanIndex({
                                                     )
                                                 }
                                             >
-                                                <option value="">Semua</option>
+                                                <option value="">All</option>
                                                 {continueFromOptions.map(
                                                     (option) => (
                                                         <option
@@ -406,7 +404,7 @@ export default function PemeriksaanRawatJalanIndex({
                                 htmlFor="worklist-date-from"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Dari
+                                From
                             </label>
                             <Input
                                 id="worklist-date-from"
@@ -421,7 +419,7 @@ export default function PemeriksaanRawatJalanIndex({
                                 htmlFor="worklist-date-to"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Sampai
+                                To
                             </label>
                             <Input
                                 id="worklist-date-to"
@@ -436,7 +434,7 @@ export default function PemeriksaanRawatJalanIndex({
                             size="sm"
                             className="h-8 bg-[#1b75bc] hover:bg-[#1665a3]"
                         >
-                            Tampilkan
+                            Apply
                         </Button>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-4 text-xs text-[#64748b]">
@@ -451,7 +449,7 @@ export default function PemeriksaanRawatJalanIndex({
                                         }
                                         className="accent-[#1b75bc]"
                                     />
-                                    Tampilkan pasien iterasi
+                                    Show repeat-visit patients
                                 </label>
                                 <label className="inline-flex items-center gap-1.5">
                                     <input
@@ -462,7 +460,7 @@ export default function PemeriksaanRawatJalanIndex({
                                         }
                                         className="accent-[#1b75bc]"
                                     />
-                                    Tampilkan pasien konsul internal
+                                    Show internal-consultation patients
                                 </label>
                             </>
                         ) : null}
@@ -473,7 +471,7 @@ export default function PemeriksaanRawatJalanIndex({
                                 onChange={(e) => setShowBatal(e.target.checked)}
                                 className="accent-[#1b75bc]"
                             />
-                            Tampilkan pasien batal
+                            Show cancelled patients
                         </label>
                     </div>
                 </form>
@@ -483,8 +481,8 @@ export default function PemeriksaanRawatJalanIndex({
                         <table className="w-full min-w-[56rem] text-left text-sm">
                             <caption className="sr-only">
                                 {correctionMode
-                                    ? 'Daftar episode untuk koreksi ringkasan pulang'
-                                    : 'Daftar pasien pada worklist pemeriksaan'}
+                                    ? 'Episodes available for discharge-summary correction'
+                                    : 'Patients in the examination worklist'}
                             </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
@@ -492,73 +490,73 @@ export default function PemeriksaanRawatJalanIndex({
                                         scope="col"
                                         className="px-2 py-1.5 font-medium"
                                     >
-                                        Antrian
+                                        Queue
                                     </th>
                                     <th
                                         scope="col"
                                         className="px-2 py-1.5 font-medium"
                                     >
-                                        No. RM
+                                        Medical record no.
                                     </th>
                                     <th
                                         scope="col"
                                         className="px-2 py-1.5 font-medium"
                                     >
-                                        Nama
+                                        Name
                                     </th>
                                     <th
                                         scope="col"
                                         className="px-2 py-1.5 font-medium"
                                     >
                                         {isInpatient
-                                            ? 'Bangsal'
+                                            ? 'Ward'
                                             : isIgd || isTriage
                                               ? 'Unit'
-                                              : 'Klinik'}
+                                              : 'Clinic'}
                                     </th>
                                     {isInpatient ? (
                                         <>
                                             <th className="px-2 py-1.5 font-medium">
-                                                Kelas
+                                                Class
                                             </th>
                                             <th className="px-2 py-1.5 font-medium">
                                                 TT
                                             </th>
                                             <th className="px-2 py-1.5 font-medium">
-                                                Asal
+                                                Origin
                                             </th>
                                         </>
                                     ) : (
                                         <>
                                             <th className="px-2 py-1.5 font-medium">
-                                                Dokter
+                                                Physician
                                             </th>
                                             <th className="px-2 py-1.5 font-medium">
                                                 {isIgd || isTriage
                                                     ? 'Shift'
-                                                    : 'Jadwal'}
+                                                    : 'Schedule'}
                                             </th>
                                         </>
                                     )}
                                     {(isIgd || isTriage) && !isInpatient && (
                                         <th className="px-2 py-1.5 font-medium">
-                                            Kasus
+                                            Case
                                         </th>
                                     )}
                                     <th className="px-2 py-1.5 font-medium">
-                                        Penjamin
+                                        Payer
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
                                         Status
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Keluhan
+                                        Complaint
                                     </th>
                                     <th
                                         scope="col"
                                         className="px-2 py-1.5 font-medium"
                                     >
-                                        <span className="sr-only">Aksi</span>
+                                        <span className="sr-only">Action</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -576,8 +574,8 @@ export default function PemeriksaanRawatJalanIndex({
                                             className="px-2 py-6 text-[#64748b]"
                                         >
                                             {correctionMode
-                                                ? 'Tidak ada episode selesai yang memenuhi filter koreksi.'
-                                                : 'Tidak ada kunjungan aktif untuk filter ini.'}
+                                                ? 'No completed episodes match the correction filter.'
+                                                : 'No active encounters match these filters.'}
                                         </td>
                                     </tr>
                                 ) : (
@@ -672,12 +670,12 @@ export default function PemeriksaanRawatJalanIndex({
                                                 {canOpen ? (
                                                     <Link
                                                         href={`${showPathPrefix}/${encounter.public_id}`}
-                                                        aria-label={`${isTriage ? 'Ke IGD' : 'Buka'} untuk ${encounter.patient.full_name}`}
+                                                        aria-label={`${isTriage ? 'Open emergency episode' : 'Open'} for ${encounter.patient.full_name}`}
                                                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                     >
                                                         {isTriage
-                                                            ? 'Ke IGD'
-                                                            : 'Buka'}
+                                                            ? 'Open emergency episode'
+                                                            : 'Open'}
                                                     </Link>
                                                 ) : null}
                                             </td>
@@ -691,8 +689,8 @@ export default function PemeriksaanRawatJalanIndex({
                         pagination={pagination}
                         itemLabel={
                             correctionMode
-                                ? 'episode koreksi'
-                                : 'kunjungan aktif'
+                                ? 'correction episode'
+                                : 'active encounter'
                         }
                         className="mt-3"
                     />
@@ -719,13 +717,13 @@ PemeriksaanRawatJalanIndex.layout = (props: Props) => {
             : variant === 'igd'
               ? 'IGD'
               : variant === 'rawat-inap'
-                ? 'Rawat Inap'
-                : 'Rawat Jalan';
+                ? 'Inpatient Care'
+                : 'Outpatient Care';
 
     return {
         breadcrumbs: [
-            { title: 'Beranda', href: '/' },
-            { title: 'Pemeriksaan', href: indexPath },
+            { title: 'Home', href: '/' },
+            { title: 'Clinical Care', href: indexPath },
             { title: label, href: indexPath },
         ] satisfies BreadcrumbItem[],
     };

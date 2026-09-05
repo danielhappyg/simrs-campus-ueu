@@ -182,10 +182,10 @@ final class FinanceProjection
             'bill_number' => $bill->bill_number,
             'state' => $bill->state,
             'state_label' => match ($bill->state) {
-                FinanceBill::OPEN_NO_VERSION => 'Belum diterbitkan',
-                FinanceBill::ISSUED_CURRENT => 'Versi terkini',
-                FinanceBill::NEW_SOURCE_PENDING => 'Ada sumber biaya baru',
-                default => 'Status tidak dikenal',
+                FinanceBill::OPEN_NO_VERSION => __('Belum diterbitkan'),
+                FinanceBill::ISSUED_CURRENT => __('Versi terkini'),
+                FinanceBill::NEW_SOURCE_PENDING => __('Ada sumber biaya baru'),
+                default => __('Status tidak dikenal'),
             },
             'current_version' => $bill->current_version,
             'current_source_event_count' => $bill->current_source_event_count,
@@ -197,7 +197,7 @@ final class FinanceProjection
                 'care_setting' => $bill->care_setting,
                 'status' => $bill->encounter?->status,
                 'location_label' => $bill->care_setting === 'INPATIENT'
-                    ? (trim(implode(' · ', array_filter([$bill->encounter?->ward_name, $bill->encounter?->bed_code]))) ?: 'Rawat Inap')
+                    ? (trim(implode(' · ', array_filter([$bill->encounter?->ward_name, $bill->encounter?->bed_code]))) ?: __('Rawat Inap'))
                     : ($bill->encounter?->clinic_name ?: $bill->care_setting),
             ],
             'patient' => [
@@ -237,10 +237,10 @@ final class FinanceProjection
     private function coverageLabel(string $profile): string
     {
         return match ($profile) {
-            FinanceBillVersion::COVERAGE_PHARMACY_RADIOLOGY_LABORATORY_ACCOMMODATION_V1 => 'Obat yang diserahkan atau diretur, pemeriksaan radiologi selesai, hasil laboratorium terverifikasi bertarif, dan hari akomodasi rawat inap tertutup',
-            FinanceBillVersion::COVERAGE_PHARMACY_RADIOLOGY_LABORATORY_V1 => 'Obat yang diserahkan atau diretur, pemeriksaan radiologi selesai, dan hasil laboratorium terverifikasi bertarif',
-            FinanceBillVersion::COVERAGE_PHARMACY_RADIOLOGY_V1 => 'Obat yang diserahkan atau diretur dan pemeriksaan radiologi selesai bertarif',
-            default => 'Obat yang telah diserahkan dan retur terkait',
+            FinanceBillVersion::COVERAGE_PHARMACY_RADIOLOGY_LABORATORY_ACCOMMODATION_V1 => __('Obat yang diserahkan atau diretur, pemeriksaan radiologi selesai, hasil laboratorium terverifikasi bertarif, dan hari akomodasi rawat inap tertutup'),
+            FinanceBillVersion::COVERAGE_PHARMACY_RADIOLOGY_LABORATORY_V1 => __('Obat yang diserahkan atau diretur, pemeriksaan radiologi selesai, dan hasil laboratorium terverifikasi bertarif'),
+            FinanceBillVersion::COVERAGE_PHARMACY_RADIOLOGY_V1 => __('Obat yang diserahkan atau diretur dan pemeriksaan radiologi selesai bertarif'),
+            default => __('Obat yang telah diserahkan dan retur terkait'),
         };
     }
 

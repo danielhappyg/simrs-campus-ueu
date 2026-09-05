@@ -39,29 +39,30 @@ const dispositionOptions: Array<{
 }> = [
     {
         code: 'PULANG',
-        label: 'Pulang',
-        description: 'Pasien pulang dengan instruksi dan tindak lanjut.',
+        label: 'Discharge',
+        description:
+            'The patient is discharged with instructions and follow-up.',
     },
     {
         code: 'DIRUJUK',
-        label: 'Dirujuk',
-        description: 'Rencana rujukan dan serah terima lokal.',
+        label: 'Referral',
+        description: 'Referral plan and local handoff.',
     },
     {
         code: 'RAWAT_INAP',
-        label: 'Rawat inap',
+        label: 'Inpatient admission',
         description:
-            'Keputusan dokter; penempatan tempat tidur oleh pendaftaran.',
+            'Physician decision; bed placement is completed by registration.',
     },
     {
         code: 'MENINGGAL_DI_IGD',
-        label: 'Meninggal di IGD',
-        description: 'Fakta episode yang dicatat dokter.',
+        label: 'Death in Emergency Department',
+        description: 'Episode facts recorded by the physician.',
     },
     {
         code: 'DOA',
         label: 'DOA',
-        description: 'Fakta kedatangan yang dicatat dokter.',
+        description: 'Arrival facts recorded by the physician.',
     },
 ];
 
@@ -70,34 +71,34 @@ const detailFields: Record<
     Array<{ key: string; label: string }>
 > = {
     PULANG: [
-        { key: 'condition_at_discharge', label: 'Kondisi saat pulang' },
-        { key: 'instructions', label: 'Instruksi pasien / keluarga' },
-        { key: 'warning_signs', label: 'Tanda bahaya' },
-        { key: 'follow_up_plan', label: 'Rencana tindak lanjut' },
+        { key: 'condition_at_discharge', label: 'Condition at discharge' },
+        { key: 'instructions', label: 'Patient and family instructions' },
+        { key: 'warning_signs', label: 'Warning signs' },
+        { key: 'follow_up_plan', label: 'Follow-up plan' },
     ],
     DIRUJUK: [
-        { key: 'destination', label: 'Tujuan rujukan' },
-        { key: 'clinical_reason', label: 'Alasan klinis' },
-        { key: 'transport_plan', label: 'Rencana transportasi' },
-        { key: 'handoff_note', label: 'Catatan serah terima' },
+        { key: 'destination', label: 'Referral destination' },
+        { key: 'clinical_reason', label: 'Clinical reason' },
+        { key: 'transport_plan', label: 'Transport plan' },
+        { key: 'handoff_note', label: 'Handoff note' },
     ],
     RAWAT_INAP: [
-        { key: 'admission_reason', label: 'Alasan rawat inap' },
+        { key: 'admission_reason', label: 'Admission reason' },
         {
             key: 'receiving_unit_handoff_note',
-            label: 'Catatan untuk unit penerima',
+            label: 'Receiving unit note',
         },
     ],
     MENINGGAL_DI_IGD: [
-        { key: 'event_time', label: 'Waktu kejadian' },
-        { key: 'clinical_note', label: 'Catatan klinis terbatas' },
+        { key: 'event_time', label: 'Event time' },
+        { key: 'clinical_note', label: 'Brief clinical note' },
     ],
     DOA: [
         {
             key: 'arrival_declaration_time',
-            label: 'Waktu kedatangan / pernyataan',
+            label: 'Arrival or declaration time',
         },
-        { key: 'clinical_note', label: 'Catatan klinis terbatas' },
+        { key: 'clinical_note', label: 'Brief clinical note' },
     ],
 };
 
@@ -151,23 +152,23 @@ function FollowUpItem({
                     <p className="font-semibold">{item.label}</p>
                     <p className="text-xs text-muted-foreground">
                         {item.order_type === 'LABORATORY'
-                            ? 'Laboratorium'
-                            : 'Radiologi'}{' '}
+                            ? 'Laboratory'
+                            : 'Radiology'}{' '}
                         · {item.order_public_id}
                     </p>
                 </div>
                 <span className="rounded-full bg-warning/10 px-2 py-1 text-xs font-semibold text-warning">
-                    Belum selesai
+                    Incomplete
                 </span>
             </div>
             {item.current ? (
                 <div className="mt-3 rounded-lg border border-border bg-muted/25 p-3 text-sm">
                     <p className="font-semibold">
-                        {item.current.assignee.name ?? 'Dokter tidak tersedia'}
+                        {item.current.assignee.name ?? 'Physician unavailable'}
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         {item.current.state === 'ACCEPTED'
-                            ? 'Tugas telah diterima'
+                            ? 'Assignment accepted'
                             : 'Menunggu penerimaan'}{' '}
                         · v{item.current.version}
                     </p>
@@ -183,8 +184,8 @@ function FollowUpItem({
             ) : (
                 <div className="mt-3">
                     <EmergencyEmptyState
-                        title="Belum ada penugasan"
-                        body="Dokter pemesan tetap bertanggung jawab sampai penugasan diterima."
+                        title="No assignment yet"
+                        body="The ordering physician remains responsible until the assignment is accepted."
                     />
                 </div>
             )}
@@ -194,7 +195,7 @@ function FollowUpItem({
                     className="mt-4 grid gap-3 md:grid-cols-2"
                 >
                     <label className="text-xs font-semibold">
-                        Dokter penerima
+                        Receiving physician
                         <select
                             value={
                                 proposeForm.data.assignee_physician_public_id
@@ -231,7 +232,7 @@ function FollowUpItem({
                         />
                     </label>
                     <label className="text-xs font-semibold">
-                        Alasan penugasan
+                        Assignment reason
                         <textarea
                             value={proposeForm.data.assignment_reason}
                             onChange={(e) =>
@@ -245,7 +246,7 @@ function FollowUpItem({
                         />
                     </label>
                     <label className="text-xs font-semibold">
-                        Catatan serah terima
+                        Handoff note
                         <textarea
                             value={proposeForm.data.handoff_note}
                             onChange={(e) =>
@@ -264,7 +265,7 @@ function FollowUpItem({
                             disabled={proposeForm.processing}
                             className="min-h-11"
                         >
-                            Ajukan penanggung jawab
+                            Propose responsible physician
                         </Button>
                     </div>
                 </form>
@@ -284,14 +285,14 @@ function FollowUpItem({
                             })
                         }
                     >
-                        Terima penugasan
+                        Accept assignment
                     </Button>
                 </div>
             ) : null}
             {item.history.length > 0 ? (
                 <details className="mt-4 border-t border-border pt-3">
                     <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">
-                        Riwayat penugasan ({item.history.length})
+                        Assignment history ({item.history.length})
                     </summary>
                     <ol className="mt-2 space-y-2">
                         {item.history.map((assignment) => (
@@ -302,12 +303,12 @@ function FollowUpItem({
                                 <p className="font-semibold">
                                     v{assignment.version} ·{' '}
                                     {assignment.assignee.name ??
-                                        'Dokter tidak tersedia'}{' '}
+                                        'Physician unavailable'}{' '}
                                     · {assignment.state}
                                 </p>
                                 <p className="mt-1">{assignment.reason}</p>
                                 <p className="mt-1 text-muted-foreground">
-                                    Diajukan{' '}
+                                    Proposed{' '}
                                     {assignment.proposed_by.name ?? '—'} ·{' '}
                                     {assignment.proposed_at
                                         ? new Date(
@@ -337,7 +338,7 @@ function FollowUpPanel({
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Hasil penunjang belum selesai
+                        Diagnostic results are pending
                     </p>
                     <h3
                         id="follow-up-title"
@@ -347,11 +348,11 @@ function FollowUpPanel({
                             aria-hidden="true"
                             className="size-4 text-primary"
                         />{' '}
-                        Penanggung jawab per order
+                        Responsible clinician for each order
                     </h3>
                 </div>
                 <span className="rounded-full bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
-                    {projection.unresolved_diagnostic_count} belum selesai
+                    {projection.unresolved_diagnostic_count} pending
                 </span>
             </div>
             {projection.unresolved_diagnostics.length ? (
@@ -367,8 +368,8 @@ function FollowUpPanel({
             ) : (
                 <div className="mt-3">
                     <EmergencyEmptyState
-                        title="Tidak ada hasil yang perlu dialihkan"
-                        body="Seluruh pemeriksaan penunjang sudah selesai atau tetap berada pada dokter pemesan."
+                        title="No results need reassignment"
+                        body="All diagnostic tests are complete or remain with the ordering physician."
                     />
                 </div>
             )}
@@ -423,7 +424,7 @@ function DispositionForm({
         ...form.errors,
         ...(attempted && required.length
             ? {
-                  details: `Lengkapi: ${required.map(({ label }) => label).join(', ')}.`,
+                  details: `Complete: ${required.map(({ label }) => label).join(', ')}.`,
               }
             : {}),
     };
@@ -462,7 +463,7 @@ function DispositionForm({
             <DocumentErrorSummary errors={errors} />
             <fieldset>
                 <legend className="text-sm font-semibold">
-                    Pilih disposisi
+                    Select disposition
                 </legend>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                     {dispositionOptions.map((option) => (
@@ -533,7 +534,7 @@ function DispositionForm({
             </div>
             {projection.current ? (
                 <label className="block text-sm font-semibold">
-                    Alasan koreksi
+                    Correction reason
                     <textarea
                         value={form.data.reason}
                         onChange={(e) => form.setData('reason', e.target.value)}
@@ -544,7 +545,7 @@ function DispositionForm({
             ) : null}
             {createsCorrectionIntent ? (
                 <label className="block text-sm font-semibold">
-                    Berlaku sampai
+                    Valid until
                     <input
                         type="datetime-local"
                         value={form.data.expires_at}
@@ -555,9 +556,9 @@ function DispositionForm({
                         required
                     />
                     <span className="mt-1 block text-xs font-normal text-muted-foreground">
-                        Petugas pendaftaran harus mengeksekusi maksud koreksi
-                        sebelum waktu ini dan sebelum episode Rawat Inap
-                        memiliki bukti lanjutan.
+                        Registration staff must execute the correction intent
+                        before this time and before the inpatient episode has
+                        subsequent evidence.
                     </span>
                 </label>
             ) : null}
@@ -568,16 +569,15 @@ function DispositionForm({
                     className="min-h-11"
                 >
                     {createsCorrectionIntent
-                        ? 'Ajukan maksud koreksi'
+                        ? 'Submit correction intent'
                         : projection.current
-                          ? 'Tandatangani koreksi'
-                          : 'Tandatangani disposisi'}
+                          ? 'Sign correction'
+                          : 'Sign disposition'}
                 </Button>
             </div>
             {!requirementsComplete ? (
                 <p role="status" className="text-right text-xs text-warning">
-                    Lengkapi seluruh persyaratan di atas sebelum
-                    penandatanganan.
+                    Complete all requirements above before signing.
                 </p>
             ) : null}
         </form>
@@ -609,7 +609,7 @@ function RevokeCorrectionIntent({
             }}
         >
             <label className="text-sm font-semibold">
-                Alasan pencabutan
+                Revocation reason
                 <textarea
                     className={cn(emergencyFieldClass, 'min-h-20')}
                     value={form.data.reason}
@@ -626,7 +626,7 @@ function RevokeCorrectionIntent({
                     className="min-h-11"
                     disabled={form.processing || !form.data.reason.trim()}
                 >
-                    Cabut maksud koreksi
+                    Revoke correction intent
                 </Button>
                 <Button
                     type="button"
@@ -634,7 +634,7 @@ function RevokeCorrectionIntent({
                     className="min-h-11"
                     onClick={() => setOpen(false)}
                 >
-                    Kembali
+                    Back
                 </Button>
             </div>
         </form>
@@ -645,7 +645,7 @@ function RevokeCorrectionIntent({
             className="mt-3 min-h-11 text-destructive"
             onClick={() => setOpen(true)}
         >
-            Cabut maksud koreksi
+            Revoke correction intent
         </Button>
     );
 }
@@ -677,21 +677,21 @@ function HandoffPanel({
         <section className="rounded-xl border border-border bg-card p-4">
             <h3 className="flex items-center gap-2 font-semibold">
                 <BedSingle aria-hidden="true" className="size-4 text-primary" />{' '}
-                Serah terima ke Rawat Inap
+                Handoff to Inpatient Care
             </h3>
             {projection.handoff ? (
                 <div className="mt-3 rounded-lg border border-success/30 bg-success/5 p-3 text-sm">
                     <p className="font-semibold text-success">
                         {projection.handoff.state === 'COMPENSATED'
-                            ? 'Serah terima telah dikompensasi'
-                            : 'Serah terima selesai'}
+                            ? 'Handoff has been compensated'
+                            : 'Handoff complete'}
                     </p>
                     <p className="mt-1">
                         {projection.handoff.ward_display_name ?? 'Unit'} ·{' '}
-                        {projection.handoff.bed_code ?? 'Tempat tidur'}
+                        {projection.handoff.bed_code ?? 'Bed'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        Petugas: {projection.handoff.registrar_name ?? '—'} ·{' '}
+                        Registrar: {projection.handoff.registrar_name ?? '—'} ·{' '}
                         {projection.handoff.completed_at
                             ? new Date(
                                   projection.handoff.completed_at,
@@ -703,7 +703,7 @@ function HandoffPanel({
                             href={projection.handoff.target_encounter_url}
                             className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary hover:underline"
                         >
-                            Buka episode Rawat Inap
+                            Open Inpatient Care episode
                         </a>
                     ) : null}
                 </div>
@@ -721,7 +721,7 @@ function HandoffPanel({
                     }}
                 >
                     <label className="flex-1 text-sm font-semibold">
-                        Tempat tidur tersedia
+                        Available bed
                         <select
                             value={handoffForm.data.bed_public_id}
                             onChange={(e) =>
@@ -752,17 +752,17 @@ function HandoffPanel({
                         }
                         className="min-h-11"
                     >
-                        Tempatkan pasien
+                        Place patient
                     </Button>
                 </form>
             ) : null}
             {pendingIntent ? (
                 <div className="mt-4 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm">
                     <p className="font-semibold text-warning">
-                        Koreksi dokter menunggu eksekusi
+                        Physician correction awaiting execution
                     </p>
                     <p className="mt-1">
-                        Pengganti: {pendingIntent.replacement_label}
+                        Replacement: {pendingIntent.replacement_label}
                     </p>
                     <p className="mt-1 text-xs">{pendingIntent.reason}</p>
                     {projection.permissions.can_compensate &&
@@ -779,7 +779,7 @@ function HandoffPanel({
                                 )
                             }
                         >
-                            Batalkan episode RI dan aktifkan koreksi
+                            Cancel inpatient episode and activate correction
                         </Button>
                     ) : null}
                     <RevokeCorrectionIntent intent={pendingIntent} />
@@ -800,22 +800,22 @@ function DispositionVersionCard({
                 <div>
                     <p className="font-semibold">{version.label}</p>
                     <p className="text-xs text-muted-foreground">
-                        Versi {version.version}
+                        Version {version.version}
                         {version.supersedes_public_id
-                            ? ' · koreksi'
-                            : ' · awal'}
+                            ? ' · correction'
+                            : ' · original'}
                     </p>
                 </div>
                 <div className="text-right">
                     <p className="text-xs font-semibold">
-                        {version.physician.name ?? 'Dokter tidak tersedia'}
+                        {version.physician.name ?? 'Physician unavailable'}
                     </p>
                     <EvidenceTime value={version.signed_at} />
                 </div>
             </div>
             {version.correction_reason ? (
                 <p className="mt-3 rounded-md bg-warning/5 p-2 text-sm">
-                    <span className="font-semibold">Alasan koreksi:</span>{' '}
+                    <span className="font-semibold">Correction reason:</span>{' '}
                     {version.correction_reason}
                 </p>
             ) : null}
@@ -833,7 +833,7 @@ function DispositionVersionCard({
             </dl>
             {version.content_digest ? (
                 <p className="mt-3 font-mono text-[0.65rem] text-muted-foreground">
-                    Jejak {version.content_digest}
+                    Digest {version.content_digest}
                 </p>
             ) : null}
         </li>
@@ -862,7 +862,7 @@ export function EmergencyDispositionPanel({
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <p className="text-[0.68rem] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                        Keputusan dokter
+                        Physician decision
                     </p>
                     <h2
                         id="disposition-title"
@@ -872,7 +872,7 @@ export function EmergencyDispositionPanel({
                             aria-hidden="true"
                             className="size-5 text-primary"
                         />{' '}
-                        Disposisi dan serah terima
+                        Disposition and handoff
                     </h2>
                 </div>
                 {disposition.current ? (
@@ -885,26 +885,24 @@ export function EmergencyDispositionPanel({
             </header>
             <div className="grid gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
                 <div className="rounded-xl border border-border bg-card p-4">
-                    <h3 className="font-semibold">
-                        Persyaratan penandatanganan
-                    </h3>
+                    <h3 className="font-semibold">Signing requirements</h3>
                     <ul className="mt-3 space-y-2">
                         <PendingRequirement
                             complete={
                                 disposition.requirements.initial_triage_final
                             }
                         >
-                            Asesmen triage awal sudah Final
+                            Initial triage assessment is final
                         </PendingRequirement>
                         <PendingRequirement
                             complete={disposition.requirements.nursing_final}
                         >
-                            Dokumentasi keperawatan sudah Final
+                            Nursing documentation is final
                         </PendingRequirement>
                         <PendingRequirement
                             complete={disposition.requirements.medical_final}
                         >
-                            Dokumentasi medis sudah Final
+                            Medical documentation is final
                         </PendingRequirement>
                         <PendingRequirement
                             complete={
@@ -912,8 +910,8 @@ export function EmergencyDispositionPanel({
                                     .diagnostic_follow_up_resolved
                             }
                         >
-                            Tindak lanjut hasil penunjang sudah diterima atau
-                            tidak diperlukan
+                            Diagnostic-result follow-up has been accepted or is
+                            not required
                         </PendingRequirement>
                     </ul>
                 </div>
@@ -934,8 +932,8 @@ export function EmergencyDispositionPanel({
             <HandoffPanel projection={disposition} />
             <section className="rounded-xl border border-border bg-muted/20 p-4">
                 <h3 className="flex items-center gap-2 font-semibold">
-                    <History aria-hidden="true" className="size-4" /> Riwayat
-                    disposisi
+                    <History aria-hidden="true" className="size-4" />{' '}
+                    Disposition history
                 </h3>
                 {disposition.history.length ? (
                     <ol className="mt-3 space-y-3">
@@ -949,15 +947,15 @@ export function EmergencyDispositionPanel({
                 ) : (
                     <div className="mt-3">
                         <EmergencyEmptyState
-                            title="Belum ada disposisi"
-                            body="Keputusan akhir hanya dapat ditandatangani dokter setelah dokumen wajib Final."
+                            title="No disposition yet"
+                            body="The physician can sign the final decision only after required documents are final."
                         />
                     </div>
                 )}
                 {disposition.correction_intents.length ? (
                     <details className="mt-4 border-t border-border pt-3">
                         <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">
-                            Riwayat maksud koreksi (
+                            Correction intent history (
                             {disposition.correction_intents.length})
                         </summary>
                         <ol className="mt-2 space-y-2">
@@ -972,8 +970,8 @@ export function EmergencyDispositionPanel({
                                     </p>
                                     <p className="mt-1">{intent.reason}</p>
                                     <p className="mt-1 text-muted-foreground">
-                                        {intent.physician_name ?? 'Dokter'} ·
-                                        berlaku sampai{' '}
+                                        {intent.physician_name ?? 'Physician'} ·
+                                        valid until{' '}
                                         {new Date(
                                             intent.expires_at,
                                         ).toLocaleString('id-ID')}

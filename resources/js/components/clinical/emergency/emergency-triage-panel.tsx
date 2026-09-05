@@ -27,29 +27,29 @@ import type {
 } from './types';
 
 const abcdeFields = [
-    ['airway', 'A · Jalan napas'],
-    ['breathing', 'B · Pernapasan'],
-    ['circulation', 'C · Sirkulasi'],
-    ['disability', 'D · Kesadaran / neurologis'],
-    ['exposure', 'E · Paparan / pemeriksaan menyeluruh'],
+    ['airway', 'A · Airway'],
+    ['breathing', 'B · Breathing'],
+    ['circulation', 'C · Circulation'],
+    ['disability', 'D · Disability / neurological status'],
+    ['exposure', 'E · Exposure / complete examination'],
 ] as const;
 
 const vitalFields = [
-    ['respiratory_rate', 'Frekuensi napas', 'kali/menit', 0, 100, 1],
-    ['pulse', 'Nadi', 'kali/menit', 0, 300, 1],
-    ['systolic_pressure', 'Tekanan sistolik', 'mmHg', 0, 300, 1],
-    ['diastolic_pressure', 'Tekanan diastolik', 'mmHg', 0, 300, 1],
-    ['oxygen_saturation', 'Saturasi oksigen', '%', 0, 100, 1],
-    ['temperature', 'Suhu', '°C', 20, 45, 0.1],
-    ['pain_score', 'Skala nyeri', '0–10', 0, 10, 1],
-    ['weight', 'Berat badan', 'kg', 0.1, 500, 0.1],
+    ['respiratory_rate', 'Respiratory rate', 'breaths/min', 0, 100, 1],
+    ['pulse', 'Pulse', 'beats/min', 0, 300, 1],
+    ['systolic_pressure', 'Systolic pressure', 'mmHg', 0, 300, 1],
+    ['diastolic_pressure', 'Diastolic pressure', 'mmHg', 0, 300, 1],
+    ['oxygen_saturation', 'Oxygen saturation', '%', 0, 100, 1],
+    ['temperature', 'Temperature', '°C', 20, 45, 0.1],
+    ['pain_score', 'Pain score', '0–10', 0, 10, 1],
+    ['weight', 'Weight', 'kg', 0.1, 500, 0.1],
 ] as const;
 
 const consciousnessOptions: Array<[EmergencyConsciousness, string]> = [
-    ['ALERT', 'Alert · sadar penuh'],
-    ['VOICE', 'Voice · respons terhadap suara'],
-    ['PAIN', 'Pain · respons terhadap nyeri'],
-    ['UNRESPONSIVE', 'Unresponsive · tidak respons'],
+    ['ALERT', 'Alert · fully conscious'],
+    ['VOICE', 'Voice · responds to voice'],
+    ['PAIN', 'Pain · responds to pain'],
+    ['UNRESPONSIVE', 'Unresponsive · no response'],
 ];
 
 function initialAbcde(): Record<
@@ -160,32 +160,32 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
         }
 
         if (!form.data.category_code) {
-            errors.category_code = 'Pilih kategori triage manual.';
+            errors.category_code = 'Select a manual triage category.';
         }
 
         if (!form.data.presenting_concern.trim()) {
-            errors.presenting_concern = 'Isi keluhan atau masalah saat datang.';
+            errors.presenting_concern = 'Enter the presenting concern.';
         }
 
         if (!form.data.clinical_basis.trim()) {
             errors.clinical_basis =
-                'Jelaskan dasar klinis kategori yang dipilih.';
+                'Explain the clinical basis for the selected category.';
         }
 
         if (!form.data.arrival_condition.trim()) {
-            errors.arrival_condition = 'Isi kondisi saat datang.';
+            errors.arrival_condition = 'Enter the condition on arrival.';
         }
 
         if (isReassessment && !form.data.reassessment_reason.trim()) {
-            errors.reassessment_reason = 'Isi alasan asesmen ulang.';
+            errors.reassessment_reason = 'Enter the reassessment reason.';
         }
 
         if (missingExpected.length > 0) {
-            errors.vitals = `Isi atau tandai tidak dapat diperoleh: ${missingExpected.join(', ')}.`;
+            errors.vitals = `Enter or mark as unobtainable: ${missingExpected.join(', ')}.`;
         }
 
         if (incompleteAbcde.length > 0) {
-            errors.abcde = `Tambahkan catatan untuk: ${incompleteAbcde.join(', ')}.`;
+            errors.abcde = `Add notes for: ${incompleteAbcde.join(', ')}.`;
         }
 
         if (
@@ -193,7 +193,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
             !form.data.unobtainable_reason.trim()
         ) {
             errors.unobtainable_reason =
-                'Jelaskan mengapa pengamatan tidak dapat diperoleh.';
+                'Explain why the observations could not be obtained.';
         }
 
         return errors;
@@ -280,8 +280,8 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
             className="space-y-5"
             aria-label={
                 isReassessment
-                    ? 'Form asesmen ulang triage'
-                    : 'Form asesmen awal triage'
+                    ? 'Triage reassessment form'
+                    : 'Initial triage assessment form'
             }
         >
             <div ref={firstErrorRef} tabIndex={-1}>
@@ -289,11 +289,11 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
             </div>
             <fieldset>
                 <legend className="text-sm font-semibold text-foreground">
-                    Kategori prioritas manual
+                    Manual priority category
                 </legend>
                 <p className="mt-1 text-xs text-muted-foreground">
-                    Pilih berdasarkan penilaian klinis. Sistem tidak menghitung
-                    atau menyarankan kategori.
+                    Select based on clinical assessment. The system does not
+                    calculate or recommend a category.
                 </p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                     {categories.map((category) => {
@@ -348,7 +348,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
 
             <div className="grid gap-4 lg:grid-cols-2">
                 <label className="text-sm font-semibold">
-                    Waktu pengamatan
+                    Observation time
                     <input
                         type="datetime-local"
                         value={form.data.observed_at}
@@ -361,7 +361,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                 </label>
                 {isReassessment ? (
                     <label className="text-sm font-semibold">
-                        Alasan asesmen ulang
+                        Reassessment reason
                         <textarea
                             value={form.data.reassessment_reason}
                             onChange={(e) =>
@@ -376,9 +376,9 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     </label>
                 ) : (
                     <label className="text-sm font-semibold">
-                        Alasan entri terlambat{' '}
+                        Late-entry reason{' '}
                         <span className="font-normal text-muted-foreground">
-                            (bila perlu)
+                            (if needed)
                         </span>
                         <textarea
                             value={form.data.late_entry_reason}
@@ -393,7 +393,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     </label>
                 )}
                 <label className="text-sm font-semibold">
-                    Keluhan / masalah saat datang
+                    Presenting concern
                     <textarea
                         value={form.data.presenting_concern}
                         onChange={(e) =>
@@ -404,7 +404,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     />
                 </label>
                 <label className="text-sm font-semibold">
-                    Dasar klinis kategori
+                    Clinical basis for category
                     <textarea
                         value={form.data.clinical_basis}
                         onChange={(e) =>
@@ -415,7 +415,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     />
                 </label>
                 <label className="text-sm font-semibold lg:col-span-2">
-                    Kondisi saat datang
+                    Condition on arrival
                     <textarea
                         value={form.data.arrival_condition}
                         onChange={(e) =>
@@ -429,7 +429,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
 
             <fieldset>
                 <legend className="text-sm font-semibold">
-                    Penilaian ABCDE manual
+                    Manual ABCDE assessment
                 </legend>
                 <div className="mt-3 grid gap-3 xl:grid-cols-5">
                     {abcdeFields.map(([key, label]) => (
@@ -461,7 +461,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                                 </select>
                             </label>
                             <label className="mt-2 block text-xs font-semibold">
-                                Catatan
+                                Note
                                 <textarea
                                     value={form.data.abcde[key].note ?? ''}
                                     onChange={(e) =>
@@ -484,11 +484,11 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
 
             <fieldset>
                 <legend className="text-sm font-semibold">
-                    Kesadaran dan tanda vital
+                    Consciousness and vital signs
                 </legend>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <label className="text-xs font-semibold sm:col-span-2">
-                        Kesadaran
+                        Consciousness
                         <select
                             value={form.data.consciousness}
                             onChange={(e) =>
@@ -553,7 +553,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                                         }
                                         className="size-4"
                                     />{' '}
-                                    Tidak dapat diperoleh
+                                    Unobtainable
                                 </label>
                             </div>
                         );
@@ -561,7 +561,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                 </div>
                 {form.data.unobtainable_fields.length > 0 ? (
                     <label className="mt-3 block text-sm font-semibold">
-                        Alasan tidak dapat diperoleh
+                        Reason observations could not be obtained
                         <textarea
                             value={form.data.unobtainable_reason}
                             onChange={(e) =>
@@ -592,7 +592,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     </label>
                     {form.data.trauma ? (
                         <label className="mt-2 block text-xs font-semibold">
-                            Catatan trauma
+                            Trauma note
                             <textarea
                                 value={form.data.trauma_note}
                                 onChange={(e) =>
@@ -620,7 +620,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     </label>
                     {form.data.isolation_precaution ? (
                         <label className="mt-2 block text-xs font-semibold">
-                            Catatan isolasi
+                            Isolation note
                             <textarea
                                 value={form.data.isolation_note}
                                 onChange={(e) =>
@@ -635,7 +635,7 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                     ) : null}
                 </div>
                 <label className="text-sm font-semibold md:col-span-2">
-                    Catatan serah terima
+                    Handoff note
                     <textarea
                         value={form.data.handoff_note}
                         onChange={(e) =>
@@ -658,8 +658,8 @@ function TriageForm({ projection }: { projection: EmergencyTriageProjection }) {
                         <ClipboardPlus aria-hidden="true" />
                     )}
                     {isReassessment
-                        ? 'Simpan asesmen ulang'
-                        : 'Finalkan asesmen awal'}
+                        ? 'Save reassessment'
+                        : 'Finalize initial assessment'}
                 </Button>
             </div>
         </form>
@@ -674,7 +674,7 @@ export function EmergencyTriageTimeline({
     if (assessments.length === 0) {
         return (
             <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                Asesmen triage belum dicatat.
+                No triage assessment has been recorded.
             </div>
         );
     }
@@ -697,8 +697,8 @@ export function EmergencyTriageTimeline({
                         <div>
                             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                                 {index === 0
-                                    ? 'Asesmen awal'
-                                    : `Asesmen ulang ${index}`}{' '}
+                                    ? 'Initial assessment'
+                                    : `Reassessment ${index}`}{' '}
                                 · v{assessment.version}
                             </p>
                             <div className="mt-1">
@@ -711,7 +711,7 @@ export function EmergencyTriageTimeline({
                         <div className="text-right">
                             <p className="text-sm font-semibold">
                                 {assessment.assessor.name ??
-                                    'Perawat tidak tersedia'}
+                                    'Nurse unavailable'}
                             </p>
                             <EvidenceTime value={assessment.observed_at} />
                         </div>
@@ -719,7 +719,7 @@ export function EmergencyTriageTimeline({
                     {assessment.reassessment_reason ? (
                         <p className="mt-3 rounded-md bg-muted p-2 text-sm">
                             <span className="font-semibold">
-                                Alasan asesmen ulang:
+                                Reassessment reason:
                             </span>{' '}
                             {assessment.reassessment_reason}
                         </p>
@@ -727,7 +727,7 @@ export function EmergencyTriageTimeline({
                     <dl className="mt-3 grid gap-3 text-sm md:grid-cols-3">
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Keluhan saat datang
+                                Presenting concern
                             </dt>
                             <dd className="mt-0.5 whitespace-pre-wrap">
                                 {assessment.presenting_concern}
@@ -735,7 +735,7 @@ export function EmergencyTriageTimeline({
                         </div>
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Dasar klinis
+                                Clinical basis
                             </dt>
                             <dd className="mt-0.5 whitespace-pre-wrap">
                                 {assessment.clinical_basis}
@@ -743,7 +743,7 @@ export function EmergencyTriageTimeline({
                         </div>
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Kondisi saat datang
+                                Condition on arrival
                             </dt>
                             <dd className="mt-0.5 whitespace-pre-wrap">
                                 {assessment.arrival_condition}
@@ -752,7 +752,7 @@ export function EmergencyTriageTimeline({
                     </dl>
                     <details className="mt-3 rounded-md border border-border bg-muted/20 p-3">
                         <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">
-                            Lihat ABCDE, tanda vital, dan bukti pencatatan
+                            View ABCDE, vital signs, and recorded evidence
                         </summary>
                         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                             {abcdeFields.map(([key, label]) => (
@@ -767,7 +767,7 @@ export function EmergencyTriageTimeline({
                                     </p>
                                     <p className="mt-1 text-xs whitespace-pre-wrap text-muted-foreground">
                                         {assessment.abcde[key].note ||
-                                            'Tanpa catatan.'}
+                                            'No note.'}
                                     </p>
                                 </div>
                             ))}
@@ -782,7 +782,7 @@ export function EmergencyTriageTimeline({
                                         {assessment.unobtainable_fields.includes(
                                             key,
                                         )
-                                            ? 'Tidak dapat diperoleh'
+                                            ? 'Unobtainable'
                                             : assessment.vitals[key] === null
                                               ? '—'
                                               : `${assessment.vitals[key]} ${unit}`}
@@ -795,9 +795,9 @@ export function EmergencyTriageTimeline({
                             {assessment.recorded_at
                                 ? new Date(
                                       assessment.recorded_at,
-                                  ).toLocaleString('id-ID')
+                                  ).toLocaleString('en-GB')
                                 : '—'}{' '}
-                            · Jejak{' '}
+                            · Digest{' '}
                             {assessment.content_digest
                                 ? `${assessment.content_digest.slice(0, 12)}…`
                                 : 'tersimpan'}
@@ -834,11 +834,11 @@ export function EmergencyTriagePanel({
                             aria-hidden="true"
                             className="size-5 text-primary"
                         />{' '}
-                        Triage dan asesmen ulang
+                        Triage and reassessment
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Kategori selalu dipilih oleh perawat berdasarkan ABCDE
-                        dan pengamatan langsung.
+                        The nurse selects the category based on ABCDE assessment
+                        and direct observation.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -856,10 +856,10 @@ export function EmergencyTriagePanel({
                             onClick={() => setShowForm((value) => !value)}
                         >
                             {showForm
-                                ? 'Tutup formulir'
+                                ? 'Close form'
                                 : projection.current
-                                  ? 'Asesmen ulang'
-                                  : 'Mulai triage'}
+                                  ? 'Reassessment'
+                                  : 'Start triage'}
                         </Button>
                     ) : null}
                 </div>
@@ -873,8 +873,8 @@ export function EmergencyTriagePanel({
                         aria-hidden="true"
                         className="mt-0.5 size-4 shrink-0"
                     />{' '}
-                    Katalog triage aktif tidak tersedia. Asesmen baru tidak
-                    dapat disimpan.
+                    The active triage catalogue is unavailable. New assessments
+                    cannot be saved.
                 </div>
             ) : null}
             {showForm && projection.vocabulary ? (

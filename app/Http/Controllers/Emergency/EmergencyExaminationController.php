@@ -81,9 +81,9 @@ class EmergencyExaminationController extends Controller
             'showPathPrefix' => '/pemeriksaan/igd',
             'encounters' => $encounters,
             'payerOptions' => [
-                ['value' => Encounter::PAYER_UMUM, 'label' => 'Umum'],
+                ['value' => Encounter::PAYER_UMUM, 'label' => 'Self-pay'],
                 ['value' => Encounter::PAYER_BPJS, 'label' => 'BPJS'],
-                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Lainnya'],
+                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Other'],
             ],
             'filters' => [
                 'q' => $q,
@@ -132,6 +132,6 @@ class EmergencyExaminationController extends Controller
 
     public function storeEntry(Request $request, Encounter $encounter): never
     {
-        abort(410, 'Alur tulis catatan IGD lama telah ditutup. Gunakan dokumentasi IGD terstruktur.');
+        abort(410, 'Legacy emergency note entry is closed. Use structured emergency documentation.');
     }
 }

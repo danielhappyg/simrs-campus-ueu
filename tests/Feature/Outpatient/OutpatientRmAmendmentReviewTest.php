@@ -118,7 +118,7 @@ class OutpatientRmAmendmentReviewTest extends TestCase
         $this->actingAs($rmik)
             ->post(route('rm.rawat-jalan.amendments.reviews.store', $request), $save)
             ->assertRedirect()
-            ->assertSessionHas('success', 'Review addendum sudah tercatat.');
+            ->assertSessionHas('success', 'The addendum review is already recorded.');
         $this->actingAs($rmik)
             ->post(route('rm.rawat-jalan.amendments.reviews.store', $request), [
                 ...$save,
@@ -137,7 +137,7 @@ class OutpatientRmAmendmentReviewTest extends TestCase
         $this->actingAs($rmik)
             ->post(route('rm.rawat-jalan.amendments.signoff', $request), $signoff)
             ->assertRedirect()
-            ->assertSessionHas('success', 'Sign-off review addendum sudah tercatat.');
+            ->assertSessionHas('success', 'The addendum review sign-off is already recorded.');
 
         $signed = OutpatientRmAmendmentReview::query()->orderByDesc('version')->firstOrFail();
         $this->assertSame(OutpatientRmAmendmentReview::STATE_SIGNED_OFF, $signed->review_state);

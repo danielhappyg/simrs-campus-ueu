@@ -7,7 +7,7 @@ export type { RadiologyWorklistProps } from '@/components/clinical/radiology/typ
 export default function PemeriksaanRadiologi(props: RadiologyWorklistProps) {
     return (
         <>
-            <Head title="Worklist Radiologi" />
+            <Head title="Radiology Worklist" />
             <RadiologyWorklist {...props} />
         </>
     );

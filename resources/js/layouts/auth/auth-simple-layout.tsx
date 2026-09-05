@@ -28,7 +28,7 @@ export default function AuthSimpleLayout({
                                 {name}
                             </p>
                             <p className="text-sm text-sky-100">
-                                Sistem Informasi Manajemen Rumah Sakit
+                                Hospital Information Management System
                             </p>
                         </div>
                     </Link>

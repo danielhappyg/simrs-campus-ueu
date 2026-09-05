@@ -72,7 +72,7 @@ export function AppHeader() {
                                 variant="ghost"
                                 size="icon"
                                 className="text-white hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/80 2xl:hidden"
-                                aria-label="Buka menu navigasi"
+                                aria-label="Open navigation menu"
                             >
                                 <Menu className="size-5" />
                             </Button>
@@ -83,18 +83,18 @@ export function AppHeader() {
                         >
                             <SheetHeader className="border-b border-[#1b4a73] px-4 py-4 text-left">
                                 <SheetTitle className="text-white">
-                                    Navigasi utama
+                                    Main navigation
                                 </SheetTitle>
                                 <SheetDescription className="text-sky-100/80">
-                                    Pilih modul untuk membuka menu terkait.
+                                    Select a module to open its related menu.
                                 </SheetDescription>
                             </SheetHeader>
                             <nav
-                                aria-label="Navigasi modul"
+                                aria-label="Module navigation"
                                 className="flex flex-col gap-1 p-3"
                             >
                                 <NavLink href="/" onNavigate={closeMobile}>
-                                    Beranda
+                                    Home
                                 </NavLink>
                                 {SIMRS_MODULE_CATEGORIES.map((category) => (
                                     <NavLink
@@ -120,10 +120,10 @@ export function AppHeader() {
                 </div>
 
                 <nav
-                    aria-label="Navigasi modul"
+                    aria-label="Module navigation"
                     className="hidden min-w-0 flex-1 items-center gap-0.5 2xl:flex"
                 >
-                    <NavLink href="/">Beranda</NavLink>
+                    <NavLink href="/">Home</NavLink>
                     {SIMRS_MODULE_CATEGORIES.map((category) => (
                         <NavLink
                             key={category.slug}

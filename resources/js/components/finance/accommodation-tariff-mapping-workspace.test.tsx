@@ -166,17 +166,15 @@ describe('accommodation tariff mapping frontend contract', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Pemetaan Akomodasi Rawat Inap',
+                name: 'Inpatient Accommodation Mapping',
             }),
         ).toBeVisible();
-        expect(screen.getByText('Hanya hari okupansi tertutup')).toBeVisible();
-        expect(
-            screen.getAllByText('Bukti versi tempat tidur'),
-        ).not.toHaveLength(0);
+        expect(screen.getByText('Closed occupancy days only')).toBeVisible();
+        expect(screen.getAllByText('Bed-version evidence')).not.toHaveLength(0);
         expect(screen.getByText('Tarif belum dipetakan')).toBeVisible();
         expect(
             screen.getByRole('table', {
-                name: 'Pemetaan tarif akomodasi yang berlaku',
+                name: 'Effective accommodation tariff mappings',
             }),
         ).toBeVisible();
 
@@ -194,32 +192,28 @@ describe('accommodation tariff mapping frontend contract', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Buat pemetaan' }));
-        expect(screen.getByLabelText('Tarif akomodasi')).toHaveValue('');
+        await user.click(
+            screen.getByRole('button', { name: 'Create mapping' }),
+        );
+        expect(screen.getByLabelText('Accommodation tariff')).toHaveValue('');
         expect(
-            screen.getByText(
-                /Tidak ada tarif atau nilai yang diusulkan sistem/,
-            ),
+            screen.getByText(/The system does not suggest a tariff or value/),
         ).toBeVisible();
         await user.selectOptions(
-            screen.getByLabelText('Tempat tidur dan versi master'),
+            screen.getByLabelText('Bed and master version'),
             source.public_id,
         );
         await user.selectOptions(
-            screen.getByLabelText('Tarif akomodasi'),
+            screen.getByLabelText('Accommodation tariff'),
             tariff.public_id,
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-10-01');
+        await user.type(screen.getByLabelText('Effective from'), '2026-10-01');
         await user.type(
-            screen.getByLabelText('Alasan'),
+            screen.getByLabelText('Reason'),
             'Pemetaan akomodasi dijadwalkan.',
         );
-        await user.click(
-            screen.getByText(/Saya mengonfirmasi versi tempat tidur tepat/),
-        );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.click(screen.getByText(/I confirm the exact bed version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
 
         expect(inertia.post).toHaveBeenCalledWith(
             props.commands.create_url,
@@ -238,7 +232,7 @@ describe('accommodation tariff mapping frontend contract', () => {
             expect.objectContaining({ preserveScroll: true }),
         );
         expect(screen.getByRole('status')).toHaveTextContent(
-            'Pemetaan akomodasi dibuat.',
+            'Accommodation mapping created.',
         );
     });
 
@@ -254,18 +248,18 @@ describe('accommodation tariff mapping frontend contract', () => {
             />,
         );
 
-        expect(screen.getByText('Akses lihat-saja')).toBeVisible();
+        expect(screen.getByText('Read-only access')).toBeVisible();
         expect(screen.getByRole('alert')).toHaveTextContent(
             'Proyeksi belum dapat dibaca.',
         );
         expect(
             screen.getByText(
-                'Belum ada pemetaan tarif akomodasi yang dikonfigurasi secara sengaja.',
+                'No accommodation tariff mappings have been configured.',
             ),
         ).toBeVisible();
         expect(
             screen.queryByRole('button', {
-                name: /Buat pemetaan|Tambah versi|Nonaktifkan/,
+                name: /Create mapping|Add version|Deactivate/,
             }),
         ).not.toBeInTheDocument();
         expect(screen.queryByText(/Rp\s?\d/)).not.toBeInTheDocument();

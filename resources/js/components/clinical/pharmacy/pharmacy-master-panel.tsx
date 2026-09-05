@@ -55,12 +55,12 @@ function MedicineForm({
             className="space-y-4 rounded-xl border border-primary/30 bg-primary/5 p-4"
         >
             <h3 className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold">
-                {medicine ? 'Buat versi obat baru' : 'Tambah obat'}
+                {medicine ? 'Create new medication version' : 'Add medication'}
             </h3>
             <PharmacyErrorSummary errors={form.errors} />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                    <Label htmlFor="medicine-code">Kode obat</Label>
+                    <Label htmlFor="medicine-code">Medication code</Label>
                     <input
                         id="medicine-code"
                         className={pharmacyFieldClass}
@@ -73,7 +73,7 @@ function MedicineForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="medicine-generic">Nama generik</Label>
+                    <Label htmlFor="medicine-generic">Generic name</Label>
                     <input
                         id="medicine-generic"
                         className={pharmacyFieldClass}
@@ -85,7 +85,7 @@ function MedicineForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="medicine-brand">Nama dagang</Label>
+                    <Label htmlFor="medicine-brand">Brand name</Label>
                     <input
                         id="medicine-brand"
                         className={pharmacyFieldClass}
@@ -96,7 +96,7 @@ function MedicineForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="medicine-strength">Kekuatan</Label>
+                    <Label htmlFor="medicine-strength">Strength</Label>
                     <input
                         id="medicine-strength"
                         className={pharmacyFieldClass}
@@ -108,7 +108,7 @@ function MedicineForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="medicine-form">Bentuk sediaan</Label>
+                    <Label htmlFor="medicine-form">Dosage form</Label>
                     <input
                         id="medicine-form"
                         className={pharmacyFieldClass}
@@ -120,7 +120,7 @@ function MedicineForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="medicine-unit">Unit penyerahan</Label>
+                    <Label htmlFor="medicine-unit">Issue unit</Label>
                     <input
                         id="medicine-unit"
                         className={pharmacyFieldClass}
@@ -132,7 +132,7 @@ function MedicineForm({
                     />
                 </div>
                 <div className="sm:col-span-2 lg:col-span-3">
-                    <Label htmlFor="medicine-routes">Rute yang tersedia</Label>
+                    <Label htmlFor="medicine-routes">Available routes</Label>
                     <input
                         id="medicine-routes"
                         className={pharmacyFieldClass}
@@ -144,11 +144,11 @@ function MedicineForm({
                         placeholder="ORAL, TOPIKAL"
                     />
                     <p className="mt-1 text-xs text-muted-foreground">
-                        Pisahkan setiap rute dengan koma.
+                        Separate each route with a comma.
                     </p>
                 </div>
                 <div>
-                    <Label htmlFor="medicine-cost">Nilai perolehan</Label>
+                    <Label htmlFor="medicine-cost">Acquisition value</Label>
                     <input
                         id="medicine-cost"
                         type="number"
@@ -166,7 +166,7 @@ function MedicineForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="medicine-sale">Nilai sumber biaya</Label>
+                    <Label htmlFor="medicine-sale">Charge-source value</Label>
                     <input
                         id="medicine-sale"
                         type="number"
@@ -191,14 +191,14 @@ function MedicineForm({
                     className="min-h-11"
                     onClick={onClose}
                 >
-                    Batal
+                    Cancel
                 </Button>
                 <Button
                     type="submit"
                     className="min-h-11"
                     disabled={form.processing}
                 >
-                    Simpan obat
+                    Save medication
                 </Button>
             </div>
         </form>
@@ -236,12 +236,12 @@ function DepotForm({
             className="space-y-4 rounded-xl border border-primary/30 bg-primary/5 p-4"
         >
             <h3 className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold">
-                {depot ? 'Buat versi depo baru' : 'Tambah depo'}
+                {depot ? 'Create new depot version' : 'Add depot'}
             </h3>
             <PharmacyErrorSummary errors={form.errors} />
             <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                    <Label htmlFor="depot-code">Kode depo</Label>
+                    <Label htmlFor="depot-code">Depot code</Label>
                     <input
                         id="depot-code"
                         className={pharmacyFieldClass}
@@ -254,7 +254,7 @@ function DepotForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="depot-name">Nama depo</Label>
+                    <Label htmlFor="depot-name">Depot name</Label>
                     <input
                         id="depot-name"
                         className={pharmacyFieldClass}
@@ -267,7 +267,9 @@ function DepotForm({
                 </div>
             </div>
             <fieldset>
-                <legend className="font-semibold">Layanan yang dilayani</legend>
+                <legend className="font-semibold">
+                    Supported care settings
+                </legend>
                 <div className="mt-2 flex flex-wrap gap-2">
                     {(['OUTPATIENT', 'EMERGENCY', 'INPATIENT'] as const).map(
                         (setting) => (
@@ -297,10 +299,10 @@ function DepotForm({
                                     }
                                 />
                                 {setting === 'OUTPATIENT'
-                                    ? 'Rawat jalan'
+                                    ? 'Outpatient'
                                     : setting === 'EMERGENCY'
                                       ? 'IGD'
-                                      : 'Rawat inap'}
+                                      : 'Inpatient'}
                             </label>
                         ),
                     )}
@@ -313,14 +315,14 @@ function DepotForm({
                     className="min-h-11"
                     onClick={onClose}
                 >
-                    Batal
+                    Cancel
                 </Button>
                 <Button
                     type="submit"
                     className="min-h-11"
                     disabled={form.processing}
                 >
-                    Simpan depo
+                    Save depot
                 </Button>
             </div>
         </form>
@@ -363,12 +365,12 @@ function OpenLotForm({
             className="space-y-4 rounded-xl border border-amber-300 bg-amber-50 p-4"
         >
             <h3 className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold">
-                Catat saldo awal lot
+                Record opening lot balance
             </h3>
             <PharmacyErrorSummary errors={form.errors} />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                    <Label htmlFor="lot-medicine">Obat</Label>
+                    <Label htmlFor="lot-medicine">Medication</Label>
                     <select
                         id="lot-medicine"
                         className={pharmacyFieldClass}
@@ -393,7 +395,7 @@ function OpenLotForm({
                     </select>
                 </div>
                 <div>
-                    <Label htmlFor="lot-depot">Depo</Label>
+                    <Label htmlFor="lot-depot">Depot</Label>
                     <select
                         id="lot-depot"
                         className={pharmacyFieldClass}
@@ -415,7 +417,7 @@ function OpenLotForm({
                     </select>
                 </div>
                 <div>
-                    <Label htmlFor="lot-code">Kode lot</Label>
+                    <Label htmlFor="lot-code">Lot code</Label>
                     <input
                         id="lot-code"
                         className={pharmacyFieldClass}
@@ -427,7 +429,7 @@ function OpenLotForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="lot-opened">Tanggal diterima</Label>
+                    <Label htmlFor="lot-opened">Received date</Label>
                     <input
                         id="lot-opened"
                         type="datetime-local"
@@ -440,7 +442,7 @@ function OpenLotForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="lot-expiry">Tanggal kedaluwarsa</Label>
+                    <Label htmlFor="lot-expiry">Expiry date</Label>
                     <input
                         id="lot-expiry"
                         type="date"
@@ -453,7 +455,7 @@ function OpenLotForm({
                 </div>
                 <div>
                     <Label htmlFor="lot-no-expiry">
-                        Alasan tanpa kedaluwarsa
+                        Reason no expiry applies
                     </Label>
                     <input
                         id="lot-no-expiry"
@@ -467,7 +469,7 @@ function OpenLotForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="lot-available">Jumlah tersedia</Label>
+                    <Label htmlFor="lot-available">Available quantity</Label>
                     <input
                         id="lot-available"
                         type="number"
@@ -485,7 +487,7 @@ function OpenLotForm({
                     />
                 </div>
                 <div>
-                    <Label htmlFor="lot-source">Referensi sumber</Label>
+                    <Label htmlFor="lot-source">Source reference</Label>
                     <input
                         id="lot-source"
                         className={pharmacyFieldClass}
@@ -504,14 +506,14 @@ function OpenLotForm({
                     className="min-h-11"
                     onClick={onClose}
                 >
-                    Batal
+                    Cancel
                 </Button>
                 <Button
                     type="submit"
                     className="min-h-11"
                     disabled={form.processing}
                 >
-                    Simpan saldo awal
+                    Save opening balance
                 </Button>
             </div>
         </form>
@@ -544,17 +546,17 @@ function RetireMasterButton({
                 className="min-h-11 text-destructive"
                 onClick={() => setConfirming(true)}
             >
-                Pensiunkan
+                Retire
             </Button>
         );
     }
 
     return (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-left">
-            <p className="text-sm font-semibold">Pensiunkan {label}?</p>
+            <p className="text-sm font-semibold">Retire {label}?</p>
             <p className="mt-1 text-xs text-muted-foreground">
-                Bukti lama tetap tersedia, tetapi master tidak dapat dipakai
-                untuk transaksi baru.
+                Earlier evidence remains available, but this master record
+                cannot be used for new transactions.
             </p>
             <PharmacyErrorSummary errors={form.errors} />
             <div className="mt-2 flex gap-2">
@@ -564,7 +566,7 @@ function RetireMasterButton({
                     className="min-h-11"
                     onClick={() => setConfirming(false)}
                 >
-                    Batal
+                    Cancel
                 </Button>
                 <Button
                     type="button"
@@ -573,7 +575,7 @@ function RetireMasterButton({
                     disabled={form.processing}
                     onClick={() => form.post(url, { preserveScroll: true })}
                 >
-                    Konfirmasi pensiun
+                    Confirm retirement
                 </Button>
             </div>
         </div>
@@ -599,14 +601,14 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                 <PharmacySubnav current="master" canManage />
                 <header className="rounded-2xl bg-[#123b5d] p-6 text-white">
                     <p className="text-xs font-semibold tracking-[0.14em] text-sky-100 uppercase">
-                        Manajemen data apotek
+                        Pharmacy master data
                     </p>
                     <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                        Master Obat & Depo
+                        Medication & depot master data
                     </h1>
                     <p className="mt-2 text-sm text-sky-50">
-                        Perubahan disimpan sebagai versi baru; bukti lama tetap
-                        dapat ditelusuri.
+                        Changes are saved as a new version; earlier evidence
+                        remains traceable.
                     </p>
                 </header>
                 {props.read_error ? (
@@ -625,7 +627,7 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                             onClick={() => setEditor('medicine')}
                         >
                             <Pill className="mr-2 size-4" />
-                            Tambah obat
+                            Add medication
                         </Button>
                     ) : null}
                     {props.permissions.can_manage_depots &&
@@ -636,7 +638,7 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                             onClick={() => setEditor('depot')}
                         >
                             <Building2 className="mr-2 size-4" />
-                            Tambah depo
+                            Add depot
                         </Button>
                     ) : null}
                     {props.permissions.can_manage_inventory &&
@@ -647,7 +649,7 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                             onClick={() => setEditor('lot')}
                         >
                             <PackagePlus className="mr-2 size-4" />
-                            Saldo awal lot
+                            Opening lot balance
                         </Button>
                     ) : null}
                 </div>
@@ -683,34 +685,34 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                         id="medicine-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        Daftar obat
+                        Medication list
                     </h2>
                     {props.medicines.length ? (
                         <div className="mt-3 overflow-x-auto rounded-xl border bg-card">
                             <table className="w-full min-w-[850px] text-left text-sm">
                                 <caption className="sr-only">
-                                    Daftar master obat dan versi aktif
+                                    Medication master list and active versions
                                 </caption>
                                 <thead className="bg-muted/60">
                                     <tr>
                                         <th scope="col" className="px-3 py-2">
-                                            Kode & obat
+                                            Code and medication
                                         </th>
                                         <th scope="col" className="px-3 py-2">
-                                            Sediaan
+                                            Dosage form
                                         </th>
                                         <th scope="col" className="px-3 py-2">
-                                            Nilai perolehan
+                                            Acquisition value
                                         </th>
                                         <th scope="col" className="px-3 py-2">
-                                            Sumber biaya
+                                            Charge source
                                         </th>
                                         <th scope="col" className="px-3 py-2">
                                             Status
                                         </th>
                                         <th scope="col" className="px-3 py-2">
                                             <span className="sr-only">
-                                                Tindakan
+                                                Actions
                                             </span>
                                         </th>
                                     </tr>
@@ -749,8 +751,8 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                                             </td>
                                             <td className="px-3 py-3">
                                                 {medicine.state === 'ACTIVE'
-                                                    ? 'Aktif'
-                                                    : 'Pensiun'}
+                                                    ? 'Active'
+                                                    : 'Retired'}
                                             </td>
                                             <td className="space-y-2 px-3 py-3 text-right">
                                                 {medicine.actions.update_url ? (
@@ -766,7 +768,7 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                                                             );
                                                         }}
                                                     >
-                                                        Buat versi baru
+                                                        Create new version
                                                     </Button>
                                                 ) : null}
                                                 {medicine.actions.retire_url ? (
@@ -809,8 +811,8 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                         </div>
                     ) : (
                         <PharmacyEmptyState
-                            title="Belum ada master obat"
-                            body="Tambah obat untuk membuka alur resep."
+                            title="No medication master records yet"
+                            body="Add a medication to begin the prescription workflow."
                         />
                     )}
                 </section>
@@ -819,7 +821,7 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                         id="depot-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        Daftar depo
+                        Depot list
                     </h2>
                     <div className="mt-3 grid gap-3 md:grid-cols-2">
                         {props.depots.map((depot) => (
@@ -851,8 +853,8 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                                     >
                                         <Archive className="mr-1 inline size-4" />
                                         {depot.state === 'ACTIVE'
-                                            ? 'Aktif'
-                                            : 'Pensiun'}
+                                            ? 'Active'
+                                            : 'Retired'}
                                     </span>
                                 </div>
                                 {depot.actions.update_url ? (
@@ -864,7 +866,7 @@ export function PharmacyMasterPanel(props: PharmacyMasterProps) {
                                             setEditor('depot');
                                         }}
                                     >
-                                        Buat versi baru
+                                        Create new version
                                     </Button>
                                 ) : null}
                                 {depot.actions.retire_url ? (

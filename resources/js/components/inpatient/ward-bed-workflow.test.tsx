@@ -235,29 +235,29 @@ describe('managed inpatient ward and bed UI', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Bangsal & Tempat Tidur',
+                name: 'Wards & Beds',
             }),
         ).toBeInTheDocument();
-        expect(screen.getByText('Bangsal aktif').nextSibling).toHaveTextContent(
+        expect(screen.getByText('Active wards').nextSibling).toHaveTextContent(
             '1',
         );
         expect(
             screen.getByRole('table', {
-                name: /Daftar bangsal, tempat tidur/i,
+                name: /Wards, beds, record status/i,
             }),
         ).toBeInTheDocument();
-        expect(screen.getAllByText('Tersedia').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Terisi').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Available').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Occupied').length).toBeGreaterThan(0);
         expect(
             screen.getByText(
-                'Detail kunjungan tidak tersedia untuk peran ini.',
+                'Encounter details are unavailable for this role.',
             ),
         ).toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Tambah bangsal' }),
+            screen.queryByRole('button', { name: 'Add Ward' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Ubah' }),
+            screen.queryByRole('button', { name: 'Edit' }),
         ).not.toBeInTheDocument();
 
         await expectNoWcag21Violations(container);
@@ -267,14 +267,14 @@ describe('managed inpatient ward and bed UI', () => {
         const { rerender } = render(<ManajemenDataBangsal {...baseProps} />);
 
         expect(
-            screen.queryByRole('link', { name: 'Kosakata Triase IGD' }),
+            screen.queryByRole('link', { name: 'Emergency triage vocabulary' }),
         ).not.toBeInTheDocument();
 
         inertiaMock.capabilities = ['master.emergency.triage.manage'];
         rerender(<ManajemenDataBangsal {...baseProps} />);
 
         expect(
-            screen.getByRole('link', { name: 'Kosakata Triase IGD' }),
+            screen.getByRole('link', { name: 'Emergency triage vocabulary' }),
         ).toHaveAttribute('href', '/manajemen-data/triage');
     });
 
@@ -305,16 +305,16 @@ describe('managed inpatient ward and bed UI', () => {
         );
 
         expect(
-            screen.queryByRole('button', { name: 'Tambah bangsal' }),
+            screen.queryByRole('button', { name: 'Add Ward' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Tambah TT' }),
+            screen.queryByRole('button', { name: 'Add Bed' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Ubah' }),
+            screen.queryByRole('button', { name: 'Edit' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Nonaktifkan' }),
+            screen.queryByRole('button', { name: 'Retire' }),
         ).not.toBeInTheDocument();
     });
 
@@ -333,20 +333,18 @@ describe('managed inpatient ward and bed UI', () => {
             />,
         );
 
-        const trigger = screen.getByRole('button', { name: 'Tambah bangsal' });
+        const trigger = screen.getByRole('button', { name: 'Add Ward' });
         await user.click(trigger);
         expect(
-            screen.getByRole('dialog', { name: 'Tambah bangsal' }),
+            screen.getByRole('dialog', { name: 'Add ward' }),
         ).toBeInTheDocument();
 
-        await user.type(screen.getByRole('textbox', { name: 'Kode' }), 'mwr');
+        await user.type(screen.getByRole('textbox', { name: 'Code' }), 'mwr');
         await user.type(
-            screen.getByRole('textbox', { name: 'Nama tampilan' }),
+            screen.getByRole('textbox', { name: 'Display name' }),
             'Bangsal Mawar',
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan bangsal' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save ward' }));
 
         expect(inertiaMock.post).toHaveBeenCalledWith(
             '/manajemen-data/bangsal/wards',
@@ -358,7 +356,7 @@ describe('managed inpatient ward and bed UI', () => {
         );
         await waitFor(() => expect(trigger).toHaveFocus());
         expect(screen.getByRole('status', { hidden: true })).toHaveTextContent(
-            'Bangsal berhasil ditambahkan.',
+            'Ward added successfully.',
         );
     });
 
@@ -383,19 +381,17 @@ describe('managed inpatient ward and bed UI', () => {
             />,
         );
 
-        await user.click(
-            screen.getByRole('button', { name: 'Tambah bangsal' }),
-        );
-        const save = screen.getByRole('button', { name: 'Simpan bangsal' });
+        await user.click(screen.getByRole('button', { name: 'Add Ward' }));
+        const save = screen.getByRole('button', { name: 'Save ward' });
         await user.click(save);
 
         const summary = screen.getByRole('alert', {
-            name: 'Perubahan belum dapat disimpan.',
+            name: 'Changes could not be saved.',
         });
         expect(summary).toHaveFocus();
         expect(
             within(summary).getByRole('link', {
-                name: 'Nama tampilan: Nama tampilan wajib diisi.',
+                name: 'Display name: Nama tampilan wajib diisi.',
             }),
         ).toHaveAttribute('href', '#ward-bed-display_name');
 
@@ -420,13 +416,13 @@ describe('managed inpatient ward and bed UI', () => {
         );
 
         const retireButtons = screen.getAllByRole('button', {
-            name: 'Nonaktifkan',
+            name: 'Retire',
         });
         expect(
             retireButtons.filter((button) => button.hasAttribute('disabled')),
         ).toHaveLength(2);
         expect(document.body).toHaveTextContent(
-            'Sedang terisi; tidak dapat dinonaktifkan.',
+            'Currently occupied; cannot be deactivated.',
         );
     });
 
@@ -450,7 +446,7 @@ describe('managed inpatient ward and bed UI', () => {
         );
 
         expect(
-            screen.getByText('Tidak ada tempat tidur sesuai filter.'),
+            screen.getByText('No beds match these filters.'),
         ).toBeInTheDocument();
         expect(
             screen.getByRole('option', { name: 'Bangsal Melati · MELATI' }),
@@ -459,12 +455,12 @@ describe('managed inpatient ward and bed UI', () => {
             screen.getByRole('option', { name: 'Kelas 1' }),
         ).toBeInTheDocument();
         expect(
-            within(screen.getByLabelText('Status TT')).getByRole('option', {
-                name: 'Dinonaktifkan',
+            within(screen.getByLabelText('Bed status')).getByRole('option', {
+                name: 'Retired',
             }),
         ).toHaveValue('RETIRED');
         await user.click(
-            screen.getAllByRole('button', { name: 'Hapus filter' })[0],
+            screen.getAllByRole('button', { name: 'Clear filters' })[0],
         );
 
         expect(inertiaMock.get).toHaveBeenCalledWith(
@@ -504,11 +500,9 @@ describe('managed inpatient ward and bed UI', () => {
 
         const alert = screen.getByRole('alert');
         expect(alert).toHaveTextContent(
-            'Data ketersediaan belum dapat dimuat.',
+            'Availability data could not be loaded.',
         );
         expect(alert).toHaveTextContent('Basis data belum dapat dibaca.');
-        expect(
-            screen.queryByText('Tempat tidur aktif'),
-        ).not.toBeInTheDocument();
+        expect(screen.queryByText('Active beds')).not.toBeInTheDocument();
     });
 });

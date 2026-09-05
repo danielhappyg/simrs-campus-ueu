@@ -50,9 +50,9 @@ type MappingFormData = {
 };
 
 const careSettingLabels: Record<TariffCareSetting, string> = {
-    OUTPATIENT: 'Rawat jalan',
+    OUTPATIENT: 'Outpatient',
     EMERGENCY: 'IGD',
-    INPATIENT: 'Rawat inap',
+    INPATIENT: 'Inpatient',
 };
 
 function operationKey() {
@@ -68,7 +68,7 @@ function digest(value: string) {
 }
 
 function interval(from: string, until: string | null) {
-    return `${from} — ${until ?? 'seterusnya'}`;
+    return `${from} — ${until ?? 'onward'}`;
 }
 
 function MappingStateBadge({ state }: { state: 'ACTIVE' | 'RETIRED' }) {
@@ -80,7 +80,7 @@ function MappingStateBadge({ state }: { state: 'ACTIVE' | 'RETIRED' }) {
                     : 'border-slate-300 bg-slate-100 text-slate-700'
             }`}
         >
-            {state === 'ACTIVE' ? 'Aktif' : 'Nonaktif'}
+            {state === 'ACTIVE' ? 'Active' : 'Inactive'}
         </span>
     );
 }
@@ -163,10 +163,10 @@ function MappingForm({
             onSuccess: () => {
                 onStatus(
                     action.mode === 'retire'
-                        ? 'Pemetaan dijadwalkan nonaktif.'
+                        ? 'Mapping scheduled for deactivation.'
                         : action.mode === 'create'
-                          ? 'Pemetaan radiologi dibuat.'
-                          : 'Versi pemetaan radiologi ditambahkan.',
+                          ? 'Radiology mapping created.'
+                          : 'Radiology mapping version added.',
                 );
                 onClose();
             },
@@ -181,10 +181,10 @@ function MappingForm({
 
     const title =
         action.mode === 'create'
-            ? 'Buat pemetaan radiologi'
+            ? 'Create radiology mapping'
             : action.mode === 'revise'
-              ? 'Tambah versi pemetaan'
-              : 'Jadwalkan pemetaan nonaktif';
+              ? 'Add mapping version'
+              : 'Schedule mapping deactivation';
 
     return (
         <div
@@ -210,15 +210,15 @@ function MappingForm({
                             id="radiology-mapping-form-description"
                             className="mt-1 text-sm text-slate-600"
                         >
-                            Pilihan ini berlaku mulai tanggal yang ditetapkan.
-                            Riwayat terdahulu tidak diubah.
+                            This selection is effective from the specified date.
+                            Previous history remains unchanged.
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
                         className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
-                        aria-label="Tutup formulir pemetaan"
+                        aria-label="Close mapping form"
                     >
                         <X aria-hidden="true" className="size-5" />
                     </button>
@@ -233,7 +233,7 @@ function MappingForm({
                             className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950 outline-none focus:ring-2 focus:ring-red-600"
                         >
                             <p className="font-semibold">
-                                Pemetaan belum dapat disimpan
+                                The mapping could not be saved
                             </p>
                             <ul className="mt-1 list-inside list-disc">
                                 {errors.map((message) => (
@@ -247,7 +247,7 @@ function MappingForm({
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
                                 <Label htmlFor="mapping-radiology-source">
-                                    Pemeriksaan dan versi master
+                                    Examination and master version
                                 </Label>
                                 <select
                                     id="mapping-radiology-source"
@@ -258,7 +258,7 @@ function MappingForm({
                                     }
                                     required
                                 >
-                                    <option value="">Pilih pemeriksaan</option>
+                                    <option value="">Select examination</option>
                                     {sources
                                         .filter(
                                             (source) =>
@@ -280,7 +280,7 @@ function MappingForm({
                             </div>
                             <div>
                                 <Label htmlFor="mapping-care-setting">
-                                    Jenis layanan
+                                    Service type
                                 </Label>
                                 <select
                                     id="mapping-care-setting"
@@ -299,7 +299,7 @@ function MappingForm({
                                     }}
                                     required
                                 >
-                                    <option value="">Pilih layanan</option>
+                                    <option value="">Select service</option>
                                     {Object.entries(careSettingLabels).map(
                                         ([value, label]) => (
                                             <option key={value} value={value}>
@@ -327,7 +327,7 @@ function MappingForm({
                         <dl className="grid gap-3 rounded-lg border border-slate-200 p-4 text-sm md:grid-cols-2">
                             <div>
                                 <dt className="text-slate-500">
-                                    ID versi master
+                                    Master-version ID
                                 </dt>
                                 <dd className="mt-1 font-['IBM_Plex_Mono'] text-xs text-slate-950">
                                     {selectedSource.master_version_public_id}
@@ -335,7 +335,7 @@ function MappingForm({
                             </div>
                             <div>
                                 <dt className="text-slate-500">
-                                    Digest master tepat
+                                    Exact master digest
                                 </dt>
                                 <dd className="mt-1">
                                     {digest(
@@ -349,7 +349,7 @@ function MappingForm({
                     {action.mode !== 'retire' ? (
                         <div>
                             <Label htmlFor="mapping-tariff">
-                                Tarif radiologi
+                                Radiology tariff
                             </Label>
                             <select
                                 id="mapping-tariff"
@@ -364,7 +364,7 @@ function MappingForm({
                                 required
                             >
                                 <option value="">
-                                    Pilih tarif secara sadar
+                                    Select a tariff explicitly
                                 </option>
                                 {eligibleTariffs.map((tariff) => (
                                     <option
@@ -377,15 +377,14 @@ function MappingForm({
                                 ))}
                             </select>
                             <p className="mt-1 text-xs text-slate-600">
-                                Tidak ada tarif atau nilai yang dipilih
-                                otomatis.
+                                No tariff or value is selected automatically.
                             </p>
                         </div>
                     ) : null}
 
                     {selectedTariff && action.mode !== 'retire' ? (
                         <div
-                            aria-label="Provenans tarif terpilih"
+                            aria-label="Selected tariff provenance"
                             className="grid gap-3 rounded-lg border border-[#7fbcb6] bg-[#e8f5f3] p-4 text-sm md:grid-cols-2"
                         >
                             <div>
@@ -403,7 +402,7 @@ function MappingForm({
                             <dl className="space-y-2">
                                 <div>
                                     <dt className="text-slate-500">
-                                        ID versi tarif
+                                        Tariff-version ID
                                     </dt>
                                     <dd className="font-['IBM_Plex_Mono'] text-xs">
                                         {selectedTariff.version_public_id}
@@ -411,7 +410,7 @@ function MappingForm({
                                 </div>
                                 <div>
                                     <dt className="text-slate-500">
-                                        Digest tarif tepat
+                                        Exact tariff digest
                                     </dt>
                                     <dd>
                                         {digest(selectedTariff.content_digest)}
@@ -425,8 +424,8 @@ function MappingForm({
                         <div>
                             <Label htmlFor="mapping-effective-from">
                                 {action.mode === 'retire'
-                                    ? 'Nonaktif mulai'
-                                    : 'Berlaku mulai'}
+                                    ? 'Inactive from'
+                                    : 'Effective from'}
                             </Label>
                             <input
                                 id="mapping-effective-from"
@@ -442,12 +441,12 @@ function MappingForm({
                                 required
                             />
                             <p className="mt-1 text-xs text-slate-600">
-                                Gunakan tanggal mendatang untuk menjadwalkan
-                                perubahan tanpa menulis ulang riwayat.
+                                Use a future date to schedule the change without
+                                rewriting history.
                             </p>
                         </div>
                         <div>
-                            <Label htmlFor="mapping-reason">Alasan</Label>
+                            <Label htmlFor="mapping-reason">Reason</Label>
                             <textarea
                                 id="mapping-reason"
                                 className={financeFieldClass}
@@ -467,7 +466,7 @@ function MappingForm({
                         <dl className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm md:grid-cols-2">
                             <div>
                                 <dt className="text-slate-500">
-                                    Versi kepala yang diharapkan
+                                    Expected head version
                                 </dt>
                                 <dd className="mt-1 font-['IBM_Plex_Mono'] font-semibold">
                                     v{form.data.expected_version}
@@ -475,7 +474,7 @@ function MappingForm({
                             </div>
                             <div>
                                 <dt className="text-slate-500">
-                                    Digest kepala yang diharapkan
+                                    Expected head digest
                                 </dt>
                                 <dd className="mt-1">
                                     {digest(form.data.expected_digest)}
@@ -494,8 +493,8 @@ function MappingForm({
                             className="mt-0.5 size-5 accent-[#0f5b62]"
                         />
                         <span>
-                            Saya mengonfirmasi versi master, jenis layanan,
-                            tarif, dan tanggal berlaku yang ditampilkan.
+                            I confirm the master version, service type, tariff,
+                            and displayed effective date.
                         </span>
                     </label>
 
@@ -506,7 +505,7 @@ function MappingForm({
                             className="min-h-11"
                             onClick={onClose}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
@@ -519,10 +518,10 @@ function MappingForm({
                             disabled={!form.data.confirm || form.processing}
                         >
                             {form.processing
-                                ? 'Menyimpan…'
+                                ? 'Saving…'
                                 : action.mode === 'retire'
-                                  ? 'Jadwalkan nonaktif'
-                                  : 'Simpan pemetaan'}
+                                  ? 'Schedule deactivation'
+                                  : 'Save mapping'}
                         </Button>
                     </footer>
                 </form>
@@ -542,20 +541,20 @@ export function RadiologyTariffMappingWorkspace(
     return (
         <main className="min-h-screen bg-slate-50 pb-12">
             <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-                <nav aria-label="Jalur halaman" className="text-sm">
+                <nav aria-label="Breadcrumb" className="text-sm">
                     <ol className="flex flex-wrap items-center gap-2 text-slate-600">
-                        <li>Manajemen Data</li>
+                        <li>Data Management</li>
                         <li aria-hidden="true">/</li>
                         <li>
                             <Link
                                 href="/manajemen-data/tarif-komponen-biaya"
                                 className="inline-flex min-h-11 items-center rounded-md px-2 font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                             >
-                                Tarif &amp; Komponen Biaya
+                                Tariffs &amp; Charge Components
                             </Link>
                         </li>
                         <li aria-hidden="true">/</li>
-                        <li aria-current="page">Pemetaan Radiologi</li>
+                        <li aria-current="page">Radiology Mapping</li>
                     </ol>
                 </nav>
 
@@ -571,21 +570,21 @@ export function RadiologyTariffMappingWorkspace(
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Pengendalian sumber biaya
+                                Charge-source controls charge source
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Pemetaan Radiologi
+                                Radiology Mapping
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
-                                Hubungkan satu versi master pemeriksaan dan
-                                jenis layanan ke satu tarif radiologi yang
-                                berlaku pada tanggal layanan.
+                                Link one version master examination and type
+                                service to one radiology tariff that effective
+                                on date service.
                             </p>
                         </div>
                         <span className="rounded-md bg-white/10 px-3 py-2 text-sm font-semibold">
                             {props.permissions.can_manage
-                                ? 'Pengelola Tarif'
-                                : 'Akses lihat-saja'}
+                                ? 'Tariff Manager'
+                                : 'Read-only access'}
                         </span>
                     </div>
                 </header>
@@ -608,7 +607,7 @@ export function RadiologyTariffMappingWorkspace(
                         className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950"
                     >
                         <p className="font-semibold">
-                            Pemetaan radiologi belum dapat dibaca.
+                            Radiology mappings could not be loaded.
                         </p>
                         <p className="mt-1">{props.read_error}</p>
                     </div>
@@ -623,12 +622,12 @@ export function RadiologyTariffMappingWorkspace(
                             id="mapping-control-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-slate-950"
                         >
-                            Peta berlaku pada {props.as_of_date}
+                            Mappings effective on {props.as_of_date}
                         </h2>
                         <dl className="mt-3 grid gap-3 text-sm md:grid-cols-2">
                             <div>
                                 <dt className="text-slate-500">
-                                    Versi proyeksi master sumber
+                                    Version projection master source
                                 </dt>
                                 <dd className="mt-1 font-['IBM_Plex_Mono'] font-semibold text-slate-950">
                                     {props.source_master_version}
@@ -636,7 +635,7 @@ export function RadiologyTariffMappingWorkspace(
                             </div>
                             <div>
                                 <dt className="text-slate-500">
-                                    Digest proyeksi master sumber
+                                    Digest projection master source
                                 </dt>
                                 <dd className="mt-1">
                                     {digest(props.source_master_content_digest)}
@@ -650,7 +649,7 @@ export function RadiologyTariffMappingWorkspace(
                                 aria-hidden="true"
                                 className="size-4"
                             />
-                            <span className="sr-only">Tanggal berlaku</span>
+                            <span className="sr-only">Effective date</span>
                             <input
                                 type="date"
                                 className={`${financeFieldClass} w-auto`}
@@ -675,7 +674,7 @@ export function RadiologyTariffMappingWorkspace(
                                     })
                                 }
                             >
-                                <Plus aria-hidden="true" /> Buat pemetaan
+                                <Plus aria-hidden="true" /> Create mapping
                             </Button>
                         ) : null}
                     </div>
@@ -692,7 +691,7 @@ export function RadiologyTariffMappingWorkspace(
                                     id="mapping-history-heading"
                                     className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-[#0b4147]"
                                 >
-                                    Riwayat pemetaan tetap
+                                    Immutable mapping history
                                 </h2>
                                 <p className="mt-1 text-sm text-slate-700">
                                     {props.history.source.code} · v
@@ -708,33 +707,33 @@ export function RadiologyTariffMappingWorkspace(
                                 href="/manajemen-data/tarif-komponen-biaya/pemetaan-radiologi"
                                 className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-white focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                             >
-                                Tutup riwayat
+                                Close history
                             </Link>
                         </header>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[66rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Riwayat versi pemetaan radiologi tetap
+                                    Immutable radiology mapping version history
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Versi
+                                            Version
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tarif
+                                            Tariff
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode berlaku
+                                            Period effective
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Digest
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Alasan
+                                            Reason
                                         </th>
                                     </tr>
                                 </thead>
@@ -806,11 +805,11 @@ export function RadiologyTariffMappingWorkspace(
                                 id="mapping-list-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-slate-950"
                             >
-                                Pemetaan efektif
+                                Mapping effective
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Setiap baris mengikat satu versi master dan satu
-                                jenis layanan tanpa pencocokan kode otomatis.
+                                Each line mengikat one version master and one
+                                service type without automatic code matching.
                             </p>
                         </div>
                     </div>
@@ -818,31 +817,31 @@ export function RadiologyTariffMappingWorkspace(
                         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                             <table className="w-full min-w-[78rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Pemetaan tarif pemeriksaan radiologi
+                                    Mapping tariff examination radiology
                                 </caption>
                                 <thead className="border-b border-slate-300 bg-slate-100 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Master radiologi
+                                            Master radiology
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Digest master
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Layanan
+                                            Service
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tarif
+                                            Tariff
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             <span className="sr-only">
-                                                Tindakan
+                                                Action
                                             </span>
                                         </th>
                                     </tr>
@@ -925,7 +924,7 @@ export function RadiologyTariffMappingWorkspace(
                                                     state={mapping.state}
                                                 />
                                                 <p className="mt-2 font-['IBM_Plex_Mono'] text-xs text-slate-500">
-                                                    kepala v
+                                                    head v
                                                     {
                                                         mapping.latest_head_version
                                                     }
@@ -938,7 +937,7 @@ export function RadiologyTariffMappingWorkspace(
                                                             mapping.actions
                                                                 .history_url
                                                         }
-                                                        aria-label={`Buka riwayat pemetaan ${mapping.source.code} ${careSettingLabels[mapping.care_setting]}`}
+                                                        aria-label={`Open history mapping ${mapping.source.code} ${careSettingLabels[mapping.care_setting]}`}
                                                         className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                                                     >
                                                         <History
@@ -954,7 +953,7 @@ export function RadiologyTariffMappingWorkspace(
                                                         .revise_url ? (
                                                         <button
                                                             type="button"
-                                                            aria-label={`Tambah versi pemetaan ${mapping.source.code} ${careSettingLabels[mapping.care_setting]}`}
+                                                            aria-label={`Add mapping version ${mapping.source.code} ${careSettingLabels[mapping.care_setting]}`}
                                                             onClick={() =>
                                                                 setAction({
                                                                     mode: 'revise',
@@ -981,7 +980,7 @@ export function RadiologyTariffMappingWorkspace(
                                                         .retire_url ? (
                                                         <button
                                                             type="button"
-                                                            aria-label={`Nonaktifkan pemetaan ${mapping.source.code} ${careSettingLabels[mapping.care_setting]}`}
+                                                            aria-label={`Deactivate mapping ${mapping.source.code} ${careSettingLabels[mapping.care_setting]}`}
                                                             onClick={() =>
                                                                 setAction({
                                                                     mode: 'retire',
@@ -1014,13 +1013,13 @@ export function RadiologyTariffMappingWorkspace(
                                 className="mx-auto size-8 text-slate-400"
                             />
                             <p className="mt-3 font-semibold text-slate-950">
-                                Belum ada pemetaan tarif radiologi yang
-                                dikonfigurasi secara sengaja.
+                                No radiology tariff mappings have been
+                                configured deliberately.
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
-                                Pilih versi master, jenis layanan, tarif, dan
-                                tanggal berlaku saat keputusan pemetaan
-                                tersedia.
+                                Select version master, type service, tariff, and
+                                effective date when a mapping decision is
+                                available.
                             </p>
                         </div>
                     )}
@@ -1040,11 +1039,11 @@ export function RadiologyTariffMappingWorkspace(
                                 id="mapping-gap-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-amber-950"
                             >
-                                Celah pemetaan
+                                Gap mapping
                             </h2>
                             <p className="mt-1 text-sm text-amber-900">
-                                Celah tetap terlihat dan tidak pernah diberi
-                                nilai perkiraan.
+                                Gaps remain visible and are never assigned a
+                                value estimated.
                             </p>
                         </div>
                     </header>
@@ -1052,22 +1051,22 @@ export function RadiologyTariffMappingWorkspace(
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[58rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Versi master radiologi tanpa pemetaan
-                                    efektif
+                                    Version master radiology without mapping
+                                    effective
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Master radiologi
+                                            Master radiology
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Layanan
+                                            Service
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Status tertutup
+                                            Blocking status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Keterangan
+                                            Details
                                         </th>
                                     </tr>
                                 </thead>
@@ -1111,7 +1110,7 @@ export function RadiologyTariffMappingWorkspace(
                         </div>
                     ) : (
                         <p className="p-6 text-sm text-slate-700">
-                            Tidak ada celah pemetaan pada tanggal yang dipilih.
+                            No mapping gaps on the selected date.
                         </p>
                     )}
                 </section>

@@ -30,11 +30,11 @@ export function WardBedMasterPanel({
                         id="ward-master-heading"
                         className="text-sm font-semibold text-[#123b63]"
                     >
-                        Kelola data bangsal
+                        Manage Ward Data
                     </h2>
                     <p className="mt-0.5 max-w-2xl text-xs text-[#64748b]">
-                        Kode bangsal dan tempat tidur tidak dapat diubah atau
-                        digunakan kembali. Perubahan menambah versi riwayat.
+                        Ward and bed codes cannot be changed or reused. Each
+                        change creates a new historical version.
                     </p>
                 </div>
                 {createWardUrl ? (
@@ -51,7 +51,7 @@ export function WardBedMasterPanel({
                             )
                         }
                     >
-                        Tambah bangsal
+                        Add Ward
                     </Button>
                 ) : null}
             </div>
@@ -86,14 +86,15 @@ export function WardBedMasterPanel({
                                         <p className="font-mono text-xs text-[#64748b]">
                                             {ward.code} · v{ward.version} ·{' '}
                                             {ward.state === 'ACTIVE'
-                                                ? 'Aktif'
+                                                ? 'Active'
                                                 : 'Dinonaktifkan'}
                                         </p>
                                         <p className="mt-1 text-xs text-[#64748b]">
-                                            {ward.summary.active_beds} aktif ·{' '}
-                                            {ward.summary.occupied_beds} terisi
-                                            · {ward.summary.available_beds}{' '}
-                                            tersedia
+                                            {ward.summary.active_beds} active ·{' '}
+                                            {ward.summary.occupied_beds}{' '}
+                                            occupied ·{' '}
+                                            {ward.summary.available_beds}{' '}
+                                            available
                                         </p>
                                     </div>
                                     <div className="flex flex-wrap justify-end gap-1.5">
@@ -114,7 +115,7 @@ export function WardBedMasterPanel({
                                                     )
                                                 }
                                             >
-                                                Tambah TT
+                                                Add Bed
                                             </Button>
                                         ) : null}
                                         {canUpdate ? (
@@ -135,7 +136,7 @@ export function WardBedMasterPanel({
                                                     )
                                                 }
                                             >
-                                                Ubah
+                                                Edit
                                             </Button>
                                         ) : null}
                                         {canRetire ? (
@@ -164,16 +165,16 @@ export function WardBedMasterPanel({
                                                         )
                                                     }
                                                 >
-                                                    Nonaktifkan
+                                                    Retire
                                                 </Button>
                                                 {retirementBlocked ? (
                                                     <span
                                                         id={retireHelpId}
                                                         className="max-w-[13rem] text-left text-xs leading-4 text-[#9a3412]"
                                                     >
-                                                        Nonaktifkan semua tempat
-                                                        tidur dan pastikan tidak
-                                                        ada tempat tidur terisi.
+                                                        Retire every bed and
+                                                        ensure that none are
+                                                        occupied.
                                                     </span>
                                                 ) : null}
                                             </>

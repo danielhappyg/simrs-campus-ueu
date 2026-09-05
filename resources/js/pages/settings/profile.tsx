@@ -30,15 +30,15 @@ export default function Profile({
 
     return (
         <>
-            <Head title="Pengaturan profil" />
+            <Head title="Profile settings" />
 
-            <h1 className="sr-only">Pengaturan profil</h1>
+            <h1 className="sr-only">Profile settings</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Profil"
-                    description="Perbarui nama dan email akun institusi Anda"
+                    title="Profile"
+                    description="Update your institutional account name and email"
                 />
 
                 <Form
@@ -51,7 +51,7 @@ export default function Profile({
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Nama lengkap</Label>
+                                <Label htmlFor="name">Full name</Label>
 
                                 <Input
                                     id="name"
@@ -60,7 +60,7 @@ export default function Profile({
                                     name="name"
                                     required
                                     autoComplete="name"
-                                    placeholder="Nama lengkap"
+                                    placeholder="Full name"
                                 />
 
                                 <InputError
@@ -70,7 +70,9 @@ export default function Profile({
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email institusi</Label>
+                                <Label htmlFor="email">
+                                    Institutional email
+                                </Label>
 
                                 <Input
                                     id="email"
@@ -99,15 +101,15 @@ export default function Profile({
                                                 as="button"
                                                 className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                             >
-                                                Kirim ulang email verifikasi.
+                                                Resend verification email.
                                             </Link>
                                         </p>
 
                                         {status ===
                                             'verification-link-sent' && (
                                             <div className="mt-2 text-sm font-medium text-green-600">
-                                                Tautan verifikasi baru telah
-                                                dikirim.
+                                                A new verification link has been
+                                                sent.
                                             </div>
                                         )}
                                     </div>
@@ -118,7 +120,7 @@ export default function Profile({
                                     disabled={processing}
                                     data-test="update-profile-button"
                                 >
-                                    Simpan
+                                    Save
                                 </Button>
                             </div>
                         </>
@@ -132,7 +134,7 @@ export default function Profile({
 Profile.layout = {
     breadcrumbs: [
         {
-            title: 'Pengaturan profil',
+            title: 'Profile settings',
             href: edit(),
         },
     ],

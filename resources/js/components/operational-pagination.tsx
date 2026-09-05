@@ -35,16 +35,16 @@ export function OperationalPagination({
 
     return (
         <nav
-            aria-label={`Navigasi halaman ${itemLabel}`}
+            aria-label={`${itemLabel} page navigation`}
             className={cn(
                 'flex flex-wrap items-center justify-between gap-2 border-t border-[#e2e8f0] pt-3',
                 className,
             )}
         >
             <p className="text-xs text-[#64748b]" aria-live="polite">
-                Menampilkan {pagination.from ?? 0}–{pagination.to ?? 0} dari{' '}
-                {pagination.total} {itemLabel}. Halaman{' '}
-                {pagination.current_page} dari {pagination.last_page}.
+                Showing {pagination.from ?? 0}–{pagination.to ?? 0} of{' '}
+                {pagination.total} {itemLabel}. Page {pagination.current_page}{' '}
+                of {pagination.last_page}.
             </p>
 
             <div className="flex items-center gap-2">
@@ -55,11 +55,11 @@ export function OperationalPagination({
                         preserveState
                         className={linkClass}
                     >
-                        Sebelumnya
+                        Previous
                     </Link>
                 ) : (
                     <span aria-disabled="true" className={disabledClass}>
-                        Sebelumnya
+                        Previous
                     </span>
                 )}
 
@@ -70,11 +70,11 @@ export function OperationalPagination({
                         preserveState
                         className={linkClass}
                     >
-                        Berikutnya
+                        Next
                     </Link>
                 ) : (
                     <span aria-disabled="true" className={disabledClass}>
-                        Berikutnya
+                        Next
                     </span>
                 )}
             </div>

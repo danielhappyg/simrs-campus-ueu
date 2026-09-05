@@ -33,25 +33,25 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
 
     return (
         <>
-            <Head title="RM Rawat Inap" />
+            <Head title="Inpatient Medical Records" />
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
                 <CareSettingSubnav
                     items={[
-                        { href: '/rm/rawat-jalan', label: 'Rawat Jalan' },
+                        { href: '/rm/rawat-jalan', label: 'Outpatient Care' },
                         {
                             href: '/rm/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient Care',
                             active: true,
                         },
                     ]}
                 />
                 <header>
                     <h1 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">
-                        RM · Rawat Inap
+                        Medical Records · Inpatient Care
                     </h1>
                     <p className="mt-0.5 text-sm text-muted-foreground">
-                        Episode pulang ditampilkan dari yang paling lama untuk
-                        telaah dan pengodean RMIK.
+                        Discharged episodes are shown from oldest to newest for
+                        medical-record review and coding.
                     </p>
                 </header>
 
@@ -61,32 +61,32 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                 >
                     <div className="flex flex-wrap items-end gap-2">
                         <label className="grid min-w-[13rem] flex-1 gap-1 text-xs font-medium text-muted-foreground">
-                            No. RM / Nama
+                            Medical record no. / Name
                             <Input
                                 value={filters.q}
                                 onChange={(event) =>
                                     setFilter('q', event.target.value)
                                 }
                                 className={fieldClass}
-                                placeholder="No. RM atau nama"
+                                placeholder="Medical record no. or name"
                             />
                         </label>
                         <SelectFilter
-                            label="Bangsal terakhir"
+                            label="Last ward"
                             value={filters.ward}
                             options={data.filter_options.wards}
                             onChange={(value) => setFilter('ward', value)}
-                            empty="Semua bangsal"
+                            empty="All wards"
                         />
                         <SelectFilter
-                            label="Penjamin"
+                            label="Payer"
                             value={filters.payer}
                             options={data.filter_options.payers}
                             onChange={(value) => setFilter('payer', value)}
-                            empty="Semua penjamin"
+                            empty="All payers"
                         />
                         <SelectFilter
-                            label="Status review"
+                            label="Review status"
                             value={filters.review_state}
                             options={data.filter_options.review_states}
                             onChange={(value) =>
@@ -95,7 +95,7 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                             empty="Semua status"
                         />
                         <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                            Tanggal pulang dari
+                            Discharge date from
                             <Input
                                 type="date"
                                 value={filters.discharged_from}
@@ -109,7 +109,7 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                             />
                         </label>
                         <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-                            Tanggal pulang sampai
+                            Discharge date to
                             <Input
                                 type="date"
                                 value={filters.discharged_to}
@@ -129,29 +129,27 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                 </form>
 
                 <section
-                    aria-label="Worklist episode rawat inap"
+                    aria-label="Inpatient episode worklist"
                     className="rounded-lg border border-border bg-card p-3"
                 >
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[52rem] text-left text-sm">
                             <caption className="sr-only">
-                                Daftar episode rawat inap yang telah pulang,
-                                diurutkan dari tanggal pulang terlama.
+                                Discharged inpatient episodes, ordered from the
+                                earliest discharge date.
                             </caption>
                             <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
                                 <tr>
                                     <th className="px-2 py-2">
-                                        Tanggal pulang
+                                        Discharge date
                                     </th>
-                                    <th className="px-2 py-2">No. RM</th>
-                                    <th className="px-2 py-2">Nama</th>
-                                    <th className="px-2 py-2">
-                                        Bangsal terakhir
-                                    </th>
-                                    <th className="px-2 py-2">Penjamin</th>
+                                    <th className="px-2 py-2">MRN</th>
+                                    <th className="px-2 py-2">Name</th>
+                                    <th className="px-2 py-2">Last ward</th>
+                                    <th className="px-2 py-2">Payer</th>
                                     <th className="px-2 py-2">Review</th>
                                     <th className="px-2 py-2">
-                                        <span className="sr-only">Buka</span>
+                                        <span className="sr-only">Open</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -162,8 +160,8 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                                             colSpan={7}
                                             className="px-2 py-8 text-muted-foreground"
                                         >
-                                            Tidak ada episode pulang untuk
-                                            filter ini.
+                                            No discharged episodes for filter
+                                            ini.
                                         </td>
                                     </tr>
                                 ) : (
@@ -182,7 +180,7 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                                             </td>
                                             <td className="px-2 py-2 font-medium">
                                                 {encounter.patient.full_name ??
-                                                    'Nama pasien belum tersedia'}
+                                                    'Patient name unavailable'}
                                             </td>
                                             <td className="px-2 py-2">
                                                 {encounter.last_ward_name ??
@@ -211,8 +209,8 @@ export default function RmRawatInap({ inpatient_rm: data }: Props) {
                                                 >
                                                     {encounter.review_status ===
                                                     'SIGNED_OFF'
-                                                        ? 'Lihat arsip'
-                                                        : 'Tinjau RM'}
+                                                        ? 'View archive'
+                                                        : 'Review medical record'}
                                                 </Link>
                                             </td>
                                         </tr>
@@ -261,8 +259,8 @@ function SelectFilter({
 
 RmRawatInap.layout = {
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'RM', href: '/rm/rawat-jalan' },
-        { title: 'Rawat Inap', href: '/rm/rawat-inap' },
+        { title: 'Home', href: '/' },
+        { title: 'Medical Records', href: '/rm/rawat-jalan' },
+        { title: 'Inpatient Care', href: '/rm/rawat-inap' },
     ] satisfies BreadcrumbItem[],
 };

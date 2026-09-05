@@ -29,7 +29,7 @@ class OutpatientConsentController extends Controller
         abort_unless($patient->is_synthetic === true, 404);
 
         if ($encounter->isCancelled()) {
-            abort(409, 'General Consent tidak dapat dibuka untuk kunjungan yang telah dibatalkan.');
+            abort(409, 'General Consent cannot be opened for a cancelled visit.');
         }
 
         $consent = $encounter->consent;
@@ -76,7 +76,7 @@ class OutpatientConsentController extends Controller
         abort_unless($encounter->patient->is_synthetic === true, 404);
 
         if ($encounter->isCancelled()) {
-            abort(409, 'General Consent tidak dapat ditandatangani untuk kunjungan yang telah dibatalkan.');
+            abort(409, 'General Consent cannot be signed for a cancelled visit.');
         }
 
         $validated = $request->validate([
@@ -91,7 +91,7 @@ class OutpatientConsentController extends Controller
             $patientSignature = EncounterConsent::assertPngDataUrl($validated['patient_signature_png']);
         } catch (\InvalidArgumentException $exception) {
             return back()->withErrors([
-                'explainer_signature_png' => $exception->getMessage(),
+                'explainer_signature_png' => __($exception->getMessage()),
             ]);
         }
 
@@ -125,11 +125,11 @@ class OutpatientConsentController extends Controller
                 ],
             );
 
-            abort_if($event === null, 503, 'Tanda tangan tidak dapat disimpan karena audit gagal direkam.');
+            abort_if($event === null, 503, 'The signature could not be saved because its audit record could not be recorded.');
         });
 
         return redirect()
             ->route('pendaftaran.kunjungan.consent.show', $encounter)
-            ->with('success', 'General Consent tersimpan.');
+            ->with('success', 'General Consent saved.');
     }
 }

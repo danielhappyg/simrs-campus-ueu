@@ -24,7 +24,7 @@ final class OutpatientAmendmentProjection
         return array_map(
             static fn (string $code): array => [
                 'value' => $code,
-                'label' => OutpatientPostClosureAmendmentRequest::REASON_LABELS[$code],
+                'label' => __(OutpatientPostClosureAmendmentRequest::REASON_LABELS[$code]),
                 'requires_note' => $code === OutpatientPostClosureAmendmentRequest::REASON_OTHER,
             ],
             OutpatientPostClosureAmendmentRequest::REASON_CODES,
@@ -105,7 +105,7 @@ final class OutpatientAmendmentProjection
                     'state' => $request->request_state,
                     'version' => $request->version,
                     'reason_code' => $request->reason_code,
-                    'reason_label' => OutpatientPostClosureAmendmentRequest::REASON_LABELS[$request->reason_code] ?? $request->reason_code,
+                    'reason_label' => __(OutpatientPostClosureAmendmentRequest::REASON_LABELS[$request->reason_code] ?? $request->reason_code),
                     'note' => $request->note,
                     'requested_at' => $request->created_at?->toIso8601String(),
                     'requester_name' => $request->requester?->name,
@@ -140,7 +140,7 @@ final class OutpatientAmendmentProjection
                         'signed_off_by_name' => $latestReview->signedOffBy?->name,
                         'items' => $latestReview->items->map(fn ($item): array => [
                             'item_code' => $item->item_code,
-                            'label' => $item->label,
+                            'label' => __($item->label),
                             'is_blocking' => $item->is_blocking,
                             'is_complete' => $item->is_complete,
                             'source_reference' => $item->source_reference,

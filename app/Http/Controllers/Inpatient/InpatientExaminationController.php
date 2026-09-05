@@ -186,7 +186,7 @@ class InpatientExaminationController extends Controller
                 $request->attributes->get('request_id'),
             );
         } catch (InpatientDocumentationDenied $denial) {
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)
@@ -211,7 +211,7 @@ class InpatientExaminationController extends Controller
                 $request->attributes->get('request_id'),
             );
         } catch (InpatientDocumentationDenied $denial) {
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)
@@ -238,10 +238,10 @@ class InpatientExaminationController extends Controller
             );
         } catch (InpatientDischargeSummaryDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['discharge_summary' => $denial->getMessage()]);
+                return back()->withErrors(['discharge_summary' => __($denial->getMessage())]);
             }
 
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)
@@ -267,10 +267,10 @@ class InpatientExaminationController extends Controller
             );
         } catch (InpatientDischargeSummaryDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['discharge_summary' => $denial->getMessage()]);
+                return back()->withErrors(['discharge_summary' => __($denial->getMessage())]);
             }
 
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)
@@ -288,8 +288,8 @@ class InpatientExaminationController extends Controller
             $result = $this->dischargeCodingSourceService->saveDraft($encounter, $actor, $payload['definition_version'], $payload['expected_version'], $payload['fields'], $payload['idempotency_key'], $request->attributes->get('request_id'));
         } catch (InpatientDischargeCodingSourceDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['discharge_coding_source' => $denial->getMessage()]);
-            }abort($denial->status, $denial->getMessage());
+                return back()->withErrors(['discharge_coding_source' => __($denial->getMessage())]);
+            }abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)->with('success', $result->replayed ? 'Draf diagnosis akhir sudah tersimpan.' : 'Draf diagnosis akhir disimpan.');
@@ -306,8 +306,8 @@ class InpatientExaminationController extends Controller
             $result = $this->dischargeCodingSourceService->finalize($encounter, $actor, $payload['definition_version'], $payload['expected_version'], $payload['idempotency_key'], $request->attributes->get('request_id'));
         } catch (InpatientDischargeCodingSourceDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['discharge_coding_source' => $denial->getMessage()]);
-            }abort($denial->status, $denial->getMessage());
+                return back()->withErrors(['discharge_coding_source' => __($denial->getMessage())]);
+            }abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)->with('success', $result->replayed ? 'Finalisasi diagnosis akhir sudah tercatat.' : 'Diagnosis dan prosedur akhir dijadikan Final.');
@@ -436,7 +436,7 @@ class InpatientExaminationController extends Controller
                 'available' => $managedPlacementActive,
                 'unavailable_reason' => $managedPlacementActive
                     ? null
-                    : 'Dokumentasi harian belum tersedia karena penempatan bangsal dan tempat tidur aktif belum terhubung.',
+                    : 'Daily documentation is unavailable until an active ward and bed assignment is linked.',
                 'definition_version' => InpatientClinicalDocument::DEFINITION_VERSION,
                 'documents' => $documents->map(function (InpatientClinicalDocument $document) use ($actor): array {
                     $latest = $document->versions->sortByDesc('version')->first();
@@ -630,7 +630,7 @@ class InpatientExaminationController extends Controller
     {
         $unknown = array_values(array_diff(array_keys($request->except('_token')), $allowed));
         if ($unknown !== []) {
-            throw ValidationException::withMessages(['documentation' => 'Permintaan memuat atribut yang tidak didukung.']);
+            throw ValidationException::withMessages(['documentation' => 'The request contains unsupported attributes.']);
         }
     }
 

@@ -16,14 +16,14 @@ export function formatPharmacyDate(value: string | null): string {
         return '—';
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',
     }).format(new Date(value));
 }
 
 export function formatRupiah(value: number): string {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-GB', {
         style: 'currency',
         currency: 'IDR',
         maximumFractionDigits: 0,

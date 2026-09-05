@@ -145,14 +145,14 @@ function WorklistOrder({
                     href={order.encounter_url}
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-800 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc]"
                 >
-                    Buka episode <ExternalLink className="size-4" />
+                    Open episode <ExternalLink className="size-4" />
                 </Link>
             </div>
 
             <div className="space-y-4 p-4">
                 <div className="rounded-md bg-slate-50 p-3 text-sm">
                     <p className="font-semibold text-slate-800">
-                        Pertanyaan klinis
+                        Clinical question
                     </p>
                     <p className="mt-1 whitespace-pre-wrap text-slate-700">
                         {order.clinical_question}
@@ -167,7 +167,7 @@ function WorklistOrder({
                         className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 outline-none focus-visible:ring-2 focus-visible:ring-red-600"
                     >
                         <p className="font-semibold">
-                            Tindakan belum tersimpan.
+                            The action could not be saved.
                         </p>
                         <ul className="mt-1 list-disc pl-5">
                             {errorMessages.map((message) => (
@@ -187,8 +187,8 @@ function WorklistOrder({
                             onClick={perform}
                             disabled={performForm.processing}
                         >
-                            <Stethoscope className="mr-2 size-4" /> Catat
-                            pemeriksaan selesai
+                            <Stethoscope className="mr-2 size-4" /> Record
+                            completed examination
                         </Button>
                     ) : null}
                     {canReport &&
@@ -200,8 +200,8 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setShowReport((value) => !value)}
                         >
-                            <FilePenLine className="mr-2 size-4" /> Susun
-                            laporan
+                            <FilePenLine className="mr-2 size-4" /> Prepare
+                            report
                         </Button>
                     ) : null}
                     {canReport &&
@@ -213,31 +213,31 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setShowAmendment((value) => !value)}
                         >
-                            Tambah adendum
+                            Add addendum
                         </Button>
                     ) : null}
                 </div>
 
                 {order.report ? (
                     <section
-                        aria-label="Laporan radiologi"
+                        aria-label="Radiology report"
                         className="rounded-md border-l-4 border-[#1b75bc] bg-[#f4f9fc] p-4"
                     >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <h4 className="font-semibold text-slate-950">
-                                Laporan{' '}
+                                Report{' '}
                                 {order.report.state === 'VERIFIED'
-                                    ? 'terverifikasi'
+                                    ? 'verified'
                                     : 'Draft'}
                             </h4>
                             <span className="text-xs font-semibold text-[#145a8d]">
-                                Versi {order.report.version}
+                                Version {order.report.version}
                             </span>
                         </div>
                         <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
                             <div>
                                 <dt className="font-semibold text-slate-700">
-                                    Temuan
+                                    Findings
                                 </dt>
                                 <dd className="mt-1 whitespace-pre-wrap text-slate-800">
                                     {order.report.findings}
@@ -245,7 +245,7 @@ function WorklistOrder({
                             </div>
                             <div>
                                 <dt className="font-semibold text-slate-700">
-                                    Kesimpulan
+                                    Impression
                                 </dt>
                                 <dd className="mt-1 whitespace-pre-wrap text-slate-800">
                                     {order.report.impression}
@@ -270,12 +270,12 @@ function WorklistOrder({
                                 className={`mt-3 border-t border-[#b9d9ed] pt-3 text-xs font-semibold ${order.report.acknowledgement.is_current ? 'text-emerald-800' : 'text-amber-900'}`}
                             >
                                 {order.report.acknowledgement.is_current
-                                    ? `Sudah diketahui oleh ${order.report.acknowledgement.physician_name}`
-                                    : 'Pengetahuan dokter sudah tidak current setelah adendum terbaru.'}
+                                    ? `Acknowledged by ${order.report.acknowledgement.physician_name}`
+                                    : 'The physician acknowledgement is no longer current after the latest amendment.'}
                             </p>
                         ) : order.report.state === 'VERIFIED' ? (
                             <p className="mt-3 border-t border-[#b9d9ed] pt-3 text-xs font-semibold text-amber-900">
-                                Menunggu diketahui dokter pemesan.
+                                Awaiting ordering physician acknowledgement.
                             </p>
                         ) : null}
                     </section>
@@ -287,11 +287,11 @@ function WorklistOrder({
                         className="grid gap-4 rounded-lg border border-[#b9d9ed] bg-white p-4 sm:grid-cols-2"
                     >
                         <h4 className="font-semibold text-slate-950 sm:col-span-2">
-                            Laporan radiologi
+                            Radiology report
                         </h4>
                         <div className="sm:col-span-2">
                             <p className="text-sm font-medium text-slate-800">
-                                Pemeriksaan
+                                Examination
                             </p>
                             <p className="mt-1 min-h-11 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                                 {order.examination.code} ·{' '}
@@ -308,10 +308,10 @@ function WorklistOrder({
                             <div key={field}>
                                 <Label htmlFor={`${field}-${order.public_id}`}>
                                     {field === 'findings'
-                                        ? 'Temuan'
+                                        ? 'Findings'
                                         : field === 'impression'
-                                          ? 'Kesimpulan'
-                                          : 'Rekomendasi (opsional)'}
+                                          ? 'Impression'
+                                          : 'Recommendation (optional)'}
                                 </Label>
                                 <textarea
                                     id={`${field}-${order.public_id}`}
@@ -334,7 +334,7 @@ function WorklistOrder({
                                 className="min-h-11"
                                 disabled={reportForm.processing}
                             >
-                                Simpan Draft
+                                Save draft
                             </Button>
                             {order.report?.state === 'DRAFT' &&
                             order.actions.verify_report_url ? (
@@ -345,7 +345,7 @@ function WorklistOrder({
                                     onClick={verify}
                                     disabled={verifyForm.processing}
                                 >
-                                    Verifikasi laporan
+                                    Verify report
                                 </Button>
                             ) : null}
                         </div>
@@ -361,7 +361,7 @@ function WorklistOrder({
                     >
                         <div>
                             <Label htmlFor={`amend-reason-${order.public_id}`}>
-                                Alasan adendum
+                                Addendum reason
                             </Label>
                             <select
                                 id={`amend-reason-${order.public_id}`}
@@ -375,7 +375,7 @@ function WorklistOrder({
                                 }
                                 required
                             >
-                                <option value="">Pilih alasan</option>
+                                <option value="">Select a reason</option>
                                 {amendmentReasons.map((reason) => (
                                     <option
                                         key={reason.value}
@@ -411,7 +411,7 @@ function WorklistOrder({
                             className="min-h-11 sm:col-span-2 sm:w-fit"
                             disabled={amendmentForm.processing}
                         >
-                            Simpan adendum terverifikasi
+                            Save verified addendum
                         </Button>
                     </form>
                 ) : null}
@@ -440,21 +440,21 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                 items={[
                     {
                         href: '/pemeriksaan/rawat-jalan',
-                        label: 'Rawat Jalan',
+                        label: 'Outpatient Care',
                     },
-                    { href: '/pemeriksaan/igd', label: 'IGD' },
+                    { href: '/pemeriksaan/igd', label: 'Emergency Department' },
                     {
                         href: '/pemeriksaan/rawat-inap',
-                        label: 'Rawat Inap',
+                        label: 'Inpatient Care',
                     },
                     { href: '/pemeriksaan/triage', label: 'Triage' },
                     {
                         href: '/pemeriksaan/laboratorium',
-                        label: 'Laboratorium',
+                        label: 'Laboratory',
                     },
                     {
                         href: '/pemeriksaan/radiologi',
-                        label: 'Radiologi',
+                        label: 'Radiology',
                         active: true,
                     },
                 ]}
@@ -465,21 +465,21 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                 </span>
                 <div>
                     <p className="font-mono text-xs font-semibold tracking-[0.15em] text-[#145a8d]">
-                        RADIOLOGI
+                        RADIOLOGY
                     </p>
                     <h1 className="font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold text-slate-950">
-                        Worklist Pemeriksaan
+                        Examination Worklist
                     </h1>
                     <p className="mt-1 text-sm text-slate-600">
-                        Satu antrean kerja untuk rawat jalan, IGD, dan rawat
-                        inap.
+                        One worklist for outpatient care, the Emergency
+                        Department, and inpatient care.
                     </p>
                 </div>
             </header>
             <p className="sr-only" role="status" aria-live="polite">
                 {loading
-                    ? 'Memuat worklist.'
-                    : `${props.orders.length} permintaan ditampilkan.`}
+                    ? 'Loading worklist.'
+                    : `${props.orders.length} requests displayed.`}
             </p>
             {props.read_error ? (
                 <div
@@ -495,7 +495,7 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
             >
                 <div>
                     <Label htmlFor="radiology-q">
-                        Cari pasien, RM, atau pemeriksaan
+                        Search patient, medical record, or examination
                     </Label>
                     <input
                         id="radiology-q"
@@ -507,7 +507,7 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                     />
                 </div>
                 <div>
-                    <Label htmlFor="radiology-setting">Jenis layanan</Label>
+                    <Label htmlFor="radiology-setting">Care setting</Label>
                     <select
                         id="radiology-setting"
                         className={radiologyFieldClass}
@@ -520,7 +520,7 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                             })
                         }
                     >
-                        <option value="">Semua layanan</option>
+                        <option value="">All care settings</option>
                         {props.filter_options.care_settings.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -542,7 +542,7 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                             })
                         }
                     >
-                        <option value="">Semua status</option>
+                        <option value="">All statuses</option>
                         {props.filter_options.states.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -551,7 +551,7 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                     </select>
                 </div>
                 <Button type="submit" className="min-h-11" disabled={loading}>
-                    Terapkan
+                    Apply
                 </Button>
             </form>
             <div className="space-y-4">
@@ -569,7 +569,7 @@ export function RadiologyWorklist(props: RadiologyWorklistProps) {
                     <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
                         <ListChecks className="mx-auto size-8 text-slate-400" />
                         <p className="mt-3 font-semibold text-slate-800">
-                            Tidak ada permintaan pada filter ini.
+                            No requests match these filters.
                         </p>
                     </div>
                 )}

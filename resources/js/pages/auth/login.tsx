@@ -18,7 +18,7 @@ type Props = {
 export default function Login({ status, canResetPassword }: Props) {
     return (
         <>
-            <Head title="Masuk" />
+            <Head title="Sign in" />
 
             <Form
                 {...store.form()}
@@ -36,7 +36,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="email"
                                     required
                                     autoComplete="email"
-                                    placeholder="nama@contoh.invalid"
+                                    placeholder="name@example.invalid"
                                     aria-invalid={Boolean(errors.email)}
                                     aria-describedby={
                                         errors.email ? 'email-error' : undefined
@@ -53,7 +53,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                     htmlFor="password"
                                     className="col-start-1 row-start-1"
                                 >
-                                    Kata sandi
+                                    Password
                                 </Label>
                                 <div className="col-span-2 row-start-2">
                                     <PasswordInput
@@ -61,7 +61,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                         name="password"
                                         required
                                         autoComplete="current-password"
-                                        placeholder="Kata sandi"
+                                        placeholder="Password"
                                         aria-invalid={Boolean(errors.password)}
                                         aria-describedby={
                                             errors.password
@@ -75,7 +75,7 @@ export default function Login({ status, canResetPassword }: Props) {
                                         href={request()}
                                         className="col-start-2 row-start-1 text-sm"
                                     >
-                                        Lupa kata sandi?
+                                        Forgot password?
                                     </TextLink>
                                 )}
                                 <InputError
@@ -87,7 +87,7 @@ export default function Login({ status, canResetPassword }: Props) {
 
                             <div className="flex items-center space-x-3">
                                 <Checkbox id="remember" name="remember" />
-                                <Label htmlFor="remember">Ingat saya</Label>
+                                <Label htmlFor="remember">Remember me</Label>
                             </div>
 
                             <Button
@@ -97,12 +97,12 @@ export default function Login({ status, canResetPassword }: Props) {
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Masuk
+                                Sign in
                             </Button>
                         </div>
                         <p className="text-center text-xs leading-5 text-muted-foreground">
-                            Akun disediakan oleh administrator. Pendaftaran
-                            mandiri tidak tersedia.
+                            Accounts are provided by an administrator.
+                            Self-registration is not available.
                         </p>
                     </>
                 )}
@@ -118,6 +118,6 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Masuk',
-    description: 'Masuk ke SIMRS Campus UEU dengan akun yang diberikan.',
+    title: 'Sign in',
+    description: 'Sign in to SIMRS Campus UEU with your assigned account.',
 };

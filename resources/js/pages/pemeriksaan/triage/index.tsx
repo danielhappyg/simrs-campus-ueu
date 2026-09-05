@@ -8,7 +8,7 @@ export default function PemeriksaanTriageIndex(props: EmergencyWorklistProps) {
 
 PemeriksaanTriageIndex.layout = () => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
+        { title: 'Home', href: '/' },
         { title: 'Triage', href: '/pemeriksaan/triage' },
     ] satisfies BreadcrumbItem[],
 });

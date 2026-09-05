@@ -27,34 +27,39 @@ import type {
     FinanceCashierCollectionState,
     FinanceCashierCollectionWorklistProps,
 } from './cashier-collection-types';
-import { formatFinanceDate, formatRupiah } from './finance-shared';
+import {
+    formatFinanceDate,
+    formatPrintedFinanceDate,
+    formatPrintedRupiah,
+    formatRupiah,
+} from './finance-shared';
 
 const statePresentation: Record<
     FinanceCashierCollectionState,
     { label: string; className: string; icon: typeof Clock3 }
 > = {
     OPEN: {
-        label: 'Terbuka',
+        label: 'Open',
         className: 'border-sky-300 bg-sky-50 text-sky-950',
         icon: Clock3,
     },
     RECOUNT_REQUIRED: {
-        label: 'Hitung ulang diperlukan',
+        label: 'Recount required',
         className: 'border-amber-400 bg-amber-50 text-amber-950',
         icon: RefreshCcw,
     },
     AWAITING_SUPERVISOR: {
-        label: 'Menunggu verifikasi supervisor',
+        label: 'Pending supervisor verification',
         className: 'border-violet-300 bg-violet-50 text-violet-950',
         icon: ShieldCheck,
     },
     VERIFIED: {
-        label: 'Terverifikasi · belum diserahkan',
+        label: 'Verified · not yet handed over',
         className: 'border-emerald-300 bg-emerald-50 text-emerald-950',
         icon: CheckCircle2,
     },
     HANDED_OFF: {
-        label: 'Diserahkan · menunggu treasury',
+        label: 'Handed over · pending treasury receipt',
         className: 'border-[#7fbcb6] bg-[#e8f5f3] text-[#0b4147]',
         icon: HandCoins,
     },
@@ -62,9 +67,9 @@ const statePresentation: Record<
 
 const eventLabels: Record<FinanceCashierCollectionEvent['event_type'], string> =
     {
-        CLOSE_REQUESTED: 'Kasir mengajukan tutup batch',
-        RECOUNT_SUBMITTED: 'Kasir mencatat hitung ulang',
-        CLOSE_VERIFIED: 'Supervisor memverifikasi tutup batch',
+        CLOSE_REQUESTED: 'Cashier submitted batch closure',
+        RECOUNT_SUBMITTED: 'Cashier records recount',
+        CLOSE_VERIFIED: 'Supervisor verified batch closure',
     };
 
 function operationKey(operation: string): string {
@@ -144,7 +149,7 @@ function ActionUnavailable({
             />
             <div>
                 <p className="font-semibold text-slate-900">
-                    Tindakan belum tersedia
+                    Action unavailable
                 </p>
                 <p className="mt-1">{action.denial_reason}</p>
             </div>
@@ -167,10 +172,10 @@ function IntegrityAlert({ batch }: { batch: FinanceCashierCollectionBatch }) {
                 className="mt-0.5 size-6 shrink-0"
             />
             <div>
-                <p className="font-semibold">Bukti batch tidak konsisten</p>
+                <p className="font-semibold">Batch evidence is inconsistent</p>
                 <p className="mt-1 text-sm">
                     {batch.integrity.message ??
-                        'Perubahan dihentikan sampai bukti kas direkonsiliasi.'}
+                        'Changes are blocked until the cash evidence is reconciled.'}
                 </p>
             </div>
         </div>
@@ -180,7 +185,7 @@ function IntegrityAlert({ batch }: { batch: FinanceCashierCollectionBatch }) {
 function variancePresentation(value: number | null) {
     if (value === null) {
         return {
-            label: 'Belum dihitung',
+            label: 'Not yet calculated',
             amount: '—',
             className: 'border-slate-300 bg-slate-50 text-slate-700',
         };
@@ -188,14 +193,14 @@ function variancePresentation(value: number | null) {
 
     if (value === 0) {
         return {
-            label: 'Cocok',
+            label: 'Matched',
             amount: formatRupiah(0),
             className: 'border-emerald-300 bg-emerald-50 text-emerald-950',
         };
     }
 
     return {
-        label: value > 0 ? 'Selisih lebih' : 'Selisih kurang',
+        label: value > 0 ? 'Overage' : 'Shortage',
         amount: `${value > 0 ? '+' : '−'}${formatRupiah(Math.abs(value))}`,
         className: 'border-amber-400 bg-amber-50 text-amber-950',
     };
@@ -210,13 +215,13 @@ function ReconciliationStrip({
 
     return (
         <section
-            aria-label="Rekonsiliasi kas batch"
+            aria-label="Batch cash reconciliation"
             className="overflow-hidden rounded-xl border border-slate-300 bg-slate-200"
         >
             <dl className="grid gap-px sm:grid-cols-2 xl:grid-cols-5">
                 <div className="bg-white p-4">
                     <dt className="text-xs font-semibold text-slate-600">
-                        Penerimaan bruto
+                        Gross collection
                     </dt>
                     <dd className="mt-2 font-['IBM_Plex_Mono'] text-lg font-bold text-slate-950 tabular-nums">
                         {formatRupiah(batch.gross_amount)}
@@ -224,7 +229,7 @@ function ReconciliationStrip({
                 </div>
                 <div className="bg-white p-4">
                     <dt className="text-xs font-semibold text-slate-600">
-                        Pengembalian selesai
+                        Completed refunds
                     </dt>
                     <dd className="mt-2 font-['IBM_Plex_Mono'] text-lg font-bold text-slate-950 tabular-nums">
                         {formatRupiah(batch.completed_refund_amount)}
@@ -232,7 +237,7 @@ function ReconciliationStrip({
                 </div>
                 <div className="bg-[#123b5d] p-4 text-white">
                     <dt className="text-xs font-semibold text-sky-100">
-                        Kas bersih seharusnya
+                        Expected net cash
                     </dt>
                     <dd className="mt-2 font-['IBM_Plex_Mono'] text-xl font-bold tabular-nums">
                         {formatRupiah(batch.expected_net_amount)}
@@ -240,7 +245,7 @@ function ReconciliationStrip({
                 </div>
                 <div className="bg-white p-4">
                     <dt className="text-xs font-semibold text-slate-600">
-                        Kas fisik terhitung
+                        Counted physical cash
                     </dt>
                     <dd className="mt-2 font-['IBM_Plex_Mono'] text-lg font-bold text-slate-950 tabular-nums">
                         {batch.counted_amount === null
@@ -280,11 +285,11 @@ function OpenBatchForm({ action }: { action: FinanceCashierCollectionAction }) {
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Membuka batch penerimaan kas…');
+        setStatus('Opening cash collection batch…');
         form.post(action.url!, {
             preserveScroll: true,
-            onError: () => setStatus('Batch belum dapat dibuka.'),
-            onSuccess: () => setStatus('Batch penerimaan kas dibuka.'),
+            onError: () => setStatus('The batch could not be opened.'),
+            onSuccess: () => setStatus('Cash collection batch opened.'),
         });
     };
 
@@ -292,7 +297,7 @@ function OpenBatchForm({ action }: { action: FinanceCashierCollectionAction }) {
         <form onSubmit={submit} className="space-y-4">
             <ErrorSummary
                 errors={errors}
-                heading="Batch belum dapat dibuka"
+                heading="The batch could not be opened"
                 errorRef={errorRef}
             />
             <label className="flex min-h-11 items-start gap-3 rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-950">
@@ -305,8 +310,8 @@ function OpenBatchForm({ action }: { action: FinanceCashierCollectionAction }) {
                     className="mt-0.5 size-5 accent-[#0f5b62]"
                 />
                 <span>
-                    Buka satu batch baru atas nama saya. Pelunasan tunai baru
-                    akan terikat ke batch ini sampai tutup batch diajukan.
+                    Open one new batch in my name. New cash settlements will be
+                    linked to this batch until closure is submitted.
                 </span>
             </label>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -323,7 +328,7 @@ function OpenBatchForm({ action }: { action: FinanceCashierCollectionAction }) {
                     className="min-h-11 bg-[#0f5b62] px-5 hover:bg-[#0b4147]"
                 >
                     <WalletCards aria-hidden="true" className="size-4" />
-                    {form.processing ? 'Membuka…' : 'Buka Batch'}
+                    {form.processing ? 'Opening…' : 'Open Batch'}
                 </Button>
             </div>
         </form>
@@ -341,7 +346,7 @@ function CountedCashField({
 }) {
     return (
         <div>
-            <Label htmlFor={id}>Kas fisik terhitung</Label>
+            <Label htmlFor={id}>Counted physical cash</Label>
             <input
                 id={id}
                 type="number"
@@ -361,8 +366,8 @@ function CountedCashField({
                 className="mt-2 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 font-['IBM_Plex_Mono'] text-sm text-slate-950 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
             />
             <p id={`${id}-help`} className="mt-1 text-xs text-slate-600">
-                Masukkan hasil hitung fisik dalam rupiah bulat. Nilai kas
-                seharusnya dihitung oleh sistem dan tidak dapat diedit.
+                Enter the physical cash count in whole rupiah. The expected cash
+                value is calculated by the system and cannot be edited.
             </p>
         </div>
     );
@@ -397,11 +402,11 @@ function RequestCloseForm({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Membekukan keanggotaan batch…');
+        setStatus('Freezing batch membership…');
         form.post(action.url!, {
             preserveScroll: true,
-            onError: () => setStatus('Tutup batch belum dapat diajukan.'),
-            onSuccess: () => setStatus('Tutup batch diajukan.'),
+            onError: () => setStatus('Batch closure could not be submitted.'),
+            onSuccess: () => setStatus('Batch closure submitted.'),
         });
     };
 
@@ -409,7 +414,7 @@ function RequestCloseForm({
         <form onSubmit={submit} className="space-y-4">
             <ErrorSummary
                 errors={errors}
-                heading="Tutup batch belum dapat diajukan"
+                heading="Batch closure could not be submitted"
                 errorRef={errorRef}
             />
             <CountedCashField
@@ -427,9 +432,9 @@ function RequestCloseForm({
                     className="mt-0.5 size-5 accent-[#0f5b62]"
                 />
                 <span>
-                    Bekukan {batch.membership_count} kuitansi dalam batch{' '}
-                    <strong>{batch.batch_number}</strong>. Pelunasan atau
-                    pengembalian baru tidak dapat masuk setelah tahap ini.
+                    Freeze {batch.membership_count} receipts in batch{' '}
+                    <strong>{batch.batch_number}</strong>. New settlements or
+                    refunds cannot be added after this stage.
                 </span>
             </label>
             <ActionFooter
@@ -440,8 +445,8 @@ function RequestCloseForm({
                     !form.data.confirm_close
                 }
                 processing={form.processing}
-                label="Ajukan Tutup Batch"
-                processingLabel="Mengajukan…"
+                label="Submit Batch Closure"
+                processingLabel="Submitting…"
                 icon={Scale}
             />
         </form>
@@ -478,11 +483,11 @@ function RecountForm({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Mencatat hasil hitung ulang…');
+        setStatus('Recording recount result…');
         form.post(action.url!, {
             preserveScroll: true,
-            onError: () => setStatus('Hitung ulang belum dapat dicatat.'),
-            onSuccess: () => setStatus('Hasil hitung ulang dicatat.'),
+            onError: () => setStatus('The recount could not be recorded.'),
+            onSuccess: () => setStatus('Recount result recorded.'),
         });
     };
 
@@ -490,7 +495,7 @@ function RecountForm({
         <form onSubmit={submit} className="space-y-4">
             <ErrorSummary
                 errors={errors}
-                heading="Hitung ulang belum dapat dicatat"
+                heading="The recount could not be recorded"
                 errorRef={errorRef}
             />
             <CountedCashField
@@ -500,7 +505,7 @@ function RecountForm({
             />
             <div>
                 <Label htmlFor="collection-recount-explanation">
-                    Catatan hitung ulang
+                    Recount notes
                 </Label>
                 <textarea
                     id="collection-recount-explanation"
@@ -524,8 +529,8 @@ function RecountForm({
                     className="mt-0.5 size-5 accent-[#0f5b62]"
                 />
                 <span>
-                    Hasil ini adalah pengamatan baru. Catatan sebelumnya tetap
-                    tersimpan dan kas seharusnya tidak berubah.
+                    This result is a new observation. Previous notes remain
+                    stored, and the cash must not be changed.
                 </span>
             </label>
             <ActionFooter
@@ -537,8 +542,8 @@ function RecountForm({
                     !form.data.confirm_recount
                 }
                 processing={form.processing}
-                label="Catat Hitung Ulang"
-                processingLabel="Mencatat…"
+                label="Record Recount"
+                processingLabel="Recording…"
                 icon={RefreshCcw}
             />
         </form>
@@ -574,19 +579,19 @@ function ConfirmationActionForm({
         return <ActionUnavailable action={action} />;
     }
 
-    const label = isVerify ? 'Verifikasi Tutup Batch' : 'Serahkan Setoran';
+    const label = isVerify ? 'Verify Batch Closure' : 'Hand Over Deposit';
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setStatus(
             isVerify
-                ? 'Memverifikasi bukti tutup batch…'
-                : 'Mencatat penyerahan setoran…',
+                ? 'Verifying batch-closure evidence…'
+                : 'Recording handover deposit…',
         );
         form.post(action.url!, {
             preserveScroll: true,
-            onError: () => setStatus(`${label} belum dapat diselesaikan.`),
-            onSuccess: () => setStatus(`${label} dicatat.`),
+            onError: () => setStatus(`${label} could not be completed.`),
+            onSuccess: () => setStatus(`${label} recorded.`),
         });
     };
 
@@ -594,7 +599,7 @@ function ConfirmationActionForm({
         <form onSubmit={submit} className="space-y-4">
             <ErrorSummary
                 errors={errors}
-                heading={`${label} belum dapat diselesaikan`}
+                heading={`${label} could not be completed`}
                 errorRef={errorRef}
             />
             <label className="flex min-h-11 items-start gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-950">
@@ -609,18 +614,18 @@ function ConfirmationActionForm({
                 <span>
                     {isVerify ? (
                         <>
-                            Saya adalah supervisor yang berbeda dari kasir dan
-                            telah memeriksa selisih tepat{' '}
+                            I am a supervisor other than the cashier and have
+                            verified the exact variance of{' '}
                             <strong>{formatRupiah(0)}</strong>.
                         </>
                     ) : (
                         <>
-                            Serahkan tepat{' '}
+                            Hand over exactly{' '}
                             <strong>
                                 {formatRupiah(batch.expected_net_amount)}
                             </strong>{' '}
-                            berdasarkan verifikasi. Tindakan ini hanya mencatat
-                            handoff internal, bukan penerimaan treasury.
+                            based on verification. This action records only an
+                            internal handoff, not treasury collection.
                         </>
                     )}
                 </span>
@@ -630,7 +635,7 @@ function ConfirmationActionForm({
                 disabled={form.processing || !form.data.confirm_action}
                 processing={form.processing}
                 label={label}
-                processingLabel={isVerify ? 'Memverifikasi…' : 'Mencatat…'}
+                processingLabel={isVerify ? 'Verifying…' : 'Recording…'}
                 icon={isVerify ? ShieldCheck : HandCoins}
             />
         </form>
@@ -695,32 +700,32 @@ export function FinanceCashierCollectionWorklist({
                                     aria-hidden="true"
                                     className="size-5"
                                 />
-                                Kendali kas fisik per kasir
+                                Physical cash controls by cashier
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Batch Penerimaan Kas
+                                Cash Collection Batch
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
-                                Bekukan kuitansi, cocokkan kas fisik, lalu catat
-                                penyerahan internal tanpa mengklaim penerimaan
-                                treasury.
+                                Freeze receipt membership, reconcile the
+                                physical cash, and record the internal handover
+                                without claiming treasury receipt.
                             </p>
                         </div>
                         <div className="text-right text-xs text-sky-100">
                             <p className="font-semibold">
                                 {actor_role === 'cashier'
-                                    ? 'Meja kasir'
-                                    : 'Meja supervisor kasir'}
+                                    ? 'Cashier desk'
+                                    : 'Cashier supervisor desk'}
                             </p>
                             <p className="mt-1 font-['IBM_Plex_Mono']">
-                                Diperbarui {generated_at}
+                                Updated {generated_at}
                             </p>
                         </div>
                     </div>
                 </header>
 
                 <nav
-                    aria-label="Alur kerja kasir terkait"
+                    aria-label="Related cashier workflows"
                     className="flex flex-wrap gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
                 >
                     {actor_role === 'cashier' ? (
@@ -732,7 +737,7 @@ export function FinanceCashierCollectionWorklist({
                                 aria-hidden="true"
                                 className="size-4"
                             />
-                            Daftar Tagihan
+                            Bill List
                         </Link>
                     ) : null}
                     <Link
@@ -740,7 +745,7 @@ export function FinanceCashierCollectionWorklist({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <RefreshCcw aria-hidden="true" className="size-4" />
-                        Koreksi Pelunasan
+                        Settlement Correction
                     </Link>
                 </nav>
 
@@ -750,7 +755,7 @@ export function FinanceCashierCollectionWorklist({
                         className="rounded-xl border border-red-400 bg-red-50 p-5 text-sm text-red-950"
                     >
                         <p className="font-semibold">
-                            Daftar batch belum dapat dimuat lengkap
+                            The batch list could not be loaded completely
                         </p>
                         <p className="mt-1">{read_error}</p>
                     </div>
@@ -773,11 +778,11 @@ export function FinanceCashierCollectionWorklist({
                                     id="open-collection-batch-heading"
                                     className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                                 >
-                                    Batch Kasir Saat Ini
+                                    Current Cashier Batch
                                 </h2>
                                 <p className="mt-1 text-sm text-slate-600">
-                                    Server hanya mengizinkan satu batch terbuka
-                                    untuk setiap kasir.
+                                    Server only allows one batch open for each
+                                    cashier.
                                 </p>
                             </div>
                         </div>
@@ -794,23 +799,23 @@ export function FinanceCashierCollectionWorklist({
                             id="collection-worklist-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            Daftar Batch
+                            Batch List
                         </h2>
                         <p className="mt-1 text-sm text-slate-600">
-                            “Terverifikasi” belum berarti setoran telah
-                            diserahkan atau diterima treasury.
+                            “Verified” does not mean the deposit has been handed
+                            over or received treasury.
                         </p>
                     </header>
                     {batches.length ? (
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[62rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Daftar batch penerimaan kas
+                                    List batch cash collection
                                 </caption>
                                 <thead className="border-b border-slate-300 bg-slate-100 text-xs font-semibold text-slate-700">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Batch dan kasir
+                                            Batch and cashier
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
@@ -819,22 +824,22 @@ export function FinanceCashierCollectionWorklist({
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Kuitansi
+                                            Receipts
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Kas seharusnya
+                                            Cash should be
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Selisih
+                                            Variance
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tindakan
+                                            Action
                                         </th>
                                     </tr>
                                 </thead>
@@ -854,7 +859,7 @@ export function FinanceCashierCollectionWorklist({
                                                         {batch.cashier_name}
                                                     </p>
                                                     <p className="mt-1 text-xs text-slate-500">
-                                                        Dibuka{' '}
+                                                        Opened{' '}
                                                         {formatFinanceDate(
                                                             batch.opened_at,
                                                         )}
@@ -867,7 +872,8 @@ export function FinanceCashierCollectionWorklist({
                                                     {batch.integrity.status ===
                                                     'FAILED' ? (
                                                         <p className="mt-2 font-semibold text-red-700">
-                                                            Integritas gagal
+                                                            Integrity check
+                                                            failed
                                                         </p>
                                                     ) : null}
                                                 </td>
@@ -891,7 +897,7 @@ export function FinanceCashierCollectionWorklist({
                                                         href={batch.show_url}
                                                         className="inline-flex min-h-11 items-center rounded-md border border-[#0f5b62] bg-white px-4 font-semibold text-[#0f5b62] hover:bg-[#e8f5f3] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                                                     >
-                                                        Buka Batch
+                                                        Open Batch
                                                     </Link>
                                                 </td>
                                             </tr>
@@ -907,12 +913,12 @@ export function FinanceCashierCollectionWorklist({
                                 className="mx-auto size-9 text-slate-400"
                             />
                             <p className="mt-3 font-semibold text-slate-900">
-                                Belum ada batch yang dapat ditampilkan
+                                No batches to display
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
-                                Kasir dapat membuka batch jika server
-                                mengizinkan. Supervisor akan melihat batch yang
-                                menunggu pemeriksaan.
+                                Cashier can open batch if server allows.
+                                Supervisors will see batches pending
+                                examination.
                             </p>
                         </div>
                     )}
@@ -934,7 +940,7 @@ function CurrentAction({
                     url: null,
                     denial_reason:
                         batch.integrity.message ??
-                        'Bukti batch harus direkonsiliasi sebelum tindakan dilanjutkan.',
+                        'Batch evidence must be reconciled before the action can continue.',
                 }}
             />
         );
@@ -971,12 +977,10 @@ function CurrentAction({
         case 'HANDED_OFF':
             return (
                 <div className="rounded-lg border border-[#7fbcb6] bg-[#e8f5f3] p-4 text-sm text-[#0b4147]">
-                    <p className="font-semibold">
-                        Penyerahan internal tercatat
-                    </p>
+                    <p className="font-semibold">Internal handover recorded</p>
                     <p className="mt-1">
-                        Batch menunggu penerimaan treasury. Tidak ada tindakan
-                        kasir atau supervisor lanjutan dalam tahap ini.
+                        This batch is pending treasury receipt. No further
+                        cashier or supervisor action is available at this stage.
                     </p>
                     {batch.handoff ? (
                         <Link
@@ -987,7 +991,7 @@ function CurrentAction({
                                 aria-hidden="true"
                                 className="size-4"
                             />
-                            Lihat Bukti Penyerahan
+                            View Cash Handover Receipt
                         </Link>
                     ) : null}
                 </div>
@@ -1012,10 +1016,10 @@ export function FinanceCashierCollectionDetail({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <ArrowLeft aria-hidden="true" className="size-4" />
-                        Daftar Batch
+                        Batch List
                     </Link>
                     <p className="font-['IBM_Plex_Mono'] text-xs text-slate-500">
-                        Diperbarui {generated_at}
+                        Updated {generated_at}
                     </p>
                 </div>
 
@@ -1024,14 +1028,14 @@ export function FinanceCashierCollectionDetail({
                         <div>
                             <p className="text-sm font-semibold text-[#0f5b62]">
                                 {actor_role === 'cashier'
-                                    ? 'Kendali kasir'
-                                    : 'Tinjauan supervisor kasir'}
+                                    ? 'Cashier controls'
+                                    : 'Cashier supervisor review'}
                             </p>
                             <h1 className="mt-1 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold text-slate-950">
                                 {batch.batch_number}
                             </h1>
                             <p className="mt-2 text-sm text-slate-600">
-                                Kasir {batch.cashier_name} · dibuka{' '}
+                                Cashier {batch.cashier_name} · opened{' '}
                                 {formatFinanceDate(batch.opened_at)}
                             </p>
                         </div>
@@ -1045,7 +1049,7 @@ export function FinanceCashierCollectionDetail({
                         className="rounded-xl border border-red-400 bg-red-50 p-5 text-sm text-red-950"
                     >
                         <p className="font-semibold">
-                            Detail batch belum dapat dimuat lengkap
+                            Batch details could not be loaded completely
                         </p>
                         <p className="mt-1">{read_error}</p>
                     </div>
@@ -1063,19 +1067,18 @@ export function FinanceCashierCollectionDetail({
                                 id="collection-members-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                             >
-                                Kuitansi dalam Batch
+                                Receipts in Batch
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                {batch.membership_count} kuitansi terikat pada
-                                bukti batch ini.
+                                {batch.membership_count} receipts linked to this
+                                batch evidence.
                             </p>
                         </header>
                         {batch.members.length ? (
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[38rem] text-left text-sm">
                                     <caption className="sr-only">
-                                        Kuitansi anggota batch{' '}
-                                        {batch.batch_number}
+                                        Receipts in batch {batch.batch_number}
                                     </caption>
                                     <thead className="border-b border-slate-300 bg-slate-100 text-xs font-semibold text-slate-700">
                                         <tr>
@@ -1083,19 +1086,19 @@ export function FinanceCashierCollectionDetail({
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Kuitansi
+                                                Receipt
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Dikumpulkan
+                                                Collected
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3 text-right"
                                             >
-                                                Tunai
+                                                Cash
                                             </th>
                                         </tr>
                                     </thead>
@@ -1122,7 +1125,7 @@ export function FinanceCashierCollectionDetail({
                             </div>
                         ) : (
                             <p className="p-6 text-sm text-slate-600">
-                                Belum ada kuitansi tunai dalam batch ini.
+                                This batch has no cash receipts.
                             </p>
                         )}
                     </section>
@@ -1135,7 +1138,7 @@ export function FinanceCashierCollectionDetail({
                             id="collection-timeline-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            Riwayat Kendali
+                            History Controls
                         </h2>
                         {batch.events.length ? (
                             <ol className="mt-4 space-y-4">
@@ -1154,9 +1157,9 @@ export function FinanceCashierCollectionDetail({
                                             )}
                                         </p>
                                         <p className="mt-2 font-['IBM_Plex_Mono'] text-xs text-slate-600">
-                                            Hitung{' '}
+                                            Count{' '}
                                             {formatRupiah(event.counted_amount)}{' '}
-                                            · Selisih{' '}
+                                            · Variance{' '}
                                             {
                                                 variancePresentation(
                                                     event.variance_amount,
@@ -1173,8 +1176,8 @@ export function FinanceCashierCollectionDetail({
                             </ol>
                         ) : (
                             <p className="mt-3 text-sm text-slate-600">
-                                Batch masih terbuka; belum ada peristiwa tutup
-                                atau verifikasi.
+                                The batch is still open; there is no closure or
+                                verification.
                             </p>
                         )}
                     </section>
@@ -1196,11 +1199,11 @@ export function FinanceCashierCollectionDetail({
                                 id="collection-current-action-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                             >
-                                Tindakan Berikutnya
+                                Next Action
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Ketersediaan tindakan dan alasan penolakan
-                                berasal dari server.
+                                Availability action and reason denial comes from
+                                server.
                             </p>
                         </div>
                     </div>
@@ -1209,7 +1212,8 @@ export function FinanceCashierCollectionDetail({
 
                 <footer className="rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-500">
                     <p className="font-['IBM_Plex_Mono'] break-all">
-                        Bukti batch: {batch.public_id} · {batch.content_digest}
+                        Evidence batch: {batch.public_id} ·{' '}
+                        {batch.content_digest}
                     </p>
                 </footer>
             </div>
@@ -1231,7 +1235,7 @@ export function FinanceCashDepositHandoffReceiptView({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <ArrowLeft aria-hidden="true" className="size-4" />
-                        Kembali ke Batch
+                        Back to Batch
                     </Link>
                     <button
                         type="button"
@@ -1239,7 +1243,7 @@ export function FinanceCashDepositHandoffReceiptView({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#0f5b62] px-4 text-sm font-semibold text-white hover:bg-[#0b4147] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <Printer aria-hidden="true" className="size-4" />
-                        Cetak Bukti Penyerahan
+                        Print Handover Receipt
                     </button>
                 </div>
 
@@ -1340,7 +1344,7 @@ export function FinanceCashDepositHandoffReceiptView({
                                     Penerimaan bruto
                                 </dt>
                                 <dd className="mt-2 font-['IBM_Plex_Mono'] font-bold tabular-nums">
-                                    {formatRupiah(receipt.gross_amount)}
+                                    {formatPrintedRupiah(receipt.gross_amount)}
                                 </dd>
                             </div>
                             <div className="bg-white p-4">
@@ -1348,7 +1352,7 @@ export function FinanceCashDepositHandoffReceiptView({
                                     Pengembalian selesai
                                 </dt>
                                 <dd className="mt-2 font-['IBM_Plex_Mono'] font-bold tabular-nums">
-                                    {formatRupiah(
+                                    {formatPrintedRupiah(
                                         receipt.completed_refund_amount,
                                     )}
                                 </dd>
@@ -1358,7 +1362,9 @@ export function FinanceCashDepositHandoffReceiptView({
                                     Kas bersih terverifikasi
                                 </dt>
                                 <dd className="mt-2 font-['IBM_Plex_Mono'] text-xl font-bold tabular-nums">
-                                    {formatRupiah(receipt.expected_net_amount)}
+                                    {formatPrintedRupiah(
+                                        receipt.expected_net_amount,
+                                    )}
                                 </dd>
                             </div>
                             <div className="bg-emerald-50 p-4 text-emerald-950 print:bg-white print:text-black">
@@ -1366,7 +1372,9 @@ export function FinanceCashDepositHandoffReceiptView({
                                     Selisih saat verifikasi
                                 </dt>
                                 <dd className="mt-2 font-['IBM_Plex_Mono'] text-xl font-bold tabular-nums">
-                                    {formatRupiah(receipt.variance_amount)}
+                                    {formatPrintedRupiah(
+                                        receipt.variance_amount,
+                                    )}
                                 </dd>
                             </div>
                         </dl>
@@ -1382,7 +1390,9 @@ export function FinanceCashDepositHandoffReceiptView({
                                 <div>
                                     <dt className="text-slate-500">Dibuka</dt>
                                     <dd className="mt-1 font-semibold">
-                                        {formatFinanceDate(receipt.opened_at)}
+                                        {formatPrintedFinanceDate(
+                                            receipt.opened_at,
+                                        )}
                                     </dd>
                                 </div>
                                 <div>
@@ -1390,7 +1400,9 @@ export function FinanceCashDepositHandoffReceiptView({
                                         Dibekukan
                                     </dt>
                                     <dd className="mt-1 font-semibold">
-                                        {formatFinanceDate(receipt.frozen_at)}
+                                        {formatPrintedFinanceDate(
+                                            receipt.frozen_at,
+                                        )}
                                     </dd>
                                 </div>
                                 <div>
@@ -1398,7 +1410,9 @@ export function FinanceCashDepositHandoffReceiptView({
                                         Diverifikasi
                                     </dt>
                                     <dd className="mt-1 font-semibold">
-                                        {formatFinanceDate(receipt.verified_at)}
+                                        {formatPrintedFinanceDate(
+                                            receipt.verified_at,
+                                        )}
                                     </dd>
                                 </div>
                                 <div>
@@ -1406,7 +1420,7 @@ export function FinanceCashDepositHandoffReceiptView({
                                         Diserahkan
                                     </dt>
                                     <dd className="mt-1 font-semibold">
-                                        {formatFinanceDate(
+                                        {formatPrintedFinanceDate(
                                             receipt.handed_off_at,
                                         )}
                                     </dd>

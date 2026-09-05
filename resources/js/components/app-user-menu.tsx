@@ -28,7 +28,7 @@ export function AppUserMenu({ className }: Props) {
                     className,
                 )}
                 data-test="header-user-menu"
-                aria-label="Menu pengguna"
+                aria-label="User menu"
             >
                 <UserInfo user={auth.user} />
                 <ChevronsUpDown className="size-4 shrink-0 opacity-80" />

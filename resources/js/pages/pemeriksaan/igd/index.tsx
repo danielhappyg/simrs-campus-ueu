@@ -8,7 +8,7 @@ export default function PemeriksaanIgdIndex(props: EmergencyWorklistProps) {
 
 PemeriksaanIgdIndex.layout = () => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pemeriksaan IGD', href: '/pemeriksaan/igd' },
+        { title: 'Home', href: '/' },
+        { title: 'Emergency Department', href: '/pemeriksaan/igd' },
     ] satisfies BreadcrumbItem[],
 });

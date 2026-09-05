@@ -62,7 +62,7 @@ describe('application header navigation', () => {
 
         expect(
             screen.queryByRole('note', {
-                name: 'Status operasional sistem',
+                name: 'System operating status',
             }),
         ).not.toBeInTheDocument();
 
@@ -87,13 +87,13 @@ describe('application header navigation', () => {
         render(<AppHeader />);
 
         await user.click(
-            screen.getByRole('button', { name: 'Buka menu navigasi' }),
+            screen.getByRole('button', { name: 'Open navigation menu' }),
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Navigasi utama' }),
+            screen.getByRole('heading', { name: 'Main navigation' }),
         ).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Tutup' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Close' })).toBeVisible();
     });
 
     it('keeps RM active on an operational RM page', () => {
@@ -101,7 +101,7 @@ describe('application header navigation', () => {
 
         render(<AppHeader />);
 
-        const links = screen.getAllByRole('link', { name: 'RM' });
+        const links = screen.getAllByRole('link', { name: 'Medical Records' });
         expect(
             links.some((link) => link.getAttribute('aria-current') === 'page'),
         ).toBe(true);

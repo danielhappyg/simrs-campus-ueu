@@ -165,25 +165,29 @@ describe('Tarif & Komponen Biaya workspace', () => {
             />,
         );
         expect(
-            screen.getByRole('heading', { name: 'Tarif & Komponen Biaya' }),
+            screen.getByRole('heading', {
+                name: 'Tariffs & Charge Components',
+            }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(/Tarif harus ditambahkan secara sengaja/),
+            screen.getByText(/Tariffs must be added deliberately/),
         ).toBeInTheDocument();
-        expect(screen.getByText(/Tidak ada harga bawaan/)).toBeInTheDocument();
-        expect(screen.queryByText(/Rp\s?0/)).not.toBeInTheDocument();
+        expect(
+            screen.getByText(/There is no default price/),
+        ).toBeInTheDocument();
+        expect(screen.queryByText(/IDR\s?0/)).not.toBeInTheDocument();
     });
 
     it('renders semantic current-value tables, integer rupiah, history, and 44px actions', () => {
         render(<TariffMasterWorkspace {...props} />);
         expect(
             screen.getByRole('table', {
-                name: 'Daftar tarif menurut tanggal berlaku',
+                name: 'Tariffs by effective date',
             }),
         ).toBeInTheDocument();
-        expect(screen.getByText(/Rp\s?150\.000/)).toBeInTheDocument();
+        expect(screen.getByText(/IDR\s?150,000/)).toBeInTheDocument();
         const historyLink = screen.getByRole('link', {
-            name: 'Buka riwayat RJ_KONSUL',
+            name: 'Open history RJ_KONSUL',
         });
         expect(historyLink).toHaveAttribute('href', '/tariff/history');
         expect(historyLink).toHaveClass('min-h-11', 'min-w-11');
@@ -202,33 +206,32 @@ describe('Tarif & Komponen Biaya workspace', () => {
                 }}
             />,
         );
-        expect(screen.getByText('Akses lihat-saja')).toBeInTheDocument();
+        expect(screen.getByText('Read-only access')).toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: /Tambah katalog/ }),
+            screen.queryByRole('button', { name: /Add catalogue/ }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Tambah versi RJ_KONSUL' }),
+            screen.queryByRole('button', { name: 'Add version RJ_KONSUL' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.getByRole('link', { name: 'Buka riwayat RJ_KONSUL' }),
+            screen.getByRole('link', { name: 'Open history RJ_KONSUL' }),
         ).toBeInTheDocument();
     });
 
     it('opens the steward tariff form with effective date and integer rupiah controls', () => {
         render(<TariffMasterWorkspace {...props} />);
-        fireEvent.click(screen.getByRole('button', { name: /Tambah tarif/ }));
+        fireEvent.click(screen.getByRole('button', { name: /Add tariff/ }));
         const dialog = screen.getByRole('dialog');
-        expect(within(dialog).getByLabelText('Nilai rupiah')).toHaveAttribute(
-            'step',
-            '1',
-        );
-        expect(within(dialog).getByLabelText('Berlaku mulai')).toHaveAttribute(
+        expect(
+            within(dialog).getByLabelText('Amount in rupiah'),
+        ).toHaveAttribute('step', '1');
+        expect(within(dialog).getByLabelText('Effective from')).toHaveAttribute(
             'type',
             'date',
         );
-        expect(within(dialog).getByLabelText('Alasan')).toBeInTheDocument();
+        expect(within(dialog).getByLabelText('Reason')).toBeInTheDocument();
         expect(
-            within(dialog).getByRole('button', { name: 'Simpan versi' }),
+            within(dialog).getByRole('button', { name: 'Save version' }),
         ).toHaveClass('min-h-11');
         fireEvent.keyDown(dialog, { key: 'Escape' });
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -236,7 +239,7 @@ describe('Tarif & Komponen Biaya workspace', () => {
 
     it('filters by care setting and moves focus to the accessible error summary', () => {
         const { rerender } = render(<TariffMasterWorkspace {...props} />);
-        fireEvent.change(screen.getByLabelText('Filter jenis layanan'), {
+        fireEvent.change(screen.getByLabelText('Filter service type'), {
             target: { value: 'INPATIENT' },
         });
         expect(
@@ -247,10 +250,10 @@ describe('Tarif & Komponen Biaya workspace', () => {
 
         inertia.errors = { amount_rupiah: 'Nilai rupiah wajib diisi.' };
         rerender(<TariffMasterWorkspace {...props} />);
-        fireEvent.click(screen.getByRole('button', { name: /Tambah tarif/ }));
+        fireEvent.click(screen.getByRole('button', { name: /Add tariff/ }));
         fireEvent.click(
             within(screen.getByRole('dialog')).getByRole('button', {
-                name: 'Simpan versi',
+                name: 'Save version',
             }),
         );
         expect(screen.getByRole('alert')).toHaveFocus();
@@ -286,11 +289,13 @@ describe('Tarif & Komponen Biaya workspace', () => {
             />,
         );
         expect(
-            screen.getByRole('table', { name: 'Versi tetap RJ_KONSUL' }),
+            screen.getByRole('table', {
+                name: 'Immutable versions for RJ_KONSUL',
+            }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText('2026-09-01 sampai sebelum 2026-09-30'),
+            screen.getByText('2026-09-01 until before 2026-09-30'),
         ).toBeInTheDocument();
-        expect(screen.getByText(/Rp\s?100\.000/)).toBeInTheDocument();
+        expect(screen.getByText(/IDR\s?100,000/)).toBeInTheDocument();
     });
 });

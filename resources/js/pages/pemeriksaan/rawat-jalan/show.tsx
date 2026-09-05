@@ -27,8 +27,8 @@ PemeriksaanRawatJalanShow.layout = (props: Props) => {
 
     return {
         breadcrumbs: [
-            { title: 'Beranda', href: '/' },
-            { title: 'Pemeriksaan', href: indexPath },
+            { title: 'Home', href: '/' },
+            { title: 'Clinical Care', href: indexPath },
             {
                 title: props.encounter.patient.full_name ?? 'Detail',
                 href: `${indexPath}/${props.encounter.public_id}`,

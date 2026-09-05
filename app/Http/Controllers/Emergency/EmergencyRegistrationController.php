@@ -201,7 +201,7 @@ class EmergencyRegistrationController extends Controller
         ]);
 
         if (array_key_exists('is_synthetic', $validated) && $validated['is_synthetic'] === false) {
-            abort(422, 'Hanya pasien sintetis yang diizinkan.');
+            abort(422, 'Only synthetic patient records are permitted.');
         }
 
         $clinic = Clinic::query()
@@ -236,7 +236,7 @@ class EmergencyRegistrationController extends Controller
                     ->firstOrFail();
 
                 if (! $patient->is_synthetic) {
-                    abort(422, 'Hanya pasien sintetis yang diizinkan.');
+                    abort(422, 'Only synthetic patient records are permitted.');
                 }
 
                 $patient->fill($this->patientUpdatableAttributes($validated))->save();
@@ -312,14 +312,14 @@ class EmergencyRegistrationController extends Controller
                 ],
             );
 
-            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+            abort_if($event === null, 503, 'The action could not be completed because its audit record could not be saved.');
 
             return $created;
         }, 3);
 
         return redirect()
             ->route('pendaftaran.igd.index')
-            ->with('success', 'Pendaftaran IGD berhasil.')
+            ->with('success', 'Emergency registration completed.')
             ->with('last_encounter_public_id', $encounter->public_id);
     }
 

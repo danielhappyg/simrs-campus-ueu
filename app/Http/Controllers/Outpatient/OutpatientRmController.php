@@ -135,9 +135,9 @@ class OutpatientRmController extends Controller
                         'completeness' => [
                             'state' => $state,
                             'label' => match ($state) {
-                                'COMPLETE' => 'Lengkap',
-                                'INCOMPLETE' => 'Belum lengkap',
-                                default => 'Belum diperiksa',
+                                'COMPLETE' => 'Complete',
+                                'INCOMPLETE' => 'Incomplete',
+                                default => 'Not reviewed',
                             },
                             'review_url' => route('rm.rawat-jalan.show', $encounter),
                         ],
@@ -157,9 +157,9 @@ class OutpatientRmController extends Controller
             'encounters' => $encounters,
             'clinics' => $clinics,
             'payerOptions' => [
-                ['value' => Encounter::PAYER_UMUM, 'label' => 'Umum'],
+                ['value' => Encounter::PAYER_UMUM, 'label' => 'Self-pay'],
                 ['value' => Encounter::PAYER_BPJS, 'label' => 'BPJS'],
-                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Lainnya'],
+                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Other'],
             ],
             'filters' => ['q' => $q, 'clinic' => $clinic, 'payer' => $payer, 'date_from' => $dateFrom, 'date_to' => $dateTo],
         ]);
@@ -205,8 +205,8 @@ class OutpatientRmController extends Controller
                 ->whereIn('item_code', $snapshot['blockers'])
                 ->map(fn (array $item): array => [
                     'code' => $item['item_code'],
-                    'label' => $item['label'],
-                    'reason' => 'Sumber yang diwajibkan belum lengkap atau masih aktif.',
+                    'label' => __($item['label']),
+                    'reason' => 'A required source is incomplete or still active.',
                 ])->values()->all();
         }
         $user = $request->user();
@@ -280,7 +280,7 @@ class OutpatientRmController extends Controller
             $validated['source_fingerprint'],
         );
 
-        return redirect()->route('rm.rawat-jalan.show', $encounter)->with('success', 'Pemeriksaan kelengkapan disimpan.');
+        return redirect()->route('rm.rawat-jalan.show', $encounter)->with('success', 'Completeness review saved.');
     }
 
     public function signoff(Request $request, Encounter $encounter): RedirectResponse
@@ -294,7 +294,7 @@ class OutpatientRmController extends Controller
         assert($user !== null);
         $this->completenessService->signoff($encounter, $user, (int) $validated['expected_version'], $validated['source_fingerprint']);
 
-        return redirect()->route('rm.rawat-jalan.show', $encounter)->with('success', 'Kelengkapan RM ditandatangani dan kunjungan ditutup.');
+        return redirect()->route('rm.rawat-jalan.show', $encounter)->with('success', 'Medical-record completeness signed off and visit closed.');
     }
 
     /** @param array{source_fingerprint: string, items: list<array{item_code: string, label: string, is_blocking: bool, is_complete: bool, source_reference: string|null}>, blockers: list<string>} $snapshot
@@ -306,9 +306,9 @@ class OutpatientRmController extends Controller
             && hash_equals($review->source_fingerprint, $snapshot['source_fingerprint']);
         $items = collect($snapshot['items'])->map(fn (array $item): array => [
             'code' => $item['item_code'],
-            'label' => $item['label'],
+            'label' => __($item['label']),
             'status' => $item['is_complete'] ? 'PASS' : 'FAIL',
-            'reason' => $item['is_complete'] ? null : 'Sumber belum lengkap.',
+            'reason' => $item['is_complete'] ? null : 'Source is incomplete.',
         ])->all();
 
         return [
@@ -335,7 +335,7 @@ class OutpatientRmController extends Controller
     {
         $storedItems = $review->items->map(fn ($item): array => [
             'item_code' => $item->item_code,
-            'label' => $item->label,
+            'label' => __($item->label),
             'is_blocking' => $item->is_blocking,
             'is_complete' => $item->is_complete,
             'source_reference' => $item->source_reference,
@@ -349,9 +349,9 @@ class OutpatientRmController extends Controller
             'source_fingerprint' => $review->source_fingerprint,
             'checklist_items' => $review->items->map(fn ($item): array => [
                 'code' => $item->item_code,
-                'label' => $item->label,
+                'label' => __($item->label),
                 'status' => $item->is_complete ? 'PASS' : 'FAIL',
-                'reason' => $item->is_complete ? null : 'Sumber belum lengkap saat sign-off.',
+                'reason' => $item->is_complete ? null : 'Source was incomplete at sign-off.',
             ])->values()->all(),
             'state' => $review->review_state,
             'items' => $storedItems,
@@ -371,8 +371,8 @@ class OutpatientRmController extends Controller
             if ($item->is_blocking && ! $item->is_complete) {
                 $blockers[] = [
                     'code' => $item->item_code,
-                    'label' => $item->label,
-                    'reason' => 'Item belum lengkap pada pemeriksaan tersimpan.',
+                    'label' => __($item->label),
+                    'reason' => 'Item was incomplete in the saved review.',
                 ];
             }
         }

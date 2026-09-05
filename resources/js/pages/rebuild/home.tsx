@@ -77,34 +77,34 @@ type ServiceDefinition = {
 const services: readonly ServiceDefinition[] = [
     {
         key: 'rawat_jalan',
-        shortLabel: 'RJ',
-        label: 'Rawat Jalan',
-        scopeLabel: 'Aktif dan terdaftar hari ini',
+        shortLabel: 'OPD',
+        label: 'Outpatient',
+        scopeLabel: 'Active and registered today',
         accent: 'bg-[#1b75bc]',
         icon: Activity,
     },
     {
         key: 'igd',
-        shortLabel: 'IGD',
-        label: 'Instalasi Gawat Darurat',
-        scopeLabel: 'Aktif dan terdaftar hari ini',
+        shortLabel: 'ED',
+        label: 'Emergency Department',
+        scopeLabel: 'Active and registered today',
         accent: 'bg-[#f26a1b]',
         icon: HeartPulse,
     },
     {
         key: 'rawat_inap',
-        shortLabel: 'RI',
-        label: 'Rawat Inap',
-        scopeLabel: 'Seluruh episode yang masih aktif',
+        shortLabel: 'IPD',
+        label: 'Inpatient',
+        scopeLabel: 'All currently active episodes',
         accent: 'bg-[#0f766e]',
         icon: Building2,
     },
 ] as const;
 
 const statusChips = [
-    { key: 'registered', label: 'Terdaftar' },
-    { key: 'in_examination', label: 'Diperiksa' },
-    { key: 'ready_for_rm', label: 'Siap RM' },
+    { key: 'registered', label: 'Registered' },
+    { key: 'in_examination', label: 'In care' },
+    { key: 'ready_for_rm', label: 'Ready for records review' },
 ] as const;
 
 const tonePlate: Record<QueueTone, string> = {
@@ -125,9 +125,20 @@ const queueIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
     'queue.occupancy': BedDouble,
 };
 
+const queueCopy: Record<string, Pick<DeskQueue, 'label' | 'hint'>> = {
+    'queue.in_exam.rj': {
+        label: 'Outpatient examination',
+        hint: 'Clinic visits currently being seen.',
+    },
+    'queue.occupancy': {
+        label: 'Bed census',
+        hint: 'Occupied beds in managed wards.',
+    },
+};
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Beranda',
+        title: 'Home',
         href: '/',
     },
 ];
@@ -181,16 +192,16 @@ export default function RebuildHome({
 
     return (
         <>
-            <Head title="Meja Kerja" />
+            <Head title="Work desk" />
 
             <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
                 <header className="grid gap-4 border-b border-[#dbe5ee] pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                     <div className="space-y-1.5">
                         <h1 className="max-w-3xl font-display text-3xl font-semibold tracking-tight text-[#0f2942] md:text-4xl">
-                            Meja kerja hari ini
+                            Today’s work desk
                         </h1>
                         <p className="max-w-2xl text-base leading-relaxed text-[#52677b]">
-                            Ringkasan layanan dan antrian kerja hari ini.
+                            Today’s service summary and work queues.
                         </p>
                     </div>
                     <p className="inline-flex w-fit items-center gap-2 rounded-full border border-[#b8d7ee] bg-[#eef7fd] px-3 py-1.5 text-xs font-semibold text-[#123b63]">
@@ -198,7 +209,7 @@ export default function RebuildHome({
                             aria-hidden="true"
                             className="size-2 rounded-full bg-[#179c78]"
                         />
-                        Data operasional
+                        Operational data
                     </p>
                 </header>
 
@@ -227,11 +238,11 @@ export default function RebuildHome({
                                 id="service-flow-heading"
                                 className="text-xl font-semibold text-[#0f2942]"
                             >
-                                Arus layanan
+                                Care flow
                             </h2>
                             <p className="mt-1 text-sm text-[#64788a]">
-                                RJ dan IGD hari ini; RI mencakup seluruh episode
-                                yang masih aktif.
+                                Outpatient and emergency visits today; inpatient
+                                covers all currently active episodes.
                             </p>
                         </div>
 
@@ -287,7 +298,7 @@ export default function RebuildHome({
                                         <p className="font-display text-3xl leading-none font-semibold text-[#0f2942] tabular-nums sm:text-right">
                                             {formatCount(setting.total_active)}
                                             <span className="ml-1.5 text-xs font-normal text-[#64788a]">
-                                                aktif
+                                                active
                                             </span>
                                         </p>
 
@@ -327,21 +338,23 @@ export default function RebuildHome({
                                     id="queues-heading"
                                     className="text-xl font-semibold text-[#0f2942]"
                                 >
-                                    Antrian kerja
+                                    Work queues
                                 </h2>
                                 <p className="mt-0.5 text-sm text-[#64788a]">
-                                    Diurutkan sesuai fokus akses Anda.
+                                    Prioritized for your role.
                                 </p>
                             </div>
                         </div>
 
                         {queues.length === 0 ? (
                             <p className="rounded-xl border border-[#e2e8f0] bg-white px-4 py-5 text-sm text-[#64788a]">
-                                Tidak ada antrian kerja untuk akses akun ini.
+                                No work queues are available for this account.
                             </p>
                         ) : (
                             <ul className="overflow-hidden rounded-xl border border-[#dbe5ee] bg-white shadow-[0_8px_24px_rgba(15,41,66,0.04)]">
                                 {queues.map((queue) => {
+                                    const displayQueue =
+                                        queueCopy[queue.id] ?? queue;
                                     const QueueIcon =
                                         queueIcons[queue.id] ?? ClipboardList;
 
@@ -352,7 +365,7 @@ export default function RebuildHome({
                                         >
                                             <Link
                                                 href={queue.href}
-                                                aria-label={`${queue.label}: ${formatCount(queue.count)}`}
+                                                aria-label={`${displayQueue.label}: ${formatCount(queue.count)}`}
                                                 className={`group grid min-h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3.5 py-3 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none focus-visible:ring-inset ${
                                                     queue.priority
                                                         ? 'bg-[#123b63] text-white hover:bg-[#0f3152]'
@@ -373,11 +386,11 @@ export default function RebuildHome({
                                                 <span className="min-w-0">
                                                     <span className="flex flex-wrap items-center gap-2">
                                                         <span className="text-sm font-semibold">
-                                                            {queue.label}
+                                                            {displayQueue.label}
                                                         </span>
                                                         {queue.priority ? (
                                                             <span className="rounded-full bg-white/14 px-2 py-0.5 text-[0.65rem] font-semibold text-white">
-                                                                Meja utama
+                                                                Main desk
                                                             </span>
                                                         ) : null}
                                                     </span>
@@ -388,7 +401,7 @@ export default function RebuildHome({
                                                                 : 'text-[#64788a]'
                                                         }`}
                                                     >
-                                                        {queue.hint}
+                                                        {displayQueue.hint}
                                                     </span>
                                                 </span>
                                                 <span
@@ -403,7 +416,7 @@ export default function RebuildHome({
                                                         className="size-4"
                                                     />
                                                     <span className="sr-only">
-                                                        Buka meja
+                                                        Open desk
                                                     </span>
                                                 </span>
                                             </Link>
@@ -433,10 +446,10 @@ export default function RebuildHome({
                                         id="occupancy-heading"
                                         className="text-xl font-semibold text-[#0f2942]"
                                     >
-                                        Hunian rawat inap
+                                        Inpatient occupancy
                                     </h2>
                                     <p className="mt-0.5 text-sm text-[#64788a]">
-                                        Kapasitas bangsal yang dikelola sistem.
+                                        Ward capacity managed by the system.
                                     </p>
                                 </div>
                             </div>
@@ -456,7 +469,7 @@ export default function RebuildHome({
                                 <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
                                     <div>
                                         <dt className="text-xs text-[#64788a]">
-                                            Bangsal aktif
+                                            Active wards
                                         </dt>
                                         <dd className="mt-1 text-2xl font-semibold text-[#0f2942] tabular-nums">
                                             {occupancy.totals.active_wards}
@@ -464,7 +477,7 @@ export default function RebuildHome({
                                     </div>
                                     <div>
                                         <dt className="text-xs text-[#64788a]">
-                                            Tempat tidur aktif
+                                            Active beds
                                         </dt>
                                         <dd className="mt-1 text-2xl font-semibold text-[#0f2942] tabular-nums">
                                             {occupancy.totals.active_beds}
@@ -472,7 +485,7 @@ export default function RebuildHome({
                                     </div>
                                     <div>
                                         <dt className="text-xs text-[#64788a]">
-                                            Terisi
+                                            Occupied
                                         </dt>
                                         <dd className="mt-1 text-2xl font-semibold text-[#b45309] tabular-nums">
                                             {occupancy.totals.occupied_beds}
@@ -480,7 +493,7 @@ export default function RebuildHome({
                                     </div>
                                     <div>
                                         <dt className="text-xs text-[#64788a]">
-                                            Tersedia
+                                            Available
                                         </dt>
                                         <dd className="mt-1 text-2xl font-semibold text-[#0f766e] tabular-nums">
                                             {occupancy.totals.available_beds}
@@ -498,10 +511,10 @@ export default function RebuildHome({
                             id="modules-heading"
                             className="mb-3 text-xl font-semibold text-[#0f2942]"
                         >
-                            Pintasan modul
+                            Module shortcuts
                         </h2>
                         <nav
-                            aria-label="Pintasan modul beranda"
+                            aria-label="Home module shortcuts"
                             className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
                         >
                             {moduleActions.map((action) => (

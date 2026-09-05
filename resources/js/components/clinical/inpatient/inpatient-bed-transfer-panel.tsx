@@ -109,11 +109,14 @@ export function InpatientBedTransferPanel({
         const reasonLength = [...form.data.reason.trim()].length;
 
         if (!selectedTargetBedPublicId) {
-            form.setError('target_bed_public_id', 'Pilih tempat tidur tujuan.');
+            form.setError('target_bed_public_id', 'Select a destination bed.');
         }
 
         if (reasonLength < 5 || reasonLength > 500) {
-            form.setError('reason', 'Alasan harus berisi 5–500 karakter.');
+            form.setError(
+                'reason',
+                'The reason must contain 5–500 characters.',
+            );
         }
 
         if (
@@ -142,7 +145,7 @@ export function InpatientBedTransferPanel({
         <div className="mt-4 border-t border-sidebar-border pt-4">
             <p className="sr-only" aria-live="polite">
                 {targetWasRemoved
-                    ? 'Pilihan tempat tidur dibersihkan karena tidak lagi tersedia.'
+                    ? 'The bed selection was cleared because it is no longer available.'
                     : ''}
             </p>
             <Button
@@ -157,9 +160,7 @@ export function InpatientBedTransferPanel({
             >
                 <span className="inline-flex items-center gap-2">
                     <ArrowRightLeft aria-hidden="true" className="size-4" />
-                    {open
-                        ? 'Sembunyikan formulir transfer'
-                        : 'Pindahkan tempat tidur'}
+                    {open ? 'Hide transfer form' : 'Transfer Bed'}
                 </span>
                 <ChevronDown
                     aria-hidden="true"
@@ -169,18 +170,17 @@ export function InpatientBedTransferPanel({
 
             {disabledByUnsavedDocument ? (
                 <p className="mt-2 text-xs leading-5 opacity-80">
-                    Simpan atau batalkan perubahan dokumen harian sebelum
-                    memindahkan tempat tidur.
+                    Save or discard daily-document changes before transferring
+                    the bed.
                 </p>
             ) : !action.allowed ? (
                 <p className="mt-2 text-xs leading-5 opacity-80">
-                    Transfer tidak tersedia untuk status atau penempatan episode
-                    ini.
+                    Transfer is unavailable for the current episode status or
+                    placement.
                 </p>
             ) : action.target_beds.length === 0 ? (
                 <p className="mt-2 text-xs leading-5 opacity-80">
-                    Belum ada tempat tidur aktif yang tersedia pada kelas yang
-                    sama.
+                    No active bed is available in the same service class.
                 </p>
             ) : null}
 
@@ -192,7 +192,7 @@ export function InpatientBedTransferPanel({
                     className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                 >
                     <p className="font-semibold">
-                        Transfer belum dapat disimpan
+                        The transfer could not be saved
                     </p>
                     <ul className="mt-1 list-disc space-y-1 pl-5 text-xs">
                         {errors.map(([key, message]) => (
@@ -211,25 +211,25 @@ export function InpatientBedTransferPanel({
                     <div className="flex items-start justify-between gap-3">
                         <div>
                             <h2 className="text-sm font-semibold">
-                                Transfer tempat tidur
+                                Bed Transfer
                             </h2>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                Hanya tempat tidur aktif, tersedia, dan sekelas
-                                yang ditampilkan.
+                                Only active, available beds in the same class
+                                are shown.
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={close}
                             className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                            aria-label="Tutup formulir transfer"
+                            aria-label="Close transfer form"
                         >
                             <X aria-hidden="true" className="size-4" />
                         </button>
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="target-bed">Tempat tidur tujuan</Label>
+                        <Label htmlFor="target-bed">Destination bed</Label>
                         <select
                             id="target-bed"
                             value={selectedTargetBedPublicId}
@@ -245,7 +245,7 @@ export function InpatientBedTransferPanel({
                                 form.errors.target_bed_public_id,
                             )}
                         >
-                            <option value="">Pilih tempat tidur</option>
+                            <option value="">Select a bed</option>
                             {groups.map((beds) => (
                                 <optgroup
                                     key={beds[0].ward_public_id}
@@ -268,7 +268,7 @@ export function InpatientBedTransferPanel({
                     <div className="space-y-1.5">
                         <div className="flex items-end justify-between gap-3">
                             <Label htmlFor="transfer-reason">
-                                Alasan transfer
+                                Transfer reason
                             </Label>
                             <span className="text-[0.7rem] text-muted-foreground">
                                 {[...form.data.reason].length}/500
@@ -291,7 +291,7 @@ export function InpatientBedTransferPanel({
                             id="transfer-reason-help"
                             className="text-xs leading-5 text-muted-foreground"
                         >
-                            Tulis alasan operasional yang jelas, 5–500 karakter.
+                            Enter a clear operational reason, 5–500 characters.
                         </p>
                     </div>
 
@@ -302,16 +302,14 @@ export function InpatientBedTransferPanel({
                             className="min-h-11"
                             onClick={close}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
                             className="min-h-11"
                             disabled={form.processing}
                         >
-                            {form.processing
-                                ? 'Memindahkan…'
-                                : 'Pindahkan tempat tidur'}
+                            {form.processing ? 'Memindahkan…' : 'Transfer Bed'}
                         </Button>
                     </div>
                 </form>

@@ -50,7 +50,7 @@ final class PharmacyMasterController extends Controller
         $data = $this->medicineData($request, true);
         $this->run(fn () => $this->masters->reviseMedicine($medicine, $actor, $data['expected_version'], $data, $data['idempotency_key']));
 
-        return back()->with('success', 'Versi master obat diperbarui.');
+        return back()->with('success', 'Medicine master version updated.');
     }
 
     public function retireMedicine(Request $request, string $medicine): RedirectResponse
@@ -78,7 +78,7 @@ final class PharmacyMasterController extends Controller
         $data = $this->depotData($request, true);
         $this->run(fn () => $this->masters->reviseDepot($depot, $actor, $data['expected_version'], $data, $data['idempotency_key']));
 
-        return back()->with('success', 'Versi depo diperbarui.');
+        return back()->with('success', 'Depot version updated.');
     }
 
     public function retireDepot(Request $request, string $depot): RedirectResponse
@@ -195,10 +195,10 @@ final class PharmacyMasterController extends Controller
         try {
             $operation();
         } catch (PharmacyDenied $denial) {
-            throw ValidationException::withMessages(['pharmacy' => $denial->getMessage()]);
+            throw ValidationException::withMessages(['pharmacy' => __($denial->getMessage())]);
         } catch (PharmacyAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit Apotek belum tersedia.');
+            abort(503, 'Pharmacy audit recording is unavailable.');
         }
     }
 }

@@ -244,7 +244,7 @@ describe('registration encounter cancellation UI', () => {
         renderOutpatient(registeredOutpatient, false);
 
         expect(
-            screen.queryByRole('button', { name: /Batalkan kunjungan/ }),
+            screen.queryByRole('button', { name: /Cancel visit/ }),
         ).not.toBeInTheDocument();
     });
 
@@ -252,34 +252,34 @@ describe('registration encounter cancellation UI', () => {
         const user = userEvent.setup();
         const { container } = renderOutpatient();
         const trigger = screen.getByRole('button', {
-            name: 'Batalkan kunjungan Pasien Rawat Jalan Sintetis',
+            name: 'Cancel visit for Pasien Rawat Jalan Sintetis',
         });
 
         await user.click(trigger);
 
         const dialog = screen.getByRole('dialog', {
-            name: 'Batalkan kunjungan sebelum pelayanan?',
+            name: 'Cancel this visit before care begins?',
         });
         expect(dialog).toHaveTextContent('Poli Umum');
-        expect(dialog).toHaveTextContent('Antrian 007');
+        expect(dialog).toHaveTextContent('Queue 007');
         expect(dialog).toHaveTextContent(
-            'Nomor antrian dan data pendaftaran tetap tersimpan dalam riwayat.',
+            'The queue number and registration data remain recorded in the visit history.',
         );
 
         const reason = within(dialog).getByRole('combobox', {
-            name: 'Alasan pembatalan',
+            name: 'Cancellation reason',
         });
         expect(within(reason).getAllByRole('option')).toHaveLength(5);
         await user.selectOptions(reason, 'DUPLIKAT_KUNJUNGAN');
         await user.type(
             within(dialog).getByRole('textbox', {
-                name: /Catatan pembatalan/,
+                name: /Cancellation note/,
             }),
             'Duplikat ditemukan sebelum pelayanan.',
         );
         await user.click(
             within(dialog).getByRole('button', {
-                name: 'Batalkan Kunjungan',
+                name: 'Cancel visit',
             }),
         );
 
@@ -303,38 +303,38 @@ describe('registration encounter cancellation UI', () => {
     it('associates server validation errors inside the dialog', async () => {
         const user = userEvent.setup();
         inertiaMock.cancellationErrors = {
-            reason_code: 'Alasan pembatalan wajib dipilih.',
+            reason_code: 'A cancellation reason is required.',
         };
         renderOutpatient();
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Batalkan kunjungan Pasien Rawat Jalan Sintetis',
+                name: 'Cancel visit for Pasien Rawat Jalan Sintetis',
             }),
         );
         const dialog = screen.getByRole('dialog');
         await user.selectOptions(
             within(dialog).getByRole('combobox', {
-                name: 'Alasan pembatalan',
+                name: 'Cancellation reason',
             }),
             'SALAH_PENDAFTARAN',
         );
         await user.click(
             within(dialog).getByRole('button', {
-                name: 'Batalkan Kunjungan',
+                name: 'Cancel visit',
             }),
         );
 
         expect(
             within(dialog).getByRole('combobox', {
-                name: 'Alasan pembatalan',
+                name: 'Cancellation reason',
             }),
         ).toHaveAttribute('aria-invalid', 'true');
         expect(
-            within(dialog).getByText('Alasan pembatalan wajib dipilih.'),
+            within(dialog).getByText('A cancellation reason is required.'),
         ).toHaveAttribute('id', 'cancellation-reason-error');
         expect(within(dialog).getByRole('alert')).toHaveTextContent(
-            'Pembatalan belum dapat disimpan.',
+            'The cancellation could not be saved.',
         );
     });
 
@@ -342,31 +342,31 @@ describe('registration encounter cancellation UI', () => {
         const user = userEvent.setup();
         inertiaMock.cancellationErrors = {
             cancellation:
-                'Hanya kunjungan yang masih terdaftar dan belum menerima pelayanan yang dapat dibatalkan.',
+                'Only registered visits that have not received care can be cancelled.',
         };
         renderOutpatient();
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Batalkan kunjungan Pasien Rawat Jalan Sintetis',
+                name: 'Cancel visit for Pasien Rawat Jalan Sintetis',
             }),
         );
         const dialog = screen.getByRole('dialog');
         await user.selectOptions(
             within(dialog).getByRole('combobox', {
-                name: 'Alasan pembatalan',
+                name: 'Cancellation reason',
             }),
             'SALAH_PENDAFTARAN',
         );
         await user.click(
             within(dialog).getByRole('button', {
-                name: 'Batalkan Kunjungan',
+                name: 'Cancel visit',
             }),
         );
 
         expect(screen.getByRole('dialog')).toBeInTheDocument();
         expect(within(dialog).getByRole('alert')).toHaveTextContent(
-            'Hanya kunjungan yang masih terdaftar dan belum menerima pelayanan yang dapat dibatalkan.',
+            'Only registered visits that have not received care can be cancelled.',
         );
     });
 
@@ -383,30 +383,30 @@ describe('registration encounter cancellation UI', () => {
         });
 
         const register = screen.getByRole('table', {
-            name: 'Daftar pendaftaran rawat inap',
+            name: 'Inpatient registration list',
         });
-        expect(screen.getByText('Dibatalkan')).toBeInTheDocument();
+        expect(screen.getByText('Cancelled')).toBeInTheDocument();
         expect(within(register).getByText('ANG-101-A')).toBeInTheDocument();
         expect(
-            screen.getByText('Pasien tidak melanjutkan'),
+            screen.getByText('Patient did not continue'),
         ).toBeInTheDocument();
         expect(
             screen.getByText('Petugas Registrasi', { exact: false }),
         ).toBeInTheDocument();
         expect(
             screen.getByText(
-                'Tempat tidur tersedia kembali; riwayat penempatan tetap disimpan.',
+                'The bed is available again; placement history remains recorded.',
             ),
         ).toBeInTheDocument();
         expect(
-            screen.queryByRole('link', { name: /Buka pemeriksaan/ }),
+            screen.queryByRole('link', { name: /Open clinical care/ }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('link', { name: /Cetak/ }),
+            screen.queryByRole('link', { name: /Print/ }),
         ).not.toBeInTheDocument();
         expect(
             screen.getByRole('button', {
-                name: 'Batalkan kunjungan Pasien Rawat Inap Sintetis',
+                name: 'Cancel visit for Pasien Rawat Inap Sintetis',
             }),
         ).toBeDisabled();
     });
@@ -417,23 +417,23 @@ describe('registration encounter cancellation UI', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Batalkan kunjungan Pasien Rawat Inap Sintetis',
+                name: 'Cancel visit for Pasien Rawat Inap Sintetis',
             }),
         );
         const dialog = screen.getByRole('dialog');
         expect(dialog).toHaveTextContent('Bangsal Anggrek · ANG-101-A');
         expect(dialog).toHaveTextContent(
-            'Tempat tidur tersedia kembali setelah pembatalan berhasil.',
+            'The bed becomes available after the cancellation is successful.',
         );
         await user.selectOptions(
             within(dialog).getByRole('combobox', {
-                name: 'Alasan pembatalan',
+                name: 'Cancellation reason',
             }),
             'PERUBAHAN_RENCANA_SEBELUM_PELAYANAN',
         );
         await user.click(
             within(dialog).getByRole('button', {
-                name: 'Batalkan Kunjungan',
+                name: 'Cancel visit',
             }),
         );
 

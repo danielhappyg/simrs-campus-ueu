@@ -177,13 +177,12 @@ describe('inpatient RMIK workspace', () => {
     it('offers only RMIK worklist filters and links to the inpatient review', () => {
         render(<RmRawatInap inpatient_rm={indexData} />);
         expect(
-            screen.getByRole('link', { name: 'Rawat Jalan' }),
+            screen.getByRole('link', { name: 'Outpatient Care' }),
         ).toHaveAttribute('href', '/rm/rawat-jalan');
-        expect(screen.getByRole('link', { name: 'Tinjau RM' })).toHaveAttribute(
-            'href',
-            '/rm/rawat-inap/episode-1',
-        );
-        expect(screen.getByLabelText('Bangsal terakhir')).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'Review medical record' }),
+        ).toHaveAttribute('href', '/rm/rawat-inap/episode-1');
+        expect(screen.getByLabelText('Last ward')).toBeInTheDocument();
         expect(
             screen.queryByText(/status klaim|kelas perawatan/i),
         ).not.toBeInTheDocument();
@@ -227,24 +226,24 @@ describe('inpatient RMIK workspace', () => {
         render(<RmRawatInapShow inpatient_rm={detailData} />);
         expect(
             screen.getByRole('complementary', {
-                name: 'Sumber klinis hanya-baca',
+                name: 'Read-only clinical source',
             }),
         ).toHaveTextContent('Gastroenteritis akut');
         expect(
-            screen.getByText(/bukan pencarian katalog kode/i),
+            screen.getByText(/not a code catalogue search/i),
         ).toBeInTheDocument();
         expect(
-            screen.getByText('Tidak ada pernyataan sumber untuk kategori ini.'),
+            screen.getByText('No source statement for this category.'),
         ).toBeInTheDocument();
-        expect(screen.getAllByLabelText('Masukkan kode')).toHaveLength(2);
-        expect(screen.getAllByLabelText('Masukkan kode')[0]).toHaveValue('A09');
-        await user.type(screen.getAllByLabelText('Masukkan kode')[1], 'E86');
+        expect(screen.getAllByLabelText('Enter code')).toHaveLength(2);
+        expect(screen.getAllByLabelText('Enter code')[0]).toHaveValue('A09');
+        await user.type(screen.getAllByLabelText('Enter code')[1], 'E86');
         await user.type(
-            screen.getAllByLabelText('Keterangan kode')[1],
+            screen.getAllByLabelText('Code description')[1],
             'Dehidrasi',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf pengodean' }),
+            screen.getByRole('button', { name: 'Save coding draft' }),
         );
         expect(submissions).toHaveLength(1);
         expect(submissions[0].url).toBe(
@@ -268,7 +267,7 @@ describe('inpatient RMIK workspace', () => {
         );
 
         await user.click(
-            screen.getByRole('button', { name: 'Simpan hasil review' }),
+            screen.getByRole('button', { name: 'Save review result' }),
         );
         expect(submissions[1]).toMatchObject({
             url: '/rm/rawat-inap/episode-1/review',
@@ -288,24 +287,24 @@ describe('inpatient RMIK workspace', () => {
         render(<RmRawatInapShow inpatient_rm={detailData} />);
 
         const signoff = screen.getByRole('button', {
-            name: 'Sign-off RM dan tutup episode',
+            name: 'Medical-record sign-off and close episode',
         });
         expect(signoff).toBeDisabled();
-        await user.type(screen.getAllByLabelText('Masukkan kode')[1], 'E86');
+        await user.type(screen.getAllByLabelText('Enter code')[1], 'E86');
         await user.type(
-            screen.getAllByLabelText('Keterangan kode')[1],
+            screen.getAllByLabelText('Code description')[1],
             'Dehidrasi',
         );
         expect(signoff).toBeDisabled();
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf pengodean' }),
+            screen.getByRole('button', { name: 'Save coding draft' }),
         );
         expect(signoff).toBeEnabled();
         await user.click(signoff);
         expect(submissions).toHaveLength(1);
         await user.click(
             screen.getByRole('button', {
-                name: 'Ya, sign-off RM dan tutup episode',
+                name: 'Yes, sign off and close episode',
             }),
         );
         expect(submissions[1]).toMatchObject({
@@ -353,14 +352,14 @@ describe('inpatient RMIK workspace', () => {
         rerender(<RmRawatInapShow inpatient_rm={refreshed} />);
 
         await waitFor(() =>
-            expect(screen.getAllByLabelText('Masukkan kode')[1]).toHaveValue(
+            expect(screen.getAllByLabelText('Enter code')[1]).toHaveValue(
                 'E86',
             ),
         );
-        await user.clear(screen.getAllByLabelText('Masukkan kode')[0]);
-        await user.type(screen.getAllByLabelText('Masukkan kode')[0], 'A09.9');
+        await user.clear(screen.getAllByLabelText('Enter code')[0]);
+        await user.type(screen.getAllByLabelText('Enter code')[0], 'A09.9');
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf pengodean' }),
+            screen.getByRole('button', { name: 'Save coding draft' }),
         );
         expect(submissions[0].data).toMatchObject({
             expected_version: 3,
@@ -368,7 +367,7 @@ describe('inpatient RMIK workspace', () => {
         });
 
         await user.click(
-            screen.getByRole('button', { name: 'Simpan hasil review' }),
+            screen.getByRole('button', { name: 'Save review result' }),
         );
         expect(submissions[1].data).toMatchObject({
             expected_version: 4,
@@ -414,7 +413,7 @@ describe('inpatient RMIK workspace', () => {
 
         expect(
             screen.getByRole('button', {
-                name: 'Sign-off RM dan tutup episode',
+                name: 'Medical-record sign-off and close episode',
             }),
         ).toBeDisabled();
     });
@@ -435,15 +434,15 @@ describe('inpatient RMIK workspace', () => {
         );
 
         expect(
-            screen.getAllByText('Episode ditutup oleh RM').length,
+            screen.getAllByText('Episode closed by Medical Records').length,
         ).toBeGreaterThan(0);
         expect(screen.getByText('Final v2')).toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf pengodean' }),
+            screen.queryByRole('button', { name: 'Save coding draft' }),
         ).not.toBeInTheDocument();
         expect(
             screen.queryByRole('button', {
-                name: 'Sign-off RM dan tutup episode',
+                name: 'Medical-record sign-off and close episode',
             }),
         ).not.toBeInTheDocument();
 

@@ -39,28 +39,28 @@ const fieldDefinitions: Array<{
 }> = [
     {
         key: 'admission_reason',
-        label: 'Alasan Masuk',
-        help: 'Kondisi atau masalah utama yang mendasari perawatan pada episode ini.',
+        label: 'Reason for Admission',
+        help: 'The main condition or problem underlying care during this episode.',
     },
     {
         key: 'significant_findings',
-        label: 'Temuan Penting',
-        help: 'Temuan klinis, pemeriksaan penunjang, dan perubahan penting selama perawatan.',
+        label: 'Significant Findings',
+        help: 'Clinical findings, diagnostic tests, and important changes during care.',
     },
     {
         key: 'care_and_treatment_summary',
-        label: 'Ringkasan Perawatan dan Pengobatan',
-        help: 'Rangkum tindakan, terapi, dan respons pasien yang relevan.',
+        label: 'Care and Treatment Summary',
+        help: 'Summarize relevant procedures, treatment, and patient response.',
     },
     {
         key: 'condition_at_discharge',
-        label: 'Kondisi Saat Pulang',
-        help: 'Jelaskan keadaan klinis pasien pada saat dokumen ini diselesaikan.',
+        label: 'Condition at Discharge',
+        help: 'Describe the patient clinical condition when this document is completed.',
     },
     {
         key: 'follow_up_plan',
-        label: 'Rencana Tindak Lanjut',
-        help: 'Tuliskan kontrol, pemantauan, terapi lanjutan, dan arahan yang diperlukan.',
+        label: 'Follow-up Plan',
+        help: 'Document required follow-up, monitoring, continued therapy, and instructions.',
     },
 ];
 
@@ -330,13 +330,13 @@ export function InpatientDischargeSummaryPanel({
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                                Dokumen transisi perawatan
+                                Care transition document
                             </p>
                             <h2
                                 id="inpatient-discharge-summary-title"
                                 className="mt-0.5 text-lg font-semibold text-foreground"
                             >
-                                Ringkasan pulang
+                                Discharge Summary
                             </h2>
                         </div>
                         <span
@@ -359,16 +359,16 @@ export function InpatientDischargeSummaryPanel({
                                 />
                             )}
                             {summary
-                                ? `${isFinal ? 'Final' : 'Draf'} · v${summary.version}`
-                                : 'Belum dibuat'}
+                                ? `${isFinal ? 'Final' : 'Draft'} · v${summary.version}`
+                                : 'Not created'}
                         </span>
                     </div>
                     <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
                         {routineDischargeProjection.record
-                            ? 'Ringkasan pulang tetap Final. Episode kini Siap RM dan penempatan terakhir tetap tersimpan dalam riwayat.'
+                            ? 'The discharge summary remains final. The episode is now ready for medical-record review, and its last placement remains in history.'
                             : isFinal
-                              ? 'Ringkasan pulang sudah Final. Selesaikan episode melalui tindakan terpisah di bawah untuk mengirimnya ke RM dan melepaskan tempat tidur.'
-                              : 'Final menyelesaikan dokumen ringkasan pulang. Status episode dan penggunaan tempat tidur belum berubah sampai penyelesaian episode dilakukan.'}
+                              ? 'The discharge summary is final. Complete the episode using the separate action below to send it for medical-record review and release the bed.'
+                              : 'Finalization completes the discharge summary. Episode status and bed use remain unchanged until the episode is completed.'}
                     </p>
                 </div>
 
@@ -386,12 +386,12 @@ export function InpatientDischargeSummaryPanel({
                             className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
                         >
                             <p className="font-semibold">
-                                Ringkasan pulang belum dapat diselesaikan.
+                                The discharge summary cannot yet be finalized.
                             </p>
                             <ul className="mt-1 list-disc space-y-1 pl-5">
                                 {displayedMissingFields.map((label) => (
                                     <li key={label}>
-                                        {label} wajib diisi sebelum Final.
+                                        {label} is required before finalization.
                                     </li>
                                 ))}
                                 {serverErrors.map(([key, message]) => (
@@ -412,7 +412,7 @@ export function InpatientDischargeSummaryPanel({
                                         {field.label}
                                     </Label>
                                     <span className="text-[0.68rem] text-muted-foreground">
-                                        Wajib untuk Final
+                                        Required for Final
                                     </span>
                                 </div>
                                 <textarea
@@ -465,7 +465,7 @@ export function InpatientDischargeSummaryPanel({
                                 aria-hidden="true"
                                 className="size-3.5"
                             />
-                            Dokter penanggung jawab dokumen:{' '}
+                            Physician responsible for this document:{' '}
                             <span className="font-semibold text-foreground">
                                 {summary.assigned_physician.name}
                             </span>
@@ -476,7 +476,7 @@ export function InpatientDischargeSummaryPanel({
                             role="status"
                             className="text-xs font-medium text-warning"
                         >
-                            Simpan perubahan draf sebelum melakukan Final.
+                            Save draft changes before finalizing.
                         </p>
                     ) : null}
                     {isFinal ? (
@@ -485,14 +485,14 @@ export function InpatientDischargeSummaryPanel({
                                 aria-hidden="true"
                                 className="size-3.5"
                             />
-                            Ringkasan pulang Final dan seluruh versinya hanya
-                            dapat dibaca.
+                            The final discharge summary and all its versions are
+                            read-only.
                         </p>
                     ) : null}
                     {!isFinal && !hasAnyAction ? (
                         <p className="text-xs text-muted-foreground">
-                            Tidak ada tindakan ringkasan pulang yang tersedia
-                            untuk akun ini.
+                            No discharge-summary actions are available for akun
+                            ini.
                         </p>
                     ) : null}
 
@@ -509,7 +509,7 @@ export function InpatientDischargeSummaryPanel({
                                 >
                                     {draftForm.processing
                                         ? 'Menyimpan…'
-                                        : 'Simpan draf'}
+                                        : 'Save draft'}
                                 </Button>
                             ) : null}
                             {canFinalize ? (
@@ -523,8 +523,8 @@ export function InpatientDischargeSummaryPanel({
                                     }
                                 >
                                     {finalForm.processing
-                                        ? 'Menjadikan Final…'
-                                        : 'Jadikan Final'}
+                                        ? 'Finalizing…'
+                                        : 'Finalize version'}
                                 </Button>
                             ) : null}
                         </div>
@@ -568,12 +568,12 @@ export function InpatientDischargeSummaryPanel({
                         id="discharge-summary-history-title"
                         className="text-sm font-semibold"
                     >
-                        Riwayat versi
+                        Version history
                     </h2>
                 </div>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    Setiap simpan dan Final membentuk versi tetap dalam urutan
-                    pencatatan.
+                    Each save and finalization creates an immutable version in
+                    chronological order.
                 </p>
                 {projection.versions.length > 0 ? (
                     <ol className="mt-4 space-y-0 border-l border-border pl-4">
@@ -588,22 +588,21 @@ export function InpatientDischargeSummaryPanel({
                                 />
                                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                                     <h3 className="text-sm font-semibold">
-                                        Versi {version.version} ·{' '}
+                                        Version {version.version} ·{' '}
                                         {version.state === 'FINAL'
                                             ? 'Final'
-                                            : 'Draf'}
+                                            : 'Draft'}
                                     </h3>
                                     <time className="text-[0.7rem] text-muted-foreground">
                                         {formatClinicalDate(version.created_at)}
                                     </time>
                                 </div>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    {version.actor_name ??
-                                        'Aktor tidak tersedia'}
+                                    {version.actor_name ?? 'Actor unavailable'}
                                 </p>
                                 <details className="mt-2 rounded-md border border-border bg-muted/25 px-2.5 py-2">
                                     <summary className="cursor-pointer text-xs font-semibold text-primary focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
-                                        Lihat isi versi {version.version}
+                                        View version {version.version} content
                                     </summary>
                                     <dl className="mt-3 space-y-3 border-t border-border pt-3">
                                         {fieldDefinitions.map((field) => (
@@ -625,7 +624,7 @@ export function InpatientDischargeSummaryPanel({
                     </ol>
                 ) : (
                     <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-                        Belum ada versi ringkasan pulang.
+                        No discharge-summary versions are available.
                     </p>
                 )}
             </section>
@@ -634,18 +633,18 @@ export function InpatientDischargeSummaryPanel({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            Jadikan ringkasan pulang Final?
+                            Finalize the discharge summary?
                         </DialogTitle>
                         <DialogDescription>
-                            Setelah Final, isi dokumen tidak dapat diubah.
-                            Status episode dan penggunaan tempat tidur belum
-                            berubah melalui tindakan ini.
+                            After finalization, the document cannot be changed.
+                            This action does not change the episode status or
+                            bed use.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button type="button" variant="outline">
-                                Periksa kembali
+                                Review again
                             </Button>
                         </DialogClose>
                         <Button
@@ -654,8 +653,8 @@ export function InpatientDischargeSummaryPanel({
                             disabled={finalForm.processing}
                         >
                             {finalForm.processing
-                                ? 'Menjadikan Final…'
-                                : 'Ya, jadikan Final'}
+                                ? 'Finalizing…'
+                                : 'Yes, finalize'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

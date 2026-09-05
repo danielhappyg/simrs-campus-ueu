@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const occupancyLabel: Record<BedOccupancyState, string> = {
-    AVAILABLE: 'Tersedia',
-    OCCUPIED: 'Terisi',
-    RETIRED: 'Dinonaktifkan',
+    AVAILABLE: 'Available',
+    OCCUPIED: 'Occupied',
+    RETIRED: 'Retired',
 };
 
 const occupancyBadge: Record<BedOccupancyState, string> = {
@@ -36,7 +36,7 @@ function OccupantDetail({ bed }: { bed: InpatientBedProjection }) {
     if (!occupant) {
         return (
             <span className="text-xs text-[#64748b]">
-                Detail kunjungan tidak tersedia untuk peran ini.
+                Encounter details are unavailable for this role.
             </span>
         );
     }
@@ -44,12 +44,12 @@ function OccupantDetail({ bed }: { bed: InpatientBedProjection }) {
     const content = (
         <>
             <span className="block font-medium text-[#0f172a]">
-                {occupant.patient_name || 'Pasien rawat inap'}
+                {occupant.patient_name || 'Inpatient'}
             </span>
             <span className="block font-mono text-xs text-[#64748b]">
                 {occupant.medical_record_number ||
                     occupant.encounter_public_id ||
-                    'Identitas tidak ditampilkan'}
+                    'Identity hidden'}
             </span>
         </>
     );
@@ -78,7 +78,7 @@ function BedActions({
     onAction: (action: WardBedMasterAction, trigger: HTMLButtonElement) => void;
 }) {
     if (!canManage) {
-        return <span className="text-xs text-[#64748b]">Hanya lihat</span>;
+        return <span className="text-xs text-[#64748b]">View only</span>;
     }
 
     const canUpdate = bed.state === 'ACTIVE' && bed.actions.update_url !== null;
@@ -87,9 +87,7 @@ function BedActions({
     const retireHelpId = `bed-retire-help-${bed.public_id}`;
 
     if (!canUpdate && !canRetire) {
-        return (
-            <span className="text-xs text-[#64748b]">Riwayat tersimpan</span>
-        );
+        return <span className="text-xs text-[#64748b]">History retained</span>;
     }
 
     return (
@@ -112,7 +110,7 @@ function BedActions({
                         )
                     }
                 >
-                    Ubah
+                    Edit
                 </Button>
             ) : null}
             {canRetire ? (
@@ -136,14 +134,14 @@ function BedActions({
                             )
                         }
                     >
-                        Nonaktifkan
+                        Retire
                     </Button>
                     {occupied ? (
                         <span
                             id={retireHelpId}
                             className="max-w-[11rem] text-left text-xs leading-4 text-[#9a3412]"
                         >
-                            Sedang terisi; tidak dapat dinonaktifkan.
+                            Currently occupied; cannot be deactivated.
                         </span>
                     ) : null}
                 </>
@@ -180,14 +178,14 @@ export function WardBedCensus({
         <>
             <section aria-labelledby="bed-census-summary-heading">
                 <h2 id="bed-census-summary-heading" className="sr-only">
-                    Ringkasan ketersediaan tempat tidur
+                    Bed Availability Summary
                 </h2>
                 <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     {[
-                        ['Bangsal aktif', totals.active_wards],
-                        ['Tempat tidur aktif', totals.active_beds],
-                        ['Terisi', totals.occupied_beds],
-                        ['Tersedia', totals.available_beds],
+                        ['Active wards', totals.active_wards],
+                        ['Active beds', totals.active_beds],
+                        ['Occupied', totals.occupied_beds],
+                        ['Available', totals.available_beds],
                     ].map(([label, value]) => (
                         <div
                             key={label}
@@ -214,11 +212,11 @@ export function WardBedCensus({
                             id="bed-census-table-heading"
                             className="text-sm font-semibold text-[#0f172a]"
                         >
-                            Sensus tempat tidur saat ini
+                            Current Bed Census
                         </h2>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Status terisi berasal dari kunjungan rawat inap
-                            aktif, bukan dari isian manual.
+                            Occupancy is derived from active inpatient
+                            encounters, not manual entry.
                         </p>
                     </div>
                 </div>
@@ -227,10 +225,10 @@ export function WardBedCensus({
                     <div className="rounded-lg border border-dashed border-[#cbd5e1] bg-[#f8fafc] px-4 py-8 text-center">
                         <p className="text-sm font-medium text-[#334155]">
                             {hasFilters
-                                ? 'Tidak ada tempat tidur sesuai filter.'
+                                ? 'No beds match these filters.'
                                 : canManage
-                                  ? 'Belum ada bangsal dan tempat tidur.'
-                                  : 'Data bangsal belum tersedia. Hubungi pengelola data.'}
+                                  ? 'No wards or beds have been configured.'
+                                  : 'Ward data is unavailable. Contact the data administrator.'}
                         </p>
                         {hasFilters ? (
                             <Button
@@ -239,7 +237,7 @@ export function WardBedCensus({
                                 className="mt-3 min-h-11"
                                 onClick={onClearFilters}
                             >
-                                Hapus filter
+                                Clear Filters
                             </Button>
                         ) : null}
                     </div>
@@ -247,40 +245,40 @@ export function WardBedCensus({
                     <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[76rem] text-left text-sm">
                             <caption className="sr-only">
-                                Daftar bangsal, tempat tidur, status data, dan
-                                keterisian saat ini
+                                Wards, beds, record status, and current
+                                occupancy
                             </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
                                     <th scope="col" className="px-2 py-2">
-                                        Bangsal
+                                        Ward
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Ruang
+                                        Room
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Kelas
+                                        Class
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Tempat tidur
+                                        Bed
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Status data
+                                        Record status
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Status saat ini
+                                        Current status
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Pasien / kunjungan
+                                        Patient / encounter
                                     </th>
                                     <th scope="col" className="px-2 py-2">
-                                        Versi
+                                        Version
                                     </th>
                                     <th
                                         scope="col"
                                         className="px-2 py-2 text-right"
                                     >
-                                        Aksi
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -318,8 +316,8 @@ export function WardBedCensus({
                                         <td className="px-2 py-2.5 align-top">
                                             <span className="inline-flex rounded-md border border-[#e2e8f0] bg-[#f8fafc] px-2 py-1 text-xs font-medium text-[#475569]">
                                                 {bed.state === 'ACTIVE'
-                                                    ? 'Aktif'
-                                                    : 'Dinonaktifkan'}
+                                                    ? 'Active'
+                                                    : 'Retired'}
                                             </span>
                                         </td>
                                         <td className="px-2 py-2.5 align-top">

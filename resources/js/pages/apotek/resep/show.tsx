@@ -10,7 +10,7 @@ export default function PharmacyPrescriptionShow({
 }: PharmacyPrescriptionPageProps) {
     return (
         <>
-            <Head title={`Resep ${prescription.public_id}`} />
+            <Head title={`Prescription ${prescription.public_id}`} />
             <div className="min-h-screen bg-slate-50 pb-12">
                 <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-6 lg:px-8">
                     <PharmacySubnav current="queue" />

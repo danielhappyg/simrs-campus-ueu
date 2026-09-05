@@ -7,7 +7,7 @@ export default function FinanceSettlementCorrectionWorklistPage(
 ) {
     return (
         <>
-            <Head title="Koreksi Pelunasan Tunai" />
+            <Head title="Cash Settlement Correction" />
             <FinanceSettlementCorrectionWorklist {...props} />
         </>
     );

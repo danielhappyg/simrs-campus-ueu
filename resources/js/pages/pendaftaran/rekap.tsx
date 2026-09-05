@@ -98,23 +98,23 @@ export default function PendaftaranRekap({
 
     return (
         <>
-            <Head title="Rekap pendaftaran" />
+            <Head title="Registration summary" />
 
             <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
                 <CareSettingSubnav
                     items={[
                         {
                             href: '/pendaftaran/rawat-jalan',
-                            label: 'Rawat Jalan',
+                            label: 'Outpatient',
                         },
-                        { href: '/pendaftaran/igd', label: 'IGD' },
+                        { href: '/pendaftaran/igd', label: 'Emergency' },
                         {
                             href: '/pendaftaran/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient',
                         },
                         {
                             href: '/pendaftaran/rekap',
-                            label: 'Rekap',
+                            label: 'Summary',
                             active: true,
                         },
                     ]}
@@ -122,11 +122,11 @@ export default function PendaftaranRekap({
 
                 <header>
                     <h1 className="text-xl font-semibold text-[#0f172a]">
-                        Rekap pendaftaran
+                        Registration summary
                     </h1>
                     <p className="mt-1 text-sm text-[#64748b]">
-                        Perbandingan kunjungan walk-in dan kunjungan dengan kode
-                        booking (RegOn/online).
+                        Comparison of walk-in visits and visits with a booking
+                        code (RegOn/online).
                     </p>
                 </header>
 
@@ -144,7 +144,7 @@ export default function PendaftaranRekap({
                     className="grid min-w-0 grid-cols-1 gap-3 rounded-lg border border-[#e2e8f0] bg-white p-3 md:grid-cols-7"
                 >
                     <div className="grid gap-1">
-                        <Label htmlFor="date_from">Dari</Label>
+                        <Label htmlFor="date_from">From</Label>
                         <Input
                             id="date_from"
                             name="date_from"
@@ -153,7 +153,7 @@ export default function PendaftaranRekap({
                         />
                     </div>
                     <div className="grid gap-1">
-                        <Label htmlFor="date_to">Sampai</Label>
+                        <Label htmlFor="date_to">To</Label>
                         <Input
                             id="date_to"
                             name="date_to"
@@ -169,21 +169,21 @@ export default function PendaftaranRekap({
                             defaultValue={filters.care_setting}
                             className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
-                            <option value="OUTPATIENT">Rawat jalan</option>
+                            <option value="OUTPATIENT">Outpatient</option>
                             <option value="EMERGENCY">IGD</option>
-                            <option value="INPATIENT">Rawat inap</option>
-                            <option value="ALL">Semua</option>
+                            <option value="INPATIENT">Inpatient</option>
+                            <option value="ALL">All</option>
                         </select>
                     </div>
                     <div className="grid gap-1">
-                        <Label htmlFor="clinic">Poli / unit</Label>
+                        <Label htmlFor="clinic">Clinic / unit</Label>
                         <select
                             id="clinic"
                             name="clinic"
                             defaultValue={filters.clinic}
                             className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
-                            <option value="">Semua</option>
+                            <option value="">All</option>
                             {clinicOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
@@ -199,7 +199,7 @@ export default function PendaftaranRekap({
                             defaultValue={filters.payer}
                             className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
-                            <option value="">Semua</option>
+                            <option value="">All</option>
                             {payerOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
@@ -215,7 +215,7 @@ export default function PendaftaranRekap({
                             defaultValue={filters.origin}
                             className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
-                            <option value="">Semua</option>
+                            <option value="">All</option>
                             <option value="WALK_IN">Walk-in</option>
                             <option value="ONLINE">
                                 Online / kode booking
@@ -223,21 +223,23 @@ export default function PendaftaranRekap({
                         </select>
                     </div>
                     <div className="grid gap-1">
-                        <Label htmlFor="status">Status kunjungan</Label>
+                        <Label htmlFor="status">Visit status</Label>
                         <select
                             id="status"
                             name="status"
                             defaultValue={filters.status}
                             className="h-9 min-w-0 rounded-md border border-[#e2e8f0] px-2 text-sm"
                         >
-                            <option value="">Semua</option>
-                            <option value="REGISTERED">Terdaftar</option>
+                            <option value="">All</option>
+                            <option value="REGISTERED">Registered</option>
                             <option value="IN_EXAMINATION">
-                                Dalam pemeriksaan
+                                In examination
                             </option>
-                            <option value="READY_FOR_RM">Siap RM</option>
-                            <option value="CLOSED">Selesai</option>
-                            <option value="CANCELLED">Dibatalkan</option>
+                            <option value="READY_FOR_RM">
+                                Ready for medical records
+                            </option>
+                            <option value="CLOSED">Closed</option>
+                            <option value="CANCELLED">Cancelled</option>
                         </select>
                     </div>
                     <div className="flex flex-wrap items-end gap-2 md:col-span-7">
@@ -245,17 +247,17 @@ export default function PendaftaranRekap({
                             type="submit"
                             className="bg-[#1b75bc] hover:bg-[#1665a3]"
                         >
-                            Terapkan
+                            Apply
                         </Button>
                         <Button type="button" variant="outline" asChild>
-                            <a href={csvHref}>Unduh CSV</a>
+                            <a href={csvHref}>Download CSV</a>
                         </Button>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => window.print()}
                         >
-                            Cetak rekap
+                            Print summary
                         </Button>
                     </div>
                 </form>
@@ -271,30 +273,28 @@ export default function PendaftaranRekap({
                         Walk-in {totals.walk_in}
                     </span>
                     <span className="rounded-md bg-[#fef2f2] px-3 py-1.5 text-[#991b1b]">
-                        Dibatalkan {totals.cancelled}
+                        Cancelled {totals.cancelled}
                     </span>
                 </div>
 
                 <section className="min-w-0 overflow-x-auto rounded-lg border border-[#e2e8f0] bg-white">
                     <table className="w-full min-w-[56rem] text-left text-sm">
                         <caption className="sr-only">
-                            Rekap kunjungan berdasarkan filter pendaftaran
+                            Visit summary based on registration filters
                         </caption>
                         <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                             <tr>
-                                <th className="px-3 py-2 font-medium">Waktu</th>
-                                <th className="px-3 py-2 font-medium">
-                                    Antrian
-                                </th>
+                                <th className="px-3 py-2 font-medium">Time</th>
+                                <th className="px-3 py-2 font-medium">Queue</th>
                                 <th className="px-3 py-2 font-medium">
                                     No. RM
                                 </th>
-                                <th className="px-3 py-2 font-medium">Nama</th>
+                                <th className="px-3 py-2 font-medium">Name</th>
                                 <th className="px-3 py-2 font-medium">Asal</th>
-                                <th className="px-3 py-2 font-medium">Poli</th>
                                 <th className="px-3 py-2 font-medium">
-                                    Penjamin
+                                    Clinic
                                 </th>
+                                <th className="px-3 py-2 font-medium">Payer</th>
                                 <th className="px-3 py-2 font-medium">
                                     Status
                                 </th>
@@ -302,7 +302,7 @@ export default function PendaftaranRekap({
                                     scope="col"
                                     className="px-3 py-2 font-medium"
                                 >
-                                    <span className="sr-only">Aksi</span>
+                                    <span className="sr-only">Actions</span>
                                 </th>
                             </tr>
                         </thead>
@@ -313,7 +313,7 @@ export default function PendaftaranRekap({
                                         colSpan={9}
                                         className="px-3 py-4 text-[#64748b]"
                                     >
-                                        Tidak ada kunjungan pada filter ini.
+                                        No visits match these filters.
                                     </td>
                                 </tr>
                             ) : (
@@ -379,7 +379,7 @@ export default function PendaftaranRekap({
                                         <td className="px-3 py-2 text-right">
                                             {row.status === 'CANCELLED' ? (
                                                 <span className="text-xs text-[#64748b]">
-                                                    Tidak aktif
+                                                    Inactive
                                                 </span>
                                             ) : (
                                                 <a
@@ -388,7 +388,7 @@ export default function PendaftaranRekap({
                                                     rel="noreferrer"
                                                     className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                 >
-                                                    Cetak
+                                                    Print
                                                 </a>
                                             )}
                                         </td>
@@ -399,7 +399,7 @@ export default function PendaftaranRekap({
                     </table>
                     <OperationalPagination
                         pagination={pagination}
-                        itemLabel="kunjungan"
+                        itemLabel="encounters"
                         className="m-3"
                     />
                 </section>
@@ -410,8 +410,8 @@ export default function PendaftaranRekap({
 
 PendaftaranRekap.layout = () => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pendaftaran', href: '/pendaftaran/rawat-jalan' },
-        { title: 'Rekap', href: '/pendaftaran/rekap' },
+        { title: 'Home', href: '/' },
+        { title: 'Registration', href: '/pendaftaran/rawat-jalan' },
+        { title: 'Summary', href: '/pendaftaran/rekap' },
     ] satisfies BreadcrumbItem[],
 });

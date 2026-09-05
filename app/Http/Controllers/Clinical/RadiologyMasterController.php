@@ -77,7 +77,7 @@ final class RadiologyMasterController extends Controller
             $payload['idempotency_key'],
         ));
 
-        return back()->with('success', 'Pemeriksaan radiologi diperbarui.');
+        return back()->with('success', 'Radiology examination updated.');
     }
 
     public function retire(Request $request, string $master): RedirectResponse
@@ -103,7 +103,7 @@ final class RadiologyMasterController extends Controller
             $payload['idempotency_key'],
         ));
 
-        return back()->with('success', 'Pemeriksaan radiologi dinonaktifkan.');
+        return back()->with('success', 'Radiology examination retired.');
     }
 
     private function actor(Request $request): User
@@ -120,7 +120,7 @@ final class RadiologyMasterController extends Controller
     private function assertOnlyKeys(Request $request, array $keys): void
     {
         if (array_diff(array_keys($request->all()), $keys) !== []) {
-            throw ValidationException::withMessages(['request' => 'Permintaan memuat bidang yang tidak didukung.']);
+            throw ValidationException::withMessages(['request' => 'The request contains unsupported fields.']);
         }
     }
 
@@ -169,7 +169,7 @@ final class RadiologyMasterController extends Controller
         try {
             $operation();
         } catch (RadiologyDenied $denial) {
-            throw ValidationException::withMessages(['radiology' => $denial->getMessage()]);
+            throw ValidationException::withMessages(['radiology' => __($denial->getMessage())]);
         }
     }
 }

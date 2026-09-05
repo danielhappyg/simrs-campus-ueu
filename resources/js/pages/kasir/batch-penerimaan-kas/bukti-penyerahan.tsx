@@ -7,7 +7,9 @@ export default function FinanceCashDepositHandoffReceiptPage(
 ) {
     return (
         <>
-            <Head title={`Bukti Penyerahan ${props.receipt.handoff_number}`} />
+            <Head
+                title={`Cash Handover Receipt ${props.receipt.handoff_number}`}
+            />
             <FinanceCashDepositHandoffReceiptView {...props} />
         </>
     );

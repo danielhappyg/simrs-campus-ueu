@@ -51,9 +51,9 @@ type FormData = {
 };
 
 const careLabels: Record<TariffCareSetting, string> = {
-    OUTPATIENT: 'Rawat jalan',
+    OUTPATIENT: 'Outpatient',
     EMERGENCY: 'IGD',
-    INPATIENT: 'Rawat inap',
+    INPATIENT: 'Inpatient',
 };
 
 function operationKey() {
@@ -77,7 +77,7 @@ function StateBadge({ state }: { state: 'ACTIVE' | 'RETIRED' }) {
                     : 'border-slate-300 bg-slate-100 text-slate-700'
             }`}
         >
-            {state === 'ACTIVE' ? 'Aktif' : 'Nonaktif'}
+            {state === 'ACTIVE' ? 'Active' : 'Inactive'}
         </span>
     );
 }
@@ -90,7 +90,8 @@ function SourceIdentity({ source }: { source: LaboratoryTariffSource }) {
             </p>
             <p className="mt-1 text-slate-700">{source.display_name}</p>
             <p className="mt-1 text-xs text-slate-600">
-                {source.specimen_type} · {source.component_count} komponen hasil
+                {source.specimen_type} · {source.component_count} component
+                result
             </p>
             <p className="mt-1 font-['IBM_Plex_Mono'] text-xs text-slate-500">
                 {source.master_version_public_id}
@@ -177,10 +178,10 @@ function MappingForm({
             onSuccess: () => {
                 onStatus(
                     action.mode === 'retire'
-                        ? 'Pemetaan laboratorium dijadwalkan nonaktif.'
+                        ? 'Laboratory mapping scheduled for deactivation.'
                         : action.mode === 'revise'
-                          ? 'Versi pemetaan laboratorium ditambahkan.'
-                          : 'Pemetaan laboratorium dibuat.',
+                          ? 'Laboratory mapping version added.'
+                          : 'Laboratory mapping created.',
                 );
                 onClose();
             },
@@ -219,24 +220,25 @@ function MappingForm({
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
                             {action.mode === 'create'
-                                ? 'Buat pemetaan laboratorium'
+                                ? 'Create laboratory mapping'
                                 : action.mode === 'revise'
-                                  ? 'Tambah versi pemetaan'
-                                  : 'Jadwalkan pemetaan nonaktif'}
+                                  ? 'Add mapping version'
+                                  : 'Schedule mapping deactivation'}
                         </h2>
                         <p
                             id="laboratory-mapping-form-description"
                             className="mt-1 text-sm text-slate-600"
                         >
-                            Nilai hanya berlaku untuk hasil asli yang berstatus
-                            VERIFIED pada tanggal layanan. Riwayat tidak diubah.
+                            The value applies only to the source result with
+                            status VERIFIED on date service. History not
+                            changed.
                         </p>
                     </div>
                     <button
                         autoFocus
                         type="button"
                         onClick={onClose}
-                        aria-label="Tutup formulir pemetaan"
+                        aria-label="Close mapping form"
                         className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <X aria-hidden="true" className="size-5" />
@@ -252,7 +254,7 @@ function MappingForm({
                             className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950 outline-none focus:ring-2 focus:ring-red-600"
                         >
                             <p className="font-semibold">
-                                Pemetaan belum dapat disimpan
+                                The mapping could not be saved
                             </p>
                             <ul className="mt-1 list-inside list-disc">
                                 {errors.map((error) => (
@@ -266,7 +268,7 @@ function MappingForm({
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
                                 <Label htmlFor="laboratory-mapping-source">
-                                    Pemeriksaan dan versi master
+                                    Examination and master version
                                 </Label>
                                 <select
                                     id="laboratory-mapping-source"
@@ -279,7 +281,7 @@ function MappingForm({
                                     }
                                     required
                                 >
-                                    <option value="">Pilih pemeriksaan</option>
+                                    <option value="">Select examination</option>
                                     {sources
                                         .filter(
                                             (source) =>
@@ -301,7 +303,7 @@ function MappingForm({
                             </div>
                             <div>
                                 <Label htmlFor="laboratory-mapping-care">
-                                    Jenis layanan
+                                    Service type
                                 </Label>
                                 <select
                                     id="laboratory-mapping-care"
@@ -320,7 +322,7 @@ function MappingForm({
                                     }}
                                     required
                                 >
-                                    <option value="">Pilih layanan</option>
+                                    <option value="">Select service</option>
                                     {Object.entries(careLabels).map(
                                         ([value, label]) => (
                                             <option key={value} value={value}>
@@ -345,7 +347,7 @@ function MappingForm({
                             <SourceIdentity source={selectedSource} />
                             <div>
                                 <p className="text-slate-500">
-                                    Digest master tepat
+                                    Exact master digest
                                 </p>
                                 <div className="mt-1">
                                     <Digest
@@ -361,7 +363,7 @@ function MappingForm({
                     {action.mode !== 'retire' ? (
                         <div>
                             <Label htmlFor="laboratory-mapping-tariff">
-                                Tarif laboratorium
+                                Laboratory tariff
                             </Label>
                             <select
                                 id="laboratory-mapping-tariff"
@@ -376,7 +378,7 @@ function MappingForm({
                                 required
                             >
                                 <option value="">
-                                    Pilih tarif secara sadar
+                                    Select a tariff explicitly
                                 </option>
                                 {eligibleTariffs.map((tariff) => (
                                     <option
@@ -389,15 +391,14 @@ function MappingForm({
                                 ))}
                             </select>
                             <p className="mt-1 text-xs text-slate-600">
-                                Tidak ada tarif atau nilai yang dipilih
-                                otomatis.
+                                No tariff or value is selected automatically.
                             </p>
                         </div>
                     ) : null}
 
                     {selectedTariff && action.mode !== 'retire' ? (
                         <div
-                            aria-label="Provenans tarif terpilih"
+                            aria-label="Selected tariff provenance"
                             className="grid gap-4 rounded-lg border border-[#7fbcb6] bg-[#e8f5f3] p-4 text-sm md:grid-cols-2"
                         >
                             <div>
@@ -414,7 +415,7 @@ function MappingForm({
                             </div>
                             <div>
                                 <p className="text-slate-500">
-                                    ID dan digest versi tarif
+                                    Tariff-version ID and digest
                                 </p>
                                 <p className="mt-1 font-['IBM_Plex_Mono'] text-xs break-all">
                                     {selectedTariff.version_public_id}
@@ -432,8 +433,8 @@ function MappingForm({
                         <div>
                             <Label htmlFor="laboratory-mapping-effective">
                                 {action.mode === 'retire'
-                                    ? 'Nonaktif mulai'
-                                    : 'Berlaku mulai'}
+                                    ? 'Inactive from'
+                                    : 'Effective from'}
                             </Label>
                             <input
                                 id="laboratory-mapping-effective"
@@ -449,13 +450,13 @@ function MappingForm({
                                 required
                             />
                             <p className="mt-1 text-xs text-slate-600">
-                                Tanggal mendatang menjadwalkan perubahan tanpa
-                                menulis ulang versi sebelumnya.
+                                Use a future date to schedule the change without
+                                rewriting previous versions.
                             </p>
                         </div>
                         <div>
                             <Label htmlFor="laboratory-mapping-reason">
-                                Alasan
+                                Reason
                             </Label>
                             <textarea
                                 id="laboratory-mapping-reason"
@@ -476,7 +477,7 @@ function MappingForm({
                         <dl className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm md:grid-cols-2">
                             <div>
                                 <dt className="text-slate-500">
-                                    Versi kepala yang diharapkan
+                                    Expected head version
                                 </dt>
                                 <dd className="mt-1 font-['IBM_Plex_Mono'] font-semibold">
                                     v{form.data.expected_version}
@@ -484,7 +485,7 @@ function MappingForm({
                             </div>
                             <div>
                                 <dt className="text-slate-500">
-                                    Digest kepala yang diharapkan
+                                    Expected head digest
                                 </dt>
                                 <dd className="mt-1">
                                     <Digest value={form.data.expected_digest} />
@@ -503,8 +504,8 @@ function MappingForm({
                             className="mt-0.5 size-5 accent-[#0f5b62]"
                         />
                         <span>
-                            Saya mengonfirmasi versi master, jenis layanan,
-                            tarif, dan tanggal berlaku yang ditampilkan.
+                            I confirm the master version, service type, tariff,
+                            and displayed effective date.
                         </span>
                     </label>
 
@@ -515,7 +516,7 @@ function MappingForm({
                             className="min-h-11"
                             onClick={onClose}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
@@ -528,10 +529,10 @@ function MappingForm({
                             disabled={!form.data.confirm || form.processing}
                         >
                             {form.processing
-                                ? 'Menyimpan…'
+                                ? 'Saving…'
                                 : action.mode === 'retire'
-                                  ? 'Jadwalkan nonaktif'
-                                  : 'Simpan pemetaan'}
+                                  ? 'Schedule deactivation'
+                                  : 'Save mapping'}
                         </Button>
                     </footer>
                 </form>
@@ -551,20 +552,20 @@ export function LaboratoryTariffMappingWorkspace(
     return (
         <main className="min-h-screen bg-slate-50 pb-12">
             <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-                <nav aria-label="Jalur halaman" className="text-sm">
+                <nav aria-label="Breadcrumb" className="text-sm">
                     <ol className="flex flex-wrap items-center gap-2 text-slate-600">
-                        <li>Manajemen Data</li>
+                        <li>Data Management</li>
                         <li aria-hidden="true">/</li>
                         <li>
                             <Link
                                 href="/manajemen-data/tarif-komponen-biaya"
                                 className="inline-flex min-h-11 items-center rounded-md px-2 font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                             >
-                                Tarif &amp; Komponen Biaya
+                                Tariffs &amp; Charge Components
                             </Link>
                         </li>
                         <li aria-hidden="true">/</li>
-                        <li aria-current="page">Pemetaan Laboratorium</li>
+                        <li aria-current="page">Laboratory Mapping</li>
                     </ol>
                 </nav>
 
@@ -580,27 +581,27 @@ export function LaboratoryTariffMappingWorkspace(
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Pengendalian sumber hasil terverifikasi
+                                Source-charge controls use the verified result
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Pemetaan Laboratorium
+                                Laboratory Mapping
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
-                                Hubungkan satu versi master pemeriksaan dan
-                                jenis layanan ke satu tarif laboratorium yang
-                                berlaku pada tanggal hasil asli diverifikasi.
+                                Link one version master examination and type
+                                service to one laboratory tariff that effective
+                                on the verified source-result date.
                             </p>
                         </div>
                         <span className="rounded-md bg-white/10 px-3 py-2 text-sm font-semibold">
                             {props.permissions.can_manage
-                                ? 'Pengelola Tarif'
-                                : 'Akses lihat-saja'}
+                                ? 'Tariff Manager'
+                                : 'Read-only access'}
                         </span>
                     </div>
                 </header>
 
                 <aside
-                    aria-label="Aturan sumber biaya laboratorium"
+                    aria-label="Laboratory source-charge rules"
                     className="grid gap-4 rounded-xl border border-[#7fbcb6] bg-white p-5 shadow-sm md:grid-cols-[auto_1fr]"
                 >
                     <span className="grid size-11 place-items-center rounded-lg bg-[#e8f5f3] text-[#0f5b62]">
@@ -608,12 +609,12 @@ export function LaboratoryTariffMappingWorkspace(
                     </span>
                     <div>
                         <p className="font-semibold text-slate-950">
-                            Hanya hasil asli VERIFIED
+                            VERIFIED source results only
                         </p>
                         <p className="mt-1 text-sm text-slate-700">
                             {props.source_trigger.label} Draft, amendemen,
-                            komunikasi hasil kritis, dan pengakuan dokter tidak
-                            membuat sumber biaya baru.
+                            communication result critical, and acknowledgement
+                            physician does not create a new source charge.
                         </p>
                     </div>
                 </aside>
@@ -636,7 +637,7 @@ export function LaboratoryTariffMappingWorkspace(
                         className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950"
                     >
                         <p className="font-semibold">
-                            Pemetaan laboratorium belum dapat dibaca.
+                            Laboratory mappings could not be loaded.
                         </p>
                         <p className="mt-1">{props.read_error}</p>
                     </div>
@@ -651,12 +652,12 @@ export function LaboratoryTariffMappingWorkspace(
                             id="laboratory-mapping-control"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            Peta berlaku pada {props.as_of_date}
+                            Mappings effective on {props.as_of_date}
                         </h2>
                         <dl className="mt-3 grid gap-3 text-sm md:grid-cols-2">
                             <div>
                                 <dt className="text-slate-500">
-                                    Versi proyeksi master
+                                    Version projection master
                                 </dt>
                                 <dd className="mt-1 font-['IBM_Plex_Mono'] font-semibold">
                                     {props.source_master_version}
@@ -664,7 +665,7 @@ export function LaboratoryTariffMappingWorkspace(
                             </div>
                             <div>
                                 <dt className="text-slate-500">
-                                    Digest proyeksi master
+                                    Digest projection master
                                 </dt>
                                 <dd className="mt-1">
                                     <Digest
@@ -682,7 +683,7 @@ export function LaboratoryTariffMappingWorkspace(
                                 aria-hidden="true"
                                 className="size-4"
                             />
-                            <span className="sr-only">Tanggal berlaku</span>
+                            <span className="sr-only">Effective date</span>
                             <input
                                 type="date"
                                 className={`${financeFieldClass} w-auto`}
@@ -707,7 +708,7 @@ export function LaboratoryTariffMappingWorkspace(
                                     })
                                 }
                             >
-                                <Plus aria-hidden="true" /> Buat pemetaan
+                                <Plus aria-hidden="true" /> Create mapping
                             </Button>
                         ) : null}
                     </div>
@@ -724,7 +725,7 @@ export function LaboratoryTariffMappingWorkspace(
                                     id="laboratory-mapping-history"
                                     className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-[#0b4147]"
                                 >
-                                    Riwayat pemetaan tetap
+                                    Immutable mapping history
                                 </h2>
                                 <div className="mt-2 text-sm">
                                     <SourceIdentity
@@ -736,33 +737,33 @@ export function LaboratoryTariffMappingWorkspace(
                                 href="/manajemen-data/tarif-komponen-biaya/pemetaan-laboratorium"
                                 className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-white focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                             >
-                                Tutup riwayat
+                                Close history
                             </Link>
                         </header>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[64rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Riwayat versi pemetaan laboratorium tetap
+                                    Immutable laboratory mapping version history
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Versi
+                                            Version
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tarif
+                                            Tariff
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Digest
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Alasan
+                                            Reason
                                         </th>
                                     </tr>
                                 </thead>
@@ -804,7 +805,7 @@ export function LaboratoryTariffMappingWorkspace(
                                             <td className="px-4 py-4">
                                                 {version.effective_from} —{' '}
                                                 {version.effective_until ??
-                                                    'seterusnya'}
+                                                    'onward'}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <Digest
@@ -835,42 +836,42 @@ export function LaboratoryTariffMappingWorkspace(
                         id="laboratory-mapping-list"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        Pemetaan efektif
+                        Mapping effective
                     </h2>
                     <p className="mt-1 text-sm text-slate-600">
-                        Setiap baris mengikat satu versi master dan jenis
-                        layanan tanpa pencocokan kode, spesimen, atau komponen
-                        secara otomatis.
+                        Each line mengikat one version master and type service
+                        without matching code, specimen, or component secara
+                        automatically.
                     </p>
                     {props.mappings.length ? (
                         <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                             <table className="w-full min-w-[78rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Pemetaan tarif pemeriksaan laboratorium
+                                    Mapping tariff examination laboratory
                                 </caption>
                                 <thead className="border-b border-slate-300 bg-slate-100 text-xs text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Master laboratorium
+                                            Master laboratory
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Digest master
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Layanan
+                                            Service
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tarif
+                                            Tariff
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             <span className="sr-only">
-                                                Tindakan
+                                                Action
                                             </span>
                                         </th>
                                     </tr>
@@ -933,14 +934,14 @@ export function LaboratoryTariffMappingWorkspace(
                                             <td className="px-4 py-4">
                                                 {mapping.effective_from} —{' '}
                                                 {mapping.effective_until ??
-                                                    'seterusnya'}
+                                                    'onward'}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <StateBadge
                                                     state={mapping.state}
                                                 />
                                                 <p className="mt-2 font-['IBM_Plex_Mono'] text-xs text-slate-500">
-                                                    kepala v
+                                                    head v
                                                     {
                                                         mapping.latest_head_version
                                                     }
@@ -953,7 +954,7 @@ export function LaboratoryTariffMappingWorkspace(
                                                             mapping.actions
                                                                 .history_url
                                                         }
-                                                        aria-label={`Buka riwayat pemetaan ${mapping.source.code} ${careLabels[mapping.care_setting]}`}
+                                                        aria-label={`Open history mapping ${mapping.source.code} ${careLabels[mapping.care_setting]}`}
                                                         className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                                                     >
                                                         <History
@@ -969,7 +970,7 @@ export function LaboratoryTariffMappingWorkspace(
                                                         .revise_url ? (
                                                         <button
                                                             type="button"
-                                                            aria-label={`Tambah versi pemetaan ${mapping.source.code} ${careLabels[mapping.care_setting]}`}
+                                                            aria-label={`Add mapping version ${mapping.source.code} ${careLabels[mapping.care_setting]}`}
                                                             onClick={() =>
                                                                 setAction({
                                                                     mode: 'revise',
@@ -996,7 +997,7 @@ export function LaboratoryTariffMappingWorkspace(
                                                         .retire_url ? (
                                                         <button
                                                             type="button"
-                                                            aria-label={`Nonaktifkan pemetaan ${mapping.source.code} ${careLabels[mapping.care_setting]}`}
+                                                            aria-label={`Deactivate mapping ${mapping.source.code} ${careLabels[mapping.care_setting]}`}
                                                             onClick={() =>
                                                                 setAction({
                                                                     mode: 'retire',
@@ -1029,13 +1030,13 @@ export function LaboratoryTariffMappingWorkspace(
                                 className="mx-auto size-8 text-slate-400"
                             />
                             <p className="mt-3 font-semibold text-slate-950">
-                                Belum ada pemetaan tarif laboratorium yang
-                                dikonfigurasi secara sengaja.
+                                No laboratory tariff mappings have been
+                                configured deliberately.
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
-                                Pilih versi master, jenis layanan, tarif, dan
-                                tanggal berlaku saat keputusan pemetaan
-                                tersedia.
+                                Select version master, type service, tariff, and
+                                effective date when a mapping decision is
+                                available.
                             </p>
                         </div>
                     )}
@@ -1055,11 +1056,11 @@ export function LaboratoryTariffMappingWorkspace(
                                 id="laboratory-mapping-gaps"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-amber-950"
                             >
-                                Celah pemetaan
+                                Gap mapping
                             </h2>
                             <p className="mt-1 text-sm text-amber-900">
-                                Celah tetap terlihat dan tidak pernah diberi
-                                nilai perkiraan.
+                                Gaps remain visible and are never assigned a
+                                value estimated.
                             </p>
                         </div>
                     </header>
@@ -1067,22 +1068,22 @@ export function LaboratoryTariffMappingWorkspace(
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[62rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Versi master laboratorium tanpa pemetaan
-                                    efektif
+                                    Version master laboratory without mapping
+                                    effective
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Master laboratorium
+                                            Master laboratory
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Layanan
+                                            Service
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Status tertutup
+                                            Blocking status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Keterangan
+                                            Details
                                         </th>
                                     </tr>
                                 </thead>
@@ -1118,7 +1119,7 @@ export function LaboratoryTariffMappingWorkspace(
                         </div>
                     ) : (
                         <p className="p-6 text-sm text-slate-700">
-                            Tidak ada celah pemetaan pada tanggal yang dipilih.
+                            No mapping gaps on the selected date.
                         </p>
                     )}
                 </section>

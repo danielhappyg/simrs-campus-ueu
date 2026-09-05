@@ -189,12 +189,12 @@ describe('laboratory tariff mapping frontend contract', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Pemetaan Laboratorium' }),
+            screen.getByRole('heading', { name: 'Laboratory Mapping' }),
         ).toBeVisible();
-        expect(screen.getByText('Hanya hasil asli VERIFIED')).toBeVisible();
+        expect(screen.getByText('VERIFIED source results only')).toBeVisible();
         expect(screen.getByText(/verified_at/)).toBeVisible();
         expect(
-            screen.getAllByText('Darah EDTA · 3 komponen hasil'),
+            screen.getAllByText('Darah EDTA · 3 component result'),
         ).toHaveLength(3);
         expect(
             screen.getAllByText(source.master_content_digest).length,
@@ -202,7 +202,7 @@ describe('laboratory tariff mapping frontend contract', () => {
         expect(screen.getByText('Tarif belum dipetakan')).toBeVisible();
         expect(
             screen.getByRole('table', {
-                name: 'Riwayat versi pemetaan laboratorium tetap',
+                name: 'Immutable laboratory mapping version history',
             }),
         ).toBeVisible();
 
@@ -214,31 +214,31 @@ describe('laboratory tariff mapping frontend contract', () => {
         const user = userEvent.setup();
         render(<LaboratoryTariffMappingWorkspace {...props} history={null} />);
 
-        await user.click(screen.getByRole('button', { name: 'Buat pemetaan' }));
-        expect(screen.getByLabelText('Tarif laboratorium')).toHaveValue('');
-        expect(screen.getByText(/Tidak ada tarif atau nilai/)).toBeVisible();
+        await user.click(
+            screen.getByRole('button', { name: 'Create mapping' }),
+        );
+        expect(screen.getByLabelText('Laboratory tariff')).toHaveValue('');
+        expect(screen.getByText(/No tariff or value/)).toBeVisible();
 
         await user.selectOptions(
-            screen.getByLabelText('Pemeriksaan dan versi master'),
+            screen.getByLabelText('Examination and master version'),
             source.public_id,
         );
         await user.selectOptions(
-            screen.getByLabelText('Jenis layanan'),
+            screen.getByLabelText('Service type'),
             'OUTPATIENT',
         );
         await user.selectOptions(
-            screen.getByLabelText('Tarif laboratorium'),
+            screen.getByLabelText('Laboratory tariff'),
             tariff.public_id,
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-10-01');
+        await user.type(screen.getByLabelText('Effective from'), '2026-10-01');
         await user.type(
-            screen.getByLabelText('Alasan'),
+            screen.getByLabelText('Reason'),
             'Pemetaan disetujui untuk rawat jalan.',
         );
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.click(screen.getByText(/I confirm the master version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
 
         expect(inertia.post).toHaveBeenCalledWith(
             props.commands.create_url,
@@ -257,7 +257,7 @@ describe('laboratory tariff mapping frontend contract', () => {
             expect.objectContaining({ preserveScroll: true }),
         );
         expect(screen.getByRole('status')).toHaveTextContent(
-            'Pemetaan laboratorium dibuat.',
+            'Laboratory mapping created.',
         );
     });
 
@@ -265,27 +265,27 @@ describe('laboratory tariff mapping frontend contract', () => {
         const user = userEvent.setup();
         render(<LaboratoryTariffMappingWorkspace {...props} history={null} />);
 
-        await user.click(screen.getByRole('button', { name: 'Buat pemetaan' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Create mapping' }),
+        );
         expect(
-            screen.getByRole('button', { name: 'Tutup formulir pemetaan' }),
+            screen.getByRole('button', { name: 'Close mapping form' }),
         ).toHaveFocus();
         await user.keyboard('{Escape}');
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
         await user.click(
             screen.getByRole('button', {
-                name: /Tambah versi pemetaan LAB-HB Rawat jalan/,
+                name: /Add mapping version LAB-HB Outpatient/,
             }),
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-11-01');
+        await user.type(screen.getByLabelText('Effective from'), '2026-11-01');
         await user.type(
-            screen.getByLabelText('Alasan'),
+            screen.getByLabelText('Reason'),
             'Perubahan terjadwal.',
         );
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.click(screen.getByText(/I confirm the master version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
         expect(inertia.patch).toHaveBeenCalledWith(
             binding.actions.revise_url,
             expect.objectContaining({
@@ -298,14 +298,14 @@ describe('laboratory tariff mapping frontend contract', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: /Nonaktifkan pemetaan LAB-HB Rawat jalan/,
+                name: /Deactivate mapping LAB-HB Outpatient/,
             }),
         );
-        await user.type(screen.getByLabelText('Nonaktif mulai'), '2026-12-01');
-        await user.type(screen.getByLabelText('Alasan'), 'Layanan dihentikan.');
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
+        await user.type(screen.getByLabelText('Inactive from'), '2026-12-01');
+        await user.type(screen.getByLabelText('Reason'), 'Layanan dihentikan.');
+        await user.click(screen.getByText(/I confirm the master version/));
         await user.click(
-            screen.getByRole('button', { name: 'Jadwalkan nonaktif' }),
+            screen.getByRole('button', { name: 'Schedule deactivation' }),
         );
         expect(inertia.post).toHaveBeenLastCalledWith(
             binding.actions.retire_url,
@@ -331,17 +331,17 @@ describe('laboratory tariff mapping frontend contract', () => {
             />,
         );
 
-        expect(screen.getByText('Akses lihat-saja')).toBeVisible();
+        expect(screen.getByText('Read-only access')).toBeVisible();
         expect(
             screen.getByText(
-                'Belum ada pemetaan tarif laboratorium yang dikonfigurasi secara sengaja.',
+                'No laboratory tariff mappings have been configured deliberately.',
             ),
         ).toBeVisible();
         expect(screen.getByRole('alert')).toHaveTextContent(
             'Proyeksi belum dapat dibaca.',
         );
         expect(
-            screen.queryByRole('button', { name: /Buat|Tambah|Nonaktifkan/ }),
+            screen.queryByRole('button', { name: /Create|Add|Deactivate/ }),
         ).not.toBeInTheDocument();
         expect(screen.queryByText(/Rp\s?\d/)).not.toBeInTheDocument();
 
@@ -356,25 +356,25 @@ describe('laboratory tariff mapping frontend contract', () => {
         const user = userEvent.setup();
         render(<LaboratoryTariffMappingWorkspace {...props} history={null} />);
 
-        await user.click(screen.getByRole('button', { name: 'Buat pemetaan' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Create mapping' }),
+        );
         await user.selectOptions(
-            screen.getByLabelText('Pemeriksaan dan versi master'),
+            screen.getByLabelText('Examination and master version'),
             source.public_id,
         );
         await user.selectOptions(
-            screen.getByLabelText('Jenis layanan'),
+            screen.getByLabelText('Service type'),
             'OUTPATIENT',
         );
         await user.selectOptions(
-            screen.getByLabelText('Tarif laboratorium'),
+            screen.getByLabelText('Laboratory tariff'),
             tariff.public_id,
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-10-01');
-        await user.type(screen.getByLabelText('Alasan'), 'Pemetaan terjadwal.');
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.type(screen.getByLabelText('Effective from'), '2026-10-01');
+        await user.type(screen.getByLabelText('Reason'), 'Pemetaan terjadwal.');
+        await user.click(screen.getByText(/I confirm the master version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
 
         expect(screen.getByRole('alert')).toHaveFocus();
         expect(screen.getByRole('alert')).toHaveTextContent(

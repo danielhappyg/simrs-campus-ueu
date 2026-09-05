@@ -5,7 +5,7 @@ import type { FinanceWorklistProps } from '@/components/finance/types';
 export default function FinanceBillWorklist(props: FinanceWorklistProps) {
     return (
         <>
-            <Head title="Daftar Tagihan" />
+            <Head title="Bill List" />
             <FinanceWorklist {...props} />
         </>
     );

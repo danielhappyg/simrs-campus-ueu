@@ -24,14 +24,14 @@ const fieldDefinitions: Array<{
     key: keyof InpatientSummaryAddendumFields;
     label: string;
 }> = [
-    { key: 'admission_reason', label: 'Alasan masuk dirawat' },
-    { key: 'significant_findings', label: 'Temuan penting' },
+    { key: 'admission_reason', label: 'Reason for admission' },
+    { key: 'significant_findings', label: 'Significant findings' },
     {
         key: 'care_and_treatment_summary',
-        label: 'Ringkasan perawatan dan pengobatan',
+        label: 'Care and treatment summary',
     },
-    { key: 'condition_at_discharge', label: 'Kondisi saat pulang' },
-    { key: 'follow_up_plan', label: 'Rencana tindak lanjut' },
+    { key: 'condition_at_discharge', label: 'Condition at discharge' },
+    { key: 'follow_up_plan', label: 'Follow-up plan' },
 ];
 
 const emptyFields: InpatientSummaryAddendumFields = {
@@ -46,10 +46,10 @@ const requestStateLabel: Record<
     InpatientSummaryCorrectionRequest['state'],
     string
 > = {
-    SUBMITTED: 'Menunggu keputusan',
-    APPROVED: 'Disetujui',
-    DENIED: 'Ditolak',
-    CONSUMED: 'Koreksi ditelaah RMIK',
+    SUBMITTED: 'Awaiting decision',
+    APPROVED: 'Approved',
+    DENIED: 'Denied',
+    CONSUMED: 'Correction reviewed by medical records',
 };
 
 let operationCounter = 0;
@@ -63,7 +63,7 @@ function newOperationKey(operation: string) {
 }
 
 function formatDate(value: string | null) {
-    return value ? new Date(value).toLocaleString('id-ID') : '—';
+    return value ? new Date(value).toLocaleString('en-GB') : '—';
 }
 
 function ErrorSummary({
@@ -96,7 +96,7 @@ function ErrorSummary({
             tabIndex={-1}
             className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
         >
-            <p className="font-semibold">Tindakan belum dapat diproses.</p>
+            <p className="font-semibold">The action could not be processed.</p>
             <ul className="mt-1 list-disc space-y-1 pl-5">
                 {messages.map((message) => (
                     <li key={message}>{message}</li>
@@ -136,7 +136,7 @@ function RequestForm({
             preserveScroll: true,
             onSuccess: () => {
                 announce(
-                    'Permintaan koreksi ringkasan pulang berhasil dikirim.',
+                    'The discharge-summary correction request was submitted.',
                 );
                 form.setData({
                     ...form.data,
@@ -153,7 +153,7 @@ function RequestForm({
             <ErrorSummary errors={errors} attempt={attempt} />
             <div className="grid gap-1.5">
                 <Label htmlFor="inpatient-summary-correction-reason">
-                    Alasan koreksi
+                    Correction reason
                 </Label>
                 <select
                     id="inpatient-summary-correction-reason"
@@ -177,8 +177,10 @@ function RequestForm({
             </div>
             <div className="grid gap-1.5">
                 <Label htmlFor="inpatient-summary-correction-note">
-                    Catatan alasan
-                    {selectedReason?.requires_note ? ' · wajib' : ' (opsional)'}
+                    Reason note
+                    {selectedReason?.requires_note
+                        ? ' · required'
+                        : ' (optional)'}
                 </Label>
                 <textarea
                     id="inpatient-summary-correction-note"
@@ -199,8 +201,8 @@ function RequestForm({
                     id="inpatient-summary-correction-note-help"
                     className="text-xs leading-5 text-muted-foreground"
                 >
-                    Ringkasan pulang asli dan penutupan episode tetap utuh.
-                    Koreksi dicatat sebagai addendum terpisah.
+                    The original discharge summary and episode closure remain
+                    intact. The correction is recorded as a separate addendum.
                 </p>
             </div>
             <Button
@@ -214,7 +216,7 @@ function RequestForm({
                 }
                 className="min-h-11 w-full sm:w-auto"
             >
-                Ajukan koreksi ringkasan pulang
+                Submit Discharge-Summary Correction
             </Button>
         </form>
     );
@@ -228,25 +230,27 @@ function BaselineBinding({
     return (
         <dl className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs sm:grid-cols-2 xl:grid-cols-4">
             <div>
-                <dt className="text-muted-foreground">Ringkasan asli</dt>
+                <dt className="text-muted-foreground">Original summary</dt>
                 <dd className="mt-0.5 font-semibold">
                     Final v{request.baseline.discharge_summary_version}
                 </dd>
             </div>
             <div>
-                <dt className="text-muted-foreground">Sumber pengodean</dt>
+                <dt className="text-muted-foreground">Coding source</dt>
                 <dd className="mt-0.5 font-semibold">
                     Final v{request.baseline.coding_source_version}
                 </dd>
             </div>
             <div>
-                <dt className="text-muted-foreground">Pengodean RMIK</dt>
+                <dt className="text-muted-foreground">Medical-record coding</dt>
                 <dd className="mt-0.5 font-semibold">
                     Final v{request.baseline.coding_version}
                 </dd>
             </div>
             <div>
-                <dt className="text-muted-foreground">Penutupan RMIK</dt>
+                <dt className="text-muted-foreground">
+                    Medical-record closure
+                </dt>
                 <dd className="mt-0.5 font-semibold">
                     Sign-off v{request.baseline.review_version}
                 </dd>
@@ -331,7 +335,7 @@ function RequestChain({
         decisionForm.post(request.actions.decision_url, {
             preserveScroll: true,
             onSuccess: () =>
-                announce('Keputusan permintaan koreksi berhasil disimpan.'),
+                announce('The correction-request decision was saved.'),
             onError: fail,
         });
     };
@@ -345,7 +349,7 @@ function RequestChain({
         addendumForm.post(request.actions.save_addendum_url, {
             preserveScroll: true,
             onSuccess: () =>
-                announce('Draf addendum ringkasan pulang berhasil disimpan.'),
+                announce('The discharge-summary addendum draft was saved.'),
             onError: fail,
         });
     };
@@ -358,7 +362,7 @@ function RequestChain({
             preserveScroll: true,
             onSuccess: () => {
                 setFinalizeOpen(false);
-                announce('Addendum ringkasan pulang ditetapkan Final.');
+                announce('The discharge-summary addendum was finalized.');
             },
             onError: () => {
                 setFinalizeOpen(false);
@@ -374,7 +378,7 @@ function RequestChain({
         reviewForm.post(request.actions.save_renewed_review_url, {
             preserveScroll: true,
             onSuccess: () =>
-                announce('Hasil review koreksi berhasil disimpan.'),
+                announce('The correction-review result was saved.'),
             onError: fail,
         });
     };
@@ -387,7 +391,9 @@ function RequestChain({
             preserveScroll: true,
             onSuccess: () => {
                 setSignoffOpen(false);
-                announce('Koreksi ringkasan pulang telah di-sign-off RMIK.');
+                announce(
+                    'The discharge-summary correction was signed off by medical records.',
+                );
             },
             onError: () => {
                 setSignoffOpen(false);
@@ -406,10 +412,10 @@ function RequestChain({
                 <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3 pl-5">
                     <div>
                         <h3 className="text-sm font-semibold">
-                            Koreksi ringkasan pulang
+                            Discharge-Summary Correction
                         </h3>
                         <p className="mt-1 text-xs text-muted-foreground">
-                            Diajukan oleh {request.requester_name ?? '—'} ·{' '}
+                            Submitted by {request.requester_name ?? '—'} ·{' '}
                             {formatDate(request.requested_at)}
                         </p>
                     </div>
@@ -427,7 +433,7 @@ function RequestChain({
                             id={`${id}-request`}
                             className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
                         >
-                            1 · Permintaan dokter
+                            1 · Physician request
                         </h4>
                         <p className="mt-2 text-sm font-semibold">
                             {request.reason_label}
@@ -447,14 +453,14 @@ function RequestChain({
                             id={`${id}-decision`}
                             className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
                         >
-                            2 · Keputusan dokter lain
+                            2 · Second physician decision
                         </h4>
                         {request.permissions.can_decide &&
                         request.actions.decision_url ? (
                             <form onSubmit={decide} className="mt-3 space-y-3">
                                 <div className="grid gap-1.5 sm:max-w-sm">
                                     <Label htmlFor={`${id}-decision-value`}>
-                                        Keputusan
+                                        Decision
                                     </Label>
                                     <select
                                         id={`${id}-decision-value`}
@@ -478,9 +484,9 @@ function RequestChain({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor={`${id}-decision-note`}>
-                                        Catatan keputusan
+                                        Decision note
                                         {decisionForm.data.decision === 'DENIED'
-                                            ? ' · wajib'
+                                            ? ' · required'
                                             : ' (opsional)'}
                                     </Label>
                                     <textarea
@@ -507,16 +513,16 @@ function RequestChain({
                                     disabled={decisionForm.processing}
                                     className="min-h-11"
                                 >
-                                    Simpan keputusan
+                                    Save decision
                                 </Button>
                             </form>
                         ) : request.decided_at ? (
                             <div className="mt-2 text-sm">
                                 <p>
                                     {request.state === 'DENIED'
-                                        ? 'Ditolak'
-                                        : 'Disetujui'}{' '}
-                                    oleh {request.decider_name ?? '—'} ·{' '}
+                                        ? 'Denied'
+                                        : 'Approved'}{' '}
+                                    by {request.decider_name ?? '—'} ·{' '}
                                     {formatDate(request.decided_at)}
                                 </p>
                                 {request.decision_note ? (
@@ -527,7 +533,8 @@ function RequestChain({
                             </div>
                         ) : (
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Menunggu keputusan dokter lain yang berwenang.
+                                Awaiting a decision from another authorized
+                                physician.
                             </p>
                         )}
                     </section>
@@ -540,7 +547,7 @@ function RequestChain({
                             id={`${id}-addendum`}
                             className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
                         >
-                            3 · Addendum terstruktur
+                            3 · Structured addendum
                         </h4>
                         {request.permissions.can_write_addendum &&
                         request.actions.save_addendum_url &&
@@ -550,9 +557,9 @@ function RequestChain({
                                 className="mt-3 space-y-3"
                             >
                                 <p className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs leading-5 text-muted-foreground">
-                                    Isi hanya bagian yang perlu dikoreksi.
-                                    Bagian kosong tidak mengganti ringkasan
-                                    pulang asli.
+                                    Complete only the sections requiring
+                                    correction. Empty sections do not replace
+                                    content in the original discharge summary.
                                 </p>
                                 {fieldDefinitions.map((field) => {
                                     const error =
@@ -611,7 +618,7 @@ function RequestChain({
                                         disabled={addendumForm.processing}
                                         className="min-h-11"
                                     >
-                                        Simpan draf addendum
+                                        Save addendum draft
                                     </Button>
                                     {request.permissions
                                         .can_finalize_addendum &&
@@ -627,14 +634,13 @@ function RequestChain({
                                             }
                                             className="min-h-11"
                                         >
-                                            Tetapkan addendum Final
+                                            Finalize Addendum
                                         </Button>
                                     ) : null}
                                 </div>
                                 {addendumDirty ? (
                                     <p className="text-xs text-warning">
-                                        Simpan perubahan draf sebelum menetapkan
-                                        Final.
+                                        Save draft changes before setting Final.
                                     </p>
                                 ) : null}
                             </form>
@@ -652,8 +658,8 @@ function RequestChain({
                                             className="size-4 text-warning"
                                         />
                                     )}
-                                    {addendumFinal ? 'Final' : 'Draf'} · versi{' '}
-                                    {request.addendum.version}
+                                    {addendumFinal ? 'Final' : 'Draft'} ·
+                                    version {request.addendum.version}
                                 </p>
                                 <dl className="grid gap-3 md:grid-cols-2">
                                     {fieldDefinitions.map((field) => (
@@ -668,7 +674,7 @@ function RequestChain({
                                                 {request.addendum?.fields[
                                                     field.key
                                                 ] ||
-                                                    'Tidak ada koreksi pada bagian ini.'}
+                                                    'No correction was entered for this section.'}
                                             </dd>
                                         </div>
                                     ))}
@@ -676,7 +682,7 @@ function RequestChain({
                             </div>
                         ) : (
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Addendum belum tersedia.
+                                The addendum is not yet available.
                             </p>
                         )}
                     </section>
@@ -693,7 +699,7 @@ function RequestChain({
                                 aria-hidden="true"
                                 className="size-4"
                             />{' '}
-                            4 · Review koreksi RMIK
+                            4 · Medical-Record Correction Review
                         </h4>
                         {request.renewed_review ? (
                             <div className="mt-3 space-y-3">
@@ -706,12 +712,12 @@ function RequestChain({
                                     )}
                                 >
                                     {reviewSignedOff
-                                        ? 'Koreksi telah di-sign-off'
+                                        ? 'Correction signed off'
                                         : `Review v${request.renewed_review.version}`}
                                 </p>
                                 <ul
                                     className="space-y-2"
-                                    aria-label="Daftar kelengkapan koreksi"
+                                    aria-label="Correction completeness checklist"
                                 >
                                     {request.renewed_review.items.map(
                                         (item) => (
@@ -735,8 +741,8 @@ function RequestChain({
                                                     {item.is_blocking &&
                                                     !item.is_complete ? (
                                                         <span className="mt-0.5 block text-xs text-destructive">
-                                                            Wajib dipenuhi
-                                                            sebelum sign-off.
+                                                            Required before
+                                                            sign-off.
                                                         </span>
                                                     ) : null}
                                                 </span>
@@ -747,7 +753,8 @@ function RequestChain({
                             </div>
                         ) : (
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Review RMIK tersedia setelah addendum Final.
+                                Medical-record review is available after the
+                                addendum is final.
                             </p>
                         )}
                         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -760,7 +767,7 @@ function RequestChain({
                                     disabled={reviewForm.processing}
                                     className="min-h-11"
                                 >
-                                    Simpan hasil review koreksi
+                                    Save correction-review result
                                 </Button>
                             ) : null}
                             {request.permissions.can_signoff_renewed_review &&
@@ -774,7 +781,7 @@ function RequestChain({
                                     }
                                     className="min-h-11"
                                 >
-                                    Sign-off koreksi RM
+                                    Sign Off Medical-Record Correction
                                 </Button>
                             ) : null}
                         </div>
@@ -785,12 +792,10 @@ function RequestChain({
             <Dialog open={finalizeOpen} onOpenChange={setFinalizeOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>
-                            Tetapkan addendum sebagai Final?
-                        </DialogTitle>
+                        <DialogTitle>Finalize the addendum?</DialogTitle>
                         <DialogDescription>
-                            Setelah Final, isi addendum tidak dapat diedit.
-                            Ringkasan pulang asli tetap tidak berubah.
+                            After finalization, the addendum cannot be edited.
+                            The original discharge summary remains unchanged.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -800,7 +805,7 @@ function RequestChain({
                                 variant="outline"
                                 className="min-h-11"
                             >
-                                Batal
+                                Cancel
                             </Button>
                         </DialogClose>
                         <Button
@@ -808,7 +813,7 @@ function RequestChain({
                             onClick={finalize}
                             className="min-h-11"
                         >
-                            Ya, tetapkan Final
+                            Yes, finalize
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -817,11 +822,13 @@ function RequestChain({
             <Dialog open={signoffOpen} onOpenChange={setSignoffOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Sign-off koreksi rekam medis?</DialogTitle>
+                        <DialogTitle>
+                            Sign off the medical-record correction?
+                        </DialogTitle>
                         <DialogDescription>
-                            Sign-off mengesahkan paket koreksi tanpa membuka
-                            kembali episode atau mengubah bukti penutupan
-                            sebelumnya.
+                            Sign-off validates the correction package without
+                            reopening the episode or changing closure evidence
+                            previously.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -831,7 +838,7 @@ function RequestChain({
                                 variant="outline"
                                 className="min-h-11"
                             >
-                                Batal
+                                Cancel
                             </Button>
                         </DialogClose>
                         <Button
@@ -839,7 +846,7 @@ function RequestChain({
                             onClick={signoff}
                             className="min-h-11"
                         >
-                            Ya, sign-off koreksi RM
+                            Yes, sign off correction
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -871,18 +878,17 @@ export function InpatientDischargeSummaryAddendumPanel({
             </div>
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                 <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                    Koreksi terkendali setelah penutupan
+                    Controlled correction after closure
                 </p>
                 <h2
                     id="inpatient-summary-addendum-title"
                     className="mt-1 text-lg font-semibold"
                 >
-                    Addendum ringkasan pulang
+                    Discharge-Summary Addendum
                 </h2>
                 <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-                    Koreksi dicatat sebagai rangkaian baru yang dapat
-                    ditelusuri. Dokumen Final, pengodean, dan sign-off
-                    sebelumnya tetap utuh.
+                    Corrections are recorded as a new traceable sequence. The
+                    final document, coding, and previous sign-off remain intact.
                 </p>
                 {projection.can_request && projection.store_url ? (
                     <RequestForm
@@ -894,7 +900,7 @@ export function InpatientDischargeSummaryAddendumPanel({
             {projection.requests.length > 0 ? (
                 <ol
                     className="space-y-4"
-                    aria-label="Riwayat koreksi ringkasan pulang"
+                    aria-label="Discharge-summary correction history"
                 >
                     {projection.requests.map((request) => (
                         <RequestChain
@@ -907,7 +913,7 @@ export function InpatientDischargeSummaryAddendumPanel({
                 </ol>
             ) : (
                 <p className="rounded-xl border border-dashed border-border bg-card p-5 text-center text-sm text-muted-foreground">
-                    Belum ada koreksi ringkasan pulang pada episode ini.
+                    No discharge-summary corrections exist for this episode.
                 </p>
             )}
         </section>

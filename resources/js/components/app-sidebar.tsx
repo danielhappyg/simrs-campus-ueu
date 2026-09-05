@@ -16,12 +16,12 @@ import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Beranda',
+        title: 'Home',
         href: '/',
         icon: Home,
     },
     {
-        title: 'Profil',
+        title: 'Profile',
         href: '/settings/profile',
         icon: UserRound,
     },

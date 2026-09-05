@@ -9,56 +9,56 @@ export const pharmacyStatePresentation: Record<
     { label: string; chip: string; rail: string }
 > = {
     DRAFT: {
-        label: 'Draf',
+        label: 'Draft',
         chip: 'border-slate-300 bg-slate-100 text-slate-800',
         rail: 'bg-slate-500',
     },
     ORDERED: {
-        label: 'Menunggu verifikasi',
+        label: 'Awaiting verification',
         chip: 'border-blue-300 bg-blue-50 text-blue-900',
         rail: 'bg-[#1b75bc]',
     },
     VERIFIED: {
-        label: 'Terverifikasi',
+        label: 'Verified',
         chip: 'border-cyan-300 bg-cyan-50 text-cyan-900',
         rail: 'bg-cyan-600',
     },
     REFUSED: {
-        label: 'Ditolak apoteker',
+        label: 'Refused by pharmacist',
         chip: 'border-red-300 bg-red-50 text-red-900',
         rail: 'bg-red-600',
     },
     PREPARED: {
-        label: 'Siap diserahkan',
+        label: 'Ready to hand over',
         chip: 'border-violet-300 bg-violet-50 text-violet-900',
         rail: 'bg-violet-600',
     },
     PARTIALLY_HANDED_OVER: {
-        label: 'Diserahkan sebagian',
+        label: 'Partially handed over',
         chip: 'border-amber-300 bg-amber-50 text-amber-950',
         rail: 'bg-amber-500',
     },
     HANDED_OVER: {
-        label: 'Sudah diserahkan',
+        label: 'Handed over',
         chip: 'border-emerald-300 bg-emerald-50 text-emerald-900',
         rail: 'bg-emerald-600',
     },
     UNFILLED_CLOSED: {
-        label: 'Sisa ditutup',
+        label: 'Unfilled remainder closed',
         chip: 'border-slate-300 bg-slate-100 text-slate-800',
         rail: 'bg-slate-600',
     },
     CANCELLED: {
-        label: 'Dibatalkan',
+        label: 'Cancelled',
         chip: 'border-slate-300 bg-slate-100 text-slate-700',
         rail: 'bg-slate-500',
     },
 };
 
 export const pharmacyCareSettingLabel: Record<PharmacyCareSetting, string> = {
-    OUTPATIENT: 'Rawat Jalan',
-    EMERGENCY: 'IGD',
-    INPATIENT: 'Rawat Inap',
+    OUTPATIENT: 'Outpatient',
+    EMERGENCY: 'Emergency',
+    INPATIENT: 'Inpatient',
 };
 
 export function PharmacyStatusChip({
@@ -117,14 +117,18 @@ export function PharmacySubnav({
     canManage?: boolean;
 }) {
     const items = [
-        { id: 'queue', label: 'Antrean Resep', href: '/apotek/resep' },
-        { id: 'history', label: 'Riwayat Resep', href: '/apotek/riwayat' },
-        { id: 'stock', label: 'Kartu Stok', href: '/apotek/kartu-stok' },
+        { id: 'queue', label: 'Prescription queue', href: '/apotek/resep' },
+        {
+            id: 'history',
+            label: 'Prescription history',
+            href: '/apotek/riwayat',
+        },
+        { id: 'stock', label: 'Stock card', href: '/apotek/kartu-stok' },
         ...(canManage
             ? [
                   {
                       id: 'master',
-                      label: 'Master Obat & Depo',
+                      label: 'Medicine & depot master data',
                       href: '/manajemen-data/apotek',
                   },
               ]
@@ -133,7 +137,7 @@ export function PharmacySubnav({
 
     return (
         <nav
-            aria-label="Navigasi Apotek"
+            aria-label="Pharmacy navigation"
             className="flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1"
         >
             {items.map((item) => (

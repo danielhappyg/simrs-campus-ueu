@@ -524,12 +524,12 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        expect(screen.queryByLabelText('Subjektif')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Subjective')).not.toBeInTheDocument();
         await user.type(
-            screen.getByLabelText('Observasi keperawatan'),
+            screen.getByLabelText('Nursing observation'),
             'Pasien tenang.',
         );
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
 
         const summary = screen.getByRole('alert');
         expect(summary).toHaveFocus();
@@ -551,16 +551,13 @@ describe('structured inpatient longitudinal documentation', () => {
             /^inpatient-draft-[a-z0-9-]+$/,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
         expect(inertia.submissions[1].data.idempotency_key).toBe(
             first.data.idempotency_key,
         );
 
-        await user.type(
-            screen.getByLabelText('Evaluasi keperawatan'),
-            'Stabil.',
-        );
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.type(screen.getByLabelText('Nursing evaluation'), 'Stabil.');
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
         expect(inertia.submissions[2].data.idempotency_key).not.toBe(
             first.data.idempotency_key,
         );
@@ -593,14 +590,16 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Jadikan Final' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Finalize version' }),
+        );
         const summary = screen.getByRole('alert');
         expect(summary).toHaveFocus();
         expect(summary).toHaveTextContent(
-            'Intervensi keperawatan wajib diisi sebelum Final.',
+            'Nursing intervention is required before finalization.',
         );
         expect(summary).toHaveTextContent(
-            'Evaluasi keperawatan wajib diisi sebelum Final.',
+            'Nursing evaluation is required before finalization.',
         );
         expect(inertia.submissions).toHaveLength(0);
 
@@ -621,7 +620,9 @@ describe('structured inpatient longitudinal documentation', () => {
                 }}
             />,
         );
-        await user.click(screen.getByRole('button', { name: 'Jadikan Final' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Finalize version' }),
+        );
 
         expect(inertia.submissions).toHaveLength(1);
         expect(inertia.submissions[0].url).toBe('/nursing/final');
@@ -649,10 +650,10 @@ describe('structured inpatient longitudinal documentation', () => {
         );
 
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf' }),
+            screen.queryByRole('button', { name: 'Save draft' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Jadikan Final' }),
+            screen.queryByRole('button', { name: 'Finalize version' }),
         ).not.toBeInTheDocument();
 
         const finalMedical = dailyDocument({
@@ -683,14 +684,14 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        expect(screen.getByLabelText('Subjektif')).toHaveAttribute('readonly');
+        expect(screen.getByLabelText('Subjective')).toHaveAttribute('readonly');
         expect(
             screen.getByText(
-                'Dokumen Final dan seluruh versinya hanya dapat dibaca.',
+                'The final document and all its versions are read-only.',
             ),
         ).toBeVisible();
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf' }),
+            screen.queryByRole('button', { name: 'Save draft' }),
         ).not.toBeInTheDocument();
     });
 
@@ -706,33 +707,35 @@ describe('structured inpatient longitudinal documentation', () => {
         ).toBeVisible();
         expect(
             screen.getByRole('tablist', {
-                name: 'Bagian episode rawat inap',
+                name: 'Inpatient episode sections',
             }),
         ).toBeVisible();
-        const observation = screen.getByLabelText('Observasi keperawatan');
+        const observation = screen.getByLabelText('Nursing observation');
         await user.type(observation, ' Perubahan belum disimpan.');
 
-        await user.click(screen.getByRole('tab', { name: /Riwayat versi/ }));
+        await user.click(
+            screen.getByRole('tab', { name: /Document version history/ }),
+        );
         expect(observation).not.toBeVisible();
         expect(
             screen.getByText('Nama Bangsal Saat Versi Dibuat'),
         ).toBeInTheDocument();
 
         const versionsTab = screen.getByRole('tab', {
-            name: /Riwayat versi/,
+            name: /Document version history/,
         });
         versionsTab.focus();
         await user.keyboard('{ArrowRight}');
-        expect(screen.getByRole('tab', { name: 'Catatan lama' })).toHaveFocus();
+        expect(screen.getByRole('tab', { name: 'Legacy notes' })).toHaveFocus();
         expect(screen.getByText('Catatan lama dipertahankan.')).toBeVisible();
         expect(
             screen.queryByRole('button', {
-                name: /Transfer|Pulang|Order|Resep/,
+                name: /Discharge|Order|Prescription/,
             }),
         ).not.toBeInTheDocument();
 
         await user.click(
-            screen.getByRole('tab', { name: 'Dokumentasi harian' }),
+            screen.getByRole('tab', { name: 'Daily documentation' }),
         );
         expect(observation).toHaveValue(
             'Pasien sadar dan kooperatif. Perubahan belum disimpan.',
@@ -758,14 +761,16 @@ describe('structured inpatient longitudinal documentation', () => {
         render(<StructuredInpatientEncounterShow {...pageProps()} />);
 
         const otherHeading = screen.getByRole('heading', {
-            name: 'Catatan harian oleh tenaga kesehatan lain',
+            name: 'Daily notes by other healthcare professionals',
         });
         const otherSection = otherHeading.closest('section');
         expect(otherSection).not.toBeNull();
         expect(
             within(otherSection!).getByText('dr. Citra · 2026-08-30'),
         ).toBeVisible();
-        expect(within(otherSection!).getByText('Draf · versi 2')).toBeVisible();
+        expect(
+            within(otherSection!).getByText('Draft · Version 2'),
+        ).toBeVisible();
     });
 
     it('saves only the discharge-summary Draft contract with a fresh idempotency key', async () => {
@@ -788,10 +793,10 @@ describe('structured inpatient longitudinal documentation', () => {
         );
 
         await user.type(
-            screen.getByLabelText('Alasan Masuk'),
+            screen.getByLabelText('Reason for Admission'),
             'Demam dan sesak.',
         );
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
 
         expect(inertia.submissions).toHaveLength(1);
         expect(inertia.submissions[0]).toEqual({
@@ -823,17 +828,17 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Jadikan Final' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Finalize version' }),
+        );
         expect(
             screen.getByRole('dialog', {
-                name: 'Jadikan ringkasan pulang Final?',
+                name: 'Finalize the discharge summary?',
             }),
         ).toBeVisible();
         expect(inertia.submissions).toHaveLength(0);
 
-        await user.click(
-            screen.getByRole('button', { name: 'Ya, jadikan Final' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Yes, finalize' }));
 
         expect(inertia.submissions).toHaveLength(1);
         expect(inertia.submissions[0]).toEqual({
@@ -877,14 +882,14 @@ describe('structured inpatient longitudinal documentation', () => {
         );
 
         await waitFor(() =>
-            expect(screen.getByLabelText('Alasan Masuk')).toHaveValue(
+            expect(screen.getByLabelText('Reason for Admission')).toHaveValue(
                 'Alasan masuk terbaru dari server.',
             ),
         );
-        await user.click(screen.getByRole('button', { name: 'Jadikan Final' }));
         await user.click(
-            screen.getByRole('button', { name: 'Ya, jadikan Final' }),
+            screen.getByRole('button', { name: 'Finalize version' }),
         );
+        await user.click(screen.getByRole('button', { name: 'Yes, finalize' }));
         expect(inertia.submissions[0].data.expected_version).toBe(3);
 
         cleanRender.unmount();
@@ -896,7 +901,7 @@ describe('structured inpatient longitudinal documentation', () => {
                 disabledByUnsavedDocument={false}
             />,
         );
-        const admissionReason = screen.getByLabelText('Alasan Masuk');
+        const admissionReason = screen.getByLabelText('Reason for Admission');
         await user.clear(admissionReason);
         await user.type(admissionReason, 'Perubahan lokal belum disimpan.');
         const newer = dischargeSummaryProjection();
@@ -917,11 +922,11 @@ describe('structured inpatient longitudinal documentation', () => {
         );
 
         await waitFor(() =>
-            expect(screen.getByLabelText('Alasan Masuk')).toHaveValue(
+            expect(screen.getByLabelText('Reason for Admission')).toHaveValue(
                 'Perubahan lokal belum disimpan.',
             ),
         );
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
         expect(inertia.submissions[0].data).toMatchObject({
             expected_version: 4,
             fields: {
@@ -940,10 +945,10 @@ describe('structured inpatient longitudinal documentation', () => {
                 disabledByUnsavedDocument={false}
             />,
         );
-        const admissionReason = screen.getByLabelText('Alasan Masuk');
+        const admissionReason = screen.getByLabelText('Reason for Admission');
         await user.clear(admissionReason);
         await user.type(admissionReason, 'Snapshot yang dikirim.');
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
 
         await waitFor(() =>
             expect(admissionReason).toHaveAttribute('readonly'),
@@ -962,9 +967,7 @@ describe('structured inpatient longitudinal documentation', () => {
             expect(admissionReason).not.toHaveAttribute('readonly'),
         );
         expect(
-            screen.queryByText(
-                'Simpan perubahan draf sebelum melakukan Final.',
-            ),
+            screen.queryByText('Save draft changes before finalizing.'),
         ).not.toBeInTheDocument();
     });
 
@@ -982,7 +985,7 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
         const error = screen.getByRole('alert');
         expect(error).toHaveFocus();
         expect(error).toHaveTextContent(
@@ -1003,11 +1006,13 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Jadikan Final' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Finalize version' }),
+        );
         const summary = screen.getByRole('alert');
         expect(summary).toHaveFocus();
         expect(summary).toHaveTextContent(
-            'Rencana Tindak Lanjut wajib diisi sebelum Final.',
+            'Follow-up Plan is required before finalization.',
         );
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(inertia.submissions).toHaveLength(0);
@@ -1036,23 +1041,23 @@ describe('structured inpatient longitudinal documentation', () => {
             />,
         );
 
-        expect(screen.getByLabelText('Alasan Masuk')).toHaveAttribute(
+        expect(screen.getByLabelText('Reason for Admission')).toHaveAttribute(
             'readonly',
         );
         expect(
             screen.getByText(
-                'Ringkasan pulang Final dan seluruh versinya hanya dapat dibaca.',
+                'The final discharge summary and all its versions are read-only.',
             ),
         ).toBeVisible();
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf' }),
+            screen.queryByRole('button', { name: 'Save draft' }),
         ).not.toBeInTheDocument();
         const versionHeadings = screen.getAllByRole('heading', {
-            name: /Versi \d · Draf/,
+            name: /Version \d · Draft/,
         });
         expect(versionHeadings.map((heading) => heading.textContent)).toEqual([
-            'Versi 1 · Draf',
-            'Versi 2 · Draf',
+            'Version 1 · Draft',
+            'Version 2 · Draft',
         ]);
     });
 
@@ -1071,37 +1076,37 @@ describe('structured inpatient longitudinal documentation', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan draf diagnosis dan prosedur',
+                name: 'Save diagnosis and procedure draft',
             }),
         );
         const error = screen.getByRole('alert');
         expect(error).toHaveFocus();
         expect(error).toHaveTextContent(
-            'Pilih pernyataan prosedur sebelum menyimpan.',
+            'Select a procedure statement before saving.',
         );
         expect(inertia.submissions).toHaveLength(0);
 
         await user.type(
-            screen.getByLabelText('Diagnosis utama'),
+            screen.getByLabelText('Primary diagnosis'),
             'Pneumonia komunitas.',
         );
         await user.click(
             screen.getByRole('radio', {
-                name: 'Tidak ada prosedur yang dilakukan',
+                name: 'No procedures performed',
             }),
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Tambah diagnosis sekunder',
+                name: 'Add secondary diagnosis',
             }),
         );
         await user.type(
-            screen.getByLabelText('Diagnosis sekunder 1'),
+            screen.getByLabelText('Secondary diagnosis 1'),
             'Hipertensi terkontrol.',
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan draf diagnosis dan prosedur',
+                name: 'Save diagnosis and procedure draft',
             }),
         );
 
@@ -1139,24 +1144,24 @@ describe('structured inpatient longitudinal documentation', () => {
 
         await user.click(
             screen.getByRole('radio', {
-                name: 'Ada prosedur yang dilakukan',
+                name: 'Procedures were performed',
             }),
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan draf diagnosis dan prosedur',
+                name: 'Save diagnosis and procedure draft',
             }),
         );
         expect(screen.getByRole('alert')).toHaveTextContent(
-            'Isi setiap prosedur yang dilakukan, atau pilih tidak ada prosedur.',
+            'Enter every performed procedure, or select no procedures performed.',
         );
         expect(inertia.submissions).toHaveLength(0);
 
-        const procedure = screen.getByLabelText('Prosedur yang dilakukan 1');
+        const procedure = screen.getByLabelText('Procedure 1');
         await user.type(procedure, 'Bronkoskopi diagnostik.');
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan draf diagnosis dan prosedur',
+                name: 'Save diagnosis and procedure draft',
             }),
         );
 
@@ -1192,7 +1197,7 @@ describe('structured inpatient longitudinal documentation', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan draf diagnosis dan prosedur',
+                name: 'Save diagnosis and procedure draft',
             }),
         );
 
@@ -1214,15 +1219,15 @@ describe('structured inpatient longitudinal documentation', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Jadikan diagnosis dan prosedur Final',
+                name: 'Finalize diagnoses and procedures',
             }),
         );
         const dialog = screen.getByRole('dialog', {
-            name: 'Jadikan diagnosis dan prosedur akhir Final?',
+            name: 'Finalize diagnoses and procedures?',
         });
         await user.click(
             within(dialog).getByRole('button', {
-                name: 'Ya, jadikan Final',
+                name: 'Yes, finalize',
             }),
         );
 
@@ -1245,18 +1250,16 @@ describe('structured inpatient longitudinal documentation', () => {
                 projection={finalDischargeCodingSourceProjection()}
             />,
         );
-        expect(screen.getByLabelText('Diagnosis utama')).toHaveAttribute(
+        expect(screen.getByLabelText('Primary diagnosis')).toHaveAttribute(
             'readonly',
         );
         expect(
-            screen.getByText(
-                'Diagnosis dan prosedur akhir sudah Final dan hanya dapat dibaca.',
-            ),
+            screen.getByText('Final diagnoses and procedures are read-only.'),
         ).toBeVisible();
         expect(
-            screen.getByText('Riwayat versi diagnosis dan prosedur'),
+            screen.getByText('Diagnosis and procedure version history'),
         ).toBeVisible();
-        expect(screen.getByText('Versi 3 · Final')).toBeVisible();
+        expect(screen.getByText('Version 3 · Final')).toBeVisible();
     });
 
     it('shows both Final prerequisites and submits the exact atomic discharge contract with processing locked', async () => {
@@ -1282,14 +1285,14 @@ describe('structured inpatient longitudinal documentation', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Penyelesaian episode' }),
+            screen.getByRole('heading', { name: 'Episode Completion' }),
         ).toBeVisible();
         expect(
             screen.getByRole('button', {
-                name: 'Selesaikan episode dan lepaskan tempat tidur',
+                name: 'Complete Episode and Release Bed',
             }),
         ).toBeDisabled();
-        expect(screen.getByText('Belum Final')).toBeVisible();
+        expect(screen.getByText('Not final')).toBeVisible();
 
         const finalSummary = dischargeSummaryProjection();
         finalSummary.summary = {
@@ -1316,21 +1319,21 @@ describe('structured inpatient longitudinal documentation', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Penyelesaian episode' }),
+            screen.getByRole('heading', { name: 'Episode Completion' }),
         ).toBeVisible();
         expect(screen.getByText('Pulang atas izin dokter')).toBeVisible();
         await user.click(
             screen.getByRole('button', {
-                name: 'Selesaikan episode dan lepaskan tempat tidur',
+                name: 'Complete Episode and Release Bed',
             }),
         );
         expect(
             screen.getByRole('dialog', {
-                name: 'Selesaikan episode rawat inap?',
+                name: 'Complete the inpatient episode?',
             }),
         ).toBeVisible();
         await user.click(
-            screen.getByRole('button', { name: 'Ya, selesaikan episode' }),
+            screen.getByRole('button', { name: 'Yes, complete episode' }),
         );
 
         expect(inertia.submissions).toHaveLength(1);
@@ -1349,10 +1352,10 @@ describe('structured inpatient longitudinal documentation', () => {
             'disposition_code',
         );
         expect(
-            screen.getByRole('button', { name: 'Menyelesaikan episode…' }),
+            screen.getByRole('button', { name: 'Completing episode…' }),
         ).toBeDisabled();
         expect(
-            screen.getByRole('button', { name: 'Periksa kembali' }),
+            screen.getByRole('button', { name: 'Review again' }),
         ).toBeDisabled();
 
         act(() => inertia.pendingPosts[0].succeed());
@@ -1431,11 +1434,11 @@ describe('structured inpatient longitudinal documentation', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Selesaikan episode dan lepaskan tempat tidur',
+                name: 'Complete Episode and Release Bed',
             }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Ya, selesaikan episode' }),
+            screen.getByRole('button', { name: 'Yes, complete episode' }),
         );
 
         const error = screen.getByRole('alert');
@@ -1478,18 +1481,20 @@ describe('structured inpatient longitudinal documentation', () => {
         const view = render(<StructuredInpatientEncounterShow {...props} />);
 
         await user.type(
-            screen.getByLabelText('Observasi keperawatan'),
+            screen.getByLabelText('Nursing observation'),
             ' Perubahan belum disimpan.',
         );
-        await user.click(screen.getByRole('tab', { name: 'Ringkasan pulang' }));
+        await user.click(
+            screen.getByRole('tab', { name: 'Discharge summary' }),
+        );
         expect(
             screen.getByRole('button', {
-                name: 'Selesaikan episode dan lepaskan tempat tidur',
+                name: 'Complete Episode and Release Bed',
             }),
         ).toBeDisabled();
         expect(
             screen.getByText(
-                'Simpan atau batalkan perubahan dokumen sebelum menyelesaikan episode.',
+                'Save or discard document changes before completing episode.',
             ),
         ).toBeVisible();
 
@@ -1521,20 +1526,22 @@ describe('structured inpatient longitudinal documentation', () => {
         const { container } = render(
             <StructuredInpatientEncounterShow {...terminalProps} />,
         );
-        expect(screen.getByText('Siap RM')).toBeVisible();
-        expect(
-            screen.getByLabelText('Penempatan terakhir'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Ready for medical records')).toBeVisible();
+        expect(screen.getByLabelText('Last placement')).toBeInTheDocument();
 
-        await user.click(screen.getByRole('tab', { name: 'Ringkasan pulang' }));
+        await user.click(
+            screen.getByRole('tab', { name: 'Discharge summary' }),
+        );
         const terminal = screen.getByRole('status');
-        expect(terminal).toHaveTextContent('Episode selesai · Siap RM');
+        expect(terminal).toHaveTextContent(
+            'Episode complete · Ready for medical records',
+        );
         expect(terminal).toHaveTextContent('Pulang atas izin dokter');
-        expect(terminal).toHaveTextContent('Tempat tidur dilepas');
+        expect(terminal).toHaveTextContent('Bed released');
         expect(terminal).toHaveTextContent(placement.bed_code);
         expect(
             screen.queryByRole('button', {
-                name: 'Selesaikan episode dan lepaskan tempat tidur',
+                name: 'Complete Episode and Release Bed',
             }),
         ).not.toBeInTheDocument();
         await expectNoWcag21Violations(container);
@@ -1551,8 +1558,10 @@ describe('structured inpatient longitudinal documentation', () => {
             draftDischargeCodingSourceProjection();
 
         render(<StructuredInpatientEncounterShow {...props} />);
-        await user.click(screen.getByRole('tab', { name: 'Ringkasan pulang' }));
-        const principal = screen.getByLabelText('Diagnosis utama');
+        await user.click(
+            screen.getByRole('tab', { name: 'Discharge summary' }),
+        );
+        const principal = screen.getByLabelText('Primary diagnosis');
         await user.type(principal, ' Perubahan belum disimpan.');
 
         await waitFor(() => expect(inertia.beforeHandlers).toHaveLength(1));
@@ -1578,13 +1587,15 @@ describe('structured inpatient longitudinal documentation', () => {
             <StructuredInpatientEncounterShow {...props} />,
         );
 
-        await user.click(screen.getByRole('tab', { name: 'Ringkasan pulang' }));
+        await user.click(
+            screen.getByRole('tab', { name: 'Discharge summary' }),
+        );
         expect(
-            screen.getByRole('heading', { name: 'Ringkasan pulang' }),
+            screen.getByRole('heading', { name: 'Discharge Summary' }),
         ).toBeVisible();
         expect(
             screen.getByText(
-                'Final menyelesaikan dokumen ringkasan pulang. Status episode dan penggunaan tempat tidur belum berubah sampai penyelesaian episode dilakukan.',
+                'Finalization completes the discharge summary. Episode status and bed use remain unchanged until the episode is completed.',
             ),
         ).toBeVisible();
         await expectNoWcag21Violations(container);
@@ -1598,7 +1609,7 @@ describe('structured inpatient longitudinal documentation', () => {
             ...props.documentation,
             available: false,
             unavailable_reason:
-                'Penempatan bangsal dan tempat tidur terkelola belum tersedia untuk episode lama ini.',
+                'Managed ward and bed placement is not available for this legacy episode.',
             documents: [],
             versions: [],
         };
@@ -1623,15 +1634,15 @@ describe('structured inpatient longitudinal documentation', () => {
 
         expect(
             screen.getByText(
-                'Penempatan bangsal dan tempat tidur terkelola belum tersedia untuk episode lama ini.',
+                'Managed ward and bed placement is not available for this legacy episode.',
             ),
         ).toBeVisible();
         expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf' }),
+            screen.queryByRole('button', { name: 'Save draft' }),
         ).not.toBeInTheDocument();
 
-        await user.click(screen.getByRole('tab', { name: 'Catatan lama' }));
+        await user.click(screen.getByRole('tab', { name: 'Legacy notes' }));
         expect(screen.getByText('Catatan lama dipertahankan.')).toBeVisible();
     });
 });

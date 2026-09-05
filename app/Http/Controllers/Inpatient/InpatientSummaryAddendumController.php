@@ -58,8 +58,8 @@ final class InpatientSummaryAddendumController extends Controller
                 $validated['idempotency_key'],
                 RequestCorrelation::existing($request),
             ),
-            success: 'Permintaan koreksi ringkasan pulang berhasil dikirim.',
-            replayed: 'Permintaan koreksi ringkasan pulang sudah tercatat.',
+            success: 'Discharge summary correction request submitted.',
+            replayed: 'The discharge summary correction request is already recorded.',
         );
     }
 
@@ -91,8 +91,8 @@ final class InpatientSummaryAddendumController extends Controller
                 $validated['idempotency_key'],
                 RequestCorrelation::existing($request),
             ),
-            'Keputusan koreksi ringkasan pulang berhasil disimpan.',
-            'Keputusan koreksi ringkasan pulang sudah tercatat.',
+            'Discharge summary correction decision saved.',
+            'The discharge summary correction decision is already recorded.',
         );
     }
 
@@ -121,8 +121,8 @@ final class InpatientSummaryAddendumController extends Controller
                 $validated['idempotency_key'],
                 RequestCorrelation::existing($request),
             ),
-            'Draf addendum ringkasan pulang berhasil disimpan.',
-            'Draf addendum ringkasan pulang sudah tercatat.',
+            'Discharge summary addendum draft saved.',
+            'The discharge summary addendum draft is already recorded.',
         );
     }
 
@@ -144,8 +144,8 @@ final class InpatientSummaryAddendumController extends Controller
                 $validated['idempotency_key'],
                 RequestCorrelation::existing($request),
             ),
-            'Addendum ringkasan pulang berhasil dijadikan Final.',
-            'Finalisasi addendum ringkasan pulang sudah tercatat.',
+            'Discharge summary addendum finalized.',
+            'The discharge summary addendum finalization is already recorded.',
         );
     }
 
@@ -191,8 +191,8 @@ final class InpatientSummaryAddendumController extends Controller
                     $validated['idempotency_key'],
                     RequestCorrelation::existing($request),
                 ),
-            $signoff ? 'Koreksi rekam medis berhasil di-sign-off.' : 'Hasil review koreksi rekam medis berhasil disimpan.',
-            $signoff ? 'Sign-off koreksi rekam medis sudah tercatat.' : 'Hasil review koreksi rekam medis sudah tercatat.',
+            $signoff ? 'Medical-record correction signed off.' : 'Medical-record correction review saved.',
+            $signoff ? 'The medical-record correction sign-off is already recorded.' : 'The medical-record correction review is already recorded.',
         );
     }
 
@@ -245,9 +245,9 @@ final class InpatientSummaryAddendumController extends Controller
             /** @var InpatientSummaryAddendumResult $result */
             $result = $action();
         } catch (InpatientSummaryAddendumDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (InpatientSummaryAddendumAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()->with('success', $result->replayed ? $replayed : $success);

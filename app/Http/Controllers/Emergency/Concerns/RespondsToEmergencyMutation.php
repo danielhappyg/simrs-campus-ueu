@@ -13,10 +13,10 @@ trait RespondsToEmergencyMutation
         try {
             $mutation();
         } catch (EmergencyAuditUnavailable $exception) {
-            abort(503, $exception->getMessage());
+            abort(503, __($exception->getMessage()));
         } catch (EmergencyDenied $exception) {
             return back()
-                ->withErrors(['emergency' => $exception->getMessage()])
+                ->withErrors(['emergency' => __($exception->getMessage())])
                 ->withInput();
         }
 

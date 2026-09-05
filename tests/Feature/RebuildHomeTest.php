@@ -229,7 +229,7 @@ class RebuildHomeTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('occupancy.available', false)
-                ->where('occupancy.read_error', 'Status hunian rawat inap belum dapat dimuat. Silakan coba lagi.')
+                ->where('occupancy.read_error', 'Inpatient occupancy could not be loaded. Please try again.')
                 ->where('queues.4.id', 'queue.occupancy')
                 ->where('queues.4.count', null));
     }
@@ -250,7 +250,7 @@ class RebuildHomeTest extends TestCase
                 ->where('census.by_setting.rawat_jalan.total_active', null)
                 ->where('census.by_setting.igd.total_active', null)
                 ->where('census.by_setting.rawat_inap.total_active', null)
-                ->where('census.read_error', 'Ringkasan kunjungan belum dapat dimuat. Silakan coba lagi.'));
+                ->where('census.read_error', 'The encounter summary could not be loaded. Please try again.'));
     }
 
     /** @param array<string, mixed> $overrides */

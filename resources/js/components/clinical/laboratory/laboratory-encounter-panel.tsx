@@ -24,10 +24,10 @@ export type LaboratoryEncounterPanelProps = {
 };
 
 const stateLabel = {
-    ORDERED: 'Menunggu spesimen',
-    SPECIMEN_ACCEPTED: 'Spesimen diterima',
-    REPORTED_VERIFIED: 'Hasil terverifikasi',
-    CANCELLED: 'Dibatalkan',
+    ORDERED: 'Awaiting specimen',
+    SPECIMEN_ACCEPTED: 'Specimen accepted',
+    REPORTED_VERIFIED: 'Verified result',
+    CANCELLED: 'Cancelled',
 } as const;
 
 function SpecimenHistory({ order }: { order: LaboratoryOrderProjection }) {
@@ -36,8 +36,8 @@ function SpecimenHistory({ order }: { order: LaboratoryOrderProjection }) {
     }
 
     return (
-        <section aria-label="Riwayat spesimen" className="space-y-2">
-            <p className="font-semibold text-slate-800">Riwayat spesimen</p>
+        <section aria-label="Specimen history" className="space-y-2">
+            <p className="font-semibold text-slate-800">Specimen history</p>
             <ol className="space-y-2">
                 {order.specimens.map((specimen) => (
                     <li
@@ -61,10 +61,10 @@ function SpecimenHistory({ order }: { order: LaboratoryOrderProjection }) {
                                 {specimen.state === 'COLLECTED'
                                     ? 'Dikumpulkan'
                                     : specimen.state === 'RECEIVED'
-                                      ? 'Diterima unit lab'
+                                      ? 'Accepted by laboratory unit'
                                       : specimen.state === 'ACCEPTED'
-                                        ? 'Layak diperiksa'
-                                        : 'Ditolak'}
+                                        ? 'Suitable for examination'
+                                        : 'Rejected'}
                             </span>
                         </div>
                         <p className="mt-1 text-xs text-slate-600">
@@ -170,7 +170,7 @@ function EncounterOrderCard({
                 <div>
                     <p className="font-mono text-xs font-semibold tracking-wide text-[#145a8d]">
                         {order.examination.code} ·{' '}
-                        {order.priority === 'URGENT' ? 'SEGERA' : 'RUTIN'}
+                        {order.priority === 'URGENT' ? 'URGENT' : 'ROUTINE'}
                     </p>
                     <h4 className="font-['IBM_Plex_Sans_Condensed'] text-lg font-semibold text-slate-950">
                         {order.examination.display_name}
@@ -183,7 +183,7 @@ function EncounterOrderCard({
                 <div className="mt-2 flex flex-wrap gap-2 sm:mt-0 sm:justify-end">
                     {isLegacy ? (
                         <span className="inline-flex min-h-7 items-center rounded-full bg-slate-200 px-3 text-xs font-semibold text-slate-800">
-                            Arsip baca-saja
+                            Read-only archive
                         </span>
                     ) : null}
                     <span className="inline-flex min-h-7 items-center rounded-full bg-[#e8f4fb] px-3 text-xs font-semibold text-[#145a8d]">
@@ -202,14 +202,14 @@ function EncounterOrderCard({
                 <div className="grid gap-3 md:grid-cols-2">
                     <div>
                         <p className="font-semibold text-slate-800">
-                            Pertanyaan klinis
+                            Clinical question
                         </p>
                         <p className="mt-1 whitespace-pre-wrap text-slate-700">
                             {order.clinical_question}
                         </p>
                     </div>
                     <div>
-                        <p className="font-semibold text-slate-800">Spesimen</p>
+                        <p className="font-semibold text-slate-800">Specimen</p>
                         <p className="mt-1 text-slate-700">
                             {order.examination.specimen_type}
                         </p>
@@ -218,7 +218,7 @@ function EncounterOrderCard({
                 {order.examination.collection_instruction ? (
                     <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-950">
                         <span className="font-semibold">
-                            Instruksi pengambilan:
+                            Collection instructions:
                         </span>{' '}
                         {order.examination.collection_instruction}
                     </p>
@@ -228,7 +228,7 @@ function EncounterOrderCard({
 
                 {visibleResult ? (
                     <section
-                        aria-label="Hasil laboratorium terverifikasi"
+                        aria-label="Verified laboratory result"
                         className="rounded-md border-l-4 border-[#1b75bc] bg-[#f4f9fc] p-3"
                     >
                         <LaboratoryVerifiedEvidence
@@ -240,7 +240,7 @@ function EncounterOrderCard({
 
                 {order.cancellation ? (
                     <p className="rounded-md bg-slate-100 px-3 py-2 text-slate-700">
-                        Dibatalkan: {order.cancellation.reason_label}
+                        Cancelled: {order.cancellation.reason_label}
                         {order.cancellation.note
                             ? ` · ${order.cancellation.note}`
                             : ''}
@@ -263,7 +263,7 @@ function EncounterOrderCard({
                             onClick={() => setOpenTask('collect')}
                         >
                             <TestTube2 className="mr-2 size-4" /> Catat
-                            pengambilan
+                            collection
                         </Button>
                     ) : null}
                     {canAcknowledge ? (
@@ -273,7 +273,7 @@ function EncounterOrderCard({
                             onClick={acknowledge}
                             disabled={acknowledgeForm.processing}
                         >
-                            Tandai sudah diketahui
+                            Mark as Acknowledged
                         </Button>
                     ) : null}
                     {canCancel ? (
@@ -283,7 +283,7 @@ function EncounterOrderCard({
                             className="min-h-11"
                             onClick={() => setOpenTask('cancel')}
                         >
-                            Batalkan permintaan
+                            Cancel request
                         </Button>
                     ) : null}
                 </div>
@@ -294,13 +294,13 @@ function EncounterOrderCard({
                         className="space-y-3 rounded-md border border-[#b9d9ed] bg-[#f4f9fc] p-3"
                     >
                         <h5 className="font-semibold text-slate-950">
-                            Pengambilan {order.examination.specimen_type}
+                            Collection: {order.examination.specimen_type}
                         </h5>
                         <div>
                             <Label
                                 htmlFor={`collection-note-${order.public_id}`}
                             >
-                                Catatan pengambilan (opsional)
+                                Collection note (optional)
                             </Label>
                             <textarea
                                 id={`collection-note-${order.public_id}`}
@@ -320,7 +320,7 @@ function EncounterOrderCard({
                             className="min-h-11"
                             disabled={collectForm.processing}
                         >
-                            Simpan pengambilan
+                            Save collection
                         </Button>
                     </form>
                 ) : null}
@@ -332,7 +332,7 @@ function EncounterOrderCard({
                     >
                         <div>
                             <Label htmlFor={`lab-cancel-${order.public_id}`}>
-                                Alasan pembatalan
+                                Cancellation reason
                             </Label>
                             <select
                                 id={`lab-cancel-${order.public_id}`}
@@ -346,7 +346,7 @@ function EncounterOrderCard({
                                 }
                                 required
                             >
-                                <option value="">Pilih alasan</option>
+                                <option value="">Select a reason</option>
                                 {projection.cancellation_reason_options.map(
                                     (reason) => (
                                         <option
@@ -363,7 +363,7 @@ function EncounterOrderCard({
                             <Label
                                 htmlFor={`lab-cancel-note-${order.public_id}`}
                             >
-                                Catatan (opsional)
+                                Note (optional)
                             </Label>
                             <textarea
                                 id={`lab-cancel-note-${order.public_id}`}
@@ -384,7 +384,7 @@ function EncounterOrderCard({
                             className="min-h-11"
                             disabled={cancelForm.processing}
                         >
-                            Konfirmasi pembatalan
+                            Confirm Cancellation
                         </Button>
                     </form>
                 ) : null}
@@ -439,18 +439,18 @@ export function LaboratoryEncounterPanel({
                         id="laboratory-encounter-title"
                         className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold text-slate-950"
                     >
-                        Laboratorium
+                        Laboratory
                     </h3>
                     <p className="text-sm text-slate-600">
-                        Permintaan, spesimen, dan hasil pada episode ini.
+                        Requests, specimens, and results for this episode.
                     </p>
                 </div>
             </div>
 
             <p className="sr-only" role="status" aria-live="polite">
                 {form.processing
-                    ? 'Menyimpan permintaan laboratorium.'
-                    : `${projection.orders.length} permintaan laboratorium ditampilkan.`}
+                    ? 'Saving laboratory request.'
+                    : `${projection.orders.length} laboratory requests displayed.`}
             </p>
 
             {canOrder ? (
@@ -459,13 +459,13 @@ export function LaboratoryEncounterPanel({
                     className="space-y-4 rounded-lg border border-[#b9d9ed] bg-white p-4 shadow-sm"
                 >
                     <h4 className="font-semibold text-slate-950">
-                        Buat permintaan pemeriksaan
+                        Create examination request
                     </h4>
                     <LaboratoryErrors errors={form.errors} />
                     <div className="grid gap-4 md:grid-cols-3">
                         <div>
                             <Label htmlFor="laboratory-examination">
-                                Pemeriksaan
+                                Examination
                             </Label>
                             <select
                                 id="laboratory-examination"
@@ -480,7 +480,7 @@ export function LaboratoryEncounterPanel({
                                 required
                             >
                                 <option value="">
-                                    Pilih pemeriksaan aktif
+                                    Select an active examination
                                 </option>
                                 {projection.examination_options.map(
                                     (option) => (
@@ -497,7 +497,7 @@ export function LaboratoryEncounterPanel({
                         </div>
                         <div>
                             <Label htmlFor="laboratory-priority">
-                                Prioritas
+                                Priority
                             </Label>
                             <select
                                 id="laboratory-priority"
@@ -523,7 +523,7 @@ export function LaboratoryEncounterPanel({
                         </div>
                         <div>
                             <Label htmlFor="laboratory-clinical-question">
-                                Pertanyaan klinis
+                                Clinical question
                             </Label>
                             <textarea
                                 id="laboratory-clinical-question"
@@ -545,7 +545,7 @@ export function LaboratoryEncounterPanel({
                         className="min-h-11"
                         disabled={form.processing}
                     >
-                        Simpan permintaan
+                        Save request
                     </Button>
                 </form>
             ) : null}
@@ -561,7 +561,7 @@ export function LaboratoryEncounterPanel({
                     ))
                 ) : (
                     <p className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-600">
-                        Belum ada permintaan laboratorium pada episode ini.
+                        No laboratory requests for this episode.
                     </p>
                 )}
             </div>

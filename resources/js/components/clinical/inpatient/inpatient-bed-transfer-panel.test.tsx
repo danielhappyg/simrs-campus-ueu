@@ -128,33 +128,27 @@ describe('inpatient bed transfer and location history', () => {
             />,
         );
 
-        await user.click(
-            screen.getByRole('button', { name: 'Pindahkan tempat tidur' }),
-        );
-        const select = screen.getByLabelText('Tempat tidur tujuan');
+        await user.click(screen.getByRole('button', { name: 'Transfer Bed' }));
+        const select = screen.getByLabelText('Destination bed');
         expect(select).toHaveValue('');
         expect(
             screen.getByRole('group', { name: 'Bangsal Anggrek (ANGGREK)' }),
         ).toBeInTheDocument();
 
-        await user.click(
-            screen.getByRole('button', { name: 'Pindahkan tempat tidur' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Transfer Bed' }));
         expect(
-            await screen.findByText('Pilih tempat tidur tujuan.'),
+            await screen.findByText('Select a destination bed.'),
         ).toBeVisible();
         expect(
-            screen.getByText('Alasan harus berisi 5–500 karakter.'),
+            screen.getByText('The reason must contain 5–500 characters.'),
         ).toBeVisible();
 
         await user.selectOptions(select, target.bed_public_id);
         await user.type(
-            screen.getByLabelText('Alasan transfer'),
+            screen.getByLabelText('Transfer reason'),
             'Kebutuhan pemantauan lebih dekat',
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Pindahkan tempat tidur' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Transfer Bed' }));
 
         expect(inertia.submissions).toHaveLength(1);
         expect(inertia.submissions[0].url).toBe(action().url);
@@ -184,11 +178,11 @@ describe('inpatient bed transfer and location history', () => {
         );
 
         expect(
-            screen.getByRole('button', { name: 'Pindahkan tempat tidur' }),
+            screen.getByRole('button', { name: 'Transfer Bed' }),
         ).toBeDisabled();
         expect(
             screen.getByText(
-                'Simpan atau batalkan perubahan dokumen harian sebelum memindahkan tempat tidur.',
+                'Save or discard daily-document changes before transferring the bed.',
             ),
         ).toBeVisible();
     });
@@ -201,23 +195,19 @@ describe('inpatient bed transfer and location history', () => {
                 disabledByUnsavedDocument={false}
             />,
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Pindahkan tempat tidur' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Transfer Bed' }));
         await user.selectOptions(
-            screen.getByLabelText('Tempat tidur tujuan'),
+            screen.getByLabelText('Destination bed'),
             target.bed_public_id,
         );
         await user.type(
-            screen.getByLabelText('Alasan transfer'),
+            screen.getByLabelText('Transfer reason'),
             'Target berubah saat penyimpanan',
         );
         inertia.errors = {
             transfer: 'Lokasi telah berubah. Muat ulang sebelum melanjutkan.',
         };
-        await user.click(
-            screen.getByRole('button', { name: 'Pindahkan tempat tidur' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Transfer Bed' }));
         expect(screen.getByRole('alert')).toHaveTextContent(
             'Lokasi telah berubah. Muat ulang sebelum melanjutkan.',
         );
@@ -238,7 +228,7 @@ describe('inpatient bed transfer and location history', () => {
         );
         expect(
             screen.getByText(
-                'Belum ada tempat tidur aktif yang tersedia pada kelas yang sama.',
+                'No active bed is available in the same service class.',
             ),
         ).toBeVisible();
     });
@@ -269,10 +259,10 @@ describe('inpatient bed transfer and location history', () => {
         );
 
         expect(
-            screen.getByText('Titik awal dari penempatan yang sudah ada'),
+            screen.getByText('Starting point from the existing placement'),
         ).toBeVisible();
-        expect(screen.getByText('Transfer tempat tidur')).toBeVisible();
-        expect(screen.getByText('Dari')).toBeVisible();
+        expect(screen.getByText('Bed transfer')).toBeVisible();
+        expect(screen.getByText('From')).toBeVisible();
         expect(screen.getByText('Ke')).toBeVisible();
         expect(
             screen.getByText('Kebutuhan pemantauan lebih dekat'),

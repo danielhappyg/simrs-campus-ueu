@@ -40,7 +40,7 @@ final class EmergencyInpatientHandoffController extends Controller
                 $validated['idempotency_key'],
                 RequestCorrelation::existing($request),
             ),
-            'Serah-terima ke Rawat Inap telah diselesaikan.',
+            'Inpatient handoff completed.',
         );
     }
 
@@ -61,7 +61,7 @@ final class EmergencyInpatientHandoffController extends Controller
                 $validated['idempotency_key'],
                 RequestCorrelation::existing($request),
             ),
-            'Serah-terima Rawat Inap telah dikompensasi secara tercatat.',
+            'Inpatient handoff reversed with an audit record.',
         );
     }
 }

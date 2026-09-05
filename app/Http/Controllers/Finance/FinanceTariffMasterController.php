@@ -60,7 +60,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->createGroup(
             $actor, $data['code'], $data['display_name'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Group komponen biaya ditambahkan.');
+        ), 'Charge component group added.');
     }
 
     public function reviseGroup(Request $request, string $group): RedirectResponse
@@ -70,7 +70,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->reviseGroup(
             $actor, $group, $data['display_name'], $data['expected_version'], $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Versi group komponen biaya ditambahkan.');
+        ), 'Charge component group version added.');
     }
 
     public function retireGroup(Request $request, string $group): RedirectResponse
@@ -80,7 +80,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->retireGroup(
             $actor, $group, $data['expected_version'], $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Group komponen biaya dinonaktifkan.');
+        ), 'Charge component group retired.');
     }
 
     public function createComponent(Request $request): RedirectResponse
@@ -91,7 +91,7 @@ final class FinanceTariffMasterController extends Controller
         return $this->mutate($request, fn () => $this->service->createComponent(
             $actor, $data['group_public_id'], $data['code'], $data['display_name'], $data['description'] ?? null, $data['terminology_label'] ?? null,
             $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Komponen biaya ditambahkan.');
+        ), 'Charge component added.');
     }
 
     public function reviseComponent(Request $request, string $component): RedirectResponse
@@ -102,7 +102,7 @@ final class FinanceTariffMasterController extends Controller
         return $this->mutate($request, fn () => $this->service->reviseComponent(
             $actor, $component, $data['display_name'], $data['description'] ?? null, $data['terminology_label'] ?? null,
             $data['expected_version'], $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Versi komponen biaya ditambahkan.');
+        ), 'Charge component version added.');
     }
 
     public function retireComponent(Request $request, string $component): RedirectResponse
@@ -112,7 +112,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->retireComponent(
             $actor, $component, $data['expected_version'], $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Komponen biaya dinonaktifkan.');
+        ), 'Charge component retired.');
     }
 
     public function createCatalogue(Request $request): RedirectResponse
@@ -122,7 +122,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->createCatalogue(
             $actor, $data['code'], $data['display_name'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Katalog tarif ditambahkan.');
+        ), 'Tariff catalogue added.');
     }
 
     public function reviseCatalogue(Request $request, string $catalogue): RedirectResponse
@@ -132,7 +132,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->reviseCatalogue(
             $actor, $catalogue, $data['display_name'], $data['expected_version'], $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Versi katalog tarif ditambahkan.');
+        ), 'Tariff catalogue version added.');
     }
 
     public function retireCatalogue(Request $request, string $catalogue): RedirectResponse
@@ -142,7 +142,7 @@ final class FinanceTariffMasterController extends Controller
 
         return $this->mutate($request, fn () => $this->service->retireCatalogue(
             $actor, $catalogue, $data['expected_version'], $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Katalog tarif dinonaktifkan.');
+        ), 'Tariff catalogue retired.');
     }
 
     public function createTariff(Request $request): RedirectResponse
@@ -156,7 +156,7 @@ final class FinanceTariffMasterController extends Controller
             $actor, $data['catalogue_public_id'], $data['component_public_id'], $data['code'], $data['display_name'],
             $data['care_setting'], $data['service_domain'], $data['reference_label'] ?? null, $data['ward_class_label'] ?? null,
             $data['amount_rupiah'], $data['effective_from'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Tarif ditambahkan.');
+        ), 'Tariff added.');
     }
 
     public function reviseTariff(Request $request, string $tariff): RedirectResponse
@@ -168,7 +168,7 @@ final class FinanceTariffMasterController extends Controller
             $actor, $tariff, $data['display_name'], $data['care_setting'], $data['service_domain'], $data['reference_label'] ?? null,
             $data['ward_class_label'] ?? null, $data['amount_rupiah'], $data['effective_from'], $data['expected_version'],
             $data['expected_digest'], $data['reason'], $data['idempotency_key'], $this->correlation($request),
-        ), 'Versi tarif berlaku efektif ditambahkan.');
+        ), 'Effective tariff version added.');
     }
 
     public function retireTariff(Request $request, string $tariff): RedirectResponse
@@ -179,7 +179,7 @@ final class FinanceTariffMasterController extends Controller
         return $this->mutate($request, fn () => $this->service->retireTariffItem(
             $actor, $tariff, $data['effective_from'], $data['expected_version'], $data['expected_digest'], $data['reason'],
             $data['idempotency_key'], $this->correlation($request),
-        ), 'Tarif dinonaktifkan mulai tanggal yang dipilih.');
+        ), 'Tariff retired from the selected date.');
     }
 
     private function history(Request $request, string $kind, string $publicId): Response
@@ -245,13 +245,13 @@ final class FinanceTariffMasterController extends Controller
         try {
             $result = $operation();
         } catch (FinanceTariffDenied $denied) {
-            throw ValidationException::withMessages(['master' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['master' => __($denied->getMessage())]);
         } catch (FinanceTariffAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit tarif belum tersedia.');
+            abort(503, 'Audit recording for tariffs is unavailable.');
         }
 
-        return back()->with('success', $result->replayed ? 'Operasi yang sama ditampilkan kembali.' : $success);
+        return back()->with('success', $result->replayed ? 'The same operation is shown again.' : $success);
     }
 
     /** @return array<string, array<int, mixed>> */

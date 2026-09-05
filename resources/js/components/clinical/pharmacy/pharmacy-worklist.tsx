@@ -51,23 +51,23 @@ export function PharmacyWorklist({
                                 ) : (
                                     <ClipboardCheck className="size-4" />
                                 )}
-                                Apotek lintas layanan
+                                Cross-setting pharmacy
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
                                 {mode === 'history'
-                                    ? 'Riwayat Resep & Penyerahan'
+                                    ? 'Prescription & dispensing history'
                                     : operational
-                                      ? 'Antrean, Verifikasi & Penyerahan'
-                                      : 'Resep & Obat'}
+                                      ? 'Queue, verification & dispensing'
+                                      : 'Prescriptions & medicines'}
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
                                 {mode === 'history'
-                                    ? 'Telusuri keputusan, jumlah, lot, retur, dan sumber nilai biaya secara utuh.'
-                                    : 'Satu antrean untuk resep rawat jalan, IGD, dan rawat inap dengan tanggung jawab per peran.'}
+                                    ? 'Review decisions, quantities, lots, returns, and charge-value sources in one place.'
+                                    : 'One queue for outpatient, emergency, and inpatient prescriptions, with clear role accountability.'}
                             </p>
                         </div>
                         <p className="rounded-md bg-white/10 px-3 py-2 font-mono text-xs">
-                            Diperbarui {generated_at}
+                            Updated {generated_at}
                         </p>
                     </div>
                 </header>
@@ -78,7 +78,7 @@ export function PharmacyWorklist({
                         className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-900"
                     >
                         <p className="font-semibold">
-                            Antrean belum dapat dibaca.
+                            The queue is currently unavailable.
                         </p>
                         <p>{read_error}</p>
                     </div>
@@ -93,12 +93,12 @@ export function PharmacyWorklist({
                             aria-hidden="true"
                             className="size-4 text-primary"
                         />
-                        Saring resep
+                        Filter prescriptions
                     </h2>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <div className="sm:col-span-2">
                             <Label htmlFor="pharmacy-query">
-                                Pasien, RM, atau resep
+                                Patient, medical record, or prescription
                             </Label>
                             <input
                                 id="pharmacy-query"
@@ -108,14 +108,16 @@ export function PharmacyWorklist({
                             />
                         </div>
                         <div>
-                            <Label htmlFor="pharmacy-setting">Layanan</Label>
+                            <Label htmlFor="pharmacy-setting">
+                                Care setting
+                            </Label>
                             <select
                                 id="pharmacy-setting"
                                 name="care_setting"
                                 defaultValue={filters.care_setting}
                                 className={pharmacyFieldClass}
                             >
-                                <option value="">Semua layanan</option>
+                                <option value="">All care settings</option>
                                 {options.care_settings.map((option) => (
                                     <option
                                         key={option.value}
@@ -134,7 +136,7 @@ export function PharmacyWorklist({
                                 defaultValue={filters.state}
                                 className={pharmacyFieldClass}
                             >
-                                <option value="">Semua status</option>
+                                <option value="">All statuses</option>
                                 {options.states.map((option) => (
                                     <option
                                         key={option.value}
@@ -146,14 +148,14 @@ export function PharmacyWorklist({
                             </select>
                         </div>
                         <div>
-                            <Label htmlFor="pharmacy-depot-filter">Depo</Label>
+                            <Label htmlFor="pharmacy-depot-filter">Depot</Label>
                             <select
                                 id="pharmacy-depot-filter"
                                 name="depot"
                                 defaultValue={filters.depot}
                                 className={pharmacyFieldClass}
                             >
-                                <option value="">Semua depo</option>
+                                <option value="">All depots</option>
                                 {options.depots.map((option) => (
                                     <option
                                         key={option.value}
@@ -167,7 +169,7 @@ export function PharmacyWorklist({
                     </div>
                     <div className="mt-3 flex justify-end">
                         <Button type="submit" className="min-h-11">
-                            Terapkan filter
+                            Apply filters
                         </Button>
                     </div>
                 </form>
@@ -178,7 +180,10 @@ export function PharmacyWorklist({
                             id="pharmacy-results-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            {prescriptions.length} resep ditemukan
+                            {prescriptions.length}{' '}
+                            {prescriptions.length === 1
+                                ? 'prescription found'
+                                : 'prescriptions found'}
                         </h2>
                     </div>
                     {prescriptions.length ? (
@@ -192,8 +197,8 @@ export function PharmacyWorklist({
                         </div>
                     ) : (
                         <PharmacyEmptyState
-                            title="Belum ada resep sesuai filter"
-                            body="Ubah filter atau kembali lagi setelah resep dipesan."
+                            title="No prescriptions match these filters"
+                            body="Change the filters or return after a prescription has been ordered."
                         />
                     )}
                 </section>

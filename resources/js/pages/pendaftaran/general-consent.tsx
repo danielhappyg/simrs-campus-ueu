@@ -165,7 +165,7 @@ function SignaturePad({
                     onChange('');
                 }}
             >
-                Hapus tanda tangan
+                Clear signature
             </Button>
         </div>
     );
@@ -222,7 +222,7 @@ export default function GeneralConsentPage({
                             href={backUrl}
                             className="text-sm font-medium text-[#1b75bc] hover:underline"
                         >
-                            Kembali ke pendaftaran
+                            Back to registration
                         </Link>
                         <a
                             href={printUrl}
@@ -230,7 +230,7 @@ export default function GeneralConsentPage({
                             rel="noreferrer"
                             className="text-sm font-medium text-[#1b75bc] hover:underline"
                         >
-                            Cetak General Consent
+                            Print general consent
                         </a>
                     </div>
 
@@ -249,9 +249,9 @@ export default function GeneralConsentPage({
                         </p>
 
                         <dl className="mt-4 grid grid-cols-[9rem_1fr] gap-x-3 gap-y-2 text-sm">
-                            <dt className="text-[#64748b]">Nama</dt>
+                            <dt className="text-[#64748b]">Name</dt>
                             <dd className="font-semibold">{guardianName}</dd>
-                            <dt className="text-[#64748b]">Alamat</dt>
+                            <dt className="text-[#64748b]">Address</dt>
                             <dd className="font-semibold">
                                 {encounter.patient.address_line || '—'}
                             </dd>
@@ -263,13 +263,13 @@ export default function GeneralConsentPage({
                             <dd className="font-semibold">
                                 {encounter.patient.medical_record_number}
                             </dd>
-                            <dt className="text-[#64748b]">Pasien</dt>
+                            <dt className="text-[#64748b]">Patient</dt>
                             <dd className="font-semibold">{patientName}</dd>
-                            <dt className="text-[#64748b]">Tanggal</dt>
+                            <dt className="text-[#64748b]">Date</dt>
                             <dd className="font-semibold">
                                 {encounter.visit_date || '—'}
                             </dd>
-                            <dt className="text-[#64748b]">Poli / unit</dt>
+                            <dt className="text-[#64748b]">Clinic / unit</dt>
                             <dd className="font-semibold">
                                 {encounter.clinic_name}
                             </dd>
@@ -301,7 +301,7 @@ export default function GeneralConsentPage({
                             <div className="space-y-3">
                                 <div className="space-y-1.5">
                                     <Label htmlFor="explainer_name">
-                                        Nama yang menjelaskan
+                                        Explainer name
                                     </Label>
                                     <Input
                                         id="explainer_name"
@@ -315,7 +315,7 @@ export default function GeneralConsentPage({
                                     />
                                 </div>
                                 <SignaturePad
-                                    label="Tanda tangan yang menjelaskan"
+                                    label="Explainer signature"
                                     initial={
                                         signatures?.explainer_signature_png ??
                                         null
@@ -326,7 +326,7 @@ export default function GeneralConsentPage({
                             <div className="space-y-3">
                                 <div className="space-y-1.5">
                                     <Label htmlFor="patient_or_guardian_name">
-                                        Nama pasien / penanggung jawab
+                                        Patient / responsible person name
                                     </Label>
                                     <Input
                                         id="patient_or_guardian_name"
@@ -343,7 +343,7 @@ export default function GeneralConsentPage({
                                     />
                                 </div>
                                 <SignaturePad
-                                    label="Tanda tangan pasien / penanggung jawab"
+                                    label="Patient / responsible person signature"
                                     initial={
                                         signatures?.patient_signature_png ??
                                         null
@@ -361,7 +361,7 @@ export default function GeneralConsentPage({
                                     }
                                     className="w-full bg-[#1b75bc] hover:bg-[#1665a3]"
                                 >
-                                    Simpan tanda tangan
+                                    Save signatures
                                 </Button>
                             </div>
                         </form>

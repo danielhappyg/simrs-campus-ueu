@@ -497,7 +497,7 @@ class InpatientWardBedMasterTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->has('wards', 0)
                 ->where('commands.create_ward_url', null)
-                ->where('read_error', 'Sensus tempat tidur belum dapat dimuat. Silakan coba lagi.'));
+                ->where('read_error', 'The bed census could not be loaded. Please try again.'));
     }
 
     public function test_retired_master_state_does_not_mask_an_impossible_active_claim(): void

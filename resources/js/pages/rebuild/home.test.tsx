@@ -106,28 +106,28 @@ describe('operational home', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Meja kerja hari ini',
+                name: 'Today’s work desk',
             }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText('Ringkasan layanan dan antrian kerja hari ini.'),
+            screen.getByText('Today’s service summary and work queues.'),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('heading', { name: 'Arus layanan' }),
+            screen.getByRole('heading', { name: 'Care flow' }),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('heading', { name: 'Antrian kerja' }),
+            screen.getByRole('heading', { name: 'Work queues' }),
         ).toBeInTheDocument();
-        expect(screen.getByText('Meja utama')).toBeInTheDocument();
+        expect(screen.getByText('Main desk')).toBeInTheDocument();
 
         const rawatJalan = screen
-            .getByRole('heading', { name: 'Rawat Jalan' })
+            .getByRole('heading', { name: 'Outpatient' })
             .closest('article');
         const igd = screen
-            .getByRole('heading', { name: 'Instalasi Gawat Darurat' })
+            .getByRole('heading', { name: 'Emergency Department' })
             .closest('article');
         const rawatInap = screen
-            .getByRole('heading', { name: 'Rawat Inap' })
+            .getByRole('heading', { name: 'Inpatient' })
             .closest('article');
 
         expect(rawatJalan).not.toBeNull();
@@ -136,15 +136,17 @@ describe('operational home', () => {
         expect(within(rawatJalan!).getByText('12')).toBeInTheDocument();
         expect(within(igd!).getByText('4')).toBeInTheDocument();
         expect(within(rawatInap!).getByText('7')).toBeInTheDocument();
-        expect(within(rawatJalan!).getByText('Terdaftar')).toBeInTheDocument();
-        expect(within(rawatJalan!).getByText('Diperiksa')).toBeInTheDocument();
-        expect(within(rawatJalan!).getByText('Siap RM')).toBeInTheDocument();
+        expect(within(rawatJalan!).getByText('Registered')).toBeInTheDocument();
+        expect(within(rawatJalan!).getByText('In care')).toBeInTheDocument();
+        expect(
+            within(rawatJalan!).getByText('Ready for records review'),
+        ).toBeInTheDocument();
 
         expect(
-            screen.getByRole('link', { name: 'Dalam pemeriksaan RJ: 5' }),
+            screen.getByRole('link', { name: 'Outpatient examination: 5' }),
         ).toHaveAttribute('href', '/pemeriksaan/rawat-jalan');
         expect(
-            screen.getByRole('link', { name: 'Sensus tempat tidur: 7' }),
+            screen.getByRole('link', { name: 'Bed census: 7' }),
         ).toHaveAttribute('href', '/manajemen-data/bangsal');
         expect(
             screen.queryByRole('link', { name: /review RM/i }),
@@ -164,12 +166,12 @@ describe('operational home', () => {
         render(<RebuildHome {...baseProps} />);
 
         const occupancy = screen
-            .getByRole('heading', { name: 'Hunian rawat inap' })
+            .getByRole('heading', { name: 'Inpatient occupancy' })
             .closest('section');
 
         expect(occupancy).not.toBeNull();
         expect(
-            within(occupancy!).getByText('Bangsal aktif'),
+            within(occupancy!).getByText('Active wards'),
         ).toBeInTheDocument();
         expect(within(occupancy!).getByText('15')).toBeInTheDocument();
         expect(within(occupancy!).getByText('7')).toBeInTheDocument();
@@ -233,7 +235,7 @@ describe('operational home', () => {
         ).toBeInTheDocument();
         expect(screen.getAllByText('—')).toHaveLength(12);
         expect(
-            screen.getByText('Tidak ada antrian kerja untuk akses akun ini.'),
+            screen.getByText('No work queues are available for this account.'),
         ).toBeInTheDocument();
     });
 
@@ -249,7 +251,7 @@ describe('operational home', () => {
         );
 
         expect(
-            screen.queryByRole('heading', { name: 'Hunian rawat inap' }),
+            screen.queryByRole('heading', { name: 'Inpatient occupancy' }),
         ).not.toBeInTheDocument();
         expect(
             screen.queryByRole('link', { name: /Sensus tempat tidur/ }),

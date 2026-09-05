@@ -8,7 +8,7 @@ export default function PemeriksaanTriageShow(props: EmergencyShowProps) {
 
 PemeriksaanTriageShow.layout = (props: EmergencyShowProps) => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
+        { title: 'Home', href: '/' },
         { title: 'Triage', href: '/pemeriksaan/triage' },
         {
             title: props.encounter.patient.full_name ?? 'Detail',

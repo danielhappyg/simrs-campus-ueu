@@ -212,7 +212,7 @@ class OutpatientRegistrationController extends Controller
         ]);
 
         if (array_key_exists('is_synthetic', $validated) && $validated['is_synthetic'] === false) {
-            abort(422, 'Hanya pasien sintetis yang diizinkan.');
+            abort(422, 'Only synthetic patients are allowed.');
         }
 
         $clinic = Clinic::query()
@@ -221,7 +221,7 @@ class OutpatientRegistrationController extends Controller
             ->firstOrFail();
 
         if (! ClinicBookingSurface::isOutpatient((string) $clinic->booking_surface)) {
-            abort(422, 'Poliklinik tidak tersedia untuk pendaftaran rawat jalan.');
+            abort(422, 'The clinic is unavailable for outpatient registration.');
         }
 
         $doctor = Doctor::query()
@@ -250,7 +250,7 @@ class OutpatientRegistrationController extends Controller
                     ->firstOrFail();
 
                 if (! $patient->is_synthetic) {
-                    abort(422, 'Hanya pasien sintetis yang diizinkan.');
+                    abort(422, 'Only synthetic patients are allowed.');
                 }
 
                 $patient->fill($this->patientUpdatableAttributes($validated))->save();
@@ -321,14 +321,14 @@ class OutpatientRegistrationController extends Controller
                 ],
             );
 
-            abort_if($event === null, 503, 'Aksi tidak dapat diselesaikan karena audit gagal direkam.');
+            abort_if($event === null, 503, 'The action could not be completed because its audit record could not be saved.');
 
             return $created;
         }, 3);
 
         return redirect()
             ->route('pendaftaran.rawat-jalan.index')
-            ->with('success', 'Pendaftaran rawat jalan berhasil.')
+            ->with('success', 'Outpatient registration completed successfully.')
             ->with('last_encounter_public_id', $encounter->public_id);
     }
 

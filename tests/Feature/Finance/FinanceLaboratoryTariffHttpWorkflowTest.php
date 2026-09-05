@@ -51,7 +51,7 @@ final class FinanceLaboratoryTariffHttpWorkflowTest extends TestCase
                 ->where('source_master_version', 'LABORATORY_EXAMINATION_MASTER_V1')
                 ->where('source_master_content_digest', fn (mixed $digest): bool => is_string($digest) && strlen($digest) === 64)
                 ->where('source_trigger.code', 'ORIGINAL_VERIFIED_RESULT_V1')
-                ->where('source_trigger.label', 'Hasil asli berstatus VERIFIED pada verified_at adalah satu-satunya pemicu biaya.')
+                ->where('source_trigger.label', 'The original result with VERIFIED status at verified_at is the only billing trigger.')
                 ->where('permissions.can_manage', true)
                 ->where('commands.create_url', route('finance.laboratory-tariff.create', absolute: false))
                 ->where('read_error', null)

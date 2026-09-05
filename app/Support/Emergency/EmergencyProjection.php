@@ -425,8 +425,8 @@ final class EmergencyProjection
 
     private function label(string $code): string
     {
-        return match ($code) {
+        return __(match ($code) {
             'PULANG' => 'Pulang', 'DIRUJUK' => 'Dirujuk', 'RAWAT_INAP' => 'Rawat Inap', 'MENINGGAL_DI_IGD' => 'Meninggal di IGD', 'DOA' => 'Datang dalam keadaan meninggal', default => str($code)->replace('_', ' ')->title()->toString()
-        };
+        });
     }
 }

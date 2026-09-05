@@ -177,17 +177,19 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
-        await user.click(screen.getByRole('radio', { name: /Rawat inap/ }));
+        await user.click(
+            screen.getByRole('radio', { name: /Inpatient admission/ }),
+        );
         await user.type(
-            screen.getByLabelText('Alasan rawat inap'),
+            screen.getByLabelText('Reason for admission'),
             'Perlu observasi lanjutan.',
         );
         await user.type(
-            screen.getByLabelText('Catatan serah terima unit penerima'),
+            screen.getByLabelText('Receiving unit handoff note'),
             'Mohon pemantauan bangsal.',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Tandatangani disposisi' }),
+            screen.getByRole('button', { name: 'Sign disposition' }),
         );
 
         expect(submissions.at(-1)).toEqual({
@@ -235,10 +237,10 @@ describe('structured outpatient documentation', () => {
         );
 
         await user.click(
-            screen.getByRole('button', { name: 'Koreksi disposisi' }),
+            screen.getByRole('button', { name: 'Correct disposition' }),
         );
         await user.type(
-            screen.getByLabelText('Alasan koreksi'),
+            screen.getByLabelText('Reason for correction'),
             'Unit penerima diperbarui.',
         );
         const correctionAdmissionReason = document.getElementById(
@@ -255,7 +257,7 @@ describe('structured outpatient documentation', () => {
         await user.type(correctionAdmissionReason, 'Observasi lanjutan.');
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan koreksi disposisi',
+                name: 'Save disposition correction',
             }),
         );
 
@@ -306,10 +308,10 @@ describe('structured outpatient documentation', () => {
         expect(screen.queryByLabelText(/Anamnesis/)).not.toBeInTheDocument();
 
         await user.type(
-            screen.getByLabelText(/Asesmen keperawatan/),
+            screen.getByLabelText(/Nursing assessment/),
             'Pasien sadar dan kooperatif.',
         );
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
 
         expect(submissions).toEqual([
             {
@@ -358,16 +360,10 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
-        expect(
-            screen.getByLabelText(/Subjective \(Subjektif\)/),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByLabelText(/Objective \(Objektif\)/),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByLabelText(/Assessment \(Asesmen\)/),
-        ).toBeInTheDocument();
-        expect(screen.getByLabelText(/Plan \(Rencana\)/)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Subjective/)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Objective/)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Assessment/)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Plan/)).toBeInTheDocument();
 
         expect(
             Array.from(
@@ -388,13 +384,16 @@ describe('structured outpatient documentation', () => {
         ]);
 
         await user.type(
-            screen.getByLabelText(/Diagnosis klinis bebas/),
+            screen.getByLabelText(/Clinical diagnosis/),
             'Gastroenteritis akut',
         );
-        await user.type(screen.getByLabelText('ICD-10 utama'), 'A0');
+        await user.type(
+            screen.getByLabelText('Primary diagnosis (ICD-10)'),
+            'A0',
+        );
         await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
         await user.click(screen.getByRole('button', { name: /A09/ }));
-        await user.click(screen.getByRole('button', { name: 'Simpan draf' }));
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
 
         expect(submissions.at(-1)).toEqual({
             url: '/medical/draft',
@@ -476,13 +475,13 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
-        const nursingAssessment = screen.getByLabelText(/Asesmen keperawatan/);
+        const nursingAssessment = screen.getByLabelText(/Nursing assessment/);
         await user.type(nursingAssessment, 'Teks yang belum disimpan');
         await user.click(screen.getByRole('button', { name: 'Order Lab' }));
 
         expect(nursingAssessment).not.toBeVisible();
 
-        await user.click(screen.getByRole('button', { name: 'Dokumentasi' }));
+        await user.click(screen.getByRole('button', { name: 'Documentation' }));
         expect(nursingAssessment).toBeVisible();
         expect(nursingAssessment).toHaveValue('Teks yang belum disimpan');
 
@@ -494,7 +493,7 @@ describe('structured outpatient documentation', () => {
         });
 
         expect(confirm).toHaveBeenCalledWith(
-            'Ada dokumentasi klinis yang belum disimpan. Tinggalkan halaman dan buang perubahan?',
+            'There is unsaved clinical documentation. Leave this page and discard the changes?',
         );
         expect(preventDefault).toHaveBeenCalledOnce();
 
@@ -550,15 +549,13 @@ describe('structured outpatient documentation', () => {
         );
 
         await user.type(
-            screen.getByLabelText(/Catatan tambahan/),
+            screen.getByLabelText(/Additional notes/),
             'Perubahan belum disimpan',
         );
         expect(
-            screen.getByRole('button', { name: 'Finalisasi versi' }),
+            screen.getByRole('button', { name: 'Finalize version' }),
         ).toBeDisabled();
-        expect(
-            screen.getByText(/Ada perubahan yang belum disimpan/),
-        ).toBeVisible();
+        expect(screen.getByText(/There are unsaved changes/)).toBeVisible();
 
         rerender(
             <StructuredDocumentForm
@@ -575,7 +572,7 @@ describe('structured outpatient documentation', () => {
         );
 
         await user.click(
-            screen.getByRole('button', { name: 'Finalisasi versi' }),
+            screen.getByRole('button', { name: 'Finalize version' }),
         );
         expect(submissions.at(-1)).toEqual({
             url: '/medical/finalize',
@@ -596,15 +593,11 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
+        expect(screen.getByLabelText(/Subjective/)).toHaveAttribute('readonly');
         expect(
-            screen.getByLabelText(/Subjective \(Subjektif\)/),
-        ).toHaveAttribute('readonly');
-        expect(
-            screen.queryByRole('button', { name: 'Finalisasi versi' }),
+            screen.queryByRole('button', { name: 'Finalize version' }),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText('Versi final hanya dapat dibaca.'),
-        ).toBeVisible();
+        expect(screen.getByText('Final versions are read-only.')).toBeVisible();
     });
 
     it('removes direct RM closure and exposes review detail navigation', () => {
@@ -617,13 +610,13 @@ describe('structured outpatient documentation', () => {
             'utf8',
         );
 
-        expect(listSource).toContain('Tinjau RM');
-        expect(listSource).toContain('Lihat RM');
+        expect(listSource).toContain('Review medical record');
+        expect(listSource).toContain('View medical record');
         expect(listSource).not.toContain('window.confirm');
         expect(listSource).not.toContain('/complete');
         expect(detailSource).toContain('DialogContent');
         expect(detailSource).toContain('blockers.length === 0');
-        expect(detailSource).toContain('Sumber klinis hanya-baca');
+        expect(detailSource).toContain('Read-only clinical source');
         expect(detailSource).toContain('expected_version');
         expect(detailSource).toContain('source_fingerprint');
     });
@@ -709,11 +702,11 @@ describe('structured outpatient documentation', () => {
 
         expect(
             screen.getByRole('button', {
-                name: 'Sign-off dan tutup kunjungan',
+                name: 'Sign off and close encounter',
             }),
         ).toBeDisabled();
-        expect(screen.getByText(/seluruh item harus sesuai/i)).toBeVisible();
-        expect(screen.getByText('Versi 1 · Dokter Demo')).toBeVisible();
+        expect(screen.getByText(/every item must be aligned/i)).toBeVisible();
+        expect(screen.getByText('Version 1 · Dokter Demo')).toBeVisible();
         expect(screen.getByText('Keluhan sintetis')).toBeVisible();
 
         rerender(
@@ -740,7 +733,7 @@ describe('structured outpatient documentation', () => {
         );
 
         await userEvent.click(
-            screen.getByRole('button', { name: 'Simpan hasil review' }),
+            screen.getByRole('button', { name: 'Save review result' }),
         );
 
         expect(submissions).toEqual([
@@ -756,19 +749,19 @@ describe('structured outpatient documentation', () => {
 
         await userEvent.click(
             screen.getByRole('button', {
-                name: 'Sign-off dan tutup kunjungan',
+                name: 'Sign off and close encounter',
             }),
         );
 
         expect(
             screen.getByRole('dialog', {
-                name: 'Konfirmasi sign-off kelengkapan RM',
+                name: 'Confirm medical-record completeness sign-off',
             }),
         ).toBeVisible();
-        expect(screen.getByRole('button', { name: 'Batal' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
         await userEvent.click(
-            screen.getByRole('button', { name: 'Ya, sign-off dan tutup' }),
+            screen.getByRole('button', { name: 'Yes, sign off and close' }),
         );
 
         expect(submissions).toEqual([
@@ -830,14 +823,14 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
-        expect(screen.getByText('Sudah sign-off')).toBeVisible();
-        expect(screen.getByText(/arsip hanya-baca/i)).toBeVisible();
+        expect(screen.getByText('Signed off')).toBeVisible();
+        expect(screen.getByText(/read-only archive records/i)).toBeVisible();
         expect(
-            screen.queryByRole('button', { name: 'Simpan hasil review' }),
+            screen.queryByRole('button', { name: 'Save review result' }),
         ).not.toBeInTheDocument();
         expect(
             screen.queryByRole('button', {
-                name: 'Sign-off dan tutup kunjungan',
+                name: 'Sign off and close encounter',
             }),
         ).not.toBeInTheDocument();
     });
@@ -881,13 +874,12 @@ describe('structured outpatient documentation', () => {
             />,
         );
 
-        expect(screen.getByText('Sudah sign-off')).toBeVisible();
-        expect(screen.getByRole('link', { name: 'Lihat RM' })).toHaveAttribute(
-            'href',
-            '/rm/rawat-jalan/enc-closed',
-        );
+        expect(screen.getByText('Signed off')).toBeVisible();
         expect(
-            screen.queryByRole('link', { name: 'Tinjau RM' }),
+            screen.getByRole('link', { name: 'View medical record' }),
+        ).toHaveAttribute('href', '/rm/rawat-jalan/enc-closed');
+        expect(
+            screen.queryByRole('link', { name: 'Review medical record' }),
         ).not.toBeInTheDocument();
     });
 });

@@ -360,7 +360,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
                 'care_setting' => 'ALL',
             ]))
-            ->assertSessionHas('error', 'Tanggal awal dan akhir yang valid wajib dipilih untuk ekspor CSV.');
+            ->assertSessionHas('error', 'Select valid start and end dates for the CSV export.');
 
         $this->actingAs($registrar)
             ->get(route('pendaftaran.rekap', [
@@ -373,7 +373,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
                 'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
             ]))
-            ->assertSessionHas('error', 'Tanggal awal dan akhir yang valid wajib dipilih untuk ekspor CSV.');
+            ->assertSessionHas('error', 'Select valid start and end dates for the CSV export.');
     }
 
     public function test_recap_screen_recovers_invalid_dates_before_querying(): void
@@ -390,7 +390,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
                 'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
             ]))
-            ->assertSessionHas('error', 'Tanggal filter tidak valid. Rentang dikembalikan ke hari ini.');
+            ->assertSessionHas('error', 'The filter dates are invalid. The date range has been reset to today.');
     }
 
     public function test_recap_csv_refuses_overlong_date_range(): void
@@ -409,7 +409,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
                 'care_setting' => 'ALL',
             ]))
-            ->assertSessionHas('error', 'Ekspor CSV sinkron sementara dibatasi maksimal 31 hari. Persempit rentang tanggal.');
+            ->assertSessionHas('error', 'CSV exports are currently limited to 31 days. Narrow the date range.');
     }
 
     public function test_recap_csv_allows_the_provisional_thirty_one_day_boundary(): void
@@ -455,7 +455,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
                 'care_setting' => Encounter::CARE_SETTING_OUTPATIENT,
             ]))
-            ->assertSessionHas('error', 'Ekspor CSV sinkron dibatasi maksimal 2 baris. Persempit filter sebelum mencoba kembali.');
+            ->assertSessionHas('error', 'CSV exports are limited to 2 rows. Narrow the filters before trying again.');
     }
 
     public function test_recap_csv_limits_repeated_requests_per_user(): void
@@ -480,7 +480,7 @@ class OutpatientPrintAndRecapTest extends TestCase
         $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.20'])
             ->get(route('pendaftaran.rekap', $parameters))
             ->assertRedirect()
-            ->assertSessionHas('error', 'Batas permintaan ekspor CSV tercapai. Tunggu satu menit sebelum mencoba kembali.');
+            ->assertSessionHas('error', 'The CSV export request limit has been reached. Wait one minute before trying again.');
     }
 
     public function test_recap_csv_applies_a_global_request_budget_across_users(): void
@@ -504,7 +504,7 @@ class OutpatientPrintAndRecapTest extends TestCase
         $this->actingAs($secondRegistrar)
             ->get(route('pendaftaran.rekap', $parameters))
             ->assertRedirect()
-            ->assertSessionHas('error', 'Batas permintaan ekspor CSV tercapai. Tunggu satu menit sebelum mencoba kembali.');
+            ->assertSessionHas('error', 'The CSV export request limit has been reached. Wait one minute before trying again.');
     }
 
     public function test_recap_csv_refuses_a_second_concurrent_export_for_the_same_user(): void
@@ -523,7 +523,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                     'date_to' => now()->toDateString(),
                 ]))
                 ->assertRedirect()
-                ->assertSessionHas('error', 'Satu ekspor CSV untuk akun ini masih berjalan. Tunggu hingga selesai.');
+                ->assertSessionHas('error', 'A CSV export for this account is still running. Wait for it to finish.');
         } finally {
             $lock->release();
         }
@@ -553,7 +553,7 @@ class OutpatientPrintAndRecapTest extends TestCase
             $this->actingAs($secondRegistrar)
                 ->get(route('pendaftaran.rekap', $parameters))
                 ->assertRedirect()
-                ->assertSessionHas('error', 'Batas ekspor CSV bersamaan tercapai. Tunggu hingga salah satu ekspor selesai.');
+                ->assertSessionHas('error', 'The concurrent CSV export limit has been reached. Wait for an export to finish.');
         } finally {
             $globalLock->release();
             $firstUserLock->release();
@@ -604,7 +604,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
             ]))
             ->assertRedirect()
-            ->assertSessionHas('error', 'Ekspor CSV sinkron dibatasi maksimal 10 byte. Persempit filter sebelum mencoba kembali.');
+            ->assertSessionHas('error', 'CSV exports are limited to 10 bytes. Narrow the filters before trying again.');
     }
 
     public function test_recap_csv_enforces_its_execution_ceiling_when_the_configured_lease_is_shorter(): void
@@ -632,7 +632,7 @@ class OutpatientPrintAndRecapTest extends TestCase
                 'date_to' => now()->toDateString(),
             ]))
             ->assertRedirect()
-            ->assertSessionHas('error', 'Ekspor CSV sinkron melebihi batas waktu 1 detik. Persempit filter sebelum mencoba kembali.');
+            ->assertSessionHas('error', 'The CSV export exceeded the 1-second time limit. Narrow the filters before trying again.');
 
         $this->assertTrue($delayed);
     }

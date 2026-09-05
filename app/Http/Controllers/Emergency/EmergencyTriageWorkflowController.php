@@ -38,7 +38,7 @@ final class EmergencyTriageWorkflowController extends Controller
                 ]),
                 $validated['idempotency_key'],
             ),
-            'Triase awal telah difinalkan.',
+            'Initial triage finalized.',
         );
     }
 
@@ -61,7 +61,7 @@ final class EmergencyTriageWorkflowController extends Controller
                 ]),
                 $validated['idempotency_key'],
             ),
-            'Asesmen ulang telah ditambahkan.',
+            'Reassessment added.',
         );
     }
 

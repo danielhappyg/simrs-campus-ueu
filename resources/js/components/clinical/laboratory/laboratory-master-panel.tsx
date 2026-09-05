@@ -63,7 +63,7 @@ function ComponentEditor({
     return (
         <fieldset className="space-y-3 sm:col-span-3">
             <legend className="font-semibold text-slate-950">
-                Komponen hasil ({components.length}/12)
+                Result components ({components.length}/12)
             </legend>
             {components.map((component, index) => (
                 <div
@@ -72,7 +72,7 @@ function ComponentEditor({
                 >
                     <div>
                         <Label htmlFor={`${idPrefix}-code-${index}`}>
-                            Kode
+                            Code
                         </Label>
                         <input
                             id={`${idPrefix}-code-${index}`}
@@ -88,7 +88,7 @@ function ComponentEditor({
                     </div>
                     <div>
                         <Label htmlFor={`${idPrefix}-name-${index}`}>
-                            Nama komponen
+                            Component name
                         </Label>
                         <input
                             id={`${idPrefix}-name-${index}`}
@@ -104,7 +104,7 @@ function ComponentEditor({
                     </div>
                     <div>
                         <Label htmlFor={`${idPrefix}-kind-${index}`}>
-                            Jenis nilai
+                            Value type
                         </Label>
                         <select
                             id={`${idPrefix}-kind-${index}`}
@@ -126,7 +126,7 @@ function ComponentEditor({
                     </div>
                     <div>
                         <Label htmlFor={`${idPrefix}-unit-${index}`}>
-                            Satuan (opsional)
+                            Unit (optional)
                         </Label>
                         <input
                             id={`${idPrefix}-unit-${index}`}
@@ -139,7 +139,7 @@ function ComponentEditor({
                     </div>
                     <div>
                         <Label htmlFor={`${idPrefix}-reference-${index}`}>
-                            Nilai rujukan (opsional)
+                            Reference range (optional)
                         </Label>
                         <input
                             id={`${idPrefix}-reference-${index}`}
@@ -163,14 +163,14 @@ function ComponentEditor({
                                     })
                                 }
                             />
-                            Kritis
+                            Critical
                         </label>
                         {components.length > 1 ? (
                             <Button
                                 type="button"
                                 variant="outline"
                                 className="min-h-11 min-w-11 px-3 text-red-700"
-                                aria-label={`Hapus komponen ${index + 1}`}
+                                aria-label={`Remove component ${index + 1}`}
                                 onClick={() =>
                                     onChange(
                                         components.filter(
@@ -193,7 +193,7 @@ function ComponentEditor({
                     className="min-h-11"
                     onClick={() => onChange([...components, emptyComponent()])}
                 >
-                    <Plus className="mr-2 size-4" /> Tambah komponen
+                    <Plus className="mr-2 size-4" /> Add component
                 </Button>
             ) : null}
         </fieldset>
@@ -263,12 +263,12 @@ function MasterCard({
                 <span
                     className={`inline-flex min-h-7 items-center rounded-full px-3 text-xs font-semibold ${examination.state === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800' : 'bg-[#e8eef2] text-[#243746]'}`}
                 >
-                    {examination.state === 'ACTIVE' ? 'Aktif' : 'Nonaktif'}
+                    {examination.state === 'ACTIVE' ? 'Active' : 'Inactive'}
                 </span>
             </div>
             <p className="mt-3 rounded-md bg-slate-50 p-3 text-sm text-slate-700">
                 {examination.collection_instruction ||
-                    'Tidak ada instruksi pengambilan khusus.'}
+                    'No special collection instructions.'}
             </p>
             <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {examination.components.map((component) => (
@@ -290,7 +290,7 @@ function MasterCard({
             </ul>
             <LaboratoryErrors
                 errors={{ ...updateForm.errors, ...retireForm.errors }}
-                title="Data belum tersimpan."
+                title="Unsaved data."
             />
 
             {examination.state === 'ACTIVE' ? (
@@ -302,7 +302,7 @@ function MasterCard({
                             className="min-h-11"
                             onClick={() => setEditing((value) => !value)}
                         >
-                            <Pencil className="mr-2 size-4" /> Ubah
+                            <Pencil className="mr-2 size-4" /> Edit
                         </Button>
                     ) : null}
                     {examination.actions.retire_url ? (
@@ -312,7 +312,7 @@ function MasterCard({
                             className="min-h-11 text-red-700"
                             onClick={() => setRetiring((value) => !value)}
                         >
-                            <Archive className="mr-2 size-4" /> Nonaktifkan
+                            <Archive className="mr-2 size-4" /> Retire
                         </Button>
                     ) : null}
                 </div>
@@ -325,7 +325,7 @@ function MasterCard({
                 >
                     <div>
                         <Label htmlFor={`master-name-${examination.public_id}`}>
-                            Nama pemeriksaan
+                            Examination name
                         </Label>
                         <input
                             id={`master-name-${examination.public_id}`}
@@ -344,7 +344,7 @@ function MasterCard({
                         <Label
                             htmlFor={`master-specimen-${examination.public_id}`}
                         >
-                            Jenis spesimen
+                            Specimen type
                         </Label>
                         <input
                             id={`master-specimen-${examination.public_id}`}
@@ -361,7 +361,7 @@ function MasterCard({
                     </div>
                     <div>
                         <Label htmlFor={`master-note-${examination.public_id}`}>
-                            Instruksi pengambilan (opsional)
+                            Collection instructions (optional)
                         </Label>
                         <textarea
                             id={`master-note-${examination.public_id}`}
@@ -389,7 +389,7 @@ function MasterCard({
                         className="min-h-11 sm:col-span-3 sm:w-fit"
                         disabled={updateForm.processing}
                     >
-                        Simpan perubahan
+                        Save Changes
                     </Button>
                 </form>
             ) : null}
@@ -397,8 +397,8 @@ function MasterCard({
             {retiring && examination.actions.retire_url ? (
                 <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-900">
                     <p>
-                        Pemeriksaan ini tidak dapat dipilih pada permintaan
-                        baru. Riwayat lama tetap tersedia.
+                        This examination cannot be selected for new orders.
+                        Existing history remains available.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                         <Button
@@ -408,7 +408,7 @@ function MasterCard({
                             onClick={retire}
                             disabled={retireForm.processing}
                         >
-                            Ya, nonaktifkan
+                            Yes, retire
                         </Button>
                         <Button
                             type="button"
@@ -416,7 +416,7 @@ function MasterCard({
                             className="min-h-11"
                             onClick={() => setRetiring(false)}
                         >
-                            Kembali
+                            Back
                         </Button>
                     </div>
                 </div>
@@ -454,27 +454,27 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
     return (
         <main className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
             <nav
-                aria-label="Manajemen data"
+                aria-label="Data management"
                 className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1"
             >
                 <Link
                     href="/manajemen-data/bangsal"
                     className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
                 >
-                    Bangsal & Tempat Tidur
+                    Wards &amp; Beds
                 </Link>
                 <Link
                     href="/manajemen-data/laboratorium"
                     aria-current="page"
                     className="inline-flex min-h-11 items-center rounded-md bg-[#123b63] px-3 text-sm font-medium text-white"
                 >
-                    Pemeriksaan Laboratorium
+                    Laboratory Examinations
                 </Link>
                 <Link
                     href="/manajemen-data/radiologi"
                     className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
                 >
-                    Pemeriksaan Radiologi
+                    Radiology Examinations
                 </Link>
             </nav>
             <header className="flex flex-wrap items-start justify-between gap-4">
@@ -484,14 +484,14 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                     </span>
                     <div>
                         <p className="font-mono text-xs font-semibold tracking-[0.15em] text-[#145a8d]">
-                            MASTER KLINIS
+                            CLINICAL MASTER
                         </p>
                         <h1 className="font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold text-slate-950">
-                            Pemeriksaan Laboratorium
+                            Laboratory Examinations
                         </h1>
                         <p className="mt-1 text-sm text-slate-600">
-                            Kelola spesimen dan komponen hasil yang dipilih
-                            dokter.
+                            Manage specimens and result components available to
+                            physicians.
                         </p>
                     </div>
                 </div>
@@ -501,14 +501,14 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                         className="min-h-11"
                         onClick={() => setCreating((value) => !value)}
                     >
-                        <Plus className="mr-2 size-4" /> Tambah pemeriksaan
+                        <Plus className="mr-2 size-4" /> Add examination
                     </Button>
                 ) : null}
             </header>
             <p className="sr-only" role="status" aria-live="polite">
                 {createForm.processing
-                    ? 'Menyimpan pemeriksaan laboratorium.'
-                    : `${props.examinations.length} pemeriksaan ditampilkan.`}
+                    ? 'Saving laboratory examination.'
+                    : `${props.examinations.length} examinations displayed.`}
             </p>
             {props.read_error ? (
                 <div
@@ -524,17 +524,17 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                     className="grid gap-4 rounded-lg border border-[#b9d9ed] bg-[#f4f9fc] p-4 shadow-sm sm:grid-cols-3"
                 >
                     <h2 className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold text-slate-950 sm:col-span-3">
-                        Pemeriksaan baru
+                        New Examination
                     </h2>
                     <div className="sm:col-span-3">
                         <LaboratoryErrors
                             errors={createForm.errors}
-                            title="Data belum tersimpan."
+                            title="Unsaved data."
                         />
                     </div>
                     <div>
                         <Label htmlFor="new-laboratory-code">
-                            Kode permanen
+                            Permanent code
                         </Label>
                         <input
                             id="new-laboratory-code"
@@ -551,7 +551,7 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                     </div>
                     <div>
                         <Label htmlFor="new-laboratory-name">
-                            Nama pemeriksaan
+                            Examination name
                         </Label>
                         <input
                             id="new-laboratory-name"
@@ -568,7 +568,7 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                     </div>
                     <div>
                         <Label htmlFor="new-laboratory-specimen">
-                            Jenis spesimen
+                            Specimen type
                         </Label>
                         <input
                             id="new-laboratory-specimen"
@@ -585,7 +585,7 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                     </div>
                     <div className="sm:col-span-3">
                         <Label htmlFor="new-laboratory-instruction">
-                            Instruksi pengambilan (opsional)
+                            Collection instructions (optional)
                         </Label>
                         <textarea
                             id="new-laboratory-instruction"
@@ -613,7 +613,7 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                         className="min-h-11 sm:col-span-3 sm:w-fit"
                         disabled={createForm.processing}
                     >
-                        Simpan pemeriksaan
+                        Save Examination
                     </Button>
                 </form>
             ) : null}
@@ -628,7 +628,7 @@ export function LaboratoryMasterPanel(props: LaboratoryMasterProps) {
                     ))
                 ) : (
                     <p className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-600 lg:col-span-2">
-                        Belum ada master pemeriksaan laboratorium.
+                        No laboratory examination master records yet.
                     </p>
                 )}
             </div>

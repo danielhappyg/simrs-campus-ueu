@@ -25,12 +25,12 @@ final class OutpatientInpatientHandoffController extends Controller
             $this->service->execute($encounter, $actor, (int) $v['expected_disposition_version'], $v['bed_public_id'], $v['idempotency_key']);
         } catch (OutpatientDispositionDenied $e) {
             if ($e->httpStatus === 403) {
-                abort(403, $e->getMessage());
+                abort(403, __($e->getMessage()));
             }
 
-            return back()->withErrors(['handoff' => $e->getMessage()])->withInput();
+            return back()->withErrors(['handoff' => __($e->getMessage())])->withInput();
         }
 
-        return back()->with('success', 'Serah-terima rawat inap selesai.');
+        return back()->with('success', 'Inpatient handoff completed.');
     }
 }

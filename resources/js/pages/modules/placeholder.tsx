@@ -57,13 +57,13 @@ export default function ModulePlaceholder({
                             {selected?.label ?? categoryLabel}
                         </h1>
                         <p className="mt-1 text-sm text-[#64748b]">
-                            {selected ? categoryLabel : `${menus.length} menu`}
+                            {selected ? categoryLabel : `${menus.length} menus`}
                         </p>
                     </div>
                 </header>
 
                 <label className="relative grid max-w-md gap-1 text-xs font-medium tracking-wide text-[#64748b] uppercase">
-                    Pencarian menu
+                    Menu search
                     <span className="relative">
                         <Search
                             aria-hidden
@@ -73,7 +73,7 @@ export default function ModulePlaceholder({
                             type="search"
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
-                            placeholder="Pencarian Menu..."
+                            placeholder="Search menus..."
                             className="min-h-11 w-full rounded-md border border-input bg-white pr-3 pl-10 text-sm font-normal tracking-normal text-[#0f172a] shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30"
                         />
                     </span>
@@ -81,12 +81,12 @@ export default function ModulePlaceholder({
 
                 {filtered.length === 0 ? (
                     <p className="text-sm text-[#64748b]">
-                        Tidak ada menu yang cocok dengan pencarian.
+                        No menus match your search.
                     </p>
                 ) : (
                     <ul
                         className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-                        aria-label={`Menu ${categoryLabel}`}
+                        aria-label={`${categoryLabel} menus`}
                     >
                         {filtered.map((menu) => {
                             const isSelected = selected?.slug === menu.slug;
@@ -126,7 +126,7 @@ export default function ModulePlaceholder({
                         })}
                     </ul>
                 )}
-                <p className="sr-only">Kategori: {category}</p>
+                <p className="sr-only">Category: {category}</p>
             </div>
         </>
     );
@@ -134,7 +134,7 @@ export default function ModulePlaceholder({
 
 ModulePlaceholder.layout = (props: Props) => {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Beranda', href: '/' },
+        { title: 'Home', href: '/' },
         {
             title: props.categoryLabel,
             href: `/modul/${props.category}`,

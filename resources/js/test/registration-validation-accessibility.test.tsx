@@ -13,10 +13,10 @@ import PendaftaranRawatJalan from '@/pages/pendaftaran/rawat-jalan';
 const inertiaMock = vi.hoisted(() => ({
     post: vi.fn(),
     serverErrors: {
-        full_name: 'Nama pasien wajib diisi.',
-        clinic_public_id: 'Poliklinik wajib dipilih.',
-        payer_type: 'Cara bayar tidak valid.',
-        insurance_number: 'Nomor asuransi tidak valid.',
+        full_name: 'Patient name is required.',
+        clinic_public_id: 'Select a clinic.',
+        payer_type: 'The payment method is invalid.',
+        insurance_number: 'The insurance number is invalid.',
     },
 }));
 
@@ -161,7 +161,7 @@ describe('outpatient registration validation accessibility', () => {
 
     it('associates server errors, summarizes them, and refocuses the summary after repeated failures', async () => {
         const { container } = renderRegistration();
-        const saveButton = screen.getByRole('button', { name: 'Simpan' });
+        const saveButton = screen.getByRole('button', { name: 'Save' });
         const form = saveButton.closest('form');
 
         if (!form) {
@@ -171,7 +171,7 @@ describe('outpatient registration validation accessibility', () => {
         fireEvent.submit(form);
 
         const summary = await screen.findByRole('alert', {
-            name: 'Pendaftaran belum dapat disimpan.',
+            name: 'Registration cannot be saved yet.',
         });
         expect(inertiaMock.post).toHaveBeenCalledWith(
             '/pendaftaran/rawat-jalan',
@@ -183,34 +183,34 @@ describe('outpatient registration validation accessibility', () => {
             {
                 id: 'full_name',
                 control: screen.getByRole('textbox', {
-                    name: 'Nama pasien',
+                    name: 'Patient name',
                 }),
-                linkName: 'Nama pasien: Nama pasien wajib diisi.',
-                message: 'Nama pasien wajib diisi.',
+                linkName: 'Patient name: Patient name is required.',
+                message: 'Patient name is required.',
             },
             {
                 id: 'clinic_public_id',
                 control: screen.getByRole('combobox', {
-                    name: 'Poliklinik',
+                    name: 'Clinic',
                 }),
-                linkName: 'Poliklinik atau unit: Poliklinik wajib dipilih.',
-                message: 'Poliklinik wajib dipilih.',
+                linkName: 'Clinic or unit: Select a clinic.',
+                message: 'Select a clinic.',
             },
             {
                 id: 'payer_type',
                 control: screen.getByRole('combobox', {
-                    name: 'Cara bayar',
+                    name: 'Payment method',
                 }),
-                linkName: 'Cara bayar: Cara bayar tidak valid.',
-                message: 'Cara bayar tidak valid.',
+                linkName: 'Payment method: The payment method is invalid.',
+                message: 'The payment method is invalid.',
             },
             {
                 id: 'insurance_number',
                 control: screen.getByRole('textbox', {
-                    name: 'No. asuransi',
+                    name: 'Insurance number',
                 }),
-                linkName: 'Nomor asuransi: Nomor asuransi tidak valid.',
-                message: 'Nomor asuransi tidak valid.',
+                linkName: 'Insurance number: The insurance number is invalid.',
+                message: 'The insurance number is invalid.',
             },
         ];
 
@@ -228,12 +228,12 @@ describe('outpatient registration validation accessibility', () => {
         }
 
         const validControl = screen.getByRole('textbox', {
-            name: 'No. Rekam Medis',
+            name: 'Medical record number',
         });
         expect(validControl).not.toHaveAttribute('aria-invalid');
         expect(validControl).not.toHaveAttribute('aria-describedby');
 
-        for (const stubName of ['Cek', 'FR', 'FP']) {
+        for (const stubName of ['Check', 'FR', 'FP']) {
             const stub = screen.getByRole('button', { name: stubName });
             expect(stub).toBeDisabled();
             expect(stub).not.toHaveAttribute('aria-invalid');

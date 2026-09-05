@@ -14,27 +14,27 @@ import { store } from '@/routes/password/confirm';
 export default function ConfirmPassword() {
     return (
         <>
-            <Head title="Konfirmasi kata sandi" />
+            <Head title="Confirm password" />
 
             <PasskeyVerify
                 routes={{
                     options: confirmOptions(),
                     submit: confirmStore(),
                 }}
-                label="Konfirmasi dengan passkey"
-                loadingLabel="Mengonfirmasi..."
-                separator="Atau konfirmasi dengan kata sandi"
+                label="Confirm with a passkey"
+                loadingLabel="Confirming..."
+                separator="Or confirm with your password"
             />
 
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Kata sandi</Label>
+                            <Label htmlFor="password">Password</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
-                                placeholder="Kata sandi"
+                                placeholder="Password"
                                 autoComplete="current-password"
                                 autoFocus
                             />
@@ -49,7 +49,7 @@ export default function ConfirmPassword() {
                                 data-test="confirm-password-button"
                             >
                                 {processing && <Spinner />}
-                                Konfirmasi kata sandi
+                                Confirm password
                             </Button>
                         </div>
                     </div>
@@ -60,7 +60,7 @@ export default function ConfirmPassword() {
 }
 
 ConfirmPassword.layout = {
-    title: 'Konfirmasi kata sandi',
+    title: 'Confirm password',
     description:
-        'Area ini dilindungi. Konfirmasikan kredensial Anda sebelum melanjutkan.',
+        'This area is protected. Confirm your credentials before continuing.',
 };

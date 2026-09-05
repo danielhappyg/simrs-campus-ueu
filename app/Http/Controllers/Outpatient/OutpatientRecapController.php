@@ -53,7 +53,7 @@ class OutpatientRecapController extends Controller
             ]);
 
             if ($csvValidation->fails()) {
-                return $this->rejectCsvExport($request, 'Tanggal awal dan akhir yang valid wajib dipilih untuk ekspor CSV.');
+                return $this->rejectCsvExport($request, 'Select valid start and end dates for the CSV export.');
             }
 
             $rangeDays = CarbonImmutable::parse($csvDateFrom)->startOfDay()
@@ -61,7 +61,7 @@ class OutpatientRecapController extends Controller
             if ($rangeDays > self::CSV_MAX_RANGE_DAYS) {
                 return $this->rejectCsvExport(
                     $request,
-                    'Ekspor CSV sinkron sementara dibatasi maksimal 31 hari. Persempit rentang tanggal.',
+                    'CSV exports are currently limited to 31 days. Narrow the date range.',
                 );
             }
         }
@@ -74,7 +74,7 @@ class OutpatientRecapController extends Controller
             'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
         ]);
         if ($dateValidation->fails()) {
-            return $this->rejectCsvExport($request, 'Tanggal filter tidak valid. Rentang dikembalikan ke hari ini.');
+            return $this->rejectCsvExport($request, 'The filter dates are invalid. The date range has been reset to today.');
         }
 
         $query = Encounter::query()
@@ -243,7 +243,7 @@ class OutpatientRecapController extends Controller
         ) {
             return $this->rejectCsvExport(
                 $request,
-                'Batas permintaan ekspor CSV tercapai. Tunggu satu menit sebelum mencoba kembali.',
+                'The CSV export request limit has been reached. Wait one minute before trying again.',
             );
         }
 
@@ -255,7 +255,7 @@ class OutpatientRecapController extends Controller
         if (! $userLock->get()) {
             return $this->rejectCsvExport(
                 $request,
-                'Satu ekspor CSV untuk akun ini masih berjalan. Tunggu hingga selesai.',
+                'A CSV export for this account is still running. Wait for it to finish.',
             );
         }
 
@@ -268,7 +268,7 @@ class OutpatientRecapController extends Controller
 
             return $this->rejectCsvExport(
                 $request,
-                'Batas ekspor CSV bersamaan tercapai. Tunggu hingga salah satu ekspor selesai.',
+                'The concurrent CSV export limit has been reached. Wait for an export to finish.',
             );
         }
 
@@ -376,7 +376,7 @@ class OutpatientRecapController extends Controller
                 ->exists();
         if ($exceedsMaximumRows) {
             return ['', sprintf(
-                'Ekspor CSV sinkron dibatasi maksimal %s baris. Persempit filter sebelum mencoba kembali.',
+                'CSV exports are limited to %s rows. Narrow the filters before trying again.',
                 number_format($maximumRows, 0, ',', '.'),
             )];
         }
@@ -463,7 +463,7 @@ class OutpatientRecapController extends Controller
         }
         if (ftell($handle) > $maximumBytes) {
             return sprintf(
-                'Ekspor CSV sinkron dibatasi maksimal %s byte. Persempit filter sebelum mencoba kembali.',
+                'CSV exports are limited to %s bytes. Narrow the filters before trying again.',
                 number_format($maximumBytes, 0, ',', '.'),
             );
         }
@@ -484,7 +484,7 @@ class OutpatientRecapController extends Controller
     private function csvExecutionLimitMessage(int $maximumExecutionSeconds): string
     {
         return sprintf(
-            'Ekspor CSV sinkron melebihi batas waktu %s detik. Persempit filter sebelum mencoba kembali.',
+            'The CSV export exceeded the %s-second time limit. Narrow the filters before trying again.',
             number_format($maximumExecutionSeconds, 0, ',', '.'),
         );
     }

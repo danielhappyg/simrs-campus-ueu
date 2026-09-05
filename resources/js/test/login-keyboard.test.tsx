@@ -34,8 +34,8 @@ vi.mock('@inertiajs/react', () => ({
                     ? children({
                           processing: false,
                           errors: {
-                              email: 'Email wajib diisi.',
-                              password: 'Kata sandi wajib diisi.',
+                              email: 'Email is required.',
+                              password: 'Password is required.',
                           },
                       })
                     : children}
@@ -58,11 +58,11 @@ describe('login keyboard order', () => {
 
         const focusOrder = [
             screen.getByRole('textbox', { name: 'Email' }),
-            screen.getByLabelText('Kata sandi'),
-            screen.getByRole('button', { name: 'Tampilkan kata sandi' }),
-            screen.getByRole('link', { name: 'Lupa kata sandi?' }),
-            screen.getByRole('checkbox', { name: 'Ingat saya' }),
-            screen.getByRole('button', { name: 'Masuk' }),
+            screen.getByLabelText('Password'),
+            screen.getByRole('button', { name: 'Show password' }),
+            screen.getByRole('link', { name: 'Forgot password?' }),
+            screen.getByRole('checkbox', { name: 'Remember me' }),
+            screen.getByRole('button', { name: 'Sign in' }),
         ];
 
         expect(document.activeElement).toBe(document.body);
@@ -79,17 +79,17 @@ describe('login keyboard order', () => {
         const email = screen.getByRole('textbox', {
             name: 'Email',
         });
-        const password = screen.getByLabelText('Kata sandi');
+        const password = screen.getByLabelText('Password');
 
         expect(email).toHaveAttribute('aria-invalid', 'true');
         expect(email).toHaveAttribute('aria-describedby', 'email-error');
-        expect(screen.getByText('Email wajib diisi.')).toHaveAttribute(
+        expect(screen.getByText('Email is required.')).toHaveAttribute(
             'id',
             'email-error',
         );
         expect(password).toHaveAttribute('aria-invalid', 'true');
         expect(password).toHaveAttribute('aria-describedby', 'password-error');
-        expect(screen.getByText('Kata sandi wajib diisi.')).toHaveAttribute(
+        expect(screen.getByText('Password is required.')).toHaveAttribute(
             'id',
             'password-error',
         );

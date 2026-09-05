@@ -16,10 +16,10 @@ export function formatRadiologyDate(value: string | null): string {
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-        return 'Waktu tidak tersedia';
+        return 'Time unavailable';
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',
     }).format(date);

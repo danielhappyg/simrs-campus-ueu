@@ -26,7 +26,7 @@ class TeachingVocabularyTest extends TestCase
         $sex = TeachingVocabulary::options(TeachingVocabulary::SEX);
 
         $this->assertSame(Patient::SEX_LAKI_LAKI, $sex[0]['value']);
-        $this->assertSame('Laki-laki', $sex[0]['label']);
+        $this->assertSame('Male', $sex[0]['label']);
         $this->assertSame(['male', 'female', 'other', 'unknown'], array_column($sex, 'value'));
     }
 }

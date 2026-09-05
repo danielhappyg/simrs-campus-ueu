@@ -140,11 +140,11 @@ async function fetchWilayahOptions(url: string): Promise<Option[]> {
 }
 
 const statusLabel: Record<string, string> = {
-    REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Pemeriksaan',
-    READY_FOR_RM: 'Siap RM',
-    CLOSED: 'Ditutup',
-    CANCELLED: 'Dibatalkan',
+    REGISTERED: 'Registered',
+    IN_EXAMINATION: 'In examination',
+    READY_FOR_RM: 'Ready for medical records',
+    CLOSED: 'Closed',
+    CANCELLED: 'Cancelled',
 };
 
 const statusChipClass: Record<string, string> = {
@@ -156,15 +156,15 @@ const statusChipClass: Record<string, string> = {
 };
 
 const cancellationReasons = [
-    { value: 'SALAH_PENDAFTARAN', label: 'Salah pendaftaran' },
-    { value: 'DUPLIKAT_KUNJUNGAN', label: 'Duplikat kunjungan' },
+    { value: 'SALAH_PENDAFTARAN', label: 'Registration error' },
+    { value: 'DUPLIKAT_KUNJUNGAN', label: 'Duplicate visit' },
     {
         value: 'PASIEN_TIDAK_MELANJUTKAN',
-        label: 'Pasien tidak melanjutkan',
+        label: 'Patient did not continue',
     },
     {
         value: 'PERUBAHAN_RENCANA_SEBELUM_PELAYANAN',
-        label: 'Perubahan rencana sebelum pelayanan',
+        label: 'Plan changed before care',
     },
 ] as const;
 
@@ -181,26 +181,27 @@ function newCancellationKey(): string {
 
 function cancellationTimeLabel(value: string | null): string {
     if (!value) {
-        return 'Waktu tidak tersedia';
+        return 'Time unavailable';
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',
+        timeZone: 'Asia/Jakarta',
     }).format(new Date(value));
 }
 
 const sexLabel: Record<string, string> = {
-    male: 'Laki-laki',
-    female: 'Perempuan',
-    other: 'Lainnya',
-    unknown: 'Tidak diketahui',
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+    unknown: 'Unknown',
 };
 
 const payerLabel: Record<string, string> = {
-    UMUM: 'Umum',
+    UMUM: 'Self-pay',
     BPJS: 'BPJS',
-    LAINNYA: 'Lainnya',
+    LAINNYA: 'Other',
 };
 
 const fieldClass =
@@ -266,108 +267,112 @@ type RegistrationErrorField = {
 const registrationErrorFields: RegistrationErrorField[] = [
     {
         keys: ['patient_public_id'],
-        label: 'Pasien',
+        label: 'Patient',
         targetId: 'patient-search',
     },
     {
         keys: ['medical_record_number'],
-        label: 'Nomor rekam medis',
+        label: 'Medical record number',
         targetId: 'medical_record_number',
     },
     { keys: ['nik'], label: 'NIK', targetId: 'nik' },
-    { keys: ['full_name'], label: 'Nama pasien', targetId: 'full_name' },
-    { keys: ['sex'], label: 'Jenis kelamin', targetId: 'sex' },
+    { keys: ['full_name'], label: 'Patient name', targetId: 'full_name' },
+    { keys: ['sex'], label: 'Sex', targetId: 'sex' },
     {
         keys: ['place_of_birth'],
-        label: 'Tempat lahir',
+        label: 'Place of birth',
         targetId: 'place_of_birth',
     },
     {
         keys: ['date_of_birth'],
-        label: 'Tanggal lahir',
+        label: 'Date of birth',
         targetId: 'date_of_birth',
     },
     {
         keys: ['marital_status'],
-        label: 'Status pernikahan',
+        label: 'Marital status',
         targetId: 'marital_status',
     },
-    { keys: ['religion'], label: 'Agama', targetId: 'religion' },
-    { keys: ['education'], label: 'Pendidikan', targetId: 'education' },
-    { keys: ['occupation'], label: 'Pekerjaan', targetId: 'occupation' },
+    { keys: ['religion'], label: 'Religion', targetId: 'religion' },
+    { keys: ['education'], label: 'Education', targetId: 'education' },
+    { keys: ['occupation'], label: 'Occupation', targetId: 'occupation' },
     {
         keys: ['province_code', 'province'],
-        label: 'Provinsi',
+        label: 'Province',
         targetId: 'province_code',
     },
     {
         keys: ['city_code', 'city'],
-        label: 'Kabupaten/Kota',
+        label: 'Regency / City',
         targetId: 'city_code',
     },
     {
         keys: ['district_code', 'district'],
-        label: 'Kecamatan',
+        label: 'District',
         targetId: 'district_code',
     },
     {
         keys: ['village_code', 'village'],
-        label: 'Kelurahan',
+        label: 'Urban village',
         targetId: 'village_code',
     },
-    { keys: ['address_line'], label: 'Dusun/Jalan', targetId: 'address_line' },
-    { keys: ['domicile'], label: 'Domisili', targetId: 'domicile' },
-    { keys: ['phone'], label: 'Telepon', targetId: 'phone' },
+    {
+        keys: ['address_line'],
+        label: 'Hamlet / Street',
+        targetId: 'address_line',
+    },
+    { keys: ['domicile'], label: 'Residential address', targetId: 'domicile' },
+    { keys: ['phone'], label: 'Phone', targetId: 'phone' },
     { keys: ['email'], label: 'Email', targetId: 'email' },
-    { keys: ['ethnicity'], label: 'Suku', targetId: 'ethnicity' },
-    { keys: ['language'], label: 'Bahasa', targetId: 'language' },
-    { keys: ['notes'], label: 'Catatan pasien', targetId: 'notes' },
+    { keys: ['ethnicity'], label: 'Ethnicity', targetId: 'ethnicity' },
+    { keys: ['language'], label: 'Language', targetId: 'language' },
+    { keys: ['notes'], label: 'Patient notes', targetId: 'notes' },
     {
         keys: ['responsible_party_name'],
-        label: 'Penanggung jawab',
+        label: 'Responsible person',
         targetId: 'responsible_party_name',
     },
-    { keys: ['booking_code'], label: 'Kode booking', targetId: 'booking_code' },
+    { keys: ['booking_code'], label: 'Booking code', targetId: 'booking_code' },
     {
         keys: ['visit_date'],
-        label: 'Tanggal kunjungan',
+        label: 'Visit date',
         targetId: 'visit_date',
     },
     {
         keys: ['clinic_public_id'],
-        label: 'Poliklinik atau unit',
+        label: 'Clinic or unit',
         targetId: 'clinic_public_id',
     },
     {
         keys: ['doctor_public_id'],
-        label: 'Dokter',
+        label: 'Physician',
         targetId: 'doctor_public_id',
     },
     {
         keys: ['schedule_public_id'],
-        label: 'Jadwal atau shift',
+        label: 'Schedule or shift',
         targetId: 'schedule_public_id',
     },
-    { keys: ['case_type'], label: 'Kasus tindakan', targetId: 'case_type' },
+    { keys: ['case_type'], label: 'Case type', targetId: 'case_type' },
     {
         keys: ['accident_type'],
-        label: 'Jenis kecelakaan',
+        label: 'Accident type',
         targetId: 'accident_type',
     },
     {
         keys: ['admission_mode'],
-        label: 'Cara masuk',
+        label: 'Arrival method',
         targetId: 'admission_mode',
     },
-    { keys: ['payer_type'], label: 'Cara bayar', targetId: 'payer_type' },
+    { keys: ['payer_type'], label: 'Payment method', targetId: 'payer_type' },
     {
         keys: ['insurance_number'],
-        label: 'Nomor asuransi',
+        label: 'Insurance number',
         targetId: 'insurance_number',
     },
     {
         keys: ['chief_complaint'],
-        label: 'Catatan kunjungan',
+        label: 'Visit notes',
         targetId: 'chief_complaint',
     },
 ];
@@ -416,7 +421,7 @@ function registrationErrorEntries(
     remainingKeys.forEach((key) => {
         entries.push({
             key,
-            label: 'Formulir pendaftaran',
+            label: 'Registration form',
             message: errors[key] as string,
         });
     });
@@ -455,10 +460,10 @@ function RegistrationErrorSummary({
             className="mb-4 rounded-md border border-[#fecaca] bg-[#fef2f2] p-3 text-sm text-[#991b1b] focus-visible:ring-2 focus-visible:ring-[#b91c1c] focus-visible:ring-offset-2 focus-visible:outline-none"
         >
             <p id="registration-error-summary-title" className="font-semibold">
-                Pendaftaran belum dapat disimpan.
+                Registration cannot be saved yet.
             </p>
             <p className="mt-1">
-                Periksa bagian berikut tanpa menghapus data yang sudah diisi:
+                Review the following without removing data already entered:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
                 {entries.map((entry) => (
@@ -895,7 +900,7 @@ export default function PendaftaranRawatJalan({
                 preserveScroll: true,
                 onSuccess: () => {
                     setCancellationAnnouncement(
-                        'Kunjungan berhasil dibatalkan.',
+                        'Visit cancelled successfully.',
                     );
                     setCancelDialogOpen(false);
                     setCancelTarget(null);
@@ -904,7 +909,7 @@ export default function PendaftaranRawatJalan({
                 onError: (errors) => {
                     setCancellationAnnouncement(
                         errors.cancellation ??
-                            'Pembatalan belum dapat disimpan. Periksa alasan dan catatan pembatalan.',
+                            'The cancellation could not be saved. Check the cancellation reason and note.',
                     );
                 },
             },
@@ -914,7 +919,9 @@ export default function PendaftaranRawatJalan({
     return (
         <>
             <Head
-                title={isIgd ? 'Pendaftaran IGD' : 'Pendaftaran Rawat Jalan'}
+                title={
+                    isIgd ? 'Emergency registration' : 'Outpatient registration'
+                }
             />
 
             <p className="sr-only" role="status" aria-live="polite">
@@ -926,21 +933,21 @@ export default function PendaftaranRawatJalan({
                     items={[
                         {
                             href: '/pendaftaran/rawat-jalan',
-                            label: 'Rawat Jalan',
+                            label: 'Outpatient',
                             active: !isIgd,
                         },
                         {
                             href: '/pendaftaran/igd',
-                            label: 'IGD',
+                            label: 'Emergency',
                             active: isIgd,
                         },
                         {
                             href: '/pendaftaran/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient',
                         },
                         {
                             href: '/pendaftaran/rekap',
-                            label: 'Rekap',
+                            label: 'Summary',
                         },
                     ]}
                 />
@@ -949,13 +956,13 @@ export default function PendaftaranRawatJalan({
                     <div>
                         <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
                             {isIgd
-                                ? 'Data Pasien · Pendaftaran IGD'
-                                : 'Data Pasien · Pendaftaran Rawat Jalan'}
+                                ? 'Patient data · Emergency registration'
+                                : 'Patient data · Outpatient registration'}
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
                             {isIgd
-                                ? 'Kelola identitas pasien dan pendaftaran kunjungan IGD.'
-                                : 'Kelola identitas pasien dan pendaftaran rawat jalan.'}
+                                ? 'Manage patient identity and emergency visit registration.'
+                                : 'Manage patient identity and outpatient visit registration.'}
                         </p>
                     </div>
                     {returning ? (
@@ -965,7 +972,7 @@ export default function PendaftaranRawatJalan({
                             size="sm"
                             onClick={clearSelectedPatient}
                         >
-                            Pasien baru
+                            New patient
                         </Button>
                     ) : null}
                 </header>
@@ -988,22 +995,22 @@ export default function PendaftaranRawatJalan({
                 ) : null}
 
                 <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#d7e6f3] bg-[#f5f9fc] px-3 py-2">
-                    <ActionStub label="Riwayat" />
+                    <ActionStub label="History" />
                     <ActionStub label="EMR" />
-                    <ActionStub label="Ambil RegOn" />
+                    <ActionStub label="Retrieve online registration" />
                     <form
                         onSubmit={search}
                         className="flex min-w-[16rem] flex-1 items-center gap-2"
                     >
                         <Label htmlFor="patient-search" className="sr-only">
-                            Cari pasien berdasarkan nama, nomor rekam medis,
-                            atau NIK
+                            Find a patient by name, medical record number, or
+                            NIK
                         </Label>
                         <Input
                             id="patient-search"
                             name="q"
                             defaultValue={q}
-                            placeholder="Cari nama / No. RM / NIK"
+                            placeholder="Search name / MRN / National ID"
                             className="h-8 bg-white"
                         />
                         <Button
@@ -1011,10 +1018,10 @@ export default function PendaftaranRawatJalan({
                             size="sm"
                             className="h-8 bg-[#1b75bc] hover:bg-[#1665a3]"
                         >
-                            Cari Pasien
+                            Search patients
                         </Button>
                     </form>
-                    <ActionStub label="Approval SEP" />
+                    <ActionStub label="SEP approval" />
                     <Button
                         type="button"
                         variant="outline"
@@ -1022,7 +1029,7 @@ export default function PendaftaranRawatJalan({
                         className="h-8"
                         asChild
                     >
-                        <Link href="/pendaftaran/rekap">Data Kunjungan</Link>
+                        <Link href="/pendaftaran/rekap">Visit data</Link>
                     </Button>
                 </div>
 
@@ -1030,34 +1037,34 @@ export default function PendaftaranRawatJalan({
                     <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
                         <div className="mb-2 flex items-center justify-between">
                             <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
-                                Hasil pencarian
+                                Search results
                             </h2>
                             <button
                                 type="button"
                                 className="text-xs text-[#64748b] hover:text-[#0f172a]"
                                 onClick={() => setSearchOpen(false)}
                             >
-                                Tutup
+                                Close
                             </button>
                         </div>
                         <div className="min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[40rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Hasil pencarian pasien
+                                    Patient search results
                                 </caption>
                                 <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                     <tr>
                                         <th className="px-2 py-1.5 font-medium">
-                                            No. RM
+                                            MRN
                                         </th>
                                         <th className="px-2 py-1.5 font-medium">
                                             NIK
                                         </th>
                                         <th className="px-2 py-1.5 font-medium">
-                                            Nama
+                                            Name
                                         </th>
                                         <th className="px-2 py-1.5 font-medium">
-                                            Tgl. lahir
+                                            Date of birth
                                         </th>
                                         <th className="px-2 py-1.5 font-medium">
                                             JK
@@ -1067,7 +1074,7 @@ export default function PendaftaranRawatJalan({
                                             className="px-2 py-1.5 font-medium"
                                         >
                                             <span className="sr-only">
-                                                Aksi
+                                                Actions
                                             </span>
                                         </th>
                                     </tr>
@@ -1079,7 +1086,7 @@ export default function PendaftaranRawatJalan({
                                                 colSpan={6}
                                                 className="px-2 py-3 text-[#64748b]"
                                             >
-                                                Tidak ada hasil.
+                                                No results.
                                             </td>
                                         </tr>
                                     ) : (
@@ -1119,7 +1126,7 @@ export default function PendaftaranRawatJalan({
                                                                 )
                                                             }
                                                         >
-                                                            Pilih
+                                                            Select
                                                         </Button>
                                                     ) : null}
                                                 </td>
@@ -1134,8 +1141,8 @@ export default function PendaftaranRawatJalan({
                                 className="mt-2 text-xs text-[#92400e]"
                                 role="status"
                             >
-                                Menampilkan 20 hasil pertama. Persempit
-                                pencarian untuk menemukan pasien lainnya.
+                                Showing the first 20 results. Narrow the search
+                                to find other patients.
                             </p>
                         ) : null}
                     </section>
@@ -1152,10 +1159,10 @@ export default function PendaftaranRawatJalan({
                             focusAttempt={validationAttempt}
                         />
                         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_13rem]">
-                            <DeskSection title="Data pribadi">
+                            <DeskSection title="Personal details">
                                 <Field
                                     id="medical_record_number"
-                                    label="No. Rekam Medis"
+                                    label="Medical record number"
                                     error={form.errors.medical_record_number}
                                 >
                                     <Input
@@ -1169,7 +1176,7 @@ export default function PendaftaranRawatJalan({
                                             )
                                         }
                                         disabled={returning}
-                                        placeholder="Otomatis jika kosong"
+                                        placeholder="Assigned automatically if blank"
                                     />
                                 </Field>
                                 <Field
@@ -1192,12 +1199,12 @@ export default function PendaftaranRawatJalan({
                                         inputMode="numeric"
                                         pattern="[0-9]{16}"
                                         maxLength={16}
-                                        placeholder="16 digit"
+                                        placeholder="16 digits"
                                     />
                                 </Field>
                                 <Field
                                     id="full_name"
-                                    label="Nama pasien"
+                                    label="Patient name"
                                     error={form.errors.full_name}
                                 >
                                     <Input
@@ -1219,7 +1226,7 @@ export default function PendaftaranRawatJalan({
                                 <div className="grid gap-2.5 sm:grid-cols-2">
                                     <Field
                                         id="sex"
-                                        label="Jenis kelamin"
+                                        label="Sex"
                                         error={form.errors.sex}
                                     >
                                         <select
@@ -1247,7 +1254,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="place_of_birth"
-                                        label="Tempat lahir"
+                                        label="Place of birth"
                                         error={form.errors.place_of_birth}
                                     >
                                         <Input
@@ -1265,7 +1272,7 @@ export default function PendaftaranRawatJalan({
                                 </div>
                                 <Field
                                     id="date_of_birth"
-                                    label="Tanggal lahir"
+                                    label="Date of birth"
                                     error={form.errors.date_of_birth}
                                 >
                                     <Input
@@ -1286,7 +1293,7 @@ export default function PendaftaranRawatJalan({
                                 <div className="grid gap-2.5 sm:grid-cols-3">
                                     <Field
                                         id="marital_status"
-                                        label="Status pernikahan"
+                                        label="Marital status"
                                         error={form.errors.marital_status}
                                     >
                                         <select
@@ -1300,7 +1307,7 @@ export default function PendaftaranRawatJalan({
                                                 )
                                             }
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {maritalOptions.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1313,7 +1320,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="religion"
-                                        label="Agama"
+                                        label="Religion"
                                         error={form.errors.religion}
                                     >
                                         <select
@@ -1327,7 +1334,7 @@ export default function PendaftaranRawatJalan({
                                                 )
                                             }
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {religionOptions.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1340,7 +1347,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="education"
-                                        label="Pendidikan"
+                                        label="Education"
                                         error={form.errors.education}
                                     >
                                         <select
@@ -1354,7 +1361,7 @@ export default function PendaftaranRawatJalan({
                                                 )
                                             }
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {educationOptions.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1367,7 +1374,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="occupation"
-                                        label="Pekerjaan"
+                                        label="Occupation"
                                         error={form.errors.occupation}
                                     >
                                         <select
@@ -1381,7 +1388,7 @@ export default function PendaftaranRawatJalan({
                                                 )
                                             }
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {occupationOptions.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1396,7 +1403,7 @@ export default function PendaftaranRawatJalan({
                                 <div className="grid gap-2.5 sm:grid-cols-2">
                                     <Field
                                         id="province_code"
-                                        label="Provinsi"
+                                        label="Province"
                                         error={
                                             form.errors.province_code ??
                                             form.errors.province
@@ -1431,7 +1438,7 @@ export default function PendaftaranRawatJalan({
                                                 setVillageOptions([]);
                                             }}
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {wilayahProvinces.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1444,7 +1451,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="city_code"
-                                        label="Kabupaten/Kota"
+                                        label="Regency / City"
                                         error={
                                             form.errors.city_code ??
                                             form.errors.city
@@ -1476,7 +1483,7 @@ export default function PendaftaranRawatJalan({
                                             }}
                                             disabled={!form.data.province_code}
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {visibleCityOptions.map(
                                                 (option) => (
                                                     <option
@@ -1491,7 +1498,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="district_code"
-                                        label="Kecamatan"
+                                        label="District"
                                         error={
                                             form.errors.district_code ??
                                             form.errors.district
@@ -1521,7 +1528,7 @@ export default function PendaftaranRawatJalan({
                                             }}
                                             disabled={!form.data.city_code}
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {visibleDistrictOptions.map(
                                                 (option) => (
                                                     <option
@@ -1536,7 +1543,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="village_code"
-                                        label="Kelurahan"
+                                        label="Urban village"
                                         error={
                                             form.errors.village_code ??
                                             form.errors.village
@@ -1563,7 +1570,7 @@ export default function PendaftaranRawatJalan({
                                             }}
                                             disabled={!form.data.district_code}
                                         >
-                                            <option value="">— Pilih —</option>
+                                            <option value="">— Select —</option>
                                             {visibleVillageOptions.map(
                                                 (option) => (
                                                     <option
@@ -1579,7 +1586,7 @@ export default function PendaftaranRawatJalan({
                                 </div>
                                 <Field
                                     id="address_line"
-                                    label="Dusun/Jalan"
+                                    label="Hamlet / Street"
                                     error={form.errors.address_line}
                                 >
                                     <Input
@@ -1592,12 +1599,12 @@ export default function PendaftaranRawatJalan({
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="Dusun atau nama jalan"
+                                        placeholder="Hamlet or street name"
                                     />
                                 </Field>
                                 <Field
                                     id="domicile"
-                                    label="Domisili"
+                                    label="Residential address"
                                     error={form.errors.domicile}
                                 >
                                     {(controlProps) => (
@@ -1629,7 +1636,7 @@ export default function PendaftaranRawatJalan({
                                 <div className="grid gap-2.5 sm:grid-cols-2">
                                     <Field
                                         id="phone"
-                                        label="Telepon"
+                                        label="Phone"
                                         error={form.errors.phone}
                                     >
                                         <Input
@@ -1667,7 +1674,7 @@ export default function PendaftaranRawatJalan({
                                 <div className="grid gap-2.5 sm:grid-cols-2">
                                     <Field
                                         id="ethnicity"
-                                        label="Suku"
+                                        label="Ethnicity"
                                         error={form.errors.ethnicity}
                                     >
                                         <select
@@ -1681,7 +1688,9 @@ export default function PendaftaranRawatJalan({
                                                 )
                                             }
                                         >
-                                            <option value="">— Suku —</option>
+                                            <option value="">
+                                                — Ethnicity —
+                                            </option>
                                             {ethnicityOptions.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1694,7 +1703,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="language"
-                                        label="Bahasa"
+                                        label="Language"
                                         error={form.errors.language}
                                     >
                                         <select
@@ -1708,7 +1717,9 @@ export default function PendaftaranRawatJalan({
                                                 )
                                             }
                                         >
-                                            <option value="">— Bahasa —</option>
+                                            <option value="">
+                                                — Select language —
+                                            </option>
                                             {languageOptions.map((option) => (
                                                 <option
                                                     key={option.value}
@@ -1722,7 +1733,7 @@ export default function PendaftaranRawatJalan({
                                 </div>
                                 <Field
                                     id="notes"
-                                    label="Catatan pasien"
+                                    label="Patient notes"
                                     error={form.errors.notes}
                                 >
                                     <textarea
@@ -1743,10 +1754,10 @@ export default function PendaftaranRawatJalan({
                             </DeskSection>
 
                             <div className="grid gap-4">
-                                <DeskSection title="Penanggung jawab">
+                                <DeskSection title="Responsible person">
                                     <Field
                                         id="responsible_party_name"
-                                        label="Nama lengkap"
+                                        label="Full name"
                                         error={
                                             form.errors.responsible_party_name
                                         }
@@ -1799,11 +1810,11 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                 </DeskSection>
 
-                                <DeskSection title="Data kunjungan">
+                                <DeskSection title="Visit details">
                                     {!isIgd ? (
                                         <Field
                                             id="booking_code"
-                                            label="Kode booking"
+                                            label="Booking code"
                                             error={form.errors.booking_code}
                                         >
                                             <Input
@@ -1816,14 +1827,14 @@ export default function PendaftaranRawatJalan({
                                                         e.target.value,
                                                     )
                                                 }
-                                                placeholder="Opsional"
+                                                placeholder="Optional"
                                             />
                                         </Field>
                                     ) : null}
                                     <div className="grid gap-2.5 sm:grid-cols-[1fr_auto]">
                                         <Field
                                             id="visit_date"
-                                            label="Tgl/Jns kunjungan"
+                                            label="Visit date / type"
                                             error={form.errors.visit_date}
                                         >
                                             <Input
@@ -1842,14 +1853,14 @@ export default function PendaftaranRawatJalan({
                                         </Field>
                                         <div className="flex items-end pb-0.5">
                                             <span className="inline-flex h-8 items-center rounded-md bg-[#e8f2fa] px-2.5 text-xs font-semibold text-[#123b63]">
-                                                Baru
+                                                New
                                             </span>
                                         </div>
                                     </div>
                                     {!isIgd ? (
                                         <Field
                                             id="clinic_public_id"
-                                            label="Poliklinik"
+                                            label="Clinic"
                                             error={form.errors.clinic_public_id}
                                         >
                                             <select
@@ -1870,7 +1881,7 @@ export default function PendaftaranRawatJalan({
                                                 required
                                             >
                                                 <option value="">
-                                                    — Pilih poliklinik —
+                                                    — Select clinic —
                                                 </option>
                                                 {clinics.map((clinic) => (
                                                     <option
@@ -1891,7 +1902,7 @@ export default function PendaftaranRawatJalan({
                                     )}
                                     <Field
                                         id="doctor_public_id"
-                                        label="Dokter"
+                                        label="Physician"
                                         error={form.errors.doctor_public_id}
                                     >
                                         <select
@@ -1912,7 +1923,7 @@ export default function PendaftaranRawatJalan({
                                             required
                                         >
                                             <option value="">
-                                                — Pilih dokter —
+                                                — Select physician —
                                             </option>
                                             {doctors.map((doctor) => (
                                                 <option
@@ -1926,7 +1937,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="schedule_public_id"
-                                        label={isIgd ? 'Shift' : 'Jadwal'}
+                                        label={isIgd ? 'Shift' : 'Schedule'}
                                         error={form.errors.schedule_public_id}
                                     >
                                         <select
@@ -1946,8 +1957,8 @@ export default function PendaftaranRawatJalan({
                                         >
                                             <option value="">
                                                 {isIgd
-                                                    ? '— Pilih shift —'
-                                                    : '— Pilih jadwal —'}
+                                                    ? '— Select shift —'
+                                                    : '— Select schedule —'}
                                             </option>
                                             {schedules.map((schedule) => (
                                                 <option
@@ -1964,7 +1975,7 @@ export default function PendaftaranRawatJalan({
                                         <>
                                             <Field
                                                 id="case_type"
-                                                label="Kasus tindakan"
+                                                label="Case type"
                                                 error={form.errors.case_type}
                                             >
                                                 <select
@@ -1997,7 +2008,7 @@ export default function PendaftaranRawatJalan({
                                             </Field>
                                             <Field
                                                 id="accident_type"
-                                                label="Kecelakaan"
+                                                label="Accident"
                                                 error={
                                                     form.errors.accident_type
                                                 }
@@ -2036,7 +2047,7 @@ export default function PendaftaranRawatJalan({
                                     ) : null}
                                     <Field
                                         id="admission_mode"
-                                        label="Cara masuk"
+                                        label="Arrival method"
                                         error={form.errors.admission_mode}
                                     >
                                         <select
@@ -2063,7 +2074,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="payer_type"
-                                        label="Cara bayar"
+                                        label="Payment method"
                                         error={form.errors.payer_type}
                                     >
                                         <select
@@ -2090,7 +2101,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="insurance_number"
-                                        label="No. asuransi"
+                                        label="Insurance number"
                                         error={form.errors.insurance_number}
                                     >
                                         {(controlProps) => (
@@ -2109,14 +2120,14 @@ export default function PendaftaranRawatJalan({
                                                             e.target.value,
                                                         )
                                                     }
-                                                    placeholder="Opsional"
+                                                    placeholder="Optional"
                                                 />
                                                 <button
                                                     type="button"
                                                     disabled
                                                     className="h-8 shrink-0 rounded-md border border-[#e2e8f0] px-2 text-xs text-[#94a3b8]"
                                                 >
-                                                    Cek
+                                                    Check
                                                 </button>
                                                 <button
                                                     type="button"
@@ -2137,7 +2148,7 @@ export default function PendaftaranRawatJalan({
                                     </Field>
                                     <Field
                                         id="chief_complaint"
-                                        label="Catatan kunjungan"
+                                        label="Visit notes"
                                         error={form.errors.chief_complaint}
                                     >
                                         <textarea
@@ -2160,7 +2171,7 @@ export default function PendaftaranRawatJalan({
 
                             <aside className="flex flex-col gap-3 rounded-md border border-[#e2e8f0] bg-[#f8fafc] p-3">
                                 <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
-                                    Cetak / antrean
+                                    Print / queue
                                 </h2>
                                 <label className="flex items-center gap-2 text-sm text-[#0f172a]">
                                     <input
@@ -2171,21 +2182,21 @@ export default function PendaftaranRawatJalan({
                                         }
                                         className="accent-[#1b75bc]"
                                     />
-                                    No. Antrian
+                                    Queue number
                                 </label>
                                 {(isIgd
                                     ? ([
-                                          ['lembarIgd', 'Lembar IGD'],
-                                          ['gelang', 'Gelang pasien'],
-                                          ['kartu', 'Kartu pasien'],
-                                          ['tracer', 'Tracer berkas RM'],
+                                          ['lembarIgd', 'Emergency sheet'],
+                                          ['gelang', 'Patient wristband'],
+                                          ['kartu', 'Patient card'],
+                                          ['tracer', 'Medical record tracer'],
                                           ['sep', 'SEP'],
                                           ['consent', 'General consent'],
                                       ] as const)
                                     : ([
                                           ['sep', 'SEP'],
-                                          ['gelang', 'Gelang pasien'],
-                                          ['kartu', 'Kartu pasien'],
+                                          ['gelang', 'Patient wristband'],
+                                          ['kartu', 'Patient card'],
                                           ['consent', 'General consent'],
                                           ['fastTrack', 'Fast track'],
                                       ] as const)
@@ -2230,8 +2241,8 @@ export default function PendaftaranRawatJalan({
                                         disabled={!printTargetId}
                                         title={
                                             printTargetId
-                                                ? 'Cetak bukti pendaftaran'
-                                                : 'Simpan pendaftaran dulu, atau pilih Cetak di daftar hari ini'
+                                                ? 'Print registration confirmation'
+                                                : 'Save registration first, or select Print in today’s list'
                                         }
                                         onClick={() => {
                                             if (printTargetId) {
@@ -2239,14 +2250,14 @@ export default function PendaftaranRawatJalan({
                                             }
                                         }}
                                     >
-                                        Cetak
+                                        Print
                                     </Button>
                                     <Button
                                         type="submit"
                                         disabled={form.processing}
                                         className="w-full bg-[#1b75bc] hover:bg-[#1665a3]"
                                     >
-                                        Simpan
+                                        Save
                                     </Button>
                                 </div>
                             </aside>
@@ -2255,46 +2266,46 @@ export default function PendaftaranRawatJalan({
                 ) : (
                     <section className="rounded-lg border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-5">
                         <h2 className="text-sm font-semibold text-[#123b63]">
-                            Form pendaftaran tidak tersedia
+                            Registration form unavailable
                         </h2>
                         <p className="mt-2 text-sm text-[#64748b]">
-                            Akun ini dapat melihat antrean, tetapi belum punya
-                            hak untuk mendaftarkan pasien baru.
+                            This account can view the queue but does not yet
+                            have permission to register new patients.
                         </p>
                     </section>
                 )}
 
                 <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                     <h2 className="mb-2 text-xs font-semibold tracking-wide text-[#123b63] uppercase">
-                        Pendaftaran hari ini
+                        Today’s registrations
                     </h2>
                     <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[52rem] text-left text-sm">
                             <caption className="sr-only">
-                                Daftar pendaftaran pasien hari ini
+                                Today’s patient registration list
                             </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Antrian
+                                        Queue
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Waktu
+                                        Time
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        No. RM
+                                        MRN
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Nama
+                                        Name
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        {isIgd ? 'Unit' : 'Poli'}
+                                        {isIgd ? 'Unit' : 'Clinic'}
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Dokter
+                                        Physician
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Penjamin
+                                        Payer
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
                                         Status
@@ -2303,7 +2314,7 @@ export default function PendaftaranRawatJalan({
                                         scope="col"
                                         className="px-2 py-1.5 font-medium"
                                     >
-                                        <span className="sr-only">Aksi</span>
+                                        <span className="sr-only">Actions</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -2314,7 +2325,7 @@ export default function PendaftaranRawatJalan({
                                             colSpan={9}
                                             className="px-2 py-3 text-[#64748b]"
                                         >
-                                            Belum ada pendaftaran hari ini.
+                                            No registrations today.
                                         </td>
                                     </tr>
                                 ) : (
@@ -2393,7 +2404,7 @@ export default function PendaftaranRawatJalan({
                                                             {encounter
                                                                 .cancellation
                                                                 .cancelled_by ??
-                                                                'Petugas tidak tersedia'}{' '}
+                                                                'Staff member unavailable'}{' '}
                                                             ·{' '}
                                                             {cancellationTimeLabel(
                                                                 encounter
@@ -2419,7 +2430,7 @@ export default function PendaftaranRawatJalan({
                                                     {encounter.status ===
                                                     'CANCELLED' ? (
                                                         <span className="text-xs text-[#64748b]">
-                                                            Riwayat tersimpan
+                                                            History saved
                                                         </span>
                                                     ) : (
                                                         <>
@@ -2432,7 +2443,7 @@ export default function PendaftaranRawatJalan({
                                                                 rel="noreferrer"
                                                                 className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                             >
-                                                                Cetak
+                                                                Print
                                                             </a>
                                                             <Link
                                                                 href={`/pendaftaran/kunjungan/${encounter.public_id}/consent`}
@@ -2444,7 +2455,7 @@ export default function PendaftaranRawatJalan({
                                                                 href={`${examPathPrefix}/${encounter.public_id}`}
                                                                 className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                             >
-                                                                Buka
+                                                                Open
                                                             </Link>
                                                         </>
                                                     )}
@@ -2459,9 +2470,9 @@ export default function PendaftaranRawatJalan({
                                                                 encounter.status ===
                                                                 'REGISTERED'
                                                                     ? undefined
-                                                                    : 'Hanya kunjungan berstatus Terdaftar yang dapat dibatalkan.'
+                                                                    : 'Only registered visits can be cancelled.'
                                                             }
-                                                            aria-label={`Batalkan kunjungan ${encounter.patient.full_name}`}
+                                                            aria-label={`Cancel visit for ${encounter.patient.full_name}`}
                                                             aria-describedby={
                                                                 encounter.status !==
                                                                 'REGISTERED'
@@ -2476,7 +2487,7 @@ export default function PendaftaranRawatJalan({
                                                             }
                                                             className="text-sm font-medium text-[#b42318] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b42318] disabled:cursor-not-allowed disabled:text-[#94a3b8] disabled:no-underline"
                                                         >
-                                                            Batalkan Kunjungan
+                                                            Cancel visit
                                                         </button>
                                                     ) : null}
                                                     {canCancel &&
@@ -2486,10 +2497,9 @@ export default function PendaftaranRawatJalan({
                                                             id={`cancel-blocked-${encounter.public_id}`}
                                                             className="sr-only"
                                                         >
-                                                            Hanya kunjungan
-                                                            berstatus Terdaftar
-                                                            yang dapat
-                                                            dibatalkan.
+                                                            Only registered
+                                                            visits can be
+                                                            cancelled.
                                                         </span>
                                                     ) : null}
                                                 </div>
@@ -2502,7 +2512,7 @@ export default function PendaftaranRawatJalan({
                     </div>
                     <OperationalPagination
                         pagination={todaysEncountersPagination}
-                        itemLabel="pendaftaran hari ini"
+                        itemLabel="today’s registrations"
                         className="mt-3"
                     />
                 </section>
@@ -2527,15 +2537,15 @@ export default function PendaftaranRawatJalan({
                     >
                         <DialogHeader className="border-b border-[#fee2e2] bg-[#fff8f7] px-5 py-4 text-left">
                             <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-[#b42318] uppercase">
-                                Pembatalan pra-pelayanan
+                                Pre-care cancellation
                             </p>
                             <DialogTitle className="text-xl leading-7 text-[#0f172a]">
-                                Batalkan kunjungan sebelum pelayanan?
+                                Cancel this visit before care begins?
                             </DialogTitle>
                             <DialogDescription className="leading-5 text-[#475569]">
-                                Tindakan ini menyimpan pembatalan sebagai
-                                riwayat. Kunjungan yang sudah mulai dilayani
-                                tidak dapat dibatalkan dari meja pendaftaran.
+                                This records the cancellation in the visit
+                                history. Visits that have already started care
+                                cannot be cancelled from the registration desk.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -2547,7 +2557,7 @@ export default function PendaftaranRawatJalan({
                                 <div className="grid gap-3 rounded-lg border border-[#d7e6f3] bg-[#f5f9fc] p-3 sm:grid-cols-2">
                                     <div>
                                         <p className="text-[0.68rem] tracking-wide text-[#64748b] uppercase">
-                                            Pasien
+                                            Patient
                                         </p>
                                         <p className="mt-0.5 font-medium text-[#0f172a]">
                                             {cancelTarget.patient.full_name}
@@ -2560,14 +2570,14 @@ export default function PendaftaranRawatJalan({
                                     <div>
                                         <p className="text-[0.68rem] tracking-wide text-[#64748b] uppercase">
                                             {isIgd
-                                                ? 'Unit dan antrian'
-                                                : 'Poli dan antrian'}
+                                                ? 'Unit and queue'
+                                                : 'Clinic and queue'}
                                         </p>
                                         <p className="mt-0.5 font-medium text-[#0f172a]">
                                             {cancelTarget.clinic_name}
                                         </p>
                                         <p className="text-xs text-[#64748b]">
-                                            Antrian{' '}
+                                            Queue{' '}
                                             {cancelTarget.queue_number != null
                                                 ? String(
                                                       cancelTarget.queue_number,
@@ -2576,8 +2586,8 @@ export default function PendaftaranRawatJalan({
                                         </p>
                                     </div>
                                     <p className="border-t border-[#d7e6f3] pt-2 text-xs leading-5 text-[#475569] sm:col-span-2">
-                                        Nomor antrian dan data pendaftaran tetap
-                                        tersimpan dalam riwayat.
+                                        The queue number and registration data
+                                        remain recorded in the visit history.
                                     </p>
                                 </div>
 
@@ -2592,7 +2602,7 @@ export default function PendaftaranRawatJalan({
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="cancellation-reason">
-                                        Alasan pembatalan
+                                        Cancellation reason
                                     </Label>
                                     <select
                                         id="cancellation-reason"
@@ -2617,7 +2627,7 @@ export default function PendaftaranRawatJalan({
                                         className={fieldClass}
                                     >
                                         <option value="">
-                                            Pilih alasan pembatalan
+                                            Select a cancellation reason
                                         </option>
                                         {cancellationReasons.map((reason) => (
                                             <option
@@ -2632,8 +2642,8 @@ export default function PendaftaranRawatJalan({
                                         id="cancellation-reason-help"
                                         className="text-xs text-[#64748b]"
                                     >
-                                        Pilih alasan yang paling sesuai dengan
-                                        kejadian pendaftaran.
+                                        Select the reason that best matches the
+                                        registration event.
                                     </p>
                                     <InputError
                                         id="cancellation-reason-error"
@@ -2643,9 +2653,9 @@ export default function PendaftaranRawatJalan({
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="cancellation-note">
-                                        Catatan pembatalan{' '}
+                                        Cancellation note{' '}
                                         <span className="font-normal text-[#64748b]">
-                                            (opsional)
+                                            (optional)
                                         </span>
                                     </Label>
                                     <textarea
@@ -2675,8 +2685,8 @@ export default function PendaftaranRawatJalan({
                                         id="cancellation-note-help"
                                         className="text-xs text-[#64748b]"
                                     >
-                                        Maksimal 500 karakter. Hindari data
-                                        pribadi yang tidak diperlukan.
+                                        Maximum 500 characters. Avoid
+                                        unnecessary personal data.
                                     </p>
                                     <InputError
                                         id="cancellation-note-error"
@@ -2699,7 +2709,7 @@ export default function PendaftaranRawatJalan({
                                         }
                                         disabled={cancelForm.processing}
                                     >
-                                        Kembali
+                                        Back
                                     </Button>
                                     <Button
                                         type="submit"
@@ -2710,8 +2720,8 @@ export default function PendaftaranRawatJalan({
                                         className="bg-[#b42318] text-white hover:bg-[#912018] focus-visible:ring-[#b42318]/30"
                                     >
                                         {cancelForm.processing
-                                            ? 'Menyimpan…'
-                                            : 'Batalkan Kunjungan'}
+                                            ? 'Saving…'
+                                            : 'Cancel visit'}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -2728,13 +2738,13 @@ PendaftaranRawatJalan.layout = (props: Props) => {
 
     return {
         breadcrumbs: [
-            { title: 'Beranda', href: '/' },
+            { title: 'Home', href: '/' },
             {
-                title: 'Pendaftaran',
+                title: 'Registration',
                 href: isIgd ? '/pendaftaran/igd' : '/pendaftaran/rawat-jalan',
             },
             {
-                title: isIgd ? 'IGD' : 'Rawat Jalan',
+                title: isIgd ? 'Emergency' : 'Outpatient',
                 href: isIgd ? '/pendaftaran/igd' : '/pendaftaran/rawat-jalan',
             },
         ] satisfies BreadcrumbItem[],

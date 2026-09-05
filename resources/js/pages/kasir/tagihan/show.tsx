@@ -5,7 +5,7 @@ import type { FinanceBillDetailProps } from '@/components/finance/types';
 export default function FinanceBillShow(props: FinanceBillDetailProps) {
     return (
         <>
-            <Head title={`Tagihan ${props.bill.bill_number}`} />
+            <Head title={`Bill ${props.bill.bill_number}`} />
             <FinanceBillDetail {...props} />
         </>
     );

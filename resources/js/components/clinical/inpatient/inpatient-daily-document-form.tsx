@@ -30,58 +30,58 @@ const fieldDefinitions: Record<InpatientDailyDocumentType, FieldDefinition[]> =
         NURSING_DAILY: [
             {
                 key: 'nursing_observation',
-                label: 'Observasi keperawatan',
-                help: 'Temuan dan perkembangan pasien pada hari pelayanan ini.',
+                label: 'Nursing observation',
+                help: 'Patient findings and progress on this day of care.',
                 requiredForFinal: true,
             },
             {
                 key: 'nursing_intervention',
-                label: 'Intervensi keperawatan',
-                help: 'Tindakan keperawatan yang telah dilakukan.',
+                label: 'Nursing intervention',
+                help: 'Nursing interventions that have been performed.',
                 requiredForFinal: true,
             },
             {
                 key: 'nursing_evaluation',
-                label: 'Evaluasi keperawatan',
-                help: 'Respons pasien dan hasil evaluasi setelah intervensi.',
+                label: 'Nursing evaluation',
+                help: 'Patient response and evaluation after intervention.',
                 requiredForFinal: true,
             },
             {
                 key: 'additional_notes',
-                label: 'Catatan tambahan',
-                help: 'Informasi relevan lain yang belum tercakup.',
+                label: 'Additional notes',
+                help: 'Other relevant information not yet covered.',
                 requiredForFinal: false,
             },
         ],
         MEDICAL_DAILY: [
             {
                 key: 'subjective',
-                label: 'Subjektif',
-                help: 'Keluhan dan perkembangan yang disampaikan pasien.',
+                label: 'Subjective',
+                help: 'Symptoms and progress reported by the patient.',
                 requiredForFinal: true,
             },
             {
                 key: 'objective',
-                label: 'Objektif',
-                help: 'Temuan pemeriksaan yang relevan pada hari ini.',
+                label: 'Objective',
+                help: 'Relevant examination findings today.',
                 requiredForFinal: true,
             },
             {
                 key: 'assessment',
-                label: 'Asesmen',
-                help: 'Penilaian klinis berdasarkan data hari ini.',
+                label: 'Assessment',
+                help: 'Clinical assessment based on today’s data.',
                 requiredForFinal: true,
             },
             {
                 key: 'plan',
-                label: 'Rencana',
-                help: 'Rencana pemantauan dan tindak lanjut klinis.',
+                label: 'Plan',
+                help: 'Clinical monitoring and follow-up plan.',
                 requiredForFinal: true,
             },
             {
                 key: 'additional_notes',
-                label: 'Catatan tambahan',
-                help: 'Informasi relevan lain yang belum tercakup.',
+                label: 'Additional notes',
+                help: 'Other relevant information not yet covered.',
                 requiredForFinal: false,
             },
         ],
@@ -277,8 +277,8 @@ export function InpatientDailyDocumentForm({
                     <div>
                         <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
                             {type === 'NURSING_DAILY'
-                                ? 'Dokumentasi perawat'
-                                : 'Dokumentasi dokter'}
+                                ? 'Nursing documentation'
+                                : 'Medical documentation'}
                         </p>
                         <h2
                             id={titleId}
@@ -308,24 +308,24 @@ export function InpatientDailyDocumentForm({
                         )}
                         {document
                             ? `${inpatientDocumentStateLabel[document.state]} · v${document.version}`
-                            : 'Belum dibuat'}
+                            : 'Not created yet'}
                     </span>
                 </div>
                 <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
                     <div>
                         <dt className="text-muted-foreground">
-                            Hari pelayanan
+                            Date of service
                         </dt>
                         <dd className="font-semibold">
                             {document
                                 ? formatClinicalDate(document.service_date)
-                                : 'Ditentukan server saat draf pertama disimpan'}
+                                : 'Set by the server when the first draft is saved'}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-muted-foreground">Penulis</dt>
+                        <dt className="text-muted-foreground">Author</dt>
                         <dd className="font-semibold">
-                            {document?.author.name ?? 'Akun Anda saat disimpan'}
+                            {document?.author.name ?? 'Your account when saved'}
                         </dd>
                     </div>
                 </dl>
@@ -341,12 +341,12 @@ export function InpatientDailyDocumentForm({
                         className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
                     >
                         <p className="font-semibold">
-                            Dokumen belum dapat diselesaikan.
+                            The document cannot be finalized yet.
                         </p>
                         <ul className="mt-1 list-disc space-y-1 pl-5">
                             {displayedMissingFields.map((label) => (
                                 <li key={label}>
-                                    {label} wajib diisi sebelum Final.
+                                    {label} is required before finalization.
                                 </li>
                             ))}
                             {serverErrors.map(([key, message]) => (
@@ -366,8 +366,8 @@ export function InpatientDailyDocumentForm({
                                 <Label htmlFor={fieldId}>{field.label}</Label>
                                 <span className="text-[0.68rem] text-muted-foreground">
                                     {field.requiredForFinal
-                                        ? 'Wajib untuk Final'
-                                        : 'Opsional'}
+                                        ? 'Required to finalize'
+                                        : 'Optional'}
                                 </span>
                             </div>
                             <textarea
@@ -408,7 +408,7 @@ export function InpatientDailyDocumentForm({
                                 aria-hidden="true"
                                 className="size-3.5"
                             />
-                            Snapshot penempatan versi saat ini
+                            Current-version placement snapshot
                         </div>
                         <PlacementSnapshot
                             snapshot={document.placement_snapshot}
@@ -422,19 +422,18 @@ export function InpatientDailyDocumentForm({
                         role="status"
                         className="text-xs font-medium text-warning"
                     >
-                        Simpan perubahan draf sebelum melakukan Final.
+                        Save draft changes before finalizing.
                     </p>
                 ) : null}
                 {isFinal ? (
                     <p className="flex items-center gap-2 text-xs text-muted-foreground">
                         <LockKeyhole aria-hidden="true" className="size-3.5" />
-                        Dokumen Final dan seluruh versinya hanya dapat dibaca.
+                        The final document and all its versions are read-only.
                     </p>
                 ) : null}
                 {!isFinal && !hasAnyAction ? (
                     <p className="text-xs text-muted-foreground">
-                        Tidak ada tindakan dokumentasi yang tersedia untuk akun
-                        ini.
+                        No documentation actions are available for this account.
                     </p>
                 ) : null}
 
@@ -447,8 +446,8 @@ export function InpatientDailyDocumentForm({
                                 disabled={draftForm.processing}
                             >
                                 {draftForm.processing
-                                    ? 'Menyimpan…'
-                                    : 'Simpan draf'}
+                                    ? 'Saving…'
+                                    : 'Save draft'}
                             </Button>
                         ) : null}
                         {canFinalize ? (
@@ -458,8 +457,8 @@ export function InpatientDailyDocumentForm({
                                 disabled={dirty || finalForm.processing}
                             >
                                 {finalForm.processing
-                                    ? 'Menjadikan Final…'
-                                    : 'Jadikan Final'}
+                                    ? 'Finalizing…'
+                                    : 'Finalize version'}
                             </Button>
                         ) : null}
                     </div>

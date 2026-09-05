@@ -324,7 +324,7 @@ class EncounterCancellationTest extends TestCase
             ->post(route('pendaftaran.kunjungan.batalkan', $encounter), $this->payload())
             ->assertRedirect(route('pendaftaran.rekap'))
             ->assertSessionHasErrors([
-                'cancellation' => 'Hanya kunjungan yang masih terdaftar dan belum menerima pelayanan yang dapat dibatalkan.',
+                'cancellation' => 'Only registered encounters that have not received care can be cancelled.',
             ]);
 
         $this->assertDatabaseCount('encounter_cancellations', 0);
@@ -352,7 +352,7 @@ class EncounterCancellationTest extends TestCase
             ->post(route('pendaftaran.kunjungan.batalkan', $encounter), $this->payload())
             ->assertRedirect(route('pendaftaran.rekap'))
             ->assertSessionHasErrors([
-                'cancellation' => 'Pembatalan tidak dapat disimpan karena audit gagal direkam.',
+                'cancellation' => 'The cancellation could not be saved because its audit record could not be recorded.',
             ]);
 
         $this->assertSame(Encounter::STATUS_REGISTERED, $encounter->fresh()->status);

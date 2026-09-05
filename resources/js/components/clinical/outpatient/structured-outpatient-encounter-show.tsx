@@ -15,14 +15,14 @@ import { useUnsavedChangesGuard } from './use-unsaved-changes-guard';
 
 const statusLabel: Record<string, string> = {
     REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Dalam pemeriksaan',
-    READY_FOR_RM: 'Siap tinjau RM',
-    CLOSED: 'Ditutup',
+    IN_EXAMINATION: 'In care',
+    READY_FOR_RM: 'Ready for medical-record review',
+    CLOSED: 'Closed',
 };
 
 const documentTypeLabel: Record<ClinicalDocumentType, string> = {
-    NURSING_ASSESSMENT: 'Asesmen keperawatan',
-    MEDICAL_ASSESSMENT: 'Asesmen medis',
+    NURSING_ASSESSMENT: 'Nursing assessment',
+    MEDICAL_ASSESSMENT: 'Medical assessment',
 };
 
 export default function StructuredOutpatientEncounterShow({
@@ -96,7 +96,7 @@ export default function StructuredOutpatientEncounterShow({
     return (
         <>
             <Head
-                title={`Pemeriksaan RJ — ${encounter.patient.full_name ?? 'Kunjungan'}`}
+                title={`Outpatient Care — ${encounter.patient.full_name ?? 'Encounter'}`}
             />
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5">
                 {typeof flash?.error === 'string' && flash.error ? (
@@ -120,7 +120,7 @@ export default function StructuredOutpatientEncounterShow({
                     href="/pemeriksaan/rawat-jalan"
                     className="min-h-11 self-start py-2 text-sm font-medium text-primary hover:underline"
                 >
-                    ← Kembali ke worklist rawat jalan
+                    ← Back to outpatient worklist
                 </Link>
 
                 <header className="rounded-lg border border-border bg-card p-3 md:p-4">
@@ -129,7 +129,7 @@ export default function StructuredOutpatientEncounterShow({
                             <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="text-xl font-semibold text-foreground">
                                     {encounter.patient.full_name ??
-                                        'Nama pasien belum tersedia'}
+                                        'Patient name unavailable'}
                                 </h1>
                                 <span className="rounded-md bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground">
                                     {statusLabel[encounter.status] ??
@@ -139,14 +139,14 @@ export default function StructuredOutpatientEncounterShow({
                             <p className="mt-1 font-mono text-xs text-muted-foreground">
                                 {encounter.patient.medical_record_number ?? '—'}
                                 {encounter.queue_number != null
-                                    ? ` · Antrian ${encounter.queue_number}`
+                                    ? ` · Queue ${encounter.queue_number}`
                                     : ''}
                             </p>
                         </div>
                         <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
                             <div>
                                 <dt className="text-muted-foreground">
-                                    Klinik
+                                    Clinic
                                 </dt>
                                 <dd className="font-semibold">
                                     {encounter.clinic_name}
@@ -154,23 +154,21 @@ export default function StructuredOutpatientEncounterShow({
                             </div>
                             <div>
                                 <dt className="text-muted-foreground">
-                                    Dokter
+                                    Physician
                                 </dt>
                                 <dd className="font-semibold">
                                     {encounter.doctor_name ?? '—'}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-muted-foreground">
-                                    Tanggal
-                                </dt>
+                                <dt className="text-muted-foreground">Date</dt>
                                 <dd className="font-semibold">
                                     {encounter.visit_date ?? '—'}
                                 </dd>
                             </div>
                             <div>
                                 <dt className="text-muted-foreground">
-                                    Keluhan utama
+                                    Chief complaint
                                 </dt>
                                 <dd className="font-semibold">
                                     {encounter.chief_complaint || '—'}
@@ -181,64 +179,69 @@ export default function StructuredOutpatientEncounterShow({
                 </header>
 
                 <aside
-                    aria-label="Provenans dokumentasi"
-                    className="sticky top-2 z-10 grid gap-2 rounded-lg border border-sidebar-border bg-sidebar px-3 py-2 text-sidebar-foreground shadow-sm sm:grid-cols-4"
+                    aria-label="Documentation provenance"
+                    className="sticky top-2 z-10 grid gap-2 rounded-lg border border-sidebar-border bg-sidebar px-3 py-2 text-sidebar-foreground shadow-sm sm:grid-cols-4 [&_p]:break-words [&>div]:min-w-0"
                 >
                     <div>
                         <p className="text-[0.65rem] uppercase opacity-70">
-                            Kunjungan
+                            Encounter
                         </p>
-                        <p className="font-mono text-xs">
+                        <p className="font-mono text-xs break-all">
                             {encounter.public_id}
                         </p>
                     </div>
                     <div>
                         <p className="text-[0.65rem] uppercase opacity-70">
-                            Definisi dokumen
+                            Document definition
                         </p>
-                        <p className="font-mono text-xs">
+                        <p className="font-mono text-xs break-all">
                             {documentation.definition_version}
                         </p>
                     </div>
                     <div>
                         <p className="text-[0.65rem] uppercase opacity-70">
-                            Keperawatan
+                            Nursing
                         </p>
                         <p className="text-xs font-semibold">
                             {nursingDocument
-                                ? `${nursingDocument.document_state === 'FINAL' ? 'Final' : 'Draf'} v${nursingDocument.version} · ${nursingDocument.author_name ?? '—'}`
-                                : 'Belum ada draf aktif'}
+                                ? `${nursingDocument.document_state === 'FINAL' ? 'Final' : 'Draft'} v${nursingDocument.version} · ${nursingDocument.author_name ?? '—'}`
+                                : 'No active draft'}
                         </p>
                     </div>
                     <div>
                         <p className="text-[0.65rem] uppercase opacity-70">
-                            Medis
+                            Medical
                         </p>
                         <p className="text-xs font-semibold">
                             {medicalDocument
-                                ? `${medicalDocument.document_state === 'FINAL' ? 'Final' : 'Draf'} v${medicalDocument.version} · ${medicalDocument.author_name ?? '—'}`
-                                : 'Belum ada draf aktif'}
+                                ? `${medicalDocument.document_state === 'FINAL' ? 'Final' : 'Draft'} v${medicalDocument.version} · ${medicalDocument.author_name ?? '—'}`
+                                : 'No active draft'}
                         </p>
                     </div>
                 </aside>
 
                 <nav
-                    aria-label="Bagian pemeriksaan"
+                    aria-label="Clinical sections"
                     className="flex flex-wrap gap-1 border-b border-border"
                 >
                     {(
                         [
-                            ['documentation', 'Dokumentasi'],
+                            ['documentation', 'Documentation'],
                             ['lab', 'Order Lab'],
                             ...(radiology
                                 ? ([['radiology', 'Order Rad']] as const)
                                 : []),
                             ...(pharmacy
-                                ? ([['pharmacy', 'Resep & Obat']] as const)
+                                ? ([
+                                      [
+                                          'pharmacy',
+                                          'Prescriptions & Medication',
+                                      ],
+                                  ] as const)
                                 : []),
-                            ['history', 'Riwayat'],
+                            ['history', 'History'],
                             ...(closed
-                                ? ([['amendment', 'Adendum']] as const)
+                                ? ([['amendment', 'Addendum']] as const)
                                 : []),
                         ] as const
                     ).map(([value, label]) => (
@@ -305,11 +308,11 @@ export default function StructuredOutpatientEncounterShow({
                     <div className="grid gap-3 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
                         <section className="space-y-2 rounded-lg border border-border bg-card p-3 md:p-4">
                             <h2 className="text-sm font-semibold text-secondary-foreground">
-                                Riwayat versi dokumen terstruktur
+                                Structured document version history
                             </h2>
                             <p className="text-xs text-muted-foreground">
-                                Setiap versi bersifat hanya-baca dan
-                                mempertahankan aktor serta waktu pencatatan.
+                                Every version is read-only and retains its
+                                author and recorded time.
                             </p>
                             <ClinicalDocumentHistory
                                 versions={documentation.versions}
@@ -317,12 +320,12 @@ export default function StructuredOutpatientEncounterShow({
                         </section>
                         <section className="space-y-2 rounded-lg border border-border bg-card p-3 md:p-4">
                             <h2 className="text-sm font-semibold text-secondary-foreground">
-                                Riwayat catatan lama
+                                Legacy note history
                             </h2>
                             <p className="text-xs text-muted-foreground">
-                                Catatan ini dipertahankan sebagai sumber baca
-                                dan tidak diubah menjadi dokumen terstruktur
-                                secara otomatis.
+                                These notes are retained as read-only source
+                                material and are not automatically converted
+                                into structured documents.
                             </p>
                             {legacyEntries.length ? (
                                 legacyEntries.map((entry) => (
@@ -348,7 +351,7 @@ export default function StructuredOutpatientEncounterShow({
                                 ))
                             ) : (
                                 <p className="text-sm text-muted-foreground">
-                                    Tidak ada catatan lama.
+                                    No legacy notes.
                                 </p>
                             )}
                         </section>
@@ -368,7 +371,7 @@ export default function StructuredOutpatientEncounterShow({
                                     href="/pemeriksaan/laboratorium"
                                     className="text-sm font-medium text-primary hover:underline"
                                 >
-                                    Buka meja lab →
+                                    Open laboratory desk →
                                 </Link>
                             </div>
                             {(encounter.lab_orders ?? []).length ? (
@@ -408,7 +411,7 @@ export default function StructuredOutpatientEncounterShow({
                                 ))
                             ) : (
                                 <p className="text-sm text-muted-foreground">
-                                    Belum ada order lab.
+                                    No laboratory orders yet.
                                 </p>
                             )}
                         </section>
@@ -423,7 +426,7 @@ export default function StructuredOutpatientEncounterShow({
                                 >
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="lab-test-code">
-                                            Pemeriksaan
+                                            Test
                                         </Label>
                                         <select
                                             id="lab-test-code"
@@ -474,14 +477,14 @@ export default function StructuredOutpatientEncounterShow({
                                         }
                                         className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                                     >
-                                        Simpan order lab
+                                        Save laboratory order
                                     </Button>
                                 </form>
                             ) : (
                                 <p className="mt-3 text-sm text-muted-foreground">
                                     {closed
-                                        ? 'Kunjungan ditutup; order baru tidak dapat dibuat.'
-                                        : 'Akun ini tidak memiliki hak membuat order lab.'}
+                                        ? 'The encounter is closed; no new orders can be created.'
+                                        : 'This account cannot create laboratory orders.'}
                                 </p>
                             )}
                         </section>

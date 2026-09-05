@@ -221,7 +221,9 @@ describe('T1 operational pages accessibility', () => {
             </main>,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Susun hasil' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Compose Results' }),
+        );
 
         await expectNoWcag21Violations(container);
     });
@@ -266,7 +268,7 @@ describe('T1 operational pages accessibility', () => {
             </main>,
         );
 
-        expectTableScrollContainment('Daftar pasien pada worklist pemeriksaan');
+        expectTableScrollContainment('Patients in the examination worklist');
 
         await expectNoWcag21Violations(container);
     });
@@ -373,18 +375,18 @@ describe('T1 operational pages accessibility', () => {
             );
 
             expectTableScrollContainment(
-                'Daftar pasien pada worklist pemeriksaan',
+                'Patients in the examination worklist',
             );
 
             if (variant === 'rawat-inap') {
                 expect(
                     screen.getByRole('link', {
-                        name: 'Lihat ketersediaan TT',
+                        name: 'View bed availability',
                     }),
                 ).toHaveAttribute('href', '/manajemen-data/bangsal');
                 expect(
                     screen.getByRole('link', {
-                        name: 'Koreksi ringkasan pulang',
+                        name: 'Correct discharge summary',
                     }),
                 ).toHaveAttribute(
                     'href',
@@ -455,12 +457,12 @@ describe('T1 operational pages accessibility', () => {
 
         expect(
             screen.getByRole('table', {
-                name: 'Daftar episode untuk koreksi ringkasan pulang',
+                name: 'Episodes available for discharge-summary correction',
             }),
         ).toBeInTheDocument();
-        expect(screen.getByText('Ditutup')).toBeInTheDocument();
+        expect(screen.getByText('Closed')).toBeInTheDocument();
         expect(
-            screen.getByRole('link', { name: 'Buka untuk Pasien Koreksi' }),
+            screen.getByRole('link', { name: 'Open for Pasien Koreksi' }),
         ).toHaveAttribute(
             'href',
             '/pemeriksaan/rawat-inap/encounter-closed-correction',
@@ -560,30 +562,30 @@ describe('T1 operational pages accessibility', () => {
             if (variant === 'igd') {
                 expect(
                     screen.getByText(
-                        /Catatan IGD lama dipertahankan sebagai riwayat baca saja/i,
+                        /Legacy emergency notes remain available as read-only history/i,
                     ),
                 ).toBeInTheDocument();
                 expect(
                     screen.queryByRole('combobox', {
-                        name: 'Jenis catatan',
+                        name: 'Note type',
                     }),
                 ).not.toBeInTheDocument();
                 expect(
-                    screen.queryByRole('textbox', { name: 'Isi catatan' }),
+                    screen.queryByRole('textbox', { name: 'Note content' }),
                 ).not.toBeInTheDocument();
             } else {
                 expect(
                     screen.getByRole('combobox', {
-                        name: 'Jenis catatan',
+                        name: 'Note type',
                     }),
                 ).toBeInTheDocument();
                 expect(
-                    screen.getByRole('textbox', { name: 'Isi catatan' }),
+                    screen.getByRole('textbox', { name: 'Note content' }),
                 ).toBeInTheDocument();
             }
 
             expect(
-                screen.getByRole('tab', { name: 'Diagnosa' }),
+                screen.getByRole('tab', { name: 'Diagnosis' }),
             ).toBeDisabled();
 
             await expectNoWcag21Violations(container);
@@ -684,8 +686,8 @@ describe('T1 operational pages accessibility', () => {
             </main>,
         );
 
-        expectTableScrollContainment('Hasil pencarian pasien');
-        expectTableScrollContainment('Daftar pendaftaran pasien hari ini');
+        expectTableScrollContainment('Patient search results');
+        expectTableScrollContainment('Today’s patient registration list');
 
         await expectNoWcag21Violations(container);
     });
@@ -743,7 +745,7 @@ describe('T1 operational pages accessibility', () => {
         );
 
         const summary = screen.getByRole('alert', {
-            name: 'Pendaftaran belum dapat disimpan.',
+            name: 'Registration cannot be saved yet.',
         });
 
         await waitFor(() => expect(summary).toHaveFocus());
@@ -754,14 +756,14 @@ describe('T1 operational pages accessibility', () => {
         expect(summary).toHaveAttribute('tabindex', '-1');
         expect(
             screen.getByRole('link', {
-                name: 'Nama pasien: Nama pasien wajib diisi.',
+                name: 'Patient name: Nama pasien wajib diisi.',
             }),
         ).toHaveAttribute('href', '#full_name');
-        expect(screen.getByLabelText('Nama pasien')).toHaveAttribute(
+        expect(screen.getByLabelText('Patient name')).toHaveAttribute(
             'aria-invalid',
             'true',
         );
-        expect(screen.getByLabelText('Nama pasien')).toHaveAttribute(
+        expect(screen.getByLabelText('Patient name')).toHaveAttribute(
             'aria-describedby',
             'full_name-error',
         );
@@ -769,24 +771,24 @@ describe('T1 operational pages accessibility', () => {
             'id',
             'full_name-error',
         );
-        expect(screen.getByLabelText('No. asuransi')).toHaveAttribute(
+        expect(screen.getByLabelText('Insurance number')).toHaveAttribute(
             'aria-describedby',
             'insurance_number-error',
         );
-        expect(screen.getByLabelText('Catatan kunjungan')).toHaveAttribute(
+        expect(screen.getByLabelText('Visit notes')).toHaveAttribute(
             'aria-describedby',
             'chief_complaint-error',
         );
 
         await user.click(
             screen.getByRole('link', {
-                name: 'Nama pasien: Nama pasien wajib diisi.',
+                name: 'Patient name: Nama pasien wajib diisi.',
             }),
         );
-        expect(screen.getByLabelText('Nama pasien')).toHaveFocus();
+        expect(screen.getByLabelText('Patient name')).toHaveFocus();
 
         fireEvent.submit(
-            screen.getByRole('button', { name: 'Simpan' }).closest('form')!,
+            screen.getByRole('button', { name: 'Save' }).closest('form')!,
         );
         await waitFor(() => expect(summary).toHaveFocus());
 
@@ -875,11 +877,11 @@ describe('T1 operational pages accessibility', () => {
             </main>,
         );
 
-        expectTableScrollContainment('Hasil pencarian pasien untuk rawat inap');
-        expectTableScrollContainment('Daftar pendaftaran rawat inap');
+        expectTableScrollContainment('Inpatient patient search results');
+        expectTableScrollContainment('Inpatient registration list');
         expect(
             screen.getByRole('link', {
-                name: 'Buka pemeriksaan untuk Pasien Rawat Inap Sintetis',
+                name: 'Open examination for Pasien Rawat Inap Sintetis',
             }),
         ).toHaveAttribute(
             'href',
@@ -887,7 +889,7 @@ describe('T1 operational pages accessibility', () => {
         );
         expect(
             screen.getByRole('link', {
-                name: 'Cetak untuk Pasien Rawat Inap Sintetis',
+                name: 'Print for Pasien Rawat Inap Sintetis',
             }),
         ).toBeInTheDocument();
 
@@ -953,11 +955,11 @@ describe('T1 operational pages accessibility', () => {
         );
 
         expect(
-            screen.queryByRole('link', { name: /Buka pemeriksaan/ }),
+            screen.queryByRole('link', { name: /Open examination for/ }),
         ).not.toBeInTheDocument();
         expect(
             screen.getByRole('link', {
-                name: 'Cetak untuk Pasien Tanpa Akses Buka',
+                name: 'Print for Pasien Tanpa Akses Buka',
             }),
         ).toBeInTheDocument();
     });
@@ -1009,8 +1011,10 @@ describe('T1 operational pages accessibility', () => {
             />,
         );
 
-        expect(screen.getByText('Dokumentasi selesai')).toBeInTheDocument();
-        expect(screen.queryByText('Siap RM')).not.toBeInTheDocument();
+        expect(screen.getByText('Documentation complete')).toBeInTheDocument();
+        expect(
+            screen.queryByText('Ready for Medical Records'),
+        ).not.toBeInTheDocument();
     });
 
     it('has no deterministic WCAG 2.1 A/AA violations on the registration recap', async () => {
@@ -1063,20 +1067,20 @@ describe('T1 operational pages accessibility', () => {
         );
 
         expectTableScrollContainment(
-            'Rekap kunjungan berdasarkan filter pendaftaran',
+            'Visit summary based on registration filters',
         );
-        expect(screen.getByLabelText('Dari').closest('form')).toHaveClass(
+        expect(screen.getByLabelText('From').closest('form')).toHaveClass(
             'min-w-0',
             'grid-cols-1',
         );
         expect(
-            screen.getByRole('button', { name: 'Cetak rekap' }).parentElement,
+            screen.getByRole('button', { name: 'Print summary' }).parentElement,
         ).toHaveClass('flex-wrap');
         expect(
-            screen.getByRole('combobox', { name: 'Status kunjungan' }),
+            screen.getByRole('combobox', { name: 'Visit status' }),
         ).toHaveValue('CANCELLED');
-        expect(screen.getAllByText('Dibatalkan')).not.toHaveLength(0);
-        expect(screen.getByText('Tidak aktif')).toBeInTheDocument();
+        expect(screen.getAllByText('Cancelled')).not.toHaveLength(0);
+        expect(screen.getByText('Inactive')).toBeInTheDocument();
         expect(
             screen.queryByRole('link', { name: 'Cetak' }),
         ).not.toBeInTheDocument();

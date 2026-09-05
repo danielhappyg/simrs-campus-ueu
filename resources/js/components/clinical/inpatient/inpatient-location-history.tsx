@@ -27,11 +27,11 @@ export function InpatientLocationHistoryPanel({
                             id="location-history-heading"
                             className="text-base font-semibold"
                         >
-                            Riwayat penempatan
+                            Placement history
                         </h2>
                         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Urutan penerimaan dan perpindahan tempat tidur yang
-                            tersimpan pada episode ini.
+                            Chronological admission and bed-transfer history
+                            recorded for this episode.
                         </p>
                     </div>
                 </div>
@@ -44,14 +44,14 @@ export function InpatientLocationHistoryPanel({
                     className="rounded-xl border border-warning/30 bg-warning/5 p-4"
                 >
                     <p className="text-sm font-semibold text-foreground">
-                        Titik awal dari penempatan yang sudah ada
+                        Starting point from the existing placement
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        Episode ini dibuat sebelum pencatatan riwayat lokasi
-                        dimulai.{' '}
+                        This episode was created before location history
+                        recording dimulai.{' '}
                         {placementReleased
-                            ? 'Penempatan terakhir ditampilkan sebagai titik awal dan sudah dilepas saat episode menjadi Siap RM.'
-                            : 'Penempatan saat ini ditampilkan sebagai titik awal, bukan kejadian yang dibuat ulang.'}
+                            ? 'The last placement is shown as the starting point and was released when the episode became ready for medical records.'
+                            : 'The current placement is shown as the starting point, not a recreated event.'}
                     </p>
                     <div className="mt-3">
                         <PlacementSnapshot
@@ -69,10 +69,11 @@ export function InpatientLocationHistoryPanel({
                         className="mx-auto size-6 text-muted-foreground"
                     />
                     <p className="mt-2 text-sm font-semibold">
-                        Belum ada perpindahan tercatat
+                        No transfers recorded yet
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Riwayat akan bertambah saat penempatan episode berubah.
+                        The history will grow when the episode placement
+                        changes.
                     </p>
                 </div>
             ) : (
@@ -94,8 +95,8 @@ export function InpatientLocationHistoryPanel({
                                     <h3 className="mt-1 text-sm font-semibold">
                                         {event.event_type ===
                                         'ADMISSION_LOCATION'
-                                            ? 'Penerimaan rawat inap'
-                                            : 'Transfer tempat tidur'}
+                                            ? 'Inpatient admission'
+                                            : 'Bed transfer'}
                                     </h3>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
@@ -107,7 +108,7 @@ export function InpatientLocationHistoryPanel({
                                 <div className="mt-4 space-y-3">
                                     <div>
                                         <p className="mb-2 text-xs font-semibold text-muted-foreground">
-                                            Dari
+                                            From
                                         </p>
                                         <PlacementSnapshot
                                             snapshot={event.from_placement}
@@ -133,19 +134,19 @@ export function InpatientLocationHistoryPanel({
                             <dl className="mt-4 grid gap-2 border-t border-border pt-3 text-xs sm:grid-cols-2">
                                 <div>
                                     <dt className="text-muted-foreground">
-                                        Dicatat oleh
+                                        Recorded by
                                     </dt>
                                     <dd className="mt-0.5 font-semibold">
-                                        {event.actor.name ?? 'Petugas'}
+                                        {event.actor.name ?? 'Staff member'}
                                     </dd>
                                 </div>
                                 <div>
                                     <dt className="text-muted-foreground">
-                                        Alasan
+                                        Reason
                                     </dt>
                                     <dd className="mt-0.5 leading-5 font-semibold break-words">
                                         {event.reason ??
-                                            'Penerimaan awal episode'}
+                                            'Initial episode admission'}
                                     </dd>
                                 </div>
                             </dl>

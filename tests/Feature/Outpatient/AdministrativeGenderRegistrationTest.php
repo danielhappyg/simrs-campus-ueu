@@ -23,10 +23,10 @@ class AdministrativeGenderRegistrationTest extends TestCase
         $registrar->roles()->sync([Role::query()->where('slug', 'registrar')->sole()->id]);
         $this->actingAs($registrar);
         $options = [
-            ['value' => 'male', 'label' => 'Laki-laki'],
-            ['value' => 'female', 'label' => 'Perempuan'],
-            ['value' => 'other', 'label' => 'Lainnya'],
-            ['value' => 'unknown', 'label' => 'Tidak diketahui'],
+            ['value' => 'male', 'label' => 'Male'],
+            ['value' => 'female', 'label' => 'Female'],
+            ['value' => 'other', 'label' => 'Other'],
+            ['value' => 'unknown', 'label' => 'Unknown'],
         ];
         $this->get(route('pendaftaran.rawat-jalan.index'))
             ->assertOk()

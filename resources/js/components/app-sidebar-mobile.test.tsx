@@ -26,23 +26,23 @@ describe('mobile application sidebar', () => {
         );
 
         expect(
-            screen.queryByRole('heading', { name: 'Navigasi utama' }),
+            screen.queryByRole('heading', { name: 'Main navigation' }),
         ).not.toBeInTheDocument();
 
         await user.click(
-            screen.getByRole('button', { name: 'Buka menu navigasi' }),
+            screen.getByRole('button', { name: 'Open navigation menu' }),
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Navigasi utama' }),
+            screen.getByRole('heading', { name: 'Main navigation' }),
         ).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Tutup' })).toBeVisible();
+        expect(screen.getByRole('button', { name: 'Close' })).toBeVisible();
 
         await user.keyboard('{Escape}');
 
         await waitFor(() =>
             expect(
-                screen.getByRole('button', { name: 'Buka menu navigasi' }),
+                screen.getByRole('button', { name: 'Open navigation menu' }),
             ).toHaveFocus(),
         );
     });

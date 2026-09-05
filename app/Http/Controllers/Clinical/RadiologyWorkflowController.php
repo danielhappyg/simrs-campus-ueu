@@ -106,7 +106,7 @@ final class RadiologyWorkflowController extends Controller
                 ->all();
         } catch (\Throwable $exception) {
             report($exception);
-            $readError = 'Worklist radiologi belum dapat dimuat.';
+            $readError = 'The radiology worklist could not be loaded.';
         }
 
         return Inertia::render('pemeriksaan/radiologi/index', [
@@ -320,7 +320,7 @@ final class RadiologyWorkflowController extends Controller
     {
         $unexpected = array_diff(array_keys($request->all()), $keys);
         if ($unexpected !== []) {
-            throw ValidationException::withMessages(['request' => 'Permintaan memuat bidang yang tidak didukung.']);
+            throw ValidationException::withMessages(['request' => 'The request contains unsupported fields.']);
         }
     }
 
@@ -369,7 +369,7 @@ final class RadiologyWorkflowController extends Controller
         try {
             $operation();
         } catch (RadiologyDenied $denial) {
-            throw ValidationException::withMessages(['radiology' => $denial->getMessage()]);
+            throw ValidationException::withMessages(['radiology' => __($denial->getMessage())]);
         }
     }
 

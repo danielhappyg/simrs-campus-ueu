@@ -40,13 +40,13 @@ final class OutpatientRmAmendmentController extends Controller
                 requestCorrelationId: RequestCorrelation::existing($request),
             );
         } catch (OutpatientAmendmentDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (OutpatientAmendmentAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()
-            ->with('success', $result->replayed ? 'Review addendum sudah tercatat.' : 'Review addendum berhasil disimpan.')
+            ->with('success', $result->replayed ? 'The addendum review is already recorded.' : 'Addendum review saved.')
             ->with('last_amendment_review_public_id', $result->review->public_id);
     }
 
@@ -68,13 +68,13 @@ final class OutpatientRmAmendmentController extends Controller
                 requestCorrelationId: RequestCorrelation::existing($request),
             );
         } catch (OutpatientAmendmentDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (OutpatientAmendmentAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()
-            ->with('success', $result->replayed ? 'Sign-off review addendum sudah tercatat.' : 'Review addendum berhasil ditandatangani.')
+            ->with('success', $result->replayed ? 'The addendum review sign-off is already recorded.' : 'Addendum review signed off.')
             ->with('last_amendment_review_public_id', $result->review->public_id);
     }
 

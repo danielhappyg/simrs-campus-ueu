@@ -195,18 +195,18 @@ describe('post-closure outpatient amendment panel', () => {
         );
 
         expect(
-            screen.getByText(/Dokumen asli tetap final dan tidak diubah/),
+            screen.getByText(/original document remains final and unchanged/i),
         ).toBeVisible();
         await user.selectOptions(
-            screen.getByLabelText('Alasan adendum'),
+            screen.getByLabelText('Addendum reason'),
             'OTHER',
         );
         await user.type(
-            screen.getByLabelText('Catatan alasan'),
+            screen.getByLabelText('Reason note'),
             'Perlu tambahan konteks klinis.',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Kirim permintaan adendum' }),
+            screen.getByRole('button', { name: 'Submit addendum request' }),
         );
 
         expect(submissions).toHaveLength(1);
@@ -246,7 +246,7 @@ describe('post-closure outpatient amendment panel', () => {
         );
 
         await user.click(
-            screen.getByRole('button', { name: 'Kirim permintaan adendum' }),
+            screen.getByRole('button', { name: 'Submit addendum request' }),
         );
 
         const summary = await screen.findByRole('alert');
@@ -254,7 +254,7 @@ describe('post-closure outpatient amendment panel', () => {
         expect(summary).toHaveTextContent('Catatan alasan wajib diisi.');
 
         const submit = screen.getByRole('button', {
-            name: 'Kirim permintaan adendum',
+            name: 'Submit addendum request',
         });
         submit.focus();
         expect(submit).toHaveFocus();
@@ -302,27 +302,21 @@ describe('post-closure outpatient amendment panel', () => {
             />,
         );
 
-        const decisionNote = screen.getByLabelText(
-            'Catatan keputusan (opsional)',
-        );
+        const decisionNote = screen.getByLabelText('Decision note (optional)');
         expect(decisionNote).not.toBeRequired();
 
-        await user.selectOptions(screen.getByLabelText('Keputusan'), 'DENIED');
+        await user.selectOptions(screen.getByLabelText('Decision'), 'DENIED');
         expect(
-            screen.getByLabelText('Catatan keputusan · wajib untuk penolakan'),
+            screen.getByLabelText('Decision note · required when denying'),
         ).toBeRequired();
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan keputusan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save decision' }));
         expect(submissions).toHaveLength(0);
 
         await user.type(
-            screen.getByLabelText('Catatan keputusan · wajib untuk penolakan'),
+            screen.getByLabelText('Decision note · required when denying'),
             'Belum memenuhi kriteria.',
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan keputusan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save decision' }));
 
         expect(submissions).toHaveLength(1);
         expect(submissions[0]).toMatchObject({
@@ -370,16 +364,18 @@ describe('post-closure outpatient amendment panel', () => {
             />,
         );
 
-        const initialText = screen.getByLabelText('Isi adendum · wajib');
+        const initialText = screen.getByLabelText(
+            'Addendum content · required',
+        );
         expect(initialText).toBeRequired();
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf adendum' }),
+            screen.getByRole('button', { name: 'Save addendum draft' }),
         );
         expect(submissions).toHaveLength(0);
 
         await user.type(initialText, 'Draf awal.');
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf adendum' }),
+            screen.getByRole('button', { name: 'Save addendum draft' }),
         );
         expect(submissions.at(-1)).toMatchObject({
             data: {
@@ -422,15 +418,17 @@ describe('post-closure outpatient amendment panel', () => {
             />,
         );
 
-        const projectedV1Text = screen.getByLabelText('Isi adendum · wajib');
+        const projectedV1Text = screen.getByLabelText(
+            'Addendum content · required',
+        );
         expect(projectedV1Text).toHaveValue('Draf awal.');
         expect(
-            screen.getByRole('button', { name: 'Finalisasi adendum' }),
+            screen.getByRole('button', { name: 'Finalize addendum' }),
         ).toBeEnabled();
         await user.clear(projectedV1Text);
         await user.type(projectedV1Text, 'Draf diperbarui.');
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf adendum' }),
+            screen.getByRole('button', { name: 'Save addendum draft' }),
         );
         expect(submissions.at(-1)).toMatchObject({
             data: {
@@ -459,13 +457,13 @@ describe('post-closure outpatient amendment panel', () => {
         );
 
         expect(
-            screen.getByRole('button', { name: 'Finalisasi adendum' }),
+            screen.getByRole('button', { name: 'Finalize addendum' }),
         ).toBeEnabled();
         await user.click(
-            screen.getByRole('button', { name: 'Finalisasi adendum' }),
+            screen.getByRole('button', { name: 'Finalize addendum' }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Ya, finalisasi adendum' }),
+            screen.getByRole('button', { name: 'Yes, finalize addendum' }),
         );
         expect(submissions.at(-1)).toMatchObject({
             url: '/pemeriksaan/rawat-jalan/amendments/amendment-1/addendum/finalize',
@@ -510,10 +508,10 @@ describe('post-closure outpatient amendment panel', () => {
             />,
         );
 
-        const text = screen.getByLabelText('Isi adendum · wajib');
+        const text = screen.getByLabelText('Addendum content · required');
         await user.type(text, 'Teks yang ditolak server.');
         await user.click(
-            screen.getByRole('button', { name: 'Simpan draf adendum' }),
+            screen.getByRole('button', { name: 'Save addendum draft' }),
         );
 
         const summary = await screen.findByRole('alert');
@@ -564,20 +562,20 @@ describe('post-closure outpatient amendment panel', () => {
         );
 
         expect(
-            screen.queryByRole('button', { name: 'Simpan keputusan' }),
+            screen.queryByRole('button', { name: 'Save decision' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf adendum' }),
+            screen.queryByRole('button', { name: 'Save addendum draft' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Finalisasi adendum' }),
+            screen.queryByRole('button', { name: 'Finalize addendum' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan review adendum' }),
+            screen.queryByRole('button', { name: 'Save addendum review' }),
         ).not.toBeInTheDocument();
         expect(
             screen.queryByRole('button', {
-                name: 'Sign-off review adendum',
+                name: 'Sign off addendum review',
             }),
         ).not.toBeInTheDocument();
 
@@ -611,16 +609,16 @@ describe('post-closure outpatient amendment panel', () => {
         );
 
         expect(
-            screen.queryByRole('button', { name: 'Simpan keputusan' }),
+            screen.queryByRole('button', { name: 'Save decision' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan draf adendum' }),
+            screen.queryByRole('button', { name: 'Save addendum draft' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Finalisasi adendum' }),
+            screen.queryByRole('button', { name: 'Finalize addendum' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan review adendum' }),
+            screen.queryByRole('button', { name: 'Save addendum review' }),
         ).not.toBeInTheDocument();
     });
 
@@ -638,10 +636,14 @@ describe('post-closure outpatient amendment panel', () => {
             />,
         );
 
-        expect(screen.getByText('Arsip asli tetap utuh')).toBeVisible();
+        expect(
+            screen.getByText('Original archive remains intact'),
+        ).toBeVisible();
         expect(screen.getByText('Adendum final terpisah.')).toBeVisible();
         expect(
-            screen.getByText('Dokumen asli tetap final, utuh, dan hanya-baca.'),
+            screen.getByText(
+                'The original document remains final, intact, and read-only.',
+            ),
         ).toBeVisible();
         expect(
             screen.queryByRole('button', { name: /buka kembali/i }),
@@ -650,14 +652,14 @@ describe('post-closure outpatient amendment panel', () => {
             screen.queryByRole('button', { name: /ubah dokumen asli/i }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Simpan keputusan' }),
+            screen.queryByRole('button', { name: 'Save decision' }),
         ).not.toBeInTheDocument();
 
         await user.click(
-            screen.getByRole('button', { name: 'Simpan review adendum' }),
+            screen.getByRole('button', { name: 'Save addendum review' }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Sign-off review adendum' }),
+            screen.getByRole('button', { name: 'Sign off addendum review' }),
         );
 
         expect(submissions.map((entry) => entry.url)).toEqual([

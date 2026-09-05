@@ -37,7 +37,7 @@ class EnsureAccountIsActive
                 $session->invalidate();
                 $session->regenerateToken();
 
-                abort(403, 'Akses akun peran pengajaran telah berakhir. Hubungi fasilitator SIMRS Campus UEU.');
+                abort(403, 'Teaching-role account access has ended. Contact the SIMRS Campus UEU facilitator.');
             }
 
             if ($request->isMethodSafe()) {
@@ -73,12 +73,12 @@ class EnsureAccountIsActive
                 $session->invalidate();
                 $session->regenerateToken();
 
-                abort(403, 'Akses akun peran pengajaran berakhir sebelum perubahan dapat disimpan. Silakan ulangi melalui fasilitator.');
+                abort(403, 'Teaching-role account access ended before the change could be saved. Please try again through the facilitator.');
             }
         }
 
         if ($user && $user->status !== 'ACTIVE') {
-            abort(403, 'Akun tidak aktif. Hubungi administrator SIMRS Campus UEU.');
+            abort(403, 'This account is inactive. Contact the SIMRS Campus UEU administrator.');
         }
 
         return $next($request);

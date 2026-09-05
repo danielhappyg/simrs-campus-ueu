@@ -7,24 +7,24 @@ export const inpatientDocumentTypeLabel: Record<
     InpatientDailyDocumentType,
     string
 > = {
-    NURSING_DAILY: 'Catatan harian keperawatan',
-    MEDICAL_DAILY: 'Catatan harian medis',
+    NURSING_DAILY: 'Daily nursing note',
+    MEDICAL_DAILY: 'Daily medical note',
 };
 
 export const inpatientDocumentStateLabel: Record<
     InpatientDailyDocumentState,
     string
 > = {
-    DRAFT: 'Draf',
+    DRAFT: 'Draft',
     FINAL: 'Final',
 };
 
 export const inpatientStatusLabel: Record<string, string> = {
-    REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Dalam pemeriksaan',
-    READY_FOR_RM: 'Siap RM',
-    CANCELLED: 'Dibatalkan',
-    CLOSED: 'Ditutup',
+    REGISTERED: 'Registered',
+    IN_EXAMINATION: 'In examination',
+    READY_FOR_RM: 'Ready for medical records',
+    CANCELLED: 'Cancelled',
+    CLOSED: 'Closed',
 };
 
 export function formatClinicalDate(value: string | null): string {
@@ -38,7 +38,7 @@ export function formatClinicalDate(value: string | null): string {
         return value;
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'medium',
         timeStyle: value.includes('T') ? 'short' : undefined,
         timeZone: 'Asia/Jakarta',

@@ -60,7 +60,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $this->actingAs($requester)
             ->post(route('pemeriksaan.rawat-jalan.amendments.store', $encounter), $payload)
             ->assertRedirect()
-            ->assertSessionHas('success', 'Permintaan addendum sudah tercatat.');
+            ->assertSessionHas('success', 'The addendum request is already recorded.');
 
         $this->actingAs($requester)
             ->post(route('pemeriksaan.rawat-jalan.amendments.store', $encounter), [
@@ -112,7 +112,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $this->actingAs($approver)
             ->post(route('pemeriksaan.rawat-jalan.amendments.decision', $amendment), $payload)
             ->assertRedirect()
-            ->assertSessionHas('success', 'Keputusan addendum sudah tercatat.');
+            ->assertSessionHas('success', 'The addendum decision is already recorded.');
         $this->assertSame(2, OutpatientAmendmentOperationReceipt::query()->count());
         $this->assertSame(1, AuditEvent::query()
             ->where('action', 'clinical.outpatient.amendment.request.decide')
@@ -352,7 +352,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $this->actingAs($requester)
             ->post(route('pemeriksaan.rawat-jalan.amendments.addendum.store', $amendment), $write)
             ->assertRedirect()
-            ->assertSessionHas('success', 'Draf addendum sudah tercatat.');
+            ->assertSessionHas('success', 'The addendum draft is already recorded.');
         $this->actingAs($requester)
             ->post(route('pemeriksaan.rawat-jalan.amendments.addendum.store', $amendment), [
                 ...$write,
@@ -366,7 +366,7 @@ class OutpatientPostClosureAmendmentRequestTest extends TestCase
         $this->actingAs($requester)
             ->post(route('pemeriksaan.rawat-jalan.amendments.addendum.finalize', $amendment), $finalize)
             ->assertRedirect()
-            ->assertSessionHas('success', 'Finalisasi addendum sudah tercatat.');
+            ->assertSessionHas('success', 'The addendum finalization is already recorded.');
 
         $final = $addendum->fresh();
         $this->assertSame(OutpatientClinicalDocumentAddendum::STATE_FINAL, $final->addendum_state);

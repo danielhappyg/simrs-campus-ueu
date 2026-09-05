@@ -15,48 +15,48 @@ export const financeStatePresentation: Record<
     { label: string; className: string; icon: typeof Clock3 }
 > = {
     OPEN_NO_VERSION: {
-        label: 'Belum diterbitkan',
+        label: 'Not issued',
         className: 'border-amber-300 bg-amber-50 text-amber-950',
         icon: Clock3,
     },
     ISSUED_CURRENT: {
-        label: 'Versi terkini',
+        label: 'Current version',
         className: 'border-emerald-300 bg-emerald-50 text-emerald-950',
         icon: CheckCircle2,
     },
     NEW_SOURCE_PENDING: {
-        label: 'Ada sumber biaya baru',
+        label: 'New charges pending',
         className: 'border-orange-300 bg-orange-50 text-orange-950',
         icon: CircleAlert,
     },
 };
 
 export const careSettingLabels: Record<FinanceCareSetting, string> = {
-    OUTPATIENT: 'Rawat jalan',
-    EMERGENCY: 'IGD',
-    INPATIENT: 'Rawat inap',
+    OUTPATIENT: 'Outpatient',
+    EMERGENCY: 'Emergency',
+    INPATIENT: 'Inpatient',
 };
 
 export const financeSourceDomainLabels: Record<FinanceSourceDomain, string> = {
-    PHARMACY: 'Apotek',
-    RADIOLOGY: 'Radiologi',
-    LABORATORY: 'Laboratorium',
-    ACCOMMODATION: 'Akomodasi',
+    PHARMACY: 'Pharmacy',
+    RADIOLOGY: 'Radiology',
+    LABORATORY: 'Laboratory',
+    ACCOMMODATION: 'Accommodation',
 };
 
 export const financeReadinessLabels: Record<FinanceReadinessState, string> = {
-    SIAP_DISINKRONKAN: 'Siap disinkronkan',
-    TERSINKRONISASI: 'Tersinkronisasi',
-    TARIF_BELUM_DIPETAKAN: 'Tarif belum dipetakan',
-    TARIF_TIDAK_EFEKTIF: 'Tarif tidak efektif',
-    KONTEKS_TIDAK_COCOK: 'Konteks tidak cocok',
-    BUKTI_TIDAK_KONSISTEN: 'Bukti tidak konsisten',
-    INTERVAL_MASIH_TERBUKA: 'Interval masih terbuka',
-    RIWAYAT_LOKASI_TIDAK_LENGKAP: 'Riwayat lokasi tidak lengkap',
+    SIAP_DISINKRONKAN: 'Ready to synchronize',
+    TERSINKRONISASI: 'Synchronized',
+    TARIF_BELUM_DIPETAKAN: 'Tariff not mapped',
+    TARIF_TIDAK_EFEKTIF: 'Tariff not in effect',
+    KONTEKS_TIDAK_COCOK: 'Context mismatch',
+    BUKTI_TIDAK_KONSISTEN: 'Inconsistent evidence',
+    INTERVAL_MASIH_TERBUKA: 'Interval still open',
+    RIWAYAT_LOKASI_TIDAK_LENGKAP: 'Incomplete location history',
 };
 
 export function formatRupiah(value: number): string {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-GB', {
         style: 'currency',
         currency: 'IDR',
         maximumFractionDigits: 0,
@@ -64,6 +64,26 @@ export function formatRupiah(value: number): string {
 }
 
 export function formatFinanceDate(value: string | null): string {
+    if (!value) {
+        return '—';
+    }
+
+    return new Intl.DateTimeFormat('en-GB', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Jakarta',
+    }).format(new Date(value));
+}
+
+export function formatPrintedRupiah(value: number): string {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+export function formatPrintedFinanceDate(value: string | null): string {
     if (!value) {
         return '—';
     }
@@ -100,13 +120,13 @@ export function FinanceCoverageRail({
 }) {
     return (
         <aside
-            aria-label="Cakupan sumber biaya"
+            aria-label="Charge coverage"
             className="overflow-hidden rounded-xl border border-[#7fbcb6] bg-white shadow-sm"
         >
             <div className="grid sm:grid-cols-[0.42fr_1fr]">
                 <div className="bg-[#0f5b62] px-5 py-4 text-white">
                     <p className="font-['IBM_Plex_Mono'] text-[0.6875rem] font-semibold tracking-[0.12em] uppercase">
-                        Cakupan tagihan saat ini
+                        Current bill coverage
                     </p>
                     <p className="mt-2 text-sm font-semibold">
                         {domains.map((item) => item.label).join(' + ') || '—'}
@@ -115,13 +135,13 @@ export function FinanceCoverageRail({
                 <div className="grid gap-3 px-5 py-4 text-sm md:grid-cols-2">
                     <div>
                         <p className="font-semibold text-emerald-900">
-                            Termasuk
+                            Included
                         </p>
                         <p className="mt-1 text-slate-700">{label}</p>
                     </div>
                     <div>
                         <p className="font-semibold text-slate-900">
-                            Belum termasuk
+                            Not included
                         </p>
                         <p className="mt-1 text-slate-600">{excludedLabel}</p>
                     </div>
@@ -138,7 +158,7 @@ export function FinanceBackLink() {
             className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-sm font-semibold text-[#0d5275] outline-none hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc]"
         >
             <ArrowLeft aria-hidden="true" className="size-4" />
-            Daftar Tagihan
+            Bill List
         </Link>
     );
 }

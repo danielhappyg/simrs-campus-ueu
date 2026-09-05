@@ -8,7 +8,7 @@ export default function FinanceSettlementRefundReceiptPage(
     return (
         <>
             <Head
-                title={`Bukti Pengembalian ${props.receipt.correction_number}`}
+                title={`Cash Return Receipt ${props.receipt.correction_number}`}
             />
             <FinanceSettlementRefundReceiptView {...props} />
         </>

@@ -160,8 +160,8 @@ final class FinanceLaboratoryTariffController extends Controller
                         'source' => $source,
                         'care_setting' => $careSetting,
                         'reason_code' => 'TARIF_BELUM_DIPETAKAN',
-                        'reason_label' => 'Tarif belum dipetakan',
-                        'detail' => 'Belum ada pemetaan efektif yang sengaja dibuat untuk versi master dan jenis layanan ini.',
+                        'reason_label' => 'Tariff not mapped',
+                        'detail' => 'No effective mapping has been deliberately created for this master version and care setting.',
                     ];
                 }
             }
@@ -173,7 +173,7 @@ final class FinanceLaboratoryTariffController extends Controller
             'source_master_content_digest' => FinanceCanonicalJson::digest($sources),
             'source_trigger' => [
                 'code' => 'ORIGINAL_VERIFIED_RESULT_V1',
-                'label' => 'Hasil asli berstatus VERIFIED pada verified_at adalah satu-satunya pemicu biaya.',
+                'label' => 'The original result with VERIFIED status at verified_at is the only billing trigger.',
             ],
             'sources' => $sources,
             'tariff_options' => $tariffOptions,
@@ -195,7 +195,7 @@ final class FinanceLaboratoryTariffController extends Controller
             ->map(function (LaboratoryExaminationMaster $master): array {
                 $version = $master->versions->firstWhere('version', $master->version);
                 if (! $version instanceof LaboratoryExaminationMasterVersion) {
-                    throw new \LogicException('Versi master laboratorium aktif tidak tersedia.');
+                    throw new \LogicException('The active laboratory master version is unavailable.');
                 }
 
                 return $this->source($master, $version);
@@ -280,7 +280,7 @@ final class FinanceLaboratoryTariffController extends Controller
             'versions' => $versions->map(function (FinanceLaboratoryTariffBindingVersion $version, int $index) use ($versions): array {
                 $tariff = $this->tariffAt($version->tariff_item_id, $version->effective_from->format('Y-m-d'));
                 if ($tariff === null) {
-                    throw new \LogicException('Versi tarif historis pemetaan tidak tersedia.');
+                    throw new \LogicException('The historical tariff mapping version is unavailable.');
                 }
                 $next = $versions->get($index + 1);
 
@@ -355,7 +355,7 @@ final class FinanceLaboratoryTariffController extends Controller
             || $version->laboratory_examination_master_id !== $master->id
             || $version->version !== $data['laboratory_master_version']
             || ! hash_equals($version->content_digest, $data['laboratory_master_content_digest'])) {
-            throw ValidationException::withMessages(['master' => 'Versi master laboratorium telah berubah. Muat ulang halaman.']);
+            throw ValidationException::withMessages(['master' => 'The laboratory master version has changed. Reload the page.']);
         }
     }
 
@@ -382,10 +382,10 @@ final class FinanceLaboratoryTariffController extends Controller
         try {
             $result = $operation();
         } catch (FinanceTariffDenied $denied) {
-            throw ValidationException::withMessages(['master' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['master' => __($denied->getMessage())]);
         } catch (FinanceTariffAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit pemetaan tarif belum tersedia.');
+            abort(503, 'Audit recording for tariff mapping is unavailable.');
         }
 
         return back()->with('success', $result->replayed ? 'Operasi yang sama ditampilkan kembali.' : $success);

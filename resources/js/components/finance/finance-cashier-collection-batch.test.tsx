@@ -196,13 +196,13 @@ describe('cashier collection batch UI', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Batch Penerimaan Kas' }),
+            screen.getByRole('heading', { name: 'Cash Collection Batch' }),
         ).toBeVisible();
         expect(
             screen.getByText('Kasir sudah memiliki satu batch terbuka.'),
         ).toBeVisible();
         expect(
-            screen.queryByRole('button', { name: 'Buka Batch' }),
+            screen.queryByRole('button', { name: 'Open Batch' }),
         ).not.toBeInTheDocument();
 
         expectFortyFourPixelTargets(container);
@@ -214,11 +214,12 @@ describe('cashier collection batch UI', () => {
             <FinanceCashierCollectionWorklist {...worklistProps} />,
         );
 
+        expect(screen.getByRole('link', { name: 'Bill List' })).toHaveAttribute(
+            'href',
+            '/kasir/tagihan',
+        );
         expect(
-            screen.getByRole('link', { name: 'Daftar Tagihan' }),
-        ).toHaveAttribute('href', '/kasir/tagihan');
-        expect(
-            screen.getByRole('link', { name: 'Koreksi Pelunasan' }),
+            screen.getByRole('link', { name: 'Settlement Correction' }),
         ).toHaveAttribute('href', '/kasir/koreksi-pelunasan');
         expectFortyFourPixelTargets(cashier.container);
         await expectAccessible(cashier.container);
@@ -232,10 +233,10 @@ describe('cashier collection batch UI', () => {
         );
 
         expect(
-            screen.queryByRole('link', { name: 'Daftar Tagihan' }),
+            screen.queryByRole('link', { name: 'Bill List' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.getByRole('link', { name: 'Koreksi Pelunasan' }),
+            screen.getByRole('link', { name: 'Settlement Correction' }),
         ).toHaveAttribute('href', '/kasir/koreksi-pelunasan');
         expectFortyFourPixelTargets(supervisor.container);
         await expectAccessible(supervisor.container);
@@ -256,9 +257,9 @@ describe('cashier collection batch UI', () => {
             />,
         );
 
-        const open = screen.getByRole('button', { name: 'Buka Batch' });
+        const open = screen.getByRole('button', { name: 'Open Batch' });
         const confirmation = screen.getByRole('checkbox', {
-            name: /Buka satu batch baru atas nama saya/i,
+            name: /Open one new batch in my name/i,
         });
         expect(open).toBeDisabled();
         await user.tab();
@@ -285,16 +286,19 @@ describe('cashier collection batch UI', () => {
             <FinanceCashierCollectionDetail {...detailProps} />,
         );
 
-        expect(screen.getByText('Kas bersih seharusnya')).toBeVisible();
-        expect(screen.getByText('Belum dihitung')).toBeVisible();
-        await user.type(screen.getByLabelText('Kas fisik terhitung'), '200000');
+        expect(screen.getByText('Expected net cash')).toBeVisible();
+        expect(screen.getByText('Not yet calculated')).toBeVisible();
+        await user.type(
+            screen.getByLabelText('Counted physical cash'),
+            '200000',
+        );
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Bekukan 2 kuitansi/i,
+                name: /Freeze 2 receipts/i,
             }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Ajukan Tutup Batch' }),
+            screen.getByRole('button', { name: 'Submit Batch Closure' }),
         );
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -356,25 +360,28 @@ describe('cashier collection batch UI', () => {
             />,
         );
 
-        expect(screen.getAllByText(/−Rp\s*5\.000/).length).toBeGreaterThan(0);
-        expect(screen.getByText('Selisih kurang')).toBeVisible();
+        expect(screen.getAllByText(/−IDR\s*5,000/).length).toBeGreaterThan(0);
+        expect(screen.getByText('Shortage')).toBeVisible();
         expect(
             screen.queryByRole('button', {
-                name: 'Verifikasi Tutup Batch',
+                name: 'Verify Batch Closure',
             }),
         ).not.toBeInTheDocument();
-        await user.type(screen.getByLabelText('Kas fisik terhitung'), '200000');
         await user.type(
-            screen.getByLabelText('Catatan hitung ulang'),
+            screen.getByLabelText('Counted physical cash'),
+            '200000',
+        );
+        await user.type(
+            screen.getByLabelText('Recount notes'),
             'Uang pecahan terselip telah ditemukan dan dihitung kembali.',
         );
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Hasil ini adalah pengamatan baru/i,
+                name: /This result is a new observation/i,
             }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Catat Hitung Ulang' }),
+            screen.getByRole('button', { name: 'Record Recount' }),
         );
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -412,13 +419,13 @@ describe('cashier collection batch UI', () => {
             />,
         );
 
-        expect(screen.getByText('Cocok')).toBeVisible();
+        expect(screen.getByText('Matched')).toBeVisible();
         expect(
             screen.getByText('Supervisor ini sama dengan kasir pemilik batch.'),
         ).toBeVisible();
         expect(
             screen.queryByRole('button', {
-                name: 'Verifikasi Tutup Batch',
+                name: 'Verify Batch Closure',
             }),
         ).not.toBeInTheDocument();
         expectFortyFourPixelTargets(container);
@@ -453,12 +460,12 @@ describe('cashier collection batch UI', () => {
 
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Saya adalah supervisor yang berbeda/i,
+                name: /I am a supervisor other than the cashier/i,
             }),
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Verifikasi Tutup Batch',
+                name: 'Verify Batch Closure',
             }),
         );
         expect(inertia.post.mock.calls[0]?.[1]).not.toHaveProperty('amount');
@@ -491,14 +498,14 @@ describe('cashier collection batch UI', () => {
                 }}
             />,
         );
-        expect(screen.getByText(/bukan penerimaan treasury/i)).toBeVisible();
+        expect(screen.getByText(/not treasury collection/i)).toBeVisible();
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Serahkan tepat.*200\.000/i,
+                name: /Hand over exactly.*200,000/i,
             }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Serahkan Setoran' }),
+            screen.getByRole('button', { name: 'Hand Over Deposit' }),
         );
         expect(inertia.post.mock.calls[0]?.[1]).not.toHaveProperty('amount');
         expect(inertia.post.mock.calls[0]?.[1]).not.toHaveProperty(
@@ -527,10 +534,10 @@ describe('cashier collection batch UI', () => {
         );
 
         expect(screen.getByRole('alert')).toHaveTextContent(
-            'Bukti batch tidak konsisten',
+            'Batch evidence is inconsistent',
         );
         expect(
-            screen.queryByRole('button', { name: 'Ajukan Tutup Batch' }),
+            screen.queryByRole('button', { name: 'Submit Batch Closure' }),
         ).not.toBeInTheDocument();
         expect(
             screen.getAllByText(
@@ -563,7 +570,7 @@ describe('cashier collection batch UI', () => {
             screen.getByText(/Belum merupakan penerimaan treasury/i),
         ).toBeVisible();
         await user.click(
-            screen.getByRole('button', { name: 'Cetak Bukti Penyerahan' }),
+            screen.getByRole('button', { name: 'Print Handover Receipt' }),
         );
         expect(print).toHaveBeenCalledOnce();
 

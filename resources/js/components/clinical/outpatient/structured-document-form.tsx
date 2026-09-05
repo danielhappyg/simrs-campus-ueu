@@ -29,33 +29,33 @@ const definitions: Record<ClinicalDocumentType, FieldDefinition[]> = {
     NURSING_ASSESSMENT: [
         {
             key: 'nursing_assessment',
-            label: 'Asesmen keperawatan',
+            label: 'Nursing assessment',
             requiredForFinal: true,
         },
-        { key: 'additional_notes', label: 'Catatan tambahan (opsional)' },
+        { key: 'additional_notes', label: 'Additional notes (optional)' },
     ],
     MEDICAL_ASSESSMENT: [
         {
             key: 'anamnesis',
-            label: 'Subjective (Subjektif)',
+            label: 'Subjective',
             requiredForFinal: true,
         },
         {
             key: 'objective_examination',
-            label: 'Objective (Objektif)',
+            label: 'Objective',
             requiredForFinal: true,
         },
         {
             key: 'clinical_assessment',
-            label: 'Assessment (Asesmen)',
+            label: 'Assessment',
             requiredForFinal: true,
         },
         {
             key: 'care_plan',
-            label: 'Plan (Rencana)',
+            label: 'Plan',
             requiredForFinal: true,
         },
-        { key: 'additional_notes', label: 'Catatan tambahan (opsional)' },
+        { key: 'additional_notes', label: 'Additional notes (optional)' },
     ],
 };
 
@@ -97,13 +97,13 @@ function TerminologyPicker({
     const [query, setQuery] = useState('');
     const [options, setOptions] = useState<TerminologyOption[]>([]);
     const [message, setMessage] = useState(
-        'Ketik minimal 2 karakter untuk mencari kode resmi.',
+        'Type at least 2 characters to search the official code catalogue.',
     );
     const canSearch = query.trim().length >= 2;
     const visibleOptions = canSearch ? options : [];
     const helpMessage = canSearch
         ? message
-        : 'Ketik minimal 2 karakter untuk mencari kode resmi.';
+        : 'Type at least 2 characters to search the official code catalogue.';
 
     useEffect(() => {
         if (query.trim().length < 2) {
@@ -113,7 +113,9 @@ function TerminologyPicker({
         if (!lookupUrl) {
             queueMicrotask(() => {
                 setOptions([]);
-                setMessage('Katalog kode belum tersedia untuk kunjungan ini.');
+                setMessage(
+                    'The code catalogue is unavailable for this encounter.',
+                );
             });
 
             return;
@@ -121,7 +123,7 @@ function TerminologyPicker({
 
         const controller = new AbortController();
         const timeout = window.setTimeout(() => {
-            setMessage('Mencari katalog resmi…');
+            setMessage('Searching the official catalogue…');
             fetch(
                 `${lookupUrl}?system=${encodeURIComponent(system)}&q=${encodeURIComponent(query.trim())}`,
                 { signal: controller.signal },
@@ -140,15 +142,15 @@ function TerminologyPicker({
                     setOptions(result.options ?? []);
                     setMessage(
                         result.options?.length
-                            ? `Hasil dari ${result.source?.authority ?? 'katalog resmi'}${result.source?.dataset ? ` · ${result.source.dataset}` : ''}.`
-                            : 'Kode tidak ditemukan. Ubah kata kunci atau kode.',
+                            ? `Results from ${result.source?.authority ?? 'the official catalogue'}${result.source?.dataset ? ` · ${result.source.dataset}` : ''}.`
+                            : 'No codes found. Try a different keyword or code.',
                     );
                 })
                 .catch((error: unknown) => {
                     if ((error as { name?: string }).name !== 'AbortError') {
                         setOptions([]);
                         setMessage(
-                            'Katalog kode belum dapat dimuat. Coba lagi.',
+                            'The code catalogue could not be loaded. Try again.',
                         );
                     }
                 });
@@ -169,13 +171,13 @@ function TerminologyPicker({
                 onChange={(event) => {
                     setQuery(event.target.value);
                     setOptions([]);
-                    setMessage('Menunggu kata kunci pencarian…');
+                    setMessage('Waiting for a search term…');
                 }}
                 disabled={readOnly}
                 placeholder={
                     system === 'ICD-10'
-                        ? 'Cari kode atau diagnosis ICD-10'
-                        : 'Cari kode atau prosedur ICD-9-CM'
+                        ? 'Search an ICD-10 code or diagnosis'
+                        : 'Search an ICD-9-CM code or procedure'
                 }
                 aria-describedby={`${id}-help`}
             />
@@ -190,7 +192,7 @@ function TerminologyPicker({
             {visibleOptions.length ? (
                 <ul
                     className="max-h-44 overflow-y-auto rounded-md border border-border bg-background"
-                    aria-label={`Hasil ${label}`}
+                    aria-label={`Results for ${label}`}
                 >
                     {visibleOptions.map((option) => (
                         <li key={`${option.system}-${option.code}`}>
@@ -219,7 +221,7 @@ function TerminologyPicker({
             {selected.length ? (
                 <ul
                     className="flex flex-wrap gap-1.5"
-                    aria-label={`${label} terpilih`}
+                    aria-label={`Selected ${label}`}
                 >
                     {selected.map((item) => (
                         <li
@@ -235,7 +237,7 @@ function TerminologyPicker({
                                     type="button"
                                     onClick={() => onRemove(item.code)}
                                     className="ml-1 rounded px-1 text-muted-foreground hover:bg-background hover:text-foreground"
-                                    aria-label={`Hapus ${item.code}`}
+                                    aria-label={`Remove ${item.code}`}
                                 >
                                     ×
                                 </button>
@@ -330,7 +332,7 @@ export function StructuredDocumentForm({
                     {field.label}
                     {field.requiredForFinal ? (
                         <span className="ml-1 text-xs text-muted-foreground">
-                            · wajib saat finalisasi
+                            · required to finalize
                         </span>
                     ) : null}
                 </Label>
@@ -361,9 +363,9 @@ export function StructuredDocumentForm({
         <div className="grid gap-4 border-t border-border pt-4">
             <div>
                 <Label htmlFor="MEDICAL_ASSESSMENT-diagnosis-text">
-                    Diagnosis klinis bebas{' '}
+                    Clinical diagnosis{' '}
                     <span className="ml-1 text-xs text-muted-foreground">
-                        · wajib saat finalisasi
+                        · required to finalize
                     </span>
                 </Label>
                 <textarea
@@ -381,7 +383,7 @@ export function StructuredDocumentForm({
             </div>
             <TerminologyPicker
                 id="MEDICAL_ASSESSMENT-primary-icd10"
-                label="ICD-10 utama"
+                label="Primary diagnosis (ICD-10)"
                 system="ICD-10"
                 selected={
                     selectionValue(form.data.fields.primary_icd10)
@@ -415,7 +417,7 @@ export function StructuredDocumentForm({
             />
             <TerminologyPicker
                 id="MEDICAL_ASSESSMENT-secondary-icd10"
-                label="ICD-10 sekunder"
+                label="Secondary diagnoses (ICD-10)"
                 system="ICD-10"
                 multiple
                 selected={selectionsValue(form.data.fields.secondary_icd10).map(
@@ -450,7 +452,7 @@ export function StructuredDocumentForm({
         <div className="border-t border-border pt-4">
             <TerminologyPicker
                 id="MEDICAL_ASSESSMENT-procedures-icd9cm"
-                label="Prosedur ICD-9-CM"
+                label="Procedures (ICD-9-CM)"
                 system="ICD-9-CM"
                 multiple
                 selected={selectionsValue(
@@ -487,18 +489,18 @@ export function StructuredDocumentForm({
                 <div>
                     <h2 className="text-sm font-semibold text-secondary-foreground">
                         {type === 'NURSING_ASSESSMENT'
-                            ? 'Dokumentasi keperawatan'
-                            : 'Dokumentasi medis'}
+                            ? 'Nursing documentation'
+                            : 'Medical documentation'}
                     </h2>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                        Simpan draf dapat dilakukan bertahap. Finalisasi adalah
-                        tindakan terpisah dan membuat versi ini hanya-baca.
+                        Save drafts as you work. Finalizing is a separate action
+                        that makes this version read-only.
                     </p>
                 </div>
                 <span className="rounded-md bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">
                     {draft
-                        ? `v${draft.version} · ${draft.document_state === 'FINAL' ? 'Final' : 'Draf'}`
-                        : 'Belum ada draf'}
+                        ? `v${draft.version} · ${draft.document_state === 'FINAL' ? 'Final' : 'Draft'}`
+                        : 'No draft yet'}
                 </span>
             </div>
 
@@ -531,10 +533,10 @@ export function StructuredDocumentForm({
                                 title={
                                     permission.can_save_draft
                                         ? undefined
-                                        : 'Akun ini tidak memiliki hak menyimpan draf ini.'
+                                        : 'You do not have permission to save this draft.'
                                 }
                             >
-                                Simpan draf
+                                Save draft
                             </Button>
                             <Button
                                 type="button"
@@ -548,16 +550,16 @@ export function StructuredDocumentForm({
                                 }
                                 title={
                                     !draft
-                                        ? 'Simpan draf sebelum finalisasi.'
+                                        ? 'Save a draft before finalizing.'
                                         : hasUnsavedChanges
-                                          ? 'Simpan perubahan draf sebelum finalisasi.'
+                                          ? 'Save draft changes before finalizing.'
                                           : !permission.can_finalize
-                                            ? 'Akun ini tidak memiliki hak finalisasi.'
+                                            ? 'You do not have permission to finalize this document.'
                                             : undefined
                                 }
                                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                             >
-                                Finalisasi versi
+                                Finalize version
                             </Button>
                         </div>
                         {!draft || hasUnsavedChanges ? (
@@ -566,18 +568,18 @@ export function StructuredDocumentForm({
                                 className="text-xs text-muted-foreground sm:text-right"
                             >
                                 {hasUnsavedChanges
-                                    ? 'Ada perubahan yang belum disimpan. Simpan draf sebelum finalisasi.'
-                                    : 'Simpan draf terlebih dahulu sebelum finalisasi.'}
+                                    ? 'There are unsaved changes. Save the draft before finalizing.'
+                                    : 'Save a draft before finalizing.'}
                             </p>
                         ) : null}
                     </>
                 ) : (
                     <p className="border-t border-border pt-3 text-sm text-muted-foreground">
                         {encounterClosed
-                            ? 'Kunjungan sudah ditutup. Dokumentasi hanya dapat dibaca.'
+                            ? 'This encounter is closed. Documentation is read-only.'
                             : draft?.document_state === 'FINAL'
-                              ? 'Versi final hanya dapat dibaca.'
-                              : 'Akun ini hanya memiliki akses baca.'}
+                              ? 'Final versions are read-only.'
+                              : 'You have read-only access.'}
                     </p>
                 )}
             </form>

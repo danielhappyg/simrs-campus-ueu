@@ -47,7 +47,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
     return (
         <details className="mt-3 rounded-lg border bg-background p-3">
             <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
-                Kontrol persediaan
+                Stock controls
             </summary>
             <PharmacyErrorSummary errors={form.errors} />
             {lot.actions.correct_url ? (
@@ -57,7 +57,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                 >
                     <div>
                         <Label htmlFor={`available-delta-${lot.public_id}`}>
-                            Perubahan tersedia
+                            Available adjustment
                         </Label>
                         <input
                             id={`available-delta-${lot.public_id}`}
@@ -75,7 +75,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                     </div>
                     <div>
                         <Label htmlFor={`quarantine-delta-${lot.public_id}`}>
-                            Perubahan karantina
+                            Quarantine adjustment
                         </Label>
                         <input
                             id={`quarantine-delta-${lot.public_id}`}
@@ -93,7 +93,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                     </div>
                     <div>
                         <Label htmlFor={`stock-reason-${lot.public_id}`}>
-                            Alasan koreksi atau perubahan status
+                            Reason for correction or status change
                         </Label>
                         <select
                             id={`stock-reason-${lot.public_id}`}
@@ -104,16 +104,16 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                             }
                             required
                         >
-                            <option value="">Pilih alasan</option>
+                            <option value="">Select reason</option>
                             <option value="INVENTORY_CORRECTION">
-                                Koreksi persediaan
+                                Inventory correction
                             </option>
                             <option value="DAMAGED_PACKAGE">
-                                Kemasan rusak
+                                Damaged packaging
                             </option>
-                            <option value="EXPIRED">Kedaluwarsa</option>
-                            <option value="QUALITY_HOLD">Penahanan mutu</option>
-                            <option value="OTHER">Alasan lain</option>
+                            <option value="EXPIRED">Expired</option>
+                            <option value="QUALITY_HOLD">Quality hold</option>
+                            <option value="OTHER">Other reason</option>
                         </select>
                     </div>
                     <Button
@@ -122,7 +122,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                         className="min-h-11"
                         disabled={!form.data.reason_code.trim()}
                     >
-                        Catat koreksi
+                        Record correction
                     </Button>
                 </form>
             ) : null}
@@ -136,7 +136,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                         onClick={() => state(lot.actions.quarantine_url!)}
                     >
                         <ShieldAlert className="mr-2 size-4" />
-                        Karantina lot
+                        Quarantine lot
                     </Button>
                 ) : null}
                 {lot.actions.release_url ? (
@@ -147,7 +147,7 @@ function LotActions({ lot }: { lot: PharmacyStockCardLot }) {
                         disabled={!form.data.reason_code.trim()}
                         onClick={() => state(lot.actions.release_url!)}
                     >
-                        Lepas karantina
+                        Release from quarantine
                     </Button>
                 ) : null}
             </div>
@@ -171,14 +171,14 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                 <PharmacySubnav current="stock" />
                 <header className="rounded-2xl bg-[#123b5d] p-6 text-white">
                     <p className="text-xs font-semibold tracking-[0.14em] text-sky-100 uppercase">
-                        Persediaan yang dapat ditelusuri
+                        Traceable inventory
                     </p>
                     <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                        Kartu Stok per Lot
+                        Stock card by lot
                     </h1>
                     <p className="mt-2 text-sm text-sky-50">
-                        Saldo, karantina, dan seluruh pergerakan ditampilkan
-                        sebagai bukti yang tidak ditimpa.
+                        Balances, quarantine, and every movement are displayed
+                        as evidence that cannot be overwritten.
                     </p>
                 </header>
                 {props.read_error ? (
@@ -195,12 +195,12 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                 >
                     <h2 className="flex items-center gap-2 font-semibold">
                         <Filter className="size-4 text-primary" />
-                        Saring kartu stok
+                        Filter stock card
                     </h2>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <div className="sm:col-span-2">
                             <Label htmlFor="stock-query">
-                                Kode lot atau obat
+                                Lot or medication code
                             </Label>
                             <input
                                 id="stock-query"
@@ -210,14 +210,14 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="stock-medicine">Obat</Label>
+                            <Label htmlFor="stock-medicine">Medication</Label>
                             <select
                                 id="stock-medicine"
                                 name="medicine"
                                 defaultValue={props.filters.medicine}
                                 className={pharmacyFieldClass}
                             >
-                                <option value="">Semua obat</option>
+                                <option value="">All medications</option>
                                 {props.filter_options.medicines.map(
                                     (option) => (
                                         <option
@@ -231,14 +231,14 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                             </select>
                         </div>
                         <div>
-                            <Label htmlFor="stock-depot">Depo</Label>
+                            <Label htmlFor="stock-depot">Depot</Label>
                             <select
                                 id="stock-depot"
                                 name="depot"
                                 defaultValue={props.filters.depot}
                                 className={pharmacyFieldClass}
                             >
-                                <option value="">Semua depo</option>
+                                <option value="">All depots</option>
                                 {props.filter_options.depots.map((option) => (
                                     <option
                                         key={option.value}
@@ -257,7 +257,7 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                                 defaultValue={props.filters.state}
                                 className={pharmacyFieldClass}
                             >
-                                <option value="">Semua status</option>
+                                <option value="">All statuses</option>
                                 {props.filter_options.states.map((option) => (
                                     <option
                                         key={option.value}
@@ -271,7 +271,7 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                     </div>
                     <div className="mt-3 flex justify-end">
                         <Button type="submit" className="min-h-11">
-                            Terapkan filter
+                            Apply filters
                         </Button>
                     </div>
                 </form>
@@ -280,7 +280,7 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                         id="stock-results"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        {props.lots.length} lot ditemukan
+                        {props.lots.length} lots found
                     </h2>
                     {props.lots.length ? (
                         <div className="mt-3 space-y-4">
@@ -304,7 +304,7 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                                             </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {lot.depot.display_name} ·
-                                                kedaluwarsa{' '}
+                                                expires{' '}
                                                 {lot.expiry_date ??
                                                     lot.no_expiry_reason ??
                                                     '—'}
@@ -313,7 +313,7 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                                         <div className="grid grid-cols-2 gap-3 text-right">
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Tersedia
+                                                    Available
                                                 </p>
                                                 <p className="font-mono text-xl font-semibold">
                                                     {lot.available_quantity}
@@ -321,7 +321,7 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                                             </div>
                                             <div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Karantina
+                                                    Quarantined
                                                 </p>
                                                 <p className="font-mono text-xl font-semibold">
                                                     {lot.quarantined_quantity}
@@ -335,13 +335,13 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                                         aria-live="polite"
                                     >
                                         {lot.reconciled
-                                            ? 'Saldo sesuai seluruh pergerakan'
-                                            : 'Perlu rekonsiliasi: saldo dan riwayat tidak sesuai'}
+                                            ? 'Balance matches all movements'
+                                            : 'Reconciliation needed: balance and history do not match'}
                                     </div>
                                     <div className="mt-3 overflow-x-auto rounded-lg border">
                                         <table className="w-full min-w-[850px] text-left text-sm">
                                             <caption className="sr-only">
-                                                Pergerakan stok lot{' '}
+                                                Stock movement for lot{' '}
                                                 {lot.lot_code}
                                             </caption>
                                             <thead className="bg-muted/60">
@@ -350,37 +350,37 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                                                         scope="col"
                                                         className="px-3 py-2"
                                                     >
-                                                        Waktu
+                                                        Time
                                                     </th>
                                                     <th
                                                         scope="col"
                                                         className="px-3 py-2"
                                                     >
-                                                        Jenis
+                                                        Type
                                                     </th>
                                                     <th
                                                         scope="col"
                                                         className="px-3 py-2"
                                                     >
-                                                        Δ tersedia
+                                                        Δ available
                                                     </th>
                                                     <th
                                                         scope="col"
                                                         className="px-3 py-2"
                                                     >
-                                                        Δ karantina
+                                                        Δ quarantine
                                                     </th>
                                                     <th
                                                         scope="col"
                                                         className="px-3 py-2"
                                                     >
-                                                        Saldo akhir
+                                                        Closing balance
                                                     </th>
                                                     <th
                                                         scope="col"
                                                         className="px-3 py-2"
                                                     >
-                                                        Referensi
+                                                        Reference
                                                     </th>
                                                 </tr>
                                             </thead>
@@ -447,8 +447,8 @@ export function PharmacyStockCard(props: PharmacyStockCardProps) {
                         </div>
                     ) : (
                         <PharmacyEmptyState
-                            title="Belum ada lot sesuai filter"
-                            body="Ubah filter atau catat saldo awal dari Master Obat & Depo."
+                            title="No lots match these filters"
+                            body="Change the filters or record an opening balance from Medication & Depot Master."
                         />
                     )}
                 </section>

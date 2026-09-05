@@ -15,7 +15,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { formatFinanceDate, formatRupiah } from './finance-shared';
+import {
+    formatFinanceDate,
+    formatPrintedFinanceDate,
+    formatPrintedRupiah,
+    formatRupiah,
+} from './finance-shared';
 import type {
     FinanceCashSettlementCorrectionCase,
     FinanceCashSettlementCorrectionDetailProps,
@@ -31,21 +36,31 @@ export const correctionReasonLabels: Record<
     FinanceCashSettlementCorrectionReasonCode,
     string
 > = {
-    WRONG_BILL: 'Pelunasan dicatat pada tagihan yang keliru',
-    DUPLICATE_COLLECTION: 'Penerimaan tunai tercatat ganda',
-    CASHIER_INPUT_CONTEXT_ERROR: 'Konteks input kasir keliru',
-    OTHER_SUPERVISOR_REVIEW: 'Alasan lain yang memerlukan tinjauan supervisor',
+    WRONG_BILL: 'Settlement recorded against the wrong bill',
+    DUPLICATE_COLLECTION: 'Duplicate cash collection recorded',
+    CASHIER_INPUT_CONTEXT_ERROR: 'Incorrect cashier input context',
+    OTHER_SUPERVISOR_REVIEW: 'Other reason requiring supervisor review',
 };
 
 export const correctionStateLabels: Record<
     FinanceCashSettlementCorrectionState,
     string
 > = {
-    ACTIVE: 'Pelunasan aktif',
-    CORRECTION_REQUESTED: 'Menunggu tinjauan supervisor',
-    REVIEW_REJECTED: 'Permintaan ditolak',
-    REFUND_APPROVED: 'Pengembalian disetujui, kas belum diserahkan',
-    REFUND_COMPLETED: 'Pengembalian tunai selesai',
+    ACTIVE: 'Settlement active',
+    CORRECTION_REQUESTED: 'Pending supervisor review',
+    REVIEW_REJECTED: 'Request rejected',
+    REFUND_APPROVED: 'Refund approved, cash not yet returned',
+    REFUND_COMPLETED: 'Cash refund completed',
+};
+
+const printedCorrectionReasonLabels: Record<
+    FinanceCashSettlementCorrectionReasonCode,
+    string
+> = {
+    WRONG_BILL: 'Pelunasan dicatat pada tagihan yang keliru',
+    DUPLICATE_COLLECTION: 'Penerimaan tunai tercatat ganda',
+    CASHIER_INPUT_CONTEXT_ERROR: 'Konteks input kasir keliru',
+    OTHER_SUPERVISOR_REVIEW: 'Alasan lain yang memerlukan tinjauan supervisor',
 };
 
 const stateClasses: Record<FinanceCashSettlementCorrectionState, string> = {
@@ -60,9 +75,9 @@ const eventLabels: Record<
     FinanceCashSettlementCorrectionEvent['event_type'],
     string
 > = {
-    REVIEW_REJECTED: 'Supervisor menolak permintaan',
-    REFUND_APPROVED: 'Supervisor menyetujui pengembalian penuh',
-    REFUND_COMPLETED: 'Kas dikembalikan dan dicatat selesai',
+    REVIEW_REJECTED: 'Supervisor rejected request',
+    REFUND_APPROVED: 'Supervisor approved full refund',
+    REFUND_COMPLETED: 'Cash returned and completion recorded',
 };
 
 function newCorrectionKey(operation: 'request' | 'review' | 'refund'): string {
@@ -147,11 +162,11 @@ export function FinanceSettlementCorrectionRequestPanel({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Mengirim permintaan koreksi…');
+        setStatus('Submitting correction request…');
         form.post(requestUrl, {
             preserveScroll: true,
-            onError: () => setStatus('Permintaan koreksi belum terkirim.'),
-            onSuccess: () => setStatus('Permintaan dikirim untuk tinjauan.'),
+            onError: () => setStatus('Correction request was not sent.'),
+            onSuccess: () => setStatus('Request submitted for review.'),
         });
     };
 
@@ -169,12 +184,12 @@ export function FinanceSettlementCorrectionRequestPanel({
                         id="finance-correction-request-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold"
                     >
-                        Ajukan Koreksi Pelunasan
+                        Request Settlement Correction
                     </h3>
                     <p className="mt-1 max-w-3xl text-sm text-slate-700">
-                        Permintaan tidak mengubah kuitansi. Supervisor kasir
-                        akan meninjau alasan sebelum pengembalian dapat
-                        disetujui.
+                        The request does not change the receipt. A cashier
+                        supervisor will review the reason before a refund can be
+                        approved.
                     </p>
                 </div>
             </div>
@@ -182,12 +197,12 @@ export function FinanceSettlementCorrectionRequestPanel({
             <form onSubmit={submit} className="mt-4 space-y-4">
                 <ErrorSummary
                     errors={errors}
-                    heading="Permintaan koreksi belum dapat dikirim"
+                    heading="The correction request could not be submitted"
                     errorRef={errorRef}
                 />
                 <div>
                     <Label htmlFor="finance-correction-reason">
-                        Alasan koreksi
+                        Correction reason
                     </Label>
                     <select
                         id="finance-correction-reason"
@@ -203,7 +218,7 @@ export function FinanceSettlementCorrectionRequestPanel({
                         required
                         className="mt-2 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
-                        <option value="">Pilih alasan yang sesuai</option>
+                        <option value="">Select the applicable reason</option>
                         {Object.entries(correctionReasonLabels).map(
                             ([code, label]) => (
                                 <option key={code} value={code}>
@@ -215,7 +230,7 @@ export function FinanceSettlementCorrectionRequestPanel({
                 </div>
                 <div>
                     <Label htmlFor="finance-correction-explanation">
-                        Penjelasan kejadian
+                        Incident explanation
                     </Label>
                     <textarea
                         id="finance-correction-explanation"
@@ -233,8 +248,9 @@ export function FinanceSettlementCorrectionRequestPanel({
                         id="finance-correction-explanation-help"
                         className="mt-1 text-xs text-slate-600"
                     >
-                        Jelaskan apa yang keliru dan bukti yang perlu diperiksa
-                        supervisor. Minimal 8 dan maksimal 500 karakter.
+                        Explain what is incorrect and the evidence that needs to
+                        be reviewed by a supervisor. Minimum 8 and maximum 500
+                        characters.
                     </p>
                 </div>
                 <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 focus-within:ring-2 focus-within:ring-[#1b75bc]">
@@ -250,11 +266,11 @@ export function FinanceSettlementCorrectionRequestPanel({
                         className="mt-0.5 size-5 accent-[#0f5b62]"
                     />
                     <span>
-                        Saya mengonfirmasi permintaan ini untuk kuitansi{' '}
-                        <strong>{settlement.receipt_number}</strong> sebesar{' '}
-                        <strong>{formatRupiah(settlement.amount)}</strong>.
-                        Nominal pengembalian tidak dapat diubah pada formulir
-                        ini.
+                        I confirm this request for receipt{' '}
+                        <strong>{settlement.receipt_number}</strong> in the
+                        amount of{' '}
+                        <strong>{formatRupiah(settlement.amount)}</strong>. The
+                        refund amount cannot be changed on this form.
                     </span>
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -277,7 +293,7 @@ export function FinanceSettlementCorrectionRequestPanel({
                     >
                         {form.processing
                             ? 'Mengirim…'
-                            : 'Kirim Permintaan Koreksi'}
+                            : 'Submit Correction Request'}
                     </Button>
                 </div>
             </form>
@@ -304,19 +320,19 @@ export function FinanceSettlementCorrectionWorklist({
                                     aria-hidden="true"
                                     className="size-5"
                                 />
-                                Kendali kasir dan supervisor
+                                Cashier and supervisor controls
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Koreksi Pelunasan Tunai
+                                Cash Settlement Correction
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
-                                Daftar permintaan, keputusan supervisor, dan
-                                bukti pengembalian penuh tanpa mengubah kuitansi
-                                asal.
+                                Review requests, supervisor decisions, and full
+                                refund evidence without changing the original
+                                receipt.
                             </p>
                         </div>
                         <p className="font-['IBM_Plex_Mono'] text-xs text-sky-100">
-                            Diperbarui {generated_at}
+                            Updated {generated_at}
                         </p>
                     </div>
                 </header>
@@ -330,41 +346,41 @@ export function FinanceSettlementCorrectionWorklist({
                             id="finance-correction-worklist-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            Daftar Perkara Koreksi
+                            Correction Cases
                         </h2>
                         <p className="mt-1 text-sm text-slate-600">
-                            Status “disetujui” berarti kas masih harus
-                            diserahkan dan dicatat selesai.
+                            Status “approved” mean cash still must handed over
+                            and recorded completed.
                         </p>
                     </header>
                     {cases.length ? (
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[58rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Daftar perkara koreksi pelunasan tunai
+                                    Cash settlement correction cases
                                 </caption>
                                 <thead className="border-b border-slate-300 bg-slate-100 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Perkara dan kuitansi
+                                            Case and receipt
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Pemohon
+                                            Requester
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Alasan
+                                            Reason
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Nilai
+                                            Value
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tindakan
+                                            Action
                                         </th>
                                     </tr>
                                 </thead>
@@ -424,7 +440,7 @@ export function FinanceSettlementCorrectionWorklist({
                                                     }
                                                     className="inline-flex min-h-11 items-center rounded-md border border-[#0f5b62] bg-white px-4 font-semibold text-[#0f5b62] hover:bg-[#e8f5f3] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                                                 >
-                                                    Buka Perkara
+                                                    Open Case
                                                 </Link>
                                             </td>
                                         </tr>
@@ -439,11 +455,10 @@ export function FinanceSettlementCorrectionWorklist({
                                 className="mx-auto size-8 text-[#0f5b62]"
                             />
                             <p className="mt-3 font-semibold text-slate-900">
-                                Belum ada perkara koreksi
+                                No case correction
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
-                                Permintaan dari kuitansi pelunasan akan muncul
-                                di sini.
+                                Requests from settled receipts will appear here.
                             </p>
                         </div>
                     )}
@@ -461,7 +476,7 @@ function CaseTimeline({
     const entries = [
         {
             key: `request-${correctionCase.public_id}`,
-            label: 'Kasir mengajukan koreksi',
+            label: 'Cashier mengajukan correction',
             actor: correctionCase.requesting_cashier_name,
             explanation: correctionCase.explanation,
             occurredAt: correctionCase.requested_at,
@@ -486,7 +501,7 @@ function CaseTimeline({
                 id="finance-correction-timeline-heading"
                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
             >
-                Linimasa Bukti
+                Linimasa Evidence
             </h2>
             <ol className="mt-5 space-y-0">
                 {entries.map((entry, index) => (
@@ -524,7 +539,7 @@ function CaseTimeline({
                             ) : null}
                             {entry.amount !== null ? (
                                 <p className="mt-2 font-['IBM_Plex_Mono'] text-sm font-semibold text-slate-950 tabular-nums">
-                                    Nilai penuh {formatRupiah(entry.amount)}
+                                    Full amount {formatRupiah(entry.amount)}
                                 </p>
                             ) : null}
                         </article>
@@ -561,11 +576,11 @@ function SupervisorReviewPanel({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Mencatat keputusan supervisor…');
+        setStatus('Recording supervisor decision…');
         form.post(url, {
             preserveScroll: true,
-            onError: () => setStatus('Keputusan belum tercatat.'),
-            onSuccess: () => setStatus('Keputusan supervisor tercatat.'),
+            onError: () => setStatus('Decision was not recorded.'),
+            onSuccess: () => setStatus('Supervisor decision recorded.'),
         });
     };
 
@@ -583,23 +598,23 @@ function SupervisorReviewPanel({
                         id="finance-correction-review-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        Tinjauan Supervisor Kasir
+                        Cashier Supervisor Review
                     </h2>
                     <p className="mt-1 text-sm text-slate-600">
-                        Keputusan bersifat terminal. Persetujuan belum berarti
-                        uang telah dikembalikan.
+                        The decision is final. Approval does not mean the cash
+                        has been returned.
                     </p>
                 </div>
             </div>
             <form onSubmit={submit} className="mt-4 space-y-4">
                 <ErrorSummary
                     errors={errors}
-                    heading="Keputusan belum dapat dicatat"
+                    heading="The decision could not be recorded"
                     errorRef={errorRef}
                 />
                 <fieldset>
                     <legend className="text-sm font-semibold text-slate-900">
-                        Keputusan supervisor
+                        Supervisor decision
                     </legend>
                     <div className="mt-2 grid gap-3 sm:grid-cols-2">
                         <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-red-300 p-3 text-sm focus-within:ring-2 focus-within:ring-[#1b75bc]">
@@ -617,9 +632,9 @@ function SupervisorReviewPanel({
                             />
                             <span>
                                 <strong className="block text-red-950">
-                                    Tolak permintaan
+                                    Reject request
                                 </strong>
-                                Kuitansi asal tetap aktif sepenuhnya.
+                                The original receipt remains fully active.
                             </span>
                         </label>
                         <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-amber-300 p-3 text-sm focus-within:ring-2 focus-within:ring-[#1b75bc]">
@@ -637,18 +652,18 @@ function SupervisorReviewPanel({
                             />
                             <span>
                                 <strong className="block text-amber-950">
-                                    Setujui pengembalian penuh
+                                    Approve full refund
                                 </strong>
-                                Kas sebesar{' '}
-                                {formatRupiah(correctionCase.amount)} masih
-                                harus diserahkan dan dicatat selesai.
+                                Cash in the amount of{' '}
+                                {formatRupiah(correctionCase.amount)} still must
+                                handed over and recorded completed.
                             </span>
                         </label>
                     </div>
                 </fieldset>
                 <div>
                     <Label htmlFor="finance-correction-review-explanation">
-                        Dasar keputusan
+                        Decision basis
                     </Label>
                     <textarea
                         id="finance-correction-review-explanation"
@@ -672,8 +687,8 @@ function SupervisorReviewPanel({
                         className="mt-0.5 size-5 accent-[#0f5b62]"
                     />
                     <span>
-                        Saya telah mencocokkan kuitansi, alasan, dan bukti
-                        perkara sebelum menetapkan keputusan ini.
+                        I have matched the receipt, reason, and case evidence
+                        before menetapkan decision this.
                     </span>
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -694,7 +709,7 @@ function SupervisorReviewPanel({
                         }
                         className="min-h-11 bg-[#0f5b62] px-5 hover:bg-[#0b4147]"
                     >
-                        {form.processing ? 'Mencatat…' : 'Catat Keputusan'}
+                        {form.processing ? 'Recording…' : 'Record Decision'}
                     </Button>
                 </div>
             </form>
@@ -726,11 +741,11 @@ function RefundCompletionPanel({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Mencatat penyerahan kas…');
+        setStatus('Recording cash handover…');
         form.post(url, {
             preserveScroll: true,
-            onError: () => setStatus('Penyerahan kas belum tercatat.'),
-            onSuccess: () => setStatus('Pengembalian tunai selesai dicatat.'),
+            onError: () => setStatus('Cash handover not yet recorded.'),
+            onSuccess: () => setStatus('Cash return completed recorded.'),
         });
     };
 
@@ -749,12 +764,12 @@ function RefundCompletionPanel({
                             id="finance-refund-completion-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            Konfirmasi Penyerahan Kas
+                            Confirm Handover Cash
                         </h2>
                         <p className="mt-1 max-w-2xl text-sm text-slate-700">
-                            Persetujuan sudah tercatat, tetapi pengembalian
-                            belum selesai. Catat hanya setelah uang tunai
-                            benar-benar diserahkan.
+                            Approval has been recorded, but the refund has not
+                            yet been completed. Record it only after the cash
+                            has actually been returned.
                         </p>
                     </div>
                 </div>
@@ -765,7 +780,7 @@ function RefundCompletionPanel({
             <form onSubmit={submit} className="mt-4 space-y-4">
                 <ErrorSummary
                     errors={errors}
-                    heading="Pengembalian belum dapat dicatat selesai"
+                    heading="The completed refund could not be recorded"
                     errorRef={errorRef}
                 />
                 <label className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950 focus-within:ring-2 focus-within:ring-[#1b75bc]">
@@ -781,10 +796,10 @@ function RefundCompletionPanel({
                         className="mt-0.5 size-5 accent-[#0f5b62]"
                     />
                     <span>
-                        Saya mengonfirmasi uang tunai tepat sebesar{' '}
+                        I confirm the exact cash amount of{' '}
                         <strong>{formatRupiah(correctionCase.amount)}</strong>{' '}
-                        telah diserahkan kembali. Setelah dicatat, kuitansi asal
-                        tidak lagi berstatus pelunasan aktif.
+                        has been returned. Once recorded, the original receipt
+                        is no longer an active settlement.
                     </span>
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -803,8 +818,8 @@ function RefundCompletionPanel({
                         className="min-h-11 bg-[#0f5b62] px-5 hover:bg-[#0b4147]"
                     >
                         {form.processing
-                            ? 'Mencatat…'
-                            : 'Catat Pengembalian Selesai'}
+                            ? 'Recording…'
+                            : 'Record Completed Refund'}
                     </Button>
                 </div>
             </form>
@@ -827,7 +842,7 @@ export function FinanceSettlementCorrectionCaseView({
                     className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                 >
                     <ArrowLeft aria-hidden="true" className="size-4" />
-                    Kembali ke Daftar Koreksi
+                    Back to Correction List
                 </Link>
 
                 <header className="relative overflow-hidden rounded-2xl bg-[#123b5d] p-6 text-white shadow-sm">
@@ -841,10 +856,10 @@ export function FinanceSettlementCorrectionCaseView({
                                 {correctionCase.correction_number}
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Perkara Koreksi Pelunasan
+                                Settlement Correction Case
                             </h1>
                             <p className="mt-2 font-['IBM_Plex_Mono'] text-sm text-sky-50">
-                                Kuitansi {correctionCase.receipt_number}
+                                Receipt {correctionCase.receipt_number}
                             </p>
                         </div>
                         <div className="space-y-2 text-right">
@@ -852,7 +867,7 @@ export function FinanceSettlementCorrectionCaseView({
                                 state={correctionCase.state}
                             />
                             <p className="font-['IBM_Plex_Mono'] text-xs text-sky-100">
-                                Diperbarui {generated_at}
+                                Updated {generated_at}
                             </p>
                         </div>
                     </div>
@@ -869,12 +884,12 @@ export function FinanceSettlementCorrectionCaseView({
                         />
                         <div>
                             <p className="font-semibold">
-                                Pengembalian belum selesai
+                                Refund not yet completed
                             </p>
                             <p className="mt-1">
-                                Supervisor telah menyetujui nilai penuh, tetapi
-                                kas belum tercatat diserahkan kembali kepada
-                                pembayar.
+                                A supervisor approved the full amount, but the
+                                cash has not yet been recorded as returned to
+                                the payer.
                             </p>
                         </div>
                     </div>
@@ -890,11 +905,11 @@ export function FinanceSettlementCorrectionCaseView({
                                 id="finance-correction-summary-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                             >
-                                Ringkasan Perkara
+                                Case Summary
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Nilai diikat ke pelunasan asal dan tidak dapat
-                                diedit.
+                                The value is bound to the original settlement
+                                and cannot be edited.
                             </p>
                         </div>
                         <p className="font-['IBM_Plex_Mono'] text-2xl font-bold text-[#0b4147] tabular-nums">
@@ -904,7 +919,7 @@ export function FinanceSettlementCorrectionCaseView({
                     <dl className="mt-4 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="bg-white p-4">
                             <dt className="text-xs font-semibold text-slate-500 uppercase">
-                                Pemohon
+                                Requester
                             </dt>
                             <dd className="mt-2 font-semibold text-slate-950">
                                 {correctionCase.requesting_cashier_name}
@@ -912,7 +927,7 @@ export function FinanceSettlementCorrectionCaseView({
                         </div>
                         <div className="bg-white p-4">
                             <dt className="text-xs font-semibold text-slate-500 uppercase">
-                                Alasan tertutup
+                                Reason closed
                             </dt>
                             <dd className="mt-2 text-sm font-semibold text-slate-950">
                                 {
@@ -958,11 +973,11 @@ export function FinanceSettlementCorrectionCaseView({
                                 />
                                 <div>
                                     <p className="font-semibold">
-                                        Perkara ditutup tanpa pengembalian
+                                        Case closed without a refund
                                     </p>
                                     <p className="mt-1">
-                                        Kuitansi dan pelunasan asal tetap aktif
-                                        sepenuhnya.
+                                        The original receipt and settlement
+                                        remain fully active.
                                     </p>
                                 </div>
                             </div>
@@ -976,12 +991,12 @@ export function FinanceSettlementCorrectionCaseView({
                                     />
                                     <div>
                                         <p className="font-semibold">
-                                            Pengembalian telah selesai
+                                            Return has been completed
                                         </p>
                                         <p className="mt-1">
-                                            Pelunasan asal tetap tersimpan
-                                            sebagai bukti, tetapi tidak lagi
-                                            menambah kas bersih terkumpul.
+                                            The original settlement remains
+                                            stored as evidence, but no longer
+                                            contributes to net cash collected.
                                         </p>
                                     </div>
                                 </div>
@@ -990,7 +1005,7 @@ export function FinanceSettlementCorrectionCaseView({
                                         href={correctionCase.refund_receipt_url}
                                         className="mt-4 inline-flex min-h-11 items-center rounded-md bg-[#0f5b62] px-4 font-semibold text-white hover:bg-[#0b4147] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                                     >
-                                        Lihat Bukti Pengembalian
+                                        View Cash Return Receipt
                                     </Link>
                                 ) : null}
                             </div>
@@ -1016,7 +1031,7 @@ export function FinanceSettlementRefundReceiptView({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <ArrowLeft aria-hidden="true" className="size-4" />
-                        Kembali ke Perkara
+                        Back to Case
                     </Link>
                     <button
                         type="button"
@@ -1024,7 +1039,7 @@ export function FinanceSettlementRefundReceiptView({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#0f5b62] px-4 text-sm font-semibold text-white hover:bg-[#0b4147] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <Printer aria-hidden="true" className="size-4" />
-                        Cetak Bukti Pengembalian
+                        Print Refund Receipt
                     </button>
                 </div>
 
@@ -1077,14 +1092,14 @@ export function FinanceSettlementRefundReceiptView({
                                         Pengembalian tunai selesai
                                     </h2>
                                     <p className="mt-1 text-sm">
-                                        {formatFinanceDate(
+                                        {formatPrintedFinanceDate(
                                             receipt.completed_at,
                                         )}
                                     </p>
                                 </div>
                             </div>
                             <p className="font-['IBM_Plex_Mono'] text-2xl font-bold tabular-nums">
-                                {formatRupiah(receipt.amount)}
+                                {formatPrintedRupiah(receipt.amount)}
                             </p>
                         </section>
 
@@ -1103,7 +1118,7 @@ export function FinanceSettlementRefundReceiptView({
                                 </dt>
                                 <dd className="mt-2 text-sm font-semibold text-slate-950">
                                     {
-                                        correctionReasonLabels[
+                                        printedCorrectionReasonLabels[
                                             receipt.reason_code
                                         ]
                                     }
@@ -1135,7 +1150,7 @@ export function FinanceSettlementRefundReceiptView({
                                         {receipt.requesting_cashier_name}
                                     </dd>
                                     <dd className="mt-1 text-xs text-slate-600">
-                                        {formatFinanceDate(
+                                        {formatPrintedFinanceDate(
                                             receipt.requested_at,
                                         )}
                                     </dd>
@@ -1148,7 +1163,9 @@ export function FinanceSettlementRefundReceiptView({
                                         {receipt.approving_supervisor_name}
                                     </dd>
                                     <dd className="mt-1 text-xs text-slate-600">
-                                        {formatFinanceDate(receipt.approved_at)}
+                                        {formatPrintedFinanceDate(
+                                            receipt.approved_at,
+                                        )}
                                     </dd>
                                 </div>
                                 <div>
@@ -1159,7 +1176,7 @@ export function FinanceSettlementRefundReceiptView({
                                         {receipt.completion_actor_name}
                                     </dd>
                                     <dd className="mt-1 text-xs text-slate-600">
-                                        {formatFinanceDate(
+                                        {formatPrintedFinanceDate(
                                             receipt.completed_at,
                                         )}
                                     </dd>

@@ -148,29 +148,29 @@ export function InpatientRoutineDischargePanel({
                         </span>
                         <div>
                             <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-success uppercase">
-                                Penyelesaian episode
+                                Episode Completion
                             </p>
                             <h3
                                 id="inpatient-discharge-complete-title"
                                 className="mt-0.5 text-base font-semibold text-foreground"
                             >
-                                Episode selesai · Siap RM
+                                Episode complete · Ready for medical records
                             </h3>
                         </div>
                     </div>
                     <span className="rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
-                        Tempat tidur dilepas
+                        Bed released
                     </span>
                 </div>
 
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    Episode menunggu proses rekam medis. Penutupan oleh RM
-                    dilakukan melalui tahap terpisah.
+                    The episode is awaiting medical-record processing. Closure
+                    by medical records is completed in a separate step.
                 </p>
                 <dl className="mt-4 grid gap-3 rounded-lg border border-success/20 bg-card/80 p-3 text-sm sm:grid-cols-2">
                     <div>
                         <dt className="text-xs text-muted-foreground">
-                            Cara keluar
+                            Discharge method
                         </dt>
                         <dd className="mt-0.5 font-semibold">
                             {projection.record.disposition_label}
@@ -178,7 +178,7 @@ export function InpatientRoutineDischargePanel({
                     </div>
                     <div>
                         <dt className="text-xs text-muted-foreground">
-                            Waktu keluar
+                            Discharge time
                         </dt>
                         <dd className="mt-0.5 font-semibold">
                             {formatClinicalDate(
@@ -188,16 +188,16 @@ export function InpatientRoutineDischargePanel({
                     </div>
                     <div>
                         <dt className="text-xs text-muted-foreground">
-                            Ringkasan pulang
+                            Discharge summary
                         </dt>
                         <dd className="mt-0.5 font-semibold">
-                            Final · versi{' '}
+                            Final · version{' '}
                             {projection.record.discharge_summary_version}
                         </dd>
                     </div>
                     <div>
                         <dt className="text-xs text-muted-foreground">
-                            Penempatan terakhir
+                            Last placement
                         </dt>
                         <dd className="mt-0.5 font-mono text-xs font-semibold">
                             {projection.record.source_bed_code}
@@ -219,17 +219,17 @@ export function InpatientRoutineDischargePanel({
                 </span>
                 <div className="min-w-0">
                     <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                        Langkah setelah Final
+                        Next step after finalization
                     </p>
                     <h3
                         id="inpatient-routine-discharge-title"
                         className="mt-0.5 text-base font-semibold text-foreground"
                     >
-                        Penyelesaian episode
+                        Episode Completion
                     </h3>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        Catat cara keluar, ubah episode menjadi Siap RM, dan
-                        lepaskan tempat tidur dalam satu tindakan.
+                        Record the discharge method, mark the episode ready for
+                        medical records, and release the bed in one action.
                     </p>
                 </div>
             </div>
@@ -243,7 +243,7 @@ export function InpatientRoutineDischargePanel({
                         />
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Cara keluar
+                                Discharge method
                             </p>
                             <p className="text-sm font-semibold">
                                 {projection.disposition.label}
@@ -253,20 +253,18 @@ export function InpatientRoutineDischargePanel({
                     <dl className="grid gap-x-4 gap-y-1 text-xs sm:grid-cols-2">
                         <div className="flex items-center justify-between gap-3 sm:block">
                             <dt className="text-muted-foreground">
-                                Ringkasan pulang
+                                Discharge summary
                             </dt>
                             <dd className="font-semibold">
-                                {dischargeSummaryFinal
-                                    ? 'Final'
-                                    : 'Belum Final'}
+                                {dischargeSummaryFinal ? 'Final' : 'Not final'}
                             </dd>
                         </div>
                         <div className="flex items-center justify-between gap-3 sm:block">
                             <dt className="text-muted-foreground">
-                                Diagnosis dan prosedur akhir
+                                Final diagnosis and procedures
                             </dt>
                             <dd className="font-semibold">
-                                {codingSourceFinal ? 'Final' : 'Belum Final'}
+                                {codingSourceFinal ? 'Final' : 'Not final'}
                             </dd>
                         </div>
                     </dl>
@@ -277,25 +275,24 @@ export function InpatientRoutineDischargePanel({
                     disabled={!canExecute || form.processing}
                     onClick={() => setConfirmationOpen(true)}
                 >
-                    Selesaikan episode dan lepaskan tempat tidur
+                    Complete Episode and Release Bed
                 </Button>
             </div>
 
             {!dischargeSummaryFinal || !codingSourceFinal ? (
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    Selesaikan kedua dokumen menjadi Final sebelum menyelesaikan
-                    episode dan melepaskan tempat tidur.
+                    Finalize both documents before completing the episode and
+                    releasing the bed.
                 </p>
             ) : disabledByUnsavedDocument ? (
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    Simpan atau batalkan perubahan dokumen sebelum menyelesaikan
-                    episode.
+                    Save or discard document changes before completing episode.
                 </p>
             ) : !projection.permission.can_execute ||
               !projection.actions.execute_url ? (
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                    Penyelesaian episode tidak tersedia untuk akun, status, atau
-                    penempatan ini.
+                    Episode completion is unavailable for this account, status,
+                    or penempatan ini.
                 </p>
             ) : null}
 
@@ -307,7 +304,7 @@ export function InpatientRoutineDischargePanel({
                     className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                 >
                     <p className="font-semibold">
-                        Episode belum dapat diselesaikan
+                        The episode cannot yet be completed
                     </p>
                     <ul className="mt-1 list-disc space-y-1 pl-5 text-xs">
                         {errors.map(([key, message]) => (
@@ -328,13 +325,13 @@ export function InpatientRoutineDischargePanel({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            Selesaikan episode rawat inap?
+                            Complete the inpatient episode?
                         </DialogTitle>
                         <DialogDescription>
-                            Tindakan ini mencatat {projection.disposition.label}
-                            , mengubah episode menjadi Siap RM, dan melepaskan
-                            tempat tidur. Ringkasan pulang Final tetap tidak
-                            berubah.
+                            This records {projection.disposition.label}, marks
+                            the episode ready for medical records, and releases
+                            the bed. The final discharge summary remains
+                            unchanged.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -344,7 +341,7 @@ export function InpatientRoutineDischargePanel({
                                 variant="outline"
                                 disabled={form.processing}
                             >
-                                Periksa kembali
+                                Review again
                             </Button>
                         </DialogClose>
                         <Button
@@ -353,8 +350,8 @@ export function InpatientRoutineDischargePanel({
                             disabled={!canExecute || form.processing}
                         >
                             {form.processing
-                                ? 'Menyelesaikan episode…'
-                                : 'Ya, selesaikan episode'}
+                                ? 'Completing episode…'
+                                : 'Yes, complete episode'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

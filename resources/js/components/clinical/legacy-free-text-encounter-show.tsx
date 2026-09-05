@@ -93,45 +93,45 @@ type Props = {
 };
 
 const statusLabel: Record<string, string> = {
-    REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Dalam pemeriksaan',
-    READY_FOR_RM: 'Siap RM',
-    CLOSED: 'Ditutup',
+    REGISTERED: 'Registered',
+    IN_EXAMINATION: 'In examination',
+    READY_FOR_RM: 'Ready for records review',
+    CLOSED: 'Closed',
 };
 
 const entryTypeLabel: Record<string, string> = {
-    NURSING_INTAKE: 'Asesmen keperawatan',
-    MEDICAL_ASSESSMENT: 'Asesmen medis',
+    NURSING_INTAKE: 'Nursing assessment',
+    MEDICAL_ASSESSMENT: 'Medical assessment',
 };
 
 const sexLabel: Record<string, string> = {
-    male: 'Laki-laki',
-    female: 'Perempuan',
-    other: 'Lainnya',
-    unknown: 'Tidak diketahui',
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+    unknown: 'Unknown',
 };
 
 const labOrderStatusLabel: Record<string, string> = {
-    ACTIVE: 'Menunggu hasil',
-    COMPLETED: 'Selesai',
-    CANCELLED: 'Dibatalkan',
+    ACTIVE: 'Awaiting results',
+    COMPLETED: 'Completed',
+    CANCELLED: 'Cancelled',
 };
 
 const labResultStatusLabel: Record<string, string> = {
-    PRELIMINARY: 'Preliminer',
+    PRELIMINARY: 'Preliminary',
     FINAL: 'Final',
 };
 
 const payerLabel: Record<string, string> = {
-    UMUM: 'Umum',
+    UMUM: 'Self-pay',
     BPJS: 'BPJS',
-    LAINNYA: 'Lainnya',
+    LAINNYA: 'Other',
 };
 
 const continueLabel: Record<string, string> = {
-    LANGSUNG: 'Langsung',
-    DARI_IGD: 'Dari IGD',
-    DARI_RJ: 'Dari RJ',
+    LANGSUNG: 'Direct',
+    DARI_IGD: 'From Emergency Department',
+    DARI_RJ: 'From Outpatient Care',
 };
 
 const clinicalTabs = [
@@ -158,16 +158,27 @@ const clinicalTabSlug: Record<ClinicalTab, string> = {
     Riwayat: 'riwayat',
 };
 
+const clinicalTabLabel: Record<ClinicalTab, string> = {
+    Asesmen: 'Assessment',
+    SOAP: 'SOAP',
+    Diagnosa: 'Diagnosis',
+    Tindakan: 'Procedures',
+    Resep: 'Prescriptions',
+    'Order Lab': 'Laboratory orders',
+    'Order Rad': 'Radiology orders',
+    Riwayat: 'History',
+};
+
 const entryErrorTargets: Record<string, { id: string; label: string }> = {
-    entry_type: { id: 'entry_type', label: 'Jenis catatan' },
-    body: { id: 'body', label: 'Isi catatan' },
+    entry_type: { id: 'entry_type', label: 'Note type' },
+    body: { id: 'body', label: 'Note content' },
 };
 
 const labOrderErrorTargets: Record<string, { id: string; label: string }> = {
-    test_code: { id: 'test_code', label: 'Pemeriksaan' },
+    test_code: { id: 'test_code', label: 'Examination' },
     clinical_question: {
         id: 'clinical_question',
-        label: 'Pertanyaan klinis',
+        label: 'Clinical question',
     },
 };
 
@@ -313,7 +324,7 @@ export default function LegacyFreeTextEncounterShow({
     return (
         <>
             <Head
-                title={`Pemeriksaan — ${encounter.patient.full_name ?? 'Kunjungan'}`}
+                title={`Clinical Care — ${encounter.patient.full_name ?? 'Encounter'}`}
             />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
@@ -343,12 +354,12 @@ export default function LegacyFreeTextEncounterShow({
                         href={indexPath}
                         className="text-sm font-medium text-[#1b75bc] hover:underline"
                     >
-                        ← Kembali ke worklist{' '}
+                        ← Back to the{' '}
                         {isInpatient
-                            ? 'rawat inap'
+                            ? 'inpatient worklist'
                             : isIgd
-                              ? 'IGD'
-                              : 'rawat jalan'}
+                              ? 'emergency worklist'
+                              : 'outpatient worklist'}
                     </Link>
                 </div>
 
@@ -365,7 +376,7 @@ export default function LegacyFreeTextEncounterShow({
                                 </span>
                                 {encounter.queue_number != null ? (
                                     <span className="rounded-md bg-[#e8f2fa] px-2 py-0.5 font-mono text-[0.7rem] font-semibold text-[#123b63]">
-                                        Antrian {encounter.queue_number}
+                                        Queue {encounter.queue_number}
                                     </span>
                                 ) : null}
                             </div>
@@ -386,7 +397,7 @@ export default function LegacyFreeTextEncounterShow({
                             {(
                                 [
                                     'Cetak',
-                                    'Riwayat EMR',
+                                    'EMR history',
                                     'Order',
                                     'Resep',
                                 ] as const
@@ -420,8 +431,8 @@ export default function LegacyFreeTextEncounterShow({
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
                                 {isInpatient
-                                    ? 'Bangsal / Kelas'
-                                    : 'Klinik / Dokter'}
+                                    ? 'Ward / Class'
+                                    : 'Clinic / Physician'}
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {isInpatient
@@ -435,8 +446,8 @@ export default function LegacyFreeTextEncounterShow({
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
                                 {isInpatient
-                                    ? 'TT / Penjamin'
-                                    : 'Jadwal / Penjamin'}
+                                    ? 'Bed / Payer'
+                                    : 'Schedule / Payer'}
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {isInpatient
@@ -454,7 +465,7 @@ export default function LegacyFreeTextEncounterShow({
                         </div>
                         <div>
                             <dt className="text-[0.65rem] tracking-wide text-[#64748b] uppercase">
-                                Keluhan utama
+                                Chief complaint
                             </dt>
                             <dd className="font-medium text-[#0f172a]">
                                 {encounter.chief_complaint || '—'}
@@ -465,7 +476,7 @@ export default function LegacyFreeTextEncounterShow({
 
                 <div
                     role="tablist"
-                    aria-label="Bagian pemeriksaan klinis"
+                    aria-label="Clinical care sections"
                     className="flex flex-wrap gap-1 border-b border-[#e2e8f0] pb-px"
                 >
                     {clinicalTabs.map((tab) => {
@@ -496,7 +507,7 @@ export default function LegacyFreeTextEncounterShow({
                                     !live && 'cursor-not-allowed opacity-50',
                                 )}
                             >
-                                {tab}
+                                {clinicalTabLabel[tab]}
                             </button>
                         );
                     })}
@@ -526,13 +537,13 @@ export default function LegacyFreeTextEncounterShow({
                                     href="/pemeriksaan/laboratorium"
                                     className="text-xs font-medium text-[#1b75bc] hover:underline"
                                 >
-                                    Buka meja lab →
+                                    Open laboratory desk →
                                 </Link>
                             </div>
                             <div className="mt-3 space-y-2">
                                 {labOrders.length === 0 ? (
                                     <p className="text-sm text-[#64748b]">
-                                        Belum ada order lab untuk kunjungan ini.
+                                        No laboratory orders for this encounter.
                                     </p>
                                 ) : (
                                     labOrders.map((order) => (
@@ -555,7 +566,7 @@ export default function LegacyFreeTextEncounterShow({
                                             </div>
                                             {order.clinical_question ? (
                                                 <p className="mt-2 text-xs text-[#64748b]">
-                                                    Klinis:{' '}
+                                                    Clinical:{' '}
                                                     {order.clinical_question}
                                                 </p>
                                             ) : null}
@@ -564,12 +575,12 @@ export default function LegacyFreeTextEncounterShow({
                                                 {' · '}
                                                 {new Date(
                                                     order.requested_at,
-                                                ).toLocaleString('id-ID')}
+                                                ).toLocaleString('en-GB')}
                                             </p>
                                             {order.result ? (
                                                 <div className="mt-3 rounded-md border border-[#bbf7d0] bg-[#f0fdf4] p-2.5">
                                                     <p className="text-xs font-semibold text-[#166534]">
-                                                        Hasil (
+                                                        Result (
                                                         {labResultStatusLabel[
                                                             order.result.status
                                                         ] ??
@@ -592,7 +603,7 @@ export default function LegacyFreeTextEncounterShow({
                                                             order.result
                                                                 .issued_at,
                                                         ).toLocaleString(
-                                                            'id-ID',
+                                                            'en-GB',
                                                         )}
                                                     </p>
                                                 </div>
@@ -624,8 +635,8 @@ export default function LegacyFreeTextEncounterShow({
                                                 id="lab-order-error-summary-title"
                                                 className="font-semibold"
                                             >
-                                                Order laboratorium belum dapat
-                                                disimpan.
+                                                The laboratory request could not
+                                                be saved.
                                             </p>
                                             <ul className="mt-1 list-disc space-y-0.5 pl-5">
                                                 {labOrderErrors.map(
@@ -672,7 +683,7 @@ export default function LegacyFreeTextEncounterShow({
                                     ) : null}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="test_code">
-                                            Pemeriksaan
+                                            Examination
                                         </Label>
                                         <select
                                             id="test_code"
@@ -712,7 +723,7 @@ export default function LegacyFreeTextEncounterShow({
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="clinical_question">
-                                            Pertanyaan klinis (opsional)
+                                            Clinical question (optional)
                                         </Label>
                                         <textarea
                                             id="clinical_question"
@@ -736,7 +747,7 @@ export default function LegacyFreeTextEncounterShow({
                                                     e.target.value,
                                                 )
                                             }
-                                            placeholder="Contoh: evaluasi anemia, kontrol DM…"
+                                            placeholder="Example: anemia evaluation, diabetes follow-up…"
                                         />
                                         <InputError
                                             id="lab-order-clinical-question-error"
@@ -753,15 +764,15 @@ export default function LegacyFreeTextEncounterShow({
                                         }
                                         className="w-full bg-[#1b75bc] hover:bg-[#1665a3]"
                                     >
-                                        Simpan order lab
+                                        Save laboratory order
                                     </Button>
                                 </form>
                             </section>
                         ) : (
                             <section className="rounded-lg border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-4 text-sm text-[#64748b]">
                                 {closed
-                                    ? 'Kunjungan sudah ditutup — order lab tidak dapat ditambah.'
-                                    : 'Akun ini tidak punya hak membuat order lab.'}
+                                    ? 'The encounter is closed — laboratory orders cannot be added.'
+                                    : 'This account cannot create laboratory requests.'}
                             </section>
                         )}
                     </div>
@@ -786,12 +797,12 @@ export default function LegacyFreeTextEncounterShow({
                     >
                         <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                             <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
-                                Catatan klinis
+                                Clinical notes
                             </h2>
                             <div className="mt-3 space-y-2">
                                 {encounter.entries.length === 0 ? (
                                     <p className="text-sm text-[#64748b]">
-                                        Belum ada catatan.
+                                        No notes yet.
                                     </p>
                                 ) : (
                                     encounter.entries.map((entry) => (
@@ -808,7 +819,7 @@ export default function LegacyFreeTextEncounterShow({
                                                 <p className="text-xs text-[#64748b]">
                                                     {entry.author_name}
                                                     {entry.created_at
-                                                        ? ` · ${new Date(entry.created_at).toLocaleString('id-ID')}`
+                                                        ? ` · ${new Date(entry.created_at).toLocaleString('en-GB')}`
                                                         : ''}
                                                 </p>
                                             </div>
@@ -824,7 +835,7 @@ export default function LegacyFreeTextEncounterShow({
                         {canWrite && !closed ? (
                             <section className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4">
                                 <h2 className="text-xs font-semibold tracking-wide text-[#123b63] uppercase">
-                                    Tambah asesmen
+                                    Add assessment
                                 </h2>
                                 <form
                                     onSubmit={submit}
@@ -842,8 +853,8 @@ export default function LegacyFreeTextEncounterShow({
                                                 id="clinical-entry-error-summary-title"
                                                 className="font-semibold"
                                             >
-                                                Catatan klinis belum dapat
-                                                disimpan.
+                                                The clinical note could not be
+                                                saved.
                                             </p>
                                             <ul className="mt-1 list-disc space-y-0.5 pl-5">
                                                 {entryErrors.map(
@@ -890,7 +901,7 @@ export default function LegacyFreeTextEncounterShow({
                                     ) : null}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="entry_type">
-                                            Jenis catatan
+                                            Note type
                                         </Label>
                                         <select
                                             id="entry_type"
@@ -930,7 +941,7 @@ export default function LegacyFreeTextEncounterShow({
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="body">
-                                            Isi catatan
+                                            Note content
                                         </Label>
                                         <textarea
                                             id="body"
@@ -968,17 +979,17 @@ export default function LegacyFreeTextEncounterShow({
                                         }
                                         className="w-full bg-[#1b75bc] hover:bg-[#1665a3]"
                                     >
-                                        Simpan catatan
+                                        Save note
                                     </Button>
                                 </form>
                             </section>
                         ) : (
                             <section className="rounded-lg border border-dashed border-[#e2e8f0] bg-[#f8fafc] p-4 text-sm text-[#64748b]">
                                 {variant === 'igd'
-                                    ? 'Catatan IGD lama dipertahankan sebagai riwayat baca saja. Pencatatan baru dilakukan melalui dokumentasi IGD terstruktur.'
+                                    ? 'Legacy emergency notes remain available as read-only history. New entries use structured emergency documentation.'
                                     : closed
-                                      ? 'Kunjungan sudah ditutup — catatan tidak dapat ditambah.'
-                                      : 'Akun ini tidak punya hak menulis catatan klinis.'}
+                                      ? 'This visit is closed; no notes can be added.'
+                                      : 'This account cannot write clinical notes.'}
                             </section>
                         )}
                     </div>
@@ -1006,9 +1017,9 @@ LegacyFreeTextEncounterShow.layout = (props: Props) => {
 
     return {
         breadcrumbs: [
-            { title: 'Beranda', href: '/' },
+            { title: 'Home', href: '/' },
             {
-                title: 'Pemeriksaan',
+                title: 'Examination',
                 href: indexPath,
             },
             {

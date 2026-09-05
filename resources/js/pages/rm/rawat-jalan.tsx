@@ -50,15 +50,15 @@ type Props = {
 };
 
 const payerLabel: Record<string, string> = {
-    UMUM: 'Umum',
+    UMUM: 'Self-pay',
     BPJS: 'BPJS',
-    LAINNYA: 'Lainnya',
+    LAINNYA: 'Other',
 };
 
 const admissionLabel: Record<string, string> = {
     DATANG_SENDIRI: 'Datang sendiri',
-    RUJUKAN: 'Rujukan',
-    IGD: 'Dari IGD',
+    RUJUKAN: 'Referral',
+    IGD: 'From Emergency Department',
 };
 
 const fieldClass =
@@ -94,25 +94,25 @@ export default function RmRawatJalan({
 
     return (
         <>
-            <Head title="RM Rawat Jalan" />
+            <Head title="Outpatient Medical Records" />
 
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5 md:py-5">
                 <CareSettingSubnav
                     items={[
                         {
                             href: '/rm/rawat-jalan',
-                            label: 'Rawat Jalan',
+                            label: 'Outpatient Care',
                             active: true,
                         },
-                        { href: '/rm/rawat-inap', label: 'Rawat Inap' },
+                        { href: '/rm/rawat-inap', label: 'Inpatient Care' },
                     ]}
                 />
                 <header>
                     <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
-                        RM · Rawat Jalan
+                        Medical Records · Outpatient Care
                     </h1>
                     <p className="mt-0.5 text-xs text-[#64748b]">
-                        Antrian kunjungan siap ditinjau dan dilengkapi oleh
+                        Encounter queue ready for review and completion by
                         petugas RMIK.
                     </p>
                 </header>
@@ -124,25 +124,25 @@ export default function RmRawatJalan({
                     <div className="flex flex-wrap items-end gap-2">
                         <div className="grid min-w-[12rem] flex-1 gap-1">
                             <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
-                                No. RM / Nama
+                                Medical record no. / Name
                             </label>
                             <Input
                                 className={cn(fieldClass, 'bg-white')}
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
-                                placeholder="No.RM / Nama"
+                                placeholder="Medical record no. / Name"
                             />
                         </div>
                         <div className="grid min-w-[9rem] gap-1">
                             <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
-                                Klinik
+                                Clinic
                             </label>
                             <select
                                 className={fieldClass}
                                 value={clinic}
                                 onChange={(e) => setClinic(e.target.value)}
                             >
-                                <option value="">Semua klinik</option>
+                                <option value="">All clinics</option>
                                 {clinics.map((option) => (
                                     <option
                                         key={option.value}
@@ -155,7 +155,7 @@ export default function RmRawatJalan({
                         </div>
                         <div className="grid min-w-[9rem] gap-1">
                             <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
-                                Cara bayar
+                                Payment method
                             </label>
                             <select
                                 className={fieldClass}
@@ -175,7 +175,7 @@ export default function RmRawatJalan({
                         </div>
                         <div className="grid min-w-[9rem] gap-1">
                             <label className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase">
-                                Dari
+                                From
                             </label>
                             <Input
                                 type="date"
@@ -227,7 +227,7 @@ export default function RmRawatJalan({
                                 onChange={(e) => setShowBatal(e.target.checked)}
                                 className="accent-[#1b75bc]"
                             />
-                            Tampilkan pasien batal
+                            Show cancelled patients
                         </label>
                     </div>
                 </form>
@@ -238,28 +238,28 @@ export default function RmRawatJalan({
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Antrian
+                                        Queue
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        No. RM
+                                        MRN
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Nama
+                                        Name
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Klinik
+                                        Clinic
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Dokter
+                                        Physician
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Cara masuk
+                                        Admission route
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Penjamin
+                                        Payer
                                     </th>
                                     <th className="px-2 py-1.5 font-medium">
-                                        Kelengkapan
+                                        Completeness
                                     </th>
                                     <th className="px-2 py-1.5 font-medium" />
                                 </tr>
@@ -271,8 +271,8 @@ export default function RmRawatJalan({
                                             colSpan={9}
                                             className="px-2 py-6 text-[#64748b]"
                                         >
-                                            Tidak ada kunjungan siap RM untuk
-                                            filter ini.
+                                            No encounters are ready for medical
+                                            records under filter ini.
                                         </td>
                                     </tr>
                                 ) : (
@@ -317,18 +317,18 @@ export default function RmRawatJalan({
                                                 <p className="text-xs font-semibold text-secondary-foreground">
                                                     {encounter.status ===
                                                     'CLOSED'
-                                                        ? 'Sudah sign-off'
+                                                        ? 'Signed off'
                                                         : encounter.completeness_status ===
                                                             'COMPLETE'
                                                           ? 'Lengkap'
                                                           : encounter.completeness_status ===
                                                               'INCOMPLETE'
-                                                            ? 'Belum lengkap'
-                                                            : 'Belum ditinjau'}
+                                                            ? 'Incomplete'
+                                                            : 'Not reviewed'}
                                                 </p>
                                                 <p className="mt-0.5 text-xs text-muted-foreground">
                                                     {encounter.entry_count}{' '}
-                                                    sumber klinis
+                                                    clinical sources
                                                 </p>
                                                 {(encounter.blocker_count ??
                                                     0) > 0 ? (
@@ -356,8 +356,8 @@ export default function RmRawatJalan({
                                                 >
                                                     {encounter.status ===
                                                     'CLOSED'
-                                                        ? 'Lihat RM'
-                                                        : 'Tinjau RM'}
+                                                        ? 'View medical record'
+                                                        : 'Review medical record'}
                                                 </Link>
                                             </td>
                                         </tr>
@@ -374,8 +374,8 @@ export default function RmRawatJalan({
 
 RmRawatJalan.layout = {
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'RM', href: '/rm/rawat-jalan' },
-        { title: 'Rawat Jalan', href: '/rm/rawat-jalan' },
+        { title: 'Home', href: '/' },
+        { title: 'Medical Records', href: '/rm/rawat-jalan' },
+        { title: 'Outpatient Care', href: '/rm/rawat-jalan' },
     ] satisfies BreadcrumbItem[],
 };

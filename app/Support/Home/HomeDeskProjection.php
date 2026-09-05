@@ -26,8 +26,8 @@ final class HomeDeskProjection
     private const QUEUE_REGISTRY = [
         [
             'id' => 'queue.registered.rj',
-            'label' => 'Terdaftar RJ',
-            'hint' => 'Pasien poliklinik yang sudah didaftarkan hari ini.',
+            'label' => 'Registered outpatients',
+            'hint' => 'Outpatients registered today.',
             'tone' => 'blue',
             'route' => 'pendaftaran.rawat-jalan.index',
             'gate' => [
@@ -42,8 +42,8 @@ final class HomeDeskProjection
         ],
         [
             'id' => 'queue.in_exam.rj',
-            'label' => 'Dalam pemeriksaan RJ',
-            'hint' => 'Kunjungan poliklinik yang sedang dilayani.',
+            'label' => 'Outpatients in care',
+            'hint' => 'Outpatient encounters currently in care.',
             'tone' => 'navy',
             'route' => 'pemeriksaan.rawat-jalan.index',
             'gate' => [
@@ -58,8 +58,8 @@ final class HomeDeskProjection
         ],
         [
             'id' => 'queue.ready_rm.rj',
-            'label' => 'Siap review RM',
-            'hint' => 'Berkas rawat jalan siap ditinjau RMIK.',
+            'label' => 'Ready for records review',
+            'hint' => 'Outpatient records ready for health information review.',
             'tone' => 'orange',
             'route' => 'rm.rawat-jalan.index',
             'gate' => [
@@ -74,8 +74,8 @@ final class HomeDeskProjection
         ],
         [
             'id' => 'queue.in_exam.igd',
-            'label' => 'Pemeriksaan IGD',
-            'hint' => 'Pasien IGD yang sedang diperiksa.',
+            'label' => 'Emergency patients in care',
+            'hint' => 'Emergency patients currently being assessed.',
             'tone' => 'navy',
             'route' => 'pemeriksaan.igd.index',
             'gate' => [
@@ -90,8 +90,8 @@ final class HomeDeskProjection
         ],
         [
             'id' => 'queue.in_exam.ri',
-            'label' => 'Pemeriksaan RI',
-            'hint' => 'Pasien bangsal yang sedang dirawat.',
+            'label' => 'Inpatients in care',
+            'hint' => 'Patients currently receiving ward care.',
             'tone' => 'teal',
             'route' => 'pemeriksaan.rawat-inap.index',
             'gate' => [
@@ -106,8 +106,8 @@ final class HomeDeskProjection
         ],
         [
             'id' => 'queue.ready_rm.ri',
-            'label' => 'Siap review RM RI',
-            'hint' => 'Episode rawat inap siap ditinjau RMIK.',
+            'label' => 'Inpatient records ready for review',
+            'hint' => 'Inpatient episodes ready for health information review.',
             'tone' => 'teal',
             'route' => 'rm.rawat-inap.index',
             'gate' => [
@@ -122,8 +122,8 @@ final class HomeDeskProjection
         ],
         [
             'id' => 'queue.occupancy',
-            'label' => 'Sensus tempat tidur',
-            'hint' => 'Tempat tidur terisi pada bangsal terkelola.',
+            'label' => 'Bed census',
+            'hint' => 'Occupied beds in managed wards.',
             'tone' => 'slate',
             'route' => 'manajemen-data.bangsal.index',
             'gate' => ['type' => 'occupancy_view'],
@@ -216,7 +216,7 @@ final class HomeDeskProjection
             return [
                 'available' => false,
                 'rows' => [],
-                'read_error' => 'Ringkasan kunjungan belum dapat dimuat. Silakan coba lagi.',
+                'read_error' => 'The encounter summary could not be loaded. Please try again.',
             ];
         }
     }
@@ -405,7 +405,7 @@ final class HomeDeskProjection
                     'occupied_beds' => 0,
                     'available_beds' => 0,
                 ],
-                'read_error' => 'Status hunian rawat inap belum dapat dimuat. Silakan coba lagi.',
+                'read_error' => 'Inpatient occupancy could not be loaded. Please try again.',
             ];
         }
     }
@@ -419,24 +419,24 @@ final class HomeDeskProjection
             && $actor->canCapability(Capability::PATIENT_SEARCH);
 
         if ($canOpenRegistration) {
-            $actions[] = $this->action('rawat_jalan', 'registration', 'Buka pendaftaran', 'pendaftaran.rawat-jalan.index');
-            $actions[] = $this->action('igd', 'registration', 'Buka pendaftaran', 'pendaftaran.igd.index');
-            $actions[] = $this->action('rawat_inap', 'registration', 'Buka pendaftaran', 'pendaftaran.rawat-inap.index');
+            $actions[] = $this->action('rawat_jalan', 'registration', 'Open registration', 'pendaftaran.rawat-jalan.index');
+            $actions[] = $this->action('igd', 'registration', 'Open registration', 'pendaftaran.igd.index');
+            $actions[] = $this->action('rawat_inap', 'registration', 'Open registration', 'pendaftaran.rawat-inap.index');
         }
 
         if ($canListEncounters) {
-            $actions[] = $this->action('rawat_jalan', 'examination', 'Buka pemeriksaan', 'pemeriksaan.rawat-jalan.index');
-            $actions[] = $this->action('igd', 'examination', 'Buka pemeriksaan', 'pemeriksaan.igd.index');
-            $actions[] = $this->action('rawat_inap', 'examination', 'Buka pemeriksaan', 'pemeriksaan.rawat-inap.index');
+            $actions[] = $this->action('rawat_jalan', 'examination', 'Open clinical care', 'pemeriksaan.rawat-jalan.index');
+            $actions[] = $this->action('igd', 'examination', 'Open clinical care', 'pemeriksaan.igd.index');
+            $actions[] = $this->action('rawat_inap', 'examination', 'Open clinical care', 'pemeriksaan.rawat-inap.index');
         }
 
         if ($canListEncounters && $actor->canCapability(Capability::RMIK_REVIEW)) {
-            $actions[] = $this->action('rawat_jalan', 'medical_record', 'Buka review RM', 'rm.rawat-jalan.index');
-            $actions[] = $this->action('rawat_inap', 'medical_record', 'Buka review RM RI', 'rm.rawat-inap.index');
+            $actions[] = $this->action('rawat_jalan', 'medical_record', 'Open records review', 'rm.rawat-jalan.index');
+            $actions[] = $this->action('rawat_inap', 'medical_record', 'Open inpatient records review', 'rm.rawat-inap.index');
         }
 
         if ($this->inpatientActorPolicy->canView($actor)) {
-            $actions[] = $this->action('occupancy', 'occupancy', 'Buka sensus tempat tidur', 'manajemen-data.bangsal.index');
+            $actions[] = $this->action('occupancy', 'occupancy', 'Open bed census', 'manajemen-data.bangsal.index');
         }
 
         return $actions;

@@ -22,7 +22,7 @@ final class OutpatientTerminologyController extends Controller
             return response()->json($terminology->search($validated['system'], trim($validated['q'])));
         } catch (OutpatientLifecycleDenial $denial) {
             return response()->json([
-                'message' => $denial->getMessage(),
+                'message' => __($denial->getMessage()),
                 'reason' => $denial->reason,
             ], $denial->status);
         }

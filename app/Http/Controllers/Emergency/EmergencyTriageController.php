@@ -81,9 +81,9 @@ class EmergencyTriageController extends Controller
             'encounters' => $encounters,
             'clinics' => [],
             'payerOptions' => [
-                ['value' => Encounter::PAYER_UMUM, 'label' => 'Umum'],
+                ['value' => Encounter::PAYER_UMUM, 'label' => 'Self-pay'],
                 ['value' => Encounter::PAYER_BPJS, 'label' => 'BPJS'],
-                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Lainnya'],
+                ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Other'],
             ],
             'filters' => [
                 'q' => $q,

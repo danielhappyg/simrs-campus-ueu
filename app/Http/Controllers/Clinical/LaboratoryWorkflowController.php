@@ -87,7 +87,7 @@ final class LaboratoryWorkflowController extends Controller
         } catch (\Throwable $exception) {
             report($exception);
             $props = $this->emptyWorklist($actor, $filters);
-            $props['read_error'] = 'Worklist laboratorium belum dapat dimuat.';
+            $props['read_error'] = 'The laboratory worklist could not be loaded.';
         }
 
         return Inertia::render('pemeriksaan/laboratorium/index', $props);
@@ -310,7 +310,7 @@ final class LaboratoryWorkflowController extends Controller
             $this->denyValidation($actor, $operation, $publicId, 'stale_version', 'Versi pesanan berubah.');
         }
         if ($specimenPublicId !== null && ! $order->specimenAttempts()->where('public_id', $specimenPublicId)->where('state', LaboratorySpecimenAttempt::ACCEPTED)->exists()) {
-            $this->denyValidation($actor, $operation, $publicId, 'accepted_specimen_required', 'Spesimen diterima tidak sesuai.');
+            $this->denyValidation($actor, $operation, $publicId, 'accepted_specimen_required', 'The accepted specimen does not match.');
         }
 
         return $order;
@@ -328,7 +328,7 @@ final class LaboratoryWorkflowController extends Controller
         foreach (['recipient_user_public_id', 'communication_method', 'outcome', 'communicated_at'] as $field) {
             if (trim((string) ($input[$field] ?? '')) === '') {
                 $this->recordDenial($actor, $operation, $order, 'validation_failed');
-                throw ValidationException::withMessages(["critical_communication.{$field}" => 'Data komunikasi kritis wajib dilengkapi.']);
+                throw ValidationException::withMessages(["critical_communication.{$field}" => 'Complete the critical-result communication details.']);
             }
         }
 
@@ -471,7 +471,7 @@ final class LaboratoryWorkflowController extends Controller
             'ordering_physician_name' => $order->requestedBy->name,
             'ordering_physician_public_id' => $order->requestedBy->public_id,
             'care_setting' => $encounter->care_setting,
-            'care_location_label' => $encounter->ward_name ?: ($encounter->clinic_name ?: 'Lokasi tidak tersedia'),
+            'care_location_label' => $encounter->ward_name ?: ($encounter->clinic_name ?: 'Location unavailable'),
             'encounter_number' => $encounter->public_id,
             'encounter_url' => $this->encounterUrl($encounter),
             'patient' => [
@@ -546,7 +546,7 @@ final class LaboratoryWorkflowController extends Controller
     private function assertOnlyKeys(Request $request, array $keys): void
     {
         if (array_diff(array_keys($request->all()), $keys) !== []) {
-            throw ValidationException::withMessages(['request' => 'Permintaan memuat bidang yang tidak didukung.']);
+            throw ValidationException::withMessages(['request' => 'The request contains unsupported fields.']);
         }
     }
 
@@ -601,7 +601,7 @@ final class LaboratoryWorkflowController extends Controller
         try {
             $operation();
         } catch (LaboratoryDenied $denial) {
-            throw ValidationException::withMessages(['laboratory' => $denial->getMessage()]);
+            throw ValidationException::withMessages(['laboratory' => __($denial->getMessage())]);
         }
     }
 }

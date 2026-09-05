@@ -258,24 +258,24 @@ describe('structured emergency frontend', () => {
             <EmergencyTriageVocabularyMaster {...vocabularyMasterProps} />,
         );
         await user.click(
-            screen.getByRole('button', { name: 'Tambah kosakata' }),
+            screen.getByRole('button', { name: 'Add vocabulary' }),
         );
         await user.type(
-            screen.getByRole('textbox', { name: 'Kode permanen' }),
+            screen.getByRole('textbox', { name: 'Permanent code' }),
             'igd_triage_v2',
         );
         expect(
-            screen.getAllByText(/Kode dan urutan \d bersifat tetap/),
+            screen.getAllByText(/The code and rank \d are fixed/),
         ).toHaveLength(4);
         await user.click(
-            screen.getByRole('button', { name: 'Simpan kosakata' }),
+            screen.getByRole('button', { name: 'Save vocabulary' }),
         );
 
         expect(inertia.submissions[0]).toMatchObject({
             url: '/emergency/triage-vocabularies',
             data: {
                 code: 'IGD_TRIAGE_V2',
-                display_name: 'Kategori Triase IGD',
+                display_name: 'Emergency triage categories',
                 categories: [
                     { code: 'MERAH', rank: 1 },
                     { code: 'KUNING', rank: 2 },
@@ -290,14 +290,14 @@ describe('structured emergency frontend', () => {
     it('renders the dedicated IGD worklist with text-plus-colour triage and accessible controls', async () => {
         const { container } = render(<EmergencyWorklist {...worklist} />);
         expect(
-            screen.getByRole('heading', { name: 'Pemeriksaan IGD' }),
+            screen.getByRole('heading', { name: 'Emergency Department' }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(/MERAH · Prioritas segera/),
+            screen.getByText(/MERAH · Immediate priority/),
         ).toBeInTheDocument();
         expect(
             screen.getByRole('link', {
-                name: 'Buka episode IGD Pasien Contoh',
+                name: 'Open emergency episode Pasien Contoh',
             }),
         ).toHaveAttribute('href', '/pemeriksaan/igd/encounter-01');
         expect((await axe.run(container)).violations).toEqual([]);
@@ -306,11 +306,11 @@ describe('structured emergency frontend', () => {
     it('keeps triage on its dedicated worklist and detail route', () => {
         render(<EmergencyTriageWorklist {...worklist} />);
         expect(
-            screen.getByRole('heading', { name: 'Worklist triage IGD' }),
+            screen.getByRole('heading', { name: 'Emergency triage worklist' }),
         ).toBeInTheDocument();
         expect(
             screen.getByRole('link', {
-                name: 'Buka episode IGD Pasien Contoh',
+                name: 'Open emergency episode Pasien Contoh',
             }),
         ).toHaveAttribute('href', '/pemeriksaan/triage/encounter-01');
     });
@@ -320,24 +320,24 @@ describe('structured emergency frontend', () => {
         render(<EmergencyTriagePanel projection={triageProjection()} />);
         await user.click(screen.getByRole('radio', { name: /MERAH/ }));
         await user.type(
-            screen.getByLabelText('Keluhan / masalah saat datang'),
+            screen.getByLabelText('Presenting concern'),
             'Sesak sejak satu jam.',
         );
         await user.type(
-            screen.getByLabelText('Dasar klinis kategori'),
+            screen.getByLabelText('Clinical basis for category'),
             'Penilaian manual berdasarkan ABCDE.',
         );
         await user.type(
-            screen.getByLabelText('Kondisi saat datang'),
+            screen.getByLabelText('Condition on arrival'),
             'Datang dibantu keluarga.',
         );
 
         for (const label of [
-            'A · Jalan napas',
-            'B · Pernapasan',
-            'C · Sirkulasi',
-            'D · Kesadaran / neurologis',
-            'E · Paparan / pemeriksaan menyeluruh',
+            'A · Airway',
+            'B · Breathing',
+            'C · Circulation',
+            'D · Disability / neurological status',
+            'E · Exposure / complete examination',
         ]) {
             await user.selectOptions(
                 screen.getByLabelText(new RegExp(`^${label}`)),
@@ -346,14 +346,14 @@ describe('structured emergency frontend', () => {
         }
 
         const vitalLabels = [
-            'Frekuensi napas',
-            'Nadi',
-            'Tekanan sistolik',
-            'Tekanan diastolik',
-            'Saturasi oksigen',
-            'Suhu',
-            'Skala nyeri',
-            'Berat badan',
+            'Respiratory rate',
+            'Pulse',
+            'Systolic pressure',
+            'Diastolic pressure',
+            'Oxygen saturation',
+            'Temperature',
+            'Pain score',
+            'Weight',
         ];
         vitalLabels.forEach((label, index) =>
             fireEvent.change(screen.getByLabelText(new RegExp(`^${label}`)), {
@@ -364,7 +364,7 @@ describe('structured emergency frontend', () => {
         );
         fireEvent.submit(
             screen
-                .getByRole('button', { name: 'Finalkan asesmen awal' })
+                .getByRole('button', { name: 'Finalize initial assessment' })
                 .closest('form')!,
         );
         expect(inertia.submissions).toHaveLength(1);
@@ -386,7 +386,7 @@ describe('structured emergency frontend', () => {
             />,
         );
         const nursing = screen.getByRole('region', {
-            name: 'Dokumentasi keperawatan IGD',
+            name: 'Emergency Department nursing documentation',
         });
         const textareas = within(nursing).getAllByRole('textbox');
 
@@ -395,17 +395,17 @@ describe('structured emergency frontend', () => {
         }
 
         await user.click(
-            within(nursing).getByRole('button', { name: 'Simpan Draft' }),
+            within(nursing).getByRole('button', { name: 'Save draft' }),
         );
         expect(inertia.submissions[0]).toMatchObject({
             url: '/emergency/documents/nursing/draft',
         });
         expect(
-            screen.queryByRole('button', { name: /Finalkan dokumen/ }),
+            screen.queryByRole('button', { name: /Finalize document/ }),
         ).not.toBeInTheDocument();
         expect(
             screen.getByText(
-                'Dokumen ini ditampilkan sebagai bukti baca saja.',
+                'This document is displayed as read-only evidence.',
             ),
         ).toBeInTheDocument();
     });
@@ -420,7 +420,7 @@ describe('structured emergency frontend', () => {
         );
         expect(screen.getAllByRole('radio')).toHaveLength(5);
         const form = screen
-            .getByRole('button', { name: 'Tandatangani disposisi' })
+            .getByRole('button', { name: 'Sign disposition' })
             .closest('form');
         expect(form).not.toBeNull();
 
@@ -429,7 +429,7 @@ describe('structured emergency frontend', () => {
         }
 
         await user.click(
-            screen.getByRole('button', { name: 'Tandatangani disposisi' }),
+            screen.getByRole('button', { name: 'Sign disposition' }),
         );
         expect(inertia.submissions[0]).toMatchObject({
             url: '/emergency/disposition',
@@ -467,16 +467,16 @@ describe('structured emergency frontend', () => {
             />,
         );
         await user.type(
-            screen.getByLabelText('Alasan penugasan'),
+            screen.getByLabelText('Assignment reason'),
             'Dokter jaga berikutnya.',
         );
         await user.type(
-            screen.getByLabelText('Catatan serah terima'),
+            screen.getByLabelText('Handoff note'),
             'Pantau hasil dan tindak lanjuti.',
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Ajukan penanggung jawab',
+                name: 'Propose responsible physician',
             }),
         );
         expect(inertia.submissions[0]).toMatchObject({
@@ -534,7 +534,7 @@ describe('structured emergency frontend', () => {
             />,
         );
         await user.click(
-            screen.getByRole('button', { name: 'Terima penugasan' }),
+            screen.getByRole('button', { name: 'Accept assignment' }),
         );
         expect(inertia.submissions[0]).toMatchObject({
             url: '/follow-up/proposal-01/accept',
@@ -590,7 +590,7 @@ describe('structured emergency frontend', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Riwayat penanggung jawab hasil penunjang',
+                name: 'Diagnostic-result responsibility history',
             }),
         ).toBeInTheDocument();
         await userEvent.click(screen.getByText(/Darah Lengkap/));
@@ -598,7 +598,7 @@ describe('structured emergency frontend', () => {
             screen.getByText('Pergantian jaga pertama.'),
         ).toBeInTheDocument();
         expect(screen.getByText('Penanggung jawab akhir.')).toBeInTheDocument();
-        expect(screen.getByText(/Diterima oleh dr. Citra/)).toBeInTheDocument();
+        expect(screen.getByText(/Accepted by dr. Citra/)).toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
         expect((await axe.run(container)).violations).toEqual([]);
     });
@@ -652,9 +652,7 @@ describe('structured emergency frontend', () => {
                 followUp={followUpProjection}
             />,
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Tempatkan pasien' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Place patient' }));
         expect(inertia.submissions[0]).toMatchObject({
             url: '/emergency/handoff',
             data: {
@@ -706,9 +704,9 @@ describe('structured emergency frontend', () => {
                 followUp={followUpProjection}
             />,
         );
-        await user.click(screen.getByRole('radio', { name: /Pulang/ }));
+        await user.click(screen.getByRole('radio', { name: /Discharge/ }));
         const intentForm = screen
-            .getByRole('button', { name: 'Ajukan maksud koreksi' })
+            .getByRole('button', { name: 'Submit correction intent' })
             .closest('form')!;
 
         for (const textbox of within(intentForm).getAllByRole('textbox')) {
@@ -716,7 +714,7 @@ describe('structured emergency frontend', () => {
         }
 
         await user.click(
-            screen.getByRole('button', { name: 'Ajukan maksud koreksi' }),
+            screen.getByRole('button', { name: 'Submit correction intent' }),
         );
         expect(inertia.submissions[0]).toMatchObject({
             url: '/emergency/correction-intents',
@@ -775,14 +773,14 @@ describe('structured emergency frontend', () => {
             />,
         );
         await user.click(
-            screen.getByRole('button', { name: 'Cabut maksud koreksi' }),
+            screen.getByRole('button', { name: 'Revoke correction intent' }),
         );
         await user.type(
-            screen.getByRole('textbox', { name: 'Alasan pencabutan' }),
+            screen.getByRole('textbox', { name: 'Revocation reason' }),
             'Rencana koreksi dibatalkan oleh dokter.',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Cabut maksud koreksi' }),
+            screen.getByRole('button', { name: 'Revoke correction intent' }),
         );
 
         expect(inertia.submissions[0]).toMatchObject({

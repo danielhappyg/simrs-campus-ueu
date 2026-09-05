@@ -51,23 +51,23 @@ function BedEvidence({ source }: { source: AccommodationTariffSource }) {
     return (
         <details className="mt-2 rounded-md border border-slate-200 bg-slate-50">
             <summary className="flex min-h-11 cursor-pointer items-center px-3 text-xs font-semibold text-[#0d5275] outline-none focus-visible:ring-2 focus-visible:ring-[#1b75bc]">
-                Bukti versi tempat tidur
+                Bed-version evidence
             </summary>
             <dl className="grid gap-2 border-t border-slate-200 p-3 text-xs sm:grid-cols-2">
                 <div>
-                    <dt className="text-slate-500">Bangsal</dt>
+                    <dt className="text-slate-500">Ward</dt>
                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                         {source.ward_code} · {source.ward_display_name}
                     </dd>
                 </div>
                 <div>
-                    <dt className="text-slate-500">Versi tempat tidur</dt>
+                    <dt className="text-slate-500">Bed version</dt>
                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                         v{source.bed_version} · {source.bed_version_public_id}
                     </dd>
                 </div>
                 <div className="sm:col-span-2">
-                    <dt className="text-slate-500">Digest tepat</dt>
+                    <dt className="text-slate-500">Exact digest</dt>
                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                         {source.bed_content_digest}
                     </dd>
@@ -147,10 +147,10 @@ function MappingForm({
         const onSuccess = () => {
             setStatus(
                 isRetire
-                    ? 'Pemetaan akomodasi dijadwalkan nonaktif.'
+                    ? 'Accommodation mapping scheduled for deactivation.'
                     : isCreate
-                      ? 'Pemetaan akomodasi dibuat.'
-                      : 'Versi pemetaan akomodasi disimpan.',
+                      ? 'Accommodation mapping created.'
+                      : 'Accommodation mapping version saved.',
             );
         };
         const options = { preserveScroll: true, onSuccess };
@@ -176,15 +176,15 @@ function MappingForm({
                         className="text-lg font-semibold text-[#0b4147]"
                     >
                         {isRetire
-                            ? 'Jadwalkan nonaktif pemetaan'
+                            ? 'Schedule mapping deactivation'
                             : isCreate
-                              ? 'Buat pemetaan akomodasi'
-                              : 'Tambah versi pemetaan'}
+                              ? 'Create accommodation mapping'
+                              : 'Add mapping version'}
                     </h2>
                     <p className="mt-1 max-w-3xl text-sm text-slate-700">
-                        Pemetaan selalu mengunci identitas dan digest versi
-                        tempat tidur yang tepat. Nama kamar atau kelas tidak
-                        pernah dipakai sebagai pengganti bukti tersebut.
+                        Each mapping locks the exact bed-version identity and
+                        digest. A room or class name never substitutes for that
+                        evidence.
                     </p>
                 </div>
                 <Button
@@ -193,7 +193,7 @@ function MappingForm({
                     className="min-h-11"
                     onClick={onClose}
                 >
-                    Tutup formulir
+                    Close form
                 </Button>
             </div>
 
@@ -206,7 +206,7 @@ function MappingForm({
                         className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950 outline-none md:col-span-2"
                     >
                         <p className="font-semibold">
-                            Pemetaan belum dapat disimpan
+                            The mapping could not be saved
                         </p>
                         <ul className="mt-1 list-disc pl-5">
                             {errors.map((error) => (
@@ -219,7 +219,7 @@ function MappingForm({
                 {isCreate ? (
                     <div className="grid gap-1.5 md:col-span-2">
                         <Label htmlFor="accommodation-bed">
-                            Tempat tidur dan versi master
+                            Bed and master version
                         </Label>
                         <select
                             id="accommodation-bed"
@@ -227,7 +227,7 @@ function MappingForm({
                             onChange={(event) => setSource(event.target.value)}
                             className={financeFieldClass}
                         >
-                            <option value="">Pilih tempat tidur tepat</option>
+                            <option value="">Select an exact bed</option>
                             {props.sources.map((source) => (
                                 <option
                                     key={source.public_id}
@@ -244,7 +244,7 @@ function MappingForm({
                     </div>
                 ) : (
                     <div className="md:col-span-2">
-                        <Label>Tempat tidur yang dipetakan</Label>
+                        <Label>Mapped bed</Label>
                         <div className="mt-1 rounded-md border border-slate-300 bg-slate-50 p-3">
                             <SourceIdentity source={binding!.source} />
                             <BedEvidence source={binding!.source} />
@@ -255,7 +255,7 @@ function MappingForm({
                 {!isRetire ? (
                     <div className="grid gap-1.5 md:col-span-2">
                         <Label htmlFor="accommodation-tariff">
-                            Tarif akomodasi
+                            Accommodation tariff
                         </Label>
                         <select
                             id="accommodation-tariff"
@@ -268,9 +268,7 @@ function MappingForm({
                             }
                             className={financeFieldClass}
                         >
-                            <option value="">
-                                Pilih tarif yang telah dikelola
-                            </option>
+                            <option value="">Select a managed tariff</option>
                             {props.tariff_options.map((tariff) => (
                                 <option
                                     key={tariff.public_id}
@@ -284,16 +282,16 @@ function MappingForm({
                         </select>
                         {selectedTariff ? (
                             <p className="text-sm text-slate-600">
-                                Berlaku di master sejak{' '}
-                                {selectedTariff.effective_from}. Nilai dipakai
-                                hanya jika versi tarif ini tepat dan efektif
-                                pada tanggal layanan.
+                                Effective in the master catalogue since{' '}
+                                {selectedTariff.effective_from}. The value is
+                                used only when this exact tariff version is
+                                effective on the service date.
                             </p>
                         ) : (
                             <p className="text-sm text-slate-600">
-                                Tidak ada tarif atau nilai yang diusulkan
-                                sistem. Pilih hanya tarif yang telah
-                                dikonfigurasi Pengelola Tarif.
+                                The system does not suggest a tariff or value.
+                                Select only a tariff configured in Tariff
+                                Management.
                             </p>
                         )}
                     </div>
@@ -301,7 +299,7 @@ function MappingForm({
 
                 <div className="grid gap-1.5">
                     <Label htmlFor="accommodation-effective">
-                        {isRetire ? 'Nonaktif mulai' : 'Berlaku mulai'}
+                        {isRetire ? 'Inactive from' : 'Effective from'}
                     </Label>
                     <input
                         id="accommodation-effective"
@@ -313,13 +311,13 @@ function MappingForm({
                         className={financeFieldClass}
                     />
                     <p className="text-xs text-slate-600">
-                        Tanggal harus prospektif dan tidak boleh menulis ulang
-                        hari layanan lampau.
+                        The date must be prospective and cannot rewrite past
+                        service days.
                     </p>
                 </div>
 
                 <div className="grid gap-1.5">
-                    <Label htmlFor="accommodation-reason">Alasan</Label>
+                    <Label htmlFor="accommodation-reason">Reason</Label>
                     <textarea
                         id="accommodation-reason"
                         value={form.data.reason}
@@ -332,8 +330,7 @@ function MappingForm({
 
                 {!isCreate ? (
                     <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 md:col-span-2">
-                        Versi kepala yang diharapkan: v
-                        {binding!.latest_head_version} ·{' '}
+                        Expected head version: v{binding!.latest_head_version} ·{' '}
                         <span className="font-['IBM_Plex_Mono'] break-all">
                             {binding!.latest_head_content_digest}
                         </span>
@@ -350,8 +347,8 @@ function MappingForm({
                         className="mt-0.5 size-4 rounded border-slate-400 text-[#0f5b62] focus:ring-[#1b75bc]"
                     />
                     <span>
-                        Saya mengonfirmasi versi tempat tidur tepat, tarif yang
-                        dipilih, tanggal efektif, dan alasan perubahan ini.
+                        I confirm the exact bed version, selected tariff,
+                        effective date, and reason for this change.
                     </span>
                 </label>
 
@@ -361,7 +358,7 @@ function MappingForm({
                         className="min-h-11 bg-[#0f5b62] hover:bg-[#0b4147]"
                         disabled={form.processing || !form.data.confirm}
                     >
-                        {isRetire ? 'Jadwalkan nonaktif' : 'Simpan pemetaan'}
+                        {isRetire ? 'Schedule deactivation' : 'Save mapping'}
                     </Button>
                     {status ? (
                         <p
@@ -383,7 +380,7 @@ export function AccommodationTariffMappingWorkspace(
     const [action, setAction] = useState<MappingAction | null>(null);
     const [query, setQuery] = useState('');
     const visibleMappings = useMemo(() => {
-        const normalized = query.trim().toLocaleLowerCase('id-ID');
+        const normalized = query.trim().toLocaleLowerCase('en-GB');
 
         if (!normalized) {
             return props.mappings;
@@ -398,7 +395,7 @@ export function AccommodationTariffMappingWorkspace(
                 mapping.tariff.code,
                 mapping.tariff.display_name,
             ].some((value) =>
-                value.toLocaleLowerCase('id-ID').includes(normalized),
+                value.toLocaleLowerCase('en-GB').includes(normalized),
             ),
         );
     }, [props.mappings, query]);
@@ -415,17 +412,16 @@ export function AccommodationTariffMappingWorkspace(
                                     className="size-5"
                                 />
                                 <span className="text-sm font-semibold">
-                                    Rawat inap · akomodasi
+                                    Inpatient · accommodation
                                 </span>
                             </div>
                             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0b4147]">
-                                Pemetaan Akomodasi Rawat Inap
+                                Inpatient Accommodation Mapping
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">
-                                Hubungkan tarif yang dikelola dengan versi
-                                tempat tidur yang tepat. Satu hari okupansi yang
-                                tertutup memakai satu unit, tanpa prorata dan
-                                tanpa inferensi harga.
+                                Link a managed tariff to an exact bed version.
+                                Each closed occupancy day uses one unit, without
+                                proration or inferred pricing.
                             </p>
                         </div>
                         {props.permissions.can_manage &&
@@ -436,7 +432,7 @@ export function AccommodationTariffMappingWorkspace(
                                 onClick={() => setAction({ kind: 'create' })}
                             >
                                 <Plus aria-hidden="true" className="size-4" />
-                                Buat pemetaan
+                                Create mapping
                             </Button>
                         ) : (
                             <span className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-slate-50 px-3 text-sm font-medium text-slate-700">
@@ -444,14 +440,14 @@ export function AccommodationTariffMappingWorkspace(
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Akses lihat-saja
+                                Read-only access
                             </span>
                         )}
                     </div>
                     <dl className="mt-5 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-3">
                         <div className="bg-white p-3">
                             <dt className="text-xs font-semibold text-slate-500">
-                                Tanggal proyeksi
+                                Projection date
                             </dt>
                             <dd className="mt-1 font-['IBM_Plex_Mono'] text-sm text-slate-950">
                                 {props.as_of_date}
@@ -459,7 +455,7 @@ export function AccommodationTariffMappingWorkspace(
                         </div>
                         <div className="bg-white p-3">
                             <dt className="text-xs font-semibold text-slate-500">
-                                Master tempat tidur
+                                Bed master version
                             </dt>
                             <dd className="mt-1 font-['IBM_Plex_Mono'] text-sm text-slate-950">
                                 {props.source_master_version}
@@ -467,7 +463,7 @@ export function AccommodationTariffMappingWorkspace(
                         </div>
                         <div className="bg-white p-3">
                             <dt className="text-xs font-semibold text-slate-500">
-                                Digest master
+                                Master digest
                             </dt>
                             <dd className="mt-1 font-['IBM_Plex_Mono'] text-xs break-all text-slate-950">
                                 {props.source_master_content_digest}
@@ -499,13 +495,13 @@ export function AccommodationTariffMappingWorkspace(
                         id="occupancy-rule-heading"
                         className="font-semibold text-[#0d5275]"
                     >
-                        Hanya hari okupansi tertutup
+                        Closed occupancy days only
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-slate-700">
-                        {props.source_trigger.label} Tidak ada biaya dari
-                        admisi, tempat tidur saat ini, sensus, waktu berjalan,
-                        atau tindakan kasir. Riwayat lokasi yang tidak lengkap
-                        tetap menjadi gap dan tidak diberi nilai.
+                        {props.source_trigger.label} Charges are not created
+                        from admission, the current bed, census data, ongoing
+                        time, or a cashier action. Incomplete location history
+                        remains a gap and is not assigned a value.
                     </p>
                 </section>
 
@@ -527,22 +523,22 @@ export function AccommodationTariffMappingWorkspace(
                                 id="accommodation-mapping-heading"
                                 className="text-lg font-semibold text-[#0b4147]"
                             >
-                                Pemetaan yang berlaku
+                                Effective mappings
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Setiap pemetaan merujuk versi tempat tidur dan
-                                tarif yang dapat ditelusuri.
+                                Each mapping references traceable bed and tariff
+                                versions.
                             </p>
                         </div>
                         <label className="grid gap-1 text-sm font-medium text-slate-700">
-                            Cari pemetaan
+                            Search mapping
                             <input
                                 value={query}
                                 onChange={(event) =>
                                     setQuery(event.target.value)
                                 }
                                 className={`${financeFieldClass} min-w-64`}
-                                placeholder="Kode tempat tidur atau tarif"
+                                placeholder="Bed or tariff code"
                             />
                         </label>
                     </div>
@@ -550,25 +546,25 @@ export function AccommodationTariffMappingWorkspace(
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[70rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Pemetaan tarif akomodasi yang berlaku
+                                    Effective accommodation tariff mappings
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Tempat tidur tepat
+                                            Exact bed
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tarif efektif
+                                            Tariff effective
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             <span className="sr-only">
-                                                Aksi
+                                                Action
                                             </span>
                                         </th>
                                     </tr>
@@ -606,19 +602,19 @@ export function AccommodationTariffMappingWorkspace(
                                                         mapping.tariff
                                                             .amount_rupiah,
                                                     )}{' '}
-                                                    / hari
+                                                    / day
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4 font-['IBM_Plex_Mono'] text-slate-700">
                                                 {mapping.effective_from} —{' '}
                                                 {mapping.effective_until ??
-                                                    'berjalan'}
+                                                    'ongoing'}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <span className="inline-flex rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-950">
                                                     {mapping.state === 'ACTIVE'
-                                                        ? 'Aktif'
-                                                        : 'Nonaktif'}
+                                                        ? 'Active'
+                                                        : 'Inactive'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
@@ -634,7 +630,7 @@ export function AccommodationTariffMappingWorkspace(
                                                             aria-hidden="true"
                                                             className="size-4"
                                                         />
-                                                        Riwayat
+                                                        History
                                                     </Link>
                                                     {props.permissions
                                                         .can_manage &&
@@ -652,7 +648,7 @@ export function AccommodationTariffMappingWorkspace(
                                                                 })
                                                             }
                                                         >
-                                                            Tambah versi
+                                                            Add version
                                                         </Button>
                                                     ) : null}
                                                     {props.permissions
@@ -671,7 +667,7 @@ export function AccommodationTariffMappingWorkspace(
                                                                 })
                                                             }
                                                         >
-                                                            Nonaktifkan
+                                                            Deactivate
                                                         </Button>
                                                     ) : null}
                                                 </div>
@@ -684,12 +680,12 @@ export function AccommodationTariffMappingWorkspace(
                     ) : (
                         <div className="p-8 text-center">
                             <p className="font-semibold text-slate-950">
-                                Belum ada pemetaan tarif akomodasi yang
-                                dikonfigurasi secara sengaja.
+                                No accommodation tariff mappings have been
+                                configured.
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
-                                Tidak ada harga bawaan untuk kamar atau kelas
-                                layanan.
+                                There is no default price for a room or service
+                                class.
                             </p>
                         </div>
                     )}
@@ -704,17 +700,17 @@ export function AccommodationTariffMappingWorkspace(
                             id="accommodation-gap-heading"
                             className="text-lg font-semibold text-amber-950"
                         >
-                            Gap kesiapan akomodasi
+                            Accommodation readiness gaps
                         </h2>
                         <p className="mt-1 text-sm text-amber-900">
-                            Gap tidak menghasilkan harga, sumber biaya, atau
-                            jalan pintas penerbitan tagihan.
+                            Gaps do not create prices, source charges, or
+                            shortcuts to bill issuance.
                         </p>
                     </div>
                     {props.gaps.length ? (
                         <ul
                             className="divide-y divide-slate-200"
-                            aria-label="Gap pemetaan akomodasi"
+                            aria-label="Accommodation mapping gaps"
                         >
                             {props.gaps.map((gap) => (
                                 <li
@@ -740,7 +736,7 @@ export function AccommodationTariffMappingWorkspace(
                         </ul>
                     ) : (
                         <p className="p-5 text-sm text-slate-600">
-                            Tidak ada gap pemetaan pada proyeksi ini.
+                            No mapping gaps in this projection.
                         </p>
                     )}
                 </section>
@@ -755,7 +751,7 @@ export function AccommodationTariffMappingWorkspace(
                                 id="accommodation-history-heading"
                                 className="text-lg font-semibold text-[#0b4147]"
                             >
-                                Riwayat versi pemetaan tetap
+                                Immutable mapping version history
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
                                 {props.history.source.code} ·{' '}
@@ -765,21 +761,22 @@ export function AccommodationTariffMappingWorkspace(
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[56rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Riwayat versi pemetaan akomodasi tetap
+                                    Immutable accommodation mapping version
+                                    history
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Versi
+                                            Version
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Tarif
+                                            Tariff
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode
+                                            Period
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Alasan dan bukti
+                                            Reason and evidence
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Ditulis
@@ -816,7 +813,7 @@ export function AccommodationTariffMappingWorkspace(
                                             <td className="px-4 py-4 font-['IBM_Plex_Mono'] text-xs text-slate-700">
                                                 {version.effective_from} —{' '}
                                                 {version.effective_until ??
-                                                    'berjalan'}
+                                                    'ongoing'}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <p className="text-slate-700">

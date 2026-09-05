@@ -16,7 +16,7 @@ function ReadinessCounts({ readiness }: { readiness: FinanceSourceReadiness }) {
     return (
         <div className="space-y-1 text-xs">
             <p className="font-semibold text-emerald-800">
-                {readiness.resolved_count} terselesaikan
+                {readiness.resolved_count} resolved
             </p>
             <p
                 className={
@@ -25,16 +25,14 @@ function ReadinessCounts({ readiness }: { readiness: FinanceSourceReadiness }) {
                         : 'text-slate-600'
                 }
             >
-                {readiness.unresolved_count} belum terselesaikan
+                {readiness.unresolved_count} not yet resolved
             </p>
             {readiness.issue_blocked ? (
-                <p className="font-semibold text-red-800">
-                    Penerbitan tertahan
-                </p>
+                <p className="font-semibold text-red-800">Issuance blocked</p>
             ) : null}
             {readiness.items.length ? (
                 <ul
-                    aria-label="Status kesiapan sumber"
+                    aria-label="Charge-source readiness"
                     className="space-y-1 pt-1 text-slate-700"
                 >
                     {readiness.items.map((item) => (
@@ -63,7 +61,7 @@ function SynchronizeButton({
 
     const synchronize = () => {
         setProcessing(true);
-        setStatus('Menyinkronkan sumber biaya yang valid…');
+        setStatus('Synchronizing valid charge sources…');
         router.post(
             url,
             {
@@ -73,9 +71,9 @@ function SynchronizeButton({
                 preserveScroll: true,
                 onError: () => {
                     setProcessing(false);
-                    setStatus('Sumber biaya belum disinkronkan.');
+                    setStatus('Charge source not yet synchronized.');
                 },
-                onSuccess: () => setStatus('Sumber biaya disinkronkan.'),
+                onSuccess: () => setStatus('Charge source synchronized.'),
                 onFinish: () => setProcessing(false),
             },
         );
@@ -89,13 +87,13 @@ function SynchronizeButton({
                 disabled={processing}
                 onClick={synchronize}
                 className="min-h-11 border-[#1b75bc] text-[#0d5275]"
-                aria-label={`Sinkronkan sumber valid episode ${encounterNumber}`}
+                aria-label={`Synchronize valid sources for episode ${encounterNumber}`}
             >
                 <RefreshCw
                     aria-hidden="true"
                     className={processing ? 'animate-spin' : ''}
                 />
-                {processing ? 'Menyinkronkan…' : 'Sinkronkan sumber valid'}
+                {processing ? 'Synchronizing…' : 'Synchronize valid sources'}
             </Button>
             <span role="status" aria-live="polite" className="sr-only">
                 {status}
@@ -126,18 +124,18 @@ export function FinanceWorklist({
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Kasir lintas layanan
+                                Cross-service cashier
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Daftar Tagihan
+                                Bill List
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
-                                Tinjau sumber biaya per episode dan terbitkan
-                                versi baru tanpa mengubah riwayat sebelumnya.
+                                Review charge sources by episode and issue a new
+                                version without changing prior history.
                             </p>
                         </div>
                         <p className="rounded-md bg-white/10 px-3 py-2 font-['IBM_Plex_Mono'] text-xs">
-                            Diperbarui {generated_at}
+                            Updated {generated_at}
                         </p>
                     </div>
                 </header>
@@ -154,7 +152,7 @@ export function FinanceWorklist({
                         className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950"
                     >
                         <p className="font-semibold">
-                            Daftar tagihan belum dapat dibaca.
+                            The bill list could not be loaded.
                         </p>
                         <p className="mt-1">{read_error}</p>
                     </div>
@@ -167,22 +165,21 @@ export function FinanceWorklist({
                                 id="finance-sync-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-slate-950"
                             >
-                                Sumber biaya siap diproses
+                                Charge sources ready to process
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Sinkronkan hanya sumber Apotek, pemeriksaan
-                                Radiologi selesai, hasil asli Laboratorium
-                                berstatus VERIFIED yang valid, atau hari
-                                okupansi akomodasi yang sudah tertutup dan
-                                bertarif tepat. Baris yang belum terselesaikan
-                                tetap terlihat dan tidak diabaikan.
+                                Synchronize only dispensed pharmacy items,
+                                completed radiology examinations, valid VERIFIED
+                                laboratory results, or closed accommodation days
+                                with an exact tariff. Unresolved lines remain
+                                visible and are never ignored.
                             </p>
                         </div>
                         <div className="overflow-x-auto rounded-xl border border-[#7fbcb6] bg-white shadow-sm">
                             <table className="w-full min-w-[58rem] border-collapse text-left text-sm">
                                 <caption className="sr-only">
-                                    Episode dengan sumber biaya valid yang belum
-                                    disinkronkan
+                                    Episodes with valid unsynchronized charge
+                                    sources
                                 </caption>
                                 <thead className="border-b border-[#7fbcb6] bg-[#e8f5f3] text-xs tracking-wide text-[#0b4147] uppercase">
                                     <tr>
@@ -190,29 +187,29 @@ export function FinanceWorklist({
                                             Episode
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Pasien
+                                            Patient
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Layanan
+                                            Service
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Sumber
+                                            Source
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Neto
+                                            Net
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Kesiapan Sumber Biaya
+                                            Charge Readiness
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             <span className="sr-only">
-                                                Tindakan
+                                                Action
                                             </span>
                                         </th>
                                     </tr>
@@ -298,7 +295,7 @@ export function FinanceWorklist({
                             id="finance-worklist-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-slate-950"
                         >
-                            {bills.length} episode dengan sumber biaya
+                            {bills.length} episode with charge source
                         </h2>
                     </div>
 
@@ -306,8 +303,8 @@ export function FinanceWorklist({
                         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                             <table className="w-full min-w-[70rem] border-collapse text-left text-sm">
                                 <caption className="sr-only">
-                                    Daftar tagihan episode pasien dan status
-                                    rekonsiliasinya
+                                    Patient episode bills and reconciliation
+                                    status
                                 </caption>
                                 <thead className="border-b border-slate-300 bg-slate-100 text-xs tracking-wide text-slate-700 uppercase">
                                     <tr>
@@ -315,44 +312,44 @@ export function FinanceWorklist({
                                             Episode
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Pasien
+                                            Patient
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Layanan
+                                            Service
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Versi
+                                            Version
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Biaya
+                                            Charge
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Retur
+                                            Returns
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Neto
+                                            Net
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Rekonsiliasi
+                                            Reconciliation
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Kesiapan Sumber Biaya
+                                            Charge Readiness
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Sumber terakhir
+                                            Latest source
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             <span className="sr-only">
-                                                Buka
+                                                Open
                                             </span>
                                         </th>
                                     </tr>
@@ -426,7 +423,7 @@ export function FinanceWorklist({
                                                         {
                                                             bill.pending_source_count
                                                         }{' '}
-                                                        sumber
+                                                        source
                                                     </span>
                                                 ) : (
                                                     <FinanceStateBadge
@@ -467,7 +464,7 @@ export function FinanceWorklist({
                                                                 .show_url
                                                         }
                                                         className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[#1b75bc] px-3 font-semibold text-[#0d5275] outline-none hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc]"
-                                                        aria-label={`Buka detail tagihan ${bill.encounter.encounter_number}`}
+                                                        aria-label={`Open detail bill ${bill.encounter.encounter_number}`}
                                                     >
                                                         <FileText
                                                             aria-hidden="true"
@@ -485,14 +482,13 @@ export function FinanceWorklist({
                     ) : (
                         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
                             <p className="font-semibold text-slate-950">
-                                Belum ada sumber biaya yang dapat ditagihkan
+                                No billable charge sources
                             </p>
                             <p className="mt-1 text-sm text-slate-600">
-                                Episode akan tampil setelah sumber Apotek,
-                                pemeriksaan Radiologi selesai, hasil asli
-                                Laboratorium berstatus VERIFIED yang valid, atau
-                                hari okupansi akomodasi tertutup yang dapat
-                                direkonsiliasi tersedia.
+                                Episodes appear after a billable pharmacy item,
+                                completed radiology examination, valid VERIFIED
+                                laboratory result, or reconciled closed
+                                accommodation day becomes available.
                             </p>
                         </div>
                     )}

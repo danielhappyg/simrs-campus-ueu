@@ -182,7 +182,7 @@ describe('radiology tariff mapping frontend contract', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Pemetaan Radiologi' }),
+            screen.getByRole('heading', { name: 'Radiology Mapping' }),
         ).toBeVisible();
         expect(
             screen.getAllByText(source.master_content_digest).length,
@@ -193,7 +193,7 @@ describe('radiology tariff mapping frontend contract', () => {
         expect(screen.getByText('Tarif belum dipetakan')).toBeVisible();
         expect(
             screen.getByRole('table', {
-                name: 'Riwayat versi pemetaan radiologi tetap',
+                name: 'Immutable radiology mapping version history',
             }),
         ).toBeVisible();
 
@@ -205,31 +205,31 @@ describe('radiology tariff mapping frontend contract', () => {
         const user = userEvent.setup();
         render(<RadiologyTariffMappingWorkspace {...props} history={null} />);
 
-        await user.click(screen.getByRole('button', { name: 'Buat pemetaan' }));
-        expect(screen.getByLabelText('Tarif radiologi')).toHaveValue('');
-        expect(screen.getByText(/Tidak ada tarif atau nilai/)).toBeVisible();
+        await user.click(
+            screen.getByRole('button', { name: 'Create mapping' }),
+        );
+        expect(screen.getByLabelText('Radiology tariff')).toHaveValue('');
+        expect(screen.getByText(/No tariff or value/)).toBeVisible();
 
         await user.selectOptions(
-            screen.getByLabelText('Pemeriksaan dan versi master'),
+            screen.getByLabelText('Examination and master version'),
             source.public_id,
         );
         await user.selectOptions(
-            screen.getByLabelText('Jenis layanan'),
+            screen.getByLabelText('Service type'),
             'OUTPATIENT',
         );
         await user.selectOptions(
-            screen.getByLabelText('Tarif radiologi'),
+            screen.getByLabelText('Radiology tariff'),
             tariff.public_id,
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-10-01');
+        await user.type(screen.getByLabelText('Effective from'), '2026-10-01');
         await user.type(
-            screen.getByLabelText('Alasan'),
+            screen.getByLabelText('Reason'),
             'Pemetaan disetujui untuk layanan rawat jalan.',
         );
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.click(screen.getByText(/I confirm the master version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
 
         expect(inertia.post).toHaveBeenCalledWith(
             props.commands.create_url,
@@ -248,7 +248,7 @@ describe('radiology tariff mapping frontend contract', () => {
             expect.objectContaining({ preserveScroll: true }),
         );
         expect(screen.getByRole('status')).toHaveTextContent(
-            'Pemetaan radiologi dibuat.',
+            'Radiology mapping created.',
         );
     });
 
@@ -258,18 +258,16 @@ describe('radiology tariff mapping frontend contract', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: /Tambah versi pemetaan RAD-THORAX Rawat jalan/,
+                name: /Add mapping version RAD-THORAX Outpatient/,
             }),
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-11-01');
+        await user.type(screen.getByLabelText('Effective from'), '2026-11-01');
         await user.type(
-            screen.getByLabelText('Alasan'),
+            screen.getByLabelText('Reason'),
             'Perubahan terjadwal.',
         );
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.click(screen.getByText(/I confirm the master version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
         expect(inertia.patch).toHaveBeenCalledWith(
             binding.actions.revise_url,
             expect.objectContaining({
@@ -282,14 +280,14 @@ describe('radiology tariff mapping frontend contract', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: /Nonaktifkan pemetaan RAD-THORAX Rawat jalan/,
+                name: /Deactivate mapping RAD-THORAX Outpatient/,
             }),
         );
-        await user.type(screen.getByLabelText('Nonaktif mulai'), '2026-12-01');
-        await user.type(screen.getByLabelText('Alasan'), 'Layanan dihentikan.');
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
+        await user.type(screen.getByLabelText('Inactive from'), '2026-12-01');
+        await user.type(screen.getByLabelText('Reason'), 'Layanan dihentikan.');
+        await user.click(screen.getByText(/I confirm the master version/));
         await user.click(
-            screen.getByRole('button', { name: 'Jadwalkan nonaktif' }),
+            screen.getByRole('button', { name: 'Schedule deactivation' }),
         );
         expect(inertia.post).toHaveBeenLastCalledWith(
             binding.actions.retire_url,
@@ -314,14 +312,14 @@ describe('radiology tariff mapping frontend contract', () => {
             />,
         );
 
-        expect(screen.getByText('Akses lihat-saja')).toBeVisible();
+        expect(screen.getByText('Read-only access')).toBeVisible();
         expect(
             screen.getByText(
-                'Belum ada pemetaan tarif radiologi yang dikonfigurasi secara sengaja.',
+                'No radiology tariff mappings have been configured deliberately.',
             ),
         ).toBeVisible();
         expect(
-            screen.queryByRole('button', { name: /Buat|Tambah|Nonaktifkan/ }),
+            screen.queryByRole('button', { name: /Create|Add|Deactivate/ }),
         ).not.toBeInTheDocument();
         expect(screen.queryByText(/Rp\s?\d/)).not.toBeInTheDocument();
 
@@ -336,25 +334,25 @@ describe('radiology tariff mapping frontend contract', () => {
         const user = userEvent.setup();
         render(<RadiologyTariffMappingWorkspace {...props} history={null} />);
 
-        await user.click(screen.getByRole('button', { name: 'Buat pemetaan' }));
+        await user.click(
+            screen.getByRole('button', { name: 'Create mapping' }),
+        );
         await user.selectOptions(
-            screen.getByLabelText('Pemeriksaan dan versi master'),
+            screen.getByLabelText('Examination and master version'),
             source.public_id,
         );
         await user.selectOptions(
-            screen.getByLabelText('Jenis layanan'),
+            screen.getByLabelText('Service type'),
             'OUTPATIENT',
         );
         await user.selectOptions(
-            screen.getByLabelText('Tarif radiologi'),
+            screen.getByLabelText('Radiology tariff'),
             tariff.public_id,
         );
-        await user.type(screen.getByLabelText('Berlaku mulai'), '2026-10-01');
-        await user.type(screen.getByLabelText('Alasan'), 'Pemetaan terjadwal.');
-        await user.click(screen.getByText(/Saya mengonfirmasi versi master/));
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan pemetaan' }),
-        );
+        await user.type(screen.getByLabelText('Effective from'), '2026-10-01');
+        await user.type(screen.getByLabelText('Reason'), 'Pemetaan terjadwal.');
+        await user.click(screen.getByText(/I confirm the master version/));
+        await user.click(screen.getByRole('button', { name: 'Save mapping' }));
 
         expect(screen.getByRole('alert')).toHaveFocus();
         expect(screen.getByRole('alert')).toHaveTextContent(

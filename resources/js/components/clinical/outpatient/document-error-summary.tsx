@@ -27,7 +27,7 @@ export function DocumentErrorSummary({
             tabIndex={-1}
             className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
         >
-            <p className="font-semibold">Dokumen belum dapat disimpan.</p>
+            <p className="font-semibold">The document could not be saved.</p>
             <ul className="mt-1 list-disc space-y-1 pl-5">
                 {messages.map((message) => (
                     <li key={message}>{message}</li>

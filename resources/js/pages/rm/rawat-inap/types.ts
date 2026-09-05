@@ -140,8 +140,8 @@ export function newInpatientRmIdempotencyKey(operation: string) {
 }
 
 export const reviewStatusLabel: Record<RmikReviewStatus, string> = {
-    NOT_REVIEWED: 'Belum ditinjau',
-    INCOMPLETE: 'Belum lengkap',
-    COMPLETE: 'Lengkap, siap ditutup',
-    SIGNED_OFF: 'Episode ditutup oleh RM',
+    NOT_REVIEWED: 'Not reviewed',
+    INCOMPLETE: 'Incomplete',
+    COMPLETE: 'Complete, ready to close',
+    SIGNED_OFF: 'Episode closed by Medical Records',
 };

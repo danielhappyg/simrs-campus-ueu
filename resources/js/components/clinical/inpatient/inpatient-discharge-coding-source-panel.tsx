@@ -66,11 +66,11 @@ function validationErrors(fields: EditableFields, requirePrincipal: boolean) {
     const errors: string[] = [];
 
     if (requirePrincipal && !fields.principal_diagnosis_statement.trim()) {
-        errors.push('Diagnosis utama wajib diisi sebelum Final.');
+        errors.push('The primary diagnosis is required before finalization.');
     }
 
     if (!fields.procedure_attestation) {
-        errors.push('Pilih pernyataan prosedur sebelum menyimpan.');
+        errors.push('Select a procedure statement before saving.');
     }
 
     if (
@@ -78,9 +78,7 @@ function validationErrors(fields: EditableFields, requirePrincipal: boolean) {
             (statement) => !statement.trim(),
         )
     ) {
-        errors.push(
-            'Hapus atau isi setiap diagnosis sekunder yang ditambahkan.',
-        );
+        errors.push('Remove or complete every added secondary diagnosis.');
     }
 
     if (
@@ -91,7 +89,7 @@ function validationErrors(fields: EditableFields, requirePrincipal: boolean) {
             ))
     ) {
         errors.push(
-            'Isi setiap prosedur yang dilakukan, atau pilih tidak ada prosedur.',
+            'Enter every performed procedure, or select no procedures performed.',
         );
     }
 
@@ -351,13 +349,13 @@ export function InpatientDischargeCodingSourcePanel({
                         </span>
                         <div>
                             <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                                Sumber klinis untuk telaah rekam medis
+                                Clinical Source for Medical-Record Review
                             </p>
                             <h3
                                 id="discharge-coding-source-title"
                                 className="mt-0.5 text-base font-semibold"
                             >
-                                Diagnosis dan prosedur akhir
+                                Final diagnoses and procedures
                             </h3>
                         </div>
                     </div>
@@ -381,14 +379,14 @@ export function InpatientDischargeCodingSourcePanel({
                             />
                         )}
                         {source
-                            ? `${isFinal ? 'Final' : 'Draf'} · v${source.version}`
-                            : 'Belum dibuat'}
+                            ? `${isFinal ? 'Final' : 'Draft'} · v${source.version}`
+                            : 'Not created yet'}
                     </span>
                 </div>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-                    Dokter menuliskan diagnosis dan prosedur dalam bahasa
-                    klinis. Kode diagnosis dan prosedur ditetapkan pada telaah
-                    rekam medis.
+                    Physicians document diagnoses and procedures in clinical
+                    language. Diagnosis and procedure codes are assigned during
+                    medical-record review.
                 </p>
             </div>
 
@@ -406,7 +404,7 @@ export function InpatientDischargeCodingSourcePanel({
                         className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                     >
                         <p className="font-semibold">
-                            Diagnosis dan prosedur akhir belum dapat disimpan.
+                            Final diagnoses and procedures cannot be saved yet.
                         </p>
                         <ul className="mt-1 list-disc space-y-1 pl-5 text-xs">
                             {displayedValidationErrors.map((message) => (
@@ -422,10 +420,10 @@ export function InpatientDischargeCodingSourcePanel({
                 <div className="space-y-1.5">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <Label htmlFor="principal-diagnosis-statement">
-                            Diagnosis utama
+                            Primary diagnosis
                         </Label>
                         <span className="text-[0.68rem] text-muted-foreground">
-                            Wajib untuk Final
+                            Required to finalize
                         </span>
                     </div>
                     <textarea
@@ -450,14 +448,14 @@ export function InpatientDischargeCodingSourcePanel({
                         id="principal-diagnosis-help"
                         className="text-xs text-muted-foreground"
                     >
-                        Kondisi utama yang paling bertanggung jawab atas episode
+                        The condition chiefly responsible for the episode
                         perawatan ini.
                     </p>
                 </div>
 
                 <fieldset className="space-y-3">
                     <legend className="text-sm font-medium">
-                        Diagnosis sekunder
+                        Secondary diagnoses
                     </legend>
                     <div className="flex justify-end">
                         {!readOnly ? (
@@ -473,14 +471,14 @@ export function InpatientDischargeCodingSourcePanel({
                                 }
                             >
                                 <Plus aria-hidden="true" className="size-4" />
-                                Tambah diagnosis sekunder
+                                Add secondary diagnosis
                             </Button>
                         ) : null}
                     </div>
                     {draftForm.data.fields.secondary_diagnosis_statements
                         .length === 0 ? (
                         <p className="text-xs text-muted-foreground">
-                            Tidak ada diagnosis sekunder yang dicatat.
+                            No secondary diagnoses recorded.
                         </p>
                     ) : (
                         <div className="space-y-2">
@@ -494,7 +492,7 @@ export function InpatientDischargeCodingSourcePanel({
                                             htmlFor={`secondary-diagnosis-${index}`}
                                             className="sr-only"
                                         >
-                                            Diagnosis sekunder {index + 1}
+                                            Secondary diagnosis {index + 1}
                                         </Label>
                                         <input
                                             id={`secondary-diagnosis-${index}`}
@@ -526,7 +524,7 @@ export function InpatientDischargeCodingSourcePanel({
                                                 type="button"
                                                 size="icon"
                                                 variant="ghost"
-                                                aria-label={`Hapus diagnosis sekunder ${index + 1}`}
+                                                aria-label={`Remove secondary diagnosis ${index + 1}`}
                                                 onClick={() =>
                                                     updateFields((fields) => ({
                                                         ...fields,
@@ -560,17 +558,17 @@ export function InpatientDischargeCodingSourcePanel({
                         Pernyataan prosedur
                     </legend>
                     <p className="text-xs text-muted-foreground">
-                        Pilih satu pernyataan untuk setiap draf.
+                        Select one statement for each draft.
                     </p>
                     <div className="grid gap-2 sm:grid-cols-2">
                         {[
                             {
                                 value: 'NO_PROCEDURE_RECORDED' as const,
-                                label: 'Tidak ada prosedur yang dilakukan',
+                                label: 'No procedures performed',
                             },
                             {
                                 value: 'PROCEDURES_RECORDED' as const,
-                                label: 'Ada prosedur yang dilakukan',
+                                label: 'Procedures were performed',
                             },
                         ].map((option) => (
                             <label
@@ -621,7 +619,7 @@ export function InpatientDischargeCodingSourcePanel({
                 'PROCEDURES_RECORDED' ? (
                     <fieldset className="space-y-3">
                         <legend className="text-sm font-medium">
-                            Prosedur yang dilakukan
+                            Procedures Performed
                         </legend>
                         <div className="flex justify-end">
                             {!readOnly ? (
@@ -640,7 +638,7 @@ export function InpatientDischargeCodingSourcePanel({
                                         aria-hidden="true"
                                         className="size-4"
                                     />
-                                    Tambah prosedur
+                                    Add procedure
                                 </Button>
                             ) : null}
                         </div>
@@ -655,7 +653,7 @@ export function InpatientDischargeCodingSourcePanel({
                                             htmlFor={`performed-procedure-${index}`}
                                             className="sr-only"
                                         >
-                                            Prosedur yang dilakukan {index + 1}
+                                            Procedure {index + 1}
                                         </Label>
                                         <input
                                             id={`performed-procedure-${index}`}
@@ -687,7 +685,7 @@ export function InpatientDischargeCodingSourcePanel({
                                                 type="button"
                                                 size="icon"
                                                 variant="ghost"
-                                                aria-label={`Hapus prosedur ${index + 1}`}
+                                                aria-label={`Remove procedure ${index + 1}`}
                                                 onClick={() =>
                                                     updateFields((fields) => ({
                                                         ...fields,
@@ -718,7 +716,7 @@ export function InpatientDischargeCodingSourcePanel({
 
                 {source?.assigned_physician.name ? (
                     <p className="text-xs text-muted-foreground">
-                        Dokter penanggung jawab dokumen:{' '}
+                        Document-responsible physician:{' '}
                         <span className="font-semibold text-foreground">
                             {source.assigned_physician.name}
                         </span>
@@ -729,19 +727,18 @@ export function InpatientDischargeCodingSourcePanel({
                         role="status"
                         className="text-xs font-medium text-warning"
                     >
-                        Simpan perubahan draf sebelum melakukan Final.
+                        Save draft changes before finalizing.
                     </p>
                 ) : null}
                 {isFinal ? (
                     <p className="flex items-center gap-2 text-xs text-muted-foreground">
                         <LockKeyhole aria-hidden="true" className="size-3.5" />
-                        Diagnosis dan prosedur akhir sudah Final dan hanya dapat
-                        dibaca.
+                        Final diagnoses and procedures are read-only.
                     </p>
                 ) : null}
                 {!isFinal && !canSave && !canFinalize ? (
                     <p className="text-xs text-muted-foreground">
-                        Tidak ada tindakan yang tersedia untuk akun ini.
+                        No actions are available for this account.
                     </p>
                 ) : null}
 
@@ -755,7 +752,7 @@ export function InpatientDischargeCodingSourcePanel({
                             >
                                 {draftForm.processing
                                     ? 'Menyimpan…'
-                                    : 'Simpan draf diagnosis dan prosedur'}
+                                    : 'Save diagnosis and procedure draft'}
                             </Button>
                         ) : null}
                         {canFinalize ? (
@@ -765,8 +762,8 @@ export function InpatientDischargeCodingSourcePanel({
                                 disabled={dirty || processing}
                             >
                                 {finalForm.processing
-                                    ? 'Menjadikan Final…'
-                                    : 'Jadikan diagnosis dan prosedur Final'}
+                                    ? 'Finalizing…'
+                                    : 'Finalize diagnoses and procedures'}
                             </Button>
                         ) : null}
                     </div>
@@ -781,7 +778,7 @@ export function InpatientDischargeCodingSourcePanel({
                             className="size-4 text-primary"
                         />
                         <h4 className="text-sm font-semibold">
-                            Riwayat versi diagnosis dan prosedur
+                            Diagnosis and procedure version history
                         </h4>
                     </div>
                     <ol className="mt-3 space-y-2">
@@ -792,21 +789,21 @@ export function InpatientDischargeCodingSourcePanel({
                             >
                                 <details>
                                     <summary className="cursor-pointer text-sm font-semibold">
-                                        Versi {version.version} ·{' '}
+                                        Version {version.version} ·{' '}
                                         {version.state === 'FINAL'
                                             ? 'Final'
-                                            : 'Draf'}
+                                            : 'Draft'}
                                     </summary>
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         {version.actor_name ??
-                                            'Aktor tidak tersedia'}{' '}
+                                            'Actor unavailable'}{' '}
                                         ·{' '}
                                         {formatClinicalDate(version.created_at)}
                                     </p>
                                     <dl className="mt-3 space-y-2 text-sm">
                                         <div>
                                             <dt className="text-xs text-muted-foreground">
-                                                Diagnosis utama
+                                                Primary diagnosis
                                             </dt>
                                             <dd>
                                                 {version.fields
@@ -816,12 +813,12 @@ export function InpatientDischargeCodingSourcePanel({
                                         </div>
                                         <div>
                                             <dt className="text-xs text-muted-foreground">
-                                                Diagnosis sekunder
+                                                Secondary diagnoses
                                             </dt>
                                             <dd>
                                                 {version.fields.secondary_diagnosis_statements.join(
                                                     '; ',
-                                                ) || 'Tidak ada'}
+                                                ) || 'None'}
                                             </dd>
                                         </div>
                                         <div>
@@ -832,7 +829,7 @@ export function InpatientDischargeCodingSourcePanel({
                                                 {version.fields
                                                     .procedure_attestation ===
                                                 'NO_PROCEDURE_RECORDED'
-                                                    ? 'Tidak ada prosedur yang dilakukan'
+                                                    ? 'No procedures performed'
                                                     : version.fields.performed_procedure_statements.join(
                                                           '; ',
                                                       )}
@@ -857,12 +854,12 @@ export function InpatientDischargeCodingSourcePanel({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            Jadikan diagnosis dan prosedur akhir Final?
+                            Finalize diagnoses and procedures?
                         </DialogTitle>
                         <DialogDescription>
-                            Versi draf tersimpan akan dikunci dan menjadi sumber
-                            klinis tetap untuk telaah rekam medis. Pastikan
-                            isinya sudah lengkap dan benar.
+                            The saved draft version will be locked and become
+                            the clinical source for medical-record review.
+                            Ensure that its contents are complete and correct.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -872,7 +869,7 @@ export function InpatientDischargeCodingSourcePanel({
                                 variant="outline"
                                 disabled={processing}
                             >
-                                Periksa kembali
+                                Review Again
                             </Button>
                         </DialogClose>
                         <Button
@@ -881,8 +878,8 @@ export function InpatientDischargeCodingSourcePanel({
                             disabled={processing}
                         >
                             {finalForm.processing
-                                ? 'Menjadikan Final…'
-                                : 'Ya, jadikan Final'}
+                                ? 'Finalizing…'
+                                : 'Yes, finalize'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

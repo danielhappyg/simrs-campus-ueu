@@ -51,17 +51,17 @@ function AccommodationTariffProvenance({
     return (
         <dl className="grid gap-2 border-t border-slate-200 p-3 text-xs md:grid-cols-2">
             <div>
-                <dt className="text-slate-500">Hari okupansi</dt>
+                <dt className="text-slate-500">Occupancy day</dt>
                 <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                     {provenance.service_date} · {provenance.pricing_unit}
                     <span className="mt-1 block">
-                        Jangkar:{' '}
+                        Anchor:{' '}
                         {formatFinanceDate(provenance.occupancy_anchor_at)}
                     </span>
                 </dd>
             </div>
             <div>
-                <dt className="text-slate-500">Tempat tidur tepat</dt>
+                <dt className="text-slate-500">Exact bed</dt>
                 <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                     {provenance.bed_code} · v{provenance.inpatient_bed_version}
                     <span className="mt-1 block">
@@ -73,7 +73,7 @@ function AccommodationTariffProvenance({
                 </dd>
             </div>
             <div>
-                <dt className="text-slate-500">Penempatan dan interval</dt>
+                <dt className="text-slate-500">Placement and interval</dt>
                 <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                     {provenance.ward_code} · {provenance.room_label} ·{' '}
                     {provenance.service_class}
@@ -82,13 +82,13 @@ function AccommodationTariffProvenance({
                         {formatFinanceDate(provenance.interval_end_at)}
                     </span>
                     <span className="mt-1 block">
-                        Penutup {provenance.closing_type}:{' '}
+                        Closing event {provenance.closing_type}:{' '}
                         {provenance.closing_public_id}
                     </span>
                 </dd>
             </div>
             <div>
-                <dt className="text-slate-500">Pemetaan</dt>
+                <dt className="text-slate-500">Mapping</dt>
                 <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                     {provenance.binding_public_id} · v
                     {provenance.binding_version}
@@ -101,19 +101,19 @@ function AccommodationTariffProvenance({
                 </dd>
             </div>
             <div>
-                <dt className="text-slate-500">Tarif dan komponen biaya</dt>
+                <dt className="text-slate-500">Tariff and charge components</dt>
                 <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                     {provenance.tariff_item_code}
                     <span className="mt-1 block">
                         {provenance.component_code}
                     </span>
                     <span className="mt-1 block">
-                        Berlaku mulai: {provenance.effective_from}
+                        Effective from: {provenance.effective_from}
                     </span>
                 </dd>
             </div>
             <div>
-                <dt className="text-slate-500">Digest tarif tepat</dt>
+                <dt className="text-slate-500">Exact tariff digest</dt>
                 <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                     {provenance.tariff_content_digest}
                 </dd>
@@ -136,22 +136,22 @@ function SourceTable({
                 <thead className="border-b border-slate-300 bg-slate-100 text-xs tracking-wide text-slate-700 uppercase">
                     <tr>
                         <th scope="col" className="px-4 py-3">
-                            Sumber biaya
+                            Charge source
                         </th>
                         <th scope="col" className="px-4 py-3">
-                            Uraian
+                            Description
                         </th>
                         <th scope="col" className="px-4 py-3 text-right">
-                            Jumlah
+                            Quantity
                         </th>
                         <th scope="col" className="px-4 py-3 text-right">
-                            Nilai satuan
+                            Unit amount
                         </th>
                         <th scope="col" className="px-4 py-3 text-right">
-                            Nilai baris
+                            Line amount
                         </th>
                         <th scope="col" className="px-4 py-3">
-                            Waktu sumber
+                            Source time
                         </th>
                     </tr>
                 </thead>
@@ -167,14 +167,14 @@ function SourceTable({
                                     }`}
                                 >
                                     {line.source_domain === 'ACCOMMODATION'
-                                        ? 'Hari okupansi akomodasi'
+                                        ? 'Accommodation occupancy day'
                                         : line.source_domain === 'RADIOLOGY'
-                                          ? 'Pemeriksaan radiologi'
+                                          ? 'Radiology examination'
                                           : line.source_domain === 'LABORATORY'
-                                            ? 'Hasil asli laboratorium VERIFIED'
+                                            ? 'VERIFIED laboratory result source'
                                             : line.event_type === 'CHARGE'
-                                              ? 'Penyerahan obat'
-                                              : 'Retur obat'}
+                                              ? 'Medication dispensing'
+                                              : 'Medication return'}
                                 </span>
                                 <span className="mt-1 block text-xs font-semibold text-slate-700">
                                     {
@@ -192,7 +192,7 @@ function SourceTable({
                                 {line.tariff_provenance ? (
                                     <details className="mt-2 rounded-md border border-slate-200 bg-slate-50">
                                         <summary className="flex min-h-11 cursor-pointer items-center px-3 text-xs font-semibold text-[#0d5275] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none">
-                                            Provenans tarif
+                                            Tariff provenance
                                         </summary>
                                         {line.source_domain ===
                                         'ACCOMMODATION' ? (
@@ -207,8 +207,8 @@ function SourceTable({
                                                     <dt className="text-slate-500">
                                                         {line.source_domain ===
                                                         'LABORATORY'
-                                                            ? 'Master laboratorium'
-                                                            : 'Master radiologi'}
+                                                            ? 'Laboratory master'
+                                                            : 'Radiology master'}
                                                     </dt>
                                                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                         {line.source_domain ===
@@ -255,7 +255,8 @@ function SourceTable({
                                                 'LABORATORY' ? (
                                                     <div>
                                                         <dt className="text-slate-500">
-                                                            Hasil asli VERIFIED
+                                                            VERIFIED result
+                                                            source
                                                         </dt>
                                                         <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                             {
@@ -270,7 +271,7 @@ function SourceTable({
                                                                     .laboratory_result_version
                                                             }
                                                             <span className="mt-1 block">
-                                                                Diverifikasi:{' '}
+                                                                Verified:{' '}
                                                                 {formatFinanceDate(
                                                                     line
                                                                         .tariff_provenance
@@ -292,7 +293,7 @@ function SourceTable({
                                                 'LABORATORY' ? (
                                                     <div>
                                                         <dt className="text-slate-500">
-                                                            Spesimen
+                                                            Specimen
                                                         </dt>
                                                         <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                             {
@@ -305,7 +306,7 @@ function SourceTable({
                                                 ) : null}
                                                 <div>
                                                     <dt className="text-slate-500">
-                                                        Pemetaan
+                                                        Mapping
                                                     </dt>
                                                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                         {
@@ -338,7 +339,7 @@ function SourceTable({
                                                 </div>
                                                 <div>
                                                     <dt className="text-slate-500">
-                                                        Tarif
+                                                        Tariff
                                                     </dt>
                                                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                         {
@@ -363,7 +364,7 @@ function SourceTable({
                                                 </div>
                                                 <div>
                                                     <dt className="text-slate-500">
-                                                        Komponen biaya
+                                                        Component charge
                                                     </dt>
                                                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                         {
@@ -390,17 +391,17 @@ function SourceTable({
                                                 </div>
                                                 <div>
                                                     <dt className="text-slate-500">
-                                                        Masa berlaku tarif
+                                                        Tariff effective period
                                                     </dt>
                                                     <dd className="mt-1 font-['IBM_Plex_Mono']">
-                                                        Tanggal layanan:{' '}
+                                                        Service date:{' '}
                                                         {
                                                             line
                                                                 .tariff_provenance
                                                                 .service_date
                                                         }
                                                         <span className="mt-1 block">
-                                                            Berlaku mulai:{' '}
+                                                            Effective from:{' '}
                                                             {
                                                                 line
                                                                     .tariff_provenance
@@ -411,7 +412,7 @@ function SourceTable({
                                                 </div>
                                                 <div className="md:col-span-2">
                                                     <dt className="text-slate-500">
-                                                        Digest tarif tepat
+                                                        Exact tariff digest
                                                     </dt>
                                                     <dd className="mt-1 font-['IBM_Plex_Mono'] break-all">
                                                         {
@@ -459,7 +460,7 @@ function ControlTotals({
         <dl className="grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-3">
             <div className="bg-white p-4">
                 <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                    Biaya tercatat
+                    Charge recorded
                 </dt>
                 <dd className="mt-2 font-['IBM_Plex_Mono'] text-lg font-semibold text-slate-950 tabular-nums">
                     {formatRupiah(gross)}
@@ -467,7 +468,7 @@ function ControlTotals({
             </div>
             <div className="bg-white p-4">
                 <dt className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                    Retur
+                    Returns
                 </dt>
                 <dd className="mt-2 font-['IBM_Plex_Mono'] text-lg font-semibold text-orange-800 tabular-nums">
                     {formatRupiah(reversal)}
@@ -475,7 +476,7 @@ function ControlTotals({
             </div>
             <div className="bg-[#e8f5f3] p-4">
                 <dt className="text-xs font-semibold tracking-wide text-[#0f5b62] uppercase">
-                    Neto sumber tercakup
+                    Net sources included
                 </dt>
                 <dd className="mt-2 font-['IBM_Plex_Mono'] text-xl font-bold text-[#0b4147] tabular-nums">
                     {formatRupiah(net)}
@@ -515,12 +516,12 @@ function IssueVersionPanel({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setStatus('Menerbitkan versi tagihan…');
+        setStatus('Issuing bill version…');
         form.post(url, {
             preserveScroll: true,
-            onError: () => setStatus('Versi belum diterbitkan.'),
+            onError: () => setStatus('The version could not be issued.'),
             onSuccess: () => {
-                setStatus(`Versi ${version + 1} diterbitkan.`);
+                setStatus(`Version ${version + 1} issued.`);
                 form.setData('confirm_issue', false);
                 form.reset('issue_reason');
                 form.setData('idempotency_key', newIdempotencyKey());
@@ -542,11 +543,11 @@ function IssueVersionPanel({
                         id="finance-issue-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        Terbitkan Versi Tagihan
+                        Issue Bill Version
                     </h2>
                     <p className="mt-1 text-sm text-slate-600">
-                        Versi baru mengunci sumber biaya yang tersedia saat
-                        penerbitan. Riwayat sebelumnya tetap utuh.
+                        The new version locks the source charges available when
+                        it is issued. Previous history remains intact.
                     </p>
                 </div>
             </div>
@@ -560,7 +561,7 @@ function IssueVersionPanel({
                     className="mt-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950 outline-none focus:ring-2 focus:ring-red-600"
                 >
                     <p id="finance-error-heading" className="font-semibold">
-                        Versi tagihan belum dapat diterbitkan
+                        The bill version could not be issued
                     </p>
                     <ul className="mt-1 list-inside list-disc">
                         {errorMessages.map((message) => (
@@ -573,7 +574,7 @@ function IssueVersionPanel({
             <form onSubmit={submit} className="mt-5 space-y-4">
                 <div>
                     <Label htmlFor="finance-issue-reason">
-                        Alasan penerbitan
+                        Issuance reason
                     </Label>
                     <textarea
                         id="finance-issue-reason"
@@ -600,11 +601,10 @@ function IssueVersionPanel({
                         className="mt-0.5 size-5 accent-[#0f5b62]"
                     />
                     <span>
-                        Saya mengonfirmasi bahwa versi ini hanya memuat sumber
-                        Apotek, Radiologi, Laboratorium, dan Akomodasi yang
-                        tercakup serta telah direkonsiliasi, bukan bukti
-                        pembayaran atau tagihan lengkap seluruh layanan rumah
-                        sakit.
+                        I confirm that this version contains only reconciled
+                        pharmacy, radiology, laboratory, and accommodation
+                        charge sources. It is not proof of payment or a complete
+                        bill for all hospital services.
                     </span>
                 </label>
 
@@ -622,8 +622,8 @@ function IssueVersionPanel({
                         className="min-h-11 bg-[#0f5b62] px-5 hover:bg-[#0b4147]"
                     >
                         {form.processing
-                            ? 'Menerbitkan…'
-                            : `Terbitkan versi ${version + 1}`}
+                            ? 'Issuing…'
+                            : `Issue version ${version + 1}`}
                     </Button>
                 </div>
             </form>
@@ -669,12 +669,12 @@ function CashSettlementPanel({
             return;
         }
 
-        setStatus('Mencatat pelunasan tunai…');
+        setStatus('Recording cash settlement…');
         form.post(url, {
             preserveScroll: true,
-            onError: () => setStatus('Pelunasan belum dicatat.'),
+            onError: () => setStatus('Settlement not yet recorded.'),
             onSuccess: () => {
-                setStatus('Pelunasan tunai dicatat.');
+                setStatus('Settlement cash recorded.');
                 form.setData('confirm_settlement', false);
                 form.setData('idempotency_key', newSettlementIdempotencyKey());
             },
@@ -687,24 +687,24 @@ function CashSettlementPanel({
         const isCompleted = correctionState === 'REFUND_COMPLETED';
         const heading =
             correctionState === 'ACTIVE'
-                ? 'Tagihan Lunas'
+                ? 'Bill Settled'
                 : correctionState === 'CORRECTION_REQUESTED'
-                  ? 'Koreksi Menunggu Tinjauan'
+                  ? 'Correction Pending Review'
                   : correctionState === 'REVIEW_REJECTED'
-                    ? 'Permintaan Koreksi Ditolak'
+                    ? 'Correction Request Rejected'
                     : correctionState === 'REFUND_APPROVED'
-                      ? 'Pengembalian Disetujui'
-                      : 'Pelunasan Telah Dikoreksi';
+                      ? 'Return Approved'
+                      : 'Settlement Corrected';
         const explanation =
             correctionState === 'ACTIVE'
-                ? `Pelunasan tunai dicatat pada versi tagihan ${settlement.bill_version}.`
+                ? `Settlement cash recorded on bill version ${settlement.bill_version}.`
                 : correctionState === 'CORRECTION_REQUESTED'
-                  ? 'Permintaan sedang ditinjau. Pelunasan asal masih aktif dan tetap dihitung sebagai kas terkumpul.'
+                  ? 'The request is under review. The original settlement remains active and is still counted as cash collected.'
                   : correctionState === 'REVIEW_REJECTED'
-                    ? 'Supervisor menolak permintaan. Pelunasan dan kuitansi asal tetap aktif.'
+                    ? 'The supervisor rejected the request. The original settlement and receipt remain active.'
                     : correctionState === 'REFUND_APPROVED'
-                      ? 'Pengembalian penuh telah disetujui, tetapi uang tunai belum tercatat diserahkan kembali.'
-                      : 'Pengembalian tunai telah selesai. Pelunasan asal tetap tersimpan sebagai bukti dan tidak lagi aktif.';
+                      ? 'A full refund has been approved, but the cash return has not yet been recorded.'
+                      : 'The cash refund is complete. The original settlement remains stored as evidence and is no longer active.';
 
         return (
             <>
@@ -759,13 +759,13 @@ function CashSettlementPanel({
                     </div>
                     <dl className="mt-4 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
                         <div>
-                            <dt className="text-slate-600">Nomor kuitansi</dt>
+                            <dt className="text-slate-600">Receipt number</dt>
                             <dd className="mt-1 font-['IBM_Plex_Mono'] font-semibold text-slate-950">
                                 {settlement.settlement.receipt_number}
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-slate-600">Waktu pelunasan</dt>
+                            <dt className="text-slate-600">Settlement time</dt>
                             <dd className="mt-1 font-semibold text-slate-950">
                                 {formatFinanceDate(
                                     settlement.settlement.settled_at,
@@ -777,7 +777,7 @@ function CashSettlementPanel({
                         href={settlement.settlement.receipt_url}
                         className="mt-4 inline-flex min-h-11 items-center justify-center rounded-md bg-[#0f5b62] px-5 text-sm font-semibold text-white hover:bg-[#0b4147] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
-                        Lihat Kuitansi
+                        View Receipt
                     </Link>
                     {settlement.settlement.correction_url ? (
                         <Link
@@ -817,20 +817,20 @@ function CashSettlementPanel({
                                         id="finance-restored-balance-heading"
                                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                                     >
-                                        Sisa Tagihan yang Dapat Dilunasi
+                                        Remaining Payable Balance
                                     </h2>
                                     <p className="mt-1 max-w-3xl text-sm text-slate-700">
-                                        Kuitansi aktif di atas tetap menjadi
-                                        bukti penerimaannya sendiri dan tidak
-                                        mencakup sisa tagihan ini. Nilai berikut
-                                        dihitung dari kas bersih setelah
-                                        pengembalian terdahulu.
+                                        The active receipt above remains its own
+                                        collection evidence and is not included
+                                        in this remaining balance. The amount
+                                        below is calculated from net cash after
+                                        the previous return.
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
                                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                                    Sisa tepat
+                                    Remaining exact
                                 </p>
                                 <p className="mt-1 font-['IBM_Plex_Mono'] text-2xl font-bold text-[#0b4147] tabular-nums">
                                     {formatRupiah(settlement.amount)}
@@ -846,7 +846,7 @@ function CashSettlementPanel({
                                 className="mt-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950 outline-none focus:ring-2 focus:ring-red-600"
                             >
                                 <p className="font-semibold">
-                                    Sisa tagihan belum dapat dilunasi
+                                    The remaining balance cannot yet be settled
                                 </p>
                                 <ul className="mt-1 list-inside list-disc">
                                     {errorMessages.map((message) => (
@@ -870,12 +870,12 @@ function CashSettlementPanel({
                                     className="mt-0.5 size-5 accent-[#0f5b62]"
                                 />
                                 <span>
-                                    Saya mengonfirmasi penerimaan tunai baru
-                                    tepat sebesar{' '}
+                                    I confirm the exact new cash collection in
+                                    the amount of{' '}
                                     <strong>
                                         {formatRupiah(settlement.amount)}
                                     </strong>{' '}
-                                    untuk sisa versi tagihan{' '}
+                                    for the remaining balance on bill version{' '}
                                     {settlement.bill_version}.
                                 </span>
                             </label>
@@ -896,8 +896,8 @@ function CashSettlementPanel({
                                     className="min-h-11 bg-[#0f5b62] px-5 hover:bg-[#0b4147]"
                                 >
                                     {form.processing
-                                        ? 'Mencatat…'
-                                        : 'Catat Pelunasan Sisa Tunai'}
+                                        ? 'Recording…'
+                                        : 'Record Remaining Cash Settlement'}
                                 </Button>
                             </div>
                         </form>
@@ -930,17 +930,17 @@ function CashSettlementPanel({
                             id="finance-settlement-heading"
                             className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                         >
-                            Pelunasan Tunai
+                            Cash Settlement
                         </h2>
                         <p className="mt-1 text-sm text-slate-600">
-                            Nilai diambil langsung dari versi tagihan terbit dan
-                            tidak dapat diubah pada langkah ini.
+                            The amount comes directly from the issued bill
+                            version and cannot be changed at this step.
                         </p>
                     </div>
                 </div>
                 <div className="text-right">
                     <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                        Jumlah dibayar
+                        Amount paid
                     </p>
                     <p className="mt-1 font-['IBM_Plex_Mono'] text-2xl font-bold text-[#0b4147] tabular-nums">
                         {formatRupiah(settlement.amount)}
@@ -960,7 +960,7 @@ function CashSettlementPanel({
                         id="finance-settlement-error-heading"
                         className="font-semibold"
                     >
-                        Pelunasan belum dapat dicatat
+                        The settlement could not be recorded
                     </p>
                     <ul className="mt-1 list-inside list-disc">
                         {errorMessages.map((message) => (
@@ -984,9 +984,9 @@ function CashSettlementPanel({
                         className="mt-0.5 size-5 accent-[#0f5b62]"
                     />
                     <span>
-                        Saya mengonfirmasi penerimaan tunai tepat sebesar{' '}
-                        <strong>{formatRupiah(settlement.amount)}</strong> untuk
-                        versi tagihan {settlement.bill_version}.
+                        I confirm the exact cash collection amount of{' '}
+                        <strong>{formatRupiah(settlement.amount)}</strong> for
+                        bill version {settlement.bill_version}.
                     </span>
                 </label>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1005,8 +1005,8 @@ function CashSettlementPanel({
                         className="min-h-11 bg-[#0f5b62] px-5 hover:bg-[#0b4147]"
                     >
                         {form.processing
-                            ? 'Mencatat…'
-                            : 'Catat Pelunasan Tunai'}
+                            ? 'Recording…'
+                            : 'Record Cash Settlement'}
                     </Button>
                 </div>
             </form>
@@ -1030,26 +1030,23 @@ function SourceReadinessPanel({
                         id="finance-readiness-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-[#0b4147]"
                     >
-                        Kesiapan Sumber Biaya
+                        Charge Source Readiness
                     </h2>
                     <p className="mt-1 text-sm text-slate-700">
-                        Status pemeriksaan Radiologi yang sudah dilakukan dan
-                        hasil asli Laboratorium berstatus VERIFIED pada episode
-                        ini.
+                        PERFORMED radiology examinations and VERIFIED laboratory
+                        result sources for this episode.
                     </p>
                 </div>
                 <dl className="grid grid-cols-2 gap-2 text-center text-sm">
                     <div className="rounded-md border border-emerald-300 bg-white px-3 py-2">
-                        <dt className="text-xs text-slate-600">
-                            Terselesaikan
-                        </dt>
+                        <dt className="text-xs text-slate-600">Resolved</dt>
                         <dd className="font-['IBM_Plex_Mono'] text-lg font-bold text-emerald-900">
                             {readiness.resolved_count}
                         </dd>
                     </div>
                     <div className="rounded-md border border-amber-300 bg-white px-3 py-2">
                         <dt className="text-xs text-slate-600">
-                            Belum terselesaikan
+                            Not yet resolved
                         </dt>
                         <dd className="font-['IBM_Plex_Mono'] text-lg font-bold text-amber-950">
                             {readiness.unresolved_count}
@@ -1069,11 +1066,11 @@ function SourceReadinessPanel({
                     />
                     <div>
                         <p className="font-semibold">
-                            Penerbitan versi tagihan tertahan
+                            Bill version issuance blocked
                         </p>
                         <p className="mt-1">
                             {readiness.issue_blocker ??
-                                'Selesaikan seluruh sumber diagnostik yang belum terselesaikan, lalu periksa kembali kesiapan.'}
+                                'Resolve all outstanding diagnostic sources, then check readiness again.'}
                         </p>
                     </div>
                 </div>
@@ -1083,22 +1080,22 @@ function SourceReadinessPanel({
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[52rem] text-left text-sm">
                         <caption className="sr-only">
-                            Kesiapan sumber biaya Radiologi, Laboratorium, dan
-                            Akomodasi per layanan
+                            Radiology, laboratory, and accommodation
+                            charge-source readiness by service
                         </caption>
                         <thead className="border-y border-slate-200 bg-slate-50 text-xs tracking-wide text-slate-700 uppercase">
                             <tr>
                                 <th scope="col" className="px-4 py-3">
-                                    Pemeriksaan
+                                    Examination
                                 </th>
                                 <th scope="col" className="px-4 py-3">
-                                    Waktu layanan
+                                    Service time
                                 </th>
                                 <th scope="col" className="px-4 py-3">
                                     Status
                                 </th>
                                 <th scope="col" className="px-4 py-3">
-                                    Keterangan
+                                    Details
                                 </th>
                             </tr>
                         </thead>
@@ -1146,9 +1143,9 @@ function SourceReadinessPanel({
                 </div>
             ) : (
                 <p className="p-5 text-sm text-slate-600">
-                    Belum ada pemeriksaan Radiologi, hasil asli Laboratorium
-                    berstatus VERIFIED, atau hari Akomodasi tertutup pada
-                    episode ini.
+                    No PERFORMED radiology examinations, VERIFIED laboratory
+                    source results, or closed accommodation days for this
+                    episode this.
                 </p>
             )}
         </section>
@@ -1183,7 +1180,7 @@ export function FinanceBillDetail({
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Detail Tagihan Pasien
+                                Patient Bill Details
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
                                 {bill.encounter.patient.full_name}
@@ -1197,7 +1194,7 @@ export function FinanceBillDetail({
                         <div className="space-y-2 text-right">
                             <FinanceStateBadge state={bill.state} />
                             <p className="font-['IBM_Plex_Mono'] text-xs text-sky-100">
-                                Diperbarui {generated_at}
+                                Updated {generated_at}
                             </p>
                         </div>
                     </div>
@@ -1215,7 +1212,7 @@ export function FinanceBillDetail({
                         className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950"
                     >
                         <p className="font-semibold">
-                            Detail tagihan belum dapat dibaca.
+                            Bill details could not be loaded.
                         </p>
                         <p className="mt-1">{read_error}</p>
                     </div>
@@ -1229,11 +1226,11 @@ export function FinanceBillDetail({
                         id="finance-episode-heading"
                         className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                     >
-                        Episode layanan
+                        Episode service
                     </h2>
                     <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                         <div>
-                            <dt className="text-slate-500">Layanan</dt>
+                            <dt className="text-slate-500">Service</dt>
                             <dd className="mt-1 font-semibold text-slate-950">
                                 {careSettingLabels[bill.encounter.care_setting]}
                             </dd>
@@ -1245,9 +1242,9 @@ export function FinanceBillDetail({
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-slate-500">Sumber tercatat</dt>
+                            <dt className="text-slate-500">Source recorded</dt>
                             <dd className="mt-1 font-['IBM_Plex_Mono'] font-semibold text-slate-950">
-                                {bill.current_source_event_count} baris
+                                {bill.current_source_event_count} line
                             </dd>
                         </div>
                     </dl>
@@ -1271,12 +1268,11 @@ export function FinanceBillDetail({
                                 id="finance-source-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                             >
-                                Sumber Biaya
+                                Charge Sources
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Sumber Apotek, Radiologi, Laboratorium, dan
-                                Akomodasi yang telah direkonsiliasi untuk versi
-                                berikutnya.
+                                Reconciled pharmacy, radiology, laboratory, and
+                                accommodation sources for the next version.
                             </p>
                         </div>
                     </div>
@@ -1287,7 +1283,7 @@ export function FinanceBillDetail({
                     />
                     <SourceTable
                         lines={bill.current_sources}
-                        caption="Sumber biaya Apotek, Radiologi, Laboratorium, dan Akomodasi terkini"
+                        caption="Current pharmacy, radiology, laboratory, and accommodation source charges"
                     />
                 </section>
 
@@ -1323,11 +1319,10 @@ export function FinanceBillDetail({
                                 id="finance-history-heading"
                                 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold"
                             >
-                                Riwayat Versi
+                                Version History
                             </h2>
                             <p className="mt-1 text-sm text-slate-600">
-                                Setiap versi dan barisnya tetap dapat
-                                ditelusuri.
+                                Each version and its lines remain traced.
                             </p>
                         </div>
                     </div>
@@ -1342,21 +1337,21 @@ export function FinanceBillDetail({
                                     <header className="grid gap-3 border-b border-slate-200 bg-slate-100 p-4 md:grid-cols-[1fr_auto]">
                                         <div>
                                             <h3 className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold">
-                                                Versi {version.version}
+                                                Version {version.version}
                                                 {version.public_id ===
                                                 currentVersion?.public_id
-                                                    ? ' · Terkini'
+                                                    ? ' · Current'
                                                     : ''}
                                             </h3>
                                             <p className="mt-1 text-sm text-slate-600">
                                                 {version.issue_reason}
                                             </p>
                                             <p className="mt-1 text-xs font-semibold text-[#0f5b62]">
-                                                Cakupan saat diterbitkan:{' '}
+                                                Coverage when issued:{' '}
                                                 {version.coverage_label}
                                             </p>
                                             <p className="mt-1 text-xs text-slate-500">
-                                                Diterbitkan oleh akun Kasir #
+                                                Issued by account Cashier #
                                                 {version.issued_by_user_id} ·{' '}
                                                 {formatFinanceDate(
                                                     version.issued_at,
@@ -1375,7 +1370,7 @@ export function FinanceBillDetail({
                                         />
                                         <SourceTable
                                             lines={version.lines}
-                                            caption={`Baris sumber biaya versi ${version.version}`}
+                                            caption={`Source-charge lines for version ${version.version}`}
                                         />
                                     </div>
                                 </article>
@@ -1383,7 +1378,7 @@ export function FinanceBillDetail({
                         </div>
                     ) : (
                         <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600">
-                            Belum ada versi yang diterbitkan.
+                            No versions have been issued.
                         </div>
                     )}
                 </section>

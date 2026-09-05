@@ -116,15 +116,15 @@ final class InpatientRmController extends Controller
             'filter_options' => [
                 'wards' => $wards,
                 'payers' => [
-                    ['value' => Encounter::PAYER_UMUM, 'label' => 'Umum'],
+                    ['value' => Encounter::PAYER_UMUM, 'label' => 'Self-pay'],
                     ['value' => Encounter::PAYER_BPJS, 'label' => 'BPJS'],
-                    ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Lainnya'],
+                    ['value' => Encounter::PAYER_LAINNYA, 'label' => 'Other'],
                 ],
                 'review_states' => [
-                    ['value' => 'NOT_REVIEWED', 'label' => 'Belum direview'],
-                    ['value' => 'INCOMPLETE', 'label' => 'Ada blocker'],
-                    ['value' => 'COMPLETE', 'label' => 'Siap signoff'],
-                    ['value' => 'SIGNED_OFF', 'label' => 'Ditutup'],
+                    ['value' => 'NOT_REVIEWED', 'label' => 'Not reviewed'],
+                    ['value' => 'INCOMPLETE', 'label' => 'Has blockers'],
+                    ['value' => 'COMPLETE', 'label' => 'Ready for sign-off'],
+                    ['value' => 'SIGNED_OFF', 'label' => 'Closed'],
                 ],
             ],
             'encounters' => $encounters,
@@ -227,9 +227,9 @@ final class InpatientRmController extends Controller
         $status = $encounter->status === Encounter::STATUS_CLOSED ? 'SIGNED_OFF'
             : (! $current ? 'NOT_REVIEWED' : ($snapshot['blockers'] === [] ? 'COMPLETE' : 'INCOMPLETE'));
         $items = collect($snapshot['items'])->map(fn (array $item): array => [
-            'code' => $item['item_code'], 'label' => $item['label'],
+            'code' => $item['item_code'], 'label' => __($item['label']),
             'status' => $item['is_complete'] ? 'PASS' : 'FAIL',
-            'reason' => $item['is_complete'] ? null : 'Sumber wajib belum lengkap atau masih aktif.',
+            'reason' => $item['is_complete'] ? null : 'A required source is incomplete or still active.',
         ])->all();
         $byCode = collect($items)->keyBy('code');
 
@@ -239,8 +239,8 @@ final class InpatientRmController extends Controller
             'source_fingerprint' => $snapshot['source_fingerprint'],
             'items' => $items,
             'blockers' => collect($snapshot['blockers'])->map(fn (string $code): array => [
-                'code' => $code, 'label' => $byCode->get($code)['label'] ?? $code,
-                'reason' => $byCode->get($code)['reason'] ?? 'Sumber wajib belum lengkap.',
+                'code' => $code, 'label' => __($byCode->get($code)['label'] ?? $code),
+                'reason' => $byCode->get($code)['reason'] ?? 'A required source is incomplete.',
             ])->all(),
             'reviewer_name' => $latestReview instanceof InpatientRmCompletenessReview ? $latestReview->reviewedBy->name : null,
             'reviewed_at' => $latestReview instanceof InpatientRmCompletenessReview ? $latestReview->reviewed_at->toIso8601String() : null,
@@ -294,7 +294,7 @@ final class InpatientRmController extends Controller
         }
 
         return redirect()->route('rm.rawat-inap.show', $encounter)
-            ->with('success', $result->replayed ? 'Coding Draft sudah tersimpan.' : 'Coding Draft tersimpan sebagai versi baru.');
+            ->with('success', $result->replayed ? 'The coding draft is already saved.' : 'Coding draft saved as a new version.');
     }
 
     public function saveReview(Request $request, Encounter $encounter): RedirectResponse
@@ -338,8 +338,8 @@ final class InpatientRmController extends Controller
         return redirect()->route('rm.rawat-inap.show', $encounter)->with(
             'success',
             $signoff
-                ? ($result->replayed ? 'Episode sudah ditutup.' : 'Coding difinalkan, review ditandatangani, dan episode ditutup.')
-                : ($result->replayed ? 'Review sudah tersimpan.' : 'Snapshot kelengkapan tersimpan.'),
+                ? ($result->replayed ? 'The episode is already closed.' : 'Coding finalized, review signed off, and episode closed.')
+                : ($result->replayed ? 'The review is already saved.' : 'Completeness snapshot saved.'),
         );
     }
 
@@ -492,15 +492,15 @@ final class InpatientRmController extends Controller
     private function assertOnlyKeys(Request $request, array $allowed): void
     {
         if (array_diff(array_keys($request->all()), $allowed) !== []) {
-            throw ValidationException::withMessages(['inpatient_rm' => 'Permintaan memuat kolom yang tidak diizinkan.']);
+            throw ValidationException::withMessages(['inpatient_rm' => 'The request contains unauthorized fields.']);
         }
     }
 
     private function denied(Request $request, InpatientRmDenied $denial): RedirectResponse
     {
         if ($request->header('X-Inertia') === 'true') {
-            return back()->withErrors(['inpatient_rm' => $denial->getMessage()]);
+            return back()->withErrors(['inpatient_rm' => __($denial->getMessage())]);
         }
-        abort($denial->status, $denial->getMessage());
+        abort($denial->status, __($denial->getMessage()));
     }
 }

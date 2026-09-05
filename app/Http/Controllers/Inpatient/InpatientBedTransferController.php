@@ -26,16 +26,16 @@ final class InpatientBedTransferController extends Controller
             $this->service->authorizeActor($actor);
         } catch (InpatientBedTransferAuditUnavailable $failure) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['transfer' => $failure->getMessage()]);
+                return back()->withErrors(['transfer' => __($failure->getMessage())]);
             }
-            abort(503, $failure->getMessage());
+            abort(503, __($failure->getMessage()));
         }
         try {
             $unknown = array_values(array_diff(array_keys($request->except('_token')), [
                 'expected_location_sequence', 'expected_source_bed_public_id', 'target_bed_public_id', 'reason', 'idempotency_key',
             ]));
             if ($unknown !== []) {
-                throw ValidationException::withMessages(['transfer' => 'Permintaan memuat atribut yang tidak didukung.']);
+                throw ValidationException::withMessages(['transfer' => 'The request contains unsupported attributes.']);
             }
             $input = $request->all();
             $input['idempotency_key'] ??= $request->header('Idempotency-Key');
@@ -51,9 +51,9 @@ final class InpatientBedTransferController extends Controller
                 $this->service->recordValidationDenial($actor, $encounter);
             } catch (InpatientBedTransferAuditUnavailable $failure) {
                 if ($request->header('X-Inertia') === 'true') {
-                    return back()->withErrors(['transfer' => $failure->getMessage()]);
+                    return back()->withErrors(['transfer' => __($failure->getMessage())]);
                 }
-                abort(503, $failure->getMessage());
+                abort(503, __($failure->getMessage()));
             }
             throw $validation;
         }
@@ -64,17 +64,17 @@ final class InpatientBedTransferController extends Controller
                 $data['idempotency_key'], $request->attributes->get('request_id'));
         } catch (InpatientBedTransferDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['transfer' => $denial->getMessage()]);
+                return back()->withErrors(['transfer' => __($denial->getMessage())]);
             }
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         } catch (InpatientBedTransferAuditUnavailable $failure) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['transfer' => $failure->getMessage()]);
+                return back()->withErrors(['transfer' => __($failure->getMessage())]);
             }
-            abort(503, $failure->getMessage());
+            abort(503, __($failure->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)
-            ->with('success', $result->replayed ? 'Transfer tempat tidur sudah tercatat.' : 'Transfer tempat tidur berhasil.');
+            ->with('success', $result->replayed ? 'The bed transfer is already recorded.' : 'Bed transfer completed.');
     }
 }

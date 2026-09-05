@@ -24,7 +24,7 @@ final class InpatientDischargeController extends Controller
         assert($actor instanceof User);
         $allowed = ['expected_summary_version', 'expected_location_sequence', 'source_bed_public_id', 'idempotency_key'];
         if (array_diff(array_keys($request->all()), $allowed) !== []) {
-            throw ValidationException::withMessages(['inpatient_discharge' => 'Permintaan pemulangan memuat kolom yang tidak diizinkan.']);
+            throw ValidationException::withMessages(['inpatient_discharge' => 'The discharge request contains unauthorized fields.']);
         }
         $input = $request->all();
         $input['idempotency_key'] ??= $request->header('Idempotency-Key');
@@ -47,12 +47,12 @@ final class InpatientDischargeController extends Controller
             );
         } catch (InpatientDischargeDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['inpatient_discharge' => $denial->getMessage()]);
+                return back()->withErrors(['inpatient_discharge' => __($denial->getMessage())]);
             }
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         }
 
         return redirect()->route('pemeriksaan.rawat-inap.show', $encounter)
-            ->with('success', $result->replayed ? 'Pemulangan sudah tercatat.' : 'Pasien dipulangkan dan tempat tidur tersedia kembali.');
+            ->with('success', $result->replayed ? 'The discharge is already recorded.' : 'Patient discharged and bed made available.');
     }
 }

@@ -20,7 +20,7 @@ function generatedAtLabel(value: string): string {
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-        return 'Waktu perhitungan tidak tersedia';
+        return 'Calculation time unavailable';
     }
 
     return new Intl.DateTimeFormat('id-ID', {
@@ -110,14 +110,14 @@ export default function ManajemenDataBangsal({
 
     return (
         <>
-            <Head title="Bangsal & Tempat Tidur" />
+            <Head title="Wards & Beds" />
 
             <div
                 className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-3 py-4 md:px-5 md:py-5"
                 aria-busy={loading || undefined}
             >
                 <nav
-                    aria-label="Manajemen data"
+                    aria-label="Data management"
                     className="flex flex-wrap gap-1 rounded-lg border border-[#e2e8f0] bg-white p-1"
                 >
                     <Link
@@ -125,26 +125,26 @@ export default function ManajemenDataBangsal({
                         aria-current="page"
                         className="inline-flex min-h-11 items-center rounded-md bg-[#123b63] px-3 text-sm font-medium text-white"
                     >
-                        Bangsal & Tempat Tidur
+                        Wards & Beds
                     </Link>
                     <Link
                         href="/manajemen-data/laboratorium"
                         className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
                     >
-                        Pemeriksaan Laboratorium
+                        Laboratory Examinations
                     </Link>
                     <Link
                         href="/manajemen-data/radiologi"
                         className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
                     >
-                        Pemeriksaan Radiologi
+                        Radiology Examinations
                     </Link>
                     {canManageTriage ? (
                         <Link
                             href="/manajemen-data/triage"
                             className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
                         >
-                            Kosakata Triase IGD
+                            Emergency triage vocabulary
                         </Link>
                     ) : null}
                 </nav>
@@ -152,18 +152,19 @@ export default function ManajemenDataBangsal({
                 <header className="flex flex-wrap items-end justify-between gap-3">
                     <div>
                         <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-[#1b75bc] uppercase">
-                            Rawat inap
+                            Inpatient
                         </p>
                         <h1 className="mt-1 text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
-                            Bangsal & Tempat Tidur
+                            Wards & Beds
                         </h1>
                         <p className="mt-1 max-w-2xl text-sm text-[#64748b]">
-                            Ketersediaan dihitung dari kunjungan rawat inap
-                            aktif. Data tidak dapat diubah dari tabel sensus.
+                            Availability is calculated from active inpatient
+                            visits. Data cannot be changed from the census
+                            table.
                         </p>
                     </div>
                     <p className="text-xs text-[#64748b]">
-                        Dihitung {generatedAtLabel(generated_at)}
+                        Calculated {generatedAtLabel(generated_at)}
                     </p>
                 </header>
 
@@ -173,7 +174,7 @@ export default function ManajemenDataBangsal({
                         aria-live="polite"
                         className="rounded-md border border-[#bfdbfe] bg-[#eff6ff] px-3 py-2 text-sm text-[#1e40af]"
                     >
-                        Memuat data ketersediaan…
+                        Loading availability data…
                     </p>
                 ) : null}
 
@@ -200,7 +201,7 @@ export default function ManajemenDataBangsal({
                 <form
                     onSubmit={applyFilters}
                     className="rounded-xl border border-[#d7e6f3] bg-[#f5f9fc] p-3"
-                    aria-label="Filter sensus tempat tidur"
+                    aria-label="Bed census filters"
                 >
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
                         <div className="grid gap-1 lg:col-span-2">
@@ -208,7 +209,7 @@ export default function ManajemenDataBangsal({
                                 htmlFor="bed-census-q"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Kata kunci
+                                Keyword
                             </label>
                             <Input
                                 id="bed-census-q"
@@ -220,7 +221,7 @@ export default function ManajemenDataBangsal({
                                         q: event.target.value,
                                     }))
                                 }
-                                placeholder="Kode, nama, atau ruang"
+                                placeholder="Code, name, or room"
                                 disabled={loading}
                             />
                         </div>
@@ -229,7 +230,7 @@ export default function ManajemenDataBangsal({
                                 htmlFor="bed-census-ward"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Bangsal
+                                Ward
                             </label>
                             <select
                                 id="bed-census-ward"
@@ -243,7 +244,7 @@ export default function ManajemenDataBangsal({
                                 }
                                 disabled={loading}
                             >
-                                <option value="">Semua bangsal</option>
+                                <option value="">All wards</option>
                                 {filter_options.wards.map((option) => (
                                     <option
                                         key={option.value}
@@ -259,7 +260,7 @@ export default function ManajemenDataBangsal({
                                 htmlFor="bed-census-class"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Kelas
+                                Class
                             </label>
                             <select
                                 id="bed-census-class"
@@ -273,7 +274,7 @@ export default function ManajemenDataBangsal({
                                 }
                                 disabled={loading}
                             >
-                                <option value="">Semua kelas</option>
+                                <option value="">All classes</option>
                                 {filter_options.service_classes.map(
                                     (option) => (
                                         <option
@@ -291,7 +292,7 @@ export default function ManajemenDataBangsal({
                                 htmlFor="bed-census-occupancy"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Status TT
+                                Bed status
                             </label>
                             <select
                                 id="bed-census-occupancy"
@@ -305,10 +306,10 @@ export default function ManajemenDataBangsal({
                                 }
                                 disabled={loading}
                             >
-                                <option value="">Semua</option>
-                                <option value="AVAILABLE">Tersedia</option>
-                                <option value="OCCUPIED">Terisi</option>
-                                <option value="RETIRED">Dinonaktifkan</option>
+                                <option value="">All</option>
+                                <option value="AVAILABLE">Available</option>
+                                <option value="OCCUPIED">Occupied</option>
+                                <option value="RETIRED">Retired</option>
                             </select>
                         </div>
                         <div className="grid gap-1">
@@ -316,7 +317,7 @@ export default function ManajemenDataBangsal({
                                 htmlFor="bed-census-master-state"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Status data
+                                Record status
                             </label>
                             <select
                                 id="bed-census-master-state"
@@ -330,9 +331,9 @@ export default function ManajemenDataBangsal({
                                 }
                                 disabled={loading}
                             >
-                                <option value="">Semua</option>
-                                <option value="ACTIVE">Aktif</option>
-                                <option value="RETIRED">Dinonaktifkan</option>
+                                <option value="">All</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="RETIRED">Retired</option>
                             </select>
                         </div>
                     </div>
@@ -342,7 +343,7 @@ export default function ManajemenDataBangsal({
                             className="min-h-11"
                             disabled={loading}
                         >
-                            Terapkan filter
+                            Apply filters
                         </Button>
                         {hasFilters ? (
                             <Button
@@ -352,7 +353,7 @@ export default function ManajemenDataBangsal({
                                 disabled={loading}
                                 onClick={clearFilters}
                             >
-                                Hapus filter
+                                Clear filters
                             </Button>
                         ) : null}
                     </div>
@@ -364,7 +365,7 @@ export default function ManajemenDataBangsal({
                         className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-4 py-4 text-sm text-[#991b1b]"
                     >
                         <p className="font-semibold">
-                            Data ketersediaan belum dapat dimuat.
+                            Availability data could not be loaded.
                         </p>
                         <p className="mt-1">{read_error}</p>
                         <Button
@@ -373,7 +374,7 @@ export default function ManajemenDataBangsal({
                             className="mt-3 min-h-11 border-[#f3b8b8] bg-white text-[#991b1b] hover:bg-[#fff7f7]"
                             onClick={() => router.reload()}
                         >
-                            Muat ulang halaman
+                            Reload page
                         </Button>
                     </div>
                 ) : permissions.can_view_census ? (
@@ -384,8 +385,7 @@ export default function ManajemenDataBangsal({
                                 role="status"
                                 className="rounded-lg border border-[#fed7aa] bg-[#fff7ed] px-3 py-2 text-sm text-[#9a3412]"
                             >
-                                Tidak ada tempat tidur tersedia untuk pilihan
-                                ini.
+                                No beds are available for this selection.
                             </p>
                         ) : null}
 
@@ -414,8 +414,7 @@ export default function ManajemenDataBangsal({
                         role="alert"
                         className="rounded-xl border border-[#fecaca] bg-[#fef2f2] px-4 py-4 text-sm text-[#991b1b]"
                     >
-                        Anda tidak memiliki akses untuk melihat sensus tempat
-                        tidur.
+                        You do not have access to view the bed census.
                     </div>
                 )}
             </div>
@@ -433,8 +432,8 @@ export default function ManajemenDataBangsal({
 
 ManajemenDataBangsal.layout = () => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Manajemen Data', href: '/manajemen-data/bangsal' },
-        { title: 'Bangsal & Tempat Tidur', href: '/manajemen-data/bangsal' },
+        { title: 'Home', href: '/' },
+        { title: 'Data Management', href: '/manajemen-data/bangsal' },
+        { title: 'Wards & Beds', href: '/manajemen-data/bangsal' },
     ] satisfies BreadcrumbItem[],
 });

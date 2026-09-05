@@ -126,7 +126,7 @@ class AuditWritePathArchitectureTest extends TestCase
 
         $emergencyController = file_get_contents(app_path('Http/Controllers/Emergency/EmergencyExaminationController.php'));
         $this->assertIsString($emergencyController);
-        $this->assertStringContainsString("abort(410, 'Alur tulis catatan IGD lama telah ditutup.", $emergencyController);
+        $this->assertStringContainsString("abort(410, 'Legacy emergency note entry is closed.", $emergencyController);
 
         $emergencyOperations = file_get_contents(app_path('Support/Emergency/EmergencyOperationCoordinator.php'));
         $this->assertIsString($emergencyOperations);

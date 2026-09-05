@@ -192,7 +192,7 @@ class InpatientRegistrationController extends Controller
         ]);
 
         if (array_key_exists('is_synthetic', $validated) && $validated['is_synthetic'] === false) {
-            abort(422, 'Hanya pasien sintetis yang diizinkan.');
+            abort(422, 'Only synthetic patients are allowed.');
         }
 
         $user = $request->user();
@@ -209,7 +209,7 @@ class InpatientRegistrationController extends Controller
                         ->firstOrFail();
 
                     if (! $patient->is_synthetic) {
-                        abort(422, 'Hanya pasien sintetis yang diizinkan.');
+                        abort(422, 'Only synthetic patients are allowed.');
                     }
 
                     $patient->fill($this->patientUpdatableAttributes($validated))->save();
@@ -252,27 +252,27 @@ class InpatientRegistrationController extends Controller
         } catch (InpatientBedUnavailable $exception) {
             return redirect()
                 ->route('pendaftaran.rawat-inap.index')
-                ->withErrors(['bed_code' => $exception->getMessage()])
+                ->withErrors(['bed_code' => __($exception->getMessage())])
                 ->withInput();
         } catch (InpatientMasterDenied $exception) {
             return redirect()
                 ->route('pendaftaran.rawat-inap.index')
-                ->withErrors(['bed_public_id' => $exception->getMessage()])
+                ->withErrors(['bed_public_id' => __($exception->getMessage())])
                 ->withInput();
         } catch (InpatientAdmissionDenied $exception) {
             if ($exception->httpStatus >= 500) {
-                abort($exception->httpStatus, $exception->getMessage());
+                abort($exception->httpStatus, __($exception->getMessage()));
             }
 
             return redirect()
                 ->route('pendaftaran.rawat-inap.index')
-                ->withErrors(['patient_public_id' => $exception->getMessage()])
+                ->withErrors(['patient_public_id' => __($exception->getMessage())])
                 ->withInput();
         }
 
         return redirect()
             ->route('pendaftaran.rawat-inap.index')
-            ->with('success', 'Pendaftaran rawat inap berhasil.')
+            ->with('success', 'Inpatient registration completed successfully.')
             ->with('last_encounter_public_id', $encounter->public_id);
     }
 

@@ -65,10 +65,10 @@ type Props = {
 };
 
 const reviewStatusLabel: Record<string, string> = {
-    NOT_REVIEWED: 'Belum ditinjau',
-    INCOMPLETE: 'Belum lengkap',
-    COMPLETE: 'Lengkap, siap sign-off',
-    SIGNED_OFF: 'Sudah sign-off',
+    NOT_REVIEWED: 'Not reviewed',
+    INCOMPLETE: 'Incomplete',
+    COMPLETE: 'Complete, ready for sign-off',
+    SIGNED_OFF: 'Signed off',
 };
 
 export default function RmRawatJalanShow({
@@ -127,7 +127,7 @@ export default function RmRawatJalanShow({
     return (
         <>
             <Head
-                title={`Tinjau RM — ${encounter.patient.full_name ?? 'Kunjungan'}`}
+                title={`Review medical record — ${encounter.patient.full_name ?? 'Encounter'}`}
             />
             <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-3 py-4 md:px-5">
                 {typeof flash?.error === 'string' && flash.error ? (
@@ -151,16 +151,16 @@ export default function RmRawatJalanShow({
                     href="/rm/rawat-jalan"
                     className="min-h-11 self-start py-2 text-sm font-medium text-primary hover:underline"
                 >
-                    ← Kembali ke daftar RM
+                    ← Back to medical records
                 </Link>
 
                 <header className="rounded-lg border border-border bg-card p-3 md:p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h1 className="text-xl font-semibold">
-                                Tinjau kelengkapan RM ·{' '}
+                                Review medical-record completeness ·{' '}
                                 {encounter.patient.full_name ??
-                                    'Nama pasien belum tersedia'}
+                                    'Patient name unavailable'}
                             </h1>
                             <p className="mt-1 font-mono text-xs text-muted-foreground">
                                 {encounter.patient.medical_record_number ?? '—'}{' '}
@@ -174,7 +174,7 @@ export default function RmRawatJalanShow({
                     <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Klinik
+                                Clinic
                             </dt>
                             <dd className="font-semibold">
                                 {encounter.clinic_name}
@@ -182,7 +182,7 @@ export default function RmRawatJalanShow({
                         </div>
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Dokter
+                                Physician
                             </dt>
                             <dd className="font-semibold">
                                 {encounter.doctor_name ?? '—'}
@@ -190,7 +190,7 @@ export default function RmRawatJalanShow({
                         </div>
                         <div>
                             <dt className="text-xs text-muted-foreground">
-                                Tanggal kunjungan
+                                Visit date
                             </dt>
                             <dd className="font-semibold">
                                 {encounter.visit_date ?? '—'}
@@ -200,15 +200,15 @@ export default function RmRawatJalanShow({
                 </header>
 
                 <aside
-                    aria-label="Status sumber dan review"
+                    aria-label="Source and review status"
                     className="sticky top-2 z-10 grid gap-2 rounded-lg border border-sidebar-border bg-sidebar px-3 py-2 text-sidebar-foreground shadow-sm sm:grid-cols-4"
                 >
                     <div>
                         <p className="text-[0.65rem] uppercase opacity-70">
-                            Sumber klinis
+                            Clinical sources
                         </p>
                         <p className="text-xs font-semibold">
-                            {clinicalSources.length} dokumen
+                            {clinicalSources.length} documents
                         </p>
                     </div>
                     <div>
@@ -224,7 +224,7 @@ export default function RmRawatJalanShow({
                     </div>
                     <div>
                         <p className="text-[0.65rem] uppercase opacity-70">
-                            Versi review
+                            Review version
                         </p>
                         <p className="font-mono text-xs">v{review.version}</p>
                     </div>
@@ -242,23 +242,24 @@ export default function RmRawatJalanShow({
                     <section className="space-y-2 rounded-lg border border-border bg-card p-3 md:p-4">
                         <div>
                             <h2 className="text-sm font-semibold text-secondary-foreground">
-                                Sumber klinis hanya-baca
+                                Read-only clinical source
                             </h2>
                             <p className="mt-0.5 text-xs text-muted-foreground">
-                                Petugas RMIK menilai kelengkapan; isi klinis
-                                tidak dapat diubah dari meja ini.
+                                Medical-record staff assess completeness;
+                                clinical content cannot be changed from this
+                                workspace.
                             </p>
                         </div>
                         <ClinicalDocumentHistory
                             versions={documentVersions}
-                            emptyMessage="Belum ada riwayat versi sumber klinis terstruktur."
+                            emptyMessage="No structured clinical source version history yet."
                         />
                     </section>
 
                     <div className="space-y-3">
                         <section className="rounded-lg border border-border bg-card p-3 md:p-4">
                             <h2 className="text-sm font-semibold text-secondary-foreground">
-                                Checklist otomatis
+                                Automated checklist
                             </h2>
                             <ul className="mt-3 space-y-2">
                                 {review.checklist_items.map((item) => (
@@ -285,10 +286,10 @@ export default function RmRawatJalanShow({
                                                 }
                                             >
                                                 {item.status === 'PASS'
-                                                    ? 'Sesuai'
+                                                    ? 'Aligned'
                                                     : item.status === 'FAIL'
-                                                      ? 'Belum sesuai'
-                                                      : 'Tidak berlaku'}
+                                                      ? 'Not aligned'
+                                                      : 'Not applicable'}
                                             </span>
                                         </div>
                                         {item.reason ? (
@@ -303,7 +304,7 @@ export default function RmRawatJalanShow({
 
                         <section className="rounded-lg border border-border bg-card p-3 md:p-4">
                             <h2 className="text-sm font-semibold text-secondary-foreground">
-                                Blocker penutupan
+                                Closure blockers
                             </h2>
                             {blockers.length ? (
                                 <ul className="mt-3 space-y-2">
@@ -326,28 +327,28 @@ export default function RmRawatJalanShow({
                                     role="status"
                                     className="mt-3 text-sm text-success"
                                 >
-                                    Tidak ada blocker lifecycle aktif.
+                                    No active lifecycle blockers.
                                 </p>
                             )}
                         </section>
 
                         <section className="rounded-lg border border-border bg-card p-3 md:p-4">
                             <h2 className="text-sm font-semibold text-secondary-foreground">
-                                Tindakan review
+                                Review actions
                             </h2>
                             <p className="mt-1 text-xs text-muted-foreground">
-                                Penyimpanan mengikat hasil checklist ke versi
-                                sumber yang sedang tampil. Perubahan sumber
-                                harus ditinjau ulang.
+                                Saving binds the checklist result to the
+                                displayed source version. Source changes require
+                                another review.
                             </p>
                             {closed ? (
                                 <div
                                     role="status"
                                     className="mt-3 rounded-md border border-success/30 bg-success/5 p-3 text-sm text-success"
                                 >
-                                    Kunjungan sudah ditutup setelah sign-off.
-                                    Review dan seluruh versi dokumen ditampilkan
-                                    sebagai arsip hanya-baca.
+                                    The encounter is closed after sign-off. The
+                                    review and every document version are
+                                    displayed as read-only archive records.
                                 </div>
                             ) : (
                                 <div className="mt-3 flex flex-col gap-2">
@@ -362,11 +363,11 @@ export default function RmRawatJalanShow({
                                         onClick={saveReview}
                                         title={
                                             !permissions.can_save_review
-                                                ? 'Akun ini tidak memiliki hak menyimpan review.'
+                                                ? 'This account cannot save reviews.'
                                                 : undefined
                                         }
                                     >
-                                        Simpan hasil review
+                                        Save review result
                                     </Button>
                                     <Button
                                         type="button"
@@ -375,12 +376,12 @@ export default function RmRawatJalanShow({
                                         aria-describedby="rm-signoff-help"
                                         title={
                                             !canSignoff
-                                                ? 'Sign-off tersedia setelah semua item sesuai dan tidak ada blocker.'
+                                                ? 'Sign-off is available after every item is aligned and there are no blockers.'
                                                 : undefined
                                         }
                                         className="bg-primary text-primary-foreground hover:bg-primary/90"
                                     >
-                                        Sign-off dan tutup kunjungan
+                                        Sign off and close encounter
                                     </Button>
                                 </div>
                             )}
@@ -389,24 +390,24 @@ export default function RmRawatJalanShow({
                                     id="rm-signoff-help"
                                     className="mt-2 text-xs text-muted-foreground"
                                 >
-                                    Simpan review yang lengkap terlebih dahulu;
-                                    seluruh item harus sesuai dan tidak boleh
-                                    ada blocker.
+                                    Save a complete review first; every item
+                                    must be aligned and there must be no
+                                    blockers.
                                 </p>
                             ) : null}
                             {review.reviewer_name ? (
                                 <p className="mt-3 text-xs text-muted-foreground">
-                                    Ditinjau oleh {review.reviewer_name}
+                                    Reviewed by {review.reviewer_name}
                                     {review.reviewed_at
-                                        ? ` · ${new Date(review.reviewed_at).toLocaleString('id-ID')}`
+                                        ? ` · ${new Date(review.reviewed_at).toLocaleString('en-GB')}`
                                         : ''}
                                 </p>
                             ) : null}
                             {review.signed_off_by_name ? (
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Sign-off oleh {review.signed_off_by_name}
+                                    Signed off by {review.signed_off_by_name}
                                     {review.signed_off_at
-                                        ? ` · ${new Date(review.signed_off_at).toLocaleString('id-ID')}`
+                                        ? ` · ${new Date(review.signed_off_at).toLocaleString('en-GB')}`
                                         : ''}
                                 </p>
                             ) : null}
@@ -432,20 +433,19 @@ export default function RmRawatJalanShow({
                     >
                         <DialogHeader>
                             <DialogTitle>
-                                Konfirmasi sign-off kelengkapan RM
+                                Confirm medical-record completeness sign-off
                             </DialogTitle>
                             <DialogDescription>
-                                Sistem akan memeriksa ulang versi sumber,
-                                checklist, hak akses, dan blocker. Jika seluruh
-                                pemeriksaan berhasil, kunjungan ditutup.
-                                Tindakan ini bukan pernyataan tanda tangan
-                                elektronik legal.
+                                The system will recheck the source version,
+                                checklist, access rights, and blockers. If every
+                                check passes, the encounter will close. This is
+                                not a legally binding electronic signature.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
                             <DialogClose asChild>
                                 <Button type="button" variant="outline">
-                                    Batal
+                                    Cancel
                                 </Button>
                             </DialogClose>
                             <Button
@@ -454,7 +454,7 @@ export default function RmRawatJalanShow({
                                 onClick={signoff}
                                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                             >
-                                Ya, sign-off dan tutup
+                                Yes, sign off and close
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -466,11 +466,11 @@ export default function RmRawatJalanShow({
 
 RmRawatJalanShow.layout = (props: Props) => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'RM', href: '/rm/rawat-jalan' },
-        { title: 'Rawat Jalan', href: '/rm/rawat-jalan' },
+        { title: 'Home', href: '/' },
+        { title: 'Medical Records', href: '/rm/rawat-jalan' },
+        { title: 'Outpatient Care', href: '/rm/rawat-jalan' },
         {
-            title: props.encounter.patient.full_name ?? 'Tinjau',
+            title: props.encounter.patient.full_name ?? 'Review',
             href: `/rm/rawat-jalan/${props.encounter.public_id}`,
         },
     ] satisfies BreadcrumbItem[],

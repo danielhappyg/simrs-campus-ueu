@@ -9,7 +9,7 @@ export default function ManajemenDataLaboratorium(
 ) {
     return (
         <>
-            <Head title="Master Pemeriksaan Laboratorium" />
+            <Head title="Laboratory Examination Master" />
             <LaboratoryMasterPanel {...props} />
         </>
     );

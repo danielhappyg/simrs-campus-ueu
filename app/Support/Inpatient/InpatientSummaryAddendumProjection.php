@@ -73,10 +73,10 @@ final class InpatientSummaryAddendumProjection
             'definition_version' => InpatientSummaryAddendum::DEFINITION_VERSION,
             'available' => $available,
             'reason_options' => [
-                ['value' => InpatientSummaryCorrectionRequest::REASON_CLINICAL_CORRECTION, 'label' => 'Koreksi klinis', 'requires_note' => false],
-                ['value' => InpatientSummaryCorrectionRequest::REASON_MISSING_INFORMATION, 'label' => 'Informasi belum lengkap', 'requires_note' => false],
-                ['value' => InpatientSummaryCorrectionRequest::REASON_WRONG_ENTRY, 'label' => 'Entri tidak tepat', 'requires_note' => false],
-                ['value' => InpatientSummaryCorrectionRequest::REASON_OTHER, 'label' => 'Lainnya', 'requires_note' => true],
+                ['value' => InpatientSummaryCorrectionRequest::REASON_CLINICAL_CORRECTION, 'label' => __('Koreksi klinis'), 'requires_note' => false],
+                ['value' => InpatientSummaryCorrectionRequest::REASON_MISSING_INFORMATION, 'label' => __('Informasi belum lengkap'), 'requires_note' => false],
+                ['value' => InpatientSummaryCorrectionRequest::REASON_WRONG_ENTRY, 'label' => __('Entri tidak tepat'), 'requires_note' => false],
+                ['value' => InpatientSummaryCorrectionRequest::REASON_OTHER, 'label' => __('Lainnya'), 'requires_note' => true],
             ],
             'can_request' => $canRequest,
             'store_url' => $canRequest
@@ -165,7 +165,7 @@ final class InpatientSummaryAddendumProjection
                         'signed_off_by_name' => $names->get($latestReview->signed_off_by_user_id),
                         'items' => $latestReview->items->map(fn ($item): array => [
                             'item_code' => $item->item_code,
-                            'label' => $item->label,
+                            'label' => __($item->label),
                             'is_blocking' => $item->is_blocking,
                             'is_complete' => $item->is_complete,
                             'source_reference' => $item->source_reference,
@@ -253,12 +253,12 @@ final class InpatientSummaryAddendumProjection
 
     private function reasonLabel(string $reason): string
     {
-        return match ($reason) {
+        return __(match ($reason) {
             InpatientSummaryCorrectionRequest::REASON_CLINICAL_CORRECTION => 'Koreksi klinis',
             InpatientSummaryCorrectionRequest::REASON_MISSING_INFORMATION => 'Informasi belum lengkap',
             InpatientSummaryCorrectionRequest::REASON_WRONG_ENTRY => 'Entri tidak tepat',
             default => 'Lainnya',
-        };
+        });
     }
 
     /**

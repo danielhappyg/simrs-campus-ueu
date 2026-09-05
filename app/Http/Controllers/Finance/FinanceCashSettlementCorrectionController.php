@@ -35,7 +35,7 @@ final class FinanceCashSettlementCorrectionController extends Controller
             $cases = $this->projection->worklist($actor);
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Daftar koreksi pelunasan belum dapat direkonsiliasi.');
+            abort(503, 'The settlement correction list could not be reconciled.');
         }
 
         return Inertia::render('kasir/koreksi-pelunasan/index', [
@@ -53,7 +53,7 @@ final class FinanceCashSettlementCorrectionController extends Controller
             $case = $this->projection->case($correction, $actor);
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Perkara koreksi belum dapat direkonsiliasi.');
+            abort(503, 'The correction case could not be reconciled.');
         }
 
         return Inertia::render('kasir/koreksi-pelunasan/show', [
@@ -99,7 +99,7 @@ final class FinanceCashSettlementCorrectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit koreksi pelunasan belum tersedia.');
+            abort(503, 'Audit recording for settlement correction is unavailable.');
         }
 
         /** @var FinanceSettlementCorrectionCase $case */
@@ -107,8 +107,8 @@ final class FinanceCashSettlementCorrectionController extends Controller
 
         return redirect()->route('finance.settlement-corrections.show', ['correction' => $case->public_id])
             ->with('success', $result->replayed
-                ? 'Permintaan koreksi yang sama ditampilkan kembali.'
-                : 'Permintaan koreksi dikirim untuk tinjauan supervisor kasir.');
+                ? 'The same correction request is shown again.'
+                : 'Correction request sent for cashier supervisor review.');
     }
 
     public function review(Request $request, string $correction): RedirectResponse
@@ -139,14 +139,14 @@ final class FinanceCashSettlementCorrectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit tinjauan koreksi belum tersedia.');
+            abort(503, 'Audit recording for correction review is unavailable.');
         }
 
         return back()->with('success', $result->replayed
-            ? 'Keputusan tinjauan yang sama ditampilkan kembali.'
+            ? 'The same review decision is shown again.'
             : ($data['decision'] === FinanceSettlementCorrectionEvent::REVIEW_REJECTED
-                ? 'Permintaan koreksi ditolak.'
-                : 'Pengembalian tunai disetujui dan menunggu penyerahan kas.'));
+                ? 'Correction request declined.'
+                : 'Cash refund approved and awaiting cash handover.'));
     }
 
     public function completeRefund(Request $request, string $correction): RedirectResponse
@@ -170,13 +170,13 @@ final class FinanceCashSettlementCorrectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit pengembalian tunai belum tersedia.');
+            abort(503, 'Audit recording for the cash refund is unavailable.');
         }
 
         return redirect()->route('finance.settlement-corrections.refund-receipt', ['correction' => $correction])
             ->with('success', $result->replayed
-                ? 'Bukti pengembalian yang sama ditampilkan kembali.'
-                : 'Pengembalian tunai selesai dicatat.');
+                ? 'The same refund receipt is shown again.'
+                : 'Cash refund recorded.');
     }
 
     public function refundReceipt(Request $request, string $correction): Response
@@ -187,7 +187,7 @@ final class FinanceCashSettlementCorrectionController extends Controller
             $receipt = $this->projection->refundReceipt($correction, $actor);
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Bukti pengembalian belum dapat direkonsiliasi.');
+            abort(503, 'The refund receipt could not be reconciled.');
         }
 
         return Inertia::render('kasir/koreksi-pelunasan/bukti-pengembalian', [
@@ -234,10 +234,10 @@ final class FinanceCashSettlementCorrectionController extends Controller
             'receipt_corrupt',
         ], true)) {
             report($denied);
-            abort(503, 'Bukti koreksi pelunasan belum dapat direkonsiliasi.');
+            abort(503, 'The settlement correction record could not be reconciled.');
         }
 
-        throw ValidationException::withMessages(['correction' => $denied->getMessage()]);
+        throw ValidationException::withMessages(['correction' => __($denied->getMessage())]);
     }
 
     private function actor(Request $request): User

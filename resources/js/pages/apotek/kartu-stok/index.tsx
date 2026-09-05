@@ -5,7 +5,7 @@ import type { PharmacyStockCardProps } from '@/components/clinical/pharmacy/type
 export default function PharmacyStockCardPage(props: PharmacyStockCardProps) {
     return (
         <>
-            <Head title="Kartu Stok Apotek" />
+            <Head title="Pharmacy Stock Card" />
             <PharmacyStockCard {...props} />
         </>
     );

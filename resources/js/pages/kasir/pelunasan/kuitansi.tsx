@@ -5,7 +5,7 @@ import type { FinanceCashReceiptProps } from '@/components/finance/types';
 export default function FinanceCashReceiptPage(props: FinanceCashReceiptProps) {
     return (
         <>
-            <Head title={`Kuitansi ${props.receipt.receipt_number}`} />
+            <Head title={`Receipt ${props.receipt.receipt_number}`} />
             <FinanceCashReceiptView {...props} />
         </>
     );

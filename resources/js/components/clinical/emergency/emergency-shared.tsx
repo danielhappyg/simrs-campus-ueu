@@ -9,34 +9,34 @@ export const triagePresentation: Record<
 > = {
     MERAH: {
         label: 'MERAH',
-        cue: 'Prioritas segera',
+        cue: 'Immediate priority',
         rail: 'bg-[#c62828]',
         chip: 'border-[#c62828]/30 bg-[#c62828]/10 text-[#9f1e1e]',
     },
     KUNING: {
         label: 'KUNING',
-        cue: 'Prioritas mendesak',
+        cue: 'Urgent priority',
         rail: 'bg-[#d89b00]',
         chip: 'border-[#d89b00]/40 bg-[#ffefb3] text-[#664900]',
     },
     HIJAU: {
         label: 'HIJAU',
-        cue: 'Prioritas rendah',
+        cue: 'Low priority',
         rail: 'bg-[#18864b]',
         chip: 'border-[#18864b]/30 bg-[#18864b]/10 text-[#0d6a38]',
     },
     HITAM: {
         label: 'HITAM',
-        cue: 'Kategori hitam',
+        cue: 'Black category',
         rail: 'bg-[#1e293b]',
         chip: 'border-[#1e293b]/30 bg-[#1e293b] text-white',
     },
 };
 
 export const observationLabel: Record<EmergencyObservationState, string> = {
-    ASSESSED_NO_CONCERN: 'Dinilai · tanpa kekhawatiran',
-    ASSESSED_CONCERN: 'Dinilai · ada kekhawatiran',
-    NOT_ASSESSED: 'Belum dinilai',
+    ASSESSED_NO_CONCERN: 'Assessed · no concern',
+    ASSESSED_CONCERN: 'Assessed · concern identified',
+    NOT_ASSESSED: 'Not assessed',
 };
 
 export function TriageChip({
@@ -49,7 +49,7 @@ export function TriageChip({
     if (!code) {
         return (
             <span className="inline-flex min-h-7 items-center rounded-full border border-dashed border-warning/50 bg-warning/10 px-2.5 text-xs font-semibold text-warning">
-                Belum ditriage
+                Not triaged
             </span>
         );
     }

@@ -24,10 +24,10 @@ export type RadiologyEncounterPanelProps = {
 };
 
 const stateLabel = {
-    ORDERED: 'Menunggu pemeriksaan',
-    PERFORMED: 'Pemeriksaan selesai',
-    REPORTED_VERIFIED: 'Hasil terverifikasi',
-    CANCELLED: 'Dibatalkan',
+    ORDERED: 'Awaiting examination',
+    PERFORMED: 'Examination completed',
+    REPORTED_VERIFIED: 'Verified result',
+    CANCELLED: 'Cancelled',
 } as const;
 
 function ErrorSummary({ errors }: { errors: Record<string, string> }) {
@@ -52,7 +52,7 @@ function ErrorSummary({ errors }: { errors: Record<string, string> }) {
             role="alert"
             className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 outline-none focus-visible:ring-2 focus-visible:ring-red-600"
         >
-            <p className="font-semibold">Periksa kembali isian berikut:</p>
+            <p className="font-semibold">Review the following fields:</p>
             <ul className="mt-1 list-disc pl-5">
                 {messages.map((message) => (
                     <li key={message}>{message}</li>
@@ -66,19 +66,19 @@ function ResultRail({ order }: { order: RadiologyOrderProjection }) {
     const steps = [
         { label: 'Dipesan', complete: true },
         {
-            label: 'Diperiksa',
+            label: 'Examined',
             complete: ['PERFORMED', 'REPORTED_VERIFIED'].includes(order.state),
         },
         { label: 'Diverifikasi', complete: order.report?.state === 'VERIFIED' },
         {
-            label: 'Diketahui dokter',
+            label: 'Acknowledged by physician',
             complete: order.report?.acknowledgement?.is_current === true,
         },
     ];
 
     return (
         <ol
-            aria-label="Alur hasil radiologi"
+            aria-label="Radiology result workflow"
             className="grid grid-cols-4 gap-1"
         >
             {steps.map((step, index) => (
@@ -191,7 +191,7 @@ function EncounterOrderCard({
             <div className="space-y-3 px-4 py-4 text-sm">
                 <div>
                     <p className="font-semibold text-slate-800">
-                        Pertanyaan klinis
+                        Clinical question
                     </p>
                     <p className="mt-1 whitespace-pre-wrap text-slate-700">
                         {order.clinical_question}
@@ -199,20 +199,18 @@ function EncounterOrderCard({
                 </div>
                 {order.examination.preparation_instruction ? (
                     <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-950">
-                        <span className="font-semibold">Persiapan:</span>{' '}
+                        <span className="font-semibold">Preparation:</span>{' '}
                         {order.examination.preparation_instruction}
                     </p>
                 ) : null}
                 {order.report?.state === 'VERIFIED' ? (
                     <section
-                        aria-label="Hasil radiologi terverifikasi"
+                        aria-label="Verified radiology result"
                         className="rounded-md border-l-4 border-[#1b75bc] bg-slate-50 p-3"
                     >
                         <div className="flex items-center gap-2 text-slate-950">
                             <FileCheck2 className="size-4 text-[#1b75bc]" />
-                            <p className="font-semibold">
-                                Kesimpulan terverifikasi
-                            </p>
+                            <p className="font-semibold">Verified impression</p>
                         </div>
                         <p className="mt-2 whitespace-pre-wrap text-slate-800">
                             {order.report.impression}
@@ -223,7 +221,7 @@ function EncounterOrderCard({
                                 className="mt-3 border-t border-slate-200 pt-3"
                             >
                                 <p className="font-semibold text-slate-800">
-                                    Adendum terverifikasi
+                                    Verified addendum
                                 </p>
                                 <p className="mt-1 whitespace-pre-wrap text-slate-700">
                                     {amendment.amended_statement}
@@ -235,15 +233,15 @@ function EncounterOrderCard({
                                 className={`mt-3 text-xs font-semibold ${order.report.acknowledgement.is_current ? 'text-emerald-700' : 'text-amber-800'}`}
                             >
                                 {order.report.acknowledgement.is_current
-                                    ? `Sudah diketahui · ${order.report.acknowledgement.physician_name}`
-                                    : 'Pengetahuan sebelumnya sudah tidak current karena ada adendum baru.'}
+                                    ? `Acknowledged · ${order.report.acknowledgement.physician_name}`
+                                    : 'The previous acknowledgement is no longer current because of a new amendment.'}
                             </p>
                         ) : null}
                     </section>
                 ) : null}
                 {order.cancellation ? (
                     <p className="rounded-md bg-slate-100 px-3 py-2 text-slate-700">
-                        Dibatalkan: {order.cancellation.reason_label}
+                        Cancelled: {order.cancellation.reason_label}
                         {order.cancellation.note
                             ? ` · ${order.cancellation.note}`
                             : ''}
@@ -262,7 +260,7 @@ function EncounterOrderCard({
                             onClick={acknowledge}
                             disabled={acknowledgeForm.processing}
                         >
-                            Tandai sudah diketahui
+                            Mark as Acknowledged
                         </Button>
                     ) : null}
                     {canCancel ? (
@@ -272,7 +270,7 @@ function EncounterOrderCard({
                             className="min-h-11"
                             onClick={() => setShowCancel((value) => !value)}
                         >
-                            Batalkan permintaan
+                            Cancel request
                         </Button>
                     ) : null}
                 </div>
@@ -284,7 +282,7 @@ function EncounterOrderCard({
                     >
                         <div>
                             <Label htmlFor={`cancel-reason-${order.public_id}`}>
-                                Alasan pembatalan
+                                Cancellation reason
                             </Label>
                             <select
                                 id={`cancel-reason-${order.public_id}`}
@@ -298,7 +296,7 @@ function EncounterOrderCard({
                                 }
                                 required
                             >
-                                <option value="">Pilih alasan</option>
+                                <option value="">Select a reason</option>
                                 {projection.cancellation_reason_options.map(
                                     (option) => (
                                         <option
@@ -313,7 +311,7 @@ function EncounterOrderCard({
                         </div>
                         <div>
                             <Label htmlFor={`cancel-note-${order.public_id}`}>
-                                Catatan
+                                Note
                             </Label>
                             <textarea
                                 id={`cancel-note-${order.public_id}`}
@@ -334,7 +332,7 @@ function EncounterOrderCard({
                             className="min-h-11"
                             disabled={cancelForm.processing}
                         >
-                            Konfirmasi pembatalan
+                            Confirm Cancellation
                         </Button>
                     </form>
                 ) : null}
@@ -388,18 +386,18 @@ export function RadiologyEncounterPanel({
                         id="radiology-encounter-title"
                         className="font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold text-slate-950"
                     >
-                        Radiologi
+                        Radiology
                     </h3>
                     <p className="text-sm text-slate-600">
-                        Permintaan dan hasil pemeriksaan pada episode ini.
+                        Requests and examination results for this episode.
                     </p>
                 </div>
             </div>
 
             <p className="sr-only" role="status" aria-live="polite">
                 {form.processing
-                    ? 'Menyimpan permintaan radiologi.'
-                    : `${projection.orders.length} permintaan radiologi ditampilkan.`}
+                    ? 'Saving radiology request.'
+                    : `${projection.orders.length} radiology requests displayed.`}
             </p>
 
             {canOrder ? (
@@ -408,13 +406,13 @@ export function RadiologyEncounterPanel({
                     className="space-y-4 rounded-lg border border-[#b9d9ed] bg-white p-4 shadow-sm"
                 >
                     <h4 className="font-semibold text-slate-950">
-                        Buat permintaan pemeriksaan
+                        Create examination request
                     </h4>
                     <ErrorSummary errors={form.errors} />
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <Label htmlFor="radiology-examination">
-                                Pemeriksaan
+                                Examination
                             </Label>
                             <select
                                 id="radiology-examination"
@@ -429,7 +427,7 @@ export function RadiologyEncounterPanel({
                                 required
                             >
                                 <option value="">
-                                    Pilih pemeriksaan aktif
+                                    Select an active examination
                                 </option>
                                 {projection.examination_options.map(
                                     (option) => (
@@ -446,7 +444,7 @@ export function RadiologyEncounterPanel({
                         </div>
                         <div>
                             <Label htmlFor="radiology-clinical-question">
-                                Pertanyaan klinis
+                                Clinical question
                             </Label>
                             <textarea
                                 id="radiology-clinical-question"
@@ -468,7 +466,7 @@ export function RadiologyEncounterPanel({
                         className="min-h-11"
                         disabled={form.processing}
                     >
-                        Simpan permintaan
+                        Save request
                     </Button>
                 </form>
             ) : null}
@@ -484,7 +482,7 @@ export function RadiologyEncounterPanel({
                     ))
                 ) : (
                     <p className="rounded-lg border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-600">
-                        Belum ada permintaan radiologi pada episode ini.
+                        No radiology requests for this episode.
                     </p>
                 )}
             </div>

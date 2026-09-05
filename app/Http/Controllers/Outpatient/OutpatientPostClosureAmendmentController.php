@@ -55,15 +55,15 @@ final class OutpatientPostClosureAmendmentController extends Controller
                 requestCorrelationId: RequestCorrelation::existing($request),
             );
         } catch (OutpatientAmendmentDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (OutpatientAmendmentAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()
             ->with('success', $result->replayed
-                ? 'Permintaan addendum sudah tercatat.'
-                : 'Permintaan addendum berhasil dikirim.')
+                ? 'The addendum request is already recorded.'
+                : 'Addendum request submitted.')
             ->with('last_amendment_request_public_id', $result->request->public_id);
     }
 
@@ -97,17 +97,17 @@ final class OutpatientPostClosureAmendmentController extends Controller
                 requestCorrelationId: RequestCorrelation::existing($request),
             );
         } catch (OutpatientAmendmentDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (OutpatientAmendmentAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()
             ->with('success', $result->replayed
-                ? 'Keputusan addendum sudah tercatat.'
+                ? 'The addendum decision is already recorded.'
                 : ($result->request->request_state === OutpatientPostClosureAmendmentRequest::STATE_APPROVED
-                    ? 'Permintaan addendum disetujui.'
-                    : 'Permintaan addendum ditolak.'));
+                    ? 'Addendum request approved.'
+                    : 'Addendum request declined.'));
     }
 
     public function saveAddendum(Request $request, string $amendmentRequest): RedirectResponse
@@ -133,13 +133,13 @@ final class OutpatientPostClosureAmendmentController extends Controller
                 requestCorrelationId: RequestCorrelation::existing($request),
             );
         } catch (OutpatientAmendmentDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (OutpatientAmendmentAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()
-            ->with('success', $result->replayed ? 'Draf addendum sudah tercatat.' : 'Draf addendum berhasil disimpan.')
+            ->with('success', $result->replayed ? 'The addendum draft is already recorded.' : 'Addendum draft saved.')
             ->with('last_addendum_public_id', $result->addendum->public_id);
     }
 
@@ -163,13 +163,13 @@ final class OutpatientPostClosureAmendmentController extends Controller
                 requestCorrelationId: RequestCorrelation::existing($request),
             );
         } catch (OutpatientAmendmentDenied $denial) {
-            return $this->failure($request, $denial->getMessage(), $denial->status);
+            return $this->failure($request, __($denial->getMessage()), $denial->status);
         } catch (OutpatientAmendmentAuditUnavailable $failure) {
-            return $this->failure($request, $failure->getMessage(), 503);
+            return $this->failure($request, __($failure->getMessage()), 503);
         }
 
         return back()
-            ->with('success', $result->replayed ? 'Finalisasi addendum sudah tercatat.' : 'Addendum berhasil difinalisasi.')
+            ->with('success', $result->replayed ? 'The addendum finalization is already recorded.' : 'Addendum finalized.')
             ->with('last_addendum_public_id', $result->addendum->public_id);
     }
 

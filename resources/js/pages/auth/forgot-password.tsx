@@ -12,7 +12,7 @@ import { email } from '@/routes/password';
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
         <>
-            <Head title="Lupa kata sandi" />
+            <Head title="Forgot password" />
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">
@@ -25,14 +25,16 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email institusi</Label>
+                                <Label htmlFor="email">
+                                    Institutional email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     name="email"
                                     autoComplete="off"
                                     autoFocus
-                                    placeholder="nama@contoh.invalid"
+                                    placeholder="name@example.invalid"
                                 />
 
                                 <InputError message={errors.email} />
@@ -47,7 +49,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Kirim tautan pengaturan ulang
+                                    Send password reset link
                                 </Button>
                             </div>
                         </>
@@ -55,8 +57,8 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </Form>
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>Atau, kembali ke</span>
-                    <TextLink href={login()}>halaman masuk</TextLink>
+                    <span>Or return to the</span>
+                    <TextLink href={login()}>sign-in page</TextLink>
                 </div>
             </div>
         </>
@@ -64,7 +66,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 }
 
 ForgotPassword.layout = {
-    title: 'Lupa kata sandi',
+    title: 'Forgot password',
     description:
-        'Masukkan email institusi untuk menerima tautan pengaturan ulang kata sandi.',
+        'Enter your institutional email to receive a password reset link.',
 };

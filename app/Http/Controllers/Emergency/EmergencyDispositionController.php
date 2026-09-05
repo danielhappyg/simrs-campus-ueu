@@ -31,7 +31,7 @@ final class EmergencyDispositionController extends Controller
                 $validated['payload'],
                 $validated['idempotency_key'],
             ),
-            'Disposisi IGD telah ditandatangani.',
+            'Emergency disposition signed.',
         );
     }
 
@@ -51,7 +51,7 @@ final class EmergencyDispositionController extends Controller
                 $validated['reason'],
                 $validated['idempotency_key'],
             ),
-            'Koreksi disposisi IGD telah ditandatangani.',
+            'Emergency disposition correction signed.',
         );
     }
 
@@ -80,7 +80,7 @@ final class EmergencyDispositionController extends Controller
                 $validated['expires_at'],
                 $validated['idempotency_key'],
             ),
-            'Maksud koreksi serah-terima telah ditandatangani dokter.',
+            'The physician has signed the handoff correction request.',
         );
     }
 
@@ -102,7 +102,7 @@ final class EmergencyDispositionController extends Controller
                 $validated['reason'],
                 $validated['idempotency_key'],
             ),
-            'Maksud koreksi serah-terima telah dicabut.',
+            'The handoff correction request has been withdrawn.',
         );
     }
 

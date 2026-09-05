@@ -10,18 +10,18 @@ export type SimrsModuleCategory = {
  * App\Support\SimrsModuleCategories.
  */
 export const SIMRS_MODULE_CATEGORIES: readonly SimrsModuleCategory[] = [
-    { slug: 'pendaftaran', label: 'Pendaftaran', live: true },
-    { slug: 'pemeriksaan', label: 'Pemeriksaan', live: true },
-    { slug: 'rm', label: 'RM', live: true },
-    { slug: 'klaim', label: 'Klaim' },
-    { slug: 'laporan', label: 'Laporan' },
+    { slug: 'pendaftaran', label: 'Registration', live: true },
+    { slug: 'pemeriksaan', label: 'Examination', live: true },
+    { slug: 'rm', label: 'Medical Records', live: true },
+    { slug: 'klaim', label: 'Claims' },
+    { slug: 'laporan', label: 'Reports' },
     { slug: 'bpjs', label: 'BPJS' },
-    { slug: 'apotek', label: 'Apotek', live: true },
+    { slug: 'apotek', label: 'Pharmacy', live: true },
     { slug: 'gf', label: 'GF' },
-    { slug: 'kasir', label: 'Kasir', live: true },
-    { slug: 'manajemen-data', label: 'Manajemen Data' },
+    { slug: 'kasir', label: 'Cashier', live: true },
+    { slug: 'manajemen-data', label: 'Data Management' },
     { slug: 'iot', label: 'IoT' },
-    { slug: 'farmasi-ibs', label: 'Farmasi IBS' },
+    { slug: 'farmasi-ibs', label: 'Operating Theatre Pharmacy' },
     { slug: 'help', label: 'Help' },
 ] as const;
 

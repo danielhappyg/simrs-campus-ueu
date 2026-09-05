@@ -13,8 +13,8 @@ export default function PemeriksaanIgdShow(props: EmergencyShowProps) {
 
 PemeriksaanIgdShow.layout = (props: EmergencyShowProps) => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pemeriksaan IGD', href: '/pemeriksaan/igd' },
+        { title: 'Home', href: '/' },
+        { title: 'Emergency Department', href: '/pemeriksaan/igd' },
         {
             title: props.encounter.patient.full_name ?? 'Detail',
             href: `/pemeriksaan/igd/${props.encounter.public_id}`,

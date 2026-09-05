@@ -9,7 +9,7 @@ export default function RadiologyTariffMappingPage(
 ) {
     return (
         <>
-            <Head title="Pemetaan Radiologi" />
+            <Head title="Mapping Radiology" />
             <RadiologyTariffMappingWorkspace {...props} />
         </>
     );

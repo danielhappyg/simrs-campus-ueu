@@ -180,19 +180,19 @@ describe('append-only cash settlement correction UI', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Koreksi Pelunasan Tunai' }),
+            screen.getByRole('heading', { name: 'Cash Settlement Correction' }),
         ).toBeVisible();
         expect(
             screen.getByRole('table', {
-                name: 'Daftar perkara koreksi pelunasan tunai',
+                name: 'Cash settlement correction cases',
             }),
         ).toBeVisible();
         expect(
-            screen.getByText('Pengembalian disetujui, kas belum diserahkan'),
+            screen.getByText('Refund approved, cash not yet returned'),
         ).toBeVisible();
-        expect(
-            screen.getAllByRole('link', { name: 'Buka Perkara' }),
-        ).toHaveLength(2);
+        expect(screen.getAllByRole('link', { name: 'Open Case' })).toHaveLength(
+            2,
+        );
 
         expectFortyFourPixelTargets(container);
         await expectAccessible(container);
@@ -210,20 +210,20 @@ describe('append-only cash settlement correction UI', () => {
 
         expect(container.querySelector('input[type="number"]')).toBeNull();
         await user.selectOptions(
-            screen.getByLabelText('Alasan koreksi'),
+            screen.getByLabelText('Correction reason'),
             'DUPLICATE_COLLECTION',
         );
         await user.type(
-            screen.getByLabelText('Penjelasan kejadian'),
+            screen.getByLabelText('Incident explanation'),
             'Penerimaan kas yang sama telah dicatat pada loket lain.',
         );
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Saya mengonfirmasi permintaan ini/i,
+                name: /I confirm this request/i,
             }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Kirim Permintaan Koreksi' }),
+            screen.getByRole('button', { name: 'Submit Correction Request' }),
         );
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -250,17 +250,17 @@ describe('append-only cash settlement correction UI', () => {
         );
 
         await user.selectOptions(
-            screen.getByLabelText('Alasan koreksi'),
+            screen.getByLabelText('Correction reason'),
             'WRONG_BILL',
         );
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Saya mengonfirmasi permintaan ini/i,
+                name: /I confirm this request/i,
             }),
         );
-        const explanation = screen.getByLabelText('Penjelasan kejadian');
+        const explanation = screen.getByLabelText('Incident explanation');
         const submit = screen.getByRole('button', {
-            name: 'Kirim Permintaan Koreksi',
+            name: 'Submit Correction Request',
         });
 
         await user.type(explanation, '1234567');
@@ -277,25 +277,25 @@ describe('append-only cash settlement correction UI', () => {
 
         expect(
             screen.getByText(
-                /Persetujuan belum berarti uang telah dikembalikan/i,
+                /Approval does not mean the cash has been returned/i,
             ),
         ).toBeVisible();
         await user.click(
             screen.getByRole('radio', {
-                name: /Setujui pengembalian penuh/i,
+                name: /Approve full refund/i,
             }),
         );
         await user.type(
-            screen.getByLabelText('Dasar keputusan'),
+            screen.getByLabelText('Decision basis'),
             'Duplikasi penerimaan terkonfirmasi dari bukti kuitansi.',
         );
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Saya telah mencocokkan kuitansi/i,
+                name: /I have matched the receipt/i,
             }),
         );
         await user.click(
-            screen.getByRole('button', { name: 'Catat Keputusan' }),
+            screen.getByRole('button', { name: 'Record Decision' }),
         );
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -337,14 +337,14 @@ describe('append-only cash settlement correction UI', () => {
             />,
         );
 
-        expect(screen.getByText('Pengembalian belum selesai')).toBeVisible();
+        expect(screen.getByText('Refund not yet completed')).toBeVisible();
         const complete = screen.getByRole('button', {
-            name: 'Catat Pengembalian Selesai',
+            name: 'Record Completed Refund',
         });
         expect(complete).toBeDisabled();
         await user.click(
             screen.getByRole('checkbox', {
-                name: /uang tunai tepat sebesar/i,
+                name: /exact cash amount of/i,
             }),
         );
         await user.click(complete);
@@ -376,7 +376,7 @@ describe('append-only cash settlement correction UI', () => {
         expect(screen.getByText('Supervisor Kasir Pendidikan')).toBeVisible();
         expect(screen.getByText('Supervisor Kasir Sore')).toBeVisible();
         await user.click(
-            screen.getByRole('button', { name: 'Cetak Bukti Pengembalian' }),
+            screen.getByRole('button', { name: 'Print Refund Receipt' }),
         );
         expect(print).toHaveBeenCalledOnce();
 

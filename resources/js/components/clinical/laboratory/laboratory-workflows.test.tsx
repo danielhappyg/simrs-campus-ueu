@@ -270,17 +270,15 @@ describe('laboratory frontend contracts', () => {
         );
 
         await user.selectOptions(
-            screen.getByLabelText('Pemeriksaan'),
+            screen.getByLabelText('Examination'),
             'exam-cbc',
         );
-        await user.selectOptions(screen.getByLabelText('Prioritas'), 'URGENT');
+        await user.selectOptions(screen.getByLabelText('Priority'), 'URGENT');
         await user.type(
-            screen.getByLabelText('Pertanyaan klinis'),
+            screen.getByLabelText('Clinical question'),
             'Evaluasi anemia.',
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan permintaan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save request' }));
 
         const firstKey = (
             inertia.post.mock.calls.at(-1)?.[1] as { idempotency_key: string }
@@ -294,9 +292,7 @@ describe('laboratory frontend contracts', () => {
             expect.objectContaining({ errorBag: 'laboratoryOrder' }),
         );
 
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan permintaan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save request' }));
         expect(
             (inertia.post.mock.calls.at(-1)?.[1] as { idempotency_key: string })
                 .idempotency_key,
@@ -313,24 +309,22 @@ describe('laboratory frontend contracts', () => {
         const user = userEvent.setup();
         const { container } = render(<LaboratoryWorklist {...worklistProps} />);
 
-        expect(screen.getByText('Draft hasil')).toBeInTheDocument();
-        await user.click(
-            screen.getByRole('button', { name: 'Verifikasi hasil' }),
-        );
+        expect(screen.getByText('Result draft')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Verify result' }));
         expect(
-            screen.getByText(/memerlukan catatan komunikasi/i),
+            screen.getByText(/require a communication record/i),
         ).toBeInTheDocument();
         await user.type(
-            screen.getByLabelText('Waktu komunikasi'),
+            screen.getByLabelText('Communication time'),
             '2026-09-01T08:40',
         );
         await user.selectOptions(screen.getByLabelText('Metode'), 'TELEPHONE');
         await user.selectOptions(
-            screen.getByLabelText('Hasil komunikasi'),
+            screen.getByLabelText('Communication outcome'),
             'COMMUNICATED',
         );
         await user.click(
-            screen.getAllByRole('button', { name: 'Verifikasi hasil' }).at(-1)!,
+            screen.getAllByRole('button', { name: 'Verify result' }).at(-1)!,
         );
 
         expect(inertia.post).toHaveBeenLastCalledWith(
@@ -353,37 +347,39 @@ describe('laboratory frontend contracts', () => {
         const user = userEvent.setup();
         const { container } = render(<LaboratoryWorklist {...worklistProps} />);
 
-        await user.click(
-            screen.getByRole('button', { name: 'Verifikasi hasil' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Verify result' }));
         await user.type(
-            screen.getByLabelText('Waktu komunikasi'),
+            screen.getByLabelText('Communication time'),
             '2026-09-01T08:42',
         );
         await user.selectOptions(screen.getByLabelText('Metode'), 'TELEPHONE');
         await user.selectOptions(
-            screen.getByLabelText('Hasil komunikasi'),
+            screen.getByLabelText('Communication outcome'),
             'ESCALATED',
         );
         expect(
-            screen.getByLabelText('Dokter penerima eskalasi'),
+            screen.getByLabelText('Escalation recipient physician'),
         ).toBeRequired();
         await user.selectOptions(
-            screen.getByLabelText('Dokter penerima eskalasi'),
+            screen.getByLabelText('Escalation recipient physician'),
             'physician-cover',
         );
         expect(
-            screen.getByLabelText('Catatan komunikasi (wajib untuk eskalasi)'),
+            screen.getByLabelText(
+                'Communication note (required for escalation)',
+            ),
         ).toBeRequired();
         expect(
-            screen.getByText(/Jelaskan alasan eskalasi/i),
+            screen.getByText(/Explain the escalation reason/i),
         ).toBeInTheDocument();
         await user.type(
-            screen.getByLabelText('Catatan komunikasi (wajib untuk eskalasi)'),
+            screen.getByLabelText(
+                'Communication note (required for escalation)',
+            ),
             'Dokter pemesan tidak tersedia; diteruskan ke dokter jaga.',
         );
         await user.click(
-            screen.getAllByRole('button', { name: 'Verifikasi hasil' }).at(-1)!,
+            screen.getAllByRole('button', { name: 'Verify result' }).at(-1)!,
         );
 
         const payload = inertia.post.mock.calls.at(-1)?.[1] as {
@@ -432,16 +428,16 @@ describe('laboratory frontend contracts', () => {
 
         await user.click(
             screen.getByRole('button', {
-                name: 'Nilai kelayakan spesimen',
+                name: 'Assess specimen suitability',
             }),
         );
         await user.selectOptions(
-            screen.getByLabelText('Alasan penolakan'),
+            screen.getByLabelText('Rejection reason'),
             'HEMOLYSED',
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Tolak dan minta pengambilan ulang',
+                name: 'Reject and request recollection',
             }),
         );
 
@@ -622,66 +618,70 @@ describe('laboratory frontend contracts', () => {
             />,
         );
 
+        expect(screen.getByText('Initial verified result')).toBeInTheDocument();
         expect(
-            screen.getByText('Hasil terverifikasi awal'),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByLabelText('Hasil terverifikasi awal'),
+            screen.getByLabelText('Initial verified result'),
         ).toHaveTextContent(
             /Budi, ATLM.*08[.:]35.*Sari, Verifikator.*08[.:]45/,
         );
         expect(
-            screen.getByText('Riwayat adendum terverifikasi'),
+            screen.getByText('Verified amendment history'),
         ).toBeInTheDocument();
         expect(
-            screen.getByLabelText('Riwayat adendum terverifikasi'),
+            screen.getByLabelText('Verified amendment history'),
         ).toHaveTextContent(/Kesalahan teknis.*09[.:]00.*5\.4/);
         expect(
-            screen.getByLabelText('Riwayat adendum terverifikasi'),
+            screen.getByLabelText('Verified amendment history'),
         ).toHaveTextContent(/Koreksi transkripsi.*09[.:]10.*5\.6/);
         expect(
-            screen.getByLabelText('Riwayat adendum terverifikasi'),
+            screen.getByLabelText('Verified amendment history'),
         ).toHaveTextContent(/Koreksi lanjutan nonkritis.*09[.:]20.*12\.6/);
         expect(
-            screen.getByLabelText('Komunikasi nilai kritis adendum versi 7'),
+            screen.getByLabelText(
+                'Critical-value communication for amendment version 7',
+            ),
         ).toHaveTextContent(
             /09[.:]29.*Kanal internal aman.*dr. Maya.*Dieskalasikan.*Dokter pemesan tidak tersedia/,
         );
         expect(
-            screen.getByLabelText('Komunikasi nilai kritis adendum versi 8'),
+            screen.getByLabelText(
+                'Critical-value communication for amendment version 8',
+            ),
         ).toHaveTextContent(
             /09[.:]39.*Telepon.*dr. Ratna.*Tersampaikan.*versi terbaru dibacakan ulang/,
         );
         expect(screen.getByText('Kesalahan teknis')).toBeInTheDocument();
         expect(screen.getByText('Koreksi transkripsi')).toBeInTheDocument();
-        expect(screen.getByText(/Draft oleh Budi, ATLM/)).toBeInTheDocument();
+        expect(screen.getByText(/Drafted by Budi, ATLM/)).toBeInTheDocument();
         expect(
-            screen.getByText(/Diverifikasi oleh Sari, Verifikator/),
+            screen.getByText(/Verified by Sari, Verifikator/),
         ).toBeInTheDocument();
-        expect(screen.getByText(/Ditandatangani Sari/)).toBeInTheDocument();
-        expect(screen.getAllByText(/Ditandatangani Dewi/)).toHaveLength(2);
+        expect(screen.getByText(/Signed by Sari/)).toBeInTheDocument();
+        expect(screen.getAllByText(/Signed by Dewi/)).toHaveLength(2);
         expect(screen.getByText('Dibacakan ulang.')).toBeInTheDocument();
         expect(
-            screen.getByLabelText('Komunikasi nilai kritis adendum versi 5'),
+            screen.getByLabelText(
+                'Critical-value communication for amendment version 5',
+            ),
         ).toHaveTextContent(
             /09[.:]09.*Telepon adendum.*dr. Ratna.*Tersampaikan.*Dibacakan ulang/,
         );
         expect(
-            screen.getAllByText('Komunikasi nilai kritis pada adendum'),
+            screen.getAllByText('Critical-value communication for amendment'),
         ).toHaveLength(2);
         expect(
             screen.getByText(
-                'Komunikasi nilai kritis pada adendum · masih berlaku pada hasil saat ini',
+                'Critical-value communication for amendment · still applies to the current result',
             ),
         ).toBeInTheDocument();
         expect(
-            screen.queryByLabelText('Komunikasi nilai kritis saat ini'),
+            screen.queryByLabelText('Current critical-value communication'),
         ).not.toBeInTheDocument();
         expect(
-            screen.getByText('Pengetahuan sebelumnya tidak lagi current'),
+            screen.getByText('Previous acknowledgement is no longer current'),
         ).toBeInTheDocument();
         expect(
-            screen.getByLabelText('Pengetahuan dokter pemesan'),
+            screen.getByLabelText('Ordering physician acknowledgement'),
         ).toHaveTextContent(/dr. Ratna.*09[.:]05/);
         expect(screen.getByText(/^5\.1/)).toBeInTheDocument();
         expect(screen.getByText(/^5\.4/)).toBeInTheDocument();
@@ -713,23 +713,25 @@ describe('laboratory frontend contracts', () => {
             />,
         );
         expect(
-            screen.getByText('Sudah diketahui dokter pemesan'),
+            screen.getByText('Acknowledged by ordering physician'),
         ).toBeInTheDocument();
         expect(
-            screen.getByLabelText('Pengetahuan dokter pemesan'),
+            screen.getByLabelText('Ordering physician acknowledgement'),
         ).toHaveTextContent(/dr. Ratna.*09[.:]15/);
         expect(
             screen.getByText(
-                'Komunikasi nilai kritis pada adendum · masih berlaku pada hasil saat ini',
+                'Critical-value communication for amendment · still applies to the current result',
             ),
         ).toBeInTheDocument();
         expect(
-            screen.getByLabelText('Komunikasi nilai kritis adendum versi 5'),
+            screen.getByLabelText(
+                'Critical-value communication for amendment version 5',
+            ),
         ).toHaveTextContent(
             /09[.:]09.*Telepon adendum.*dr. Ratna.*Tersampaikan.*Dibacakan ulang/,
         );
         expect(
-            screen.getByText(/Ditandatangani Dewi, Verifikator/),
+            screen.getByText(/Signed by Dewi, Verifikator/),
         ).toBeInTheDocument();
     });
 
@@ -765,18 +767,18 @@ describe('laboratory frontend contracts', () => {
             />,
         );
 
-        expect(screen.getByText('Arsip baca-saja')).toBeInTheDocument();
+        expect(screen.getByText('Read-only archive')).toBeInTheDocument();
         expect(
-            screen.queryByLabelText('Alur pemeriksaan laboratorium'),
+            screen.queryByLabelText('Laboratory examination workflow'),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Ambil spesimen' }),
+            screen.queryByRole('button', { name: 'Collect specimen' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Susun hasil' }),
+            screen.queryByRole('button', { name: 'Draft result' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Verifikasi hasil' }),
+            screen.queryByRole('button', { name: 'Verify result' }),
         ).not.toBeInTheDocument();
         expect(inertia.post).not.toHaveBeenCalled();
         await expectAccessible(container);
@@ -834,19 +836,19 @@ describe('laboratory frontend contracts', () => {
             />,
         );
 
-        expect(screen.getByText('Arsip baca-saja')).toBeInTheDocument();
+        expect(screen.getByText('Read-only archive')).toBeInTheDocument();
         expect(screen.getByText('Hemoglobin 12,8 g/dL')).toBeInTheDocument();
         expect(
-            screen.getByText(/Draft oleh Petugas Arsip/),
+            screen.getByText(/Drafted by Petugas Arsip/),
         ).toBeInTheDocument();
         expect(
-            screen.queryByLabelText('Alur pemeriksaan laboratorium'),
+            screen.queryByLabelText('Laboratory examination workflow'),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByText('Menunggu diketahui dokter pemesan'),
+            screen.queryByText('Awaiting ordering physician acknowledgement'),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Tandai sudah diketahui' }),
+            screen.queryByRole('button', { name: 'Mark as acknowledged' }),
         ).not.toBeInTheDocument();
         await expectAccessible(container);
     });
@@ -882,11 +884,9 @@ describe('laboratory frontend contracts', () => {
             <LaboratoryWorklist {...worklistProps} orders={[amendableOrder]} />,
         );
 
-        await user.click(
-            screen.getByRole('button', { name: 'Tambah adendum' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Add addendum' }));
         await user.selectOptions(
-            screen.getByLabelText('Alasan koreksi'),
+            screen.getByLabelText('Correction reason'),
             'CORRECTION',
         );
         await user.selectOptions(
@@ -894,27 +894,27 @@ describe('laboratory frontend contracts', () => {
             'CRITICAL',
         );
         expect(
-            screen.getByText(/Setiap adendum dengan nilai kritis/i),
+            screen.getByText(/Every addendum with a critical value/i),
         ).toBeInTheDocument();
         await user.type(
-            screen.getByLabelText('Waktu komunikasi adendum'),
+            screen.getByLabelText('Addendum communication time'),
             '2026-09-01T09:20',
         );
         await user.selectOptions(
-            screen.getByLabelText('Metode komunikasi adendum'),
+            screen.getByLabelText('Addendum communication method'),
             'TELEPHONE',
         );
         await user.selectOptions(
-            screen.getByLabelText('Hasil komunikasi adendum'),
+            screen.getByLabelText('Addendum communication outcome'),
             'COMMUNICATED',
         );
         await user.type(
-            screen.getByLabelText('Catatan komunikasi adendum (opsional)'),
+            screen.getByLabelText('Addendum communication notes (optional)'),
             'Read-back terkonfirmasi.',
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan adendum terverifikasi',
+                name: 'Save verified addendum',
             }),
         );
 
@@ -976,43 +976,41 @@ describe('laboratory frontend contracts', () => {
             <LaboratoryWorklist {...worklistProps} orders={[criticalOrder]} />,
         );
 
-        await user.click(
-            screen.getByRole('button', { name: 'Tambah adendum' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Add addendum' }));
         expect(
-            screen.getByText(/Setiap adendum dengan nilai kritis/i),
+            screen.getByText(/Every addendum with a critical value/i),
         ).toBeInTheDocument();
-        expect(screen.getByLabelText('Waktu komunikasi adendum')).toHaveValue(
-            '',
-        );
         expect(
-            screen.getByLabelText('Catatan komunikasi adendum (opsional)'),
+            screen.getByLabelText('Addendum communication time'),
+        ).toHaveValue('');
+        expect(
+            screen.getByLabelText('Addendum communication notes (optional)'),
         ).toHaveValue('');
         await user.selectOptions(
-            screen.getByLabelText('Alasan koreksi'),
+            screen.getByLabelText('Correction reason'),
             'CORRECTION',
         );
-        await user.clear(screen.getByLabelText('Nilai hasil (g/dL)'));
-        await user.type(screen.getByLabelText('Nilai hasil (g/dL)'), '4.9');
+        await user.clear(screen.getByLabelText('Result value (g/dL)'));
+        await user.type(screen.getByLabelText('Result value (g/dL)'), '4.9');
         await user.type(
-            screen.getByLabelText('Waktu komunikasi adendum'),
+            screen.getByLabelText('Addendum communication time'),
             '2026-09-01T09:30',
         );
         await user.selectOptions(
-            screen.getByLabelText('Metode komunikasi adendum'),
+            screen.getByLabelText('Addendum communication method'),
             'TELEPHONE',
         );
         await user.selectOptions(
-            screen.getByLabelText('Hasil komunikasi adendum'),
+            screen.getByLabelText('Addendum communication outcome'),
             'COMMUNICATED',
         );
         await user.type(
-            screen.getByLabelText('Catatan komunikasi adendum (opsional)'),
+            screen.getByLabelText('Addendum communication notes (optional)'),
             'Nilai kritis versi baru dibacakan ulang.',
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan adendum terverifikasi',
+                name: 'Save verified addendum',
             }),
         );
 
@@ -1038,12 +1036,12 @@ describe('laboratory frontend contracts', () => {
         );
 
         await user.click(
-            screen.getByRole('button', { name: 'Tambah pemeriksaan' }),
+            screen.getByRole('button', { name: 'Add examination' }),
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Tambah komponen' }),
-        );
-        expect(screen.getByText('Komponen hasil (2/12)')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Add component' }));
+        expect(
+            screen.getByText('Result components (2/12)'),
+        ).toBeInTheDocument();
         expect(
             screen
                 .getAllByRole('button')

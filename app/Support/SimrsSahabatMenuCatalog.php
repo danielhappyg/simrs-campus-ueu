@@ -15,7 +15,7 @@ final class SimrsSahabatMenuCatalog
      */
     public static function menusByCategory(): array
     {
-        return [
+        $categories = [
             'pendaftaran' => [
                 [
                     'slug' => 'pendaftaran-rawatinap',
@@ -1919,6 +1919,16 @@ final class SimrsSahabatMenuCatalog
                 ],
             ],
         ];
+
+        foreach ($categories as &$menus) {
+            foreach ($menus as &$menu) {
+                $menu['label'] = ScreenVocabulary::label($menu['label']);
+            }
+            unset($menu);
+        }
+        unset($menus);
+
+        return $categories;
     }
 
     /**

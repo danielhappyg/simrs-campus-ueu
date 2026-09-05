@@ -9,7 +9,7 @@ export default function PemeriksaanLaboratorium(
 ) {
     return (
         <>
-            <Head title="Worklist Laboratorium" />
+            <Head title="Laboratory Worklist" />
             <LaboratoryWorklist {...props} />
         </>
     );

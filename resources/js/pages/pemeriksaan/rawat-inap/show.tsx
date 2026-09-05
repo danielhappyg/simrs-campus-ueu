@@ -10,8 +10,8 @@ export default function PemeriksaanRawatInapShow(
 
 PemeriksaanRawatInapShow.layout = (props: InpatientDocumentationShowProps) => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pemeriksaan rawat inap', href: '/pemeriksaan/rawat-inap' },
+        { title: 'Home', href: '/' },
+        { title: 'Inpatient Care', href: '/pemeriksaan/rawat-inap' },
         {
             title: props.encounter.patient.full_name ?? 'Detail',
             href: `/pemeriksaan/rawat-inap/${props.encounter.public_id}`,

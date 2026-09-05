@@ -40,14 +40,18 @@ export function EmergencyWorklist({
     return (
         <>
             <Head
-                title={mode === 'triage' ? 'Triage IGD' : 'Pemeriksaan · IGD'}
+                title={
+                    mode === 'triage'
+                        ? 'Emergency Department Triage'
+                        : 'Clinical Care · Emergency Department'
+                }
             />
             <main className="mx-auto flex w-full max-w-[1480px] flex-1 flex-col gap-4 px-3 py-4 md:px-5 md:py-5">
                 <CareSettingSubnav
                     items={[
                         {
                             href: '/pemeriksaan/rawat-jalan',
-                            label: 'Rawat Jalan',
+                            label: 'Outpatient Care',
                         },
                         {
                             href: '/pemeriksaan/igd',
@@ -56,7 +60,7 @@ export function EmergencyWorklist({
                         },
                         {
                             href: '/pemeriksaan/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient Care',
                         },
                         {
                             href: '/pemeriksaan/triage',
@@ -65,9 +69,9 @@ export function EmergencyWorklist({
                         },
                         {
                             href: '/pemeriksaan/laboratorium',
-                            label: 'Laboratorium',
+                            label: 'Laboratory',
                         },
-                        { href: '/pemeriksaan/radiologi', label: 'Radiologi' },
+                        { href: '/pemeriksaan/radiologi', label: 'Radiology' },
                     ]}
                 />
 
@@ -75,7 +79,7 @@ export function EmergencyWorklist({
                     <div className="grid md:grid-cols-[minmax(0,1fr)_18rem]">
                         <div className="p-4 md:p-5">
                             <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                                Kendali episode gawat darurat
+                                Emergency episode management
                             </p>
                             <h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold text-foreground">
                                 <Siren
@@ -83,25 +87,25 @@ export function EmergencyWorklist({
                                     className="size-6 text-primary"
                                 />
                                 {mode === 'triage'
-                                    ? 'Worklist triage IGD'
-                                    : 'Pemeriksaan IGD'}
+                                    ? 'Emergency triage worklist'
+                                    : 'Emergency Department'}
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
                                 {mode === 'triage'
-                                    ? 'Pantau waktu tunggu, kategori manual terakhir, dan kebutuhan asesmen ulang.'
-                                    : 'Buka episode untuk melihat riwayat triage, dokumentasi klinis, diagnostik, dan disposisi dalam satu alur.'}
+                                    ? 'Monitor waiting times, the latest manual category, and reassessment needs.'
+                                    : 'Open an episode to review triage history, clinical documentation, diagnostics, and disposition in one workflow.'}
                             </p>
                         </div>
                         <aside className="border-t border-sidebar-border bg-sidebar p-4 text-sidebar-foreground md:border-t-0 md:border-l">
                             <p className="text-xs font-semibold tracking-wide uppercase opacity-75">
-                                Episode aktif
+                                Active episodes
                             </p>
                             <p className="mt-1 font-mono text-4xl font-bold tabular-nums">
                                 {encounters.length}
                             </p>
                             <p className="mt-1 text-xs opacity-75">
-                                Urutan mengikuti waktu pendaftaran. Prioritas
-                                klinis tetap ditetapkan manual oleh perawat.
+                                Ordered by registration time. Clinical priority
+                                remains a nurse’s manual decision.
                             </p>
                         </aside>
                     </div>
@@ -109,11 +113,11 @@ export function EmergencyWorklist({
 
                 <form
                     onSubmit={apply}
-                    aria-label="Filter worklist IGD"
+                    aria-label="Emergency worklist filters"
                     className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-[minmax(16rem,1fr)_10rem_10rem_11rem_auto]"
                 >
                     <label className="text-xs font-semibold text-foreground">
-                        Cari pasien atau nomor RM
+                        Find a patient or medical record number
                         <span className="relative block">
                             <Search
                                 aria-hidden="true"
@@ -123,12 +127,12 @@ export function EmergencyWorklist({
                                 value={q}
                                 onChange={(event) => setQ(event.target.value)}
                                 className={cn(emergencyFieldClass, 'pl-9')}
-                                placeholder="Nama / nomor RM"
+                                placeholder="Name / medical record number"
                             />
                         </span>
                     </label>
                     <label className="text-xs font-semibold text-foreground">
-                        Dari tanggal
+                        From date
                         <input
                             type="date"
                             value={dateFrom}
@@ -139,7 +143,7 @@ export function EmergencyWorklist({
                         />
                     </label>
                     <label className="text-xs font-semibold text-foreground">
-                        Sampai tanggal
+                        To date
                         <input
                             type="date"
                             value={dateTo}
@@ -148,13 +152,13 @@ export function EmergencyWorklist({
                         />
                     </label>
                     <label className="text-xs font-semibold text-foreground">
-                        Penjamin
+                        Guarantor
                         <select
                             value={payer}
                             onChange={(event) => setPayer(event.target.value)}
                             className={emergencyFieldClass}
                         >
-                            <option value="">Semua penjamin</option>
+                            <option value="">All guarantors</option>
                             {payerOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
                                     {option.label}
@@ -163,7 +167,7 @@ export function EmergencyWorklist({
                         </select>
                     </label>
                     <Button type="submit" className="min-h-11 self-end">
-                        Terapkan
+                        Apply
                     </Button>
                 </form>
 
@@ -176,15 +180,15 @@ export function EmergencyWorklist({
                             id="igd-worklist-title"
                             className="font-semibold text-foreground"
                         >
-                            Daftar episode IGD
+                            Emergency episode list
                         </h2>
                         <span className="text-xs text-muted-foreground">
-                            {encounters.length} episode
+                            {encounters.length} episodes
                         </span>
                     </div>
                     {encounters.length === 0 ? (
                         <div className="p-8 text-center text-sm text-muted-foreground">
-                            Tidak ada episode yang cocok dengan filter ini.
+                            No episodes match these filters.
                         </div>
                     ) : (
                         <div className="divide-y divide-border">
@@ -210,7 +214,7 @@ export function EmergencyWorklist({
                                         <div className="min-w-0">
                                             <p className="truncate font-semibold text-foreground">
                                                 {encounter.patient.full_name ??
-                                                    'Nama pasien belum tersedia'}
+                                                    'Patient name unavailable'}
                                             </p>
                                             <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                                                 {encounter.patient
@@ -220,7 +224,7 @@ export function EmergencyWorklist({
                                             </p>
                                             <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
                                                 {encounter.chief_complaint ||
-                                                    'Keluhan utama belum dicatat.'}
+                                                    'Chief complaint not recorded.'}
                                             </p>
                                         </div>
                                         <div>
@@ -234,13 +238,13 @@ export function EmergencyWorklist({
                                             <p className="mt-2 text-xs text-muted-foreground">
                                                 {encounter.triage
                                                     ?.last_assessed_at
-                                                    ? `Terakhir ${formatEmergencyDate(encounter.triage.last_assessed_at)}`
-                                                    : 'Menunggu asesmen awal'}
+                                                    ? `Last assessed ${formatEmergencyDate(encounter.triage.last_assessed_at)}`
+                                                    : 'Awaiting initial assessment'}
                                             </p>
                                         </div>
                                         <div className="text-sm">
                                             <p className="text-xs text-muted-foreground">
-                                                Terdaftar
+                                                Registered
                                             </p>
                                             <p className="mt-0.5 font-semibold">
                                                 {formatEmergencyDate(
@@ -250,9 +254,9 @@ export function EmergencyWorklist({
                                             {typeof encounter.waiting_minutes ===
                                             'number' ? (
                                                 <p className="mt-1 font-mono text-xs text-muted-foreground">
-                                                    Menunggu{' '}
+                                                    Waiting{' '}
                                                     {encounter.waiting_minutes}{' '}
-                                                    menit
+                                                    minutes
                                                 </p>
                                             ) : null}
                                         </div>
@@ -266,9 +270,9 @@ export function EmergencyWorklist({
                                                 >
                                                     <Link
                                                         href={`${showPathPrefix}/${encounter.public_id}`}
-                                                        aria-label={`Buka episode IGD ${encounter.patient.full_name ?? encounter.public_id}`}
+                                                        aria-label={`Open emergency episode ${encounter.patient.full_name ?? encounter.public_id}`}
                                                     >
-                                                        Buka{' '}
+                                                        Open{' '}
                                                         <ArrowRight aria-hidden="true" />
                                                     </Link>
                                                 </Button>
@@ -278,7 +282,7 @@ export function EmergencyWorklist({
                                                         aria-hidden="true"
                                                         className="size-4"
                                                     />{' '}
-                                                    Lihat saja
+                                                    View only
                                                 </span>
                                             )}
                                         </div>

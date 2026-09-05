@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\ScreenVocabulary;
 use App\Support\SimrsModuleCategories;
 use App\Support\SimrsSahabatMenuCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,11 +30,11 @@ class ModulePlaceholderTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('modules/placeholder')
                 ->where('category', 'rm')
-                ->where('categoryLabel', 'RM')
+                ->where('categoryLabel', 'Medical Records')
                 ->has('menus', 7)
                 ->where('selected', null)
-                ->where('menus.0.label', 'Rawat Jalan')
-                ->where('menus.2.label', 'Monitor Klaim')
+                ->where('menus.0.label', 'Outpatient Care')
+                ->where('menus.2.label', 'Claims Monitor')
                 ->where('menus.3.label', 'Filing'));
     }
 
@@ -105,7 +106,7 @@ class ModulePlaceholderTest extends TestCase
                 ->assertInertia(fn (Assert $page) => $page
                     ->component('modules/placeholder')
                     ->where('category', $slug)
-                    ->where('categoryLabel', $label)
+                    ->where('categoryLabel', ScreenVocabulary::label($label))
                     ->has('menus', $expectedCounts[$slug]));
         }
     }

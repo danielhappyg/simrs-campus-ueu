@@ -139,15 +139,15 @@ final class FinanceBillController extends Controller
                 $data['idempotency_key'],
             );
         } catch (FinanceDenied $denied) {
-            throw ValidationException::withMessages(['finance' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['finance' => __($denied->getMessage())]);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit Kasir belum tersedia.');
+            abort(503, 'Cashier audit recording is unavailable.');
         }
 
         return back()->with(
             'success',
-            $result->replayed ? 'Versi tagihan yang sama ditampilkan kembali.' : 'Versi tagihan diterbitkan.',
+            $result->replayed ? 'The same bill version is shown again.' : 'Bill version issued.',
         );
     }
 
@@ -162,16 +162,16 @@ final class FinanceBillController extends Controller
         try {
             $result = $this->service->synchronize($encounter, $actor, $data['idempotency_key']);
         } catch (FinanceDenied $denied) {
-            throw ValidationException::withMessages(['finance' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['finance' => __($denied->getMessage())]);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit Kasir belum tersedia.');
+            abort(503, 'Cashier audit recording is unavailable.');
         }
 
         return redirect()->route('finance.bills.show', ['encounter' => $encounter])
             ->with('success', $result->replayed
-                ? 'Sumber biaya yang sama ditampilkan kembali.'
-                : 'Sumber biaya valid disinkronkan. Kesenjangan yang tersisa tetap ditampilkan.');
+                ? 'The same charge sources are shown again.'
+                : 'Valid charge sources synchronized. Remaining gaps are still shown.');
     }
 
     private function actor(Request $request): User

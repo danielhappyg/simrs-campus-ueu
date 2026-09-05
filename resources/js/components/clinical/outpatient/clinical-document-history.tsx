@@ -4,21 +4,21 @@ import type {
 } from './types';
 
 const documentLabel = {
-    NURSING_ASSESSMENT: 'Asesmen keperawatan',
-    MEDICAL_ASSESSMENT: 'Asesmen medis',
+    NURSING_ASSESSMENT: 'Nursing assessment',
+    MEDICAL_ASSESSMENT: 'Medical assessment',
 };
 
 const fieldLabel: Record<string, string> = {
-    nursing_assessment: 'Asesmen keperawatan',
-    anamnesis: 'Subjective (Subjektif)',
-    objective_examination: 'Objective (Objektif)',
-    clinical_assessment: 'Assessment (Asesmen)',
-    care_plan: 'Plan (Rencana)',
+    nursing_assessment: 'Nursing assessment',
+    anamnesis: 'Subjective',
+    objective_examination: 'Objective',
+    clinical_assessment: 'Assessment',
+    care_plan: 'Plan',
     diagnosis_text: 'Diagnosis',
-    primary_icd10: 'ICD-10 utama',
-    secondary_icd10: 'ICD-10 sekunder',
-    procedures_icd9cm: 'Prosedur ICD-9-CM',
-    additional_notes: 'Catatan tambahan',
+    primary_icd10: 'Primary diagnosis (ICD-10)',
+    secondary_icd10: 'Secondary diagnoses (ICD-10)',
+    procedures_icd9cm: 'Procedures (ICD-9-CM)',
+    additional_notes: 'Additional notes',
 };
 
 function presentField(value: ClinicalDocumentFieldValue): string {
@@ -41,7 +41,7 @@ function presentField(value: ClinicalDocumentFieldValue): string {
 
 export function ClinicalDocumentHistory({
     versions,
-    emptyMessage = 'Belum ada versi dokumen terstruktur.',
+    emptyMessage = 'No structured document versions yet.',
 }: {
     versions: ClinicalDocumentVersion[];
     emptyMessage?: string;
@@ -51,7 +51,10 @@ export function ClinicalDocumentHistory({
     }
 
     return (
-        <ol aria-label="Riwayat versi dokumen klinis" className="space-y-2">
+        <ol
+            aria-label="Clinical document version history"
+            className="space-y-2"
+        >
             {versions.map((version) => {
                 const timestamp = version.finalized_at ?? version.created_at;
 
@@ -64,9 +67,9 @@ export function ClinicalDocumentHistory({
                                         {documentLabel[version.document_type]}
                                     </h3>
                                     <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                                        Versi {version.version} ·{' '}
+                                        Version {version.version} ·{' '}
                                         {version.actor_name ??
-                                            'Aktor tidak tersedia'}
+                                            'Actor unavailable'}
                                     </p>
                                 </div>
                                 <div className="text-right">
@@ -79,14 +82,14 @@ export function ClinicalDocumentHistory({
                                     >
                                         {version.state === 'FINAL'
                                             ? 'Final'
-                                            : 'Draf'}
+                                            : 'Draft'}
                                     </span>
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         {timestamp
                                             ? new Date(
                                                   timestamp,
-                                              ).toLocaleString('id-ID')
-                                            : 'Waktu tidak tersedia'}
+                                              ).toLocaleString('en-GB')
+                                            : 'Time unavailable'}
                                     </p>
                                 </div>
                             </header>

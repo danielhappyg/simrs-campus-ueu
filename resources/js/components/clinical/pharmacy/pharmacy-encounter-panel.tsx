@@ -137,14 +137,14 @@ function PrescriptionComposer({
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
-                        Resep dokter
+                        Physician prescription
                     </p>
                     <h3 className="mt-1 font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold">
                         {replacement
-                            ? 'Resep pengganti'
+                            ? 'Replacement prescription'
                             : prescription
-                              ? 'Ubah Draf'
-                              : 'Resep baru'}
+                              ? 'Edit draft'
+                              : 'New prescription'}
                     </h3>
                 </div>
                 {onClose ? (
@@ -154,7 +154,7 @@ function PrescriptionComposer({
                         className="min-h-11"
                         onClick={onClose}
                     >
-                        Tutup
+                        Close
                     </Button>
                 ) : null}
             </div>
@@ -164,7 +164,7 @@ function PrescriptionComposer({
                     <Label
                         htmlFor={`replacement-reason-${prescription?.public_id}`}
                     >
-                        Alasan penggantian resep
+                        Prescription replacement reason
                     </Label>
                     <select
                         id={`replacement-reason-${prescription?.public_id}`}
@@ -175,18 +175,19 @@ function PrescriptionComposer({
                         }
                         required
                     >
-                        <option value="">Pilih alasan</option>
+                        <option value="">Select a reason</option>
                         <option value="PRESCRIBING_CORRECTION">
-                            Koreksi peresepan
+                            Prescribing correction
                         </option>
-                        <option value="THERAPY_CHANGE">Perubahan terapi</option>
+                        <option value="THERAPY_CHANGE">Therapy change</option>
                         <option value="MEDICINE_UNAVAILABLE">
-                            Obat tidak tersedia
+                            Medicine unavailable
                         </option>
-                        <option value="OTHER">Alasan lain</option>
+                        <option value="OTHER">Other reason</option>
                     </select>
                     <p className="mt-1 text-xs text-muted-foreground">
-                        Resep lama dibatalkan dan tetap tersedia pada riwayat.
+                        The previous prescription is cancelled and remains
+                        available in the history.
                     </p>
                 </div>
             ) : null}
@@ -195,7 +196,7 @@ function PrescriptionComposer({
                     <Label
                         htmlFor={`pharmacy-depot-${prescription?.public_id ?? 'new'}`}
                     >
-                        Depo tujuan
+                        Destination depot
                     </Label>
                     <select
                         id={`pharmacy-depot-${prescription?.public_id ?? 'new'}`}
@@ -220,7 +221,7 @@ function PrescriptionComposer({
                     <Label
                         htmlFor={`pharmacy-note-${prescription?.public_id ?? 'new'}`}
                     >
-                        Catatan klinis resep
+                        Prescription clinical note
                     </Label>
                     <textarea
                         id={`pharmacy-note-${prescription?.public_id ?? 'new'}`}
@@ -235,7 +236,7 @@ function PrescriptionComposer({
             </div>
             <fieldset className="space-y-3">
                 <legend className="font-semibold">
-                    Obat dan aturan penggunaan
+                    Medicines and directions for use
                 </legend>
                 {form.data.items.map((item, index) => {
                     const medicine = projection.medicine_options.find(
@@ -250,7 +251,7 @@ function PrescriptionComposer({
                         >
                             <div className="flex items-center justify-between gap-3">
                                 <h4 className="font-semibold">
-                                    Obat {index + 1}
+                                    Medicine {index + 1}
                                 </h4>
                                 {form.data.items.length > 1 ? (
                                     <Button
@@ -258,7 +259,7 @@ function PrescriptionComposer({
                                         variant="ghost"
                                         size="icon"
                                         className="size-11 text-destructive"
-                                        aria-label={`Hapus obat ${index + 1}`}
+                                        aria-label={`Remove medicine ${index + 1}`}
                                         onClick={() =>
                                             form.setData(
                                                 'items',
@@ -279,7 +280,7 @@ function PrescriptionComposer({
                             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                                 <div className="sm:col-span-2">
                                     <Label htmlFor={`medicine-${index}`}>
-                                        Nama obat
+                                        Medication name
                                     </Label>
                                     <select
                                         id={`medicine-${index}`}
@@ -311,7 +312,7 @@ function PrescriptionComposer({
                                 </div>
                                 <div>
                                     <Label htmlFor={`dose-${index}`}>
-                                        Dosis tertulis
+                                        Written dose
                                     </Label>
                                     <input
                                         id={`dose-${index}`}
@@ -329,7 +330,7 @@ function PrescriptionComposer({
                                 </div>
                                 <div>
                                     <Label htmlFor={`route-${index}`}>
-                                        Rute
+                                        Route
                                     </Label>
                                     <select
                                         id={`route-${index}`}
@@ -358,7 +359,7 @@ function PrescriptionComposer({
                                 </div>
                                 <div>
                                     <Label htmlFor={`frequency-${index}`}>
-                                        Frekuensi tertulis
+                                        Written frequency
                                     </Label>
                                     <input
                                         id={`frequency-${index}`}
@@ -376,7 +377,7 @@ function PrescriptionComposer({
                                 </div>
                                 <div>
                                     <Label htmlFor={`duration-${index}`}>
-                                        Durasi tertulis
+                                        Written duration
                                     </Label>
                                     <input
                                         id={`duration-${index}`}
@@ -394,7 +395,7 @@ function PrescriptionComposer({
                                 </div>
                                 <div>
                                     <Label htmlFor={`quantity-${index}`}>
-                                        Jumlah (
+                                        Quantity (
                                         {medicine?.base_issue_unit ?? 'unit'})
                                     </Label>
                                     <input
@@ -416,7 +417,7 @@ function PrescriptionComposer({
                                 </div>
                                 <div className="sm:col-span-2 lg:col-span-1">
                                     <Label htmlFor={`instruction-${index}`}>
-                                        Instruksi klinis
+                                        Clinical instructions
                                     </Label>
                                     <textarea
                                         id={`instruction-${index}`}
@@ -452,7 +453,7 @@ function PrescriptionComposer({
                     }
                 >
                     <Plus aria-hidden="true" className="mr-2 size-4" />
-                    Tambah obat
+                    Add medicine
                 </Button>
             </fieldset>
             <div className="flex flex-wrap justify-end gap-2">
@@ -461,7 +462,7 @@ function PrescriptionComposer({
                     className="min-h-11"
                     disabled={form.processing || !saveUrl}
                 >
-                    {replacement ? 'Buat Draf pengganti' : 'Simpan Draf'}
+                    {replacement ? 'Create replacement draft' : 'Save draft'}
                 </Button>
             </div>
         </form>
@@ -504,7 +505,7 @@ function PhysicianPrescriptionActions({
                         }
                     >
                         <Send aria-hidden="true" className="mr-2 size-4" />
-                        Pesan ke Apotek
+                        Send to pharmacy
                     </Button>
                 ) : null}
                 {prescription.actions.cancel_url ? (
@@ -515,7 +516,7 @@ function PhysicianPrescriptionActions({
                         onClick={() => setCancelling((value) => !value)}
                     >
                         <XCircle aria-hidden="true" className="mr-2 size-4" />
-                        Batalkan resep
+                        Cancel prescription
                     </Button>
                 ) : null}
             </div>
@@ -530,7 +531,7 @@ function PhysicianPrescriptionActions({
                     }}
                 >
                     <Label htmlFor={`cancel-reason-${prescription.public_id}`}>
-                        Alasan pembatalan
+                        Cancellation reason
                     </Label>
                     <select
                         id={`cancel-reason-${prescription.public_id}`}
@@ -544,17 +545,17 @@ function PhysicianPrescriptionActions({
                         }
                         required
                     >
-                        <option value="">Pilih alasan</option>
+                        <option value="">Select a reason</option>
                         <option value="THERAPY_CANCELLED">
-                            Terapi dibatalkan
+                            Therapy cancelled
                         </option>
                         <option value="PRESCRIBING_ERROR">
-                            Kesalahan peresepan
+                            Prescribing error
                         </option>
                         <option value="PATIENT_CONDITION_CHANGED">
-                            Kondisi pasien berubah
+                            Patient condition changed
                         </option>
-                        <option value="OTHER">Alasan lain</option>
+                        <option value="OTHER">Other reason</option>
                     </select>
                     <Button
                         type="submit"
@@ -565,7 +566,7 @@ function PhysicianPrescriptionActions({
                             !cancelForm.data.reason_code.trim()
                         }
                     >
-                        Konfirmasi pembatalan
+                        Confirm cancellation
                     </Button>
                 </form>
             ) : null}
@@ -592,7 +593,7 @@ function EncounterPrescription({
                     </p>
                     <h3 className="mt-1 font-semibold">
                         {prescription.depot.display_name} ·{' '}
-                        {prescription.items.length} obat
+                        {prescription.items.length} medications
                     </h3>
                 </div>
                 <PharmacyStatusChip state={prescription.state} />
@@ -610,7 +611,7 @@ function EncounterPrescription({
                     className="mt-3 min-h-11"
                     onClick={() => setEditing((value) => !value)}
                 >
-                    Ubah Draf
+                    Edit draft
                 </Button>
             ) : null}
             {prescription.actions.replace_url ? (
@@ -620,7 +621,7 @@ function EncounterPrescription({
                     className="mt-3 ml-2 min-h-11"
                     onClick={() => setReplacing((value) => !value)}
                 >
-                    Buat resep pengganti
+                    Create replacement prescription
                 </Button>
             ) : null}
             {editing ? (
@@ -682,18 +683,18 @@ export function PharmacyEncounterPanel({
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <p className="text-xs font-semibold tracking-[0.12em] text-primary uppercase">
-                        Farmakoterapi episode
+                        Episode pharmacotherapy
                     </p>
                     <h2
                         id="pharmacy-encounter-title"
                         className="mt-1 flex items-center gap-2 text-xl font-semibold"
                     >
                         <FilePlus2 aria-hidden="true" className="size-5" />
-                        Resep & Obat
+                        Prescriptions & medicines
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {activeCount} resep aktif ·{' '}
-                        {projection.prescriptions.length} resep tercatat
+                        {activeCount} active prescriptions ·{' '}
+                        {projection.prescriptions.length} recorded prescriptions
                     </p>
                 </div>
                 {canCreate ? (
@@ -703,12 +704,12 @@ export function PharmacyEncounterPanel({
                         onClick={() => setCreating((value) => !value)}
                     >
                         <Plus aria-hidden="true" className="mr-2 size-4" />
-                        Buat resep
+                        Create prescription
                     </Button>
                 ) : null}
             </header>
             <p className="sr-only" role="status" aria-live="polite">
-                {projection.prescriptions.length} resep ditampilkan.
+                {projection.prescriptions.length} prescriptions displayed.
             </p>
             {creating && canCreate ? (
                 <PrescriptionComposer
@@ -727,11 +728,11 @@ export function PharmacyEncounterPanel({
                     ))
                 ) : (
                     <PharmacyEmptyState
-                        title="Belum ada resep"
+                        title="No prescriptions yet"
                         body={
                             canCreate
-                                ? 'Buat Draf resep untuk memulai proses obat pada episode ini.'
-                                : 'Resep akan muncul setelah dokter membuatnya.'
+                                ? 'Create a prescription draft to begin medication processing for this episode.'
+                                : 'Prescriptions will appear after a physician creates one.'
                         }
                     />
                 )}

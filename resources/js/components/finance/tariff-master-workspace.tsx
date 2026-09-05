@@ -55,16 +55,16 @@ type FormData = {
 };
 
 const careLabels = {
-    OUTPATIENT: 'Rawat jalan',
+    OUTPATIENT: 'Outpatient',
     EMERGENCY: 'IGD',
-    INPATIENT: 'Rawat inap',
+    INPATIENT: 'Inpatient',
 } as const;
 
 const domainLabels = {
-    GENERAL_SERVICE: 'Layanan umum',
-    LABORATORY: 'Laboratorium',
-    RADIOLOGY: 'Radiologi',
-    ACCOMMODATION: 'Akomodasi',
+    GENERAL_SERVICE: 'Service general',
+    LABORATORY: 'Laboratory',
+    RADIOLOGY: 'Radiology',
+    ACCOMMODATION: 'Accommodation',
 } as const;
 
 function operationKey(): string {
@@ -109,7 +109,7 @@ function StateBadge({ state }: { state: 'ACTIVE' | 'RETIRED' }) {
                     : 'border-slate-300 bg-slate-100 text-slate-700'
             }`}
         >
-            {state === 'ACTIVE' ? 'Aktif' : 'Nonaktif'}
+            {state === 'ACTIVE' ? 'Active' : 'Inactive'}
         </span>
     );
 }
@@ -130,7 +130,7 @@ function ActionButtons({
             <Link
                 href={record.actions.history_url}
                 className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
-                aria-label={`Buka riwayat ${record.code}`}
+                aria-label={`Open history ${record.code}`}
             >
                 <History aria-hidden="true" className="size-4" />
             </Link>
@@ -138,7 +138,7 @@ function ActionButtons({
                 <button
                     type="button"
                     className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
-                    aria-label={`Tambah versi ${record.code}`}
+                    aria-label={`Add version ${record.code}`}
                     onClick={() =>
                         onAction({
                             mode: 'revise',
@@ -155,7 +155,7 @@ function ActionButtons({
                 <button
                     type="button"
                     className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-red-700 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:outline-none"
-                    aria-label={`Nonaktifkan ${record.code}`}
+                    aria-label={`Deactivate ${record.code}`}
                     onClick={() =>
                         onAction({
                             mode: 'retire',
@@ -188,16 +188,16 @@ function EmptyState({
                 className="mx-auto size-8 text-slate-400"
             />
             <h2 className="mt-3 text-lg font-semibold text-slate-950">
-                Belum ada tarif atau komponen biaya
+                No tariff or charge components
             </h2>
             <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-600">
-                Tarif harus ditambahkan secara sengaja sebelum dapat dipilih.
-                Mulai dari group komponen, komponen biaya, lalu katalog dan
-                tarif. Tidak ada harga bawaan.
+                Tariffs must be added deliberately before they can be selected.
+                Start with a component group, then add charge components, a
+                catalogue, and tariffs. There is no default price.
             </p>
             {!canManage ? (
                 <p className="mt-3 text-sm font-medium text-[#0d5275]">
-                    Anda memiliki akses lihat-saja.
+                    You have read-only access.
                 </p>
             ) : (
                 <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -213,7 +213,7 @@ function EmptyState({
                                 })
                             }
                         >
-                            <CirclePlus aria-hidden="true" /> Tambah group
+                            <CirclePlus aria-hidden="true" /> Add group
                         </Button>
                     ) : null}
                     {commands.create_catalogue_url ? (
@@ -229,7 +229,7 @@ function EmptyState({
                                 })
                             }
                         >
-                            <CirclePlus aria-hidden="true" /> Tambah katalog
+                            <CirclePlus aria-hidden="true" /> Add catalogue
                         </Button>
                     ) : null}
                 </div>
@@ -308,17 +308,17 @@ function MasterForm({
     }, [attempted, errors.length]);
 
     const kindLabel = {
-        group: 'group komponen biaya',
-        component: 'komponen biaya',
-        catalogue: 'katalog tarif',
-        tariff: 'tarif',
+        group: 'group charge components',
+        component: 'charge components',
+        catalogue: 'catalogue tariff',
+        tariff: 'tariff',
     }[action.kind];
     const title =
         action.mode === 'create'
-            ? `Tambah ${kindLabel}`
+            ? `Add ${kindLabel}`
             : action.mode === 'revise'
-              ? `Tambah versi ${kindLabel}`
-              : `Nonaktifkan ${kindLabel}`;
+              ? `Add version ${kindLabel}`
+              : `Deactivate ${kindLabel}`;
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -328,8 +328,8 @@ function MasterForm({
             onSuccess: () => {
                 onStatus(
                     action.mode === 'retire'
-                        ? 'Data berhasil dinonaktifkan.'
-                        : 'Versi data berhasil disimpan.',
+                        ? 'Record retired successfully.'
+                        : 'New version saved successfully.',
                 );
                 onClose();
             },
@@ -378,8 +378,8 @@ function MasterForm({
                         className="mt-1 text-sm text-slate-600"
                     >
                         {action.mode === 'retire'
-                            ? 'Penonaktifan bersifat terminal. Riwayat sebelumnya tetap tersimpan.'
-                            : 'Penyimpanan membuat rekam versi baru dan tidak mengubah riwayat.'}
+                            ? 'Deactivation is final. Previous history remains stored.'
+                            : 'Saving creates a new version without changing history.'}
                     </p>
                 </header>
                 <form onSubmit={submit} noValidate>
@@ -392,7 +392,7 @@ function MasterForm({
                                 className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900 focus-visible:ring-2 focus-visible:ring-red-700 focus-visible:outline-none sm:col-span-2"
                             >
                                 <p className="font-semibold">
-                                    Data belum dapat disimpan.
+                                    The data could not be saved.
                                 </p>
                                 <ul className="mt-1 list-disc pl-5">
                                     {errors.map(([field, message]) => (
@@ -404,7 +404,9 @@ function MasterForm({
 
                         {action.mode === 'create' ? (
                             <div className="grid gap-1.5">
-                                <Label htmlFor="tariff-code">Kode tetap</Label>
+                                <Label htmlFor="tariff-code">
+                                    Code remains
+                                </Label>
                                 <Input
                                     id="tariff-code"
                                     autoFocus
@@ -427,7 +429,7 @@ function MasterForm({
                         {action.mode !== 'retire' ? (
                             <div className="grid gap-1.5">
                                 <Label htmlFor="tariff-display-name">
-                                    Nama tampilan
+                                    Name tampilan
                                 </Label>
                                 <Input
                                     id="tariff-display-name"
@@ -452,7 +454,7 @@ function MasterForm({
                         action.mode === 'create' ? (
                             <div className="grid gap-1.5">
                                 <Label htmlFor="tariff-group">
-                                    Group komponen
+                                    Group component
                                 </Label>
                                 <select
                                     id="tariff-group"
@@ -465,7 +467,9 @@ function MasterForm({
                                         )
                                     }
                                 >
-                                    <option value="">Pilih group aktif</option>
+                                    <option value="">
+                                        Select group active
+                                    </option>
                                     {groups
                                         .filter(
                                             (group) => group.state === 'ACTIVE',
@@ -491,7 +495,7 @@ function MasterForm({
                             <>
                                 <div className="grid gap-1.5 sm:col-span-2">
                                     <Label htmlFor="tariff-description">
-                                        Deskripsi (opsional)
+                                        Description (opsional)
                                     </Label>
                                     <textarea
                                         id="tariff-description"
@@ -531,7 +535,7 @@ function MasterForm({
                             <>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="tariff-catalogue">
-                                        Katalog tarif
+                                        Catalogue tariff
                                     </Label>
                                     <select
                                         id="tariff-catalogue"
@@ -545,7 +549,7 @@ function MasterForm({
                                         }
                                     >
                                         <option value="">
-                                            Pilih katalog aktif
+                                            Select catalogue active
                                         </option>
                                         {catalogues
                                             .filter(
@@ -566,7 +570,7 @@ function MasterForm({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="tariff-component">
-                                        Komponen biaya
+                                        Component charge
                                     </Label>
                                     <select
                                         id="tariff-component"
@@ -580,7 +584,7 @@ function MasterForm({
                                         }
                                     >
                                         <option value="">
-                                            Pilih komponen aktif
+                                            Select component active
                                         </option>
                                         {components
                                             .filter(
@@ -607,7 +611,7 @@ function MasterForm({
                             <>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="tariff-care">
-                                        Jenis layanan
+                                        Jenis service
                                     </Label>
                                     <select
                                         id="tariff-care"
@@ -634,7 +638,7 @@ function MasterForm({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="tariff-domain">
-                                        Domain layanan
+                                        Domain service
                                     </Label>
                                     <select
                                         id="tariff-domain"
@@ -676,7 +680,7 @@ function MasterForm({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="tariff-ward-class">
-                                        Kelas ruang (opsional)
+                                        Class ruang (opsional)
                                     </Label>
                                     <Input
                                         id="tariff-ward-class"
@@ -691,7 +695,7 @@ function MasterForm({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="tariff-amount">
-                                        Nilai rupiah
+                                        Amount in rupiah
                                     </Label>
                                     <Input
                                         id="tariff-amount"
@@ -709,7 +713,7 @@ function MasterForm({
                                         }
                                     />
                                     <p className="text-xs text-slate-500">
-                                        Masukkan bilangan bulat positif, tanpa
+                                        Enter bilangan bulat positif, without
                                         desimal.
                                     </p>
                                     <InputError
@@ -723,7 +727,7 @@ function MasterForm({
                         {action.kind === 'tariff' ? (
                             <div className="grid gap-1.5">
                                 <Label htmlFor="tariff-effective">
-                                    Berlaku mulai
+                                    Effective from
                                 </Label>
                                 <Input
                                     id="tariff-effective"
@@ -738,8 +742,8 @@ function MasterForm({
                                     }
                                 />
                                 <p className="text-xs text-slate-500">
-                                    Versi berlaku hingga sehari sebelum versi
-                                    berikutnya.
+                                    The version remains effective until one day
+                                    before the next version takes effect.
                                 </p>
                                 <InputError
                                     id="tariff-effective_from-error"
@@ -749,7 +753,7 @@ function MasterForm({
                         ) : null}
 
                         <div className="grid gap-1.5 sm:col-span-2">
-                            <Label htmlFor="tariff-reason">Alasan</Label>
+                            <Label htmlFor="tariff-reason">Reason</Label>
                             <textarea
                                 id="tariff-reason"
                                 autoFocus={action.mode === 'retire'}
@@ -779,8 +783,8 @@ function MasterForm({
                                         )
                                     }
                                 />
-                                Saya memahami kode tidak dapat diaktifkan atau
-                                digunakan kembali.
+                                I understand that the code cannot be reactivated
+                                or used back.
                             </label>
                         ) : null}
                     </div>
@@ -792,7 +796,7 @@ function MasterForm({
                             onClick={onClose}
                             disabled={form.processing}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
@@ -805,10 +809,10 @@ function MasterForm({
                             disabled={form.processing}
                         >
                             {form.processing
-                                ? 'Menyimpan…'
+                                ? 'Saving…'
                                 : action.mode === 'retire'
-                                  ? 'Nonaktifkan'
-                                  : 'Simpan versi'}
+                                  ? 'Deactivate'
+                                  : 'Save version'}
                         </Button>
                     </footer>
                 </form>
@@ -842,13 +846,13 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
         display_name: string;
         state: string;
     }) => {
-        const needle = query.trim().toLocaleLowerCase('id-ID');
+        const needle = query.trim().toLocaleLowerCase('en-GB');
 
         return (
             (!stateFilter || record.state === stateFilter) &&
             (!needle ||
                 `${record.code} ${record.display_name} ${record.state}`
-                    .toLocaleLowerCase('id-ID')
+                    .toLocaleLowerCase('en-GB')
                     .includes(needle))
         );
     };
@@ -881,26 +885,26 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                     aria-hidden="true"
                                     className="size-4"
                                 />{' '}
-                                Manajemen Data
+                                Data Management
                             </p>
                             <h1 className="mt-2 font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold">
-                                Tarif &amp; Komponen Biaya
+                                Tariffs &amp; Charge Components
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm text-sky-50">
-                                Kelola katalog, group komponen, komponen biaya,
-                                dan versi tarif berdasarkan tanggal berlaku.
+                                Manage catalogues, component groups, charge
+                                components, and date-effective tariff versions.
                             </p>
                         </div>
                         <span className="rounded-md bg-white/10 px-3 py-2 text-sm font-semibold">
                             {permissions.can_manage
-                                ? 'Pengelola Tarif'
-                                : 'Akses lihat-saja'}
+                                ? 'Tariff Manager'
+                                : 'Read-only access'}
                         </span>
                     </div>
                 </header>
 
                 <nav
-                    aria-label="Bagian tarif dan komponen biaya"
+                    aria-label="Tariff and charge component sections"
                     className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm"
                 >
                     <Link
@@ -908,25 +912,25 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                         aria-current="page"
                         className="inline-flex min-h-11 items-center rounded-md bg-[#123b5d] px-3 text-sm font-semibold text-white"
                     >
-                        Master Tarif
+                        Tariff Master
                     </Link>
                     <Link
                         href="/manajemen-data/tarif-komponen-biaya/pemetaan-radiologi"
                         className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
-                        Pemetaan Radiologi
+                        Radiology Mapping
                     </Link>
                     <Link
                         href="/manajemen-data/tarif-komponen-biaya/pemetaan-laboratorium"
                         className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
-                        Pemetaan Laboratorium
+                        Laboratory Mapping
                     </Link>
                     <Link
                         href="/manajemen-data/tarif-komponen-biaya/pemetaan-akomodasi"
                         className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-sky-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
-                        Pemetaan Akomodasi
+                        Accommodation Mapping
                     </Link>
                 </nav>
 
@@ -953,7 +957,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                 <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_auto_auto_auto]">
                     <label className="relative block">
                         <span className="sr-only">
-                            Cari kode, nama, atau status
+                            Search code, name, or status
                         </span>
                         <Search
                             aria-hidden="true"
@@ -962,7 +966,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                         <Input
                             className="min-h-11 pl-10"
                             type="search"
-                            placeholder="Cari kode, nama, atau status"
+                            placeholder="Search code, name, or status"
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                         />
@@ -976,13 +980,13 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                 setStateFilter(event.target.value)
                             }
                         >
-                            <option value="">Semua status</option>
-                            <option value="ACTIVE">Aktif</option>
-                            <option value="RETIRED">Nonaktif</option>
+                            <option value="">All statuses</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="RETIRED">Inactive</option>
                         </select>
                     </label>
                     <label className="grid gap-1 text-sm font-medium text-slate-700">
-                        <span className="sr-only">Filter jenis layanan</span>
+                        <span className="sr-only">Filter service type</span>
                         <select
                             className="min-h-11 rounded-md border border-slate-300 bg-white px-3"
                             value={careFilter}
@@ -990,7 +994,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                 setCareFilter(event.target.value)
                             }
                         >
-                            <option value="">Semua layanan</option>
+                            <option value="">All services</option>
                             {Object.entries(careLabels).map(
                                 ([value, label]) => (
                                     <option key={value} value={value}>
@@ -1002,7 +1006,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                     </label>
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
                         <CalendarClock aria-hidden="true" className="size-4" />{' '}
-                        Tanggal layanan
+                        Service date
                         <Input
                             type="date"
                             className="min-h-11 w-auto"
@@ -1029,7 +1033,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                     id="tariff-history-heading"
                                     className="text-lg font-semibold text-[#0b4147]"
                                 >
-                                    Riwayat tetap · {history.code}
+                                    Immutable history · {history.code}
                                 </h2>
                                 <p className="mt-1 text-sm text-slate-700">
                                     {history.display_name}
@@ -1039,36 +1043,36 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                 href="/manajemen-data/tarif-komponen-biaya"
                                 className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-[#0d5275] hover:bg-white"
                             >
-                                Tutup riwayat
+                                Close history
                             </Link>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[54rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Versi tetap {history.code}
+                                    Immutable versions for {history.code}
                                 </caption>
                                 <thead className="border-b border-slate-200 bg-slate-50">
                                     <tr>
                                         <th scope="col" className="px-4 py-3">
-                                            Versi
+                                            Version
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Nama
+                                            Name
                                         </th>
                                         <th scope="col" className="px-4 py-3">
                                             Status
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Periode berlaku
+                                            Period effective
                                         </th>
                                         <th
                                             scope="col"
                                             className="px-4 py-3 text-right"
                                         >
-                                            Nilai
+                                            Value
                                         </th>
                                         <th scope="col" className="px-4 py-3">
-                                            Alasan dan penulis
+                                            Reason and author
                                         </th>
                                     </tr>
                                 </thead>
@@ -1092,9 +1096,9 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                             <td className="px-4 py-4">
                                                 {version.effective_from
                                                     ? version.effective_until
-                                                        ? `${version.effective_from} sampai sebelum ${version.effective_until}`
-                                                        : `${version.effective_from} dan seterusnya`
-                                                    : 'Tidak bertanggal'}
+                                                        ? `${version.effective_from} until before ${version.effective_until}`
+                                                        : `${version.effective_from} and onward`
+                                                    : 'No bertanggal'}
                                             </td>
                                             <td className="px-4 py-4 text-right font-mono">
                                                 {version.amount_rupiah === null
@@ -1131,9 +1135,9 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                         <section aria-labelledby="catalogue-heading">
                             <SectionHeading
                                 id="catalogue-heading"
-                                title="Katalog Tarif"
-                                description="Wadah stabil untuk kelompok tarif rumah sakit."
-                                addLabel="Tambah katalog"
+                                title="Tariff Catalogues"
+                                description="Stable containers for hospital tariff groups."
+                                addLabel="Add catalogue"
                                 addUrl={commands.create_catalogue_url}
                                 kind="catalogue"
                                 onAction={setAction}
@@ -1141,7 +1145,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                                 <table className="w-full min-w-[48rem] text-left text-sm">
                                     <caption className="sr-only">
-                                        Daftar katalog tarif
+                                        List catalogue tariff
                                     </caption>
                                     <thead className="border-b bg-slate-100">
                                         <tr>
@@ -1149,7 +1153,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Kode dan nama
+                                                Code and name
                                             </th>
                                             <th
                                                 scope="col"
@@ -1161,20 +1165,20 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3 text-right"
                                             >
-                                                Tarif
+                                                Tariff
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Versi
+                                                Version
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
                                                 <span className="sr-only">
-                                                    Tindakan
+                                                    Action
                                                 </span>
                                             </th>
                                         </tr>
@@ -1224,9 +1228,9 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                         <section aria-labelledby="group-heading">
                             <SectionHeading
                                 id="group-heading"
-                                title="Group Komponen Biaya"
-                                description="Pengelompokan stabil untuk komponen pembentuk biaya."
-                                addLabel="Tambah group"
+                                title="Charge Component Groups"
+                                description="Stable grouping for components that make up a charge."
+                                addLabel="Add group"
                                 addUrl={commands.create_group_url}
                                 kind="group"
                                 onAction={setAction}
@@ -1234,7 +1238,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                                 <table className="w-full min-w-[48rem] text-left text-sm">
                                     <caption className="sr-only">
-                                        Daftar group komponen biaya
+                                        List group charge components
                                     </caption>
                                     <thead className="border-b bg-slate-100">
                                         <tr>
@@ -1242,7 +1246,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Kode dan nama
+                                                Code and name
                                             </th>
                                             <th
                                                 scope="col"
@@ -1254,20 +1258,20 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3 text-right"
                                             >
-                                                Komponen
+                                                Component
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Versi
+                                                Version
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
                                                 <span className="sr-only">
-                                                    Tindakan
+                                                    Action
                                                 </span>
                                             </th>
                                         </tr>
@@ -1317,9 +1321,9 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                         <section aria-labelledby="component-heading">
                             <SectionHeading
                                 id="component-heading"
-                                title="Komponen Biaya"
-                                description="Komponen stabil yang tetap terikat pada satu group."
-                                addLabel="Tambah komponen"
+                                title="Charge Components"
+                                description="Stable components that remain linked to one group."
+                                addLabel="Add component"
                                 addUrl={commands.create_component_url}
                                 kind="component"
                                 onAction={setAction}
@@ -1327,7 +1331,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                                 <table className="w-full min-w-[64rem] text-left text-sm">
                                     <caption className="sr-only">
-                                        Daftar komponen biaya
+                                        List charge components
                                     </caption>
                                     <thead className="border-b bg-slate-100">
                                         <tr>
@@ -1335,7 +1339,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Kode dan nama
+                                                Code and name
                                             </th>
                                             <th
                                                 scope="col"
@@ -1353,20 +1357,20 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3 text-right"
                                             >
-                                                Tarif
+                                                Tariff
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Versi
+                                                Version
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
                                                 <span className="sr-only">
-                                                    Tindakan
+                                                    Action
                                                 </span>
                                             </th>
                                         </tr>
@@ -1420,9 +1424,9 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                         <section aria-labelledby="tariff-heading">
                             <SectionHeading
                                 id="tariff-heading"
-                                title="Tarif Berlaku Efektif"
-                                description={`Nilai untuk tanggal layanan ${props.as_of_date}; versi mendatang tidak menutupi versi hari ini.`}
-                                addLabel="Tambah tarif"
+                                title="Effective Tariffs"
+                                description={`Value for service date ${props.as_of_date}; future versions do not override the version effective today.`}
+                                addLabel="Add tariff"
                                 addUrl={commands.create_tariff_url}
                                 kind="tariff"
                                 onAction={setAction}
@@ -1430,7 +1434,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                                 <table className="w-full min-w-[76rem] text-left text-sm">
                                     <caption className="sr-only">
-                                        Daftar tarif menurut tanggal berlaku
+                                        Tariffs by effective date
                                     </caption>
                                     <thead className="border-b bg-slate-100">
                                         <tr>
@@ -1438,37 +1442,37 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Kode dan nama
+                                                Code and name
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Katalog
+                                                Catalogue
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Komponen
+                                                Component
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Layanan
+                                                Service
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3"
                                             >
-                                                Berlaku
+                                                Effective
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-4 py-3 text-right"
                                             >
-                                                Nilai
+                                                Value
                                             </th>
                                             <th
                                                 scope="col"
@@ -1481,7 +1485,7 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                 className="px-4 py-3"
                                             >
                                                 <span className="sr-only">
-                                                    Tindakan
+                                                    Action
                                                 </span>
                                             </th>
                                         </tr>
@@ -1525,8 +1529,8 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                     {record.effective_from}
                                                     <span className="mt-1 block text-xs text-slate-500">
                                                         {record.next_effective_from
-                                                            ? `sampai sebelum ${record.next_effective_from}`
-                                                            : 'dan seterusnya'}
+                                                            ? `until before ${record.next_effective_from}`
+                                                            : 'and onward'}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-4 text-right font-mono font-semibold">
@@ -1540,8 +1544,8 @@ export function TariffMasterWorkspace(props: TariffMasterProps) {
                                                     />
                                                     <span className="mt-1 block text-xs text-slate-500">
                                                         {record.is_effective
-                                                            ? 'Berlaku pada tanggal layanan'
-                                                            : 'Belum/tidak berlaku'}
+                                                            ? 'Effective on service date'
+                                                            : 'Not yet/not effective'}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-2">

@@ -37,7 +37,7 @@ final class EmergencyDocumentationController extends Controller
                 $validated['fields'],
                 $validated['idempotency_key'],
             ),
-            'Draf dokumentasi IGD telah disimpan.',
+            'Emergency documentation draft saved.',
         );
     }
 
@@ -59,7 +59,7 @@ final class EmergencyDocumentationController extends Controller
                 $validated['expected_version'],
                 $validated['idempotency_key'],
             ),
-            'Dokumentasi IGD telah difinalkan.',
+            'Emergency documentation finalized.',
         );
     }
 }

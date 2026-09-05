@@ -78,7 +78,7 @@ final class LaboratoryMasterController extends Controller
             $payload['idempotency_key'],
         ));
 
-        return back()->with('success', 'Pemeriksaan laboratorium diperbarui.');
+        return back()->with('success', 'Laboratory examination updated.');
     }
 
     public function retire(Request $request, string $master): RedirectResponse
@@ -110,7 +110,7 @@ final class LaboratoryMasterController extends Controller
             $payload['idempotency_key'],
         ));
 
-        return back()->with('success', 'Pemeriksaan laboratorium dinonaktifkan.');
+        return back()->with('success', 'Laboratory examination retired.');
     }
 
     /** @return array<string, array<int, mixed>> */
@@ -149,7 +149,7 @@ final class LaboratoryMasterController extends Controller
     private function assertOnlyKeys(Request $request, array $keys): void
     {
         if (array_diff(array_keys($request->all()), $keys) !== []) {
-            throw ValidationException::withMessages(['request' => 'Permintaan memuat bidang yang tidak didukung.']);
+            throw ValidationException::withMessages(['request' => 'The request contains unsupported fields.']);
         }
     }
 
@@ -198,7 +198,7 @@ final class LaboratoryMasterController extends Controller
         try {
             $operation();
         } catch (LaboratoryDenied $denial) {
-            throw ValidationException::withMessages(['laboratory' => $denial->getMessage()]);
+            throw ValidationException::withMessages(['laboratory' => __($denial->getMessage())]);
         }
     }
 }

@@ -1,1 +1,0 @@
-var e=0;function t(t){return`inpatient-rmik-${t}-${globalThis.crypto?.randomUUID?.()??`${Date.now().toString(36)}-${(++e).toString(36)}`}`.toLowerCase()}var n={NOT_REVIEWED:`Belum ditinjau`,INCOMPLETE:`Belum lengkap`,COMPLETE:`Lengkap, siap ditutup`,SIGNED_OFF:`Episode ditutup oleh RM`};export{n,t};

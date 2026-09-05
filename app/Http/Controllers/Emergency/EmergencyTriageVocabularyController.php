@@ -65,7 +65,7 @@ final class EmergencyTriageVocabularyController extends Controller
                 })->all();
         } catch (\Throwable $exception) {
             report($exception);
-            $readError = 'Data kosakata triage belum dapat dibaca. Coba muat ulang halaman.';
+            $readError = 'The triage vocabulary could not be loaded. Reload the page.';
         }
 
         return Inertia::render('manajemen-data/triage/index', [
@@ -90,7 +90,7 @@ final class EmergencyTriageVocabularyController extends Controller
                 $validated['categories'],
                 $validated['idempotency_key'],
             ),
-            'Kosakata triage telah dibuat.',
+            'Triage vocabulary created.',
         );
     }
 
@@ -110,7 +110,7 @@ final class EmergencyTriageVocabularyController extends Controller
                 $validated['retire'],
                 $validated['idempotency_key'],
             ),
-            $validated['retire'] ? 'Kosakata triage telah dihentikan.' : 'Kosakata triage telah direvisi.',
+            $validated['retire'] ? 'Triage vocabulary retired.' : 'Triage vocabulary revised.',
         );
     }
 

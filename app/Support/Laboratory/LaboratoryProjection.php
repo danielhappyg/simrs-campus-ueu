@@ -180,7 +180,7 @@ final class LaboratoryProjection
 
     private function label(?string $code): string
     {
-        return match ($code) {
+        return __(match ($code) {
             'COMMUNICATED' => 'Tersampaikan',
             'ESCALATED' => 'Dieskalasikan',
             'TELEPHONE' => 'Telepon',
@@ -196,7 +196,7 @@ final class LaboratoryProjection
             'TECHNICAL_CORRECTION' => 'Koreksi teknis',
             'VERIFIER_CLARIFICATION' => 'Klarifikasi verifikator',
             default => str((string) $code)->replace('_', ' ')->lower()->title()->toString(),
-        };
+        });
     }
 
     /** @param array<int|string, mixed> $params */

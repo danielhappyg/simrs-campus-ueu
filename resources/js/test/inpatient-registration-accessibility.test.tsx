@@ -14,9 +14,10 @@ const inertiaMock = vi.hoisted(() => ({
     post: vi.fn(),
     payload: vi.fn(),
     serverErrors: {
-        full_name: 'Nama lengkap wajib diisi.',
-        bed_public_id: 'Tempat tidur sudah dipakai kunjungan rawat inap aktif.',
-        chief_complaint: 'Keluhan utama wajib diisi.',
+        full_name: 'Full name is required.',
+        bed_public_id:
+            'The bed is already in use by an active inpatient visit.',
+        chief_complaint: 'Chief complaint is required.',
     },
 }));
 
@@ -195,10 +196,10 @@ describe('inpatient registration validation accessibility', () => {
     it('associates server errors, exposes a linked summary, and refocuses repeated failures', async () => {
         const { container } = renderInpatientRegistration();
         expect(
-            screen.getByRole('link', { name: 'Lihat ketersediaan TT' }),
+            screen.getByRole('link', { name: 'View bed availability' }),
         ).toHaveAttribute('href', '/manajemen-data/bangsal');
         const saveButton = screen.getByRole('button', {
-            name: 'Simpan pendaftaran RI',
+            name: 'Save inpatient registration',
         });
         const form = saveButton.closest('form');
 
@@ -209,7 +210,7 @@ describe('inpatient registration validation accessibility', () => {
         fireEvent.submit(form);
 
         const summary = await screen.findByRole('alert', {
-            name: 'Pendaftaran rawat inap belum dapat disimpan.',
+            name: 'Inpatient registration cannot be saved yet.',
         });
         expect(inertiaMock.post).toHaveBeenCalledWith(
             '/pendaftaran/rawat-inap',
@@ -228,27 +229,27 @@ describe('inpatient registration validation accessibility', () => {
         const errorCases = [
             {
                 id: 'full_name',
-                control: screen.getByRole('textbox', { name: 'Nama lengkap' }),
-                linkName: 'Nama lengkap: Nama lengkap wajib diisi.',
-                message: 'Nama lengkap wajib diisi.',
+                control: screen.getByRole('textbox', { name: 'Full name' }),
+                linkName: 'Full name: Full name is required.',
+                message: 'Full name is required.',
             },
             {
                 id: 'bed_code',
                 control: screen.getByRole('combobox', {
-                    name: 'Tempat tidur',
+                    name: 'Bed',
                 }),
                 linkName:
-                    'Tempat tidur: Tempat tidur sudah dipakai kunjungan rawat inap aktif.',
+                    'Bed: The bed is already in use by an active inpatient visit.',
                 message:
-                    'Tempat tidur sudah dipakai kunjungan rawat inap aktif.',
+                    'The bed is already in use by an active inpatient visit.',
             },
             {
                 id: 'chief_complaint',
                 control: screen.getByRole('textbox', {
-                    name: 'Keluhan utama',
+                    name: 'Chief complaint',
                 }),
-                linkName: 'Keluhan utama: Keluhan utama wajib diisi.',
-                message: 'Keluhan utama wajib diisi.',
+                linkName: 'Chief complaint: Chief complaint is required.',
+                message: 'Chief complaint is required.',
             },
         ];
 
@@ -263,7 +264,7 @@ describe('inpatient registration validation accessibility', () => {
             ).toHaveAttribute('href', `#${id}`);
         }
 
-        const validControl = screen.getByRole('textbox', { name: 'Telepon' });
+        const validControl = screen.getByRole('textbox', { name: 'Phone' });
         expect(validControl).not.toHaveAttribute('aria-invalid');
         expect(validControl).not.toHaveAttribute('aria-describedby');
 
@@ -279,24 +280,23 @@ describe('inpatient registration validation accessibility', () => {
     it('derives the displayed and submitted class from the immutable bed selection', () => {
         renderInpatientRegistration();
 
-        fireEvent.change(
-            screen.getByRole('combobox', { name: 'Tempat tidur' }),
-            { target: { value: 'bed-ang-101-b' } },
-        );
+        fireEvent.change(screen.getByRole('combobox', { name: 'Bed' }), {
+            target: { value: 'bed-ang-101-b' },
+        });
 
-        expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+        expect(screen.getByRole('textbox', { name: 'Class' })).toHaveValue(
             'Kelas 2',
         );
 
         fireEvent.change(
             screen.getByRole('textbox', {
-                name: 'Nomor referensi otorisasi',
+                name: 'Admission authority reference number',
             }),
             { target: { value: 'ORDER-RI-SINTETIS-001' } },
         );
 
         fireEvent.click(
-            screen.getByRole('button', { name: 'Simpan pendaftaran RI' }),
+            screen.getByRole('button', { name: 'Save inpatient registration' }),
         );
 
         expect(inertiaMock.payload).toHaveBeenCalledWith(
@@ -357,13 +357,13 @@ describe('inpatient registration validation accessibility', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Menunggu serah terima dari IGD',
+                name: 'Awaiting emergency handoff',
             }),
         ).toBeInTheDocument();
         expect(screen.getByText('PASIEN IGD SINTETIS')).toBeInTheDocument();
         expect(
             screen.getByRole('link', {
-                name: 'Lanjutkan serah terima IGD untuk PASIEN IGD SINTETIS',
+                name: 'Continue emergency handoff for PASIEN IGD SINTETIS',
             }),
         ).toHaveAttribute(
             'href',
@@ -412,19 +412,19 @@ describe('inpatient registration validation accessibility', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Menunggu serah terima dari Rawat Jalan',
+                name: 'Awaiting outpatient handoff',
             }),
         ).toBeInTheDocument();
         fireEvent.click(
             screen.getByRole('button', {
-                name: 'Pilih tempat tidur dan serah terima Rawat Jalan untuk PASIEN RJ SINTETIS',
+                name: 'Select a bed and hand off outpatient care for PASIEN RJ SINTETIS',
             }),
         );
         expect(screen.getByRole('dialog')).toHaveTextContent(
             'Observasi lanjutan.',
         );
         fireEvent.click(
-            screen.getByRole('button', { name: 'Selesaikan serah terima' }),
+            screen.getByRole('button', { name: 'Complete handoff' }),
         );
         expect(inertiaMock.post).toHaveBeenCalledWith(
             '/pemeriksaan/rawat-jalan/rj-episode-001/disposition/handoff',
@@ -464,10 +464,10 @@ describe('inpatient registration validation accessibility', () => {
         expect(document.getElementById('ward_name')).toHaveValue(
             'ward-anggrek-b',
         );
-        expect(
-            screen.getByRole('combobox', { name: 'Tempat tidur' }),
-        ).toHaveValue('bed-ang-b-301');
-        expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+        expect(screen.getByRole('combobox', { name: 'Bed' })).toHaveValue(
+            'bed-ang-b-301',
+        );
+        expect(screen.getByRole('textbox', { name: 'Class' })).toHaveValue(
             'Kelas Utama',
         );
     });
@@ -504,25 +504,23 @@ describe('inpatient registration validation accessibility', () => {
                 'ward-mawar',
             ),
         );
-        expect(
-            screen.getByRole('combobox', { name: 'Tempat tidur' }),
-        ).toHaveValue('bed-mawar-201');
-        expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+        expect(screen.getByRole('combobox', { name: 'Bed' })).toHaveValue(
+            'bed-mawar-201',
+        );
+        expect(screen.getByRole('textbox', { name: 'Class' })).toHaveValue(
             'Kelas VIP',
         );
 
         rerender(inpatientRegistrationPage([]));
 
         expect(
-            screen.getByText(
-                /Tidak ada tempat tidur rawat inap yang tersedia/i,
-            ),
+            screen.getByText(/No inpatient beds are available/i),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: 'Simpan pendaftaran RI' }),
+            screen.getByRole('button', { name: 'Save inpatient registration' }),
         ).toBeDisabled();
         await waitFor(() =>
-            expect(screen.getByRole('textbox', { name: 'Kelas' })).toHaveValue(
+            expect(screen.getByRole('textbox', { name: 'Class' })).toHaveValue(
                 '',
             ),
         );

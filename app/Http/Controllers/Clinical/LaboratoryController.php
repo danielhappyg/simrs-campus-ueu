@@ -126,6 +126,6 @@ class LaboratoryController extends Controller
      */
     public function retiredWrite(): never
     {
-        abort(410, 'Alur tulis laboratorium lama telah ditutup. Gunakan alur laboratorium terkelola.');
+        abort(410, 'Legacy laboratory entry is closed. Use the managed laboratory workflow.');
     }
 }

@@ -6,14 +6,32 @@ import {
     Printer,
     ReceiptText,
 } from 'lucide-react';
-import { correctionStateLabels } from './finance-cash-settlement-correction';
 import {
-    careSettingLabels,
-    financeSourceDomainLabels,
-    formatFinanceDate,
-    formatRupiah,
+    formatPrintedFinanceDate,
+    formatPrintedRupiah,
 } from './finance-shared';
 import type { FinanceCashReceiptProps } from './types';
+
+const printedCareSettingLabels = {
+    OUTPATIENT: 'Rawat jalan',
+    EMERGENCY: 'IGD',
+    INPATIENT: 'Rawat inap',
+} as const;
+
+const printedSourceDomainLabels = {
+    PHARMACY: 'Farmasi',
+    RADIOLOGY: 'Radiologi',
+    LABORATORY: 'Laboratorium',
+    ACCOMMODATION: 'Akomodasi',
+} as const;
+
+const printedCorrectionStateLabels = {
+    ACTIVE: 'Pelunasan aktif',
+    CORRECTION_REQUESTED: 'Koreksi diminta',
+    REVIEW_REJECTED: 'Permintaan koreksi ditolak',
+    REFUND_APPROVED: 'Pengembalian disetujui',
+    REFUND_COMPLETED: 'Pengembalian tunai selesai',
+} as const;
 
 export function FinanceCashReceiptView({
     receipt,
@@ -43,7 +61,7 @@ export function FinanceCashReceiptView({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <ArrowLeft aria-hidden="true" className="size-4" />
-                        Kembali ke Tagihan
+                        Back to Bill
                     </Link>
                     <button
                         type="button"
@@ -51,7 +69,7 @@ export function FinanceCashReceiptView({
                         className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#0f5b62] px-4 text-sm font-semibold text-white hover:bg-[#0b4147] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none"
                     >
                         <Printer aria-hidden="true" className="size-4" />
-                        Cetak Kuitansi
+                        Print Receipt
                     </button>
                 </div>
 
@@ -118,21 +136,21 @@ export function FinanceCashReceiptView({
                                             {receiptStatus}
                                         </h2>
                                         <p className="mt-1 text-sm">
-                                            {formatFinanceDate(
+                                            {formatPrintedFinanceDate(
                                                 receipt.settled_at,
                                             )}
                                         </p>
                                     </div>
                                 </div>
                                 <p className="font-['IBM_Plex_Mono'] text-2xl font-bold tabular-nums">
-                                    {formatRupiah(receipt.amount)}
+                                    {formatPrintedRupiah(receipt.amount)}
                                 </p>
                             </div>
                             {receipt.correction_url ? (
                                 <div className="mt-3 rounded-lg border border-slate-300 bg-white p-4 text-sm text-slate-800 print:border-slate-500">
                                     <p className="font-semibold">
                                         {
-                                            correctionStateLabels[
+                                            printedCorrectionStateLabels[
                                                 receipt.correction_state
                                             ]
                                         }
@@ -146,7 +164,7 @@ export function FinanceCashReceiptView({
                                         href={receipt.correction_url}
                                         className="mt-3 inline-flex min-h-11 items-center rounded-md border border-[#0f5b62] bg-white px-4 font-semibold text-[#0f5b62] hover:bg-[#e8f5f3] focus-visible:ring-2 focus-visible:ring-[#1b75bc] focus-visible:outline-none print:hidden"
                                     >
-                                        Lihat Bukti Koreksi
+                                        View Correction Evidence
                                     </Link>
                                 </div>
                             ) : null}
@@ -175,7 +193,11 @@ export function FinanceCashReceiptView({
                                     Episode layanan
                                 </h2>
                                 <p className="mt-2 font-semibold text-slate-950">
-                                    {careSettingLabels[receipt.care_setting]}
+                                    {
+                                        printedCareSettingLabels[
+                                            receipt.care_setting
+                                        ]
+                                    }
                                 </p>
                                 <p className="mt-1 font-['IBM_Plex_Mono'] text-sm break-all text-slate-600">
                                     {receipt.encounter_public_id}
@@ -223,7 +245,7 @@ export function FinanceCashReceiptView({
                                         key={domain}
                                         className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-950"
                                     >
-                                        {financeSourceDomainLabels[domain]}
+                                        {printedSourceDomainLabels[domain]}
                                     </li>
                                 ))}
                             </ul>

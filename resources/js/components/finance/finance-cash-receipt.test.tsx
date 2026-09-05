@@ -79,12 +79,10 @@ describe('finance cash receipt', () => {
             screen.getByText(/Kuitansi ini melunasi hanya versi tagihan/i),
         ).toHaveTextContent('Layanan lain di luar versi tagihan ini');
         expect(
-            screen.getByRole('link', { name: 'Kembali ke Tagihan' }),
+            screen.getByRole('link', { name: 'Back to Bill' }),
         ).toHaveAttribute('href', props.back_url);
 
-        await user.click(
-            screen.getByRole('button', { name: 'Cetak Kuitansi' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Print Receipt' }));
         expect(print).toHaveBeenCalledOnce();
 
         const result = await axe.run(container, {
@@ -124,7 +122,7 @@ describe('finance cash receipt', () => {
             screen.getByText(/tidak lagi berstatus pelunasan aktif/i),
         ).toBeVisible();
         expect(
-            screen.getByRole('link', { name: 'Lihat Bukti Koreksi' }),
+            screen.getByRole('link', { name: 'View Correction Evidence' }),
         ).toHaveAttribute(
             'href',
             '/kasir/koreksi-pelunasan/01K00000000000000000000071',

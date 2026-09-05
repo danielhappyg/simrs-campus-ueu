@@ -37,15 +37,19 @@ import type {
 import { useUnsavedInpatientDocumentGuard } from './use-unsaved-inpatient-document-guard';
 
 const tabs = [
-    { id: 'daily', label: 'Dokumentasi harian', icon: FileText },
-    { id: 'discharge', label: 'Ringkasan pulang', icon: ClipboardCheck },
-    { id: 'placement', label: 'Riwayat penempatan', icon: MapPin },
-    { id: 'laboratory', label: 'Laboratorium', icon: TestTube2 },
-    { id: 'radiology', label: 'Radiologi', icon: ScanLine },
-    { id: 'pharmacy', label: 'Resep & Obat', icon: Pill },
-    { id: 'source-emergency', label: 'Bukti IGD asal', icon: ShieldCheck },
-    { id: 'versions', label: 'Riwayat versi dokumen', icon: History },
-    { id: 'legacy', label: 'Catatan lama', icon: CalendarClock },
+    { id: 'daily', label: 'Daily documentation', icon: FileText },
+    { id: 'discharge', label: 'Discharge summary', icon: ClipboardCheck },
+    { id: 'placement', label: 'Placement history', icon: MapPin },
+    { id: 'laboratory', label: 'Laboratory', icon: TestTube2 },
+    { id: 'radiology', label: 'Radiology', icon: ScanLine },
+    { id: 'pharmacy', label: 'Prescriptions & medicines', icon: Pill },
+    {
+        id: 'source-emergency',
+        label: 'Emergency Department source evidence',
+        icon: ShieldCheck,
+    },
+    { id: 'versions', label: 'Document version history', icon: History },
+    { id: 'legacy', label: 'Legacy notes', icon: CalendarClock },
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
@@ -170,7 +174,7 @@ export default function StructuredInpatientEncounterShow({
     return (
         <>
             <Head
-                title={`Pemeriksaan rawat inap — ${encounter.patient.full_name ?? 'Kunjungan'}`}
+                title={`Inpatient Care — ${encounter.patient.full_name ?? 'Encounter'}`}
             />
             <main className="mx-auto flex w-full max-w-[1480px] flex-1 flex-col gap-4 px-3 py-4 md:px-5 md:py-5">
                 {typeof flash?.error === 'string' && flash.error ? (
@@ -194,7 +198,7 @@ export default function StructuredInpatientEncounterShow({
                     href="/pemeriksaan/rawat-inap"
                     className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-primary hover:underline"
                 >
-                    ← Kembali ke daftar rawat inap
+                    ← Back to inpatient list
                 </Link>
 
                 <header className="clinical-shadow overflow-hidden rounded-xl border border-border bg-card">
@@ -203,12 +207,12 @@ export default function StructuredInpatientEncounterShow({
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <p className="text-[0.7rem] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                                        Episode rawat inap · dokumentasi
-                                        longitudinal
+                                        Inpatient episode · longitudinal
+                                        documentation
                                     </p>
                                     <h1 className="mt-1 text-2xl font-semibold text-foreground">
                                         {encounter.patient.full_name ??
-                                            'Nama pasien belum tersedia'}
+                                            'Patient name unavailable'}
                                     </h1>
                                     <p className="mt-1 font-mono text-xs text-muted-foreground">
                                         {encounter.patient
@@ -225,7 +229,7 @@ export default function StructuredInpatientEncounterShow({
                             <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
                                 <div>
                                     <dt className="text-xs text-muted-foreground">
-                                        Mulai dirawat
+                                        Admission started
                                     </dt>
                                     <dd className="mt-0.5 font-semibold">
                                         {formatClinicalDate(
@@ -235,7 +239,7 @@ export default function StructuredInpatientEncounterShow({
                                 </div>
                                 <div>
                                     <dt className="text-xs text-muted-foreground">
-                                        Definisi dokumen
+                                        Document definition
                                     </dt>
                                     <dd className="mt-0.5 font-mono text-[0.7rem] font-semibold break-all">
                                         {documentation.definition_version}
@@ -243,10 +247,10 @@ export default function StructuredInpatientEncounterShow({
                                 </div>
                                 <div>
                                     <dt className="text-xs text-muted-foreground">
-                                        Versi tersimpan
+                                        Saved versions
                                     </dt>
                                     <dd className="mt-0.5 font-semibold">
-                                        {documentation.versions.length} versi
+                                        {documentation.versions.length} versions
                                     </dd>
                                 </div>
                             </dl>
@@ -256,8 +260,8 @@ export default function StructuredInpatientEncounterShow({
                             <aside
                                 aria-label={
                                     inpatient_discharge.record
-                                        ? 'Penempatan terakhir'
-                                        : 'Penempatan episode'
+                                        ? 'Last placement'
+                                        : 'Episode placement'
                                 }
                                 className="relative overflow-hidden border-t border-sidebar-border bg-sidebar p-4 text-sidebar-foreground lg:border-t-0 lg:border-l"
                             >
@@ -267,8 +271,8 @@ export default function StructuredInpatientEncounterShow({
                                 />
                                 <p className="text-[0.68rem] font-semibold tracking-[0.13em] uppercase opacity-70">
                                     {inpatient_discharge.record
-                                        ? 'Penempatan terakhir'
-                                        : 'Penempatan episode'}
+                                        ? 'Last placement'
+                                        : 'Episode placement'}
                                 </p>
                                 <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                                     <div className="flex gap-3">
@@ -332,16 +336,16 @@ export default function StructuredInpatientEncounterShow({
                             </aside>
                         ) : (
                             <aside
-                                aria-label="Penempatan tidak tersedia"
+                                aria-label="Placement unavailable"
                                 className="border-t border-border bg-muted/40 p-4 lg:border-t-0 lg:border-l"
                             >
                                 <p className="text-sm font-semibold">
-                                    Penempatan terkelola belum tersedia
+                                    Managed placement is unavailable
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                    Episode lama ini tetap dapat dibaca, tetapi
-                                    tidak menerima dokumentasi harian
-                                    terstruktur.
+                                    This legacy episode remains readable but
+                                    cannot receive structured daily
+                                    documentation.
                                 </p>
                             </aside>
                         )}
@@ -351,7 +355,7 @@ export default function StructuredInpatientEncounterShow({
                 <div className="overflow-x-auto border-b border-border">
                     <div
                         role="tablist"
-                        aria-label="Bagian episode rawat inap"
+                        aria-label="Inpatient episode sections"
                         className="flex min-w-max gap-1"
                     >
                         {tabs.map(({ id, label, icon: Icon }) => (
@@ -424,11 +428,11 @@ export default function StructuredInpatientEncounterShow({
                             className="rounded-xl border border-warning/30 bg-warning/5 p-4"
                         >
                             <h2 className="text-sm font-semibold text-foreground">
-                                Dokumentasi harian terstruktur belum tersedia
+                                Structured daily documentation is unavailable
                             </h2>
                             <p className="mt-1 text-sm text-muted-foreground">
                                 {documentation.unavailable_reason ??
-                                    'Episode ini belum memiliki penempatan rawat inap terkelola yang aktif.'}
+                                    'This episode does not yet have an active managed inpatient placement.'}
                             </p>
                         </div>
                     )}
@@ -442,11 +446,11 @@ export default function StructuredInpatientEncounterShow({
                                 id="other-daily-documents"
                                 className="text-sm font-semibold"
                             >
-                                Catatan harian oleh tenaga kesehatan lain
+                                Daily notes by other healthcare professionals
                             </h2>
                             <p className="mt-1 text-xs text-muted-foreground">
-                                Dokumen ini hanya-baca. Setiap penulis memiliki
-                                rangkaian versinya sendiri.
+                                This document is read-only. Each author has
+                                their own version history.
                             </p>
                             <ul className="mt-3 grid gap-2 md:grid-cols-2">
                                 {otherDocuments.map((document) => (
@@ -468,8 +472,8 @@ export default function StructuredInpatientEncounterShow({
                                         <p className="mt-0.5 text-xs text-muted-foreground">
                                             {document.state === 'FINAL'
                                                 ? 'Final'
-                                                : 'Draf'}{' '}
-                                            · versi {document.version}
+                                                : 'Draft'}{' '}
+                                            · Version {document.version}
                                         </p>
                                     </li>
                                 ))}
@@ -524,7 +528,7 @@ export default function StructuredInpatientEncounterShow({
                         <LaboratoryEncounterPanel projection={laboratory} />
                     ) : (
                         <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                            Data laboratorium belum tersedia untuk episode ini.
+                            Laboratory data are unavailable for this episode.
                         </div>
                     )}
                 </section>
@@ -539,7 +543,7 @@ export default function StructuredInpatientEncounterShow({
                         <RadiologyEncounterPanel projection={radiology} />
                     ) : (
                         <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                            Data radiologi belum tersedia untuk episode ini.
+                            Radiology data are unavailable for this episode.
                         </div>
                     )}
                 </section>
@@ -554,7 +558,7 @@ export default function StructuredInpatientEncounterShow({
                         <PharmacyEncounterPanel projection={pharmacy} />
                     ) : (
                         <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                            Data resep belum tersedia untuk episode ini.
+                            Prescription data are unavailable for this episode.
                         </div>
                     )}
                 </section>
@@ -571,7 +575,8 @@ export default function StructuredInpatientEncounterShow({
                         />
                     ) : (
                         <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                            Episode ini tidak berasal dari serah terima IGD.
+                            This episode did not originate from an Emergency
+                            Department handoff.
                         </div>
                     )}
                 </section>
@@ -584,11 +589,11 @@ export default function StructuredInpatientEncounterShow({
                 >
                     <div className="mb-4">
                         <h2 className="text-lg font-semibold">
-                            Riwayat longitudinal yang tidak berubah
+                            Immutable longitudinal history
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Urutan versi, aktor, hari pelayanan, dan snapshot
-                            penempatan dipertahankan untuk setiap pencatatan.
+                            Version order, actor, date of service, and placement
+                            snapshot are preserved for every record.
                         </p>
                     </div>
                     <InpatientDocumentHistory
@@ -604,11 +609,11 @@ export default function StructuredInpatientEncounterShow({
                 >
                     <div className="mb-4">
                         <h2 className="text-lg font-semibold">
-                            Catatan klinis lama
+                            Legacy clinical notes
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Catatan ini dipertahankan hanya-baca dan tidak
-                            diubah menjadi dokumentasi harian terstruktur.
+                            These notes are preserved as read-only and are not
+                            converted into structured daily documentation.
                         </p>
                     </div>
                     {legacyEntries.length > 0 ? (
@@ -630,7 +635,7 @@ export default function StructuredInpatientEncounterShow({
                                     </div>
                                     <p className="mt-1 text-xs text-muted-foreground">
                                         {entry.author_name ??
-                                            'Penulis tidak tersedia'}
+                                            'Author unavailable'}
                                     </p>
                                     <p className="mt-3 text-sm leading-6 whitespace-pre-wrap">
                                         {entry.body}
@@ -640,7 +645,7 @@ export default function StructuredInpatientEncounterShow({
                         </ol>
                     ) : (
                         <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                            Tidak ada catatan klinis lama pada episode ini.
+                            No legacy clinical notes for this episode.
                         </div>
                     )}
                 </section>

@@ -61,7 +61,7 @@ final class SimrsModuleCategories
 
     public static function label(string $slug): ?string
     {
-        return self::CATEGORIES[$slug] ?? null;
+        return isset(self::CATEGORIES[$slug]) ? ScreenVocabulary::label(self::CATEGORIES[$slug]) : null;
     }
 
     public static function href(string $slug): string

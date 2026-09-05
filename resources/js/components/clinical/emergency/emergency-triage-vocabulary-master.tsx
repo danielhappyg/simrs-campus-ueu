@@ -23,38 +23,37 @@ const fixedCategories: EmergencyTriageCategory[] = [
     {
         code: 'MERAH',
         rank: 1,
-        display_name: 'Merah',
-        text_cue: 'Prioritas segera',
+        display_name: 'Red',
+        text_cue: 'Immediate priority',
         colour_token: 'danger',
         guidance_text:
-            'Kategori prioritas tertinggi berdasarkan penilaian manual ABCDE.',
+            'Highest-priority category based on a manual ABCDE assessment.',
     },
     {
         code: 'KUNING',
         rank: 2,
-        display_name: 'Kuning',
-        text_cue: 'Prioritas mendesak',
+        display_name: 'Yellow',
+        text_cue: 'Urgent priority',
         colour_token: 'warning',
-        guidance_text:
-            'Kategori prioritas mendesak berdasarkan penilaian manual ABCDE.',
+        guidance_text: 'Urgent category based on a manual ABCDE assessment.',
     },
     {
         code: 'HIJAU',
         rank: 3,
-        display_name: 'Hijau',
-        text_cue: 'Prioritas lebih rendah',
+        display_name: 'Green',
+        text_cue: 'Lower priority',
         colour_token: 'success',
         guidance_text:
-            'Kategori prioritas lebih rendah berdasarkan penilaian manual ABCDE.',
+            'Lower-priority category based on a manual ABCDE assessment.',
     },
     {
         code: 'HITAM',
         rank: 4,
-        display_name: 'Hitam',
-        text_cue: 'Kategori hitam',
+        display_name: 'Black',
+        text_cue: 'Black category',
         colour_token: 'neutral',
         guidance_text:
-            'Fakta kategori triase; bukan penetapan kematian atau sebab kematian.',
+            'Triage-category evidence; not a determination of death or cause of death.',
     },
 ];
 
@@ -82,7 +81,7 @@ function MasterErrors({ errors }: { errors: Record<string, string> }) {
             role="alert"
             className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-            <p className="font-semibold">Kosakata belum tersimpan.</p>
+            <p className="font-semibold">Vocabulary could not be saved.</p>
             <ul className="mt-1 list-disc pl-5">
                 {messages.map((message) => (
                     <li key={message}>{message}</li>
@@ -116,12 +115,12 @@ function CategoryEditor({
                 <TriageChip code={category.code} cue={category.text_cue} />
             </legend>
             <p className="mb-3 text-xs text-muted-foreground">
-                Kode dan urutan {category.rank} bersifat tetap.
+                The code and rank {category.rank} are fixed.
             </p>
             <div className="grid gap-3 md:grid-cols-2">
                 <div>
                     <Label htmlFor={`${prefix}-display-name`}>
-                        Label Indonesia
+                        Display label
                     </Label>
                     <input
                         id={`${prefix}-display-name`}
@@ -138,7 +137,7 @@ function CategoryEditor({
                 </div>
                 <div>
                     <Label htmlFor={`${prefix}-text-cue`}>
-                        Petunjuk teks nonwarna
+                        Non-colour text cue
                     </Label>
                     <input
                         id={`${prefix}-text-cue`}
@@ -155,7 +154,7 @@ function CategoryEditor({
                 </div>
                 <div>
                     <Label htmlFor={`${prefix}-colour-token`}>
-                        Token warna
+                        Colour token
                     </Label>
                     <input
                         id={`${prefix}-colour-token`}
@@ -173,7 +172,7 @@ function CategoryEditor({
                 </div>
                 <div>
                     <Label htmlFor={`${prefix}-guidance`}>
-                        Panduan lokal (opsional)
+                        Local guidance (optional)
                     </Label>
                     <textarea
                         id={`${prefix}-guidance`}
@@ -240,8 +239,8 @@ function VocabularyEditor({
                         {vocabulary.display_name}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Versi {vocabulary.version} ·{' '}
-                        {vocabulary.state === 'ACTIVE' ? 'Aktif' : 'Dihentikan'}
+                        Version {vocabulary.version} ·{' '}
+                        {vocabulary.state === 'ACTIVE' ? 'Active' : 'Retired'}
                     </p>
                 </div>
                 <span
@@ -252,7 +251,7 @@ function VocabularyEditor({
                             : 'bg-muted text-muted-foreground',
                     )}
                 >
-                    {vocabulary.state === 'ACTIVE' ? 'Aktif' : 'Dihentikan'}
+                    {vocabulary.state === 'ACTIVE' ? 'Active' : 'Retired'}
                 </span>
             </div>
 
@@ -277,7 +276,7 @@ function VocabularyEditor({
                             {category.display_name}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                            {category.guidance_text || 'Tanpa panduan lokal.'}
+                            {category.guidance_text || 'No local guidance.'}
                         </p>
                     </div>
                 ))}
@@ -292,7 +291,7 @@ function VocabularyEditor({
                         onClick={() => setEditing((value) => !value)}
                     >
                         <Pencil aria-hidden="true" className="mr-2 size-4" />
-                        Buat versi baru
+                        Create new version
                     </Button>
                     <Button
                         type="button"
@@ -301,7 +300,7 @@ function VocabularyEditor({
                         onClick={() => setRetiring((value) => !value)}
                     >
                         <Archive aria-hidden="true" className="mr-2 size-4" />
-                        Hentikan kosakata
+                        Retire vocabulary
                     </Button>
                 </div>
             ) : null}
@@ -317,7 +316,7 @@ function VocabularyEditor({
                         <Label
                             htmlFor={`vocabulary-name-${vocabulary.public_id}`}
                         >
-                            Nama kosakata
+                            Vocabulary name
                         </Label>
                         <input
                             id={`vocabulary-name-${vocabulary.public_id}`}
@@ -344,7 +343,7 @@ function VocabularyEditor({
                         className="min-h-11"
                         disabled={form.processing}
                     >
-                        Simpan sebagai versi {vocabulary.version + 1}
+                        Save as version {vocabulary.version + 1}
                     </Button>
                 </form>
             ) : null}
@@ -355,12 +354,11 @@ function VocabularyEditor({
                     className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm"
                 >
                     <p className="font-semibold text-destructive">
-                        Hentikan kosakata aktif ini?
+                        Retire this active vocabulary?
                     </p>
                     <p className="mt-1 text-muted-foreground">
-                        Versi lama dan semua asesmen tetap tersedia sebagai
-                        bukti. Kosakata yang sudah dihentikan tidak dapat
-                        diaktifkan kembali.
+                        Earlier versions and all assessments remain available as
+                        evidence. Retired vocabulary cannot be reactivated.
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                         <Button
@@ -369,7 +367,7 @@ function VocabularyEditor({
                             className="min-h-11"
                             disabled={form.processing}
                         >
-                            Ya, hentikan
+                            Yes, retire
                         </Button>
                         <Button
                             type="button"
@@ -377,7 +375,7 @@ function VocabularyEditor({
                             className="min-h-11"
                             onClick={() => setRetiring(false)}
                         >
-                            Kembali
+                            Back
                         </Button>
                     </div>
                 </form>
@@ -389,7 +387,7 @@ function VocabularyEditor({
                         aria-hidden="true"
                         className="size-4 text-primary"
                     />
-                    Riwayat versi ({vocabulary.versions.length})
+                    Version history ({vocabulary.versions.length})
                 </summary>
                 <ol className="mt-2 space-y-2">
                     {vocabulary.versions.map((version) => (
@@ -399,7 +397,7 @@ function VocabularyEditor({
                         >
                             <div className="flex flex-wrap justify-between gap-2">
                                 <span className="font-semibold">
-                                    Versi {version.version} ·{' '}
+                                    Version {version.version} ·{' '}
                                     {version.display_name}
                                 </span>
                                 <span className="text-muted-foreground">
@@ -408,11 +406,10 @@ function VocabularyEditor({
                             </div>
                             <p className="mt-1 text-xs text-muted-foreground">
                                 {version.state === 'ACTIVE'
-                                    ? 'Aktif'
-                                    : 'Dihentikan'}
+                                    ? 'Active'
+                                    : 'Retired'}
                                 {' · '}
-                                {version.actor_name ||
-                                    'Pelaksana tidak tersedia'}
+                                {version.actor_name || 'Actor unavailable'}
                             </p>
                             <div className="mt-2 flex flex-wrap gap-1.5">
                                 {version.categories.map((category) => (
@@ -437,7 +434,7 @@ export function EmergencyTriageVocabularyMaster(
     const [creating, setCreating] = useState(false);
     const createForm = useForm({
         code: '',
-        display_name: 'Kategori Triase IGD',
+        display_name: 'Emergency triage categories',
         categories: freshCategories(),
         idempotency_key: newEmergencyOperationKey('vocabulary-create'),
     });
@@ -473,33 +470,33 @@ export function EmergencyTriageVocabularyMaster(
     return (
         <main className="mx-auto w-full max-w-7xl space-y-5 p-4 sm:p-6">
             <nav
-                aria-label="Manajemen data"
+                aria-label="Data management"
                 className="flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1"
             >
                 <Link
                     href="/manajemen-data/bangsal"
                     className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                    Bangsal & Tempat Tidur
+                    Wards & Beds
                 </Link>
                 <Link
                     href="/manajemen-data/laboratorium"
                     className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                    Pemeriksaan Laboratorium
+                    Laboratory Examinations
                 </Link>
                 <Link
                     href="/manajemen-data/radiologi"
                     className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
-                    Pemeriksaan Radiologi
+                    Radiology Examinations
                 </Link>
                 <Link
                     href="/manajemen-data/triage"
                     aria-current="page"
                     className="inline-flex min-h-11 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
                 >
-                    Kosakata Triase IGD
+                    Emergency triage vocabulary
                 </Link>
             </nav>
 
@@ -510,15 +507,15 @@ export function EmergencyTriageVocabularyMaster(
                     </span>
                     <div>
                         <p className="font-mono text-xs font-semibold tracking-[0.15em] text-primary">
-                            MASTER KLINIS IGD
+                            EMERGENCY CLINICAL MASTER
                         </p>
                         <h1 className="font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold text-foreground">
-                            Kosakata Triase IGD
+                            Emergency triage vocabulary
                         </h1>
                         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                            Kelola label, petunjuk teks, token warna, dan
-                            panduan lokal untuk empat kategori tetap. Perubahan
-                            selalu membentuk versi bukti baru.
+                            Manage labels, text cues, colour tokens, and local
+                            guidance for four fixed categories. Every change
+                            creates a new evidence version.
                         </p>
                     </div>
                 </div>
@@ -529,15 +526,15 @@ export function EmergencyTriageVocabularyMaster(
                         onClick={() => setCreating((value) => !value)}
                     >
                         <Plus aria-hidden="true" className="mr-2 size-4" />
-                        Tambah kosakata
+                        Add vocabulary
                     </Button>
                 ) : null}
             </header>
 
             <p className="sr-only" role="status" aria-live="polite">
                 {createForm.processing
-                    ? 'Menyimpan kosakata triase.'
-                    : `${props.vocabularies.length} kosakata ditampilkan.`}
+                    ? 'Saving triage vocabulary.'
+                    : `${props.vocabularies.length} vocabularies displayed.`}
             </p>
 
             {props.read_error ? (
@@ -555,13 +552,13 @@ export function EmergencyTriageVocabularyMaster(
                     className="space-y-4 rounded-xl border border-primary/25 bg-primary/5 p-4 shadow-sm"
                 >
                     <h2 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold text-foreground">
-                        Kosakata baru
+                        New vocabulary
                     </h2>
                     <MasterErrors errors={createForm.errors} />
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <Label htmlFor="new-vocabulary-code">
-                                Kode permanen
+                                Permanent code
                             </Label>
                             <input
                                 id="new-vocabulary-code"
@@ -579,7 +576,7 @@ export function EmergencyTriageVocabularyMaster(
                         </div>
                         <div>
                             <Label htmlFor="new-vocabulary-name">
-                                Nama kosakata
+                                Vocabulary name
                             </Label>
                             <input
                                 id="new-vocabulary-name"
@@ -612,7 +609,7 @@ export function EmergencyTriageVocabularyMaster(
                         className="min-h-11"
                         disabled={createForm.processing}
                     >
-                        Simpan kosakata
+                        Save vocabulary
                     </Button>
                 </form>
             ) : null}
@@ -627,7 +624,7 @@ export function EmergencyTriageVocabularyMaster(
                     ))
                 ) : (
                     <p className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
-                        Belum ada kosakata triase IGD.
+                        No emergency triage vocabulary has been configured.
                     </p>
                 )}
             </div>

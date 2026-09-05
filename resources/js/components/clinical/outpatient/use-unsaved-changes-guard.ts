@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 
 const warningMessage =
-    'Ada dokumentasi klinis yang belum disimpan. Tinggalkan halaman dan buang perubahan?';
+    'There is unsaved clinical documentation. Leave this page and discard the changes?';
 
 export function useUnsavedChangesGuard(shouldWarn: boolean) {
     useEffect(() => {

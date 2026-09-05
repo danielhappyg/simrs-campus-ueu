@@ -52,7 +52,7 @@ function LaboratoryCriticalCommunicationEvidence({
 
 export function LaboratoryErrors({
     errors,
-    title = 'Periksa kembali isian berikut:',
+    title = 'Review the following entries:',
 }: {
     errors: Record<string, string>;
     title?: string;
@@ -93,19 +93,19 @@ export function LaboratoryProgressRail({
         (specimen) => specimen.state === 'ACCEPTED',
     );
     const steps = [
-        { label: 'Dipesan', complete: true },
-        { label: 'Dikumpulkan', complete: order.specimens.length > 0 },
-        { label: 'Diterima', complete: accepted },
-        { label: 'Diverifikasi', complete: order.result?.state === 'VERIFIED' },
+        { label: 'Ordered', complete: true },
+        { label: 'Collected', complete: order.specimens.length > 0 },
+        { label: 'Accepted', complete: accepted },
+        { label: 'Verified', complete: order.result?.state === 'VERIFIED' },
         {
-            label: 'Diketahui',
+            label: 'Acknowledged',
             complete: order.result?.acknowledgement?.is_current === true,
         },
     ];
 
     return (
         <ol
-            aria-label="Alur pemeriksaan laboratorium"
+            aria-label="Laboratory examination workflow"
             className="grid grid-cols-5 gap-1"
         >
             {steps.map((step, index) => (
@@ -145,15 +145,15 @@ export function LaboratoryResultTable({
         <div className="mt-3 overflow-x-auto rounded-md border border-slate-200 bg-white">
             <table className="w-full min-w-[620px] text-left text-sm">
                 <caption className="sr-only">
-                    Komponen hasil laboratorium
+                    Laboratory result components
                 </caption>
                 <thead className="bg-slate-50 text-xs text-slate-600 uppercase">
                     <tr>
-                        <th className="px-3 py-2 font-semibold">Komponen</th>
-                        <th className="px-3 py-2 font-semibold">Hasil</th>
-                        <th className="px-3 py-2 font-semibold">Rujukan</th>
+                        <th className="px-3 py-2 font-semibold">Component</th>
+                        <th className="px-3 py-2 font-semibold">Result</th>
+                        <th className="px-3 py-2 font-semibold">Reference</th>
                         <th className="px-3 py-2 font-semibold">
-                            Interpretasi
+                            Interpretation
                         </th>
                     </tr>
                 </thead>
@@ -197,7 +197,7 @@ export function LaboratoryResultTable({
                                     }`}
                                 >
                                     {component.interpretation === 'CRITICAL'
-                                        ? 'Kritis'
+                                        ? 'Critical'
                                         : component.interpretation ===
                                             'ABNORMAL'
                                           ? 'Abnormal'
@@ -234,33 +234,33 @@ export function LaboratoryVerifiedEvidence({
 
     return (
         <div className="mt-3 space-y-4">
-            <section aria-label="Hasil terverifikasi awal">
+            <section aria-label="Initial verified result">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                         <p className="flex items-center gap-2 font-semibold text-slate-950">
                             <ShieldCheck className="size-4 text-[#1b75bc]" />
-                            Hasil terverifikasi awal
+                            Initial verified result
                         </p>
                         <p className="mt-1 text-xs text-slate-600">
-                            Draft oleh {result.author_name} ·{' '}
+                            Drafted by {result.author_name} ·{' '}
                             {formatLaboratoryDate(result.saved_at)}
                         </p>
                         <p className="text-xs text-slate-600">
-                            Diverifikasi oleh {result.verifier_name ?? '—'} ·{' '}
+                            Verified by {result.verifier_name ?? '—'} ·{' '}
                             {formatLaboratoryDate(result.verified_at)}
                         </p>
                     </div>
                     <span className="text-xs font-semibold text-[#145a8d]">
-                        Versi {baseVersion}
+                        Version {baseVersion}
                     </span>
                 </div>
                 <LaboratoryResultTable components={result.components} />
             </section>
 
             {result.amendments.length ? (
-                <section aria-label="Riwayat adendum terverifikasi">
+                <section aria-label="Verified amendment history">
                     <h5 className="font-semibold text-slate-950">
-                        Riwayat adendum terverifikasi
+                        Verified amendment history
                     </h5>
                     <ol className="mt-2 space-y-3">
                         {result.amendments.map((amendment) => (
@@ -274,15 +274,14 @@ export function LaboratoryVerifiedEvidence({
                                             {amendment.reason_label}
                                         </p>
                                         <p className="mt-1 text-xs text-amber-900">
-                                            Ditandatangani{' '}
-                                            {amendment.signer_name} ·{' '}
+                                            Signed by {amendment.signer_name} ·{' '}
                                             {formatLaboratoryDate(
                                                 amendment.signed_at,
                                             )}
                                         </p>
                                     </div>
                                     <span className="text-xs font-semibold text-amber-900">
-                                        Versi {amendment.version}
+                                        Version {amendment.version}
                                     </span>
                                 </div>
                                 <LaboratoryResultTable
@@ -298,10 +297,10 @@ export function LaboratoryVerifiedEvidence({
                                             latestAmendment?.public_id ===
                                                 amendment.public_id &&
                                             amendment.critical_communication
-                                                ? 'Komunikasi nilai kritis pada adendum · masih berlaku pada hasil saat ini'
-                                                : 'Komunikasi nilai kritis pada adendum'
+                                                ? 'Critical-value communication for amendment · still applies to the current result'
+                                                : 'Critical-value communication for amendment'
                                         }
-                                        ariaLabel={`Komunikasi nilai kritis adendum versi ${amendment.version}`}
+                                        ariaLabel={`Critical-value communication for amendment version ${amendment.version}`}
                                     />
                                 ) : null}
                             </li>
@@ -313,20 +312,20 @@ export function LaboratoryVerifiedEvidence({
             {currentBaseCommunication ? (
                 <LaboratoryCriticalCommunicationEvidence
                     communication={currentBaseCommunication}
-                    title="Komunikasi nilai kritis yang berlaku saat ini"
-                    ariaLabel="Komunikasi nilai kritis saat ini"
+                    title="Current critical-value communication"
+                    ariaLabel="Current critical-value communication"
                 />
             ) : null}
 
             {showAcknowledgement ? (
                 <section
-                    aria-label="Pengetahuan dokter pemesan"
+                    aria-label="Ordering physician acknowledgement"
                     className={`rounded-md px-3 py-2 text-sm ${result.acknowledgement?.is_current ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-950'}`}
                 >
                     {result.acknowledgement?.is_current ? (
                         <>
                             <p className="font-semibold">
-                                Sudah diketahui dokter pemesan
+                                Acknowledged by ordering physician
                             </p>
                             <p className="mt-1 text-xs">
                                 {result.acknowledgement.physician_name} ·{' '}
@@ -338,20 +337,20 @@ export function LaboratoryVerifiedEvidence({
                     ) : result.acknowledgement ? (
                         <>
                             <p className="font-semibold">
-                                Pengetahuan sebelumnya tidak lagi current
+                                Previous acknowledgement is no longer current
                             </p>
                             <p className="mt-1 text-xs">
                                 {result.acknowledgement.physician_name} ·{' '}
                                 {formatLaboratoryDate(
                                     result.acknowledgement.acknowledged_at,
                                 )}{' '}
-                                · perlu diketahui kembali setelah adendum
-                                terbaru.
+                                · acknowledgement is required again after the
+                                latest amendment.
                             </p>
                         </>
                     ) : (
                         <p className="font-semibold">
-                            Menunggu diketahui dokter pemesan
+                            Awaiting ordering physician acknowledgement
                         </p>
                     )}
                 </section>
@@ -418,7 +417,7 @@ export function LaboratoryResultFields({
                     </legend>
                     <div>
                         <Label htmlFor={`${idPrefix}-value-${index}`}>
-                            Nilai hasil
+                            Result value
                             {definition.unit_text
                                 ? ` (${definition.unit_text})`
                                 : ''}
@@ -443,7 +442,7 @@ export function LaboratoryResultFields({
                             required
                         />
                         <p className="mt-1 text-xs text-slate-500">
-                            Rujukan: {definition.reference_text || '—'}
+                            Reference: {definition.reference_text || '—'}
                         </p>
                     </div>
                     <div>
@@ -462,7 +461,7 @@ export function LaboratoryResultFields({
                             }
                             required
                         >
-                            <option value="">Pilih interpretasi</option>
+                            <option value="">Select interpretation</option>
                             {interpretationOptions
                                 .filter(
                                     (option) =>
@@ -481,7 +480,7 @@ export function LaboratoryResultFields({
                     </div>
                     <div>
                         <Label htmlFor={`${idPrefix}-note-${index}`}>
-                            Catatan (opsional)
+                            Notes (optional)
                         </Label>
                         <textarea
                             id={`${idPrefix}-note-${index}`}

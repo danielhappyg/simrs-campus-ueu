@@ -20,15 +20,15 @@ import type {
 } from './types';
 
 const documentTypeLabel: Record<ClinicalDocumentType, string> = {
-    NURSING_ASSESSMENT: 'Asesmen keperawatan',
-    MEDICAL_ASSESSMENT: 'Asesmen medis',
+    NURSING_ASSESSMENT: 'Nursing assessment',
+    MEDICAL_ASSESSMENT: 'Medical assessment',
 };
 
 const requestStateLabel: Record<OutpatientAmendment['state'], string> = {
-    SUBMITTED: 'Menunggu keputusan',
-    APPROVED: 'Disetujui',
-    DENIED: 'Ditolak',
-    CONSUMED: 'Adendum telah dibuat',
+    SUBMITTED: 'Awaiting decision',
+    APPROVED: 'Approved',
+    DENIED: 'Denied',
+    CONSUMED: 'Addendum created',
 };
 
 function newOperationKey() {
@@ -39,9 +39,7 @@ function newOperationKey() {
 }
 
 function formatDate(value: string | null) {
-    return value
-        ? new Date(value).toLocaleString('id-ID')
-        : 'Waktu tidak tersedia';
+    return value ? new Date(value).toLocaleString('en-GB') : 'Time unavailable';
 }
 
 function AmendmentErrorSummary({
@@ -74,7 +72,7 @@ function AmendmentErrorSummary({
             tabIndex={-1}
             className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
         >
-            <p className="font-semibold">Tindakan belum dapat diproses.</p>
+            <p className="font-semibold">The action could not be completed.</p>
             <ul className="mt-1 list-disc space-y-1 pl-5">
                 {messages.map((message) => (
                     <li key={message}>{message}</li>
@@ -115,7 +113,7 @@ function RequestAmendmentForm({
         form.post(storeUrl, {
             preserveScroll: true,
             onSuccess: () => {
-                announce('Permintaan adendum berhasil dikirim.');
+                announce('Addendum request submitted.');
                 form.setData({
                     ...form.data,
                     note: '',
@@ -134,7 +132,7 @@ function RequestAmendmentForm({
             />
             <div className="grid gap-1.5">
                 <Label htmlFor="amendment-original-document">
-                    Dokumen final yang dirujuk
+                    Referenced final document
                 </Label>
                 <select
                     id="amendment-original-document"
@@ -164,8 +162,8 @@ function RequestAmendmentForm({
                             key={document.public_id}
                             value={document.public_id}
                         >
-                            {documentTypeLabel[document.document_type]} · versi{' '}
-                            {document.version}
+                            {documentTypeLabel[document.document_type]} ·
+                            version {document.version}
                         </option>
                     ))}
                 </select>
@@ -173,7 +171,7 @@ function RequestAmendmentForm({
                     id="amendment-original-document-help"
                     className="text-xs text-muted-foreground"
                 >
-                    Dokumen asli tetap final dan tidak diubah.
+                    The original document remains final and unchanged.
                 </p>
                 {errors.original_document_public_id ? (
                     <p
@@ -186,7 +184,7 @@ function RequestAmendmentForm({
             </div>
 
             <div className="grid gap-1.5">
-                <Label htmlFor="amendment-reason">Alasan adendum</Label>
+                <Label htmlFor="amendment-reason">Addendum reason</Label>
                 <select
                     id="amendment-reason"
                     value={form.data.reason_code}
@@ -219,8 +217,8 @@ function RequestAmendmentForm({
 
             <div className="grid gap-1.5">
                 <Label htmlFor="amendment-note">
-                    Catatan alasan
-                    {!selectedReason?.requires_note ? ' (opsional)' : ''}
+                    Reason note
+                    {!selectedReason?.requires_note ? ' (optional)' : ''}
                 </Label>
                 <textarea
                     id="amendment-note"
@@ -241,8 +239,8 @@ function RequestAmendmentForm({
                     id="amendment-note-help"
                     className="text-xs text-muted-foreground"
                 >
-                    Jelaskan kebutuhan koreksi tanpa menyalin isi klinis ke
-                    judul atau tautan.
+                    Explain the correction needed without copying clinical
+                    content into the title or link.
                 </p>
                 {errors.note ? (
                     <p
@@ -265,7 +263,7 @@ function RequestAmendmentForm({
                 }
                 className="min-h-11 w-full sm:w-auto"
             >
-                Kirim permintaan adendum
+                Submit addendum request
             </Button>
         </form>
     );
@@ -338,8 +336,7 @@ function AmendmentChainItem({
 
         decisionForm.post(amendment.actions.decision_url, {
             preserveScroll: true,
-            onSuccess: () =>
-                announce('Keputusan permintaan berhasil disimpan.'),
+            onSuccess: () => announce('Request decision saved.'),
             onError: refocusErrors,
         });
     };
@@ -353,7 +350,7 @@ function AmendmentChainItem({
 
         addendumForm.post(amendment.actions.save_addendum_url, {
             preserveScroll: true,
-            onSuccess: () => announce('Draf adendum berhasil disimpan.'),
+            onSuccess: () => announce('Addendum draft saved.'),
             onError: refocusErrors,
         });
     };
@@ -367,7 +364,7 @@ function AmendmentChainItem({
             preserveScroll: true,
             onSuccess: () => {
                 setFinalizeDialogOpen(false);
-                announce('Adendum berhasil difinalisasi.');
+                announce('Addendum finalized.');
             },
             onError: refocusAfterFinalizeError,
         });
@@ -380,7 +377,7 @@ function AmendmentChainItem({
 
         reviewForm.post(amendment.actions.save_renewed_review_url, {
             preserveScroll: true,
-            onSuccess: () => announce('Review adendum berhasil disimpan.'),
+            onSuccess: () => announce('Addendum review saved.'),
             onError: refocusErrors,
         });
     };
@@ -392,8 +389,7 @@ function AmendmentChainItem({
 
         signoffForm.post(amendment.actions.signoff_renewed_review_url, {
             preserveScroll: true,
-            onSuccess: () =>
-                announce('Sign-off review adendum berhasil disimpan.'),
+            onSuccess: () => announce('Addendum review sign-off saved.'),
             onError: refocusErrors,
         });
     };
@@ -413,10 +409,10 @@ function AmendmentChainItem({
                                     amendment.original_document.document_type
                                 ]
                             }{' '}
-                            · versi {amendment.original_document.version}
+                            · version {amendment.original_document.version}
                         </h3>
                         <p className="mt-1 text-xs text-muted-foreground">
-                            Diminta oleh {amendment.requester_name ?? '—'} ·{' '}
+                            Requested by {amendment.requester_name ?? '—'} ·{' '}
                             {formatDate(amendment.requested_at)}
                         </p>
                     </div>
@@ -430,10 +426,10 @@ function AmendmentChainItem({
                     focusTrigger={failureAttempt}
                 />
 
-                <ol className="mt-4 space-y-4" aria-label="Tahapan adendum">
+                <ol className="mt-4 space-y-4" aria-label="Addendum stages">
                     <li>
                         <h4 className="text-xs font-semibold tracking-wide text-secondary-foreground uppercase">
-                            1 · Permintaan
+                            1 · Request
                         </h4>
                         <p className="mt-1 text-sm font-medium">
                             {amendment.reason_label}
@@ -444,13 +440,14 @@ function AmendmentChainItem({
                             </p>
                         ) : null}
                         <p className="mt-2 rounded-md border border-border bg-muted/30 p-2 text-xs text-muted-foreground">
-                            Dokumen asli tetap final, utuh, dan hanya-baca.
+                            The original document remains final, intact, and
+                            read-only.
                         </p>
                     </li>
 
                     <li className="border-t border-border pt-4">
                         <h4 className="text-xs font-semibold tracking-wide text-secondary-foreground uppercase">
-                            2 · Keputusan dokter lain
+                            2 · Another physician's decision
                         </h4>
                         {amendment.state === 'SUBMITTED' &&
                         amendment.permissions.can_decide &&
@@ -458,7 +455,7 @@ function AmendmentChainItem({
                             <form onSubmit={decide} className="mt-3 space-y-3">
                                 <div className="grid gap-1.5">
                                     <Label htmlFor={`${id}-decision`}>
-                                        Keputusan
+                                        Decision
                                     </Label>
                                     <select
                                         id={`${id}-decision`}
@@ -481,9 +478,9 @@ function AmendmentChainItem({
                                         className="min-h-11 rounded-md border border-input bg-background px-3 text-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                                     >
                                         <option value="APPROVED">
-                                            Setujui
+                                            Approve
                                         </option>
-                                        <option value="DENIED">Tolak</option>
+                                        <option value="DENIED">Deny</option>
                                     </select>
                                     {decisionForm.errors.decision ? (
                                         <p
@@ -497,8 +494,8 @@ function AmendmentChainItem({
                                 <div className="grid gap-1.5">
                                     <Label htmlFor={`${id}-decision-note`}>
                                         {decisionNoteRequired
-                                            ? 'Catatan keputusan · wajib untuk penolakan'
-                                            : 'Catatan keputusan (opsional)'}
+                                            ? 'Decision note · required when denying'
+                                            : 'Decision note (optional)'}
                                     </Label>
                                     <textarea
                                         id={`${id}-decision-note`}
@@ -534,7 +531,7 @@ function AmendmentChainItem({
                                     disabled={decisionForm.processing}
                                     className="min-h-11 w-full sm:w-auto"
                                 >
-                                    Simpan keputusan
+                                    Save decision
                                 </Button>
                             </form>
                         ) : amendment.decided_at ? (
@@ -543,7 +540,7 @@ function AmendmentChainItem({
                                     {amendment.state === 'DENIED'
                                         ? 'Ditolak'
                                         : 'Disetujui'}{' '}
-                                    oleh {amendment.decider_name ?? '—'} ·{' '}
+                                    by {amendment.decider_name ?? '—'} ·{' '}
                                     {formatDate(amendment.decided_at)}
                                 </p>
                                 {amendment.decision_note ? (
@@ -554,15 +551,15 @@ function AmendmentChainItem({
                             </div>
                         ) : (
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Menunggu keputusan dokter lain yang memenuhi
-                                kewenangan.
+                                Awaiting a decision from another authorized
+                                physician.
                             </p>
                         )}
                     </li>
 
                     <li className="border-t border-border pt-4">
                         <h4 className="text-xs font-semibold tracking-wide text-secondary-foreground uppercase">
-                            3 · Adendum baru
+                            3 · New addendum
                         </h4>
                         {amendment.permissions.can_write_addendum &&
                         amendment.actions.save_addendum_url &&
@@ -573,7 +570,7 @@ function AmendmentChainItem({
                             >
                                 <div className="grid gap-1.5">
                                     <Label htmlFor={`${id}-addendum-text`}>
-                                        Isi adendum · wajib
+                                        Addendum content · required
                                     </Label>
                                     <textarea
                                         id={`${id}-addendum-text`}
@@ -598,8 +595,8 @@ function AmendmentChainItem({
                                         id={`${id}-addendum-help`}
                                         className="text-xs text-muted-foreground"
                                     >
-                                        Catat informasi tambahan. Isi dokumen
-                                        asli tidak akan diganti.
+                                        Record the additional information. The
+                                        original document will not be replaced.
                                     </p>
                                     {addendumTextError ? (
                                         <p
@@ -617,7 +614,7 @@ function AmendmentChainItem({
                                         disabled={addendumForm.processing}
                                         className="min-h-11"
                                     >
-                                        Simpan draf adendum
+                                        Save addendum draft
                                     </Button>
                                     {amendment.addendum &&
                                     amendment.permissions
@@ -635,7 +632,7 @@ function AmendmentChainItem({
                                             aria-describedby={`${id}-finalize-help`}
                                             className="min-h-11"
                                         >
-                                            Finalisasi adendum
+                                            Finalize addendum
                                         </Button>
                                     ) : null}
                                 </div>
@@ -644,8 +641,7 @@ function AmendmentChainItem({
                                         id={`${id}-finalize-help`}
                                         className="text-xs text-muted-foreground"
                                     >
-                                        Simpan perubahan draf sebelum
-                                        finalisasi.
+                                        Save draft changes before finalizing.
                                     </p>
                                 ) : null}
                             </form>
@@ -654,15 +650,15 @@ function AmendmentChainItem({
                                 <p className="text-xs font-semibold text-secondary-foreground">
                                     {amendment.addendum.state === 'FINAL'
                                         ? 'Final'
-                                        : 'Draf'}{' '}
-                                    · versi {amendment.addendum.version}
+                                        : 'Draft'}{' '}
+                                    · version {amendment.addendum.version}
                                 </p>
                                 <p className="mt-2 text-sm whitespace-pre-wrap">
                                     {amendment.addendum.fields.addendum_text ||
                                         '—'}
                                 </p>
                                 <p className="mt-2 text-xs text-muted-foreground">
-                                    Penulis{' '}
+                                    Author{' '}
                                     {amendment.addendum.author_name ?? '—'}
                                     {amendment.addendum.finalized_at
                                         ? ` · Final ${formatDate(amendment.addendum.finalized_at)}`
@@ -672,24 +668,24 @@ function AmendmentChainItem({
                         ) : (
                             <p className="mt-2 text-sm text-muted-foreground">
                                 {amendment.state === 'DENIED'
-                                    ? 'Permintaan ditolak; adendum tidak dapat dibuat.'
-                                    : 'Adendum belum tersedia.'}
+                                    ? 'The request was denied; an addendum cannot be created.'
+                                    : 'No addendum is available yet.'}
                             </p>
                         )}
                     </li>
 
                     <li className="border-t border-border pt-4">
                         <h4 className="text-xs font-semibold tracking-wide text-secondary-foreground uppercase">
-                            4 · Review ulang RMIK
+                            4 · Medical-record review
                         </h4>
                         {amendment.renewed_review ? (
                             <div className="mt-2 space-y-3">
                                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                                     <p>
                                         {reviewSignedOff
-                                            ? 'Sudah sign-off'
-                                            : 'Draf review'}{' '}
-                                        · versi{' '}
+                                            ? 'Signed off'
+                                            : 'Review draft'}{' '}
+                                        · version{' '}
                                         {amendment.renewed_review.version}
                                     </p>
                                     <p className="font-mono text-xs text-muted-foreground">
@@ -716,7 +712,7 @@ function AmendmentChainItem({
                                                 >
                                                     {item.is_complete
                                                         ? 'Lengkap'
-                                                        : 'Belum lengkap'}
+                                                        : 'Incomplete'}
                                                 </span>
                                             </li>
                                         ),
@@ -734,7 +730,7 @@ function AmendmentChainItem({
                                             disabled={reviewForm.processing}
                                             className="min-h-11"
                                         >
-                                            Simpan review adendum
+                                            Save addendum review
                                         </Button>
                                     ) : null}
                                     {amendment.permissions
@@ -752,7 +748,7 @@ function AmendmentChainItem({
                                             }
                                             className="min-h-11"
                                         >
-                                            Sign-off review adendum
+                                            Sign off addendum review
                                         </Button>
                                     ) : null}
                                 </div>
@@ -761,8 +757,8 @@ function AmendmentChainItem({
                           amendment.actions.save_renewed_review_url ? (
                             <div className="mt-2">
                                 <p className="text-sm text-muted-foreground">
-                                    Buat snapshot kelengkapan baru setelah
-                                    adendum final.
+                                    Create a new completeness snapshot after the
+                                    addendum is finalized.
                                 </p>
                                 <Button
                                     type="button"
@@ -773,12 +769,13 @@ function AmendmentChainItem({
                                     }
                                     className="mt-3 min-h-11"
                                 >
-                                    Mulai review adendum
+                                    Start addendum review
                                 </Button>
                             </div>
                         ) : (
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Review ulang RMIK belum tersedia.
+                                A new medical-record review is not available
+                                yet.
                             </p>
                         )}
                     </li>
@@ -793,10 +790,10 @@ function AmendmentChainItem({
                     >
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Finalisasi adendum?</DialogTitle>
+                                <DialogTitle>Finalize addendum?</DialogTitle>
                                 <DialogDescription>
-                                    Adendum final menjadi hanya-baca. Dokumen
-                                    asli tetap final dan tidak berubah.
+                                    A final addendum is read-only. The document
+                                    original remains final and unchanged.
                                 </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
@@ -806,7 +803,7 @@ function AmendmentChainItem({
                                         variant="outline"
                                         className="min-h-11"
                                     >
-                                        Batal
+                                        Cancel
                                     </Button>
                                 </DialogClose>
                                 <Button
@@ -815,7 +812,7 @@ function AmendmentChainItem({
                                     disabled={finalizeForm.processing}
                                     className="min-h-11"
                                 >
-                                    Ya, finalisasi adendum
+                                    Yes, finalize addendum
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -864,16 +861,16 @@ export function PostClosureAmendmentPanel({
                         id="post-closure-amendment-title"
                         className="text-base font-semibold text-secondary-foreground"
                     >
-                        Adendum pascapenutupan
+                        Post-closure addendum
                     </h2>
                     <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                        Kunjungan tetap ditutup. Koreksi dibuat sebagai adendum
-                        baru, lalu ditinjau ulang oleh RMIK tanpa mengubah
-                        dokumen atau sign-off awal.
+                        The encounter remains closed. Corrections are created as
+                        new addenda, then reviewed again by medical-record staff
+                        without changing the original document or sign-off.
                     </p>
                 </div>
                 <span className="rounded-md border border-border bg-muted px-2 py-1 text-xs font-semibold text-muted-foreground">
-                    Arsip asli tetap utuh
+                    Original archive remains intact
                 </span>
             </div>
 
@@ -881,7 +878,7 @@ export function PostClosureAmendmentPanel({
                 finalDocuments.length > 0 && reasonOptions.length > 0 ? (
                     <div className="mt-4 rounded-lg border border-primary/25 bg-primary/5 p-3 md:p-4">
                         <h3 className="text-sm font-semibold">
-                            Ajukan adendum baru
+                            Request a new addendum
                         </h3>
                         <RequestAmendmentForm
                             documents={finalDocuments}
@@ -895,19 +892,19 @@ export function PostClosureAmendmentPanel({
                         role="status"
                         className="mt-4 rounded-md border border-warning/30 bg-warning/5 p-3 text-sm text-warning"
                     >
-                        Permintaan belum dapat dibuat karena dokumen final atau
-                        pilihan alasan belum tersedia.
+                        A request cannot be created because no final document or
+                        reason option is available.
                     </p>
                 )
             ) : null}
 
             <div className="mt-5">
                 <h3 className="text-sm font-semibold">
-                    Riwayat rantai adendum
+                    Addendum chain history
                 </h3>
                 {amendments.length > 0 ? (
                     <ol
-                        aria-label="Riwayat permintaan dan adendum"
+                        aria-label="Request and addendum history"
                         className="mt-3 space-y-3"
                     >
                         {amendments.map((amendment) => (
@@ -933,7 +930,7 @@ export function PostClosureAmendmentPanel({
                     </ol>
                 ) : (
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Belum ada permintaan adendum untuk kunjungan ini.
+                        No addendum requests for this encounter yet.
                     </p>
                 )}
             </div>

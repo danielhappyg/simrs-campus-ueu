@@ -208,7 +208,7 @@ function WorklistOrder({
                     <p>{formatLaboratoryDate(order.ordered_at)}</p>
                     {isLegacy ? (
                         <span className="mt-2 inline-flex min-h-7 items-center rounded-full bg-slate-200 px-3 text-xs font-semibold text-slate-800">
-                            Arsip baca-saja
+                            Read-only archive
                         </span>
                     ) : null}
                 </div>
@@ -216,7 +216,7 @@ function WorklistOrder({
                     href={order.encounter_url}
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-800 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#1b75bc]"
                 >
-                    Buka episode <ExternalLink className="size-4" />
+                    Open episode <ExternalLink className="size-4" />
                 </Link>
             </div>
 
@@ -226,8 +226,8 @@ function WorklistOrder({
                         className={`inline-flex min-h-7 items-center rounded-full px-3 text-xs font-semibold ${order.priority === 'URGENT' ? 'bg-red-100 text-red-900' : 'bg-[#e8f4fb] text-[#145a8d]'}`}
                     >
                         {order.priority === 'URGENT'
-                            ? 'Prioritas segera'
-                            : 'Prioritas rutin'}
+                            ? 'Urgent priority'
+                            : 'Routine priority'}
                     </span>
                     <p className="text-sm text-slate-600">
                         {order.examination.specimen_type}
@@ -238,7 +238,7 @@ function WorklistOrder({
                 ) : null}
                 <div className="rounded-md bg-slate-50 p-3 text-sm">
                     <p className="font-semibold text-slate-800">
-                        Pertanyaan klinis
+                        Clinical question
                     </p>
                     <p className="mt-1 whitespace-pre-wrap text-slate-700">
                         {order.clinical_question}
@@ -247,7 +247,7 @@ function WorklistOrder({
 
                 <LaboratoryErrors
                     errors={errors}
-                    title="Tindakan belum tersimpan."
+                    title="The action could not be saved."
                 />
 
                 <div className="flex flex-wrap gap-2">
@@ -259,7 +259,8 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setOpenTask('collect')}
                         >
-                            <TestTube2 className="mr-2 size-4" /> Ambil spesimen
+                            <TestTube2 className="mr-2 size-4" /> Collect
+                            specimen
                         </Button>
                     ) : null}
                     {!isLegacy &&
@@ -278,7 +279,7 @@ function WorklistOrder({
                             }
                             disabled={receiveForm.processing}
                         >
-                            Terima di unit lab
+                            Accept in laboratory
                         </Button>
                     ) : null}
                     {!isLegacy &&
@@ -290,7 +291,7 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setOpenTask('assess')}
                         >
-                            Nilai kelayakan spesimen
+                            Assess specimen suitability
                         </Button>
                     ) : null}
                     {!isLegacy &&
@@ -302,7 +303,7 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setOpenTask('result')}
                         >
-                            Susun hasil
+                            Compose Results
                         </Button>
                     ) : null}
                     {!isLegacy &&
@@ -314,7 +315,7 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setOpenTask('verify')}
                         >
-                            Verifikasi hasil
+                            Verify result
                         </Button>
                     ) : null}
                     {!isLegacy &&
@@ -326,7 +327,7 @@ function WorklistOrder({
                             className="min-h-11"
                             onClick={() => setOpenTask('amend')}
                         >
-                            Tambah adendum
+                            Add addendum
                         </Button>
                     ) : null}
                 </div>
@@ -345,7 +346,7 @@ function WorklistOrder({
                         className="space-y-3 rounded-lg border border-[#b9d9ed] bg-[#f4f9fc] p-4"
                     >
                         <Label htmlFor={`work-collect-${order.public_id}`}>
-                            Catatan pengambilan (opsional)
+                            Collection note (optional)
                         </Label>
                         <textarea
                             id={`work-collect-${order.public_id}`}
@@ -357,7 +358,7 @@ function WorklistOrder({
                             }
                         />
                         <Button type="submit" className="min-h-11">
-                            Simpan pengambilan
+                            Save collection
                         </Button>
                     </form>
                 ) : null}
@@ -365,7 +366,7 @@ function WorklistOrder({
                 {openTask === 'assess' && actionableSpecimen ? (
                     <div className="space-y-4 rounded-lg border border-[#b9d9ed] bg-[#f4f9fc] p-4">
                         <h4 className="font-semibold text-slate-950">
-                            Kelayakan {actionableSpecimen.label_identifier}
+                            Eligibility {actionableSpecimen.label_identifier}
                         </h4>
                         <div className="flex flex-wrap gap-2">
                             {order.actions.accept_url ? (
@@ -382,7 +383,7 @@ function WorklistOrder({
                                         )
                                     }
                                 >
-                                    Terima untuk pemeriksaan
+                                    Accept for examination
                                 </Button>
                             ) : null}
                         </div>
@@ -403,7 +404,7 @@ function WorklistOrder({
                                     <Label
                                         htmlFor={`reject-reason-${order.public_id}`}
                                     >
-                                        Alasan penolakan
+                                        Rejection reason
                                     </Label>
                                     <select
                                         id={`reject-reason-${order.public_id}`}
@@ -417,7 +418,9 @@ function WorklistOrder({
                                         }
                                         required
                                     >
-                                        <option value="">Pilih alasan</option>
+                                        <option value="">
+                                            Select a reason
+                                        </option>
                                         {props.rejection_reason_options.map(
                                             (reason) => (
                                                 <option
@@ -434,7 +437,7 @@ function WorklistOrder({
                                     <Label
                                         htmlFor={`reject-note-${order.public_id}`}
                                     >
-                                        Catatan (opsional)
+                                        Note (optional)
                                     </Label>
                                     <textarea
                                         id={`reject-note-${order.public_id}`}
@@ -454,7 +457,7 @@ function WorklistOrder({
                                     variant="destructive"
                                     className="min-h-11 sm:col-span-2 sm:w-fit"
                                 >
-                                    Tolak dan minta pengambilan ulang
+                                    Reject and request recollection
                                 </Button>
                             </form>
                         ) : null}
@@ -474,7 +477,7 @@ function WorklistOrder({
                             <div className="flex items-center gap-2">
                                 <FlaskConical className="size-4 text-[#1b75bc]" />
                                 <h4 className="font-semibold text-slate-950">
-                                    Draft hasil
+                                    Result draft
                                 </h4>
                             </div>
                             <span className="text-xs font-semibold text-[#145a8d]">
@@ -491,7 +494,7 @@ function WorklistOrder({
                         className="space-y-4 rounded-lg border border-[#b9d9ed] bg-slate-50 p-4"
                     >
                         <h4 className="font-semibold text-slate-950">
-                            Draft hasil lengkap
+                            Complete result draft
                         </h4>
                         <LaboratoryResultFields
                             definitions={order.examination.components}
@@ -510,7 +513,7 @@ function WorklistOrder({
                             className="min-h-11"
                             disabled={resultForm.processing}
                         >
-                            Simpan Draft
+                            Save draft
                         </Button>
                     </form>
                 ) : null}
@@ -521,20 +524,20 @@ function WorklistOrder({
                         className="space-y-4 rounded-lg border border-emerald-200 bg-emerald-50/40 p-4"
                     >
                         <h4 className="font-semibold text-slate-950">
-                            Verifikasi hasil
+                            Verify result
                         </h4>
                         {draftHasCritical ? (
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <p className="flex gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 sm:col-span-2">
                                     <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                                    Komponen kritis memerlukan catatan
-                                    komunikasi sebelum verifikasi.
+                                    Critical components require a communication
+                                    record before verification.
                                 </p>
                                 <div>
                                     <Label
                                         htmlFor={`critical-time-${order.public_id}`}
                                     >
-                                        Waktu komunikasi
+                                        Communication time
                                     </Label>
                                     <input
                                         id={`critical-time-${order.public_id}`}
@@ -565,7 +568,7 @@ function WorklistOrder({
                                         <Label
                                             htmlFor={`critical-recipient-${order.public_id}`}
                                         >
-                                            Dokter penerima eskalasi
+                                            Escalation recipient physician
                                         </Label>
                                         <select
                                             id={`critical-recipient-${order.public_id}`}
@@ -589,7 +592,7 @@ function WorklistOrder({
                                             required
                                         >
                                             <option value="">
-                                                Pilih dokter penerima
+                                                Select recipient physician
                                             </option>
                                             {props.critical_communication_recipient_options.map(
                                                 (option) => (
@@ -607,20 +610,20 @@ function WorklistOrder({
                                       ?.outcome === 'COMMUNICATED' ? (
                                     <div>
                                         <p className="text-sm font-medium text-slate-800">
-                                            Dokter penerima
+                                            Recipient physician
                                         </p>
                                         <p className="mt-1 min-h-11 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900">
                                             {order.ordering_physician_name}
                                         </p>
                                         <p className="mt-1 text-xs text-slate-600">
-                                            Tersampaikan selalu dicatat kepada
-                                            dokter pemesan.
+                                            A communicated result is recorded as
+                                            received by the ordering physician.
                                         </p>
                                     </div>
                                 ) : (
                                     <p className="self-end rounded-md bg-white px-3 py-2 text-sm text-slate-600">
-                                        Pilih hasil komunikasi untuk menentukan
-                                        dokter penerima.
+                                        Select the communication outcome to
+                                        determine the receiving physician.
                                     </p>
                                 )}
                                 <div>
@@ -650,7 +653,9 @@ function WorklistOrder({
                                         }
                                         required
                                     >
-                                        <option value="">Pilih metode</option>
+                                        <option value="">
+                                            Select a method
+                                        </option>
                                         {props.communication_method_options.map(
                                             (option) => (
                                                 <option
@@ -667,7 +672,7 @@ function WorklistOrder({
                                     <Label
                                         htmlFor={`critical-outcome-${order.public_id}`}
                                     >
-                                        Hasil komunikasi
+                                        Communication outcome
                                     </Label>
                                     <select
                                         id={`critical-outcome-${order.public_id}`}
@@ -696,7 +701,9 @@ function WorklistOrder({
                                         }}
                                         required
                                     >
-                                        <option value="">Pilih hasil</option>
+                                        <option value="">
+                                            Select an outcome
+                                        </option>
                                         {props.communication_outcome_options.map(
                                             (option) => (
                                                 <option
@@ -715,8 +722,8 @@ function WorklistOrder({
                                     >
                                         {verifyForm.data.critical_communication
                                             ?.outcome === 'ESCALATED'
-                                            ? 'Catatan komunikasi (wajib untuk eskalasi)'
-                                            : 'Catatan komunikasi (opsional)'}
+                                            ? 'Communication note (required for escalation)'
+                                            : 'Communication note (optional)'}
                                     </Label>
                                     <textarea
                                         id={`critical-note-${order.public_id}`}
@@ -746,16 +753,17 @@ function WorklistOrder({
                                     {verifyForm.data.critical_communication
                                         ?.outcome === 'ESCALATED' ? (
                                         <p className="mt-1 text-xs font-medium text-red-800">
-                                            Jelaskan alasan eskalasi dan konteks
-                                            serah-terima kepada dokter jaga.
+                                            Explain the escalation reason and
+                                            handoff context for the on-call
+                                            physician.
                                         </p>
                                     ) : null}
                                 </div>
                             </div>
                         ) : (
                             <p className="text-sm text-slate-700">
-                                Verifikasi mengunci isi Draft saat ini sebagai
-                                hasil terverifikasi.
+                                Verification locks the current draft content as
+                                the verified result.
                             </p>
                         )}
                         <Button
@@ -763,7 +771,7 @@ function WorklistOrder({
                             className="min-h-11"
                             disabled={verifyForm.processing}
                         >
-                            Verifikasi hasil
+                            Verify result
                         </Button>
                     </form>
                 ) : null}
@@ -775,7 +783,7 @@ function WorklistOrder({
                     >
                         <div>
                             <Label htmlFor={`amend-reason-${order.public_id}`}>
-                                Alasan koreksi
+                                Correction reason
                             </Label>
                             <select
                                 id={`amend-reason-${order.public_id}`}
@@ -789,7 +797,7 @@ function WorklistOrder({
                                 }
                                 required
                             >
-                                <option value="">Pilih alasan</option>
+                                <option value="">Select a reason</option>
                                 {props.amendment_reason_options.map(
                                     (option) => (
                                         <option
@@ -832,15 +840,15 @@ function WorklistOrder({
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <p className="flex gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900 sm:col-span-2">
                                     <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                                    Setiap adendum dengan nilai kritis
-                                    memerlukan komunikasi baru khusus untuk
+                                    Every addendum with a critical value
+                                    requires a new communication record for
                                     versi ini.
                                 </p>
                                 <div>
                                     <Label
                                         htmlFor={`amend-critical-time-${order.public_id}`}
                                     >
-                                        Waktu komunikasi adendum
+                                        Addendum communication time
                                     </Label>
                                     <input
                                         id={`amend-critical-time-${order.public_id}`}
@@ -874,7 +882,8 @@ function WorklistOrder({
                                         <Label
                                             htmlFor={`amend-critical-recipient-${order.public_id}`}
                                         >
-                                            Dokter penerima eskalasi adendum
+                                            Physician receiving the addendum
+                                            escalation
                                         </Label>
                                         <select
                                             id={`amend-critical-recipient-${order.public_id}`}
@@ -898,7 +907,7 @@ function WorklistOrder({
                                             required
                                         >
                                             <option value="">
-                                                Pilih dokter penerima
+                                                Select receiving physician
                                             </option>
                                             {props.critical_communication_recipient_options.map(
                                                 (option) => (
@@ -916,27 +925,27 @@ function WorklistOrder({
                                       ?.outcome === 'COMMUNICATED' ? (
                                     <div>
                                         <p className="text-sm font-medium text-slate-800">
-                                            Dokter penerima adendum
+                                            Addendum receiving physician
                                         </p>
                                         <p className="mt-1 min-h-11 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900">
                                             {order.ordering_physician_name}
                                         </p>
                                         <p className="mt-1 text-xs text-slate-600">
-                                            Tersampaikan selalu dicatat kepada
-                                            dokter pemesan.
+                                            A communicated result is recorded as
+                                            received by the ordering physician.
                                         </p>
                                     </div>
                                 ) : (
                                     <p className="self-end rounded-md bg-white px-3 py-2 text-sm text-slate-600">
-                                        Pilih hasil komunikasi untuk menentukan
-                                        dokter penerima.
+                                        Select the communication outcome to
+                                        determine the receiving physician.
                                     </p>
                                 )}
                                 <div>
                                     <Label
                                         htmlFor={`amend-critical-method-${order.public_id}`}
                                     >
-                                        Metode komunikasi adendum
+                                        Addendum communication method
                                     </Label>
                                     <select
                                         id={`amend-critical-method-${order.public_id}`}
@@ -962,7 +971,7 @@ function WorklistOrder({
                                         }
                                         required
                                     >
-                                        <option value="">Pilih metode</option>
+                                        <option value="">Select method</option>
                                         {props.communication_method_options.map(
                                             (option) => (
                                                 <option
@@ -979,7 +988,7 @@ function WorklistOrder({
                                     <Label
                                         htmlFor={`amend-critical-outcome-${order.public_id}`}
                                     >
-                                        Hasil komunikasi adendum
+                                        Addendum communication outcome
                                     </Label>
                                     <select
                                         id={`amend-critical-outcome-${order.public_id}`}
@@ -1011,7 +1020,7 @@ function WorklistOrder({
                                         }}
                                         required
                                     >
-                                        <option value="">Pilih hasil</option>
+                                        <option value="">Select outcome</option>
                                         {props.communication_outcome_options.map(
                                             (option) => (
                                                 <option
@@ -1031,8 +1040,8 @@ function WorklistOrder({
                                         {amendmentForm.data
                                             .critical_communication?.outcome ===
                                         'ESCALATED'
-                                            ? 'Catatan komunikasi adendum (wajib untuk eskalasi)'
-                                            : 'Catatan komunikasi adendum (opsional)'}
+                                            ? 'Addendum communication notes (required for escalation)'
+                                            : 'Addendum communication notes (optional)'}
                                     </Label>
                                     <textarea
                                         id={`amend-critical-note-${order.public_id}`}
@@ -1065,8 +1074,9 @@ function WorklistOrder({
                                     {amendmentForm.data.critical_communication
                                         ?.outcome === 'ESCALATED' ? (
                                         <p className="mt-1 text-xs font-medium text-red-800">
-                                            Jelaskan alasan eskalasi dan konteks
-                                            serah-terima kepada dokter jaga.
+                                            Explain the escalation reason and
+                                            handoff context for the on-call
+                                            physician.
                                         </p>
                                     ) : null}
                                 </div>
@@ -1077,7 +1087,7 @@ function WorklistOrder({
                             className="min-h-11"
                             disabled={amendmentForm.processing}
                         >
-                            Simpan adendum terverifikasi
+                            Save verified addendum
                         </Button>
                     </form>
                 ) : null}
@@ -1104,16 +1114,22 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
         <main className="mx-auto w-full max-w-7xl space-y-5 p-4 sm:p-6">
             <CareSettingSubnav
                 items={[
-                    { href: '/pemeriksaan/rawat-jalan', label: 'Rawat Jalan' },
-                    { href: '/pemeriksaan/igd', label: 'IGD' },
-                    { href: '/pemeriksaan/rawat-inap', label: 'Rawat Inap' },
+                    {
+                        href: '/pemeriksaan/rawat-jalan',
+                        label: 'Outpatient Care',
+                    },
+                    { href: '/pemeriksaan/igd', label: 'Emergency Department' },
+                    {
+                        href: '/pemeriksaan/rawat-inap',
+                        label: 'Inpatient Care',
+                    },
                     { href: '/pemeriksaan/triage', label: 'Triage' },
                     {
                         href: '/pemeriksaan/laboratorium',
-                        label: 'Laboratorium',
+                        label: 'Laboratory',
                         active: true,
                     },
-                    { href: '/pemeriksaan/radiologi', label: 'Radiologi' },
+                    { href: '/pemeriksaan/radiologi', label: 'Radiology' },
                 ]}
             />
             <header className="flex items-start gap-3">
@@ -1122,20 +1138,21 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                 </span>
                 <div>
                     <p className="font-mono text-xs font-semibold tracking-[0.15em] text-[#145a8d]">
-                        LABORATORIUM
+                        LABORATORY
                     </p>
                     <h1 className="font-['IBM_Plex_Sans_Condensed'] text-3xl font-semibold text-slate-950">
-                        Worklist Spesimen & Hasil
+                        Specimen & Result Worklist
                     </h1>
                     <p className="mt-1 text-sm text-slate-600">
-                        Satu alur kerja untuk rawat jalan, IGD, dan rawat inap.
+                        One workflow for outpatient care, the Emergency
+                        Department, and inpatient care.
                     </p>
                 </div>
             </header>
             <p className="sr-only" role="status" aria-live="polite">
                 {loading
-                    ? 'Memuat worklist laboratorium.'
-                    : `${props.orders.length} permintaan ditampilkan.`}
+                    ? 'Loading laboratory worklist.'
+                    : `${props.orders.length} requests displayed.`}
             </p>
             {props.read_error ? (
                 <div
@@ -1151,7 +1168,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
             >
                 <div>
                     <Label htmlFor="laboratory-q">
-                        Cari pasien, RM, atau pemeriksaan
+                        Search patient, medical record, or examination
                     </Label>
                     <input
                         id="laboratory-q"
@@ -1163,7 +1180,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                     />
                 </div>
                 <div>
-                    <Label htmlFor="laboratory-setting">Jenis layanan</Label>
+                    <Label htmlFor="laboratory-setting">Care setting</Label>
                     <select
                         id="laboratory-setting"
                         className={laboratoryFieldClass}
@@ -1176,7 +1193,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                             })
                         }
                     >
-                        <option value="">Semua layanan</option>
+                        <option value="">All care settings</option>
                         {props.filter_options.care_settings.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -1198,7 +1215,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                             })
                         }
                     >
-                        <option value="">Semua status</option>
+                        <option value="">All statuses</option>
                         {props.filter_options.states.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -1207,7 +1224,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                     </select>
                 </div>
                 <div>
-                    <Label htmlFor="laboratory-priority">Prioritas</Label>
+                    <Label htmlFor="laboratory-priority">Priority</Label>
                     <select
                         id="laboratory-priority"
                         className={laboratoryFieldClass}
@@ -1220,7 +1237,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                             })
                         }
                     >
-                        <option value="">Semua prioritas</option>
+                        <option value="">All priorities</option>
                         {props.filter_options.priorities.map((option) => (
                             <option key={option.value} value={option.value}>
                                 {option.label}
@@ -1229,7 +1246,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                     </select>
                 </div>
                 <Button type="submit" className="min-h-11" disabled={loading}>
-                    Terapkan
+                    Apply
                 </Button>
             </form>
             <div className="space-y-4">
@@ -1245,7 +1262,7 @@ export function LaboratoryWorklist(props: LaboratoryWorklistProps) {
                     <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
                         <FlaskConical className="mx-auto size-8 text-slate-400" />
                         <p className="mt-3 font-semibold text-slate-800">
-                            Tidak ada permintaan pada filter ini.
+                            No requests match these filters.
                         </p>
                     </div>
                 )}

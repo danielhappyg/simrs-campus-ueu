@@ -7,7 +7,7 @@ export default function FinanceCashierCollectionWorklistPage(
 ) {
     return (
         <>
-            <Head title="Batch Penerimaan Kas" />
+            <Head title="Cash Collection Batch" />
             <FinanceCashierCollectionWorklist {...props} />
         </>
     );

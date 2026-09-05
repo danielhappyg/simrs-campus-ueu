@@ -39,7 +39,7 @@ final class FinanceCashierCollectionController extends Controller
             $batches = array_map(fn (array $batch): array => $this->linkBatch($batch), $this->projection->worklist($actor));
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Daftar batch penerimaan kas belum dapat direkonsiliasi.');
+            abort(503, 'The cash collection batch list could not be reconciled.');
         }
 
         $isCashier = $this->role($actor) === RoleCapabilityMatrix::ROLE_CASHIER;
@@ -54,8 +54,8 @@ final class FinanceCashierCollectionController extends Controller
                 $isCashier && ! $hasActiveBatch,
                 route('finance.cashier-collections.open', absolute: false),
                 $isCashier
-                    ? 'Kasir sudah memiliki satu batch penerimaan kas aktif.'
-                    : 'Hanya kasir yang dapat membuka batch penerimaan kas.',
+                    ? 'The cashier already has an active cash collection batch.'
+                    : 'Only cashiers can open a cash collection batch.',
             ),
             'read_error' => null,
         ]);
@@ -76,7 +76,7 @@ final class FinanceCashierCollectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit pembukaan batch belum tersedia.');
+            abort(503, 'Audit recording for opening a batch is unavailable.');
         }
 
         /** @var FinanceCashierCollectionBatch $batch */
@@ -85,8 +85,8 @@ final class FinanceCashierCollectionController extends Controller
 
         return redirect()->route('finance.cashier-collections.show', ['batch' => $batchPublicId])
             ->with('success', $result->replayed
-                ? 'Batch penerimaan kas yang sama ditampilkan kembali.'
-                : 'Batch penerimaan kas dibuka.');
+                ? 'The same cash collection batch is shown again.'
+                : 'Cash collection batch opened.');
     }
 
     public function show(Request $request, string $batch): Response
@@ -99,7 +99,7 @@ final class FinanceCashierCollectionController extends Controller
             $projection = $this->linkBatch($this->projection->batch($batch, $actor));
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Batch penerimaan kas belum dapat direkonsiliasi.');
+            abort(503, 'The cash collection batch could not be reconciled.');
         }
 
         $role = $this->role($actor);
@@ -117,22 +117,22 @@ final class FinanceCashierCollectionController extends Controller
                 'request_close' => $this->action(
                     $integrityOk && $isOwner && $projection['state'] === 'OPEN',
                     route('finance.cashier-collections.close', ['batch' => $batch], false),
-                    $isOwner ? 'Batch tidak lagi terbuka.' : 'Hanya kasir pemilik batch yang dapat mengajukan tutup batch.',
+                    $isOwner ? 'The batch is no longer open.' : 'Only the cashier who owns the batch can request its closure.',
                 ),
                 'recount' => $this->action(
                     $integrityOk && $isOwner && $projection['state'] === 'RECOUNT_REQUIRED',
                     route('finance.cashier-collections.recount', ['batch' => $batch], false),
-                    $isOwner ? 'Batch belum memerlukan hitung ulang.' : 'Hanya kasir pemilik batch yang dapat mencatat hitung ulang.',
+                    $isOwner ? 'The batch does not require a recount.' : 'Only the cashier who owns the batch can record a recount.',
                 ),
                 'verify' => $this->action(
                     $integrityOk && $isSupervisor && $ownerId !== $actor->id && $projection['state'] === 'AWAITING_SUPERVISOR',
                     route('finance.cashier-collections.verify', ['batch' => $batch], false),
-                    $isSupervisor ? 'Batch belum siap diverifikasi dengan selisih nol.' : 'Hanya supervisor kasir yang dapat memverifikasi tutup batch.',
+                    $isSupervisor ? 'The batch is not ready for zero-variance verification.' : 'Only a cashier supervisor can verify batch closure.',
                 ),
                 'create_handoff' => $this->action(
                     $integrityOk && $isOwner && $projection['state'] === 'VERIFIED',
                     route('finance.cashier-collections.handoff', ['batch' => $batch], false),
-                    $isOwner ? 'Batch belum diverifikasi atau penyerahan sudah dicatat.' : 'Hanya kasir pemilik batch yang dapat menyerahkan setoran.',
+                    $isOwner ? 'The batch is not verified or the handover is already recorded.' : 'Only the cashier who owns the batch can hand over the deposit.',
                 ),
             ],
             'back_url' => route('finance.cashier-collections.index', absolute: false),
@@ -163,12 +163,12 @@ final class FinanceCashierCollectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit tutup batch belum tersedia.');
+            abort(503, 'Audit recording for batch closure is unavailable.');
         }
 
         return back()->with('success', $result->replayed
-            ? 'Pengajuan tutup batch yang sama ditampilkan kembali.'
-            : 'Keanggotaan batch dibekukan dan pengajuan tutup batch dicatat.');
+            ? 'The same batch-closure request is shown again.'
+            : 'Batch membership frozen and closure request recorded.');
     }
 
     public function recount(Request $request, string $batch): RedirectResponse
@@ -196,12 +196,12 @@ final class FinanceCashierCollectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit hitung ulang belum tersedia.');
+            abort(503, 'Audit recording for the recount is unavailable.');
         }
 
         return back()->with('success', $result->replayed
-            ? 'Hasil hitung ulang yang sama ditampilkan kembali.'
-            : 'Hasil hitung ulang dicatat sebagai bukti baru.');
+            ? 'The same recount result is shown again.'
+            : 'Recount result recorded as new evidence.');
     }
 
     public function verify(Request $request, string $batch): RedirectResponse
@@ -225,12 +225,12 @@ final class FinanceCashierCollectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit verifikasi batch belum tersedia.');
+            abort(503, 'Audit recording for batch verification is unavailable.');
         }
 
         return back()->with('success', $result->replayed
-            ? 'Verifikasi tutup batch yang sama ditampilkan kembali.'
-            : 'Tutup batch diverifikasi dengan selisih nol.');
+            ? 'The same batch-closure verification is shown again.'
+            : 'Batch closure verified with zero variance.');
     }
 
     public function handoff(Request $request, string $batch): RedirectResponse
@@ -254,7 +254,7 @@ final class FinanceCashierCollectionController extends Controller
             $this->raiseMutationDenial($denied);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit penyerahan setoran belum tersedia.');
+            abort(503, 'Audit recording for the deposit handover is unavailable.');
         }
 
         /** @var FinanceCashDepositHandoff $handoff */
@@ -263,8 +263,8 @@ final class FinanceCashierCollectionController extends Controller
 
         return redirect()->route('finance.cashier-collections.handoff-receipt', ['handoff' => $handoffPublicId])
             ->with('success', $result->replayed
-                ? 'Bukti penyerahan setoran yang sama ditampilkan kembali.'
-                : 'Penyerahan setoran internal dicatat.');
+                ? 'The same deposit handover receipt is shown again.'
+                : 'Internal deposit handover recorded.');
     }
 
     public function handoffReceipt(Request $request, string $handoff): Response
@@ -276,7 +276,7 @@ final class FinanceCashierCollectionController extends Controller
             $receipt = $this->projection->handoffReceipt($handoff, $actor);
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Bukti penyerahan setoran belum dapat direkonsiliasi.');
+            abort(503, 'The deposit handover receipt could not be reconciled.');
         }
 
         return Inertia::render('kasir/batch-penerimaan-kas/bukti-penyerahan', [
@@ -345,10 +345,10 @@ final class FinanceCashierCollectionController extends Controller
             'receipt_corrupt',
         ], true)) {
             report($denied);
-            abort(503, 'Bukti batch penerimaan kas belum dapat direkonsiliasi.');
+            abort(503, 'The cash collection batch record could not be reconciled.');
         }
 
-        throw ValidationException::withMessages(['collection' => $denied->getMessage()]);
+        throw ValidationException::withMessages(['collection' => __($denied->getMessage())]);
     }
 
     private function role(User $actor): string

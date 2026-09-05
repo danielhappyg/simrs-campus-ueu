@@ -44,7 +44,7 @@ class HandleInertiaRequests extends Middleware
             'environment' => [
                 'mode' => config('simulation.mode'),
                 'syntheticOnly' => config('simulation.synthetic_only'),
-                'banner' => config('simulation.banner'),
+                'banner' => 'SIMULATION — SYNTHETIC DATA',
                 'restriction' => config('simulation.restriction'),
             ],
             'auth' => [

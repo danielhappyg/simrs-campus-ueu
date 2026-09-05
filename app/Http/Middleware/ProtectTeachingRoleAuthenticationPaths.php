@@ -72,7 +72,7 @@ class ProtectTeachingRoleAuthenticationPaths
             && $this->challengedRosterUser($request) instanceof User) {
             $request->session()->forget(['login.id', 'login.remember']);
 
-            abort(403, 'Autentikasi dua faktor tidak tersedia untuk akun peran pengajaran.');
+            abort(403, 'Two-factor authentication is not available for teaching-role accounts.');
         }
 
         $user = $request->user();
@@ -81,7 +81,7 @@ class ProtectTeachingRoleAuthenticationPaths
             && $user->status !== 'ACTIVE'
             && ! $this->leaseGuard->isRosterAccount($user)
             && $request->routeIs(...self::MANAGED_AUTHENTICATED_ROUTES)) {
-            abort(403, 'Akun tidak aktif. Hubungi administrator SIMRS Campus UEU.');
+            abort(403, 'This account is inactive. Contact the SIMRS Campus UEU administrator.');
         }
 
         if ($user instanceof User && $this->leaseGuard->isRosterAccount($user)) {
@@ -98,7 +98,7 @@ class ProtectTeachingRoleAuthenticationPaths
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                abort(403, 'Akses akun peran pengajaran telah berakhir. Hubungi fasilitator SIMRS Campus UEU.');
+                abort(403, 'Teaching-role account access has ended. Contact the SIMRS Campus UEU facilitator.');
             }
 
             if ($request->routeIs(...self::MANAGED_AUTHENTICATED_ROUTES)) {
@@ -123,7 +123,7 @@ class ProtectTeachingRoleAuthenticationPaths
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                abort(403, 'Akses akun peran pengajaran berakhir saat permintaan diproses. Hubungi fasilitator SIMRS Campus UEU.');
+                abort(403, 'Teaching-role account access ended while the request was being processed. Contact the SIMRS Campus UEU facilitator.');
             }
         }
 

@@ -232,7 +232,7 @@ class OutpatientFlowTest extends TestCase
             ])
             ->get(route('pendaftaran.rawat-jalan.index'))
             ->assertRedirect(route('home'))
-            ->assertSessionHas('error', 'Anda tidak memiliki akses ke modul tersebut.');
+            ->assertSessionHas('error', 'You do not have access to this module.');
     }
 
     public function test_structured_clinical_document_requires_capability(): void

@@ -22,21 +22,21 @@ import type { EmergencyShowProps } from './types';
 
 const tabs = [
     { id: 'triage', label: 'Triage', icon: Activity },
-    { id: 'documentation', label: 'Dokumentasi', icon: FileText },
-    { id: 'laboratory', label: 'Laboratorium', icon: TestTube2 },
-    { id: 'radiology', label: 'Radiologi', icon: ScanLine },
-    { id: 'pharmacy', label: 'Resep & Obat', icon: Pill },
-    { id: 'disposition', label: 'Disposisi', icon: ClipboardCheck },
-    { id: 'legacy', label: 'Catatan lama', icon: History },
+    { id: 'documentation', label: 'Documentation', icon: FileText },
+    { id: 'laboratory', label: 'Laboratory', icon: TestTube2 },
+    { id: 'radiology', label: 'Radiology', icon: ScanLine },
+    { id: 'pharmacy', label: 'Prescriptions', icon: Pill },
+    { id: 'disposition', label: 'Disposition', icon: ClipboardCheck },
+    { id: 'legacy', label: 'Legacy notes', icon: History },
 ] as const;
 type TabId = (typeof tabs)[number]['id'];
 
 const statusLabel: Record<string, string> = {
-    REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Dalam pemeriksaan',
-    READY_FOR_RM: 'Siap ditinjau RMIK',
-    CLOSED: 'Ditutup',
-    CANCELLED: 'Dibatalkan',
+    REGISTERED: 'Registered',
+    IN_EXAMINATION: 'In examination',
+    READY_FOR_RM: 'Ready for medical records review',
+    CLOSED: 'Closed',
+    CANCELLED: 'Cancelled',
 };
 
 export function StructuredEmergencyEncounterShow({
@@ -110,7 +110,7 @@ export function StructuredEmergencyEncounterShow({
                     href="/pemeriksaan/igd"
                     className="inline-flex min-h-11 items-center self-start text-sm font-semibold text-primary hover:underline"
                 >
-                    ← Kembali ke worklist IGD
+                    ← Back to the emergency worklist
                 </Link>
                 <header className="clinical-shadow overflow-hidden rounded-xl border border-border bg-card">
                     <div className="grid lg:grid-cols-[minmax(0,1fr)_23rem]">
@@ -118,11 +118,11 @@ export function StructuredEmergencyEncounterShow({
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                                        Episode gawat darurat
+                                        Emergency episode
                                     </p>
                                     <h1 className="mt-1 text-2xl font-semibold">
                                         {encounter.patient.full_name ??
-                                            'Nama pasien belum tersedia'}
+                                            'Patient name unavailable'}
                                     </h1>
                                     <p className="mt-1 font-mono text-xs text-muted-foreground">
                                         {encounter.patient
@@ -138,7 +138,7 @@ export function StructuredEmergencyEncounterShow({
                             <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
                                 <div>
                                     <dt className="text-xs text-muted-foreground">
-                                        Terdaftar
+                                        Registered
                                     </dt>
                                     <dd className="mt-0.5 font-semibold">
                                         {formatEmergencyDate(
@@ -148,16 +148,16 @@ export function StructuredEmergencyEncounterShow({
                                 </div>
                                 <div>
                                     <dt className="text-xs text-muted-foreground">
-                                        Dokter
+                                        Physician
                                     </dt>
                                     <dd className="mt-0.5 font-semibold">
                                         {encounter.doctor_name ??
-                                            'Belum ditetapkan'}
+                                            'Not assigned'}
                                     </dd>
                                 </div>
                                 <div>
                                     <dt className="text-xs text-muted-foreground">
-                                        Keluhan utama
+                                        Chief complaint
                                     </dt>
                                     <dd className="mt-0.5">
                                         {encounter.chief_complaint || '—'}
@@ -181,12 +181,12 @@ export function StructuredEmergencyEncounterShow({
                             </div>
                             <p className="mt-3 text-sm font-semibold">
                                 {triage.current?.category.text_cue ??
-                                    'Menunggu asesmen awal'}
+                                    'Awaiting initial assessment'}
                             </p>
                             <p className="mt-1 text-xs opacity-75">
                                 {triage.current
-                                    ? `Dinilai ${formatEmergencyDate(triage.current.observed_at)} · ${triage.assessments.length - 1} asesmen ulang`
-                                    : 'Dokumentasi dan disposisi terkunci sampai triage awal Final.'}
+                                    ? `Assessed ${formatEmergencyDate(triage.current.observed_at)} · ${triage.assessments.length - 1} reassessments`
+                                    : 'Documentation and disposition are locked until the initial triage is final.'}
                             </p>
                         </aside>
                     </div>
@@ -238,7 +238,8 @@ export function StructuredEmergencyEncounterShow({
                             <PharmacyEncounterPanel projection={pharmacy} />
                         ) : (
                             <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
-                                Data resep belum tersedia untuk episode ini.
+                                Prescription data is unavailable for this
+                                episode.
                             </div>
                         )
                     ) : null}
@@ -251,11 +252,11 @@ export function StructuredEmergencyEncounterShow({
                     {activeTab === 'legacy' ? (
                         <section className="clinical-shadow rounded-xl border border-border bg-card p-4 md:p-5">
                             <h2 className="font-semibold">
-                                Catatan lama · baca saja
+                                Legacy notes · read-only
                             </h2>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Catatan berikut dipertahankan sebagai riwayat.
-                                Seluruh pencatatan baru menggunakan formulir IGD
+                                These notes are retained as history. Seluruh new
+                                entries use the Emergency Department form
                                 terstruktur.
                             </p>
                             {legacy_entries.length ? (
@@ -269,8 +270,8 @@ export function StructuredEmergencyEncounterShow({
                                                 <p className="text-xs font-semibold">
                                                     {entry.entry_type ===
                                                     'NURSING_INTAKE'
-                                                        ? 'Catatan keperawatan lama'
-                                                        : 'Catatan medis lama'}
+                                                        ? 'Legacy nursing note'
+                                                        : 'Legacy medical note'}
                                                 </p>
                                                 <span className="text-xs text-muted-foreground">
                                                     {formatEmergencyDate(
@@ -283,7 +284,7 @@ export function StructuredEmergencyEncounterShow({
                                             </p>
                                             <p className="mt-2 text-xs text-muted-foreground">
                                                 {entry.author_name ??
-                                                    'Penulis tidak tersedia'}
+                                                    'Author unavailable'}
                                             </p>
                                         </li>
                                     ))}
@@ -304,7 +305,7 @@ export function StructuredEmergencyEncounterShow({
 function EmergencyEmptyLegacy() {
     return (
         <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            Tidak ada catatan lama pada episode ini.
+            No legacy notes for this episode.
         </p>
     );
 }

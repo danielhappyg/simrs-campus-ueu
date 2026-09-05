@@ -47,7 +47,7 @@ final class EmergencyDiagnosticFollowUpController extends Controller
                 $validated['handoff_note'],
                 $validated['idempotency_key'],
             ),
-            'Usulan penanggung jawab hasil penunjang telah dicatat.',
+            'Diagnostic follow-up assignment proposed.',
         );
     }
 
@@ -62,7 +62,7 @@ final class EmergencyDiagnosticFollowUpController extends Controller
             'idempotency_key' => ['required', 'string', 'max:255'],
         ]);
         if ($validated['proposal_public_id'] !== $proposal) {
-            throw ValidationException::withMessages(['proposal_public_id' => 'Usulan penugasan tidak sesuai alamat permintaan.']);
+            throw ValidationException::withMessages(['proposal_public_id' => 'The assignment proposal does not match the request.']);
         }
         $actor = $request->user();
         abort_unless($actor instanceof User, 403);
@@ -75,7 +75,7 @@ final class EmergencyDiagnosticFollowUpController extends Controller
                 $validated['expected_result_fingerprint'],
                 $validated['idempotency_key'],
             ),
-            'Penugasan tindak lanjut telah diterima.',
+            'Follow-up assignment accepted.',
         );
     }
 
@@ -83,7 +83,7 @@ final class EmergencyDiagnosticFollowUpController extends Controller
     private function assertOrderBinding(array $validated, string $orderType, string $order): void
     {
         if ($validated['order_type'] !== $orderType || $validated['order_public_id'] !== $order) {
-            throw ValidationException::withMessages(['order_public_id' => 'Pemeriksaan penunjang tidak sesuai alamat permintaan.']);
+            throw ValidationException::withMessages(['order_public_id' => 'The diagnostic order does not match the request.']);
         }
     }
 }

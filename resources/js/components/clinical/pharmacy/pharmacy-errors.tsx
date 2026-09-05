@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 export function PharmacyErrorSummary({
     errors,
-    title = 'Data belum dapat disimpan.',
+    title = 'Data could not be saved.',
 }: {
     errors: Record<string, string>;
     title?: string;

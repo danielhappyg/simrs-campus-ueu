@@ -12,7 +12,7 @@ describe('PasswordInput', () => {
 
         const input = screen.getByLabelText('Kata sandi');
         const toggle = screen.getByRole('button', {
-            name: 'Tampilkan kata sandi',
+            name: 'Show password',
         });
 
         expect(toggle).not.toHaveAttribute('tabindex', '-1');
@@ -27,7 +27,7 @@ describe('PasswordInput', () => {
 
         expect(input).toHaveAttribute('type', 'text');
         expect(
-            screen.getByRole('button', { name: 'Sembunyikan kata sandi' }),
+            screen.getByRole('button', { name: 'Hide password' }),
         ).toBeInTheDocument();
     });
 });

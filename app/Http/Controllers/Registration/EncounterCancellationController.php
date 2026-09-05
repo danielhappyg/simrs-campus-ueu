@@ -56,22 +56,22 @@ final class EncounterCancellationController extends Controller
             );
         } catch (EncounterCancellationDenied $denial) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['cancellation' => $denial->getMessage()]);
+                return back()->withErrors(['cancellation' => __($denial->getMessage())]);
             }
 
-            abort($denial->status, $denial->getMessage());
+            abort($denial->status, __($denial->getMessage()));
         } catch (EncounterCancellationAuditUnavailable $failure) {
             if ($request->header('X-Inertia') === 'true') {
-                return back()->withErrors(['cancellation' => $failure->getMessage()]);
+                return back()->withErrors(['cancellation' => __($failure->getMessage())]);
             }
 
-            abort(503, $failure->getMessage());
+            abort(503, __($failure->getMessage()));
         }
 
         return back()
             ->with('success', $result->replayed
-                ? 'Pembatalan kunjungan sudah tercatat.'
-                : 'Kunjungan berhasil dibatalkan.')
+                ? 'The visit cancellation is already recorded.'
+                : 'Visit cancelled successfully.')
             ->with('last_cancellation_public_id', $result->cancellation->public_id);
     }
 }

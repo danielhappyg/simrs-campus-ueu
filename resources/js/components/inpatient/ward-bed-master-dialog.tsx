@@ -29,14 +29,14 @@ type FormData = {
 };
 
 const fieldLabels: Record<keyof FormData | 'master', string> = {
-    code: 'Kode',
-    display_name: 'Nama tampilan',
-    room_label: 'Ruang',
-    service_class: 'Kelas layanan',
-    expected_version: 'Versi data',
-    reason_code: 'Alasan perubahan',
+    code: 'Code',
+    display_name: 'Display name',
+    room_label: 'Room',
+    service_class: 'Service class',
+    expected_version: 'Record version',
+    reason_code: 'Change reason',
     idempotency_key: 'Kunci penyimpanan',
-    master: 'Perubahan data',
+    master: 'Data change',
 };
 
 function newIdempotencyKey(): string {
@@ -140,56 +140,55 @@ function actionCopy(action: WardBedMasterAction): {
     switch (action.kind) {
         case 'CREATE_WARD':
             return {
-                title: 'Tambah bangsal',
-                description:
-                    'Kode disimpan permanen dan tidak dapat digunakan kembali.',
-                submit: 'Simpan bangsal',
-                success: 'Bangsal berhasil ditambahkan.',
+                title: 'Add ward',
+                description: 'The code is permanent and cannot be reused.',
+                submit: 'Save ward',
+                success: 'Ward added successfully.',
                 destructive: false,
             };
         case 'UPDATE_WARD':
             return {
-                title: 'Ubah nama bangsal',
+                title: 'Rename ward',
                 description:
-                    'Perubahan menambah versi baru tanpa mengubah kode bangsal.',
-                submit: 'Simpan perubahan',
-                success: 'Perubahan bangsal berhasil disimpan.',
+                    'This change creates a new version without changing the ward code.',
+                submit: 'Save changes',
+                success: 'Ward changes saved successfully.',
                 destructive: false,
             };
         case 'RETIRE_WARD':
             return {
-                title: 'Nonaktifkan bangsal',
+                title: 'Deactivate ward',
                 description:
-                    'Bangsal yang dinonaktifkan tidak dapat diaktifkan kembali. Riwayat tetap tersimpan.',
-                submit: 'Nonaktifkan bangsal',
-                success: 'Bangsal berhasil dinonaktifkan.',
+                    'A deactivated ward cannot be reactivated. Its history remains available.',
+                submit: 'Deactivate ward',
+                success: 'Ward deactivated successfully.',
                 destructive: true,
             };
         case 'CREATE_BED':
             return {
-                title: `Tambah tempat tidur · ${action.ward.display_name}`,
+                title: `Add bed · ${action.ward.display_name}`,
                 description:
-                    'Tempat tidur akan tetap berada pada bangsal ini. Kode tidak dapat diubah.',
-                submit: 'Simpan tempat tidur',
-                success: 'Tempat tidur berhasil ditambahkan.',
+                    'The bed will remain in this ward. Its code cannot be changed.',
+                submit: 'Save bed',
+                success: 'Bed added successfully.',
                 destructive: false,
             };
         case 'UPDATE_BED':
             return {
-                title: `Ubah tempat tidur · ${action.bed.code}`,
+                title: `Edit bed · ${action.bed.code}`,
                 description:
-                    'Perubahan menambah versi baru. Kode dan bangsal tidak berubah.',
-                submit: 'Simpan perubahan',
-                success: 'Perubahan tempat tidur berhasil disimpan.',
+                    'This change creates a new version. The code and ward remain unchanged.',
+                submit: 'Save changes',
+                success: 'Bed changes saved successfully.',
                 destructive: false,
             };
         case 'RETIRE_BED':
             return {
-                title: `Nonaktifkan tempat tidur · ${action.bed.code}`,
+                title: `Deactivate bed · ${action.bed.code}`,
                 description:
-                    'Tempat tidur yang dinonaktifkan tidak dapat dipilih atau diaktifkan kembali. Riwayat tetap tersimpan.',
-                submit: 'Nonaktifkan tempat tidur',
-                success: 'Tempat tidur berhasil dinonaktifkan.',
+                    'A deactivated bed cannot be selected or reactivated. Its history remains available.',
+                submit: 'Deactivate bed',
+                success: 'Bed deactivated successfully.',
                 destructive: true,
             };
     }
@@ -304,7 +303,7 @@ export function WardBedMasterDialog({
                                     id="ward-bed-error-title"
                                     className="font-semibold"
                                 >
-                                    Perubahan belum dapat disimpan.
+                                    Changes could not be saved.
                                 </p>
                                 <ul className="mt-1 list-disc space-y-1 pl-5">
                                     {errors.map(([field, message]) => {
@@ -339,11 +338,10 @@ export function WardBedMasterDialog({
                         {retires ? (
                             <div className="rounded-md border border-[#fed7aa] bg-[#fff7ed] p-3 text-sm text-[#9a3412]">
                                 <p className="font-semibold">
-                                    Tindakan ini bersifat permanen.
+                                    This action is permanent.
                                 </p>
                                 <p className="mt-1">
-                                    Tidak ada tombol hapus atau aktifkan
-                                    kembali.
+                                    There is no delete or reactivate action.
                                 </p>
                             </div>
                         ) : (
@@ -351,7 +349,7 @@ export function WardBedMasterDialog({
                                 {creates ? (
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="ward-bed-code">
-                                            Kode
+                                            Code
                                         </Label>
                                         <Input
                                             id="ward-bed-code"
@@ -366,8 +364,8 @@ export function WardBedMasterDialog({
                                             autoComplete="off"
                                         />
                                         <p className="text-xs text-[#64748b]">
-                                            Kode disimpan dengan huruf kapital
-                                            dan tidak dapat diubah.
+                                            The code is stored in uppercase and
+                                            cannot be changed.
                                         </p>
                                         <InputError
                                             id="ward-bed-code-error"
@@ -377,7 +375,7 @@ export function WardBedMasterDialog({
                                 ) : (
                                     <div>
                                         <p className="text-xs font-medium tracking-wide text-[#64748b] uppercase">
-                                            Kode tetap
+                                            Permanent code
                                         </p>
                                         <p className="mt-1 font-mono text-sm text-[#0f172a]">
                                             {form.data.code}
@@ -387,7 +385,7 @@ export function WardBedMasterDialog({
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="ward-bed-display_name">
-                                        Nama tampilan
+                                        Display name
                                     </Label>
                                     <Input
                                         id="ward-bed-display_name"
@@ -410,7 +408,7 @@ export function WardBedMasterDialog({
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="grid gap-1.5">
                                             <Label htmlFor="ward-bed-room_label">
-                                                Ruang
+                                                Room
                                             </Label>
                                             <Input
                                                 id="ward-bed-room_label"
@@ -430,7 +428,7 @@ export function WardBedMasterDialog({
                                         </div>
                                         <div className="grid gap-1.5">
                                             <Label htmlFor="ward-bed-service_class">
-                                                Kelas layanan
+                                                Service class
                                             </Label>
                                             <Input
                                                 id="ward-bed-service_class"
@@ -458,7 +456,7 @@ export function WardBedMasterDialog({
                         {!creates && !retires ? (
                             <div className="grid gap-1.5">
                                 <Label htmlFor="ward-bed-reason_code">
-                                    Alasan perubahan
+                                    Change reason
                                 </Label>
                                 <select
                                     id="ward-bed-reason_code"
@@ -472,7 +470,7 @@ export function WardBedMasterDialog({
                                         )
                                     }
                                 >
-                                    <option value="">Pilih alasan</option>
+                                    <option value="">Select a reason</option>
                                     {reasonOptions
                                         .filter(
                                             (option) =>
@@ -505,7 +503,7 @@ export function WardBedMasterDialog({
                             disabled={form.processing}
                             onClick={onDismiss}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button
                             type="submit"

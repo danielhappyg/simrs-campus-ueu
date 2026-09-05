@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 
 export const inpatientUnsavedWarning =
-    'Ada dokumentasi harian yang belum disimpan. Tinggalkan halaman dan buang perubahan?';
+    'There are unsaved daily-documentation changes. Leave this page and discard them?';
 
 export function useUnsavedInpatientDocumentGuard(shouldWarn: boolean) {
     useEffect(() => {

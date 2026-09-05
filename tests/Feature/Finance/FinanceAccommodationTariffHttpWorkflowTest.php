@@ -84,7 +84,7 @@ final class FinanceAccommodationTariffHttpWorkflowTest extends TestCase
             ->post(route('finance.accommodation-tariff.create'), $payload)
             ->assertRedirect(route('finance.accommodation-tariff.index'))
             ->assertSessionHasNoErrors()
-            ->assertSessionHas('success', 'Pemetaan tarif akomodasi dibuat.');
+            ->assertSessionHas('success', 'Accommodation tariff mapping created.');
 
         $binding = FinanceAccommodationTariffBinding::query()->sole();
         $this->actingAs($cashier)

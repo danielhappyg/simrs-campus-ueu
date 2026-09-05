@@ -20,7 +20,7 @@ class EnsureSimulationSafetyMode
         $syntheticOnly = config('simulation.synthetic_only');
 
         if (! is_string($mode) || ! in_array($mode, $allowedModes, true) || $syntheticOnly !== true) {
-            $message = 'Aplikasi dihentikan karena konfigurasi lingkungan tidak valid.';
+            $message = 'The application has stopped because its environment configuration is invalid.';
 
             if ($request->expectsJson()) {
                 return new JsonResponse([

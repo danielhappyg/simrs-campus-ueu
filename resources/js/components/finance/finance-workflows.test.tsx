@@ -342,38 +342,36 @@ describe('finance cashier frontend contracts', () => {
         const { container } = render(<FinanceWorklist {...worklist} />);
 
         expect(
-            screen.getByRole('heading', { name: 'Daftar Tagihan' }),
+            screen.getByRole('heading', { name: 'Bill List' }),
         ).toBeInTheDocument();
         expect(
             screen.getByRole('complementary', {
-                name: 'Cakupan sumber biaya',
+                name: 'Charge coverage',
             }),
         ).toHaveTextContent('Obat yang telah diserahkan dan retur terkait');
         expect(
             screen.getByRole('table', {
-                name: /Daftar tagihan episode pasien/i,
+                name: /Patient episode bills and reconciliation status/i,
             }),
         ).toBeInTheDocument();
-        expect(screen.getByText('Ada sumber biaya baru')).toBeInTheDocument();
+        expect(screen.getByText('New charges pending')).toBeInTheDocument();
         expect(
             screen.getByText(
-                (content) => content.replace(/\s/g, '') === 'Rp30.000',
+                (content) => content.replace(/\s/g, '') === 'IDR30,000',
             ),
         ).toBeInTheDocument();
-        expect(
-            screen.getByRole('columnheader', { name: 'Neto' }),
-        ).toBeVisible();
+        expect(screen.getByRole('columnheader', { name: 'Net' })).toBeVisible();
         expect(
             screen.getByRole('columnheader', {
-                name: 'Kesiapan Sumber Biaya',
+                name: 'Charge Readiness',
             }),
         ).toBeVisible();
         expect(
-            screen.getByRole('list', { name: 'Status kesiapan sumber' }),
+            screen.getByRole('list', { name: 'Charge-source readiness' }),
         ).toHaveTextContent(
-            'Radiologi · Radiografi toraks — Tarif belum dipetakan',
+            'Radiology · Radiografi toraks — Tarif belum dipetakan',
         );
-        expect(screen.getByText('Penerbitan tertahan')).toBeVisible();
+        expect(screen.getByText('Issuance blocked')).toBeVisible();
         expect(
             screen.queryByRole('button', { name: /bayar|klaim|lunas/i }),
         ).not.toBeInTheDocument();
@@ -421,12 +419,12 @@ describe('finance cashier frontend contracts', () => {
 
         expect(
             screen.getByRole('table', {
-                name: /Episode dengan sumber biaya valid/i,
+                name: /Episodes with valid unsynchronized charge sources/i,
             }),
         ).toBeInTheDocument();
         await user.click(
             screen.getByRole('button', {
-                name: /Sinkronkan sumber valid episode/i,
+                name: /Synchronize valid sources for episode/i,
             }),
         );
 
@@ -472,13 +470,13 @@ describe('finance cashier frontend contracts', () => {
         );
 
         expect(
-            screen.getByRole('list', { name: 'Status kesiapan sumber' }),
+            screen.getByRole('list', { name: 'Charge-source readiness' }),
         ).toHaveTextContent(
-            'Laboratorium · Darah lengkap — Bukti tidak konsisten',
+            'Laboratory · Darah lengkap — Bukti tidak konsisten',
         );
-        expect(screen.getByText('Penerbitan tertahan')).toBeVisible();
+        expect(screen.getByText('Issuance blocked')).toBeVisible();
         expect(
-            screen.queryByRole('button', { name: /Sinkronkan sumber valid/ }),
+            screen.queryByRole('button', { name: /Synchronize valid sources/ }),
         ).not.toBeInTheDocument();
 
         expectFortyFourPixelTargets(container);
@@ -490,17 +488,15 @@ describe('finance cashier frontend contracts', () => {
         const { container } = render(<FinanceBillDetail {...detail} />);
 
         const issueButton = screen.getByRole('button', {
-            name: 'Terbitkan versi 1',
+            name: 'Issue version 1',
         });
         expect(issueButton).toBeDisabled();
 
         await user.type(
-            screen.getByLabelText('Alasan penerbitan'),
+            screen.getByLabelText('Issuance reason'),
             'Pemeriksaan sumber biaya Apotek selesai.',
         );
-        await user.click(
-            screen.getByText(/Saya mengonfirmasi bahwa versi ini/i),
-        );
+        await user.click(screen.getByText(/I confirm that this version/i));
         expect(issueButton).toBeEnabled();
         await user.click(issueButton);
 
@@ -516,31 +512,31 @@ describe('finance cashier frontend contracts', () => {
             expect.any(Object),
         );
         expect(screen.getByRole('status')).toHaveTextContent(
-            'Versi 1 diterbitkan.',
+            'Version 1 issued.',
         );
         expect(
             screen.getByRole('table', {
-                name: 'Sumber biaya Apotek, Radiologi, Laboratorium, dan Akomodasi terkini',
+                name: 'Current pharmacy, radiology, laboratory, and accommodation source charges',
             }),
         ).toBeInTheDocument();
         expect(
             within(
                 screen.getByRole('region', {
-                    name: 'Kesiapan Sumber Biaya',
+                    name: 'Charge Source Readiness',
                 }),
             ).getByText('2'),
         ).toBeVisible();
-        expect(screen.getByText('Pemeriksaan radiologi')).toBeVisible();
+        expect(screen.getByText('Radiology examination')).toBeVisible();
         expect(
-            screen.getByText('Hasil asli laboratorium VERIFIED'),
+            screen.getByText('VERIFIED laboratory result source'),
         ).toBeVisible();
-        const provenanceButtons = screen.getAllByText('Provenans tarif');
+        const provenanceButtons = screen.getAllByText('Tariff provenance');
         await user.click(provenanceButtons[0]);
         await user.click(provenanceButtons[1]);
         expect(screen.getByText(/TRF-RAD-THORAX/)).toBeVisible();
         expect(screen.getByText(/TRF-LAB-CBC/)).toBeVisible();
-        expect(screen.getByText('Master laboratorium')).toBeVisible();
-        expect(screen.getByText('Hasil asli VERIFIED')).toBeVisible();
+        expect(screen.getByText('Laboratory master')).toBeVisible();
+        expect(screen.getByText('VERIFIED result source')).toBeVisible();
         const laboratoryProvenance = provenanceButtons[1].closest('details');
         expect(laboratoryProvenance).not.toBeNull();
         const laboratoryEvidence = within(laboratoryProvenance!);
@@ -559,9 +555,9 @@ describe('finance cashier frontend contracts', () => {
             laboratoryEvidence.getByText(/LABORATORY_SERVICE/),
         ).toBeVisible();
         expect(laboratoryEvidence.getByText(/4{64}/)).toBeVisible();
-        expect(laboratoryEvidence.getByText(/Berlaku mulai/)).toHaveTextContent(
-            '2026-08-01',
-        );
+        expect(
+            laboratoryEvidence.getByText(/Effective from/),
+        ).toHaveTextContent('2026-08-01');
 
         expectFortyFourPixelTargets(container);
         await expectAccessible(container);
@@ -575,9 +571,7 @@ describe('finance cashier frontend contracts', () => {
 
         const alert = screen.getByRole('alert');
         expect(alert).toHaveFocus();
-        expect(alert).toHaveTextContent(
-            'Versi tagihan belum dapat diterbitkan',
-        );
+        expect(alert).toHaveTextContent('The bill version could not be issued');
 
         rerender(
             <FinanceBillDetail
@@ -596,13 +590,13 @@ describe('finance cashier frontend contracts', () => {
         );
         expect(
             screen.queryByRole('heading', {
-                name: 'Terbitkan Versi Tagihan',
+                name: 'Issue Bill Version',
             }),
         ).not.toBeInTheDocument();
         expect(
             within(
-                screen.getByRole('region', { name: 'Riwayat Versi' }),
-            ).getByText('Belum ada versi yang diterbitkan.'),
+                screen.getByRole('region', { name: 'Version History' }),
+            ).getByText('No versions have been issued.'),
         ).toBeVisible();
     });
 
@@ -635,15 +629,13 @@ describe('finance cashier frontend contracts', () => {
             />,
         );
 
-        expect(
-            screen.getByText('Penerbitan versi tagihan tertahan'),
-        ).toBeVisible();
+        expect(screen.getByText('Bill version issuance blocked')).toBeVisible();
         expect(
             screen.queryByRole('heading', {
-                name: 'Terbitkan Versi Tagihan',
+                name: 'Issue Bill Version',
             }),
         ).not.toBeInTheDocument();
-        expect(screen.getByText(/Cakupan saat diterbitkan:/)).toHaveTextContent(
+        expect(screen.getByText(/Coverage when issued:/)).toHaveTextContent(
             'Obat yang telah diserahkan dan retur terkait',
         );
     });
@@ -684,21 +676,21 @@ describe('finance cashier frontend contracts', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Pelunasan Tunai' }),
+            screen.getByRole('heading', { name: 'Cash Settlement' }),
         ).toBeVisible();
         expect(
             screen.getAllByText(
-                (content) => content.replace(/\s/g, '') === 'Rp105.001',
+                (content) => content.replace(/\s/g, '') === 'IDR105,001',
             ),
         ).not.toHaveLength(0);
         const settle = screen.getByRole('button', {
-            name: 'Catat Pelunasan Tunai',
+            name: 'Record Cash Settlement',
         });
         expect(settle).toBeDisabled();
 
         await user.click(
             screen.getByRole('checkbox', {
-                name: /Saya mengonfirmasi penerimaan tunai tepat sebesar/i,
+                name: /I confirm the exact cash collection amount/i,
             }),
         );
         await user.click(settle);
@@ -754,10 +746,10 @@ describe('finance cashier frontend contracts', () => {
             />,
         );
         expect(
-            screen.getByRole('heading', { name: 'Tagihan Lunas' }),
+            screen.getByRole('heading', { name: 'Bill Settled' }),
         ).toBeVisible();
         expect(
-            screen.getByRole('link', { name: 'Lihat Kuitansi' }),
+            screen.getByRole('link', { name: 'View Receipt' }),
         ).toHaveAttribute(
             'href',
             '/kasir/pelunasan/01K00000000000000000000060/kuitansi',
@@ -815,26 +807,26 @@ describe('finance cashier frontend contracts', () => {
         expect(screen.getByText('KWT-20260902-AKTIF')).toBeVisible();
         expect(
             screen.getByRole('heading', {
-                name: 'Sisa Tagihan yang Dapat Dilunasi',
+                name: 'Remaining Payable Balance',
             }),
         ).toBeVisible();
         expect(
-            screen.getByText(/tidak mencakup sisa tagihan ini/i),
+            screen.getByText(/not included in this remaining balance/i),
         ).toBeVisible();
         expect(
             screen.getAllByText(
-                (content) => content.replace(/\s/g, '') === 'Rp50.000',
+                (content) => content.replace(/\s/g, '') === 'IDR50,000',
             ),
         ).not.toHaveLength(0);
 
         await user.click(
             screen.getByRole('checkbox', {
-                name: /penerimaan tunai baru tepat sebesar/i,
+                name: /exact new cash collection/i,
             }),
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Catat Pelunasan Sisa Tunai',
+                name: 'Record Remaining Cash Settlement',
             }),
         );
 
@@ -930,9 +922,9 @@ describe('finance cashier frontend contracts', () => {
             />,
         );
 
-        expect(screen.getByText('Hari okupansi akomodasi')).toBeVisible();
-        await user.click(screen.getAllByText('Provenans tarif').at(-1)!);
-        expect(screen.getByText('Hari okupansi')).toBeVisible();
+        expect(screen.getByText('Accommodation occupancy day')).toBeVisible();
+        await user.click(screen.getAllByText('Tariff provenance').at(-1)!);
+        expect(screen.getByText('Occupancy day')).toBeVisible();
         expect(screen.getByText(/OCCUPANCY_DAY/)).toBeVisible();
         expect(screen.getByText(/BED-MELATI-03/)).toBeVisible();
         expect(screen.getByText(/ROUTINE_DISCHARGE/)).toBeVisible();

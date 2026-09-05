@@ -17,21 +17,21 @@ export function PharmacyPrescriptionItems({
         <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                 <caption className="sr-only">
-                    Daftar obat pada resep {prescription.public_id}
+                    Medication list for prescription {prescription.public_id}
                 </caption>
                 <thead className="bg-muted/60 text-xs text-muted-foreground">
                     <tr>
                         <th scope="col" className="px-3 py-2 font-semibold">
-                            Obat
+                            Medication
                         </th>
                         <th scope="col" className="px-3 py-2 font-semibold">
-                            Aturan penggunaan
+                            Directions
                         </th>
                         <th scope="col" className="px-3 py-2 font-semibold">
-                            Jumlah
+                            Quantity
                         </th>
                         <th scope="col" className="px-3 py-2 font-semibold">
-                            Status jumlah
+                            Quantity status
                         </th>
                     </tr>
                 </thead>
@@ -66,14 +66,11 @@ export function PharmacyPrescriptionItems({
                                 {item.medicine.base_issue_unit}
                             </td>
                             <td className="px-3 py-3 text-xs">
-                                <p>
-                                    Terverifikasi:{' '}
-                                    {item.verified_quantity ?? '—'}
-                                </p>
-                                <p>Diserahkan: {item.handed_over_quantity}</p>
-                                <p>Dikembalikan: {item.returned_quantity}</p>
+                                <p>Verified: {item.verified_quantity ?? '—'}</p>
+                                <p>Handed over: {item.handed_over_quantity}</p>
+                                <p>Returned: {item.returned_quantity}</p>
                                 <p className="font-semibold">
-                                    Sisa: {item.remaining_quantity}
+                                    Remaining: {item.remaining_quantity}
                                 </p>
                             </td>
                         </tr>
@@ -93,7 +90,7 @@ export function PharmacyPrescriptionHistory({
         <details className="rounded-lg border border-border bg-muted/20 p-3">
             <summary className="flex min-h-11 cursor-pointer items-center gap-2 py-2 font-semibold">
                 <History aria-hidden="true" className="size-4 text-primary" />
-                Riwayat resep ({prescription.history.length})
+                Prescription history ({prescription.history.length})
             </summary>
             <ol className="mt-2 space-y-2">
                 {prescription.history.map((event) => (
@@ -105,9 +102,8 @@ export function PharmacyPrescriptionHistory({
                             <div>
                                 <PharmacyStatusChip state={event.state} />
                                 <p className="mt-2 text-xs text-muted-foreground">
-                                    Versi {event.version} ·{' '}
-                                    {event.actor_name ??
-                                        'Pelaksana tidak tersedia'}
+                                    Version {event.version} ·{' '}
+                                    {event.actor_name ?? 'Actor unavailable'}
                                 </p>
                             </div>
                             <PharmacyEvidenceTime value={event.occurred_at} />
@@ -138,12 +134,12 @@ export function PharmacyControlTotals({
                     aria-hidden="true"
                     className="size-4 text-primary"
                 />
-                Rekonsiliasi resep
+                Prescription reconciliation
             </h3>
             <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
                 <div>
                     <dt className="text-xs text-muted-foreground">
-                        Dipesan / terverifikasi
+                        Ordered / verified
                     </dt>
                     <dd className="font-semibold tabular-nums">
                         {totals.ordered_quantity} / {totals.verified_quantity}{' '}
@@ -152,7 +148,7 @@ export function PharmacyControlTotals({
                 </div>
                 <div>
                     <dt className="text-xs text-muted-foreground">
-                        Diserahkan / dikembalikan
+                        Handed over / returned
                     </dt>
                     <dd className="font-semibold tabular-nums">
                         {totals.handed_over_quantity} /{' '}
@@ -164,7 +160,7 @@ export function PharmacyControlTotals({
                 </div>
                 <div>
                     <dt className="text-xs text-muted-foreground">
-                        Nilai sumber biaya bersih
+                        Net charge-source value
                     </dt>
                     <dd className="font-semibold tabular-nums">
                         {formatRupiah(totals.net_charge_source_rupiah)}
@@ -201,7 +197,7 @@ export function PharmacyPrescriptionCard({
                     </p>
                     <h3 className="mt-1 font-['IBM_Plex_Sans_Condensed'] text-xl font-semibold">
                         {prescription.encounter.patient.full_name ??
-                            'Nama pasien tidak tersedia'}
+                            'Patient name unavailable'}
                     </h3>
                     <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                         {prescription.encounter.patient.medical_record_number ??
@@ -213,21 +209,23 @@ export function PharmacyPrescriptionCard({
             </div>
             <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
                 <div>
-                    <p className="text-xs text-muted-foreground">Dokter</p>
+                    <p className="text-xs text-muted-foreground">Physician</p>
                     <p className="font-semibold">
                         {prescription.ordering_physician.name ?? '—'}
                     </p>
                 </div>
                 <div>
-                    <p className="text-xs text-muted-foreground">Lokasi</p>
+                    <p className="text-xs text-muted-foreground">Location</p>
                     <p className="font-semibold">
                         {prescription.encounter.location_label}
                     </p>
                 </div>
                 <div>
-                    <p className="text-xs text-muted-foreground">Isi resep</p>
+                    <p className="text-xs text-muted-foreground">
+                        Prescription contents
+                    </p>
                     <p className="font-semibold">
-                        {prescription.items.length} obat ·{' '}
+                        {prescription.items.length} medications ·{' '}
                         {prescription.items.reduce(
                             (total, item) => total + item.requested_quantity,
                             0,
@@ -241,9 +239,9 @@ export function PharmacyPrescriptionCard({
                     <Link
                         href={`/apotek/resep/${prescription.public_id}`}
                         className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-primary hover:bg-primary/5 hover:underline"
-                        aria-label={`Buka resep ${prescription.encounter.patient.full_name ?? prescription.public_id}`}
+                        aria-label={`Open prescription ${prescription.encounter.patient.full_name ?? prescription.public_id}`}
                     >
-                        Buka resep →
+                        Open prescription →
                     </Link>
                 </div>
             ) : null}

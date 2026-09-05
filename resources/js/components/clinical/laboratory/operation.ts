@@ -15,7 +15,7 @@ export function formatLaboratoryDate(value: string | null): string {
         return '—';
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',
         timeZone: 'Asia/Jakarta',

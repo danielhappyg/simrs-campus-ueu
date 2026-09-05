@@ -369,7 +369,7 @@ class InpatientFlowTest extends TestCase
             ->assertRedirect(route('pemeriksaan.rawat-inap.show', $encounter))
             ->assertSessionHas('success', 'Draf ringkasan pulang disimpan.');
 
-        $staleMessage = 'Ringkasan pulang telah berubah. Muat ulang sebelum melanjutkan.';
+        $staleMessage = 'The discharge summary has changed. Reload before continuing.';
         $this->actingAs($physician)
             ->from(route('pemeriksaan.rawat-inap.show', $encounter))
             ->withHeader('X-Inertia', 'true')

@@ -11,12 +11,12 @@ import type { NavItem } from '@/types';
 
 const sidebarNavItems: NavItem[] = [
     {
-        title: 'Profil',
+        title: 'Profile',
         href: edit(),
         icon: null,
     },
     {
-        title: 'Keamanan',
+        title: 'Security',
         href: editSecurity(),
         icon: null,
     },
@@ -28,8 +28,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Pengaturan akun"
-                description="Kelola profil dan keamanan akun Anda"
+                title="Account settings"
+                description="Manage your account profile and security"
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">

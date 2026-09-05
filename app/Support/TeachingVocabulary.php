@@ -166,7 +166,7 @@ final class TeachingVocabulary
         $options = [];
 
         foreach ($map as $value => $label) {
-            $options[] = ['value' => $value, 'label' => $label];
+            $options[] = ['value' => $value, 'label' => ScreenVocabulary::label($label)];
         }
 
         return $options;

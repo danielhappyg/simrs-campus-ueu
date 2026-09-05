@@ -211,21 +211,15 @@ describe('pharmacy frontend contracts', () => {
         );
 
         await user.selectOptions(
-            screen.getByLabelText('Hasil peninjauan alergi manual'),
+            screen.getByLabelText('Manual allergy-review result'),
             'REVIEWED_NO_CONFLICT',
         );
+        await user.click(screen.getByText('Patient identity confirmed'));
+        await user.click(screen.getByText('Care context confirmed'));
+        await user.click(screen.getByText('Medication is legible'));
+        await user.click(screen.getByText('Directions are legible'));
         await user.click(
-            screen.getByText('Identitas pasien sudah dikonfirmasi'),
-        );
-        await user.click(
-            screen.getByText('Konteks layanan sudah dikonfirmasi'),
-        );
-        await user.click(screen.getByText('Obat terbaca jelas'));
-        await user.click(
-            screen.getByText('Instruksi penggunaan terbaca jelas'),
-        );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan verifikasi' }),
+            screen.getByRole('button', { name: 'Save verification' }),
         );
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -259,9 +253,9 @@ describe('pharmacy frontend contracts', () => {
                 .getAllByRole('columnheader')
                 .every((header) => header.getAttribute('scope') === 'col'),
         ).toBe(true);
-        expect(screen.getByText('Daftar obat pada resep rx-01')).toHaveClass(
-            'sr-only',
-        );
+        expect(
+            screen.getByText('Medication list for prescription rx-01'),
+        ).toHaveClass('sr-only');
         await expectAccessible(container);
     });
 
@@ -282,22 +276,24 @@ describe('pharmacy frontend contracts', () => {
 
         expect(
             screen.getByRole('heading', {
-                name: 'Antrean, Verifikasi & Penyerahan',
+                name: 'Queue, verification & dispensing',
             }),
         ).toBeInTheDocument();
         expect(
-            screen.getAllByText('Menunggu verifikasi').length,
+            screen.getAllByText('Awaiting verification').length,
         ).toBeGreaterThan(0);
         expect(
-            screen.getByRole('link', { name: 'Buka resep Pasien Contoh' }),
+            screen.getByRole('link', {
+                name: 'Open prescription Pasien Contoh',
+            }),
         ).toHaveAttribute('href', '/apotek/resep/rx-01');
         await user.tab();
         expect(
-            screen.getByRole('link', { name: 'Antrean Resep' }),
+            screen.getByRole('link', { name: 'Prescription queue' }),
         ).toHaveFocus();
         await user.tab();
         expect(
-            screen.getByRole('link', { name: 'Riwayat Resep' }),
+            screen.getByRole('link', { name: 'Prescription history' }),
         ).toHaveFocus();
         expectFortyFourPixelTargets(container);
         await expectAccessible(container);
@@ -338,10 +334,10 @@ describe('pharmacy frontend contracts', () => {
             />,
         );
 
-        await user.clear(screen.getByLabelText('Jumlah'));
-        await user.type(screen.getByLabelText('Jumlah'), '0');
+        await user.clear(screen.getByLabelText('Quantity'));
+        await user.type(screen.getByLabelText('Quantity'), '0');
         await user.click(
-            screen.getByRole('button', { name: 'Siapkan dengan FEFO' }),
+            screen.getByRole('button', { name: 'Prepare with FEFO' }),
         );
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -395,15 +391,15 @@ describe('pharmacy frontend contracts', () => {
             />,
         );
 
-        const submit = screen.getByRole('button', { name: 'Serahkan obat' });
+        const submit = screen.getByRole('button', {
+            name: 'Hand over medication',
+        });
         expect(submit).toBeDisabled();
         await user.type(
-            screen.getByLabelText('Alasan jika penyerahan sebagian'),
+            screen.getByLabelText('Reason for partial handover'),
             'Stok belum mencukupi',
         );
-        await user.click(
-            screen.getByText('Saya mengonfirmasi penyerahan akhir'),
-        );
+        await user.click(screen.getByText('I confirm the final handover'));
         await user.click(submit);
 
         expect(inertia.post).toHaveBeenCalledWith(
@@ -416,7 +412,7 @@ describe('pharmacy frontend contracts', () => {
             expect.objectContaining({ errorBag: 'pharmacyHandover.rx-01' }),
         );
         expect(
-            screen.getByText('Alokasi lot obat yang akan diserahkan'),
+            screen.getByText('Medication-lot allocations to hand over'),
         ).toHaveClass('sr-only');
         expectFortyFourPixelTargets(container);
         await expectAccessible(container);
@@ -468,11 +464,13 @@ describe('pharmacy frontend contracts', () => {
         );
 
         await user.selectOptions(
-            screen.getByLabelText('Alasan penutupan'),
+            screen.getByLabelText('Closure reason'),
             'STOCK_UNAVAILABLE',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Tutup sisa resep' }),
+            screen.getByRole('button', {
+                name: 'Close prescription remainder',
+            }),
         );
         expect(inertia.post).toHaveBeenCalledWith(
             '/apotek/resep/rx-01/tutup-sisa',
@@ -482,32 +480,32 @@ describe('pharmacy frontend contracts', () => {
             }),
         );
 
-        await user.click(screen.getByRole('button', { name: 'Catat retur' }));
+        await user.click(screen.getByRole('button', { name: 'Record return' }));
         const returnSubmit = screen.getByRole('button', {
-            name: 'Simpan retur',
+            name: 'Save return',
         });
         expect(returnSubmit).toBeDisabled();
         await user.clear(
-            screen.getByLabelText('Jumlah', {
+            screen.getByLabelText('Quantity', {
                 selector: '#return-quantity-handover-item-01',
             }),
         );
         await user.type(
-            screen.getByLabelText('Jumlah', {
+            screen.getByLabelText('Quantity', {
                 selector: '#return-quantity-handover-item-01',
             }),
             '1',
         );
         await user.selectOptions(
-            screen.getByLabelText('Kondisi'),
+            screen.getByLabelText('Condition'),
             'QUARANTINE',
         );
         await user.selectOptions(
-            screen.getByLabelText('Alasan retur'),
+            screen.getByLabelText('Return reason'),
             'DAMAGED_PACKAGE',
         );
         await user.click(
-            screen.getByText('Saya mengonfirmasi jumlah dan kondisi retur'),
+            screen.getByText('I confirm the return quantity and condition'),
         );
         await user.click(returnSubmit);
         expect(inertia.post).toHaveBeenLastCalledWith(
@@ -576,22 +574,19 @@ describe('pharmacy frontend contracts', () => {
         };
         const { container } = render(<PharmacyMasterPanel {...masterProps} />);
         await user.click(
-            screen.getByRole('button', { name: 'Saldo awal lot' }),
+            screen.getByRole('button', { name: 'Opening lot balance' }),
         );
-        await user.type(screen.getByLabelText('Kode lot'), 'LOT-01');
+        await user.type(screen.getByLabelText('Lot code'), 'LOT-01');
         await user.type(
-            screen.getByLabelText('Tanggal diterima'),
+            screen.getByLabelText('Received date'),
             '2026-09-01T08:30',
         );
-        await user.type(
-            screen.getByLabelText('Tanggal kedaluwarsa'),
-            '2027-09-01',
-        );
-        await user.clear(screen.getByLabelText('Jumlah tersedia'));
-        await user.type(screen.getByLabelText('Jumlah tersedia'), '12');
-        await user.type(screen.getByLabelText('Referensi sumber'), 'PO-001');
+        await user.type(screen.getByLabelText('Expiry date'), '2027-09-01');
+        await user.clear(screen.getByLabelText('Available quantity'));
+        await user.type(screen.getByLabelText('Available quantity'), '12');
+        await user.type(screen.getByLabelText('Source reference'), 'PO-001');
         await user.click(
-            screen.getByRole('button', { name: 'Simpan saldo awal' }),
+            screen.getByRole('button', { name: 'Save opening balance' }),
         );
         expect(inertia.post).toHaveBeenCalledWith(
             '/lot',
@@ -607,7 +602,7 @@ describe('pharmacy frontend contracts', () => {
             expect.objectContaining({ errorBag: 'pharmacyLot.open' }),
         );
         expect(
-            screen.getByText('Daftar master obat dan versi aktif'),
+            screen.getByText('Medication master list and active versions'),
         ).toHaveClass('sr-only');
         expectFortyFourPixelTargets(container);
         await expectAccessible(container);
@@ -653,19 +648,19 @@ describe('pharmacy frontend contracts', () => {
         };
         const { container } = render(<PharmacyStockCard {...props} />);
         expect(screen.getByRole('status')).toHaveTextContent(
-            'Perlu rekonsiliasi',
+            'Reconciliation needed: balance and history do not match',
         );
-        await user.click(screen.getByText('Kontrol persediaan'));
+        await user.click(screen.getByText('Stock controls'));
         const quarantine = screen.getByRole('button', {
-            name: 'Karantina lot',
+            name: 'Quarantine lot',
         });
         expect(quarantine).toBeDisabled();
         await user.selectOptions(
-            screen.getByLabelText('Alasan koreksi atau perubahan status'),
+            screen.getByLabelText('Reason for correction or status change'),
             'DAMAGED_PACKAGE',
         );
         const enabledQuarantine = screen.getByRole('button', {
-            name: 'Karantina lot',
+            name: 'Quarantine lot',
         });
         expect(enabledQuarantine).toBeEnabled();
         await user.click(enabledQuarantine);
@@ -680,7 +675,7 @@ describe('pharmacy frontend contracts', () => {
             'aria-live',
             'polite',
         );
-        expect(screen.getByText('Pergerakan stok lot LOT-01')).toHaveClass(
+        expect(screen.getByText('Stock movement for lot LOT-01')).toHaveClass(
             'sr-only',
         );
         expectFortyFourPixelTargets(container);

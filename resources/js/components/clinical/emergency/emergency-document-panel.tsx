@@ -20,77 +20,77 @@ const fields: Record<EmergencyDocumentType, FieldDefinition[]> = {
     NURSING: [
         {
             key: 'arrival_condition',
-            label: 'Kondisi saat diterima',
-            help: 'Kondisi pasien ketika mulai ditangani di IGD.',
+            label: 'Condition on arrival',
+            help: 'The patient’s condition when emergency care began.',
         },
         {
             key: 'focused_assessment',
-            label: 'Asesmen terfokus',
-            help: 'Temuan keperawatan yang relevan dengan masalah saat ini.',
+            label: 'Focused assessment',
+            help: 'Nursing findings relevant to the current problem.',
         },
         {
             key: 'interventions',
-            label: 'Intervensi keperawatan',
-            help: 'Tindakan yang benar-benar telah dilakukan.',
+            label: 'Nursing interventions',
+            help: 'Interventions actually performed.',
         },
         {
             key: 'response_evaluation',
-            label: 'Respons dan evaluasi',
-            help: 'Respons pasien setelah intervensi dan evaluasi terkini.',
+            label: 'Response and evaluation',
+            help: 'Patient response after intervention and the latest evaluation.',
         },
         {
             key: 'safety_observation_needs',
-            label: 'Kebutuhan keselamatan / observasi',
-            help: 'Risiko, pemantauan, dan kebutuhan keselamatan yang masih berlaku.',
+            label: 'Safety and observation needs',
+            help: 'Current risks, monitoring, and safety needs.',
         },
         {
             key: 'handoff_note',
-            label: 'Catatan serah terima',
-            help: 'Informasi yang harus diteruskan ke petugas berikutnya.',
+            label: 'Handoff note',
+            help: 'Information to pass to the next clinician.',
         },
     ],
     MEDICAL: [
         {
             key: 'anamnesis',
             label: 'Anamnesis',
-            help: 'Riwayat keluhan dan informasi klinis yang diperoleh.',
+            help: 'Complaint history and clinical information obtained.',
         },
         {
             key: 'focused_physical_examination',
-            label: 'Pemeriksaan fisik terfokus',
-            help: 'Temuan pemeriksaan fisik yang relevan.',
+            label: 'Focused physical examination',
+            help: 'Relevant physical-examination findings.',
         },
         {
             key: 'clinical_impression',
-            label: 'Kesan klinis',
-            help: 'Kesan klinis dokter; bukan kode diagnosis.',
+            label: 'Clinical impression',
+            help: 'The physician’s clinical impression; not a diagnosis code.',
         },
         {
             key: 'problem_list',
-            label: 'Daftar masalah',
-            help: 'Satu atau lebih masalah yang sedang ditangani.',
+            label: 'Problem list',
+            help: 'One or more problems currently being managed.',
         },
         {
             key: 'treatment_action_plan',
-            label: 'Rencana tindakan / terapi',
-            help: 'Rencana dan tindakan klinis pada episode ini.',
+            label: 'Intervention / treatment plan',
+            help: 'Clinical plan and interventions for this episode.',
         },
         {
             key: 'diagnostic_order_rationale',
-            label: 'Alasan pemeriksaan penunjang',
-            help: 'Alasan klinis untuk laboratorium atau radiologi.',
+            label: 'Diagnostic-test rationale',
+            help: 'Clinical reason for laboratory or radiology tests.',
         },
         {
             key: 'disposition_readiness_note',
-            label: 'Kesiapan disposisi',
-            help: 'Pertimbangan klinis sebelum menentukan hasil akhir episode.',
+            label: 'Disposition readiness',
+            help: 'Clinical considerations before determining the episode outcome.',
         },
     ],
 };
 
 const documentLabel: Record<EmergencyDocumentType, string> = {
-    NURSING: 'Dokumentasi keperawatan IGD',
-    MEDICAL: 'Dokumentasi medis IGD',
+    NURSING: 'Emergency Department nursing documentation',
+    MEDICAL: 'Emergency Department medical documentation',
 };
 
 function baseline(
@@ -148,7 +148,7 @@ function EmergencyDocumentForm({
         ...finalForm.errors,
         ...(attemptedFinal && missing.length
             ? {
-                  required_fields: `Lengkapi sebelum Final: ${missing.join(', ')}.`,
+                  required_fields: `Complete before finalization: ${missing.join(', ')}.`,
               }
             : {}),
     };
@@ -210,7 +210,7 @@ function EmergencyDocumentForm({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                            {type === 'NURSING' ? 'Perawat' : 'Dokter'}
+                            {type === 'NURSING' ? 'Nurse' : 'Physician'}
                         </p>
                         <h3 id={titleId} className="mt-0.5 font-semibold">
                             {documentLabel[type]}
@@ -237,13 +237,13 @@ function EmergencyDocumentForm({
                         )}
                         {document
                             ? `${document.state === 'FINAL' ? 'Final' : 'Draft'} · v${document.version}`
-                            : 'Belum dibuat'}
+                            : 'Not created yet'}
                     </span>
                 </div>
                 {document ? (
                     <div className="mt-2 flex flex-wrap items-center gap-3">
                         <span className="text-xs font-semibold">
-                            {document.author.name ?? 'Penulis tidak tersedia'}
+                            {document.author.name ?? 'Author unavailable'}
                         </span>
                         <EvidenceTime
                             value={document.finalized_at ?? document.updated_at}
@@ -285,7 +285,7 @@ function EmergencyDocumentForm({
                                 disabled={draftForm.processing}
                                 className="min-h-11"
                             >
-                                Simpan Draft
+                                Save draft
                             </Button>
                         ) : null}
                         {canFinalize ? (
@@ -295,19 +295,19 @@ function EmergencyDocumentForm({
                                 disabled={dirty || finalForm.processing}
                                 className="min-h-11"
                             >
-                                Finalkan dokumen
+                                Finalize document
                             </Button>
                         ) : null}
                         {dirty && canFinalize ? (
                             <p className="w-full text-right text-xs text-warning">
-                                Simpan perubahan Draft sebelum finalisasi.
+                                Save draft changes before finalizing.
                             </p>
                         ) : null}
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
                         <LockKeyhole aria-hidden="true" className="size-4" />{' '}
-                        Dokumen ini ditampilkan sebagai bukti baca saja.
+                        This document is displayed as read-only evidence.
                     </div>
                 )}
             </form>
@@ -324,13 +324,13 @@ function VersionCard({ version }: { version: EmergencyDocumentVersion }) {
                         {documentLabel[version.document_type]}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                        {version.state === 'FINAL' ? 'Final' : 'Draft'} · versi{' '}
-                        {version.version}
+                        {version.state === 'FINAL' ? 'Final' : 'Draft'} ·
+                        version {version.version}
                     </p>
                 </div>
                 <div className="text-right">
                     <p className="text-xs font-semibold">
-                        {version.author.name ?? 'Penulis tidak tersedia'}
+                        {version.author.name ?? 'Author unavailable'}
                     </p>
                     <EvidenceTime
                         value={version.finalized_at ?? version.recorded_at}
@@ -351,7 +351,7 @@ function VersionCard({ version }: { version: EmergencyDocumentVersion }) {
             </dl>
             {version.content_digest ? (
                 <p className="mt-3 font-mono text-[0.65rem] text-muted-foreground">
-                    Jejak {version.content_digest}
+                    Digest {version.content_digest}
                 </p>
             ) : null}
         </li>
@@ -370,7 +370,7 @@ export function EmergencyDocumentationPanel({
         >
             <header>
                 <p className="text-[0.68rem] font-semibold tracking-[0.13em] text-muted-foreground uppercase">
-                    Catatan terstruktur
+                    Structured notes
                 </p>
                 <h2
                     id="emergency-documentation-title"
@@ -380,7 +380,7 @@ export function EmergencyDocumentationPanel({
                         aria-hidden="true"
                         className="size-5 text-primary"
                     />{' '}
-                    Dokumentasi klinis IGD
+                    Emergency Department clinical documentation
                 </h2>
             </header>
             <div className="grid gap-4 xl:grid-cols-2">
@@ -388,10 +388,10 @@ export function EmergencyDocumentationPanel({
                 <EmergencyDocumentForm type="MEDICAL" projection={projection} />
             </div>
             <section className="clinical-shadow rounded-xl border border-border bg-muted/20 p-4">
-                <h3 className="font-semibold">Riwayat versi lengkap</h3>
+                <h3 className="font-semibold">Complete version history</h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                    Draft dan Final tersimpan sebagai versi terpisah. Final
-                    tidak dapat ditimpa.
+                    Draft and final documents are stored as separate versions.
+                    Final documents cannot be overwritten.
                 </p>
                 {projection.versions.length ? (
                     <ol className="mt-4 grid gap-3 xl:grid-cols-2">
@@ -405,8 +405,8 @@ export function EmergencyDocumentationPanel({
                 ) : (
                     <div className="mt-4">
                         <EmergencyEmptyState
-                            title="Belum ada versi dokumen"
-                            body="Dokumentasi baru dapat dimulai setelah asesmen triage awal difinalkan."
+                            title="No document versions yet"
+                            body="Documentation can begin after the initial triage assessment is finalized."
                         />
                     </div>
                 )}

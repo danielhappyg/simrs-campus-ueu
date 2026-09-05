@@ -8,14 +8,14 @@ import {
 import type { InpatientDailyDocumentVersion } from './types';
 
 const fieldLabels: Record<string, string> = {
-    nursing_observation: 'Observasi keperawatan',
-    nursing_intervention: 'Intervensi keperawatan',
-    nursing_evaluation: 'Evaluasi keperawatan',
-    subjective: 'Subjektif',
-    objective: 'Objektif',
-    assessment: 'Asesmen',
-    plan: 'Rencana',
-    additional_notes: 'Catatan tambahan',
+    nursing_observation: 'Nursing observation',
+    nursing_intervention: 'Nursing intervention',
+    nursing_evaluation: 'Nursing evaluation',
+    subjective: 'Subjective',
+    objective: 'Objective',
+    assessment: 'Assessment',
+    plan: 'Plan',
+    additional_notes: 'Additional notes',
 };
 
 type Props = {
@@ -31,10 +31,10 @@ export function InpatientDocumentHistory({ versions }: Props) {
                     className="mx-auto size-5 text-muted-foreground"
                 />
                 <p className="mt-2 text-sm font-semibold">
-                    Belum ada versi dokumentasi harian
+                    No daily documentation versions yet
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                    Versi yang tersimpan akan tampil sebagai riwayat hanya-baca.
+                    Saved versions appear here as read-only history.
                 </p>
             </div>
         );
@@ -70,7 +70,7 @@ export function InpatientDocumentHistory({ versions }: Props) {
                                                 version.state
                                             ]
                                         }{' '}
-                                        · versi {version.version}
+                                        · Version {version.version}
                                     </h3>
                                 </div>
                                 <span className="rounded-full bg-secondary px-2.5 py-1 font-mono text-[0.68rem] font-semibold text-secondary-foreground">
@@ -86,7 +86,7 @@ export function InpatientDocumentHistory({ versions }: Props) {
                                         />
                                         <div>
                                             <dt className="text-muted-foreground">
-                                                Penulis dokumen
+                                                Document author
                                             </dt>
                                             <dd className="font-semibold">
                                                 {version.author_name ?? '—'}
@@ -100,7 +100,7 @@ export function InpatientDocumentHistory({ versions }: Props) {
                                         />
                                         <div>
                                             <dt className="text-muted-foreground">
-                                                Aktor versi
+                                                Version actor
                                             </dt>
                                             <dd className="font-semibold">
                                                 {version.actor_name ?? '—'}
@@ -114,7 +114,7 @@ export function InpatientDocumentHistory({ versions }: Props) {
                                         />
                                         <div>
                                             <dt className="text-muted-foreground">
-                                                Dicatat
+                                                Recorded
                                             </dt>
                                             <dd className="font-semibold">
                                                 {formatClinicalDate(
@@ -142,16 +142,15 @@ export function InpatientDocumentHistory({ versions }: Props) {
                                         ))
                                     ) : (
                                         <p className="text-sm text-muted-foreground">
-                                            Versi ini belum memiliki isi
-                                            terstruktur.
+                                            This version has no structured
+                                            content yet.
                                         </p>
                                     )}
                                 </div>
 
                                 <details className="rounded-lg border border-border bg-muted/30">
                                     <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-secondary-foreground">
-                                        Lihat snapshot penempatan yang tidak
-                                        berubah
+                                        View immutable placement snapshot
                                     </summary>
                                     <div className="border-t border-border p-3">
                                         <PlacementSnapshot
@@ -161,7 +160,8 @@ export function InpatientDocumentHistory({ versions }: Props) {
                                             compact
                                         />
                                         <p className="mt-2 font-mono text-[0.68rem] text-muted-foreground">
-                                            Status kunjungan saat versi dibuat:{' '}
+                                            Encounter status when this version
+                                            was created:{' '}
                                             {version.encounter_status_snapshot}
                                         </p>
                                     </div>

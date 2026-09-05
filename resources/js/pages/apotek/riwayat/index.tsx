@@ -5,7 +5,7 @@ import type { PharmacyWorklistProps } from '@/components/clinical/pharmacy/types
 export default function PharmacyHistory(props: PharmacyWorklistProps) {
     return (
         <>
-            <Head title="Riwayat Apotek" />
+            <Head title="Pharmacy History" />
             <PharmacyWorklist {...props} mode="history" />
         </>
     );

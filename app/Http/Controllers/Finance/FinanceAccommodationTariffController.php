@@ -74,7 +74,7 @@ final class FinanceAccommodationTariffController extends Controller
             $data['reason'],
             $data['idempotency_key'],
             $this->correlation($request),
-        ), 'Pemetaan tarif akomodasi dibuat.');
+        ), 'Accommodation tariff mapping created.');
     }
 
     public function revise(Request $request, string $binding): RedirectResponse
@@ -100,7 +100,7 @@ final class FinanceAccommodationTariffController extends Controller
             $data['reason'],
             $data['idempotency_key'],
             $this->correlation($request),
-        ), 'Versi pemetaan tarif akomodasi ditambahkan.');
+        ), 'Accommodation tariff mapping version added.');
     }
 
     public function retire(Request $request, string $binding): RedirectResponse
@@ -124,7 +124,7 @@ final class FinanceAccommodationTariffController extends Controller
             $data['reason'],
             $data['idempotency_key'],
             $this->correlation($request),
-        ), 'Pemetaan tarif akomodasi dijadwalkan nonaktif.');
+        ), 'Accommodation tariff mapping scheduled for retirement.');
     }
 
     /** @param array<string, mixed>|null $history */
@@ -165,8 +165,8 @@ final class FinanceAccommodationTariffController extends Controller
                 $gaps[] = [
                     'source' => $source,
                     'reason_code' => 'TARIF_BELUM_DIPETAKAN',
-                    'reason_label' => 'Tarif belum dipetakan',
-                    'detail' => 'Belum ada pemetaan efektif yang sengaja dibuat untuk versi tempat tidur tepat ini.',
+                    'reason_label' => 'Tariff not mapped',
+                    'detail' => 'No effective mapping has been deliberately created for this exact bed version.',
                 ];
             }
         }
@@ -177,7 +177,7 @@ final class FinanceAccommodationTariffController extends Controller
             'source_master_content_digest' => FinanceCanonicalJson::digest($sources),
             'source_trigger' => [
                 'code' => 'CLOSED_OCCUPANCY_DAY_V1',
-                'label' => 'Hanya interval okupansi tertutup dengan jangkar hari yang dapat menjadi sumber biaya.',
+                'label' => 'Only closed occupancy intervals with a day anchor can be billing sources.',
             ],
             'sources' => $sources,
             'tariff_options' => $tariffOptions,
@@ -199,7 +199,7 @@ final class FinanceAccommodationTariffController extends Controller
             ->map(function (InpatientBed $bed): array {
                 $version = $bed->versions->firstWhere('version', $bed->version);
                 if (! $version instanceof InpatientBedVersion) {
-                    throw new \LogicException('Versi master tempat tidur aktif tidak tersedia.');
+                    throw new \LogicException('The active bed master version is unavailable.');
                 }
 
                 return $this->source($bed, $version);
@@ -283,7 +283,7 @@ final class FinanceAccommodationTariffController extends Controller
             'versions' => $versions->map(function (FinanceAccommodationTariffBindingVersion $version, int $index) use ($versions): array {
                 $tariff = $this->tariffAt($version->tariff_item_id, $version->effective_from->format('Y-m-d'));
                 if ($tariff === null) {
-                    throw new \LogicException('Versi tarif historis pemetaan akomodasi tidak tersedia.');
+                    throw new \LogicException('The historical accommodation tariff mapping version is unavailable.');
                 }
                 $next = $versions->get($index + 1);
 
@@ -355,7 +355,7 @@ final class FinanceAccommodationTariffController extends Controller
             || $version->bed_id !== $bed->id
             || $version->version !== $data['inpatient_bed_version']
             || ! hash_equals($version->after_digest, $data['inpatient_bed_content_digest'])) {
-            throw ValidationException::withMessages(['master' => 'Versi master tempat tidur telah berubah. Muat ulang halaman.']);
+            throw ValidationException::withMessages(['master' => 'The bed master version has changed. Reload the page.']);
         }
     }
 
@@ -382,10 +382,10 @@ final class FinanceAccommodationTariffController extends Controller
         try {
             $result = $operation();
         } catch (FinanceTariffDenied $denied) {
-            throw ValidationException::withMessages(['master' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['master' => __($denied->getMessage())]);
         } catch (FinanceTariffAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit pemetaan tarif belum tersedia.');
+            abort(503, 'Audit recording for tariff mapping is unavailable.');
         }
 
         return back()->with('success', $result->replayed ? 'Operasi yang sama ditampilkan kembali.' : $success);

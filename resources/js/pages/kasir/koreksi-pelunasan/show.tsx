@@ -7,7 +7,7 @@ export default function FinanceSettlementCorrectionCasePage(
 ) {
     return (
         <>
-            <Head title={`Koreksi ${props.case.correction_number}`} />
+            <Head title={`Correction ${props.case.correction_number}`} />
             <FinanceSettlementCorrectionCaseView {...props} />
         </>
     );

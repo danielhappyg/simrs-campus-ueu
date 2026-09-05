@@ -10,6 +10,7 @@ use App\Models\LaboratoryOrder;
 use App\Models\LaboratoryResultVersion;
 use App\Models\RadiologyOrder;
 use App\Models\RadiologyPerformance;
+use Illuminate\Support\Facades\Lang;
 
 final class FinanceSourceReadinessProjection
 {
@@ -139,7 +140,7 @@ final class FinanceSourceReadinessProjection
             'unresolved_count' => $unresolved,
             'issue_blocked' => $unresolved > 0,
             'issue_blocker' => $unresolved > 0
-                ? $unresolved.' sumber layanan belum memiliki biaya yang dapat diterbitkan.'
+                ? Lang::string(':count sumber layanan belum memiliki biaya yang dapat diterbitkan.', ['count' => $unresolved])
                 : null,
             'items' => $items,
         ];
@@ -153,12 +154,12 @@ final class FinanceSourceReadinessProjection
         ?int $previewSignedAmount = null,
     ): array {
         [$label, $detail] = match ($state) {
-            'SIAP_DISINKRONKAN' => ['Siap disinkronkan', 'Pemetaan dan tarif efektif telah ditemukan.'],
-            'TERSINKRONISASI' => ['Tersinkronisasi', 'Sumber dan baris biaya telah direkonsiliasi.'],
-            'TARIF_BELUM_DIPETAKAN' => ['Tarif belum dipetakan', 'Pemetaan tepat belum tersedia.'],
-            'TARIF_TIDAK_EFEKTIF' => ['Tarif tidak efektif', 'Tarif belum aktif pada tanggal layanan.'],
-            'KONTEKS_TIDAK_COCOK' => ['Konteks tidak cocok', 'Care setting atau identitas master tidak cocok.'],
-            default => ['Bukti tidak konsisten', 'Bukti sumber tidak dapat direkonsiliasi.'],
+            'SIAP_DISINKRONKAN' => [__('Siap disinkronkan'), __('Pemetaan dan tarif efektif telah ditemukan.')],
+            'TERSINKRONISASI' => [__('Tersinkronisasi'), __('Sumber dan baris biaya telah direkonsiliasi.')],
+            'TARIF_BELUM_DIPETAKAN' => [__('Tarif belum dipetakan'), __('Pemetaan tepat belum tersedia.')],
+            'TARIF_TIDAK_EFEKTIF' => [__('Tarif tidak efektif'), __('Tarif belum aktif pada tanggal layanan.')],
+            'KONTEKS_TIDAK_COCOK' => [__('Konteks tidak cocok'), __('Care setting atau identitas master tidak cocok.')],
+            default => [__('Bukti tidak konsisten'), __('Bukti sumber tidak dapat direkonsiliasi.')],
         };
 
         $publicId = $performance instanceof RadiologyPerformance ? $performance->public_id : $order->public_id;
@@ -222,8 +223,8 @@ final class FinanceSourceReadinessProjection
             'source_domain' => FinanceChargeEvent::SOURCE_ACCOMMODATION,
             'source_reference' => $encounter->public_id,
             'description' => $serviceDate === null
-                ? 'Akomodasi rawat inap'
-                : 'Hari akomodasi '.$serviceDate,
+                ? __('Akomodasi rawat inap')
+                : __('Hari akomodasi :date', ['date' => $serviceDate]),
             'service_at' => $serviceAt ?? ($serviceDate === null
                 ? $encounter->registered_at->toIso8601String()
                 : $serviceDate.'T00:00:00'.now()->format('P')),
@@ -239,14 +240,14 @@ final class FinanceSourceReadinessProjection
     private function statePresentation(string $state): array
     {
         return match ($state) {
-            'SIAP_DISINKRONKAN' => ['Siap disinkronkan', 'Pemetaan dan tarif efektif telah ditemukan.'],
-            'TERSINKRONISASI' => ['Tersinkronisasi', 'Sumber dan baris biaya telah direkonsiliasi.'],
-            'TARIF_BELUM_DIPETAKAN' => ['Tarif belum dipetakan', 'Pemetaan tepat belum tersedia.'],
-            'TARIF_TIDAK_EFEKTIF' => ['Tarif tidak efektif', 'Tarif belum aktif pada tanggal layanan.'],
-            'KONTEKS_TIDAK_COCOK' => ['Konteks tidak cocok', 'Care setting atau identitas master tidak cocok.'],
-            'INTERVAL_MASIH_TERBUKA' => ['Interval masih terbuka', 'Akomodasi belum lengkap sampai pemulangan rutin menutup interval terakhir.'],
-            'RIWAYAT_LOKASI_TIDAK_LENGKAP' => ['Riwayat lokasi tidak lengkap', 'Bukti versi tempat tidur prospektif belum lengkap dan tidak boleh diinferensikan.'],
-            default => ['Bukti tidak konsisten', 'Bukti sumber tidak dapat direkonsiliasi.'],
+            'SIAP_DISINKRONKAN' => [__('Siap disinkronkan'), __('Pemetaan dan tarif efektif telah ditemukan.')],
+            'TERSINKRONISASI' => [__('Tersinkronisasi'), __('Sumber dan baris biaya telah direkonsiliasi.')],
+            'TARIF_BELUM_DIPETAKAN' => [__('Tarif belum dipetakan'), __('Pemetaan tepat belum tersedia.')],
+            'TARIF_TIDAK_EFEKTIF' => [__('Tarif tidak efektif'), __('Tarif belum aktif pada tanggal layanan.')],
+            'KONTEKS_TIDAK_COCOK' => [__('Konteks tidak cocok'), __('Care setting atau identitas master tidak cocok.')],
+            'INTERVAL_MASIH_TERBUKA' => [__('Interval masih terbuka'), __('Akomodasi belum lengkap sampai pemulangan rutin menutup interval terakhir.')],
+            'RIWAYAT_LOKASI_TIDAK_LENGKAP' => [__('Riwayat lokasi tidak lengkap'), __('Bukti versi tempat tidur prospektif belum lengkap dan tidak boleh diinferensikan.')],
+            default => [__('Bukti tidak konsisten'), __('Bukti sumber tidak dapat direkonsiliasi.')],
         };
     }
 }

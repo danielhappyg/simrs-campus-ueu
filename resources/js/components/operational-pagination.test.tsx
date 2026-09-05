@@ -50,21 +50,22 @@ describe('operational pagination', () => {
 
         expect(
             screen.getByRole('navigation', {
-                name: 'Navigasi halaman pendaftaran hari ini',
+                name: 'pendaftaran hari ini page navigation',
             }),
         ).toBeInTheDocument();
-        expect(
-            screen.getByText(/Menampilkan 51–100 dari 101/),
-        ).toHaveTextContent('Halaman 2 dari 3');
-        const previousLink = screen.getByRole('link', { name: 'Sebelumnya' });
+        expect(screen.getByText(/Showing 51–100 of 101/)).toHaveTextContent(
+            'Page 2 of 3',
+        );
+        const previousLink = screen.getByRole('link', { name: 'Previous' });
         expect(previousLink).toHaveAttribute(
             'href',
             '/pendaftaran/rawat-jalan?encounter_page=1',
         );
         expect(previousLink).toHaveClass('min-h-11', 'min-w-11');
-        expect(
-            screen.getByRole('link', { name: 'Berikutnya' }),
-        ).toHaveAttribute('href', '/pendaftaran/rawat-jalan?encounter_page=3');
+        expect(screen.getByRole('link', { name: 'Next' })).toHaveAttribute(
+            'href',
+            '/pendaftaran/rawat-jalan?encounter_page=3',
+        );
     });
 
     it('renders unavailable directions as disabled text, not fake links', () => {
@@ -82,13 +83,13 @@ describe('operational pagination', () => {
         );
 
         expect(
-            screen.queryByRole('link', { name: 'Sebelumnya' }),
+            screen.queryByRole('link', { name: 'Previous' }),
         ).not.toBeInTheDocument();
-        expect(screen.getByText('Sebelumnya')).toHaveAttribute(
+        expect(screen.getByText('Previous')).toHaveAttribute(
             'aria-disabled',
             'true',
         );
-        expect(screen.getByRole('link', { name: 'Berikutnya' })).toBeVisible();
+        expect(screen.getByRole('link', { name: 'Next' })).toBeVisible();
     });
 
     it('keeps available pagination links in logical keyboard order', async () => {
@@ -102,9 +103,9 @@ describe('operational pagination', () => {
         );
 
         await user.tab();
-        expect(screen.getByRole('link', { name: 'Sebelumnya' })).toHaveFocus();
+        expect(screen.getByRole('link', { name: 'Previous' })).toHaveFocus();
         await user.tab();
-        expect(screen.getByRole('link', { name: 'Berikutnya' })).toHaveFocus();
+        expect(screen.getByRole('link', { name: 'Next' })).toHaveFocus();
     });
 
     it.each([

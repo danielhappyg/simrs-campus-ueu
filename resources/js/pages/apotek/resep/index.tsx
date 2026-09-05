@@ -5,7 +5,7 @@ import type { PharmacyWorklistProps } from '@/components/clinical/pharmacy/types
 export default function PharmacyQueue(props: PharmacyWorklistProps) {
     return (
         <>
-            <Head title="Antrean Apotek" />
+            <Head title="Pharmacy Queue" />
             <PharmacyWorklist {...props} />
         </>
     );

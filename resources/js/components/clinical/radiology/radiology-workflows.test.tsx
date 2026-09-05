@@ -228,26 +228,24 @@ describe('radiology frontend contracts', () => {
         );
 
         expect(
-            screen.getByRole('heading', { name: 'Radiologi' }),
+            screen.getByRole('heading', { name: 'Radiology' }),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('list', { name: 'Alur hasil radiologi' }),
+            screen.getByRole('list', { name: 'Radiology result workflow' }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(/tidak current karena ada adendum baru/i),
+            screen.getByText(/no longer current because of a new amendment/i),
         ).toBeInTheDocument();
 
         await user.selectOptions(
-            screen.getByLabelText('Pemeriksaan'),
+            screen.getByLabelText('Examination'),
             'exam-thorax',
         );
         await user.type(
-            screen.getByLabelText('Pertanyaan klinis'),
+            screen.getByLabelText('Clinical question'),
             'Evaluasi efusi.',
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan permintaan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save request' }));
 
         const firstPayload = inertia.post.mock.calls.at(-1)?.[1] as {
             idempotency_key: string;
@@ -261,9 +259,7 @@ describe('radiology frontend contracts', () => {
             expect.objectContaining({ errorBag: 'radiologyOrder' }),
         );
 
-        await user.click(
-            screen.getByRole('button', { name: 'Simpan permintaan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Save request' }));
         expect(
             (inertia.post.mock.calls.at(-1)?.[1] as { idempotency_key: string })
                 .idempotency_key,
@@ -281,18 +277,18 @@ describe('radiology frontend contracts', () => {
         const { container } = render(<RadiologyWorklist {...worklistProps} />);
 
         expect(
-            screen.getByRole('link', { name: /Buka episode/i }),
+            screen.getByRole('link', { name: /Open episode/i }),
         ).toHaveAttribute('href', '/pemeriksaan/rawat-inap/encounter-01');
-        expect(screen.getByRole('link', { name: 'Radiologi' })).toHaveAttribute(
+        expect(screen.getByRole('link', { name: 'Radiology' })).toHaveAttribute(
             'aria-current',
             'page',
         );
         expect(
-            screen.getByRole('link', { name: 'Laboratorium' }),
+            screen.getByRole('link', { name: 'Laboratory' }),
         ).toHaveAttribute('href', '/pemeriksaan/laboratorium');
         await user.click(
             screen.getByRole('button', {
-                name: /Catat pemeriksaan selesai/i,
+                name: /Record completed examination/i,
             }),
         );
         expect(inertia.post).toHaveBeenCalledWith(
@@ -337,11 +333,11 @@ describe('radiology frontend contracts', () => {
         );
 
         await user.click(
-            screen.getByRole('button', { name: /Susun laporan/i }),
+            screen.getByRole('button', { name: /Prepare report/i }),
         );
-        await user.clear(screen.getByLabelText('Temuan'));
-        await user.type(screen.getByLabelText('Temuan'), 'Temuan terbaru.');
-        await user.click(screen.getByRole('button', { name: 'Simpan Draft' }));
+        await user.clear(screen.getByLabelText('Findings'));
+        await user.type(screen.getByLabelText('Findings'), 'Temuan terbaru.');
+        await user.click(screen.getByRole('button', { name: 'Save draft' }));
         expect(inertia.post).toHaveBeenCalledWith(
             '/radiology/orders/order-01/report',
             expect.objectContaining({
@@ -355,11 +351,9 @@ describe('radiology frontend contracts', () => {
             expect.objectContaining({ errorBag: 'radiologyReport.order-01' }),
         );
         expect(
-            screen.queryByRole('textbox', { name: 'Pemeriksaan' }),
+            screen.queryByRole('textbox', { name: 'Examination' }),
         ).not.toBeInTheDocument();
-        await user.click(
-            screen.getByRole('button', { name: 'Verifikasi laporan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Verify report' }));
         expect(inertia.post).toHaveBeenCalledWith(
             '/radiology/orders/order-01/report/verify',
             expect.objectContaining({ expected_version: 1 }),
@@ -374,11 +368,9 @@ describe('radiology frontend contracts', () => {
                 permissions={{ can_perform: false, can_report: true }}
             />,
         );
-        await user.click(
-            screen.getByRole('button', { name: 'Tambah adendum' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Add addendum' }));
         await user.selectOptions(
-            screen.getByLabelText('Alasan adendum'),
+            screen.getByLabelText('Addendum reason'),
             'CLARIFICATION',
         );
         await user.type(
@@ -387,7 +379,7 @@ describe('radiology frontend contracts', () => {
         );
         await user.click(
             screen.getByRole('button', {
-                name: 'Simpan adendum terverifikasi',
+                name: 'Save verified addendum',
             }),
         );
         expect(inertia.post).toHaveBeenCalledWith(
@@ -408,22 +400,22 @@ describe('radiology frontend contracts', () => {
         const { container } = render(<RadiologyMasterPanel {...masterProps} />);
 
         expect(
-            screen.getByRole('link', { name: 'Pemeriksaan Radiologi' }),
+            screen.getByRole('link', { name: 'Radiology Examinations' }),
         ).toHaveAttribute('aria-current', 'page');
         expect(
-            screen.getByRole('link', { name: 'Bangsal & Tempat Tidur' }),
+            screen.getByRole('link', { name: 'Wards & Beds' }),
         ).toHaveAttribute('href', '/manajemen-data/bangsal');
 
         await user.click(
-            screen.getByRole('button', { name: 'Tambah pemeriksaan' }),
+            screen.getByRole('button', { name: 'Add examination' }),
         );
-        await user.type(screen.getByLabelText('Kode permanen'), 'rad-usg');
+        await user.type(screen.getByLabelText('Permanent code'), 'rad-usg');
         await user.type(
-            screen.getByLabelText('Nama pemeriksaan'),
+            screen.getByLabelText('Examination name'),
             'USG Abdomen',
         );
         await user.click(
-            screen.getByRole('button', { name: 'Simpan pemeriksaan' }),
+            screen.getByRole('button', { name: 'Save examination' }),
         );
         expect(inertia.post).toHaveBeenCalledWith(
             '/radiology/masters',
@@ -434,20 +426,20 @@ describe('radiology frontend contracts', () => {
             expect.objectContaining({ errorBag: 'radiologyMasterCreate' }),
         );
 
-        await user.click(screen.getByRole('button', { name: 'Ubah' }));
-        const nameFields = screen.getAllByLabelText('Nama pemeriksaan');
+        await user.click(screen.getByRole('button', { name: 'Edit' }));
+        const nameFields = screen.getAllByLabelText('Examination name');
         const updateRegion = nameFields.at(-1)?.closest('form');
         expect(updateRegion).not.toBeNull();
         await user.clear(
-            within(updateRegion!).getByLabelText('Nama pemeriksaan'),
+            within(updateRegion!).getByLabelText('Examination name'),
         );
         await user.type(
-            within(updateRegion!).getByLabelText('Nama pemeriksaan'),
+            within(updateRegion!).getByLabelText('Examination name'),
             'Foto Thoraks',
         );
         await user.click(
             within(updateRegion!).getByRole('button', {
-                name: 'Simpan perubahan',
+                name: 'Save changes',
             }),
         );
         expect(inertia.patch).toHaveBeenCalledWith(
@@ -461,10 +453,8 @@ describe('radiology frontend contracts', () => {
             }),
         );
 
-        await user.click(screen.getByRole('button', { name: 'Nonaktifkan' }));
-        await user.click(
-            screen.getByRole('button', { name: 'Ya, nonaktifkan' }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Deactivate' }));
+        await user.click(screen.getByRole('button', { name: 'Yes, retire' }));
         expect(inertia.post).toHaveBeenCalledWith(
             '/radiology/masters/exam-thorax/retire',
             expect.objectContaining({ expected_version: 2 }),
@@ -503,7 +493,7 @@ describe('radiology frontend contracts', () => {
             />,
         );
         expect(
-            screen.queryByRole('button', { name: 'Simpan permintaan' }),
+            screen.queryByRole('button', { name: 'Save request' }),
         ).not.toBeInTheDocument();
         expect(
             screen.queryByRole('button', { name: 'Tandai sudah diketahui' }),

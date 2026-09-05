@@ -5,7 +5,7 @@ import { TariffMasterWorkspace } from '@/components/finance/tariff-master-worksp
 export default function TarifKomponenBiaya(props: TariffMasterProps) {
     return (
         <>
-            <Head title="Tarif & Komponen Biaya" />
+            <Head title="Tariffs & Charge Components" />
             <TariffMasterWorkspace {...props} />
         </>
     );

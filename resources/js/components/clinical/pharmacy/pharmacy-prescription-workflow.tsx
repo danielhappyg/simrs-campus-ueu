@@ -82,19 +82,20 @@ function DecisionPanel({
         >
             <div>
                 <p className="text-xs font-semibold tracking-[0.12em] text-[#13766f] uppercase">
-                    Tanggung jawab apoteker
+                    Pharmacist responsibility
                 </p>
                 <h2 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold">
-                    Verifikasi manual resep
+                    Manual prescription verification
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    Sistem menyimpan keputusan Anda; sistem tidak memberi saran
-                    dosis, alergi, interaksi, atau kesesuaian klinis.
+                    The system records your decision; it does not recommend a
+                    dose, allergy assessment, interaction assessment, or
+                    clinical suitability.
                 </p>
             </div>
             <PharmacyErrorSummary errors={form.errors} />
             <fieldset className="space-y-2">
-                <legend className="font-semibold">Keputusan</legend>
+                <legend className="font-semibold">Decision</legend>
                 <div className="grid gap-2 sm:grid-cols-2">
                     {(['verify', 'refuse'] as const).map((value) => (
                         <label
@@ -113,8 +114,8 @@ function DecisionPanel({
                             />
                             <span className="font-semibold">
                                 {value === 'verify'
-                                    ? 'Verifikasi'
-                                    : 'Tolak resep'}
+                                    ? 'Verify'
+                                    : 'Refuse prescription'}
                             </span>
                         </label>
                     ))}
@@ -122,7 +123,7 @@ function DecisionPanel({
             </fieldset>
             <div>
                 <Label htmlFor="allergy-review">
-                    Hasil peninjauan alergi manual
+                    Manual allergy-review result
                 </Label>
                 <select
                     id="allergy-review"
@@ -136,15 +137,15 @@ function DecisionPanel({
                     }
                     required
                 >
-                    <option value="">Pilih hasil peninjauan</option>
+                    <option value="">Select review result</option>
                     <option value="REVIEWED_NO_CONFLICT">
-                        Sudah ditinjau, tidak ditemukan konflik tercatat
+                        Reviewed; no recorded conflict found
                     </option>
                     <option value="REVIEWED_WITH_NOTE">
-                        Sudah ditinjau dengan catatan
+                        Reviewed with note
                     </option>
                     <option value="UNKNOWN_BLOCKED">
-                        Informasi belum diketahui — verifikasi diblokir
+                        Information unknown — verification blocked
                     </option>
                 </select>
             </div>
@@ -160,7 +161,7 @@ function DecisionPanel({
                             })
                         }
                     />
-                    Identitas pasien sudah dikonfirmasi
+                    Patient identity confirmed
                 </label>
                 <label className="flex min-h-11 items-center gap-2 rounded-lg border bg-card px-3 py-2">
                     <input
@@ -173,7 +174,7 @@ function DecisionPanel({
                             })
                         }
                     />
-                    Konteks layanan sudah dikonfirmasi
+                    Care context confirmed
                 </label>
                 <label className="flex min-h-11 items-center gap-2 rounded-lg border bg-card px-3 py-2">
                     <input
@@ -186,7 +187,7 @@ function DecisionPanel({
                             })
                         }
                     />
-                    Obat terbaca jelas
+                    Medication is legible
                 </label>
                 <label className="flex min-h-11 items-center gap-2 rounded-lg border bg-card px-3 py-2">
                     <input
@@ -199,13 +200,13 @@ function DecisionPanel({
                             })
                         }
                     />
-                    Instruksi penggunaan terbaca jelas
+                    Directions are legible
                 </label>
             </div>
             {decision === 'verify' ? (
                 <fieldset className="space-y-3">
                     <legend className="font-semibold">
-                        Jumlah terverifikasi per obat
+                        Verified quantity by medication
                     </legend>
                     {prescription.items.map((item, index) => (
                         <div
@@ -218,7 +219,7 @@ function DecisionPanel({
                                     {item.medicine.strength_text}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Diminta {item.requested_quantity}{' '}
+                                    Requested {item.requested_quantity}{' '}
                                     {item.medicine.base_issue_unit}
                                 </p>
                             </div>
@@ -226,7 +227,7 @@ function DecisionPanel({
                                 <Label
                                     htmlFor={`verified-quantity-${item.public_id}`}
                                 >
-                                    Jumlah disetujui
+                                    Approved quantity
                                 </Label>
                                 <input
                                     id={`verified-quantity-${item.public_id}`}
@@ -250,7 +251,7 @@ function DecisionPanel({
                             </div>
                             <div>
                                 <Label htmlFor={`reduction-${item.public_id}`}>
-                                    Alasan pengurangan
+                                    Reduction reason
                                 </Label>
                                 <select
                                     id={`reduction-${item.public_id}`}
@@ -272,19 +273,17 @@ function DecisionPanel({
                                         item.requested_quantity
                                     }
                                 >
-                                    <option value="">
-                                        Tidak ada pengurangan
-                                    </option>
+                                    <option value="">No reduction</option>
                                     <option value="STOCK_LIMIT">
-                                        Keterbatasan stok
+                                        Stock limitation
                                     </option>
                                     <option value="DOSAGE_ADJUSTMENT">
-                                        Penyesuaian jumlah terapi
+                                        Therapy quantity adjustment
                                     </option>
                                     <option value="SAFETY_REVIEW">
-                                        Hasil tinjauan keamanan
+                                        Safety review result
                                     </option>
-                                    <option value="OTHER">Alasan lain</option>
+                                    <option value="OTHER">Other reason</option>
                                 </select>
                             </div>
                         </div>
@@ -293,7 +292,7 @@ function DecisionPanel({
             ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                        <Label htmlFor="refusal-reason">Alasan penolakan</Label>
+                        <Label htmlFor="refusal-reason">Refusal reason</Label>
                         <select
                             id="refusal-reason"
                             className={pharmacyFieldClass}
@@ -303,19 +302,19 @@ function DecisionPanel({
                             }
                             required
                         >
-                            <option value="">Pilih alasan</option>
-                            <option value="ALLERGY_RISK">Risiko alergi</option>
+                            <option value="">Select reason</option>
+                            <option value="ALLERGY_RISK">Allergy risk</option>
                             <option value="INTERACTION_RISK">
-                                Risiko interaksi
+                                Interaction risk
                             </option>
                             <option value="INCOMPLETE_INSTRUCTION">
-                                Instruksi belum lengkap
+                                Incomplete instructions
                             </option>
-                            <option value="OTHER">Alasan lain</option>
+                            <option value="OTHER">Other reason</option>
                         </select>
                     </div>
                     <div>
-                        <Label htmlFor="refusal-note">Catatan</Label>
+                        <Label htmlFor="refusal-note">Note</Label>
                         <textarea
                             id="refusal-note"
                             className={cn(pharmacyFieldClass, 'min-h-20')}
@@ -335,8 +334,8 @@ function DecisionPanel({
                 >
                     <ShieldCheck className="mr-2 size-4" />
                     {decision === 'verify'
-                        ? 'Simpan verifikasi'
-                        : 'Simpan penolakan'}
+                        ? 'Save verification'
+                        : 'Save refusal'}
                 </Button>
             </div>
         </form>
@@ -368,16 +367,16 @@ function PreparationPanel({
     return (
         <section className="rounded-xl border border-amber-300 bg-amber-50 p-4">
             <h2 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold">
-                Penyiapan obat
+                Medication preparation
             </h2>
             <p className="mt-1 text-sm text-amber-950">
-                Sistem membentuk alokasi lot sesuai FEFO. Lot kedaluwarsa atau
-                karantina tidak dipakai.
+                The system creates FEFO lot allocations. Expired or quarantined
+                lots are not used.
             </p>
             <PharmacyErrorSummary errors={form.errors} />
             <fieldset className="mt-4 space-y-3">
                 <legend className="font-semibold">
-                    Jumlah yang disiapkan sekarang
+                    Quantity to prepare now
                 </legend>
                 {prescription.items
                     .filter((item) => item.remaining_quantity > 0)
@@ -392,7 +391,7 @@ function PreparationPanel({
                                     {item.medicine.strength_text}
                                 </p>
                                 <p className="text-xs text-amber-950">
-                                    Sisa terverifikasi {item.remaining_quantity}{' '}
+                                    Verified remainder {item.remaining_quantity}{' '}
                                     {item.medicine.base_issue_unit}
                                 </p>
                             </div>
@@ -400,7 +399,7 @@ function PreparationPanel({
                                 <Label
                                     htmlFor={`prepare-quantity-${item.public_id}`}
                                 >
-                                    Jumlah
+                                    Quantity
                                 </Label>
                                 <input
                                     id={`prepare-quantity-${item.public_id}`}
@@ -434,7 +433,7 @@ function PreparationPanel({
                 disabled={form.processing}
             >
                 <PackageCheck className="mr-2 size-4" />
-                Siapkan dengan FEFO
+                Prepare with FEFO
             </Button>
         </section>
     );
@@ -473,31 +472,31 @@ function HandoverPanel({
             className="space-y-4 rounded-xl border border-primary/30 bg-primary/5 p-4"
         >
             <h2 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold">
-                Penyerahan akhir
+                Final handover
             </h2>
             <p className="text-sm text-muted-foreground">
-                Lot dan stok dihitung ulang saat diserahkan. Jika stok berubah,
-                proses berhenti agar petugas meninjau ulang.
+                Lots and stock are recalculated at handover. If stock changes,
+                processing stops so the pharmacist can review it again.
             </p>
             <PharmacyErrorSummary errors={form.errors} />
             <div className="overflow-x-auto rounded-lg border bg-card">
                 <table className="w-full min-w-[620px] text-left text-sm">
                     <caption className="sr-only">
-                        Alokasi lot obat yang akan diserahkan
+                        Medication-lot allocations to hand over
                     </caption>
                     <thead className="bg-muted/60">
                         <tr>
                             <th scope="col" className="px-3 py-2">
-                                Obat
+                                Medication
                             </th>
                             <th scope="col" className="px-3 py-2">
                                 Lot
                             </th>
                             <th scope="col" className="px-3 py-2">
-                                Kedaluwarsa
+                                Expiry
                             </th>
                             <th scope="col" className="px-3 py-2">
-                                Jumlah
+                                Quantity
                             </th>
                         </tr>
                     </thead>
@@ -525,7 +524,7 @@ function HandoverPanel({
             </div>
             <div>
                 <Label htmlFor="partial-reason">
-                    Alasan jika penyerahan sebagian
+                    Reason for partial handover
                 </Label>
                 <textarea
                     id="partial-reason"
@@ -548,11 +547,11 @@ function HandoverPanel({
                 />
                 <span>
                     <span className="block font-semibold">
-                        Saya mengonfirmasi penyerahan akhir
+                        I confirm the final handover
                     </span>
                     <span className="text-xs text-muted-foreground">
-                        Tindakan ini mengurangi stok dan mencatat sumber nilai
-                        biaya.
+                        This action reduces stock and records the cost-value
+                        source.
                     </span>
                 </span>
             </label>
@@ -563,7 +562,7 @@ function HandoverPanel({
                     disabled={form.processing || !form.data.confirm_handover}
                 >
                     <CheckCircle2 className="mr-2 size-4" />
-                    Serahkan obat
+                    Hand over medication
                 </Button>
             </div>
         </form>
@@ -620,16 +619,16 @@ function ReturnPanel({
                     onClick={() => setOpen(true)}
                 >
                     <RotateCcw className="mr-2 size-4" />
-                    Catat retur
+                    Record return
                 </Button>
             ) : (
                 <form onSubmit={submit} className="space-y-4">
                     <h2 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold">
-                        Retur obat
+                        Medication return
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Apoteker menilai kondisi obat secara manual. Retur tidak
-                        mengubah bukti penyerahan asli.
+                        The pharmacist assesses medication condition manually. A
+                        return does not alter the original handover evidence.
                     </p>
                     <PharmacyErrorSummary errors={form.errors} />
                     {returnable.map((item, index) => (
@@ -642,7 +641,7 @@ function ReturnPanel({
                                     {item.medicine_label}
                                 </p>
                                 <p className="font-mono text-xs">
-                                    Lot {item.lot_code} · maksimal{' '}
+                                    Lot {item.lot_code} · maximum{' '}
                                     {item.returnable_quantity}
                                 </p>
                             </div>
@@ -650,7 +649,7 @@ function ReturnPanel({
                                 <Label
                                     htmlFor={`return-quantity-${item.public_id}`}
                                 >
-                                    Jumlah
+                                    Quantity
                                 </Label>
                                 <input
                                     id={`return-quantity-${item.public_id}`}
@@ -676,7 +675,7 @@ function ReturnPanel({
                                 <Label
                                     htmlFor={`return-condition-${item.public_id}`}
                                 >
-                                    Kondisi
+                                    Condition
                                 </Label>
                                 <select
                                     id={`return-condition-${item.public_id}`}
@@ -693,13 +692,13 @@ function ReturnPanel({
                                     }}
                                 >
                                     <option value="RETURN_TO_STOCK">
-                                        Kembali ke stok
+                                        Return to stock
                                     </option>
                                     <option value="QUARANTINE">
-                                        Karantina
+                                        Quarantine
                                     </option>
                                     <option value="DESTROYED_OR_NOT_RETURNABLE">
-                                        Dimusnahkan / tidak dapat kembali
+                                        Destroyed or not returnable
                                     </option>
                                 </select>
                             </div>
@@ -707,7 +706,7 @@ function ReturnPanel({
                     ))}
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div>
-                            <Label htmlFor="return-reason">Alasan retur</Label>
+                            <Label htmlFor="return-reason">Return reason</Label>
                             <select
                                 id="return-reason"
                                 className={pharmacyFieldClass}
@@ -720,21 +719,21 @@ function ReturnPanel({
                                 }
                                 required
                             >
-                                <option value="">Pilih alasan</option>
+                                <option value="">Select reason</option>
                                 <option value="PATIENT_RETURN">
-                                    Dikembalikan pasien
+                                    Returned by patient
                                 </option>
                                 <option value="DAMAGED_PACKAGE">
-                                    Kemasan rusak
+                                    Damaged packaging
                                 </option>
                                 <option value="DISPENSING_ERROR">
-                                    Koreksi penyerahan
+                                    Handover correction
                                 </option>
-                                <option value="OTHER">Alasan lain</option>
+                                <option value="OTHER">Other reason</option>
                             </select>
                         </div>
                         <div>
-                            <Label htmlFor="return-note">Catatan</Label>
+                            <Label htmlFor="return-note">Note</Label>
                             <textarea
                                 id="return-note"
                                 className={cn(pharmacyFieldClass, 'min-h-20')}
@@ -757,7 +756,7 @@ function ReturnPanel({
                             }
                             required
                         />
-                        Saya mengonfirmasi jumlah dan kondisi retur
+                        I confirm the return quantity and condition
                     </label>
                     <div className="flex justify-end gap-2">
                         <Button
@@ -766,7 +765,7 @@ function ReturnPanel({
                             className="min-h-11"
                             onClick={() => setOpen(false)}
                         >
-                            Batal
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
@@ -775,7 +774,7 @@ function ReturnPanel({
                                 form.processing || !form.data.confirm_return
                             }
                         >
-                            Simpan retur
+                            Save return
                         </Button>
                     </div>
                 </form>
@@ -815,15 +814,15 @@ function CloseUnfilledPanel({
             className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4"
         >
             <h2 className="font-['IBM_Plex_Sans_Condensed'] text-2xl font-semibold">
-                Tutup sisa yang tidak terpenuhi
+                Close unfilled remainder
             </h2>
             <p className="text-sm text-amber-950">
-                Gunakan hanya ketika sisa resep tidak akan disiapkan kembali.
-                Keputusan ini terminal dan tetap tampil pada rekonsiliasi.
+                Use only when the remaining prescription will not be prepared.
+                This terminal decision remains visible in reconciliation.
             </p>
             <PharmacyErrorSummary errors={form.errors} />
             <div>
-                <Label htmlFor="close-unfilled-reason">Alasan penutupan</Label>
+                <Label htmlFor="close-unfilled-reason">Closure reason</Label>
                 <select
                     id="close-unfilled-reason"
                     className={pharmacyFieldClass}
@@ -833,17 +832,13 @@ function CloseUnfilledPanel({
                     }
                     required
                 >
-                    <option value="">Pilih alasan</option>
-                    <option value="STOCK_UNAVAILABLE">
-                        Stok tidak tersedia
-                    </option>
-                    <option value="THERAPY_COMPLETED">
-                        Terapi telah selesai
-                    </option>
+                    <option value="">Select reason</option>
+                    <option value="STOCK_UNAVAILABLE">Stock unavailable</option>
+                    <option value="THERAPY_COMPLETED">Therapy completed</option>
                     <option value="PATIENT_DECLINED">
-                        Pasien menolak sisa obat
+                        Patient declined remaining medication
                     </option>
-                    <option value="OTHER">Alasan lain</option>
+                    <option value="OTHER">Other reason</option>
                 </select>
             </div>
             <div className="flex justify-end">
@@ -853,7 +848,7 @@ function CloseUnfilledPanel({
                     className="min-h-11 border-amber-500"
                     disabled={form.processing}
                 >
-                    Tutup sisa resep
+                    Close prescription remainder
                 </Button>
             </div>
         </form>
@@ -868,7 +863,9 @@ function EvidencePanels({
     return (
         <div className="grid gap-4 lg:grid-cols-2">
             <section className="rounded-xl border bg-card p-4">
-                <h2 className="font-semibold">Bukti verifikasi & penyiapan</h2>
+                <h2 className="font-semibold">
+                    Verification and preparation evidence
+                </h2>
                 {prescription.verification ? (
                     <div className="mt-3 text-sm">
                         <p className="font-semibold">
@@ -876,7 +873,7 @@ function EvidencePanels({
                             {prescription.verification.pharmacist_name ?? '—'}
                         </p>
                         <p>
-                            Peninjauan alergi:{' '}
+                            Allergy review:{' '}
                             {
                                 prescription.verification
                                     .manual_allergy_review_status
@@ -888,18 +885,18 @@ function EvidencePanels({
                     </div>
                 ) : (
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Belum diverifikasi.
+                        Not verified yet.
                     </p>
                 )}
                 {prescription.preparation ? (
                     <div className="mt-3 border-t pt-3 text-sm">
                         <p className="font-semibold">
-                            Disiapkan oleh{' '}
+                            Prepared by{' '}
                             {prescription.preparation.technician_name ?? '—'}
                         </p>
                         <p>
-                            {prescription.preparation.allocations.length}{' '}
-                            alokasi lot
+                            {prescription.preparation.allocations.length} lot
+                            allocations
                         </p>
                         <PharmacyEvidenceTime
                             value={prescription.preparation.prepared_at}
@@ -908,7 +905,7 @@ function EvidencePanels({
                 ) : null}
             </section>
             <section className="rounded-xl border bg-card p-4">
-                <h2 className="font-semibold">Penyerahan & retur</h2>
+                <h2 className="font-semibold">Handovers and returns</h2>
                 {prescription.handovers.length ? (
                     <ol className="mt-3 space-y-2 text-sm">
                         {prescription.handovers.map((handover) => (
@@ -917,7 +914,7 @@ function EvidencePanels({
                                 className="rounded-lg bg-muted/40 p-3"
                             >
                                 <p className="font-semibold">
-                                    Penyerahan #{handover.sequence} ·{' '}
+                                    Handover #{handover.sequence} ·{' '}
                                     {handover.pharmacist_name ?? '—'}
                                 </p>
                                 <p>
@@ -925,7 +922,8 @@ function EvidencePanels({
                                         (sum, item) => sum + item.quantity,
                                         0,
                                     )}{' '}
-                                    unit · sisa {handover.unfilled_quantity}
+                                    units · remaining{' '}
+                                    {handover.unfilled_quantity}
                                 </p>
                                 <PharmacyEvidenceTime
                                     value={handover.handed_over_at}
@@ -935,12 +933,12 @@ function EvidencePanels({
                     </ol>
                 ) : (
                     <p className="mt-2 text-sm text-muted-foreground">
-                        Belum ada penyerahan.
+                        No handovers yet.
                     </p>
                 )}
                 {prescription.returns.length ? (
                     <p className="mt-3 text-sm font-semibold">
-                        {prescription.returns.length} retur tercatat
+                        {prescription.returns.length} recorded returns
                     </p>
                 ) : null}
             </section>

@@ -46,10 +46,10 @@ final class FinanceCashSettlementController extends Controller
                 $data['idempotency_key'],
             );
         } catch (FinanceDenied $denied) {
-            throw ValidationException::withMessages(['settlement' => $denied->getMessage()]);
+            throw ValidationException::withMessages(['settlement' => __($denied->getMessage())]);
         } catch (FinanceAuditUnavailable $unavailable) {
             report($unavailable);
-            abort(503, 'Pencatatan audit pelunasan belum tersedia.');
+            abort(503, 'Audit recording for the settlement is unavailable.');
         }
 
         /** @var FinanceCashSettlement $settlement */
@@ -57,8 +57,8 @@ final class FinanceCashSettlementController extends Controller
 
         return redirect()->route('finance.settlements.receipt', ['settlement' => $settlement->public_id])
             ->with('success', $result->replayed
-                ? 'Kuitansi pelunasan yang sama ditampilkan kembali.'
-                : 'Pelunasan tunai berhasil dicatat.');
+                ? 'The same settlement receipt is shown again.'
+                : 'Cash settlement recorded.');
     }
 
     public function receipt(Request $request, string $settlement): Response
@@ -69,7 +69,7 @@ final class FinanceCashSettlementController extends Controller
             $receipt = $this->projection->receipt($settlement, $actor);
         } catch (FinanceDenied $denied) {
             report($denied);
-            abort(503, 'Bukti pelunasan belum dapat direkonsiliasi.');
+            abort(503, 'The settlement receipt could not be reconciled.');
         }
 
         return Inertia::render('kasir/pelunasan/kuitansi', [

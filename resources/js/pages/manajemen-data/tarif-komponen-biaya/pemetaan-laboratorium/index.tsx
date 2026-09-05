@@ -9,7 +9,7 @@ export default function LaboratoryTariffMappingPage(
 ) {
     return (
         <>
-            <Head title="Pemetaan Laboratorium" />
+            <Head title="Mapping Laboratory" />
             <LaboratoryTariffMappingWorkspace {...props} />
         </>
     );

@@ -9,7 +9,7 @@ export default function AccommodationTariffMappingPage(
 ) {
     return (
         <>
-            <Head title="Pemetaan Akomodasi Rawat Inap" />
+            <Head title="Mapping Accommodation Inpatient" />
             <AccommodationTariffMappingWorkspace {...props} />
         </>
     );

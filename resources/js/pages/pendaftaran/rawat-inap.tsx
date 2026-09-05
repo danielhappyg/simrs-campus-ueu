@@ -122,11 +122,11 @@ type Props = {
 };
 
 const statusLabel: Record<string, string> = {
-    REGISTERED: 'Terdaftar',
-    IN_EXAMINATION: 'Pemeriksaan',
-    READY_FOR_RM: 'Siap RM',
-    CLOSED: 'Ditutup',
-    CANCELLED: 'Dibatalkan',
+    REGISTERED: 'Registered',
+    IN_EXAMINATION: 'In examination',
+    READY_FOR_RM: 'Ready for medical records',
+    CLOSED: 'Closed',
+    CANCELLED: 'Cancelled',
 };
 
 const statusChipClass: Record<string, string> = {
@@ -138,15 +138,15 @@ const statusChipClass: Record<string, string> = {
 };
 
 const cancellationReasons = [
-    { value: 'SALAH_PENDAFTARAN', label: 'Salah pendaftaran' },
-    { value: 'DUPLIKAT_KUNJUNGAN', label: 'Duplikat kunjungan' },
+    { value: 'SALAH_PENDAFTARAN', label: 'Registration error' },
+    { value: 'DUPLIKAT_KUNJUNGAN', label: 'Duplicate visit' },
     {
         value: 'PASIEN_TIDAK_MELANJUTKAN',
-        label: 'Pasien tidak melanjutkan',
+        label: 'Patient did not continue',
     },
     {
         value: 'PERUBAHAN_RENCANA_SEBELUM_PELAYANAN',
-        label: 'Perubahan rencana sebelum pelayanan',
+        label: 'Plan changed before care',
     },
 ] as const;
 
@@ -163,55 +163,56 @@ function newCancellationKey(): string {
 
 function cancellationTimeLabel(value: string | null): string {
     if (!value) {
-        return 'Waktu tidak tersedia';
+        return 'Time unavailable';
     }
 
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat('en-GB', {
         dateStyle: 'medium',
         timeStyle: 'short',
+        timeZone: 'Asia/Jakarta',
     }).format(new Date(value));
 }
 
 const payerLabel: Record<string, string> = {
-    UMUM: 'Umum',
+    UMUM: 'Self-pay',
     BPJS: 'BPJS',
-    LAINNYA: 'Lainnya',
+    LAINNYA: 'Other',
 };
 
 const continueLabel: Record<string, string> = {
-    LANGSUNG: 'Langsung',
-    DARI_IGD: 'Dari IGD',
-    DARI_RJ: 'Dari RJ',
+    LANGSUNG: 'Direct',
+    DARI_IGD: 'From emergency',
+    DARI_RJ: 'From outpatient',
 };
 
 const sexLabel: Record<string, string> = {
-    male: 'Laki-laki',
-    female: 'Perempuan',
-    other: 'Lainnya',
-    unknown: 'Tidak diketahui',
+    male: 'Male',
+    female: 'Female',
+    other: 'Other',
+    unknown: 'Unknown',
 };
 
 const fieldClass =
     'border-input h-8 w-full rounded-md border bg-white px-2.5 text-sm shadow-xs outline-none focus-visible:border-[#1b75bc] focus-visible:ring-[3px] focus-visible:ring-[#1b75bc]/30 disabled:cursor-not-allowed disabled:opacity-60';
 
 const registrationFieldLabels: Record<string, string> = {
-    patient_public_id: 'Pasien terpilih',
-    full_name: 'Nama lengkap',
-    date_of_birth: 'Tanggal lahir',
-    sex: 'Jenis kelamin',
+    patient_public_id: 'Selected patient',
+    full_name: 'Full name',
+    date_of_birth: 'Date of birth',
+    sex: 'Sex',
     nik: 'NIK',
-    phone: 'Telepon',
-    ward_name: 'Bangsal',
-    ward_class: 'Kelas',
-    bed_code: 'Tempat tidur',
-    bed_public_id: 'Tempat tidur',
-    payer_type: 'Cara bayar',
-    insurance_number: 'Nomor penjamin',
-    continue_from: 'Asal atau kelanjutan',
-    admission_authority_type: 'Dasar admisi langsung',
-    admission_authority_reference: 'Nomor referensi otorisasi',
-    chief_complaint: 'Keluhan utama',
-    is_synthetic: 'Validasi data pasien',
+    phone: 'Phone',
+    ward_name: 'Ward',
+    ward_class: 'Class',
+    bed_code: 'Bed',
+    bed_public_id: 'Bed',
+    payer_type: 'Payment method',
+    insurance_number: 'Guarantor number',
+    continue_from: 'Admission source',
+    admission_authority_type: 'Direct admission authority',
+    admission_authority_reference: 'Admission authority reference number',
+    chief_complaint: 'Chief complaint',
+    is_synthetic: 'Patient data validation',
 };
 
 const registrationErrorTarget: Record<string, string> = {
@@ -485,7 +486,7 @@ export default function PendaftaranRawatInap({
                 preserveScroll: true,
                 onSuccess: () => {
                     setCancellationAnnouncement(
-                        'Kunjungan berhasil dibatalkan.',
+                        'Visit cancelled successfully.',
                     );
                     setCancelDialogOpen(false);
                     setCancelTarget(null);
@@ -494,7 +495,7 @@ export default function PendaftaranRawatInap({
                 onError: (errors) => {
                     setCancellationAnnouncement(
                         errors.cancellation ??
-                            'Pembatalan belum dapat disimpan. Periksa alasan dan catatan pembatalan.',
+                            'The cancellation could not be saved. Check the cancellation reason and note.',
                     );
                 },
             },
@@ -525,7 +526,7 @@ export default function PendaftaranRawatInap({
 
     return (
         <>
-            <Head title="Pendaftaran Rawat Inap" />
+            <Head title="Inpatient registration" />
 
             <p className="sr-only" role="status" aria-live="polite">
                 {cancellationAnnouncement}
@@ -536,20 +537,20 @@ export default function PendaftaranRawatInap({
                     items={[
                         {
                             href: '/pendaftaran/rawat-jalan',
-                            label: 'Rawat Jalan',
+                            label: 'Outpatient',
                         },
                         {
                             href: '/pendaftaran/igd',
-                            label: 'IGD',
+                            label: 'Emergency',
                         },
                         {
                             href: '/pendaftaran/rawat-inap',
-                            label: 'Rawat Inap',
+                            label: 'Inpatient',
                             active: true,
                         },
                         {
                             href: '/pendaftaran/rekap',
-                            label: 'Rekap',
+                            label: 'Summary',
                         },
                     ]}
                 />
@@ -557,11 +558,11 @@ export default function PendaftaranRawatInap({
                 <header className="flex flex-wrap items-end justify-between gap-2">
                     <div>
                         <h1 className="text-xl font-semibold tracking-tight text-[#0f172a] md:text-2xl">
-                            Data Pasien · Pendaftaran Rawat Inap
+                            Patient data · Inpatient registration
                         </h1>
                         <p className="mt-0.5 text-xs text-[#64748b]">
-                            Kelola identitas pasien, admisi, bangsal, kelas, dan
-                            tempat tidur rawat inap.
+                            Manage patient identity, admission, ward, class, and
+                            inpatient beds.
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -574,7 +575,7 @@ export default function PendaftaranRawatInap({
                                 className="min-h-11"
                             >
                                 <Link href="/manajemen-data/bangsal">
-                                    Lihat ketersediaan TT
+                                    View bed availability
                                 </Link>
                             </Button>
                         ) : null}
@@ -586,7 +587,7 @@ export default function PendaftaranRawatInap({
                                 className="min-h-11"
                                 onClick={clearPatient}
                             >
-                                Pasien baru
+                                New patient
                             </Button>
                         ) : null}
                     </div>
@@ -601,37 +602,35 @@ export default function PendaftaranRawatInap({
                             id="pending-outpatient-admissions-title"
                             className="text-sm font-semibold text-[#14532d]"
                         >
-                            Menunggu serah terima dari Rawat Jalan
+                            Awaiting outpatient handoff
                         </h2>
                         <p className="mt-0.5 text-xs text-[#3f6212]">
-                            Keputusan dokter dan dokumen medisnya sudah
-                            terkunci. Registrar memilih tempat tidur yang
-                            tersedia untuk menyelesaikan admisi.
+                            The physician decision and medical document are
+                            final. The registrar selects an available bed to
+                            complete the admission.
                         </p>
                         <div className="mt-2 min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[48rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Daftar keputusan Rawat Jalan untuk Rawat
-                                    Inap yang menunggu serah terima
+                                    Outpatient decisions for inpatient admission
+                                    awaiting handoff
                                 </caption>
                                 <thead className="border-b border-[#bbf7d0] text-[0.7rem] tracking-wide text-[#3f6212] uppercase">
                                     <tr>
-                                        <th className="px-2 py-1.5">Pasien</th>
+                                        <th className="px-2 py-1.5">Patient</th>
                                         <th className="px-2 py-1.5">
-                                            Episode RJ
+                                            Outpatient episode
                                         </th>
                                         <th className="px-2 py-1.5">
-                                            Penjamin
+                                            Guarantor
                                         </th>
                                         <th className="px-2 py-1.5">
-                                            Alasan rawat inap
+                                            Admission reason
                                         </th>
-                                        <th className="px-2 py-1.5">
-                                            Ditandatangani
-                                        </th>
+                                        <th className="px-2 py-1.5">Signed</th>
                                         <th className="px-2 py-1.5">
                                             <span className="sr-only">
-                                                Aksi
+                                                Actions
                                             </span>
                                         </th>
                                     </tr>
@@ -691,9 +690,9 @@ export default function PendaftaranRawatInap({
                                                                     admission,
                                                                 )
                                                             }
-                                                            aria-label={`Pilih tempat tidur dan serah terima Rawat Jalan untuk ${admission.patient.full_name ?? 'pasien'}`}
+                                                            aria-label={`Select a bed and hand off outpatient care for ${admission.patient.full_name ?? 'patient'}`}
                                                         >
-                                                            Pilih tempat tidur
+                                                            Select bed
                                                         </Button>
                                                     ) : null}
                                                 </td>
@@ -715,38 +714,35 @@ export default function PendaftaranRawatInap({
                             id="pending-emergency-admissions-title"
                             className="text-sm font-semibold text-[#0f172a]"
                         >
-                            Menunggu serah terima dari IGD
+                            Awaiting emergency handoff
                         </h2>
                         <p className="mt-0.5 text-xs text-[#475569]">
-                            Disposisi Rawat Inap yang telah ditandatangani
-                            muncul di sini. Pilih pasien untuk melanjutkan ke
-                            pemilihan tempat tidur dan serah terima yang
-                            tercatat.
+                            Signed inpatient dispositions appear here. Select a
+                            patient to continue to bed selection and the
+                            recorded handoff.
                         </p>
                         <div className="mt-2 min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[52rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Daftar disposisi IGD Rawat Inap yang
-                                    menunggu serah terima
+                                    Emergency inpatient dispositions awaiting
+                                    handoff
                                 </caption>
                                 <thead className="border-b border-[#bfdbfe] text-[0.7rem] tracking-wide text-[#475569] uppercase">
                                     <tr>
-                                        <th className="px-2 py-1.5">Pasien</th>
+                                        <th className="px-2 py-1.5">Patient</th>
                                         <th className="px-2 py-1.5">
-                                            Episode IGD
+                                            Emergency episode
                                         </th>
                                         <th className="px-2 py-1.5">
-                                            Penjamin
+                                            Guarantor
                                         </th>
                                         <th className="px-2 py-1.5">
-                                            Alasan rawat inap
+                                            Admission reason
                                         </th>
-                                        <th className="px-2 py-1.5">
-                                            Ditandatangani
-                                        </th>
+                                        <th className="px-2 py-1.5">Signed</th>
                                         <th scope="col" className="px-2 py-1.5">
                                             <span className="sr-only">
-                                                Aksi
+                                                Actions
                                             </span>
                                         </th>
                                     </tr>
@@ -803,15 +799,14 @@ export default function PendaftaranRawatInap({
                                                             }
                                                             className="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-semibold text-[#075985] hover:bg-[#dbeafe] hover:underline"
                                                             aria-label={
-                                                                'Lanjutkan serah terima IGD untuk ' +
+                                                                'Continue emergency handoff for ' +
                                                                 (admission
                                                                     .patient
                                                                     .full_name ??
-                                                                    'pasien')
+                                                                    'patient')
                                                             }
                                                         >
-                                                            Lanjutkan serah
-                                                            terima
+                                                            Continue handoff
                                                         </Link>
                                                     ) : null}
                                                 </td>
@@ -834,18 +829,18 @@ export default function PendaftaranRawatInap({
                                 htmlFor="patient-search"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Cari pasien (No.RM / NIK / Nama)
+                                Find patient (MRN / National ID / Name)
                             </Label>
                             <Input
                                 id="patient-search"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={searchQ}
                                 onChange={(e) => setSearchQ(e.target.value)}
-                                placeholder="No.RM / NIK / Nama"
+                                placeholder="MRN / National ID / Name"
                             />
                         </div>
                         <Button type="submit" size="sm">
-                            Cari
+                            Search
                         </Button>
                     </div>
                 </form>
@@ -853,24 +848,24 @@ export default function PendaftaranRawatInap({
                 {searchResults.length > 0 ? (
                     <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
                         <h2 className="text-sm font-semibold text-[#0f172a]">
-                            Hasil pencarian pasien
+                            Patient search results
                         </h2>
                         <div className="mt-2 min-w-0 overflow-x-auto">
                             <table className="w-full min-w-[40rem] text-left text-sm">
                                 <caption className="sr-only">
-                                    Hasil pencarian pasien untuk rawat inap
+                                    Inpatient patient search results
                                 </caption>
                                 <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                     <tr>
-                                        <th className="px-2 py-1.5">No. RM</th>
-                                        <th className="px-2 py-1.5">Nama</th>
+                                        <th className="px-2 py-1.5">MRN</th>
+                                        <th className="px-2 py-1.5">Name</th>
                                         <th className="px-2 py-1.5">
-                                            Tgl lahir
+                                            Date of birth
                                         </th>
                                         <th className="px-2 py-1.5">JK</th>
                                         <th scope="col" className="px-2 py-1.5">
                                             <span className="sr-only">
-                                                Aksi
+                                                Actions
                                             </span>
                                         </th>
                                     </tr>
@@ -908,7 +903,7 @@ export default function PendaftaranRawatInap({
                                                         pickPatient(patient)
                                                     }
                                                 >
-                                                    Pilih
+                                                    Select
                                                 </Button>
                                             </td>
                                         </tr>
@@ -924,10 +919,10 @@ export default function PendaftaranRawatInap({
                     className="rounded-lg border border-[#e2e8f0] bg-white p-3 md:p-4"
                 >
                     <h2 className="text-sm font-semibold text-[#0f172a]">
-                        Form masuk rawat inap
+                        Inpatient admission form
                     </h2>
                     <p className="mt-0.5 text-xs text-[#64748b]">
-                        Identitas ringkas + bangsal → kelas → tempat tidur.
+                        Patient details + ward → class → bed.
                     </p>
 
                     {admissionWards.length === 0 ? (
@@ -936,8 +931,8 @@ export default function PendaftaranRawatInap({
                             aria-live="polite"
                             className="mt-3 rounded-md border border-[#fed7aa] bg-[#fff7ed] px-3 py-2 text-sm text-[#9a3412]"
                         >
-                            Tidak ada tempat tidur rawat inap yang tersedia.
-                            Periksa ketersediaan atau hubungi pengelola bangsal.
+                            No inpatient beds are available. Check availability
+                            or contact the ward administrator.
                         </p>
                     ) : null}
 
@@ -953,7 +948,7 @@ export default function PendaftaranRawatInap({
                                 id="inpatient-registration-error-title"
                                 className="font-semibold"
                             >
-                                Pendaftaran rawat inap belum dapat disimpan.
+                                Inpatient registration cannot be saved yet.
                             </p>
                             <ul className="mt-1 list-disc space-y-0.5 pl-5">
                                 {registrationErrors.map(([field, message]) => {
@@ -987,9 +982,7 @@ export default function PendaftaranRawatInap({
                         {!selectedPatient ? (
                             <>
                                 <div className="grid gap-1">
-                                    <Label htmlFor="full_name">
-                                        Nama lengkap
-                                    </Label>
+                                    <Label htmlFor="full_name">Full name</Label>
                                     <Input
                                         id="full_name"
                                         {...errorProps('full_name')}
@@ -1012,7 +1005,7 @@ export default function PendaftaranRawatInap({
                                 </div>
                                 <div className="grid gap-1">
                                     <Label htmlFor="date_of_birth">
-                                        Tanggal lahir
+                                        Date of birth
                                     </Label>
                                     <Input
                                         id="date_of_birth"
@@ -1034,7 +1027,7 @@ export default function PendaftaranRawatInap({
                                     />
                                 </div>
                                 <div className="grid gap-1">
-                                    <Label htmlFor="sex">Jenis kelamin</Label>
+                                    <Label htmlFor="sex">Sex</Label>
                                     <select
                                         id="sex"
                                         {...errorProps('sex')}
@@ -1100,7 +1093,7 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <div className="grid gap-1">
-                            <Label htmlFor="phone">Telepon</Label>
+                            <Label htmlFor="phone">Phone</Label>
                             <Input
                                 id="phone"
                                 {...errorProps('phone')}
@@ -1118,7 +1111,7 @@ export default function PendaftaranRawatInap({
                         </div>
 
                         <div className="grid gap-1">
-                            <Label htmlFor="ward_name">Bangsal</Label>
+                            <Label htmlFor="ward_name">Ward</Label>
                             <select
                                 id="ward_name"
                                 {...errorProps('ward_name')}
@@ -1144,7 +1137,7 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <div className="grid gap-1">
-                            <Label htmlFor="ward_class">Kelas</Label>
+                            <Label htmlFor="ward_class">Class</Label>
                             <Input
                                 id="ward_class"
                                 {...errorProps('ward_class')}
@@ -1158,7 +1151,7 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <div className="grid gap-1">
-                            <Label htmlFor="bed_code">Tempat tidur</Label>
+                            <Label htmlFor="bed_code">Bed</Label>
                             <select
                                 id="bed_code"
                                 aria-invalid={
@@ -1210,7 +1203,7 @@ export default function PendaftaranRawatInap({
                         </div>
 
                         <div className="grid gap-1">
-                            <Label htmlFor="payer_type">Cara bayar</Label>
+                            <Label htmlFor="payer_type">Payment method</Label>
                             <select
                                 id="payer_type"
                                 {...errorProps('payer_type')}
@@ -1237,7 +1230,7 @@ export default function PendaftaranRawatInap({
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="insurance_number">
-                                No. penjamin
+                                Guarantor number
                             </Label>
                             <Input
                                 id="insurance_number"
@@ -1259,12 +1252,12 @@ export default function PendaftaranRawatInap({
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="continue_from">
-                                Asal / kelanjutan
+                                Admission source
                             </Label>
                             <Input
                                 id="continue_from"
                                 className={fieldClass}
-                                value="Pendaftaran langsung"
+                                value="Direct registration"
                                 readOnly
                             />
                             <input
@@ -1280,7 +1273,7 @@ export default function PendaftaranRawatInap({
 
                         <div className="grid gap-1">
                             <Label htmlFor="admission_authority_type">
-                                Dasar admisi langsung
+                                Direct admission authority
                             </Label>
                             <select
                                 id="admission_authority_type"
@@ -1296,10 +1289,10 @@ export default function PendaftaranRawatInap({
                                 disabled={!canRegister}
                             >
                                 <option value="PLANNED_ORDER">
-                                    Perintah admisi terencana
+                                    Planned admission order
                                 </option>
                                 <option value="EXTERNAL_REFERRAL">
-                                    Rujukan eksternal
+                                    External referral
                                 </option>
                             </select>
                             <InputError
@@ -1309,7 +1302,7 @@ export default function PendaftaranRawatInap({
                         </div>
                         <div className="grid gap-1">
                             <Label htmlFor="admission_authority_reference">
-                                Nomor referensi otorisasi
+                                Admission authority reference number
                             </Label>
                             <Input
                                 id="admission_authority_reference"
@@ -1335,7 +1328,7 @@ export default function PendaftaranRawatInap({
 
                         <div className="grid gap-1 md:col-span-2 lg:col-span-3">
                             <Label htmlFor="chief_complaint">
-                                Keluhan utama
+                                Chief complaint
                             </Label>
                             <textarea
                                 id="chief_complaint"
@@ -1370,12 +1363,13 @@ export default function PendaftaranRawatInap({
                             }
                         >
                             {form.processing
-                                ? 'Menyimpan…'
-                                : 'Simpan pendaftaran RI'}
+                                ? 'Saving…'
+                                : 'Save inpatient registration'}
                         </Button>
                         {!canRegister ? (
                             <p className="text-xs text-[#64748b]">
-                                Akun ini tidak memiliki izin pendaftaran.
+                                This account does not have registration
+                                permission.
                             </p>
                         ) : null}
                     </div>
@@ -1391,14 +1385,14 @@ export default function PendaftaranRawatInap({
                                 htmlFor="inpatient-filter-q"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                No. RM / Nama
+                                MRN / Name
                             </label>
                             <Input
                                 id="inpatient-filter-q"
                                 className={cn(fieldClass, 'bg-white')}
                                 value={filterQ}
                                 onChange={(e) => setFilterQ(e.target.value)}
-                                placeholder="No.RM / Nama"
+                                placeholder="MRN / Name"
                             />
                         </div>
                         <div className="grid min-w-[10rem] gap-1">
@@ -1406,7 +1400,7 @@ export default function PendaftaranRawatInap({
                                 htmlFor="inpatient-filter-ward"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Bangsal
+                                Ward
                             </label>
                             <select
                                 id="inpatient-filter-ward"
@@ -1414,7 +1408,7 @@ export default function PendaftaranRawatInap({
                                 value={filterWard}
                                 onChange={(e) => setFilterWard(e.target.value)}
                             >
-                                <option value="">Semua bangsal</option>
+                                <option value="">All wards</option>
                                 {wardOptions.map((option) => (
                                     <option
                                         key={option.value}
@@ -1430,7 +1424,7 @@ export default function PendaftaranRawatInap({
                                 htmlFor="inpatient-filter-payer"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Cara bayar
+                                Payment method
                             </label>
                             <select
                                 id="inpatient-filter-payer"
@@ -1438,7 +1432,7 @@ export default function PendaftaranRawatInap({
                                 value={filterPayer}
                                 onChange={(e) => setFilterPayer(e.target.value)}
                             >
-                                <option value="">Semua</option>
+                                <option value="">All</option>
                                 {payerOptions.map((option) => (
                                     <option
                                         key={option.value}
@@ -1454,7 +1448,7 @@ export default function PendaftaranRawatInap({
                                 htmlFor="inpatient-filter-origin"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Asal
+                                Admission source
                             </label>
                             <select
                                 id="inpatient-filter-origin"
@@ -1464,7 +1458,7 @@ export default function PendaftaranRawatInap({
                                     setFilterContinue(e.target.value)
                                 }
                             >
-                                <option value="">Semua</option>
+                                <option value="">All</option>
                                 {continueFromOptions.map((option) => (
                                     <option
                                         key={option.value}
@@ -1480,7 +1474,7 @@ export default function PendaftaranRawatInap({
                                 htmlFor="inpatient-filter-date-from"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Dari tgl
+                                From date
                             </label>
                             <Input
                                 id="inpatient-filter-date-from"
@@ -1497,7 +1491,7 @@ export default function PendaftaranRawatInap({
                                 htmlFor="inpatient-filter-date-to"
                                 className="text-[0.65rem] font-medium tracking-wide text-[#64748b] uppercase"
                             >
-                                Sampai tgl
+                                To date
                             </label>
                             <Input
                                 id="inpatient-filter-date-to"
@@ -1510,7 +1504,7 @@ export default function PendaftaranRawatInap({
                             />
                         </div>
                         <Button type="submit" size="sm" variant="secondary">
-                            Terapkan filter
+                            Apply filters
                         </Button>
                     </div>
                 </form>
@@ -1518,34 +1512,38 @@ export default function PendaftaranRawatInap({
                 <section className="min-w-0 rounded-lg border border-[#e2e8f0] bg-white p-3">
                     <div className="mb-2 flex items-center justify-between gap-2">
                         <h2 className="text-sm font-semibold text-[#0f172a]">
-                            Daftar masuk rawat inap
+                            Inpatient admission list
                         </h2>
                         <Link
                             href="/pemeriksaan/rawat-inap"
                             className="text-xs font-medium text-[#1b75bc] hover:underline"
                         >
-                            Buka worklist pemeriksaan →
+                            Open examination worklist →
                         </Link>
                     </div>
                     <div className="min-w-0 overflow-x-auto">
                         <table className="w-full min-w-[56rem] text-left text-sm">
                             <caption className="sr-only">
-                                Daftar pendaftaran rawat inap
+                                Inpatient registration list
                             </caption>
                             <thead className="border-b border-[#e2e8f0] text-[0.7rem] tracking-wide text-[#64748b] uppercase">
                                 <tr>
-                                    <th className="px-2 py-1.5">Antrian</th>
-                                    <th className="px-2 py-1.5">No. RM</th>
-                                    <th className="px-2 py-1.5">Nama</th>
-                                    <th className="px-2 py-1.5">Bangsal</th>
-                                    <th className="px-2 py-1.5">Kelas</th>
+                                    <th className="px-2 py-1.5">Queue</th>
+                                    <th className="px-2 py-1.5">MRN</th>
+                                    <th className="px-2 py-1.5">Name</th>
+                                    <th className="px-2 py-1.5">Ward</th>
+                                    <th className="px-2 py-1.5">Class</th>
                                     <th className="px-2 py-1.5">TT</th>
-                                    <th className="px-2 py-1.5">Asal</th>
-                                    <th className="px-2 py-1.5">Penjamin</th>
+                                    <th className="px-2 py-1.5">
+                                        Admission source
+                                    </th>
+                                    <th className="px-2 py-1.5">Payer</th>
                                     <th className="px-2 py-1.5">Status</th>
-                                    <th className="px-2 py-1.5">Keluhan</th>
+                                    <th className="px-2 py-1.5">
+                                        Chief complaint
+                                    </th>
                                     <th scope="col" className="px-2 py-1.5">
-                                        <span className="sr-only">Aksi</span>
+                                        <span className="sr-only">Actions</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -1556,8 +1554,8 @@ export default function PendaftaranRawatInap({
                                             colSpan={11}
                                             className="px-2 py-6 text-[#64748b]"
                                         >
-                                            Belum ada pendaftaran rawat inap
-                                            untuk filter ini.
+                                            No inpatient registrations match
+                                            these filters.
                                         </td>
                                     </tr>
                                 ) : (
@@ -1631,7 +1629,7 @@ export default function PendaftaranRawatInap({
                                                             {encounter
                                                                 .cancellation
                                                                 .cancelled_by ??
-                                                                'Petugas tidak tersedia'}{' '}
+                                                                'Staff member unavailable'}{' '}
                                                             ·{' '}
                                                             {cancellationTimeLabel(
                                                                 encounter
@@ -1650,10 +1648,10 @@ export default function PendaftaranRawatInap({
                                                             </p>
                                                         ) : null}
                                                         <p className="mt-1 font-medium text-[#475569]">
-                                                            Tempat tidur
-                                                            tersedia kembali;
-                                                            riwayat penempatan
-                                                            tetap disimpan.
+                                                            The bed is available
+                                                            again; placement
+                                                            history remains
+                                                            recorded.
                                                         </p>
                                                     </div>
                                                 ) : null}
@@ -1669,10 +1667,10 @@ export default function PendaftaranRawatInap({
                                                         'CANCELLED' ? (
                                                         <Link
                                                             href={`/pemeriksaan/rawat-inap/${encounter.public_id}`}
-                                                            aria-label={`Buka pemeriksaan untuk ${encounter.patient.full_name}`}
+                                                            aria-label={`Open examination for ${encounter.patient.full_name}`}
                                                             className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                         >
-                                                            Buka pemeriksaan
+                                                            Open examination
                                                         </Link>
                                                     ) : null}
                                                     {encounter.status !==
@@ -1681,14 +1679,14 @@ export default function PendaftaranRawatInap({
                                                             href={`/pendaftaran/kunjungan/${encounter.public_id}/cetak?docs=bukti,antrian`}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            aria-label={`Cetak untuk ${encounter.patient.full_name}`}
+                                                            aria-label={`Print for ${encounter.patient.full_name}`}
                                                             className="text-sm font-medium text-[#1b75bc] hover:underline"
                                                         >
-                                                            Cetak
+                                                            Print
                                                         </a>
                                                     ) : (
                                                         <span className="text-xs text-[#64748b]">
-                                                            Riwayat tersimpan
+                                                            History saved
                                                         </span>
                                                     )}
                                                     {canCancel ? (
@@ -1702,9 +1700,9 @@ export default function PendaftaranRawatInap({
                                                                 encounter.status ===
                                                                 'REGISTERED'
                                                                     ? undefined
-                                                                    : 'Hanya kunjungan berstatus Terdaftar yang dapat dibatalkan.'
+                                                                    : 'Only registered visits can be cancelled.'
                                                             }
-                                                            aria-label={`Batalkan kunjungan ${encounter.patient.full_name}`}
+                                                            aria-label={`Cancel visit for ${encounter.patient.full_name}`}
                                                             aria-describedby={
                                                                 encounter.status !==
                                                                 'REGISTERED'
@@ -1719,7 +1717,7 @@ export default function PendaftaranRawatInap({
                                                             }
                                                             className="text-sm font-medium text-[#b42318] hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b42318] disabled:cursor-not-allowed disabled:text-[#94a3b8] disabled:no-underline"
                                                         >
-                                                            Batalkan Kunjungan
+                                                            Cancel visit
                                                         </button>
                                                     ) : null}
                                                     {canCancel &&
@@ -1729,10 +1727,9 @@ export default function PendaftaranRawatInap({
                                                             id={`inpatient-cancel-blocked-${encounter.public_id}`}
                                                             className="sr-only"
                                                         >
-                                                            Hanya kunjungan
-                                                            berstatus Terdaftar
-                                                            yang dapat
-                                                            dibatalkan.
+                                                            Only registered
+                                                            visits can be
+                                                            cancelled.
                                                         </span>
                                                     ) : null}
                                                 </div>
@@ -1765,15 +1762,15 @@ export default function PendaftaranRawatInap({
                     >
                         <DialogHeader className="border-b border-[#fee2e2] bg-[#fff8f7] px-5 py-4 text-left">
                             <p className="text-[0.68rem] font-semibold tracking-[0.12em] text-[#b42318] uppercase">
-                                Pembatalan pra-pelayanan
+                                Pre-care cancellation
                             </p>
                             <DialogTitle className="text-xl leading-7 text-[#0f172a]">
-                                Batalkan kunjungan sebelum pelayanan?
+                                Cancel this visit before care begins?
                             </DialogTitle>
                             <DialogDescription className="leading-5 text-[#475569]">
-                                Tindakan ini menyimpan pembatalan dan riwayat
-                                penempatan. Kunjungan yang sudah mulai dilayani
-                                tidak dapat dibatalkan dari meja pendaftaran.
+                                This records the cancellation and placement
+                                history. Visits that have already started care
+                                cannot be cancelled from the registration desk.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -1785,7 +1782,7 @@ export default function PendaftaranRawatInap({
                                 <div className="grid gap-3 rounded-lg border border-[#d7e6f3] bg-[#f5f9fc] p-3 sm:grid-cols-2">
                                     <div>
                                         <p className="text-[0.68rem] tracking-wide text-[#64748b] uppercase">
-                                            Pasien
+                                            Patient
                                         </p>
                                         <p className="mt-0.5 font-medium text-[#0f172a]">
                                             {cancelTarget.patient.full_name}
@@ -1797,21 +1794,22 @@ export default function PendaftaranRawatInap({
                                     </div>
                                     <div>
                                         <p className="text-[0.68rem] tracking-wide text-[#64748b] uppercase">
-                                            Penempatan dan antrian
+                                            Placement and queue
                                         </p>
                                         <p className="mt-0.5 font-medium text-[#0f172a]">
                                             {cancelTarget.ward_name ?? '—'} ·{' '}
                                             {cancelTarget.bed_code ?? '—'}
                                         </p>
                                         <p className="text-xs text-[#64748b]">
-                                            Antrian{' '}
+                                            Queue{' '}
                                             {cancelTarget.queue_number ?? '—'}
                                         </p>
                                     </div>
                                     <p className="border-t border-[#d7e6f3] pt-2 text-xs leading-5 text-[#475569] sm:col-span-2">
-                                        Tempat tidur tersedia kembali setelah
-                                        pembatalan berhasil. Nomor antrian dan
-                                        riwayat penempatan tetap tersimpan.
+                                        The bed becomes available after the
+                                        cancellation is successful. The queue
+                                        number and placement history remain
+                                        recorded.
                                     </p>
                                 </div>
 
@@ -1826,7 +1824,7 @@ export default function PendaftaranRawatInap({
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="inpatient-cancellation-reason">
-                                        Alasan pembatalan
+                                        Cancellation reason
                                     </Label>
                                     <select
                                         id="inpatient-cancellation-reason"
@@ -1851,7 +1849,7 @@ export default function PendaftaranRawatInap({
                                         className={fieldClass}
                                     >
                                         <option value="">
-                                            Pilih alasan pembatalan
+                                            Select a cancellation reason
                                         </option>
                                         {cancellationReasons.map((reason) => (
                                             <option
@@ -1866,8 +1864,8 @@ export default function PendaftaranRawatInap({
                                         id="inpatient-cancellation-reason-help"
                                         className="text-xs text-[#64748b]"
                                     >
-                                        Pilih alasan yang paling sesuai dengan
-                                        kejadian pendaftaran.
+                                        Select the reason that best matches the
+                                        registration event.
                                     </p>
                                     <InputError
                                         id="inpatient-cancellation-reason-error"
@@ -1877,9 +1875,9 @@ export default function PendaftaranRawatInap({
 
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="inpatient-cancellation-note">
-                                        Catatan pembatalan{' '}
+                                        Cancellation note{' '}
                                         <span className="font-normal text-[#64748b]">
-                                            (opsional)
+                                            (optional)
                                         </span>
                                     </Label>
                                     <textarea
@@ -1909,8 +1907,8 @@ export default function PendaftaranRawatInap({
                                         id="inpatient-cancellation-note-help"
                                         className="text-xs text-[#64748b]"
                                     >
-                                        Maksimal 500 karakter. Hindari data
-                                        pribadi yang tidak diperlukan.
+                                        Maximum 500 characters. Avoid
+                                        unnecessary personal information.
                                     </p>
                                     <InputError
                                         id="inpatient-cancellation-note-error"
@@ -1933,7 +1931,7 @@ export default function PendaftaranRawatInap({
                                         }
                                         disabled={cancelForm.processing}
                                     >
-                                        Kembali
+                                        Back
                                     </Button>
                                     <Button
                                         type="submit"
@@ -1944,8 +1942,8 @@ export default function PendaftaranRawatInap({
                                         className="bg-[#b42318] text-white hover:bg-[#912018] focus-visible:ring-[#b42318]/30"
                                     >
                                         {cancelForm.processing
-                                            ? 'Menyimpan…'
-                                            : 'Batalkan Kunjungan'}
+                                            ? 'Saving…'
+                                            : 'Cancel visit'}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -1963,11 +1961,11 @@ export default function PendaftaranRawatInap({
                     <DialogContent className="max-w-lg p-0">
                         <DialogHeader className="border-b border-[#bbf7d0] bg-[#f0fdf4] px-5 py-4 text-left">
                             <DialogTitle className="text-xl leading-7 text-[#14532d]">
-                                Serah terima Rawat Jalan ke Rawat Inap
+                                Outpatient to inpatient handoff
                             </DialogTitle>
                             <DialogDescription className="leading-5 text-[#3f6212]">
-                                Pilih tempat tidur yang tersedia. Keputusan
-                                dokter dan alasan admisi tidak dapat diubah oleh
+                                Select an available bed. The physician decision
+                                and admission reason cannot be changed by the
                                 registrar.
                             </DialogDescription>
                         </DialogHeader>
@@ -1987,7 +1985,7 @@ export default function PendaftaranRawatInap({
                                     </p>
                                     <p className="mt-2">
                                         <span className="font-medium">
-                                            Alasan rawat inap:
+                                            Admission reason:
                                         </span>{' '}
                                         {outpatientHandoffTarget.admission_reason ??
                                             '—'}
@@ -1995,7 +1993,7 @@ export default function PendaftaranRawatInap({
                                 </div>
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="outpatient-handoff-bed">
-                                        Tempat tidur tersedia
+                                        Available bed
                                     </Label>
                                     <select
                                         id="outpatient-handoff-bed"
@@ -2048,7 +2046,7 @@ export default function PendaftaranRawatInap({
                                             outpatientHandoffForm.processing
                                         }
                                     >
-                                        Kembali
+                                        Back
                                     </Button>
                                     <Button
                                         type="submit"
@@ -2059,8 +2057,8 @@ export default function PendaftaranRawatInap({
                                         }
                                     >
                                         {outpatientHandoffForm.processing
-                                            ? 'Menyimpan…'
-                                            : 'Selesaikan serah terima'}
+                                            ? 'Saving…'
+                                            : 'Complete handoff'}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -2074,8 +2072,8 @@ export default function PendaftaranRawatInap({
 
 PendaftaranRawatInap.layout = () => ({
     breadcrumbs: [
-        { title: 'Beranda', href: '/' },
-        { title: 'Pendaftaran', href: '/pendaftaran/rawat-inap' },
-        { title: 'Rawat Inap', href: '/pendaftaran/rawat-inap' },
+        { title: 'Home', href: '/' },
+        { title: 'Registration', href: '/pendaftaran/rawat-inap' },
+        { title: 'Inpatient', href: '/pendaftaran/rawat-inap' },
     ] satisfies BreadcrumbItem[],
 });

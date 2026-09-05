@@ -61,7 +61,7 @@ final class InpatientWardBedMasterController extends Controller
         $actor = $this->authorizeManage($request);
         $data = $request->validate($this->wardCreateRules());
 
-        return $this->respond($request, fn () => $this->service->createWard($actor, $data['code'], $data['display_name'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Bangsal berhasil dibuat.');
+        return $this->respond($request, fn () => $this->service->createWard($actor, $data['code'], $data['display_name'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Ward created.');
     }
 
     public function updateWard(Request $request, string $ward): RedirectResponse
@@ -69,7 +69,7 @@ final class InpatientWardBedMasterController extends Controller
         $actor = $this->authorizeManage($request);
         $data = $request->validate($this->wardUpdateRules());
 
-        return $this->respond($request, fn () => $this->service->updateWard($actor, $ward, $data['display_name'], (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Bangsal berhasil diperbarui.');
+        return $this->respond($request, fn () => $this->service->updateWard($actor, $ward, $data['display_name'], (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Ward updated.');
     }
 
     public function retireWard(Request $request, string $ward): RedirectResponse
@@ -77,7 +77,7 @@ final class InpatientWardBedMasterController extends Controller
         $actor = $this->authorizeManage($request);
         $data = $request->validate($this->retireRules());
 
-        return $this->respond($request, fn () => $this->service->retireWard($actor, $ward, (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Bangsal berhasil dipensiunkan.');
+        return $this->respond($request, fn () => $this->service->retireWard($actor, $ward, (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Ward retired.');
     }
 
     public function storeBed(Request $request, string $ward): RedirectResponse
@@ -85,7 +85,7 @@ final class InpatientWardBedMasterController extends Controller
         $actor = $this->authorizeManage($request);
         $data = $request->validate($this->bedCreateRules());
 
-        return $this->respond($request, fn () => $this->service->createBed($actor, $ward, $data['code'], $data['display_name'], $data['room_label'], $data['service_class'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Tempat tidur berhasil dibuat.');
+        return $this->respond($request, fn () => $this->service->createBed($actor, $ward, $data['code'], $data['display_name'], $data['room_label'], $data['service_class'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Bed created.');
     }
 
     public function updateBed(Request $request, string $bed): RedirectResponse
@@ -93,7 +93,7 @@ final class InpatientWardBedMasterController extends Controller
         $actor = $this->authorizeManage($request);
         $data = $request->validate($this->bedUpdateRules());
 
-        return $this->respond($request, fn () => $this->service->updateBed($actor, $bed, $data['display_name'], $data['room_label'], $data['service_class'], (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Tempat tidur berhasil diperbarui.');
+        return $this->respond($request, fn () => $this->service->updateBed($actor, $bed, $data['display_name'], $data['room_label'], $data['service_class'], (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Bed updated.');
     }
 
     public function retireBed(Request $request, string $bed): RedirectResponse
@@ -101,7 +101,7 @@ final class InpatientWardBedMasterController extends Controller
         $actor = $this->authorizeManage($request);
         $data = $request->validate($this->retireRules());
 
-        return $this->respond($request, fn () => $this->service->retireBed($actor, $bed, (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Tempat tidur berhasil dipensiunkan.');
+        return $this->respond($request, fn () => $this->service->retireBed($actor, $bed, (int) $data['expected_version'], $data['reason_code'], $data['idempotency_key'], RequestCorrelation::existing($request)), 'Bed retired.');
     }
 
     private function authorizeManage(Request $request): User
@@ -129,16 +129,16 @@ final class InpatientWardBedMasterController extends Controller
         try {
             $result = $operation();
         } catch (InpatientMasterDenied $denial) {
-            return back()->withErrors(['master' => $denial->getMessage()])->withInput();
+            return back()->withErrors(['master' => __($denial->getMessage())])->withInput();
         } catch (InpatientMasterAuditUnavailable $failure) {
             if ($request->header('X-Inertia') !== 'true') {
-                abort(503, $failure->getMessage());
+                abort(503, __($failure->getMessage()));
             }
 
-            return back()->withErrors(['master' => $failure->getMessage()])->withInput();
+            return back()->withErrors(['master' => __($failure->getMessage())])->withInput();
         }
 
-        return back()->with('success', $result->replayed ? 'Permintaan ini sudah diproses.' : $message);
+        return back()->with('success', $result->replayed ? 'This request has already been processed.' : $message);
     }
 
     /** @return array<string, list<mixed>> */
@@ -208,7 +208,7 @@ final class InpatientWardBedMasterController extends Controller
                 InpatientMasterService::REASON_CODES,
             ),
             'filter_options' => ['wards' => [], 'service_classes' => []],
-            'read_error' => 'Sensus tempat tidur belum dapat dimuat. Silakan coba lagi.',
+            'read_error' => 'The bed census could not be loaded. Please try again.',
         ];
     }
 }

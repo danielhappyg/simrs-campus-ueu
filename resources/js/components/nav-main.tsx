@@ -11,7 +11,7 @@ import type { NavItem } from '@/types';
 
 export function NavMain({
     items = [],
-    label = 'Ruang kerja',
+    label = 'Workspace',
 }: {
     items: NavItem[];
     label?: string;
