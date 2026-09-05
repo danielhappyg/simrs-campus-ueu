@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DiagnosisTable } from './diagnosis-table';
 import { DocumentErrorSummary } from './document-error-summary';
 import type {
     ClinicalDocument,
@@ -298,11 +299,17 @@ export function StructuredDocumentForm({
     });
     const finalizeForm = useForm({ expected_version: draft?.version ?? 0 });
     const readOnly = encounterClosed || draft?.document_state === 'FINAL';
-    const hasUnsavedChanges = form.isDirty;
+    const [hasPendingDiagnosis, setHasPendingDiagnosis] = useState(false);
+    const hasUnsavedChanges = form.isDirty || hasPendingDiagnosis;
     const finalizeHelpId = `${type}-finalize-help`;
 
     const saveDraft = (event: FormEvent) => {
         event.preventDefault();
+
+        if (hasPendingDiagnosis) {
+            return;
+        }
+
         form.post(actions.save_draft_url, { preserveScroll: true });
     };
 
@@ -381,67 +388,32 @@ export function StructuredDocumentForm({
                     className="mt-1.5 min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm read-only:bg-muted/60 focus-visible:border-ring"
                 />
             </div>
-            <TerminologyPicker
-                id="MEDICAL_ASSESSMENT-primary-icd10"
-                label="Primary diagnosis (ICD-10)"
-                system="ICD-10"
-                selected={
-                    selectionValue(form.data.fields.primary_icd10)
-                        ? [
-                              {
-                                  ...selectionValue(
-                                      form.data.fields.primary_icd10,
-                                  )!,
-                                  system: 'ICD-10' as const,
-                              },
-                          ]
-                        : []
+            <DiagnosisTable
+                primary={
+                    selectionValue(form.data.fields.primary_icd10) as {
+                        code: string;
+                        display: string;
+                    } | null
                 }
-                readOnly={readOnly || !permission.can_save_draft}
+                secondary={
+                    selectionsValue(form.data.fields.secondary_icd10) as {
+                        code: string;
+                        display: string;
+                    }[]
+                }
                 lookupUrl={terminologyLookupUrl}
-                onSelect={(option) =>
-                    form.setData('fields', {
-                        ...form.data.fields,
-                        primary_icd10: {
-                            code: option.code,
-                            display: option.display,
-                        },
-                    })
+                disabled={
+                    readOnly ||
+                    !permission.can_save_draft ||
+                    form.processing ||
+                    finalizeForm.processing
                 }
-                onRemove={() =>
+                onPendingChange={setHasPendingDiagnosis}
+                onChange={({ primary, secondary }) =>
                     form.setData('fields', {
                         ...form.data.fields,
-                        primary_icd10: null,
-                    })
-                }
-            />
-            <TerminologyPicker
-                id="MEDICAL_ASSESSMENT-secondary-icd10"
-                label="Secondary diagnoses (ICD-10)"
-                system="ICD-10"
-                multiple
-                selected={selectionsValue(form.data.fields.secondary_icd10).map(
-                    (item) => ({ ...item, system: 'ICD-10' as const }),
-                )}
-                readOnly={readOnly || !permission.can_save_draft}
-                lookupUrl={terminologyLookupUrl}
-                onSelect={(option) =>
-                    form.setData('fields', {
-                        ...form.data.fields,
-                        secondary_icd10: [
-                            ...selectionsValue(
-                                form.data.fields.secondary_icd10,
-                            ),
-                            { code: option.code, display: option.display },
-                        ],
-                    })
-                }
-                onRemove={(code) =>
-                    form.setData('fields', {
-                        ...form.data.fields,
-                        secondary_icd10: selectionsValue(
-                            form.data.fields.secondary_icd10,
-                        ).filter((item) => item.code !== code),
+                        primary_icd10: primary,
+                        secondary_icd10: secondary,
                     })
                 }
             />
@@ -528,11 +500,14 @@ export function StructuredDocumentForm({
                                 variant="outline"
                                 disabled={
                                     !permission.can_save_draft ||
-                                    form.processing
+                                    form.processing ||
+                                    hasPendingDiagnosis
                                 }
                                 title={
                                     permission.can_save_draft
-                                        ? undefined
+                                        ? hasPendingDiagnosis
+                                            ? 'Add, update, or cancel the diagnosis currently being composed before saving.'
+                                            : undefined
                                         : 'You do not have permission to save this draft.'
                                 }
                             >
@@ -568,7 +543,9 @@ export function StructuredDocumentForm({
                                 className="text-xs text-muted-foreground sm:text-right"
                             >
                                 {hasUnsavedChanges
-                                    ? 'There are unsaved changes. Save the draft before finalizing.'
+                                    ? hasPendingDiagnosis
+                                        ? 'Add, update, or cancel the diagnosis currently being composed before saving or finalizing.'
+                                        : 'There are unsaved changes. Save the draft before finalizing.'
                                     : 'Save a draft before finalizing.'}
                             </p>
                         ) : null}

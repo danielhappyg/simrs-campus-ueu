@@ -376,8 +376,7 @@ describe('structured outpatient documentation', () => {
             'MEDICAL_ASSESSMENT-objective_examination',
             'MEDICAL_ASSESSMENT-clinical_assessment',
             'MEDICAL_ASSESSMENT-diagnosis-text',
-            'MEDICAL_ASSESSMENT-primary-icd10',
-            'MEDICAL_ASSESSMENT-secondary-icd10',
+            'MEDICAL_ASSESSMENT-icd10-search',
             'MEDICAL_ASSESSMENT-care_plan',
             'MEDICAL_ASSESSMENT-procedures-icd9cm',
             'MEDICAL_ASSESSMENT-additional_notes',
@@ -388,11 +387,12 @@ describe('structured outpatient documentation', () => {
             'Gastroenteritis akut',
         );
         await user.type(
-            screen.getByLabelText('Primary diagnosis (ICD-10)'),
+            screen.getByLabelText('Search ICD-10 code or diagnosis'),
             'A0',
         );
         await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
         await user.click(screen.getByRole('button', { name: /A09/ }));
+        await user.click(screen.getByRole('button', { name: 'Add diagnosis' }));
         await user.click(screen.getByRole('button', { name: 'Save draft' }));
 
         expect(submissions.at(-1)).toEqual({
@@ -410,6 +410,55 @@ describe('structured outpatient documentation', () => {
             }),
         });
         vi.unstubAllGlobals();
+    });
+
+    it('treats an uncommitted diagnosis composer as dirty and blocks save and finalization', async () => {
+        const user = userEvent.setup();
+        const onDirtyChange = vi.fn();
+        render(
+            <StructuredDocumentForm
+                type="MEDICAL_ASSESSMENT"
+                definitionVersion="RJ-DOC-v1"
+                draft={{
+                    public_id: 'medical-draft',
+                    document_type: 'MEDICAL_ASSESSMENT',
+                    document_state: 'DRAFT',
+                    definition_version: 'RJ-DOC-v1',
+                    version: 3,
+                    fields: {},
+                    author_name: null,
+                    updated_at: null,
+                    finalized_at: null,
+                    finalized_by_name: null,
+                }}
+                permission={{ can_save_draft: true, can_finalize: true }}
+                actions={{
+                    save_draft_url: '/medical/draft',
+                    finalize_url: '/medical/finalize',
+                }}
+                encounterClosed={false}
+                onDirtyChange={onDirtyChange}
+            />,
+        );
+        await user.type(
+            screen.getByLabelText('Search ICD-10 code or diagnosis'),
+            'A',
+        );
+        expect(
+            screen.getByRole('button', { name: 'Save draft' }),
+        ).toBeDisabled();
+        expect(
+            screen.getByRole('button', { name: 'Finalize version' }),
+        ).toBeDisabled();
+        expect(onDirtyChange).toHaveBeenLastCalledWith(
+            'MEDICAL_ASSESSMENT',
+            true,
+        );
+        await user.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(onDirtyChange).toHaveBeenLastCalledWith(
+            'MEDICAL_ASSESSMENT',
+            false,
+        );
     });
 
     it('retains unsaved clinical text across in-page tabs and guards GET navigation', async () => {

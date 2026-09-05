@@ -331,7 +331,7 @@ class OutpatientExaminationController extends Controller
 
         return redirect()
             ->route('pemeriksaan.rawat-jalan.show', $encounter)
-            ->with('success', $finalize ? 'Catatan klinis difinalisasi.' : 'Draf catatan klinis disimpan.');
+            ->with('success', $finalize ? 'Clinical document finalized.' : 'Clinical draft saved.');
     }
 
     /** @return array<string, mixed> */

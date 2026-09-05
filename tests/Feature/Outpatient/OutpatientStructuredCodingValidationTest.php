@@ -4,6 +4,7 @@ namespace Tests\Feature\Outpatient;
 
 use App\Models\Encounter;
 use App\Models\OutpatientClinicalDocument;
+use App\Models\OutpatientClinicalDocumentVersion;
 use App\Models\Patient;
 use App\Models\Role;
 use App\Models\User;
@@ -87,6 +88,70 @@ final class OutpatientStructuredCodingValidationTest extends TestCase
                 'fields' => $fields,
             ])
             ->assertStatus(422);
+
+        $this->assertDatabaseCount('outpatient_clinical_documents', 0);
+        $this->assertDatabaseCount('outpatient_clinical_document_versions', 0);
+    }
+
+    public function test_multiple_secondary_diagnoses_and_primary_reassignment_preserve_saved_and_final_versions(): void
+    {
+        $physician = $this->actor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $encounter = $this->encounter($physician);
+        $fields = $this->codedFields();
+        $fields['secondary_icd10'][] = ['code' => 'I10', 'display' => 'Essential (primary) hypertension'];
+        $draftUrl = route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]);
+
+        $this->actingAs($physician)->post($draftUrl, [
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'expected_version' => 0,
+            'fields' => $fields,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $document = OutpatientClinicalDocument::query()->sole();
+        $this->assertEquals($fields, $document->fields);
+        $this->assertSame(['H81.1', 'I10'], array_column($document->fields['secondary_icd10'], 'code'));
+
+        $reassigned = $fields;
+        $reassigned['primary_icd10'] = $fields['secondary_icd10'][0];
+        $reassigned['secondary_icd10'] = [$fields['primary_icd10'], $fields['secondary_icd10'][1]];
+        $this->actingAs($physician)->post($draftUrl, [
+            'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+            'expected_version' => 1,
+            'fields' => $reassigned,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $document->refresh();
+        $this->assertEquals($reassigned, $document->fields);
+        $this->assertSame(['R42', 'I10'], array_column($document->fields['secondary_icd10'], 'code'));
+        $this->assertEquals($fields, OutpatientClinicalDocumentVersion::query()->where('version', 1)->sole()->fields);
+
+        $this->actingAs($physician)->post(
+            route('pemeriksaan.rawat-jalan.documents.final', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
+            ['expected_version' => 2],
+        )->assertRedirect()->assertSessionHasNoErrors();
+
+        $document->refresh();
+        $this->assertSame(OutpatientClinicalDocument::STATE_FINAL, $document->document_state);
+        $this->assertEquals($reassigned, $document->fields);
+        $this->assertEquals($reassigned, OutpatientClinicalDocumentVersion::query()->where('version', 3)->sole()->fields);
+        $this->assertDatabaseCount('outpatient_clinical_document_versions', 3);
+    }
+
+    public function test_duplicate_secondary_diagnoses_are_rejected_without_writing_a_document(): void
+    {
+        $physician = $this->actor(RoleCapabilityMatrix::ROLE_PHYSICIAN);
+        $encounter = $this->encounter($physician);
+        $fields = $this->codedFields();
+        $fields['secondary_icd10'][] = $fields['secondary_icd10'][0];
+
+        $this->actingAs($physician)->post(
+            route('pemeriksaan.rawat-jalan.documents.draft', [$encounter, OutpatientClinicalDocument::TYPE_MEDICAL_ASSESSMENT]),
+            [
+                'definition_version' => OutpatientClinicalDocument::DEFINITION_VERSION,
+                'expected_version' => 0,
+                'fields' => $fields,
+            ],
+        )->assertStatus(422);
 
         $this->assertDatabaseCount('outpatient_clinical_documents', 0);
         $this->assertDatabaseCount('outpatient_clinical_document_versions', 0);
@@ -178,6 +243,7 @@ final class OutpatientStructuredCodingValidationTest extends TestCase
                 $display = match ($code) {
                     'R42' => 'Dizziness and giddiness',
                     'H81.1' => 'Benign paroxysmal vertigo',
+                    'I10' => 'Essential (primary) hypertension',
                     default => null,
                 };
 
