@@ -20,7 +20,7 @@
 <!-- List automated and manual checks. Add screenshots for visible changes. -->
 
 - [ ] SQLite/backend checks
-- [ ] Real-MySQL or MySQL 8.4 check
+- [ ] PostgreSQL 17 integration checks using the private `laravel` schema (Supabase deployment target)
 - [ ] React/TypeScript/accessibility checks
 - [ ] Formatting, static analysis, production build, and Markdown checks
 - [ ] Remaining manual limitations are stated without converting them into passes
