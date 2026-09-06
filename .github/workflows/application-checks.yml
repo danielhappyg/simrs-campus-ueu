@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - rebuild/clean-slate
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -105,6 +106,7 @@ jobs:
   # coverage aligned with its private laravel schema.
   postgres-integration:
     name: PostgreSQL 17 laravel-schema integration
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -186,8 +188,8 @@ jobs:
     needs:
       - quality
       - postgres-integration
-    # Build release artifacts only for the canonical mainline; PRs retain all quality and integration gates.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Build release artifacts only when explicitly requested on main.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
